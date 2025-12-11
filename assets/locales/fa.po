@@ -1251,13 +1251,13 @@ msgid "annual_plan"
 msgstr "برنامه سالانه:"
 
 msgid "1_month_each"
-msgstr "+1 ماه eac"
+msgstr ""
 
 msgid "two_year_plan"
 msgstr "برنامه دو ساله:"
 
 msgid "2_month_each"
-msgstr "+2 ماه هر کدام"
+msgstr ""
 
 msgid "referral_code_info"
 msgstr ""
@@ -1319,5 +1319,23 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
+msgid "could_not_open_url"
+msgstr ""
+
 msgid "new_to_lantern_pro"
+msgstr ""
+
+msgid "an_error_occurred"
+msgstr ""
+
+msgid "developer_mode"
+msgstr ""
+
+msgid "developer_mode_note"
+msgstr ""
+
+msgid "invalid_activation_code"
+msgstr ""
+
+msgid "invalid_activation_code_length"
 msgstr ""

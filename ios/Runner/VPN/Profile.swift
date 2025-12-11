@@ -15,12 +15,8 @@ public class Profile {
   /// Loads or creates the NETunnelProviderManager and caches it in-memory.
   /// Subsequent calls return immediately without touching disk.
   func getManager() async -> NETunnelProviderManager? {
-    // 1️⃣ Return from cache if already set
-    if let cached = self.manager {
-      appLogger.log("Using cached VPN manager.")
-      return cached
-    }
-    do {
+  
+      do {
       // 2️⃣ Hit the preferences store just once
       let all = try await NETunnelProviderManager.loadAllFromPreferences()
 

@@ -9,6 +9,7 @@ class AppDelegate: FlutterAppDelegate {
   private let systemExtensionManager = SystemExtensionManager.shared
 
   private let vpnManager = VPNManager.shared
+  private var methodHandler: MethodHandler?
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     return false
@@ -80,7 +81,7 @@ class AppDelegate: FlutterAppDelegate {
       name: "org.getlantern.lantern/method",
       binaryMessenger: controller.engine.binaryMessenger
     )
-    MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+    methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
   }
 
   /// Calls API handler setup

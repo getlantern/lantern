@@ -17,7 +17,6 @@ on:
 
 concurrency:
   group: nightly
-  cancel-in-progress: true
 
 env:
   BUILD_TYPE: nightly
@@ -34,6 +33,7 @@ jobs:
       run_macos: ${{ steps.platforms.outputs.run_macos }}
       run_windows: ${{ steps.platforms.outputs.run_windows }}
       run_android: ${{ steps.platforms.outputs.run_android }}
+      run_ios: ${{ steps.platforms.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
 
@@ -90,6 +90,7 @@ jobs:
           echo "run_macos=$(want macos)"     >> "$GITHUB_OUTPUT"
           echo "run_windows=$(want windows)" >> "$GITHUB_OUTPUT"
           echo "run_android=$(want android)" >> "$GITHUB_OUTPUT"
+          echo "run_ios=$(want ios)"         >> "$GITHUB_OUTPUT"
 
       - name: Update pubspec.yaml (build number only)
         shell: bash
@@ -147,6 +148,16 @@ jobs:
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
+  build-ios:
+    needs: set-nightly-metadata
+    if: ${{ needs.set-nightly-metadata.outputs.run_ios == 'true' }}
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
   publish:
     needs:
       [
@@ -155,29 +166,62 @@ jobs:
         build-windows,
         build-linux,
         build-android,
+        build-ios,
       ]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     env:
       INSTALLER_NAME: ${{ needs.set-nightly-metadata.outputs.installer_name }}
       BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      RUN_MACOS: ${{ needs.set-nightly-metadata.outputs.run_macos }}
+      RUN_WINDOWS: ${{ needs.set-nightly-metadata.outputs.run_windows }}
+      RUN_ANDROID: ${{ needs.set-nightly-metadata.outputs.run_android }}
+      RUN_LINUX: ${{ needs.set-nightly-metadata.outputs.run_linux }}
+      RUN_IOS: ${{ needs.set-nightly-metadata.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+
       - name: Upload to S3 (nightly + latest)
         run: |
           sha="$(git rev-parse --short HEAD)"
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read || true
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read || true
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read || true
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read || true
 
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read || true
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read || true
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read || true
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+          if [[ "$RUN_MACOS" == "true" ]]; then
+            aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" \
+              "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read
+            aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" \
+              "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read
+          fi
+
+          if [[ "$RUN_WINDOWS" == "true" ]]; then
+            aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" \
+              "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read
+            aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" \
+              "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read
+          fi
+
+          if [[ "$RUN_ANDROID" == "true" ]]; then
+            aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" \
+              "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read
+            aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" \
+              "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read
+          fi
+
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            if [[ -f "lantern-installer-deb/${INSTALLER_NAME}.deb" ]]; then
+              aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" \
+                "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read
+              aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" \
+                "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read
+            fi
+
+            if [[ -f "lantern-installer-rpm/${INSTALLER_NAME}.rpm" ]]; then
+              aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" \
+                "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read
+              aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" \
+                "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read
+            fi
+          fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -187,12 +231,45 @@ jobs:
           sha="$(git rev-parse --short HEAD)"
           {
             echo "## Nightly links (commit \`$sha\`)"
-            echo "- macOS:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
-            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
-            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
-            echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
-            echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+            if [[ "$RUN_MACOS" == "true" ]]; then
+              echo "- macOS:     https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
+            fi
+            if [[ "$RUN_WINDOWS" == "true" ]]; then
+              echo "- Windows:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
+            fi
+            if [[ "$RUN_ANDROID" == "true" ]]; then
+              echo "- Android:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
+            fi
+            if [[ "$RUN_LINUX" == "true" ]]; then
+              echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
+              echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build Slack message
+        id: slack_msg
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+          text="Lantern nightly '${{ needs.set-nightly-metadata.outputs.version }}' is ready.\n*Downloads:*"
+
+          if [[ "$RUN_MACOS" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg|macOS>"
+          fi
+          if [[ "$RUN_WINDOWS" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe|Windows>"
+          fi
+          if [[ "$RUN_ANDROID" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk|Android>"
+          fi
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb|Linux (.deb)>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          fi
+
+          # Expose as output
+          echo "text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$text"   >> "$GITHUB_OUTPUT"
+          echo "EOF"     >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -201,5 +278,5 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern nightly `${{ needs.set-nightly-metadata.outputs.version }}` is ready.\n*Downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
+              "text": "${{ steps.slack_msg.outputs.text }}"
             }

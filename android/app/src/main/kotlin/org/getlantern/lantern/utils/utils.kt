@@ -3,7 +3,6 @@ package org.getlantern.lantern.utils
 import android.content.Context
 import android.net.IpPrefix
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.RoutePrefix
 import org.getlantern.lantern.LanternApp
@@ -45,7 +44,7 @@ fun initConfigDir(): String {
     if (!success) {
         throw Exception("Failed to create config directory")
     }
-    Log.d("Paths", "Created config directory ${dir.absolutePath}")
+    AppLogger.d("Paths", "Created config directory ${dir.absolutePath}")
     return dir.absolutePath
 }
 
@@ -63,7 +62,7 @@ fun logDir(): String {
     if (!success) {
         throw Exception("Failed to create logs directory")
     }
-    Log.d("Paths", "Created config directory ${dir.absolutePath}")
+    AppLogger.d("Paths", "Created config directory ${dir.absolutePath}")
     return dir.absolutePath
 }
 

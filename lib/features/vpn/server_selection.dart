@@ -37,15 +37,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   @override
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationProvider);
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(isUserProProvider);
     _textTheme = Theme.of(context).textTheme;
     final isPrivateServerFound = storage.getPrivateServer().isNotEmpty;
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
-        title: Text(
-          'server_selection'.i18n,
-        ),
+        title: Text('server_selection'.i18n),
         actions: [
           IconButton(
             icon: Icon(Icons.more_vert),
@@ -300,6 +298,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               },
             ),
             DividerSpace(padding: EdgeInsets.zero),
+            if(storage.getPrivateServer().isNotEmpty)
             AppTile(
               label: 'manage_private_servers'.i18n,
               onPressed: () {

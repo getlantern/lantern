@@ -1160,13 +1160,13 @@ msgid "annual_plan"
 msgstr "年度計劃："
 
 msgid "1_month_each"
-msgstr "+1 個月 eac"
+msgstr ""
 
 msgid "two_year_plan"
 msgstr "兩年計劃："
 
 msgid "2_month_each"
-msgstr "+2 個月"
+msgstr ""
 
 msgid "referral_code_info"
 msgstr "尚未成為 Lantern Pro 用戶？當您的第一位推薦人訂閱時，您將成為用戶。"
@@ -1225,5 +1225,23 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
+msgid "could_not_open_url"
+msgstr ""
+
 msgid "new_to_lantern_pro"
+msgstr ""
+
+msgid "an_error_occurred"
+msgstr ""
+
+msgid "developer_mode"
+msgstr ""
+
+msgid "developer_mode_note"
+msgstr ""
+
+msgid "invalid_activation_code"
+msgstr ""
+
+msgid "invalid_activation_code_length"
 msgstr ""

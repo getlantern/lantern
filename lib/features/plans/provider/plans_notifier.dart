@@ -56,6 +56,7 @@ class PlansNotifier extends _$PlansNotifier {
         throw Exception('Plans fetch failed');
       },
       (remote) async {
+        appLogger.info('Successfully fetched plans from API ${remote.toJson()}');
         return remote;
       },
     );
@@ -66,6 +67,7 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   Future<void> _refreshInBackground() async {
+    appLogger.info('Refreshing plans in background');
     final remotePlans = await fetchPlans(fromBackground: true);
     await _storePlansLocally(remotePlans);
     state = AsyncData(remotePlans);

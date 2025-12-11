@@ -2,7 +2,6 @@ package org.getlantern.lantern.utils
 
 import android.content.IntentFilter
 import android.os.PowerManager
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import org.getlantern.lantern.LanternApp
@@ -19,7 +18,6 @@ object VpnStatusManager {
     private var vpnReceiver: VPNStatusReceiver? = null
 
     fun postVPNStatus(status: VPNStatus) {
-        Log.d("VPNStatus", "Posting VPN status: $status")
         vpnStatus.postValue(Event(status))
     }
 
@@ -29,9 +27,10 @@ object VpnStatusManager {
 
     }
 
-    fun registerVPNStatusReceiver(service: LanternVpnService) {
+    fun registerVPNStatusReceiver() {
+        AppLogger.d("VpnStatusManager", "Registering VPN Status Receiver")
         if (vpnReceiver != null) return
-        vpnReceiver = VPNStatusReceiver(service)
+        vpnReceiver = VPNStatusReceiver()
         ContextCompat.registerReceiver(
             LanternApp.application,
             vpnReceiver,
@@ -49,7 +48,7 @@ object VpnStatusManager {
             try {
                 LanternApp.application.unregisterReceiver(it)
             } catch (e: IllegalArgumentException) {
-                Log.e("VpnStatusManager", "Receiver not registered", e)
+                AppLogger.e("VpnStatusManager", "Receiver not registered", e)
             }
         }
         vpnReceiver = null

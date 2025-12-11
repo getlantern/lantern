@@ -37,9 +37,14 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
     case "PrivateServer":
-      let serverName = options?["netEx.ServerName"] as? String
-      let location = options?["netEx.Location"] as? String
-      connectToServer(location: location!, serverName: serverName!)
+      guard
+        let serverName = options?["netEx.ServerName"] as? String,
+        let location = options?["netEx.Location"] as? String
+      else {
+        writeFatalError("Missing netEx.ServerName or netEx.Location")
+        return
+      }
+      connectToServer(location: location, serverName: serverName)
     default:
       // Fallback or unknown type
       appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")

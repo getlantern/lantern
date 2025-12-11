@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
+import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
@@ -19,6 +19,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -36,7 +37,7 @@ class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {
-        private const val TAG = "VpnService"
+        private const val TAG = "LanternVpnService"
         private const val sessionName = "LanternVpn"
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
@@ -64,15 +65,16 @@ class LanternVpnService :
         instance = this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
-            VpnStatusManager.registerVPNStatusReceiver(this)
+            VpnStatusManager.registerVPNStatusReceiver()
             MainActivity.receiverRegistered = true
         }
-
+        AppLogger.d(TAG, "Received action: $action")
         return when (action) {
             ACTION_START_RADIANCE -> {
                 serviceScope.launch {
                     startRadiance()
                 }
+                AppLogger.d(TAG, "Started Radiance")
                 START_NOT_STICKY
             }
 
@@ -80,6 +82,7 @@ class LanternVpnService :
                 serviceScope.launch {
                     startVPN()
                 }
+                AppLogger.d(TAG, "Started VPN")
                 START_STICKY
             }
 
@@ -90,6 +93,7 @@ class LanternVpnService :
                         intent.getStringExtra("tag") ?: "",
                     )
                 }
+                AppLogger.d(TAG, "Connecting to server")
                 START_STICKY
             }
 
@@ -101,23 +105,20 @@ class LanternVpnService :
                     startVPN()
                     notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                 }
-                START_STICKY // Return START_STICKY for ACTION_TILE_START
+                AppLogger.d(TAG, "Tile triggered VPN start")
+                START_STICKY
             }
 
             ACTION_STOP_VPN -> {
+                AppLogger.d(TAG, "Received ACTION_STOP_VPN")
                 serviceScope.launch {
                     doStopVPN()
                 }
                 START_NOT_STICKY
             }
 
-            else -> START_STICKY
+            else -> START_NOT_STICKY
         }
-    }
-
-    override fun onRevoke() {
-        super.onRevoke()
-        destroy()
     }
 
     override fun onDestroy() {
@@ -146,8 +147,21 @@ class LanternVpnService :
         notificationHelper.sendNotification(notification)
     }
 
+    override fun systemCertificates(): StringIterator {
+        //return empty iterator as we are not using system certificates
+        return object : StringIterator {
+            override fun hasNext(): Boolean = false
+            override fun len(): Int {
+                return 0
+            }
+
+            override fun next(): String = ""
+        }
+
+    }
+
     override fun writeLog(p0: String?) {
-        Log.d(TAG, "writeLog: $p0")
+        AppLogger.d(TAG, "writeLog: $p0")
     }
 
     private suspend fun startRadiance() {
@@ -155,9 +169,9 @@ class LanternVpnService :
             withContext(Dispatchers.IO) {
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
-            Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
+            AppLogger.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
-            Log.e(TAG, "Error in Radiance setup", e)
+            AppLogger.e(TAG, "Error in Radiance setup", e)
         }
     }
 
@@ -177,14 +191,14 @@ class LanternVpnService :
             runCatching {
                 DefaultNetworkMonitor.start()
                 Mobile.startVPN(this@LanternVpnService, opts())
-                Log.d(TAG, "VPN service started")
+                AppLogger.d(TAG, "VPN service started")
                 VpnStatusManager.postVPNStatus(VPNStatus.Connected)
                 notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
                 }
             }.onFailure { e ->
-                Log.e(TAG, "Error starting VPN service", e)
+                AppLogger.e(TAG, "Error starting VPN service", e)
                 VpnStatusManager.postVPNError(
                     errorCode = "start_vpn",
                     errorMessage = "Error starting VPN service",
@@ -203,17 +217,24 @@ class LanternVpnService :
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
+        /** As soon user tries to start VPN, we show a notification that VPN is starting
+         * This is required by OS to have foreground notification as soon as VPN service starts
+         * This notification will be replaced by connected notification once VPN is connected
+         * This is to prevent crashing in case vpn is failed to start
+         */
+        notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+
         runCatching {
             DefaultNetworkMonitor.start()
             Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
-            Log.d(TAG, "Connected to server")
+            AppLogger.d(TAG, "Connected to server")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }
         }.onFailure { e ->
-            Log.e(TAG, "error while connectToServer ", e)
+            AppLogger.e(TAG, "error while connectToServer ", e)
             VpnStatusManager.postVPNError(
                 errorCode = "connect_to_server",
                 errorMessage = "Error connecting to server",
@@ -223,18 +244,17 @@ class LanternVpnService :
     }
 
     fun doStopVPN() {
-        Log.d("LanternVpnService", "doStopVPN")
+        AppLogger.d(TAG, "doStopVPN")
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
-
         serviceScope.launch {
             try {
                 mInterface?.close()
                 mInterface = null
                 runCatching { Mobile.stopVPN() }
-                    .onFailure { e -> Log.e(TAG, "Mobile.stopVPN() failed", e) }
+                    .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
                 runCatching { DefaultNetworkMonitor.stop() }
-                    .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
+                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
                 notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
@@ -242,7 +262,7 @@ class LanternVpnService :
                 VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 serviceCleanUp()
             } catch (e: Exception) {
-                Log.e(TAG, "Error stopping VPN service", e)
+                AppLogger.e(TAG, "Error stopping VPN service", e)
                 VpnStatusManager.postVPNError(
                     error = e,
                     errorCode = "stop_vpn",
@@ -253,17 +273,19 @@ class LanternVpnService :
     }
 
     private fun destroy() {
+        AppLogger.d(TAG, "destroying LanternVpnService")
         doStopVPN()
         serviceCleanUp()
-    }
-
-    private fun serviceCleanUp() {
-        VpnStatusManager.unregisterVPNStatusReceiver(this)
-        MainActivity.receiverRegistered = false
         stopSelf()
     }
 
-    private fun createVPNBuilder(options: TunOptions): VpnService.Builder {
+    private fun serviceCleanUp() {
+        AppLogger.d(TAG, "Cleaning up service")
+        VpnStatusManager.unregisterVPNStatusReceiver(this)
+        MainActivity.receiverRegistered = false
+    }
+
+    private fun createVPNBuilder(options: TunOptions): Builder {
         val builder = Builder().setSession(sessionName).setMtu(options.mtu)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
