@@ -1191,7 +1191,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
-      appLogger.error('error while getting auto location', e, stackTrace);
+      appLogger.error('Error while getting auto location', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1270,7 +1270,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error starting change email', e, stackTrace);
+      appLogger.error('Error while updating local', e, stackTrace);
       return Left(e.toFailure());
     }
   }
