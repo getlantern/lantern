@@ -26,7 +26,6 @@ Censorship circumvention tool available for free download on any operating syste
 
 ```
 make macos
-make ffigen
 flutter run -d macos
 ```
 
