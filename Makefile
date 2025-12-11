@@ -425,7 +425,7 @@ android-release: clean android pubget gen android-apk-release
 # iOS Build
 .PHONY: install-ios-deps
 
-install-ios-deps:
+install-ios-deps: install-gomobile
 	npm install -g appdmg
 	dart pub global activate flutter_distributor
 
@@ -463,8 +463,8 @@ format:
 	@echo "Formatting Swift code..."
 	$(MAKE) swift-format
 
-ios-release: clean pubget
-	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
+ios-release: clean pubget ios
+	flutter build ipa --release --export-options-plist ./ExportOptions.plist
 	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
 	echo "iOS IPA generated under: $$IPA_PATH"; \
 	open "$$IPA_PATH"
