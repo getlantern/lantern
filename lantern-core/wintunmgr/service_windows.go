@@ -28,16 +28,6 @@ import (
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
 
-type Status string
-
-const (
-	StatusConnecting    Status = "Connecting"
-	StatusConnected     Status = "Connected"
-	StatusDisconnecting Status = "Disconnecting"
-	StatusDisconnected  Status = "Disconnected"
-	StatusError         Status = "Error"
-)
-
 type ServiceOptions struct {
 	PipeName  string
 	DataDir   string
@@ -173,7 +163,12 @@ func (s *Service) Start(ctx context.Context) error {
 
 func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder) {
 	sub := events.Subscribe(func(evt ripc.StatusUpdateEvent) {
-		enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix(), Error: evt.Error.Error()})
+		slog.Debug("Sending status event", "state", evt.Status.String(), "error", evt.Error)
+		if evt.Error != nil {
+			enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix(), Error: evt.Error.Error()})
+		} else {
+			enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
+		}
 	})
 
 	// Unsubscribe when context is done
@@ -270,10 +265,9 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 					}
 					lines = append(lines, ln)
 				}
-				// Send new lines to client (serialized)
+				// Send new lines to client
 				if len(lines) > 0 {
 					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
-
 				}
 			}
 		}
@@ -283,9 +277,6 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID string) {
 	dec := json.NewDecoder(c)
 	enc := json.NewEncoder(c)
-
-	// writer mutex to serialize writes to this connection/encoder
-	wmu := &sync.Mutex{}
 
 	done := make(chan struct{})
 	defer func() {
@@ -306,9 +297,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		cmd := string(req.Cmd)
 
 		if req.Token != token {
-			wmu.Lock()
 			_ = enc.Encode(rpcErr(req.ID, "unauthorized", "bad token"))
-			wmu.Unlock()
 			continue
 		}
 		if req.Cmd == common.CmdWatchStatus {
@@ -328,10 +317,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		} else {
 			slog.Debug("cmd ok", "conn_id", connID, "req_id", reqID, "cmd", cmd, "elapsed_ms", elapsed)
 		}
-		// Serialize response write
-		wmu.Lock()
 		_ = enc.Encode(resp)
-		wmu.Unlock()
 	}
 }
 

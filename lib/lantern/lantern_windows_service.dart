@@ -84,7 +84,6 @@ class LanternServiceWindows {
 
   Stream<LanternStatus> watchVPNStatus() {
     _statusPipe ??= PipeClient(token: _rpcPipe.token);
-
     return _statusPipe!.watchStatus().map((evt) {
       final data = evt;
       final raw = data['state'] as String? ?? 'Disconnected';
