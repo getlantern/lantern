@@ -6,7 +6,6 @@ class ServerLocationEntity {
   @Id(assignable: false)
   int id = 0;
   final bool autoSelect;
-  //final String serverLocation;
   final String serverName;
   final String serverType;
   final String countryCode;
