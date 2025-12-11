@@ -235,6 +235,8 @@ github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b h1:iyEuk8ARQC9Hf
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b/go.mod h1:ZJ+yDaZkJ/JU9j7EQa3UUh6ouedrNDDLA5OiowS1Iuk=
 github.com/getlantern/kindling v0.0.0-20251203201459-d8a38e5f1f1c h1:UOSuIgRRXLDK6CmLGhJPDDthqneX/eDUw+O+aiqhuhQ=
 github.com/getlantern/kindling v0.0.0-20251203201459-d8a38e5f1f1c/go.mod h1:2pp6wPmzKsqLycAbj0GlrQn2OR3Un7+VycD88EAoVrQ=
+github.com/getlantern/kindling v0.0.0-20251211164107-1492ca4395db h1:+FFiKI14b0zaPdYFEm4w+nlqk+DqQHZDSy6J/gC3IUM=
+github.com/getlantern/kindling v0.0.0-20251211164107-1492ca4395db/go.mod h1:2pp6wPmzKsqLycAbj0GlrQn2OR3Un7+VycD88EAoVrQ=
 github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382 h1:bEKwg1NjysB+ukJLylBqlHgznpm3syM+6Dyr/Cm27iE=
 github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382/go.mod h1:PjERabias2IHsZHNkC3XAUaqbvBFHdWMzyHtxO9SAAE=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9 h1:6seyD2f9tz2am0YQd/Qn+q7LFiiQgnmxgwWFnVceGZw=
@@ -261,6 +263,8 @@ github.com/getlantern/radiance v0.0.0-20251210192807-d8ce908d8d6f h1:Orcam09ayVi
 github.com/getlantern/radiance v0.0.0-20251210192807-d8ce908d8d6f/go.mod h1:6KA9USbrdjDOGOzRop6FuKOtLmlY7MIJveoBoVvoD3w=
 github.com/getlantern/radiance v0.0.0-20251211124447-5dfc62593dc8 h1:0e8tnGjVUe3opBrVKJ6YmXrxKI7TejsLHddPfM9QUoE=
 github.com/getlantern/radiance v0.0.0-20251211124447-5dfc62593dc8/go.mod h1:6KA9USbrdjDOGOzRop6FuKOtLmlY7MIJveoBoVvoD3w=
+github.com/getlantern/radiance v0.0.0-20251211173625-2cad76ba10c0 h1:LfnZcoo9lLB6O9InQl5GITRk53H2eVD7IfAbnEa+/Rc=
+github.com/getlantern/radiance v0.0.0-20251211173625-2cad76ba10c0/go.mod h1:QktW97dh1xzz4BxjpcX8dbVIcu9VKb/736HXhzuMd/U=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692 h1:pK9igrNx0ipBe6xGDgwVnob3JCFwOp2bmEizwanDVk4=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-minimal v1.12.13-0.20251205011046-be268b083378 h1:qUUykWom/NFUfQhEVNJ7SsKXYTDP27nTCEoqY78FtOA=
