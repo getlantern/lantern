@@ -145,7 +145,7 @@ class _HomeState extends ConsumerState<Home>
               },
               SizedBox(height: 8),
               _buildSetting(ref),
-              SizedBox(height: 20.h),
+              SizedBox(height: 10.h),
             ],
           ),
         ],

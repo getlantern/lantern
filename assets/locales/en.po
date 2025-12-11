@@ -1251,3 +1251,6 @@ msgstr "Invalid activation code. Please check the code and try again."
 
 msgid "invalid_activation_code_length"
 msgstr "Activation code must be 25 characters long."
+
+msgid "error_while_vpn_connection"
+msgstr "An error occurred while establishing the VPN connection. Please try again."

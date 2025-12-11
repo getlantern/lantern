@@ -11,7 +11,7 @@ import '../common/common.dart';
 
 class LanternStatus {
   final VPNStatus status;
-  final Error? error;
+  final String? error;
 
   factory LanternStatus.fromJson(Map<String, dynamic> json) {
     appLogger.info('LanternStatus.fromJson $json');
@@ -35,6 +35,7 @@ class LanternStatus {
     }
     return LanternStatus(
       status: status,
+      error: json['error'],
     );
   }
 

@@ -6,13 +6,15 @@ Future<void> configureDesktopWindow() async {
 
   await windowManager.ensureInitialized();
 
-  final opts = const WindowOptions(
+  final opts =  WindowOptions(
     size: desktopWindowSize,
     minimumSize: desktopWindowSize,
     maximumSize: desktopWindowSize,
     center: true,
     titleBarStyle: TitleBarStyle.normal,
+    title: PlatformUtils.isWindows? 'Lantern' : null,
   );
+
 
   await windowManager.setResizable(false);
   await windowManager.setPreventClose(true);

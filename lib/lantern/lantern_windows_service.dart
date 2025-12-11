@@ -10,12 +10,10 @@ class LanternServiceWindows {
   LanternServiceWindows(this._rpcPipe);
 
   final PipeClient _rpcPipe;
+
   // dedicated streaming pipes
   PipeClient? _statusPipe;
   PipeClient? _logsPipe;
-
-  StreamSubscription<Map<String, dynamic>>? _statusSub;
-  final _statusCtrl = StreamController<LanternStatus>.broadcast();
 
   Future<void> init() async {
     try {
@@ -28,18 +26,7 @@ class LanternServiceWindows {
     }
     try {
       _statusPipe = PipeClient(token: _rpcPipe.token);
-      final stream = _statusPipe!.watchStatus();
       appLogger.info('[WS] watchStatus() stream created');
-
-      _statusSub = stream.listen((evt) {
-        final raw = (evt['state'] as String?) ?? 'Disconnected';
-        final state = raw.toLowerCase();
-        _statusCtrl.add(LanternStatus.fromJson({'status': state}));
-      }, onError: (err, st) {
-        appLogger.error('[WS] Status stream error', err, st);
-      }, onDone: () {
-        appLogger.info('[WS] Status stream completed');
-      });
     } catch (e, st) {
       appLogger.error('[WS] watchStatus() setup failed', e, st);
       rethrow;
@@ -47,10 +34,8 @@ class LanternServiceWindows {
   }
 
   Future<void> dispose() async {
-    await _statusSub?.cancel();
     await _statusPipe?.close();
     await _rpcPipe.close();
-    await _statusCtrl.close();
   }
 
   Future<Either<Failure, String>> connect() async {
@@ -58,6 +43,7 @@ class LanternServiceWindows {
       await _rpcPipe.call(ServiceCommand.startTunnel.wire);
       return right('ok');
     } catch (e) {
+      appLogger.error('[WS] connect() failed', e);
       return Left(e.toFailure());
     }
   }
@@ -80,6 +66,8 @@ class LanternServiceWindows {
       });
       return right('ok');
     } catch (e) {
+      appLogger.error(
+          '[WS] connectToServer() failed for location=$location, tag=$tag', e);
       return Left(e.toFailure());
     }
   }
@@ -88,17 +76,24 @@ class LanternServiceWindows {
     try {
       final res = await _rpcPipe.call(ServiceCommand.isVPNRunning.wire);
       final running = (res['running'] as bool?) ?? false;
-      _statusCtrl.add(
-        LanternStatus.fromJson(
-            {'status': running ? 'connected' : 'disconnected'}),
-      );
       return right(running);
     } catch (e) {
       return Left(e.toFailure());
     }
   }
 
-  Stream<LanternStatus> watchVPNStatus() => _statusCtrl.stream;
+  Stream<LanternStatus> watchVPNStatus() {
+    _statusPipe ??= PipeClient(token: _rpcPipe.token);
+    return _statusPipe!.watchStatus().map((evt) {
+      final data = evt;
+      final raw = data['state'] as String? ?? 'Disconnected';
+      final error = data['error'];
+      return LanternStatus.fromJson(
+          {'status': raw.toLowerCase(), 'error': error});
+    }).handleError((error, st) {
+      appLogger.error('[WS] watchStatus() stream error', error, st);
+    });
+  }
 
   Stream<List<String>> watchLogs() {
     _logsPipe ??= PipeClient(token: _rpcPipe.token);

@@ -4,19 +4,11 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
+
 import 'package:lantern/core/common/common.dart';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
-
-typedef _WaitNamedPipeWNative = Int32 Function(
-    Pointer<Utf16> lpName, Uint32 timeoutMs);
-typedef _WaitNamedPipeWDart = int Function(
-    Pointer<Utf16> lpName, int timeoutMs);
-
-final DynamicLibrary _kernel32 = DynamicLibrary.open('kernel32.dll');
-final _WaitNamedPipeWDart _WaitNamedPipeW =
-    _kernel32.lookupFunction<_WaitNamedPipeWNative, _WaitNamedPipeWDart>(
-        'WaitNamedPipeW');
+import 'package:win32/win32.dart';
 
 class PipeClient {
   PipeClient({
