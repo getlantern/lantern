@@ -90,7 +90,7 @@ class LanternServiceWindows {
       final running = (res['running'] as bool?) ?? false;
       _statusCtrl.add(
         LanternStatus.fromJson(
-            {'status': running ? 'Connected' : 'Disconnected'}),
+            {'status': running ? 'connected' : 'disconnected'}),
       );
       return right(running);
     } catch (e) {
