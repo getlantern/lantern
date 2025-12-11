@@ -1,10 +1,14 @@
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/utils/country_utils.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class ServerLocationEntity {
   @Id(assignable: false)
   int id = 0;
+
   final bool autoSelect;
   final String serverName;
   final String serverType;
@@ -16,18 +20,61 @@ class ServerLocationEntity {
 
   ServerLocationEntity({
     required this.autoSelect,
-    required this.countryCode,
-    required this.country,
-    required this.city,
-    required this.displayName,
     required this.serverName,
     required this.serverType,
+    String? countryCode,
+    String? country,
+    String? city,
+    String? displayName,
     AutoLocationEntity? autoLocation,
-  }) : autoLocation = autoLocation ??
+  })  : country = country ?? '',
+        city = city ?? '',
+        countryCode = countryCode ?? '',
+        displayName = displayName ?? _buildDisplayName(country, city),
+        autoLocation = autoLocation ??
             AutoLocationEntity(
               serverLocation: 'fastest_server'.i18n,
               serverName: '',
             );
+
+  static String _buildDisplayName(String? country, String? city) {
+    final c = country?.trim() ?? '';
+    final t = city?.trim() ?? '';
+
+    if (c.isEmpty && t.isEmpty) return '';
+    if (c.isEmpty) return t;
+    if (t.isEmpty) return c;
+    return '$c - $t';
+  }
+
+  factory ServerLocationEntity.lanternLocation({
+    required Location_ server,
+    bool autoSelect = false,
+  }) {
+    return ServerLocationEntity(
+      autoSelect: autoSelect,
+      serverName: server.tag,
+      serverType: ServerLocationType.lanternLocation.name,
+      country: server.country,
+      city: server.city,
+      countryCode: CountryUtils.getCountryCode(server.country),
+    );
+  }
+
+  factory ServerLocationEntity.privateServer({
+    required PrivateServerEntity privateServer,
+    bool autoSelect = false,
+  }) {
+    return ServerLocationEntity(
+      autoSelect: autoSelect,
+      serverName: privateServer.serverName,
+      serverType: ServerLocationType.privateServer.name,
+      countryCode: privateServer.serverCountryCode,
+      country: '',
+      city: privateServer.serverLocationName,
+      displayName: privateServer.serverLocationName,
+    );
+  }
 }
 
 @Entity()

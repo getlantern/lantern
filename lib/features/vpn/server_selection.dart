@@ -448,14 +448,9 @@ class _ServerLocationListViewState
         final vpnStatus = ref.read(vpnProvider);
         if (vpnStatus == VPNStatus.connected) {
           ///User is already connected, just update the server location
-          final serverLocation = ServerLocationEntity(
-            serverType: ServerLocationType.lanternLocation.name,
-            serverName: selectedServer.tag,
+          final serverLocation = ServerLocationEntity.lanternLocation(
+            server: selectedServer,
             autoSelect: false,
-            displayName: "${selectedServer.country} - ${selectedServer.city}",
-            city: selectedServer.city,
-            country: selectedServer.country,
-            countryCode: CountryUtils.getCountryCode(selectedServer.country),
           );
           await ref
               .read(serverLocationProvider.notifier)
@@ -469,16 +464,9 @@ class _ServerLocationListViewState
           (previous, next) async {
             if (next is AsyncData<LanternStatus> &&
                 next.value.status == VPNStatus.connected) {
-              final serverLocation = ServerLocationEntity(
-                serverType: ServerLocationType.lanternLocation.name,
-                serverName: selectedServer.tag,
+              final serverLocation = ServerLocationEntity.lanternLocation(
+                server: selectedServer,
                 autoSelect: false,
-                city: selectedServer.city,
-                displayName:
-                    '${selectedServer.country} - ${selectedServer.city}',
-                country: selectedServer.country,
-                countryCode:
-                    CountryUtils.getCountryCode(selectedServer.country),
               );
               await ref
                   .read(serverLocationProvider.notifier)
