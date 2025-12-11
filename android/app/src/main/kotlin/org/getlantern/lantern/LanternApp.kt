@@ -9,7 +9,6 @@ import android.os.PowerManager
 import androidx.core.content.getSystemService
 
 
-
 class LanternApp : Application() {
 
     companion object {
@@ -24,6 +23,7 @@ class LanternApp : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         application = this
+
     }
 
 

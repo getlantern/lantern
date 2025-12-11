@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,10 +19,9 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
-import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
-import org.getlantern.lantern.utils.DeviceUtil
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 import org.getlantern.lantern.utils.setupDirs
@@ -33,27 +34,61 @@ class MainActivity : FlutterFragmentActivity() {
         const val VPN_PERMISSION_REQUEST_CODE = 7777
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
         var receiverRegistered: Boolean = false
+        var pendingServiceStart: Boolean = false
+        var isEngineConfigured: Boolean = false
+
+        private var retryCount = 0
+        private val maxRetries = 5
+        private val maxRetriesResume = 5
+        private var retryCountResume = 0
+
+
     }
+
+    private val RETRY_DELAY_MS = 2000L // 2 seconds
+
+    private val serviceStartHandler = Handler(Looper.getMainLooper())
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        if (isEngineConfigured) {
+            Log.d(TAG, "FlutterEngine already configured, skipping")
+            return
+        }
         instance = this
-        Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
         setupDirs()
         Log.d(TAG, "Config directories set up")
+        AppLogger.init(this)
+        AppLogger.d(TAG, "AppLogger initialized")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
-        startService()
+        startLanternService()
+        isEngineConfigured = true
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        super.cleanUpFlutterEngine(flutterEngine)
+        isEngineConfigured = false
     }
 
 
-    private fun startService() {
-        Log.d(TAG, "Starting LanternService")
+    override fun onResume() {
+        super.onResume()
+        // Check if there is a pending service start
+        if (pendingServiceStart && retryCountResume < maxRetriesResume) {
+            retryCountResume++
+            AppLogger.d(TAG, "Retrying pending service start")
+            startLanternService()
+        }
+    }
+
+    private fun startLanternService() {
+        AppLogger.d(TAG, "Starting LanternService")
         if (isServiceRunning(this, LanternVpnService::class.java)) {
-            Log.d(TAG, "LanternService is already running")
+            AppLogger.d(TAG, "LanternService is already running")
             return
         }
         try {
@@ -61,19 +96,49 @@ class MainActivity : FlutterFragmentActivity() {
                 action = LanternVpnService.ACTION_START_RADIANCE
             }
             startService(radianceIntent)
-            Log.d(TAG, "LanternService started")
+            AppLogger.d(TAG, "LanternService started")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume=0
+        } catch (e: IllegalStateException) {
+            AppLogger.e(TAG, "Cannot start service in background: ${e.message}")
+            // App is in background, schedule for when app comes to foreground
+            pendingServiceStart = true
         } catch (e: Exception) {
             e.printStackTrace()
+            AppLogger.e(TAG, "Error starting LanternService", e)
+            // Got some issue starting service, schedule immediate retry
+            handleImmediateRetry()
         }
     }
 
-    fun startVPN() {
-        if (!NotificationHelper.hasPermission()) {
-            askNotificationPermission()
-            return
+    private fun handleImmediateRetry() {
+        AppLogger.d(TAG, "Handling immediate retry for LanternService start")
+        if (retryCount < maxRetries) {
+            retryCount++
+            val delay = RETRY_DELAY_MS * retryCount // Exponential backoff
+
+            AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
+            serviceStartHandler.postDelayed({
+                startLanternService()
+            }, delay)
+        } else {
+            /*
+            * We tried multiple times but failed
+            * In between user screen might go off to background
+            * Will wait user it comes back*/
+
+            AppLogger.e(TAG, "Max retries ($maxRetries) reached. Service start failed.")
+            // Optionally notify user or handle failure
+            // Wait for app to come to foreground
+            pendingServiceStart = true
         }
+    }
+
+
+    fun startVPN() {
         if (!isVPNServiceReady()) {
-            Log.d(TAG, "VPN service not ready")
+            AppLogger.d(TAG, "VPN service not ready")
             return
         }
 
@@ -82,28 +147,24 @@ class MainActivity : FlutterFragmentActivity() {
                 action = LanternVpnService.ACTION_START_VPN
             }
             ContextCompat.startForegroundService(this, vpnIntent)
-            Log.d(TAG, "VPN service started")
+            AppLogger.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "Error starting VPN service", e)
+            AppLogger.e(TAG, "Error starting VPN service", e)
             throw e
         }
     }
 
     fun connectToServer(location: String, tag: String) {
-        if (!NotificationHelper.hasPermission()) {
-            askNotificationPermission()
-            return
-        }
         if (!isVPNServiceReady()) {
-            Log.d(TAG, "VPN service not ready")
+            AppLogger.d(TAG, "VPN service not ready")
             return
         }
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
-        // Do not need to create server again just switch server
+        // Do not need to create service again just switch server
         if (Mobile.isVPNConnected()) {
-            Log.d(TAG, "VPN is already connected, switching server")
+            AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
                 LanternVpnService.instance.connectToServer(location, tag)
             }
@@ -117,10 +178,10 @@ class MainActivity : FlutterFragmentActivity() {
                 putExtra("location", location)
             }
             ContextCompat.startForegroundService(this, vpnIntent)
-            Log.d(TAG, "VPN service started")
+            AppLogger.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "Error starting VPN service", e)
+            AppLogger.e(TAG, "Error starting VPN service", e)
             throw e
         }
     }
@@ -145,7 +206,7 @@ class MainActivity : FlutterFragmentActivity() {
                     QuickTileService.triggerUpdateTileState(this@MainActivity, false)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "stopVPN failed", e)
+                AppLogger.e(TAG, "stopVPN failed", e)
             }
         }
     }
@@ -160,7 +221,7 @@ class MainActivity : FlutterFragmentActivity() {
                 return true;
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error preparing VPN service", e)
+            AppLogger.e(TAG, "Error preparing VPN service", e)
             return false
         }
     }

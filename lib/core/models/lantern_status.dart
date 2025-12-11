@@ -11,11 +11,11 @@ import '../common/common.dart';
 
 class LanternStatus {
   final VPNStatus status;
-  final Error? error;
+  final String? error;
 
   factory LanternStatus.fromJson(Map<String, dynamic> json) {
     appLogger.info('LanternStatus.fromJson $json');
-    VPNStatus status = VPNStatus.disconnected;
+    final VPNStatus status;
     final String statusStr = json['status'].toLowerCase();
     if (statusStr == 'connected') {
       status = VPNStatus.connected;
@@ -29,9 +29,13 @@ class LanternStatus {
       status = VPNStatus.disconnected;
     } else if (statusStr == 'error') {
       status = VPNStatus.error;
+    } else {
+      appLogger.error('Unknown status: $statusStr');
+      status = VPNStatus.disconnected;
     }
     return LanternStatus(
       status: status,
+      error: json['error'],
     );
   }
 

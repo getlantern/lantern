@@ -22,6 +22,8 @@
 
 /* Begin PBXBuildFile section */
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
+		038636162EE69F7D004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
+		0386361F2EE6A026004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */; };
 		03CC8B862E9408BC00EC8D51 /* FlutterEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */; };
@@ -132,6 +134,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		038636152EE69F5D004A11CF /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
 		03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -215,6 +218,7 @@
 			files = (
 				5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */,
 				5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */,
+				038636162EE69F7D004A11CF /* libresolv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +237,7 @@
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
 				5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */,
+				0386361F2EE6A026004A11CF /* libresolv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,6 +391,7 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				038636152EE69F5D004A11CF /* libresolv.tbd */,
 				293C302F2DEF247F00691115 /* Liblantern.xcframework */,
 				3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */,
 				831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */,

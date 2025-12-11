@@ -184,7 +184,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             ///error while subscribing
             appLogger.error('Error subscribing to plan: $error');
             if (error is StripeException) {
-              context.showSnackBar(error.localizedDescription);
+              context.showSnackBar(error.error.localizedMessage??error.localizedDescription);
               return;
             }
             context.showSnackBar(error.toString());

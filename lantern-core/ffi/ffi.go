@@ -557,7 +557,7 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 	code := C.GoString(_code)
 	newPassword := C.GoString(_newPassword)
 	slog.Debug("Completing recovery by email for %s with code %s", email, code)
-	err := core().CompleteChangeEmail(email, newPassword, code)
+	err := core().CompleteRecoveryByEmail(email, newPassword, code)
 	if err != nil {
 		return SendError(fmt.Errorf("%v", err))
 	}

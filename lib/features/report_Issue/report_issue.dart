@@ -172,7 +172,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     final model = deviceInfo.$2;
     String logFilePath = "";
     if (PlatformUtils.isIOS) {
-      /// this should be passed only on IOS since we are usign app groups
+      /// this should be passed only on IOS since we are using app groups
       /// and we don't have app group path on flutter end
       logFilePath = (await AppStorageUtils.flutterLogFile()).path;
     }

@@ -1,6 +1,5 @@
 package org.getlantern.lantern.utils
 
-import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import lantern.io.utils.PrivateServerEventListener
@@ -17,13 +16,13 @@ object PrivateServerEventStream {
 
 class PrivateServerListener : PrivateServerEventListener {
     override fun openBrowser(p0: String?) {
-        Log.d("PrivateServerListener", "Opening browser with URL: $p0")
+        AppLogger.d("PrivateServerListener", "Opening browser with URL: $p0")
         val json = JSONObject(mapOf("status" to "openBrowser", "data" to p0)).toString()
         PrivateServerEventStream.emit(json)
     }
 
     override fun onPrivateServerEvent(p0: String?) {
-        Log.d("PrivateServerListener", "Private server event: $p0")
+        AppLogger.d("PrivateServerListener", "Private server event: $p0")
         PrivateServerEventStream.emit(p0 ?: "")
     }
 

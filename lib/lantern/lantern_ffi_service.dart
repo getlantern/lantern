@@ -13,7 +13,6 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -82,7 +81,6 @@ class LanternFFIService implements LanternCoreService {
   Future<void> init() async {
     try {
       await _setupRadiance();
-
       if (Platform.isWindows) {
         /// Start windows IPC service
         /// keep it alive but we wil use only for VPN calls
@@ -419,6 +417,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
+      appLogger.debug('Starting VPN on Windows via IPC');
       return _windowsService.connect();
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -556,7 +555,19 @@ class LanternFFIService implements LanternCoreService {
       );
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
-      sl<LocalStorageService>().savePlans(plans.toEntity());
+      //Sort plans
+      plans.plans.sort((a, b) {
+        if (a.bestValue != b.bestValue) {
+          return a.bestValue ? -1 : 1;
+        }
+        // Then: sort by usdPrice descending
+        return b.usdPrice.compareTo(a.usdPrice);
+      });
+
+      plans.providers.desktop.sort((a, b) {
+        return (b.providers.supportSubscription ? 1 : 0) -
+            (a.providers.supportSubscription ? 1 : 0);
+      });
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
@@ -1180,7 +1191,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
-      appLogger.error('Error starting change email', e, stackTrace);
+      appLogger.error('Error while getting auto location', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1259,7 +1270,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error starting change email', e, stackTrace);
+      appLogger.error('Error while updating local', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1277,6 +1288,7 @@ void checkAPIError(dynamic result) {
       return;
     }
     if (decoded is Map && decoded.containsKey('error')) {
+      appLogger.error('API Error: ${decoded['error']}');
       throw PlatformException(
         code: decoded['error'].toString(),
         message: decoded['error'].toString(),

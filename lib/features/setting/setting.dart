@@ -46,7 +46,7 @@ class _SettingState extends ConsumerState<Setting> {
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(isUserProProvider);
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,

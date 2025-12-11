@@ -13,7 +13,7 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-EXTRA_LDFLAGS ?=
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.constants.AppVersion=$(VERSION)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -91,7 +91,7 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc,with_conntrack
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_conntrack,with_dhcp,with_acme,with_tailscale
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
@@ -101,7 +101,6 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
-	github.com/getlantern/lantern-box/ruleset \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
@@ -154,6 +153,7 @@ desktop-lib:
 		-tags="$(TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
+	@echo "Built desktop library: $(LIB_NAME)"
 
 # macOS Build
 .PHONY: install-macos-deps
@@ -172,7 +172,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo -trimpath \
+		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0" \
@@ -287,12 +287,12 @@ windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
 .PHONY: build-lanternsvc-windows
 build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
@@ -301,9 +301,10 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -trimpath -tags '$(TAGS)' \
-		-ldflags '$(EXTRA_LDFLAGS)' \
+	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(EXTRA_LDFLAGS)" \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
+	@echo "Built Windows service: $(WINDOWS_SERVICE_BUILD)"
 
 copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD)
 	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
@@ -424,7 +425,7 @@ android-release: clean android pubget gen android-apk-release
 # iOS Build
 .PHONY: install-ios-deps
 
-install-ios-deps:
+install-ios-deps: install-gomobile
 	npm install -g appdmg
 	dart pub global activate flutter_distributor
 
@@ -462,8 +463,8 @@ format:
 	@echo "Formatting Swift code..."
 	$(MAKE) swift-format
 
-ios-release: clean pubget
-	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
+ios-release: clean pubget ios
+	flutter build ipa --release --export-options-plist ./ExportOptions.plist
 	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
 	echo "iOS IPA generated under: $$IPA_PATH"; \
 	open "$$IPA_PATH"
