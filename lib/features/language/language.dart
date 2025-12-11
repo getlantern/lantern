@@ -114,7 +114,6 @@ class LanguageListView extends HookConsumerWidget {
     });
 
     ref.read(appSettingProvider.notifier).setLocale(newLocale.toString());
-
     appRouter.maybePop();
   }
 }

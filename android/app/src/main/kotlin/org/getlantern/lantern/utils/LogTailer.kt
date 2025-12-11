@@ -1,10 +1,18 @@
 package org.getlantern.lantern.utils
 
-import android.util.Log
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
 import java.util.ArrayDeque
+import kotlin.text.Charsets
+import kotlin.text.String
+import kotlin.text.dropLast
+import kotlin.text.endsWith
+import kotlin.text.isNotEmpty
+import kotlin.text.substring
+import kotlin.text.take
+import kotlin.text.toLong
+import kotlin.text.trimEnd
 
 /**LogTailer reads the last 80 lines from a log file efficiently
  * This does not load the entire file into memory, making it suitable for large log files.
@@ -42,7 +50,7 @@ class LogTailer(private val bufferSize: Int = 8192) {
 
                     } catch (e: Exception) {
                         // If anything fails inside the loop, stop reading gracefully
-                        Log.e("LogTailer", "Error reading log file chunk: ${e.message}")
+                        AppLogger.e("LogTailer", "Error reading log file chunk: ${e.message}")
                         break
                     }
                 }
@@ -53,7 +61,7 @@ class LogTailer(private val bufferSize: Int = 8192) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("LogTailer", "Error reading log file: ${e.message}")
+            AppLogger.e("LogTailer", "Error reading log file: ${e.message}")
         }
 
         return lines.toList()

@@ -22,7 +22,7 @@ class VPNSetting extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound =
         ref.read(localStorageProvider).getPrivateServer().isNotEmpty;
     final preferences = ref.read(appSettingProvider);

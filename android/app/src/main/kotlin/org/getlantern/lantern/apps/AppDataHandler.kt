@@ -5,11 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.*
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.EventChannel
 import kotlinx.coroutines.*
@@ -18,9 +14,48 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import java.io.File
-import java.io.FileOutputStream
+import org.getlantern.lantern.utils.AppLogger
 import java.util.Locale
+import kotlin.Any
+import kotlin.Boolean
+import kotlin.Exception
+import kotlin.Int
+import kotlin.Number
+import kotlin.String
+import kotlin.Suppress
+import kotlin.apply
+import kotlin.collections.Map
+import kotlin.collections.distinctBy
+import kotlin.collections.emptyList
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.get
+import kotlin.collections.listOf
+import kotlin.collections.mapNotNull
+import kotlin.collections.mapOf
+import kotlin.collections.minus
+import kotlin.collections.sortedBy
+import kotlin.collections.toMap
+import kotlin.collections.toSet
+import kotlin.getOrDefault
+import kotlin.let
+import kotlin.minus
+import kotlin.onFailure
+import kotlin.runCatching
+import kotlin.sequences.distinctBy
+import kotlin.sequences.filter
+import kotlin.sequences.mapNotNull
+import kotlin.sequences.minus
+import kotlin.sequences.sortedBy
+import kotlin.sequences.toSet
+import kotlin.text.chunked
+import kotlin.text.filter
+import kotlin.text.lowercase
+import kotlin.text.map
+import kotlin.text.mapNotNull
+import kotlin.text.toSet
+import kotlin.to
+import kotlin.toString
 
 internal class AppDataHandler(
     private val appCtx: Context
@@ -45,12 +80,12 @@ internal class AppDataHandler(
                 (arguments["densityDpi"] as? Number)?.toInt()?.let { densityDpi = it }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to parse app stream", e)
+            AppLogger.w(TAG, "Failed to parse app stream", e)
         }
 
         job = packageFlow(sizePx, densityDpi)
             .onEach { payload -> events?.success(payload) }
-            .catch { e -> Log.w(TAG, "app_stream flow error", e) }
+            .catch { e -> AppLogger.w(TAG, "app_stream flow error", e) }
             .launchIn(scope)
     }
 
@@ -122,7 +157,7 @@ internal class AppDataHandler(
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "snapshot build failed", e)
+                AppLogger.w(TAG, "snapshot build failed", e)
             }
         }
 
@@ -162,7 +197,7 @@ internal class AppDataHandler(
                                     }
                                 }
                             } catch (e: Exception) {
-                                Log.w(TAG, "delta emit failed for $pkg", e)
+                                AppLogger.w(TAG, "delta emit failed for $pkg", e)
                             }
                         }
                     }
@@ -181,7 +216,7 @@ internal class AppDataHandler(
 
         awaitClose {
             runCatching { appCtx.unregisterReceiver(receiver) }
-                .onFailure { e -> Log.w(TAG, "unregister app_stream receiver failed", e) }
+                .onFailure { e -> AppLogger.w(TAG, "unregister app_stream receiver failed", e) }
         }
     }
 

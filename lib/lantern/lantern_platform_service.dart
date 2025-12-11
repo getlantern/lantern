@@ -505,8 +505,6 @@ class LanternPlatformService implements LanternCoreService {
               (a.providers.supportSubscription ? 1 : 0);
         });
       }
-
-      appLogger.info('Plans: $plans');
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);
@@ -604,7 +602,7 @@ class LanternPlatformService implements LanternCoreService {
       final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error fetching user data', e, stackTrace);
+      appLogger.error('Error while getUserData user data', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));

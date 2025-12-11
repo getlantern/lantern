@@ -1249,13 +1249,13 @@ msgid "annual_plan"
 msgstr " Yıllık plan:"
 
 msgid "1_month_each"
-msgstr " Her birine +1 ay"
+msgstr ""
 
 msgid "two_year_plan"
 msgstr "İki yıllık plan:"
 
 msgid "2_month_each"
-msgstr " Her birine +2 ay"
+msgstr ""
 
 msgid "referral_code_info"
 msgstr ""
@@ -1318,5 +1318,23 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
+msgid "could_not_open_url"
+msgstr ""
+
 msgid "new_to_lantern_pro"
+msgstr ""
+
+msgid "an_error_occurred"
+msgstr ""
+
+msgid "developer_mode"
+msgstr ""
+
+msgid "developer_mode_note"
+msgstr ""
+
+msgid "invalid_activation_code"
+msgstr ""
+
+msgid "invalid_activation_code_length"
 msgstr ""

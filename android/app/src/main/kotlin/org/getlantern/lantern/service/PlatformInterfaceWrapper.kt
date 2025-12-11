@@ -6,7 +6,6 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Process
 import android.system.OsConstants
-import android.util.Log
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.InterfaceUpdateListener
 import lantern.io.libbox.Libbox
@@ -16,11 +15,34 @@ import lantern.io.libbox.PlatformInterface
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.WIFIState
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.LocalResolver
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
+import kotlin.collections.Iterator
+import kotlin.collections.find
+import kotlin.collections.get
+import kotlin.collections.isNullOrEmpty
+import kotlin.collections.iterator
+import kotlin.collections.mapNotNull
+import kotlin.collections.mapTo
+import kotlin.collections.minus
+import kotlin.collections.mutableListOf
+import kotlin.collections.toList
+import kotlin.io.endsWith
+import kotlin.io.iterator
+import kotlin.io.startsWith
+import kotlin.sequences.iterator
+import kotlin.sequences.mapNotNull
+import kotlin.sequences.minus
+import kotlin.text.endsWith
+import kotlin.text.isNullOrEmpty
+import kotlin.text.iterator
+import kotlin.text.mapNotNull
+import kotlin.text.startsWith
+import kotlin.text.substring
 
 interface PlatformInterfaceWrapper : PlatformInterface {
 
@@ -54,7 +76,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
             return uid
         } catch (e: Exception) {
-            Log.e("PlatformInterface", "getConnectionOwnerUid", e)
+            AppLogger.e("PlatformInterface", "getConnectionOwnerUid", e)
             e.printStackTrace(System.err)
             throw e
         }
@@ -115,7 +137,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             runCatching {
                 boxInterface.mtu = networkInterface.mtu
             }.onFailure {
-                Log.e(
+                AppLogger.e(
                     "PlatformInterface", "failed to get mtu for interface ${boxInterface.name}", it
                 )
             }
