@@ -13,7 +13,6 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -556,7 +555,19 @@ class LanternFFIService implements LanternCoreService {
       );
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
-      sl<LocalStorageService>().savePlans(plans.toEntity());
+      //Sort plans
+      plans.plans.sort((a, b) {
+        if (a.bestValue != b.bestValue) {
+          return a.bestValue ? -1 : 1;
+        }
+        // Then: sort by usdPrice descending
+        return b.usdPrice.compareTo(a.usdPrice);
+      });
+
+      plans.providers.desktop.sort((a, b) {
+        return (b.providers.supportSubscription ? 1 : 0) -
+            (a.providers.supportSubscription ? 1 : 0);
+      });
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
