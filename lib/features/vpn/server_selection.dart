@@ -376,36 +376,40 @@ class _ServerLocationListViewState
 
                   return Stack(
                     children: [
-                      ListView.separated(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.zero,
-                        itemCount: countryEntries.length,
-                        separatorBuilder: (_, __) => const DividerSpace(
+                      ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context)
+                            .copyWith(scrollbars: false),
+                        child: ListView.separated(
+                          shrinkWrap: true,
                           padding: EdgeInsets.zero,
-                        ),
-                        itemBuilder: (context, index) {
-                          final entry = countryEntries[index];
-                          final country = entry.key;
-                          final countryLocations = entry.value;
+                          itemCount: countryEntries.length,
+                          separatorBuilder: (_, __) => const DividerSpace(
+                            padding: EdgeInsets.zero,
+                          ),
+                          itemBuilder: (context, index) {
+                            final entry = countryEntries[index];
+                            final country = entry.key;
+                            final countryLocations = entry.value;
 
-                          if (countryLocations.length == 1) {
-                            final serverData = countryLocations.first;
-                            return ServerMobileView(
-                              key: ValueKey(serverData.tag),
+                            if (countryLocations.length == 1) {
+                              final serverData = countryLocations.first;
+                              return ServerMobileView(
+                                key: ValueKey(serverData.tag),
+                                onServerSelected: onServerSelected,
+                                location: serverData,
+                                isSelected:
+                                    serverLocation.serverName == serverData.tag,
+                              );
+                            }
+
+                            return _CountryServerTile(
+                              country: country,
+                              locations: countryLocations,
+                              selectedServerTag: serverLocation.serverName,
                               onServerSelected: onServerSelected,
-                              location: serverData,
-                              isSelected:
-                                  serverLocation.serverName == serverData.tag,
                             );
-                          }
-
-                          return _CountryServerTile(
-                            country: country,
-                            locations: countryLocations,
-                            selectedServerTag: serverLocation.serverName,
-                            onServerSelected: onServerSelected,
-                          );
-                        },
+                          },
+                        ),
                       ),
                       if (!widget.userPro)
                         Positioned.fill(
@@ -519,8 +523,7 @@ class _CountryServerTileState extends State<_CountryServerTile> {
         child: ExpansionTile(
           enableFeedback: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          childrenPadding: const EdgeInsets.symmetric(vertical: 8),
           leading: Flag(countryCode: countryCode),
           title: Text(
             widget.country,
@@ -537,7 +540,7 @@ class _CountryServerTileState extends State<_CountryServerTile> {
           children: widget.locations.map((loc) {
             final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
-              contentPadding: const EdgeInsets.only(left: 46, right: 16),
+              contentPadding: const EdgeInsets.only(left: 46, right: 14),
               label: '${loc.country} - ${loc.city}',
               tileTextStyle: Theme.of(context)
                   .textTheme
