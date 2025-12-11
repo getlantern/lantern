@@ -9,7 +9,7 @@ import '../../core/common/common.dart';
 
 class ServerMobileView extends StatefulWidget {
   final Location_ location;
-  final OnSeverSelected onServerSelected;
+  final OnServerSelected onServerSelected;
   final bool isSelected;
 
   const ServerMobileView({

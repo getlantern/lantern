@@ -20,7 +20,7 @@ import 'package:lantern/features/vpn/server_mobile_view.dart';
 import '../../core/models/entity/server_location_entity.dart'
     show ServerLocationEntity;
 
-typedef OnSeverSelected = Function(Location_ selectedServer);
+typedef OnServerSelected = Function(Location_ selectedServer);
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends StatefulHookConsumerWidget {
@@ -484,7 +484,7 @@ class _CountryServerTile extends StatefulWidget {
   final String country;
   final List<Location_> locations;
   final String selectedServerTag;
-  final OnSeverSelected onServerSelected;
+  final OnServerSelected onServerSelected;
 
   const _CountryServerTile({
     required this.country,
