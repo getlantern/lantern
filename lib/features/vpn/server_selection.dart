@@ -454,7 +454,7 @@ class _ServerLocationListViewState
             autoSelect: false,
             displayName: "${selectedServer.country} - ${selectedServer.city}",
             city: selectedServer.city,
-            country: '',
+            country: selectedServer.country,
             countryCode: CountryUtils.getCountryCode(selectedServer.country),
           );
           await ref
