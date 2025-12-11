@@ -19,7 +19,7 @@ class VPNSwitch extends HookConsumerWidget {
       (previous, next) {
         if (next is AsyncData<LanternStatus> &&
             next.value.status == VPNStatus.error) {
-          context.showSnackBar('vpn_error'.i18n);
+          context.showSnackBar(next.value.error ?? 'error_while_vpn_connection'.i18n);
         }
       },
     );
