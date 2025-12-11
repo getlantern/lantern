@@ -6,7 +6,6 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -116,7 +115,10 @@ class _HomeState extends ConsumerState<Home>
                 appRouter.push(Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
-      body: _buildBody(ref, isUserPro),
+      body: SafeArea(
+        bottom: true,
+        child: _buildBody(ref, isUserPro),
+      ),
     );
   }
 
