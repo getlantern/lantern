@@ -135,17 +135,30 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final autoCountry = serverLocation.country;
     final autoCity = serverLocation.city;
 
-    final formatted = "$autoCountry - $autoCity";
+    String label;
+
+    if (serverLocation.displayName.isNotEmpty) {
+      label = serverLocation.displayName;
+    } else if (autoCountry.isNotEmpty || autoCity.isNotEmpty) {
+      final parts = <String>[];
+      if (autoCountry.isNotEmpty) parts.add(autoCountry);
+      if (autoCity.isNotEmpty) parts.add(autoCity);
+      label = parts.join(' - ');
+    } else {
+      label = 'smart_location'.i18n;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('smart_location'.i18n,
-              style: _textTheme?.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              )),
+          child: Text(
+            'smart_location'.i18n,
+            style: _textTheme?.labelLarge!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
         ),
         AppCard(
           padding: EdgeInsets.zero,
@@ -153,7 +166,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon: serverLocation.countryCode.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: serverLocation.countryCode),
-            label: formatted, // FIX
+            label: label,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -298,13 +311,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               },
             ),
             DividerSpace(padding: EdgeInsets.zero),
-            if(storage.getPrivateServer().isNotEmpty)
-            AppTile(
-              label: 'manage_private_servers'.i18n,
-              onPressed: () {
-                context.pushRoute(ManagePrivateServer());
-              },
-            ),
+            if (storage.getPrivateServer().isNotEmpty)
+              AppTile(
+                label: 'manage_private_servers'.i18n,
+                onPressed: () {
+                  context.pushRoute(ManagePrivateServer());
+                },
+              ),
           ],
         );
       },
