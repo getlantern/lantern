@@ -370,6 +370,13 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 
 	case common.CmdIsVPNRunning:
 		st := s.rServer.GetStatus()
+		go func() {
+			if st == ripc.StatusRunning {
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connected})
+			} else {
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnected})
+			}
+		}()
 		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
 
 	case common.CmdConnectToServer:
