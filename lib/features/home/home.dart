@@ -116,7 +116,7 @@ class _HomeState extends ConsumerState<Home>
               },
               icon: const AppImage(path: AppImagePaths.menu))),
       body: SafeArea(
-        bottom: true,
+
         child: _buildBody(ref, isUserPro),
       ),
     );
