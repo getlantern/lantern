@@ -21,9 +21,10 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/servers"
-	rvpn "github.com/getlantern/radiance/vpn"
 	"github.com/getlantern/radiance/vpn/ipc"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
@@ -39,10 +40,10 @@ type ServiceOptions struct {
 // Service hosts the command server and manages LanternCore
 // It proxies privileged commands and interacts with Radiance IPC when available
 type Service struct {
-	opts    ServiceOptions
-	wtmgr   *Manager
-	cancel  context.CancelFunc
-	rServer *ripc.Server
+	opts   ServiceOptions
+	wtmgr  *Manager
+	cancel context.CancelFunc
+	//rServer *ripc.Server
 }
 
 type statusEvent struct {
@@ -71,17 +72,11 @@ func (ce *concurrentEncoder) Encode(v any) error {
 	return ce.enc.Encode(v)
 }
 
-func NewService(opts ServiceOptions, wt *Manager) (*Service, error) {
-	// Start the Radiance IPC control plane
-	server, err := rvpn.InitIPC("", nil)
-	if err != nil {
-		return nil, fmt.Errorf("init radiance IPC: %w", err)
-	}
+func NewService(opts ServiceOptions, wt *Manager) *Service {
 	return &Service{
-		opts:    opts,
-		wtmgr:   wt,
-		rServer: server,
-	}, nil
+		opts:  opts,
+		wtmgr: wt,
+	}
 }
 
 // token file is created at install time (we also generate if missing)
@@ -351,8 +346,8 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case common.CmdStartTunnel:
 		go func() {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
-			if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
-				slog.Error("Error starting service: %w", err)
+			if err := vpn_tunnel.StartVPN(nil, &utils.Opts{}); err != nil {
+				slog.Error("Error starting service", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}()
@@ -361,23 +356,23 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case common.CmdStopTunnel:
 		go func() {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnecting})
-			if err := s.rServer.StopService(ctx); err != nil {
-				slog.Error("Error stopping service: %w", err)
+			if err := vpn_tunnel.StopVPN(); err != nil {
+				slog.Error("Error stopping service", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
-		st := s.rServer.GetStatus()
+		running := vpn_tunnel.IsVPNRunning()
 		go func() {
-			if st == ripc.StatusRunning {
+			if running {
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connected})
 			} else {
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnected})
 			}
 		}()
-		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
+		return &Response{ID: r.ID, Result: map[string]any{"running": running}}
 
 	case common.CmdConnectToServer:
 		var p struct {
@@ -396,8 +391,8 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		go func(group, tag string) {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
-			if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
-				slog.Error("Error connecting to server: %w", err)
+			if err := vpn_tunnel.ConnectToServer(group, p.Tag, nil, &utils.Opts{}); err != nil {
+				slog.Error("Error connecting to server", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}(group, p.Tag)
