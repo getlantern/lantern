@@ -98,6 +98,7 @@ class ServerLocationEntity {
       country: '',
       city: privateServer.serverLocationName,
       displayName: privateServer.serverLocationName,
+      autoLocationParam: autoLocation,
     );
   }
 }
