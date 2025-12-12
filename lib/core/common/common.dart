@@ -189,9 +189,10 @@ ServerLocationEntity initialServerLocation() {
     city: '',
     displayName: 'Smart Location',
     countryCode: '',
-    autoLocation: AutoLocationEntity(
-      serverLocation: 'fastest_server'.i18n,
-      serverName: '',
+    autoLocationParam: AutoLocationEntity(
+      country: '',
+      countryCode: '',
+      displayName: 'fastest_server'.i18n,
     ),
   );
 }

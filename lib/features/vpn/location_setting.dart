@@ -12,30 +12,33 @@ class LocationSetting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
-    String? title, value = '';
+    String? title, value,flag = '';
 
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
         value = serverLocation.displayName.isNotEmpty
             ? serverLocation.displayName
-            : serverLocation.autoLocation.serverLocation.split('[')[0].trim();
+            : serverLocation.autoLocation!.country;
+        flag = serverLocation.autoLocation?.countryCode??'';
         break;
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;
         value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
         break;
       case ServerLocationType.privateServer:
         title = serverLocation.serverName;
         value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
         break;
     }
     return SettingTile(
       label: title,
       value: value,
-      icon: serverLocation.countryCode.isEmpty
+      icon: flag.isEmpty
           ? AppImagePaths.location
-          : Flag(countryCode: serverLocation.countryCode),
+          : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot),

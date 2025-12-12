@@ -50,9 +50,12 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             autoSelect: true,
             displayName: '$countryName - $cityName',
             city: autoLocation.location!.city,
-            countryCode:
-                CountryUtils.getCountryCode(autoLocation.location!.country),
-            country: countryName,
+            autoLocationParam: AutoLocationEntity(
+              countryCode:
+                  CountryUtils.getCountryCode(autoLocation.location!.country),
+              country: countryName,
+              displayName: '$countryName - $cityName',
+            ),
           );
 
           updateServerLocation(autoServer);
