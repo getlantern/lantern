@@ -15,6 +15,7 @@ import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -194,7 +195,7 @@ class LanternFFIService implements LanternCoreService {
         bundleId: raw["bundleId"] as String,
         appPath: raw["appPath"] as String? ?? '',
         iconPath: raw["iconPath"] as String? ?? '',
-        iconBytes: raw["icon"] as Uint8List?,
+        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
         isEnabled: isEnabled,
       );
     }).toList();

@@ -450,7 +450,7 @@ packages:
     source: hosted
     version: "7.0.3"
   device_preview_plus:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: device_preview_plus
       sha256: d2807d5704bc3a05fe750e7788440ac59def75af971700e71e9de1615623e470

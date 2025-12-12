@@ -15,6 +15,7 @@ import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
@@ -187,7 +188,7 @@ class LanternPlatformService implements LanternCoreService {
         name: name,
         appPath: raw["appPath"] as String? ?? '',
         iconPath: raw["iconPath"] as String? ?? '',
-        iconBytes: raw["icon"] as Uint8List?,
+        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
         lastUpdateTime: lastUpdateTime,
         removed: removed,
         isEnabled: enabledAppNames.contains(name),
