@@ -68,12 +68,9 @@ func main() {
 
 func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
-	s, err := wintunmgr.NewService(wintunmgr.ServiceOptions{
+	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
 	}, wt)
-	if err != nil {
-		return nil, nil, fmt.Errorf("creating wintunmgr service: %w", err)
-	}
 	return wt, s, nil
 }
 
