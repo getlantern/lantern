@@ -43,7 +43,6 @@ type Service struct {
 	opts   ServiceOptions
 	wtmgr  *Manager
 	cancel context.CancelFunc
-	//rServer *ripc.Server
 }
 
 type statusEvent struct {
@@ -159,11 +158,11 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder) {
 	sub := events.Subscribe(func(evt ripc.StatusUpdateEvent) {
 		slog.Debug("Sending status event", "state", evt.Status.String(), "error", evt.Error)
+		se := statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()}
 		if evt.Error != nil {
-			enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix(), Error: evt.Error.Error()})
-		} else {
-			enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
+			se.Error = evt.Error.Error()
 		}
+		_ = enc.Encode(se)
 	})
 
 	// Unsubscribe when context is done
