@@ -345,9 +345,11 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case common.CmdStartTunnel:
 		go func() {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
-			if err := vpn_tunnel.StartVPN(nil, &utils.Opts{}); err != nil {
+			if err := vpn_tunnel.StartVPN(nil, &utils.Opts{LogLevel: "trace"}); err != nil {
 				slog.Error("Error starting service", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
+			} else {
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connected})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
@@ -358,6 +360,8 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			if err := vpn_tunnel.StopVPN(); err != nil {
 				slog.Error("Error stopping service", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
+			} else {
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnected})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
@@ -390,9 +394,11 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		go func(group, tag string) {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
-			if err := vpn_tunnel.ConnectToServer(group, p.Tag, nil, &utils.Opts{}); err != nil {
+			if err := vpn_tunnel.ConnectToServer(group, p.Tag, nil, &utils.Opts{LogLevel: "trace"}); err != nil {
 				slog.Error("Error connecting to server", "error", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
+			} else {
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connected})
 			}
 		}(group, p.Tag)
 		return &Response{ID: r.ID, Result: "ok"}
