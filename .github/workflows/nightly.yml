@@ -250,7 +250,7 @@ jobs:
         id: slack_msg
         run: |
           sha="$(git rev-parse --short HEAD)"
-          text="Lantern nightly '${{ needs.set-nightly-metadata.outputs.version }}' is ready.\n*Branch:* `${{ github.ref_name }}`\n*Downloads:*"
+          text="Lantern nightly '${{ needs.set-nightly-metadata.outputs.version }}' is ready.\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
 
           if [[ "$RUN_MACOS" == "true" ]]; then
             text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg|macOS>"

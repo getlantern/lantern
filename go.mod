@@ -23,7 +23,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20251211124447-5dfc62593dc8
+	github.com/getlantern/radiance v0.0.0-20251212163136-bdaf91de8a9b
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.12.12
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -165,7 +165,7 @@ require (
 	github.com/gaissmai/bart v0.11.1 // indirect
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
-	github.com/getlantern/amp v0.0.0-20251205131102-73f71f77fc4b // indirect
+	github.com/getlantern/amp v0.0.0-20251211213807-4cbc22624b9f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/common v1.2.1-0.20251018002705-bb54703a7fcb // indirect
@@ -176,7 +176,7 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20251203201459-d8a38e5f1f1c // indirect
+	github.com/getlantern/kindling v0.0.0-20251212163019-0421d5eb10e4 // indirect
 	github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect

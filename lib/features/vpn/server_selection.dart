@@ -9,6 +9,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/core/widgets/app_text.dart';
+import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -19,7 +20,7 @@ import 'package:lantern/features/vpn/server_mobile_view.dart';
 import '../../core/models/entity/server_location_entity.dart'
     show ServerLocationEntity;
 
-typedef OnSeverSelected = Function(Location_ selectedServer);
+typedef OnServerSelected = Function(Location_ selectedServer);
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends StatefulHookConsumerWidget {
@@ -131,26 +132,28 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
-    final value =
-        serverLocation.autoLocation.serverLocation.split('[')[0].trim();
-
+    final autoLocation = serverLocation.autoLocation;
+    final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
+    final flag = autoLocation?.countryCode ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('smart_location'.i18n,
-              style: _textTheme?.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              )),
+          child: Text(
+            'smart_location'.i18n,
+            style: _textTheme?.labelLarge!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
         ),
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: serverLocation.autoLocation.serverLocation.countryCode.isEmpty
+            icon: flag.isEmpty
                 ? AppImagePaths.location
-                : Flag(countryCode: serverLocation.serverLocation.countryCode),
-            label: value,
+                : Flag(countryCode: flag),
+            label: displayName,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -188,7 +191,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: Flag(countryCode: serverLocation.serverLocation.countryCode),
+            icon: Flag(countryCode: serverLocation.countryCode),
             label: getServerName(serverLocation),
             subtitle: getServerLocation(serverLocation),
             trailing: AppRadioButton<String>(
@@ -206,7 +209,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   String getServerName(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
       case ServerLocationType.lanternLocation:
-        return serverLocation.serverLocation.split('[')[0].trim();
+        return serverLocation.displayName.split('[')[0].trim();
       case ServerLocationType.privateServer:
         return serverLocation.serverName;
       case ServerLocationType.auto:
@@ -223,7 +226,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Text(
-            serverLocation.serverLocation.locationName,
+            serverLocation.displayName,
             style: _textTheme!.labelMedium!.copyWith(
               color: AppColors.gray7,
             ),
@@ -235,9 +238,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   String getServerCountryCode(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
       case ServerLocationType.lanternLocation:
-        return serverLocation.serverLocation.countryCode;
+        return serverLocation.countryCode;
       case ServerLocationType.privateServer:
-        return serverLocation.serverLocation.countryCode;
+        return serverLocation.countryCode;
       case ServerLocationType.auto:
         return 'Smart Location';
     }
@@ -250,11 +253,17 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
+        final auto = ref.read(serverLocationProvider);
+        final autoCountry = auto.country;
+        final autoCity = auto.city;
         final serverLocation = ServerLocationEntity(
           serverType: type.name,
           serverName: 'Smart Location',
           autoSelect: true,
-          serverLocation: ServerLocationType.auto.name,
+          displayName: '$autoCountry - $autoCity',
+          city: autoCity,
+          country: autoCountry,
+          countryCode: CountryUtils.getCountryCode(autoCountry),
         );
         await ref
             .read(serverLocationProvider.notifier)
@@ -289,13 +298,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               },
             ),
             DividerSpace(padding: EdgeInsets.zero),
-            if(storage.getPrivateServer().isNotEmpty)
-            AppTile(
-              label: 'manage_private_servers'.i18n,
-              onPressed: () {
-                context.pushRoute(ManagePrivateServer());
-              },
-            ),
+            if (storage.getPrivateServer().isNotEmpty)
+              AppTile(
+                label: 'manage_private_servers'.i18n,
+                onPressed: () {
+                  context.pushRoute(ManagePrivateServer());
+                },
+              ),
           ],
         );
       },
@@ -333,9 +342,9 @@ class _ServerLocationListViewState
             const SizedBox(height: verticalSpacing),
           ],
           Padding(
-              padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
-              // small top offset
-              child: HeaderText('pro_locations'.i18n)),
+            padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
+            child: HeaderText('pro_locations'.i18n),
+          ),
           Flexible(
             child: AppCard(
               padding: EdgeInsets.zero,
@@ -346,31 +355,55 @@ class _ServerLocationListViewState
                   if (locations.isEmpty) {
                     return const Center(child: Text("No locations available"));
                   }
+
+                  // Group by country
+                  final grouped = _groupLocationsByCountry(locations);
+                  final countryEntries = grouped.entries.toList()
+                    ..sort((a, b) => a.key.compareTo(b.key));
+
                   return Stack(
                     children: [
-                      ListView.separated(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.zero,
-                        itemCount: locations.length,
-                        separatorBuilder: (_, __) => const DividerSpace(
+                      ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context)
+                            .copyWith(scrollbars: false),
+                        child: ListView.separated(
+                          shrinkWrap: true,
                           padding: EdgeInsets.zero,
+                          itemCount: countryEntries.length,
+                          separatorBuilder: (_, __) => const DividerSpace(
+                            padding: EdgeInsets.zero,
+                          ),
+                          itemBuilder: (context, index) {
+                            final entry = countryEntries[index];
+                            final country = entry.key;
+                            final countryLocations = entry.value;
+
+                            if (countryLocations.length == 1) {
+                              final serverData = countryLocations.first;
+                              return ServerMobileView(
+                                key: ValueKey(serverData.tag),
+                                onServerSelected: onServerSelected,
+                                location: serverData,
+                                isSelected:
+                                    serverLocation.serverName == serverData.tag,
+                              );
+                            }
+
+                            return _CountryServerTile(
+                              country: country,
+                              locations: countryLocations,
+                              selectedServerTag: serverLocation.serverName,
+                              onServerSelected: onServerSelected,
+                            );
+                          },
                         ),
-                        itemBuilder: (context, index) {
-                          final serverData = locations[index];
-                          return ServerMobileView(
-                            key: ValueKey(serverData.tag),
-                            onServerSelected: onServerSelected,
-                            location: serverData,
-                            isSelected:
-                                serverLocation.serverName == serverData.tag,
-                          );
-                        },
                       ),
                       if (!widget.userPro)
                         Positioned.fill(
                           child: Container(
-                              color: AppColors.white.withValues(alpha: 0.72),
-                              alignment: Alignment.center),
+                            color: AppColors.white.withValues(alpha: 0.72),
+                            alignment: Alignment.center,
+                          ),
                         ),
                     ],
                   );
@@ -402,12 +435,11 @@ class _ServerLocationListViewState
         final vpnStatus = ref.read(vpnProvider);
         if (vpnStatus == VPNStatus.connected) {
           ///User is already connected, just update the server location
-          final serverLocation = ServerLocationEntity(
-            serverType: ServerLocationType.lanternLocation.name,
-            serverName: selectedServer.tag,
+          final savedServerLocation =
+              sl<LocalStorageService>().getSavedServerLocations();
+          final serverLocation = savedServerLocation.lanternLocation(
+            server: selectedServer,
             autoSelect: false,
-            serverLocation:
-                '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
           );
           await ref
               .read(serverLocationProvider.notifier)
@@ -421,18 +453,130 @@ class _ServerLocationListViewState
           (previous, next) async {
             if (next is AsyncData<LanternStatus> &&
                 next.value.status == VPNStatus.connected) {
-              final serverLocation = ServerLocationEntity(
-                serverType: ServerLocationType.lanternLocation.name,
-                serverName: selectedServer.tag,
+              final savedServerLocation =
+                  sl<LocalStorageService>().getSavedServerLocations();
+              final serverLocation = savedServerLocation.lanternLocation(
+                server: selectedServer,
                 autoSelect: false,
-                serverLocation:
-                    '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
               );
               await ref
                   .read(serverLocationProvider.notifier)
                   .updateServerLocation(serverLocation);
+
               appRouter.popUntilRoot();
             }
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CountryServerTile extends StatefulWidget {
+  final String country;
+  final List<Location_> locations;
+  final String selectedServerTag;
+  final OnServerSelected onServerSelected;
+
+  const _CountryServerTile({
+    required this.country,
+    required this.locations,
+    required this.selectedServerTag,
+    required this.onServerSelected,
+    super.key,
+  });
+
+  @override
+  State<_CountryServerTile> createState() => _CountryServerTileState();
+}
+
+class _CountryServerTileState extends State<_CountryServerTile> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final countryCode = CountryUtils.getCountryCode(widget.country);
+
+    if (PlatformUtils.isDesktop) {
+      return Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          enableFeedback: true,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.symmetric(vertical: 8),
+          leading: Flag(countryCode: countryCode),
+          title: Text(
+            widget.country,
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge!
+                .copyWith(color: AppColors.gray9),
+          ),
+          onExpansionChanged: (expanded) {
+            setState(() => _isExpanded = expanded);
+          },
+          trailing: ExpansionChevron(isExpanded: _isExpanded),
+          shape: const RoundedRectangleBorder(side: BorderSide.none),
+          children: widget.locations.map((loc) {
+            final isSelected = widget.selectedServerTag == loc.tag;
+            return AppTile(
+              contentPadding: const EdgeInsets.only(left: 46, right: 14),
+              label: '${loc.country} - ${loc.city}',
+              tileTextStyle: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(color: AppColors.gray9),
+              trailing: AppRadioButton<String>(
+                value: loc.tag,
+                groupValue: isSelected ? loc.tag : null,
+                onChanged: (_) => _onLocationSelected(context, loc),
+              ),
+              onPressed: () => _onLocationSelected(context, loc),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    return AppTile(
+      icon: Flag(countryCode: countryCode),
+      label: widget.country,
+      trailing: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: AppColors.gray9,
+      ),
+      onPressed: () => _showCountryBottomSheet(context),
+    );
+  }
+
+  void _onLocationSelected(BuildContext context, Location_ location) {
+    widget.onServerSelected(location);
+  }
+
+  void _showCountryBottomSheet(BuildContext context) {
+    showAppBottomSheet(
+      context: context,
+      title: widget.country,
+      scrollControlDisabledMaxHeightRatio: 0.75,
+      builder: (bottomSheetContext, scrollController) {
+        return ListView.separated(
+          controller: scrollController,
+          padding: EdgeInsets.zero,
+          itemCount: widget.locations.length,
+          separatorBuilder: (_, __) =>
+              const DividerSpace(padding: EdgeInsets.zero),
+          itemBuilder: (_, index) {
+            final loc = widget.locations[index];
+            final isSelected = widget.selectedServerTag == loc.tag;
+
+            return ServerMobileView(
+              onServerSelected: (selected) {
+                Navigator.of(bottomSheetContext).pop();
+                widget.onServerSelected(selected);
+              },
+              location: loc,
+              isSelected: isSelected,
+            );
           },
         );
       },
@@ -616,7 +760,10 @@ class _PrivateServerLocationListViewState
       serverType: ServerLocationType.privateServer.name,
       serverName: privateServer.serverName,
       autoSelect: false,
-      serverLocation: privateServer.serverLocationName,
+      displayName: privateServer.serverLocationName,
+      city: privateServer.serverLocationName,
+      countryCode: privateServer.serverCountryCode,
+      country: '',
     );
 
     ref
@@ -639,4 +786,13 @@ class _PrivateServerLocationListViewState
       },
     );
   }
+}
+
+Map<String, List<Location_>> _groupLocationsByCountry(
+    List<Location_> locations) {
+  final Map<String, List<Location_>> result = {};
+  for (final loc in locations) {
+    result.putIfAbsent(loc.country, () => <Location_>[]).add(loc);
+  }
+  return result;
 }

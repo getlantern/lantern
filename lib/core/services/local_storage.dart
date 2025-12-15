@@ -234,21 +234,25 @@ class LocalStorageService {
     if (server.isEmpty) {
       final initialServer = ServerLocationEntity(
         autoSelect: true,
-        serverLocation: '',
         serverName: '',
         serverType: ServerLocationType.auto.name,
-        autoLocation: AutoLocationEntity(
-          serverLocation: 'fastest_server'.i18n,
-          serverName: '',
+        country: '',
+        city: '',
+        displayName: 'Smart Location',
+        countryCode: '',
+        autoLocationParam: AutoLocationEntity(
+          displayName: 'fastest_server'.i18n,
+          countryCode: '',
+          country: ''
         ),
       );
       _serverLocationBox.put(initialServer);
     }
   }
 
-  Future<void> saveServerLocation(ServerLocationEntity server) async {
+  void saveServerLocation(ServerLocationEntity server)  {
     _serverLocationBox.removeAll();
-    await _serverLocationBox.putAsync(server);
+     _serverLocationBox.put(server);
   }
 
   ServerLocationEntity getSavedServerLocations() {
@@ -256,9 +260,12 @@ class LocalStorageService {
     return server.isEmpty
         ? ServerLocationEntity(
             autoSelect: true,
-            serverLocation: 'Fastest Country',
             serverName: '',
             serverType: ServerLocationType.auto.name,
+            country: '',
+            city: '',
+            displayName: 'Smart Location',
+            countryCode: '',
           )
         : server.first;
   }
