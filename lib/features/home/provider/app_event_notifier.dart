@@ -50,7 +50,7 @@ class AppEventNotifier extends _$AppEventNotifier {
           ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;
         case 'server-location':
-          appLogger.debug('Received server-location event.');
+          appLogger.debug('Received server-location event, updating location.');
           final autoLocation = Server.fromJson(jsonDecode(event.message));
           final autoServer = ServerLocationEntity(
             serverType: ServerLocationType.auto.name,
