@@ -1,4 +1,5 @@
 import 'package:lantern/core/common/app_eum.dart' show ServerLocationType;
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -20,15 +21,7 @@ class ManageServerNotifier extends _$ManageServerNotifier {
     await sl<LocalStorageService>().deletePrivateServer(serverName);
     state = sl<LocalStorageService>().getPrivateServer();
     if (state.isEmpty) {
-      final initialServer = ServerLocationEntity(
-        autoSelect: true,
-        serverName: '',
-        serverType: ServerLocationType.auto.name,
-        country: '',
-        city: '',
-        displayName: 'Smart Location',
-        countryCode: '',
-      );
+      final initialServer = initialServerLocation();
       ref
           .read(serverLocationProvider.notifier)
           .updateServerLocation(initialServer);
