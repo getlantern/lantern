@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/config"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
@@ -171,7 +172,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		LogDir:   opts.LogDir,
 		DataDir:  opts.DataDir,
 		DeviceID: opts.Deviceid,
-		LogLevel: "trace",
+		LogLevel: opts.LogDir,
 		Locale:   opts.Locale,
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
@@ -190,7 +191,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
-	lc.rad.AddConfigListener(func() {
+	events.Subscribe(func(evt config.NewConfigEvent) {
 		core.NotifyFlutter(EventTypeConfig, "Config is fetched/updated")
 	})
 
