@@ -29,9 +29,8 @@ const (
 // It passes the empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	/// As soon user connects to VPN, we start listening for auto location changes.
+	slog.Debug("StartVPN called")
 	defer StartAutoLocationListener()
-	fmt.Println("StartVPN called")
-	// defer StartAutoLocationListener(send)
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
@@ -125,7 +124,7 @@ type AutoLocationManager struct {
 var locationManager = &AutoLocationManager{}
 
 func StartAutoLocationListener() {
-	fmt.Println("Starting auto location listener...")
+	slog.Debug("Starting auto location listener...")
 	locationManager.mu.Lock()
 	defer locationManager.mu.Unlock()
 	if locationManager.isRunning {
@@ -145,7 +144,7 @@ func StartAutoLocationListener() {
 
 		}
 	}()
-	fmt.Println("Auto location listener started")
+	slog.Debug("Auto location listener started")
 }
 
 // StopAutoLocationListener stops the location listener
