@@ -240,18 +240,19 @@ class LocalStorageService {
         city: '',
         displayName: 'Smart Location',
         countryCode: '',
-        autoLocation: AutoLocationEntity(
-          serverLocation: 'fastest_server'.i18n,
-          serverName: '',
+        autoLocationParam: AutoLocationEntity(
+          displayName: 'fastest_server'.i18n,
+          countryCode: '',
+          country: ''
         ),
       );
       _serverLocationBox.put(initialServer);
     }
   }
 
-  Future<void> saveServerLocation(ServerLocationEntity server) async {
+  void saveServerLocation(ServerLocationEntity server)  {
     _serverLocationBox.removeAll();
-    await _serverLocationBox.putAsync(server);
+     _serverLocationBox.put(server);
   }
 
   ServerLocationEntity getSavedServerLocations() {

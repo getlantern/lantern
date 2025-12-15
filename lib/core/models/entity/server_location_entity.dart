@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
@@ -16,7 +18,30 @@ class ServerLocationEntity {
   final String country;
   final String city;
   final String displayName;
-  final AutoLocationEntity autoLocation;
+
+  /// DB field storing the nested object as JSON
+  String autoLocationJson;
+
+  /// Transient (non-persisted) convenience getter/setter
+  @Transient()
+  AutoLocationEntity? get autoLocation {
+    if (autoLocationJson.isEmpty) return null;
+    try {
+      final map = jsonDecode(autoLocationJson) as Map<String, dynamic>;
+      return AutoLocationEntity.fromJson(map);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @Transient()
+  set autoLocation(AutoLocationEntity? v) {
+    if (v == null) {
+      autoLocationJson = '';
+    } else {
+      autoLocationJson = jsonEncode(v.toJson());
+    }
+  }
 
   ServerLocationEntity({
     required this.autoSelect,
@@ -26,16 +51,14 @@ class ServerLocationEntity {
     String? country,
     String? city,
     String? displayName,
-    AutoLocationEntity? autoLocation,
+    AutoLocationEntity? autoLocationParam,
   })  : country = country ?? '',
         city = city ?? '',
         countryCode = countryCode ?? '',
         displayName = displayName ?? _buildDisplayName(country, city),
-        autoLocation = autoLocation ??
-            AutoLocationEntity(
-              serverLocation: 'fastest_server'.i18n,
-              serverName: '',
-            );
+        autoLocationJson = '' {
+    autoLocation = autoLocationParam;
+  }
 
   static String _buildDisplayName(String? country, String? city) {
     final c = country?.trim() ?? '';
@@ -47,7 +70,7 @@ class ServerLocationEntity {
     return '$c - $t';
   }
 
-  factory ServerLocationEntity.lanternLocation({
+  ServerLocationEntity lanternLocation({
     required Location_ server,
     bool autoSelect = false,
   }) {
@@ -57,11 +80,13 @@ class ServerLocationEntity {
       serverType: ServerLocationType.lanternLocation.name,
       country: server.country,
       city: server.city,
+      displayName: '${server.country} - ${server.city}',
       countryCode: CountryUtils.getCountryCode(server.country),
+      autoLocationParam: autoLocation,
     );
   }
 
-  factory ServerLocationEntity.privateServer({
+  ServerLocationEntity privateServer({
     required PrivateServerEntity privateServer,
     bool autoSelect = false,
   }) {
@@ -73,19 +98,33 @@ class ServerLocationEntity {
       country: '',
       city: privateServer.serverLocationName,
       displayName: privateServer.serverLocationName,
+      autoLocationParam: autoLocation,
     );
   }
 }
 
-@Entity()
 class AutoLocationEntity {
-  @Id()
-  int id = 0;
-  final String serverLocation;
-  final String serverName;
+  final String country;
+  final String countryCode;
+  final String displayName;
 
   AutoLocationEntity({
-    required this.serverLocation,
-    required this.serverName,
+    required this.country,
+    required this.countryCode,
+    required this.displayName,
   });
+
+  Map<String, dynamic> toJson() => {
+        'country': country,
+        'countryCode': countryCode,
+        'displayName': displayName,
+      };
+
+  factory AutoLocationEntity.fromJson(Map<String, dynamic> json) {
+    return AutoLocationEntity(
+      country: (json['country'] ?? '') as String,
+      countryCode: (json['countryCode'] ?? '') as String,
+      displayName: (json['displayName'] ?? '') as String,
+    );
+  }
 }

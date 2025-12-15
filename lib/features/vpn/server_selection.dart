@@ -132,22 +132,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
-    final autoCountry = serverLocation.country;
-    final autoCity = serverLocation.city;
-
-    String label;
-
-    if (serverLocation.displayName.isNotEmpty) {
-      label = serverLocation.displayName;
-    } else if (autoCountry.isNotEmpty || autoCity.isNotEmpty) {
-      final parts = <String>[];
-      if (autoCountry.isNotEmpty) parts.add(autoCountry);
-      if (autoCity.isNotEmpty) parts.add(autoCity);
-      label = parts.join(' - ');
-    } else {
-      label = 'smart_location'.i18n;
-    }
-
+    final autoLocation = serverLocation.autoLocation;
+    final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
+    final flag = autoLocation?.countryCode ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -163,10 +150,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: serverLocation.countryCode.isEmpty
+            icon: flag.isEmpty
                 ? AppImagePaths.location
-                : Flag(countryCode: serverLocation.countryCode),
-            label: label,
+                : Flag(countryCode: flag),
+            label: displayName,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -448,7 +435,9 @@ class _ServerLocationListViewState
         final vpnStatus = ref.read(vpnProvider);
         if (vpnStatus == VPNStatus.connected) {
           ///User is already connected, just update the server location
-          final serverLocation = ServerLocationEntity.lanternLocation(
+          final savedServerLocation =
+              sl<LocalStorageService>().getSavedServerLocations();
+          final serverLocation = savedServerLocation.lanternLocation(
             server: selectedServer,
             autoSelect: false,
           );
@@ -464,13 +453,16 @@ class _ServerLocationListViewState
           (previous, next) async {
             if (next is AsyncData<LanternStatus> &&
                 next.value.status == VPNStatus.connected) {
-              final serverLocation = ServerLocationEntity.lanternLocation(
+              final savedServerLocation =
+                  sl<LocalStorageService>().getSavedServerLocations();
+              final serverLocation = savedServerLocation.lanternLocation(
                 server: selectedServer,
                 autoSelect: false,
               );
               await ref
                   .read(serverLocationProvider.notifier)
                   .updateServerLocation(serverLocation);
+
               appRouter.popUntilRoot();
             }
           },

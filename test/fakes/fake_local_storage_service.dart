@@ -9,12 +9,12 @@ class FakeLocalStorageService extends LocalStorageService {
   final List<PrivateServerEntity> _servers = [];
   ServerLocationEntity _selected = ServerLocationEntity(
     autoSelect: true,
-    serverLocation: '',
     serverName: '',
     serverType: ServerLocationType.auto.name,
-    autoLocation: AutoLocationEntity(
-      serverLocation: 'fastest_server'.i18n,
-      serverName: '',
+    autoLocationParam: AutoLocationEntity(
+      displayName: 'fastest_server'.i18n,
+      country: '',
+      countryCode: '',
     ),
   );
   AppSetting? _appSetting;
