@@ -21,10 +21,9 @@ class ManageServerNotifier extends _$ManageServerNotifier {
     await sl<LocalStorageService>().deletePrivateServer(serverName);
     state = sl<LocalStorageService>().getPrivateServer();
     if (state.isEmpty) {
-      final initialServer = initialServerLocation();
       ref
           .read(serverLocationProvider.notifier)
-          .updateServerLocation(initialServer);
+          .updateServerLocation(initialServerLocation());
     }
   }
 }
