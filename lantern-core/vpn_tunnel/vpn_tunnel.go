@@ -1,10 +1,15 @@
 package vpn_tunnel
 
 import (
+	"context"
 	"fmt"
+
 	"log/slog"
+	"sync"
+	"time"
 
 	radianceCommon "github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
@@ -23,7 +28,10 @@ const (
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // It passes the empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	slog.Info("StartVPN called")
+	/// As soon user connects to VPN, we start listening for auto location changes.
+	defer StartAutoLocationListener()
+	fmt.Println("StartVPN called")
+	// defer StartAutoLocationListener(send)
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
@@ -34,6 +42,8 @@ func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
+	/// As soon user disconnects from VPN, we stop listening for auto location changes.
+	defer StopAutoLocationListener()
 	return vpn.Disconnect()
 }
 
@@ -41,6 +51,8 @@ func StopVPN() error {
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
+	/// As soon user connects to custom VPN server, we stop listening for auto location changes.
+	defer StopAutoLocationListener()
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
@@ -102,4 +114,52 @@ func GetAutoLocation() (*vpn.AutoSelections, error) {
 		return nil, fmt.Errorf("failed to get auto location: %w", err)
 	}
 	return &location, nil
+}
+
+type AutoLocationManager struct {
+	cancel    context.CancelFunc
+	isRunning bool
+	mu        sync.Mutex
+}
+
+var locationManager = &AutoLocationManager{}
+
+func StartAutoLocationListener() {
+	fmt.Println("Starting auto location listener...")
+	locationManager.mu.Lock()
+	defer locationManager.mu.Unlock()
+	if locationManager.isRunning {
+		slog.Debug("Auto location listener is already running")
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	locationManager.cancel = cancel
+	locationManager.isRunning = true
+	go func() {
+		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 15*time.Second)
+		for selection := range sourceChan {
+			// Emit event
+			events.Emit(vpn.AutoSelectionsEvent{
+				Selections: selection,
+			})
+
+		}
+	}()
+	fmt.Println("Auto location listener started")
+}
+
+// StopAutoLocationListener stops the location listener
+
+func StopAutoLocationListener() {
+	slog.Debug("Stopping auto location listener...")
+	locationManager.mu.Lock()
+	defer locationManager.mu.Unlock()
+
+	if !locationManager.isRunning {
+		slog.Debug("Auto location listener is not running, nothing to stop")
+		return
+	}
+	locationManager.cancel()
+	locationManager.isRunning = false
+	slog.Debug("Auto location listener stopped")
 }

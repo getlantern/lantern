@@ -10,7 +10,6 @@ import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
-import 'package:lantern/lantern_app.dart';
 
 import '../../core/common/common.dart';
 
@@ -34,8 +33,6 @@ class _HomeState extends ConsumerState<Home>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
     if (PlatformUtils.isMacOS) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final appSetting = ref.read(appSettingProvider);
@@ -50,48 +47,6 @@ class _HomeState extends ConsumerState<Home>
         }
       });
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route != null) {
-      routeObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    WidgetsBinding.instance.removeObserver(this);
-
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      appLogger.debug("App resumed - checking auto server location");
-
-      /// User comes back to home screen
-      ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
-    }
-  }
-
-  @override
-  void didPopNext() {
-    /// User comes back to home screen
-    ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
-    super.didPopNext();
-  }
-
-  @override
-  void didPush() {
-    /// First time screen is pushed
-    ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
-    super.didPush();
   }
 
   @override
@@ -116,7 +71,6 @@ class _HomeState extends ConsumerState<Home>
               },
               icon: const AppImage(path: AppImagePaths.menu))),
       body: SafeArea(
-
         child: _buildBody(ref, isUserPro),
       ),
     );
