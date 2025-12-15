@@ -24,7 +24,6 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/events"
-	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn/ipc"
 )
 
@@ -385,12 +384,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			return rpcErr(r.ID, "bad_params", err.Error())
 		}
 		group := strings.TrimSpace(p.Location)
-		switch group {
-		case "privateServer":
-			group = servers.SGUser
-		case "lanternLocation":
-			group = servers.SGLantern
-		}
 		go func(group, tag string) {
 			events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connecting})
 			if err := vpn_tunnel.ConnectToServer(group, p.Tag, nil, &utils.Opts{LogLevel: "trace"}); err != nil {
