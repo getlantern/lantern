@@ -30,19 +30,19 @@ const (
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	/// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Debug("StartVPN called")
-	defer StartAutoLocationListener()
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
-	/// it should use InternalTagLantern so it will connect to best lantern server by default.
+	startAutoLocationListener()
+	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
 	return vpn.QuickConnect("", platform)
 }
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
-	/// As soon user disconnects from VPN, we stop listening for auto location changes.
-	defer StopAutoLocationListener()
+	// As soon user disconnects from VPN, we stop listening for auto location changes.
+	defer stopAutoLocationListener()
 	return vpn.Disconnect()
 }
 
@@ -50,12 +50,12 @@ func StopVPN() error {
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
-	/// As soon user connects to custom VPN server, we stop listening for auto location changes.
-	defer StopAutoLocationListener()
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
+	// As soon user connects to custom VPN server, we stop listening for auto location changes.
+	defer stopAutoLocationListener()
 	switch group {
 	case string(InternalTagAutoAll), "auto":
 		group = "all"
@@ -115,15 +115,18 @@ func GetAutoLocation() (*vpn.AutoSelections, error) {
 	return &location, nil
 }
 
-type AutoLocationManager struct {
+type autoLocationManager struct {
 	cancel    context.CancelFunc
 	isRunning bool
 	mu        sync.Mutex
 }
 
-var locationManager = &AutoLocationManager{}
+var locationManager = &autoLocationManager{
+	// Just avoid a nil cancel function.
+	cancel: func() {},
+}
 
-func StartAutoLocationListener() {
+func startAutoLocationListener() {
 	slog.Debug("Starting auto location listener...")
 	locationManager.mu.Lock()
 	defer locationManager.mu.Unlock()
@@ -135,21 +138,24 @@ func StartAutoLocationListener() {
 	locationManager.cancel = cancel
 	locationManager.isRunning = true
 	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 15*time.Second)
-		for selection := range sourceChan {
+		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 5*time.Second)
+		select {
+		case <-ctx.Done():
+			slog.Debug("Auto location listener context done, exiting goroutine")
+			return
+		case selection := <-sourceChan:
 			// Emit event
 			events.Emit(vpn.AutoSelectionsEvent{
 				Selections: selection,
 			})
-
 		}
 	}()
 	slog.Debug("Auto location listener started")
 }
 
-// StopAutoLocationListener stops the location listener
+// stopAutoLocationListener stops the location listener
 
-func StopAutoLocationListener() {
+func stopAutoLocationListener() {
 	slog.Debug("Stopping auto location listener...")
 	locationManager.mu.Lock()
 	defer locationManager.mu.Unlock()
