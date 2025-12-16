@@ -53,12 +53,13 @@ class SettingTile extends StatelessWidget {
               children: [
                 SizedBox(width: 32.0),
                 if (child != null)
-                  child!
+                  Expanded(child: child!)
                 else
-                  Text(value,
-                      style: textTheme.titleMedium!
-                          .copyWith(color: AppColors.gray9)),
-                Spacer(),
+                  Expanded(
+                    child: Text(value,
+                        style: textTheme.titleMedium!
+                            .copyWith(color: AppColors.gray9)),
+                  ),
                 ...actions
               ],
             ),
