@@ -258,10 +258,16 @@ class AppRadioButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Radio(
-      value: value,
-      groupValue: groupValue,
-      onChanged: onChanged,
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Radio<T>(
+        value: value,
+        groupValue: groupValue,
+        onChanged: onChanged,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
     );
   }
 }
