@@ -56,7 +56,8 @@ class PlansNotifier extends _$PlansNotifier {
         throw Exception('Plans fetch failed');
       },
       (remote) async {
-        appLogger.info('Successfully fetched plans from API ${remote.toJson()}');
+        appLogger
+            .info('Successfully fetched plans from API ${remote.toJson()}');
         return remote;
       },
     );

@@ -150,9 +150,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: flag.isEmpty
-                ? AppImagePaths.location
-                : Flag(countryCode: flag),
+            icon:
+                flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
             label: displayName.i18n,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

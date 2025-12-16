@@ -65,7 +65,7 @@ class AppEventNotifier extends _$AppEventNotifier {
               city: autoLocation.location!.city,
               autoLocationParam: AutoLocationEntity(
                 countryCode:
-                CountryUtils.getCountryCode(autoLocation.location!.country),
+                    CountryUtils.getCountryCode(autoLocation.location!.country),
                 country: countryName,
                 displayName: '$countryName - $cityName',
               ),

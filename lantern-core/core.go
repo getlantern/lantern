@@ -264,7 +264,7 @@ func (lc *LanternCore) StartAutoLocationListener() {
 	locationManager.cancel = cancel
 	locationManager.isRunning = true
 	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, (15*time.Second))
+		sourceChan := vpn.AutoSelectionsChangeListener(ctx, (15 * time.Second))
 		for {
 			select {
 			case <-ctx.Done():

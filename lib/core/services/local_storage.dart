@@ -232,14 +232,13 @@ class LocalStorageService {
   void updateInitialServerLocation() {
     final server = _serverLocationBox.getAll();
     if (server.isEmpty) {
-
       _serverLocationBox.put(initialServerLocation());
     }
   }
 
-  void saveServerLocation(ServerLocationEntity server)  {
+  void saveServerLocation(ServerLocationEntity server) {
     _serverLocationBox.removeAll();
-     _serverLocationBox.put(server);
+    _serverLocationBox.put(server);
   }
 
   ServerLocationEntity getSavedServerLocations() {
