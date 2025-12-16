@@ -139,15 +139,17 @@ func startAutoLocationListener() {
 	locationManager.isRunning = true
 	go func() {
 		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 5*time.Second)
-		select {
-		case <-ctx.Done():
-			slog.Debug("Auto location listener context done, exiting goroutine")
-			return
-		case selection := <-sourceChan:
-			// Emit event
-			events.Emit(vpn.AutoSelectionsEvent{
-				Selections: selection,
-			})
+		for {
+			select {
+			case <-ctx.Done():
+				slog.Debug("Auto location listener context done, exiting goroutine")
+				return
+			case selection := <-sourceChan:
+				// Emit event
+				events.Emit(vpn.AutoSelectionsEvent{
+					Selections: selection,
+				})
+			}
 		}
 	}()
 	slog.Debug("Auto location listener started")
