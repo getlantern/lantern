@@ -29,7 +29,7 @@ const (
 // It passes the empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	// As soon user connects to VPN, we start listening for auto location changes.
-	slog.Debug("StartVPN called")
+	slog.Info("StartVPN called")
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
@@ -131,11 +131,11 @@ var locationManager = &autoLocationManager{
 }
 
 func startAutoLocationListener() {
-	slog.Debug("Starting auto location listener...")
+	slog.Info("Starting auto location listener...")
 	locationManager.mu.Lock()
 	defer locationManager.mu.Unlock()
 	if locationManager.isRunning {
-		slog.Debug("Auto location listener is already running")
+		slog.Info("Auto location listener is already running")
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -146,12 +146,12 @@ func startAutoLocationListener() {
 		for {
 			select {
 			case <-ctx.Done():
-				slog.Debug("Auto location listener context done, exiting goroutine")
+				slog.Info("Auto location listener context done, exiting goroutine")
 				return
 			case selection, ok := <-sourceChan:
 				if !ok {
 					// Channel closed, exit goroutine
-					slog.Debug("Auto location listener channel closed, exiting goroutine")
+					slog.Info("Auto location listener channel closed, exiting goroutine")
 					return
 				}
 				// Emit event
@@ -161,21 +161,21 @@ func startAutoLocationListener() {
 			}
 		}
 	}()
-	slog.Debug("Auto location listener started")
+	slog.Info("Auto location listener started")
 }
 
 // stopAutoLocationListener stops the location listener
 
 func stopAutoLocationListener() {
-	slog.Debug("Stopping auto location listener...")
+	slog.Info("Stopping auto location listener...")
 	locationManager.mu.Lock()
 	defer locationManager.mu.Unlock()
 
 	if !locationManager.isRunning {
-		slog.Debug("Auto location listener is not running, nothing to stop")
+		slog.Info("Auto location listener is not running, nothing to stop")
 		return
 	}
 	locationManager.cancel()
 	locationManager.isRunning = false
-	slog.Debug("Auto location listener stopped")
+	slog.Info("Auto location listener stopped")
 }

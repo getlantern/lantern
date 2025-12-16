@@ -557,27 +557,29 @@ class _CountryServerTileState extends State<_CountryServerTile> {
     showAppBottomSheet(
       context: context,
       title: widget.country,
-      scrollControlDisabledMaxHeightRatio: 0.75,
+      scrollControlDisabledMaxHeightRatio: 0.45,
       builder: (bottomSheetContext, scrollController) {
-        return ListView.separated(
-          controller: scrollController,
-          padding: EdgeInsets.zero,
-          itemCount: widget.locations.length,
-          separatorBuilder: (_, __) =>
-              const DividerSpace(padding: EdgeInsets.zero),
-          itemBuilder: (_, index) {
-            final loc = widget.locations[index];
-            final isSelected = widget.selectedServerTag == loc.tag;
+        return Flexible(
+          child: ListView.separated(
+            controller: scrollController,
+            padding: EdgeInsets.zero,
+            itemCount: widget.locations.length,
+            separatorBuilder: (_, __) =>
+                const DividerSpace(padding: EdgeInsets.zero),
+            itemBuilder: (_, index) {
+              final loc = widget.locations[index];
+              final isSelected = widget.selectedServerTag == loc.tag;
 
-            return ServerMobileView(
-              onServerSelected: (selected) {
-                Navigator.of(bottomSheetContext).pop();
-                widget.onServerSelected(selected);
-              },
-              location: loc,
-              isSelected: isSelected,
-            );
-          },
+              return ServerMobileView(
+                onServerSelected: (selected) {
+                  Navigator.of(bottomSheetContext).pop();
+                  widget.onServerSelected(selected);
+                },
+                location: loc,
+                isSelected: isSelected,
+              );
+            },
+          ),
         );
       },
     );

@@ -13,8 +13,6 @@ class LocationSetting extends HookConsumerWidget {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
 
-    final autoLoc = serverLocation.autoLocation;
-
     String title = '';
     String value = '';
     String flag = '';
@@ -22,6 +20,7 @@ class LocationSetting extends HookConsumerWidget {
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
+        final autoLoc = serverLocation.autoLocation;
 
         /// Should be using auto location display name if available
         /// else fallback to smart location text

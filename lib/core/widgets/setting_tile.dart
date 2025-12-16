@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../common/common.dart';
@@ -55,10 +56,14 @@ class SettingTile extends StatelessWidget {
                 if (child != null)
                   child!
                 else
-                  Text(value,
-                      style: textTheme.titleMedium!
-                          .copyWith(color: AppColors.gray9)),
-                Spacer(),
+                  Expanded(
+                    child: AutoSizeText(value,
+                        maxLines: 1,
+                        minFontSize: 14,
+                        maxFontSize: 16,
+                        style: textTheme.titleMedium!
+                            .copyWith(color: AppColors.gray9)),
+                  ),
                 ...actions
               ],
             ),
