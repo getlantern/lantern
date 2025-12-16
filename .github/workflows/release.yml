@@ -21,6 +21,7 @@ jobs:
           tag=${GITHUB_REF#refs/tags/}
           base_version=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
           echo "version=$base_version" >> $GITHUB_OUTPUT
+          echo "tag_base=v${base_version}" >> $GITHUB_OUTPUT
 
           # Extract platform suffix (if any, after final hyphen)
           platform_suffix="${tag##*-}"
@@ -188,6 +189,7 @@ jobs:
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
       BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
       RELEASE_TAG: ${{ github.ref_name }}
+      S3_TAG: ${{ needs.set-release-metadata.outputs.tag_base }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -207,7 +209,7 @@ jobs:
           set -euxo pipefail
 
           prefix="releases/${BUILD_TYPE}"
-          tag="${RELEASE_TAG}"
+          tag="${S3_TAG}"
 
           # Tag-scoped uploads
           aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" --acl public-read
