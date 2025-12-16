@@ -34,6 +34,9 @@ extension ErrorExetension on Object {
       if (description.contains("wrong-reseller-code")) {
         return "wrong_seller_code".i18n;
       }
+      if(description.contains("unexpected status 400 body missing verifier or salt ")){
+        return "user_not_found".i18n;
+      }
       if (description.contains("user already exists") ||
           description
               .contains("user with this legacy user ID already exists")) {
