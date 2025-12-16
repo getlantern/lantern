@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -54,12 +55,20 @@ class AppEventNotifier extends _$AppEventNotifier {
             appLogger
                 .debug('Received server-location event, updating location.');
             final autoLocation = Server.fromJson(jsonDecode(event.message));
+            final countryName = autoLocation.location!.country;
+            final cityName = autoLocation.location!.city;
             final autoServer = ServerLocationEntity(
               serverType: ServerLocationType.auto.name,
-              serverName: '',
+              serverName: ''.i18n,
               autoSelect: true,
-              serverLocation:
-                  '${autoLocation.location!.city} [${CountryUtils.getCountryCode(autoLocation.location!.country)}]',
+              displayName: '',
+              city: autoLocation.location!.city,
+              autoLocationParam: AutoLocationEntity(
+                countryCode:
+                CountryUtils.getCountryCode(autoLocation.location!.country),
+                country: countryName,
+                displayName: '$countryName - $cityName',
+              ),
             );
             ref
                 .read(serverLocationProvider.notifier)

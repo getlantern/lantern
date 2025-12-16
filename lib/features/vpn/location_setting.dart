@@ -23,15 +23,11 @@ class LocationSetting extends HookConsumerWidget {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
 
-        // Prefer displayName, then autoLoc displayName/country
-        // else a smart location text fallback
-        value = serverLocation.displayName.trim().isNotEmpty
-            ? serverLocation.displayName
-            : (autoLoc?.displayName.isNotEmpty == true
-                ? autoLoc!.displayName
-                : (autoLoc?.country.isNotEmpty == true
-                    ? autoLoc!.country
-                    : 'smart_location'.i18n));
+        /// Should be using auto location display name if available
+        /// else fallback to smart location text
+        value = autoLoc != null && autoLoc.displayName.isNotEmpty
+            ? autoLoc.displayName
+            : 'smart_location'.i18n;
 
         flag = autoLoc?.countryCode ?? '';
         break;
