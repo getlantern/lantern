@@ -232,21 +232,8 @@ class LocalStorageService {
   void updateInitialServerLocation() {
     final server = _serverLocationBox.getAll();
     if (server.isEmpty) {
-      final initialServer = ServerLocationEntity(
-        autoSelect: true,
-        serverName: '',
-        serverType: ServerLocationType.auto.name,
-        country: '',
-        city: '',
-        displayName: 'Smart Location',
-        countryCode: '',
-        autoLocationParam: AutoLocationEntity(
-          displayName: 'fastest_server'.i18n,
-          countryCode: '',
-          country: ''
-        ),
-      );
-      _serverLocationBox.put(initialServer);
+
+      _serverLocationBox.put(initialServerLocation());
     }
   }
 

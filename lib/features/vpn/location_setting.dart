@@ -26,7 +26,7 @@ class LocationSetting extends HookConsumerWidget {
         /// else fallback to smart location text
         value = autoLoc != null && autoLoc.displayName.isNotEmpty
             ? autoLoc.displayName
-            : 'smart_location'.i18n;
+            : 'fastest_server'.i18n;
 
         flag = autoLoc?.countryCode ?? '';
         break;
@@ -46,7 +46,7 @@ class LocationSetting extends HookConsumerWidget {
 
     return SettingTile(
       label: title,
-      value: value,
+      value: value.i18n,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)

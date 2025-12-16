@@ -1,15 +1,11 @@
 package vpn_tunnel
 
 import (
-	"context"
 	"fmt"
 
 	"log/slog"
-	"sync"
-	"time"
 
 	radianceCommon "github.com/getlantern/radiance/common"
-	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
@@ -39,14 +35,11 @@ func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	if err != nil {
 		return fmt.Errorf("failed to start VPN: %w", err)
 	}
-	startAutoLocationListener()
 	return nil
 }
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
-	// As soon user disconnects from VPN, we stop listening for auto location changes.
-	defer stopAutoLocationListener()
 	return vpn.Disconnect()
 }
 
@@ -58,8 +51,6 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts 
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
-	// As soon user connects to custom VPN server, we stop listening for auto location changes.
-	defer stopAutoLocationListener()
 	switch group {
 	case string(InternalTagAutoAll), "auto":
 		group = "all"
@@ -117,65 +108,4 @@ func GetAutoLocation() (*vpn.AutoSelections, error) {
 		return nil, fmt.Errorf("failed to get auto location: %w", err)
 	}
 	return &location, nil
-}
-
-type autoLocationManager struct {
-	cancel    context.CancelFunc
-	isRunning bool
-	mu        sync.Mutex
-}
-
-var locationManager = &autoLocationManager{
-	// Just avoid a nil cancel function.
-	cancel: func() {},
-}
-
-func startAutoLocationListener() {
-	slog.Info("Starting auto location listener...")
-	locationManager.mu.Lock()
-	defer locationManager.mu.Unlock()
-	if locationManager.isRunning {
-		slog.Info("Auto location listener is already running")
-		return
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	locationManager.cancel = cancel
-	locationManager.isRunning = true
-	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 10*time.Second)
-		for {
-			select {
-			case <-ctx.Done():
-				slog.Info("Auto location listener context done, exiting goroutine")
-				return
-			case selection, ok := <-sourceChan:
-				if !ok {
-					// Channel closed, exit goroutine
-					slog.Info("Auto location listener channel closed, exiting goroutine")
-					return
-				}
-				// Emit event
-				events.Emit(vpn.AutoSelectionsEvent{
-					Selections: selection,
-				})
-			}
-		}
-	}()
-	slog.Info("Auto location listener started")
-}
-
-// stopAutoLocationListener stops the location listener
-
-func stopAutoLocationListener() {
-	slog.Info("Stopping auto location listener...")
-	locationManager.mu.Lock()
-	defer locationManager.mu.Unlock()
-
-	if !locationManager.isRunning {
-		slog.Info("Auto location listener is not running, nothing to stop")
-		return
-	}
-	locationManager.cancel()
-	locationManager.isRunning = false
-	slog.Info("Auto location listener stopped")
 }

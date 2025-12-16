@@ -54,7 +54,7 @@ class SettingTile extends StatelessWidget {
               children: [
                 SizedBox(width: 32.0),
                 if (child != null)
-                  child!
+                  Expanded(child: child!)
                 else
                   Expanded(
                     child: AutoSizeText(value,

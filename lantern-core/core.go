@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
@@ -65,6 +66,8 @@ type App interface {
 	GetServerByTag(tag string) (servers.Server, bool)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
+	StartAutoLocationListener()
+	StopAutoLocationListener()
 }
 
 type User interface {
@@ -235,6 +238,70 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Message: message,
 	})
 }
+
+//Server Location change methods
+
+type autoLocationManager struct {
+	cancel    context.CancelFunc
+	isRunning bool
+	mu        sync.Mutex
+}
+
+var locationManager = &autoLocationManager{
+	// Just avoid a nil cancel function.
+	cancel: func() {},
+}
+
+func (lc *LanternCore) StartAutoLocationListener() {
+	slog.Info("Starting auto location listener...")
+	locationManager.mu.Lock()
+	defer locationManager.mu.Unlock()
+	if locationManager.isRunning {
+		slog.Info("Auto location listener is already running")
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	locationManager.cancel = cancel
+	locationManager.isRunning = true
+	go func() {
+		sourceChan := vpn.AutoSelectionsChangeListener(ctx, (15*time.Second))
+		for {
+			select {
+			case <-ctx.Done():
+				slog.Info("Auto location listener context done, exiting goroutine")
+				return
+			case selection, ok := <-sourceChan:
+				if !ok {
+					// Channel closed, exit goroutine
+					slog.Info("Auto location listener channel closed, exiting goroutine")
+					return
+				}
+				// Emit event
+				events.Emit(vpn.AutoSelectionsEvent{
+					Selections: selection,
+				})
+			}
+		}
+	}()
+	slog.Info("Auto location listener started")
+}
+
+// stopAutoLocationListener stops the location listener
+
+func (lc *LanternCore) StopAutoLocationListener() {
+	slog.Info("Stopping auto location listener...")
+	locationManager.mu.Lock()
+	defer locationManager.mu.Unlock()
+
+	if !locationManager.isRunning {
+		slog.Info("Auto location listener is not running, nothing to stop")
+		return
+	}
+	locationManager.cancel()
+	locationManager.isRunning = false
+	slog.Info("Auto location listener stopped")
+}
+
 func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
 	return lc.serverManager.GetServerByTag(tag)
 

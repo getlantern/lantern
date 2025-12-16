@@ -354,7 +354,7 @@ class MethodHandler {
   private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
     Task {
       var error: NSError?
-      let data =  MobileOAuthLoginUrl(provider, &error)
+      let data = MobileOAuthLoginUrl(provider, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN")
         return
@@ -368,7 +368,7 @@ class MethodHandler {
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
       var error: NSError?
-      let data =  MobileOAuthLoginCallback(token, &error)
+      let data = MobileOAuthLoginCallback(token, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
         return
@@ -382,7 +382,7 @@ class MethodHandler {
   private func getUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data =  MobileUserData(&error)
+      let data = MobileUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
         return
@@ -487,7 +487,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let payload =  MobileLogin(email, password, &error)
+      let payload = MobileLogin(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
         return
@@ -503,7 +503,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-        MobileSignUp(email, password, &error)
+      MobileSignUp(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SIGNUP_FAILED")
         return
@@ -515,7 +515,7 @@ class MethodHandler {
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      let payload =  MobileLogout(email, &error)
+      let payload = MobileLogout(email, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGOUT_FAILED")
         return
@@ -833,7 +833,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(location )
+        result(location)
       }
     }
   }
