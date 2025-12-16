@@ -574,32 +574,8 @@
       "relations": []
     },
     {
-      "id": "14:893519286503285129",
-      "lastPropertyId": "3:7033573124845738437",
-      "name": "AutoLocationEntity",
-      "properties": [
-        {
-          "id": "1:2938245810653001410",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:3575184890349121426",
-          "name": "serverLocation",
-          "type": 9
-        },
-        {
-          "id": "3:7033573124845738437",
-          "name": "serverName",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
       "id": "15:8199208392537907961",
-      "lastPropertyId": "5:616996754378264721",
+      "lastPropertyId": "10:8116798153105246070",
       "name": "ServerLocationEntity",
       "properties": [
         {
@@ -614,11 +590,6 @@
           "type": 1
         },
         {
-          "id": "3:713889304334787730",
-          "name": "serverLocation",
-          "type": 9
-        },
-        {
           "id": "4:8032330847275345473",
           "name": "serverName",
           "type": 9
@@ -626,6 +597,31 @@
         {
           "id": "5:616996754378264721",
           "name": "serverType",
+          "type": 9
+        },
+        {
+          "id": "6:9033661669185195868",
+          "name": "countryCode",
+          "type": 9
+        },
+        {
+          "id": "7:2125473202380216965",
+          "name": "country",
+          "type": 9
+        },
+        {
+          "id": "8:9004572906869766608",
+          "name": "city",
+          "type": 9
+        },
+        {
+          "id": "9:7845913040190483495",
+          "name": "displayName",
+          "type": 9
+        },
+        {
+          "id": "10:8116798153105246070",
+          "name": "autoLocationJson",
           "type": 9
         }
       ],
@@ -663,7 +659,8 @@
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
-    2570208090016598017
+    2570208090016598017,
+    893519286503285129
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -672,7 +669,11 @@
     6118839343664935194,
     6466241492119077741,
     2440100772065290852,
-    2624216199337903862
+    2624216199337903862,
+    713889304334787730,
+    2938245810653001410,
+    3575184890349121426,
+    7033573124845738437
   ],
   "retiredRelationUids": [],
   "version": 1

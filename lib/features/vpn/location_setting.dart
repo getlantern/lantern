@@ -12,49 +12,62 @@ class LocationSetting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
-    String? title, value = '';
+
+    final autoLoc = serverLocation.autoLocation;
+
+    String title = '';
+    String value = '';
+    String flag = '';
 
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
-        value = serverLocation.autoLocation.serverLocation.split('[')[0].trim();
+
+        // Prefer displayName, then autoLoc displayName/country
+        // else a smart location text fallback
+        value = serverLocation.displayName.trim().isNotEmpty
+            ? serverLocation.displayName
+            : (autoLoc?.displayName.isNotEmpty == true
+                ? autoLoc!.displayName
+                : (autoLoc?.country.isNotEmpty == true
+                    ? autoLoc!.country
+                    : 'smart_location'.i18n));
+
+        flag = autoLoc?.countryCode ?? '';
         break;
+
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;
-        value = serverLocation.serverLocation.split('[')[0].trim();
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
         break;
+
       case ServerLocationType.privateServer:
         title = serverLocation.serverName;
-        value = serverLocation.serverLocation.locationName;
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
         break;
     }
+
     return SettingTile(
       label: title,
       value: value,
-      icon: serverLocation.serverLocation.countryCode.isEmpty
-          ? AppImagePaths.location
-          : Flag(countryCode: serverLocation.serverLocation.countryCode),
+      icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         IconButton(
-          onPressed: () {
-            appRouter.push(const ServerSelection());
-          },
+          onPressed: () => appRouter.push(const ServerSelection()),
           style: ElevatedButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
           icon: AppImage(path: AppImagePaths.verticalDots),
           padding: EdgeInsets.zero,
-          // iconSize: 10,
-          constraints: BoxConstraints(),
+          constraints: const BoxConstraints(),
           visualDensity: VisualDensity.compact,
-        )
+        ),
       ],
-      onTap: () {
-        appRouter.push(const ServerSelection());
-      },
+      onTap: () => appRouter.push(const ServerSelection()),
     );
   }
 }

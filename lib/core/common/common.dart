@@ -183,12 +183,16 @@ String getReferralMessage(String planId) {
 ServerLocationEntity initialServerLocation() {
   return ServerLocationEntity(
     autoSelect: true,
-    serverLocation: ''.i18n,
     serverName: '',
     serverType: ServerLocationType.auto.name,
-    autoLocation: AutoLocationEntity(
-      serverLocation: 'fastest_server'.i18n,
-      serverName: '',
+    country: '',
+    city: '',
+    displayName: 'Smart Location',
+    countryCode: '',
+    autoLocationParam: AutoLocationEntity(
+      country: '',
+      countryCode: '',
+      displayName: 'fastest_server'.i18n,
     ),
   );
 }

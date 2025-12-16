@@ -42,7 +42,7 @@ final class ManageServerNotifierProvider
 }
 
 String _$manageServerNotifierHash() =>
-    r'b87b605c74a1ee5df52609df98dc26d78115e8c5';
+    r'46063818d32ee5880a14ef55802ed364460d8476';
 
 abstract class _$ManageServerNotifier
     extends $Notifier<List<PrivateServerEntity>> {

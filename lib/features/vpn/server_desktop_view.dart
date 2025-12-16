@@ -4,7 +4,7 @@ import 'package:lantern/features/vpn/server_selection.dart';
 import '../../core/common/common.dart';
 
 class ServerDesktopView extends StatefulWidget {
-  final OnSeverSelected onServerSelected;
+  final OnServerSelected onServerSelected;
 
   const ServerDesktopView({
     super.key,
