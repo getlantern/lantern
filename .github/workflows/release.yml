@@ -187,6 +187,7 @@ jobs:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
       BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -200,39 +201,53 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
-      - name: Upload to S3 (latest)
+      - name: Upload to S3 (tag + latest)
+        shell: bash
         run: |
-          sha="$(git rev-parse --short HEAD)"
+          set -euxo pipefail
 
-          # Nightly paths
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read || true
+          prefix="releases/${BUILD_TYPE}"
+          tag="${RELEASE_TAG}"
 
-          # Latest aliases
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+          # Tag-scoped uploads
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" --acl public-read || true
+
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Write links to job summary
+        shell: bash
         run: |
-          sha="$(git rev-parse --short HEAD)"
+          set -euxo pipefail
+
+          prefix="releases/${BUILD_TYPE}"
+          tag="${RELEASE_TAG}"
+
           {
-            echo "## Internal build links (commit \`$sha\`)"
+            echo "## Release links (${BUILD_TYPE})"
+            echo ""
+            echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg"
+            echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe"
+            echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk"
+            echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb"
+            echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm"
             echo ""
             echo "**Latest aliases**"
-            echo "- macOS:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
-            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
-            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
-            echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
-            echo "- Linux (.rpm): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+            echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.dmg"
+            echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.exe"
+            echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.apk"
+            echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.deb"
+            echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.rpm"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
@@ -268,7 +283,13 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml" || echo "No changes to commit"
           git push
-          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+          bucket="${{ secrets.S3_RELEASES_BUCKET }}"
+
+          aws s3 cp appcast.xml "s3://${bucket}/releases/${{ env.BUILD_TYPE }}/latest/appcast.xml" --acl public-read
+
+          if [[ "${{ env.BUILD_TYPE }}" == "production" ]]; then
+            aws s3 cp appcast.xml "s3://${bucket}/releases/appcast.xml" --acl public-read
+          fi
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -277,7 +298,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
+              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Latest downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>\n\n*Tag-scoped:* <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/|releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/>"
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
