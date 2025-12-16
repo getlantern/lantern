@@ -254,6 +254,7 @@ class MethodHandler {
   private func startVPN(result: @escaping FlutterResult) {
     Task {
       do {
+        // start auto location listener
         try await vpnManager.startTunnel()
         var error: NSError?
         MobileStartAutoLocationListener(&error)
@@ -280,6 +281,7 @@ class MethodHandler {
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       do {
+        // Stop auto location listener before connecting to a specific server
         var error: NSError?
         MobileStopAutoLocationListener(&error)
         if let error {
@@ -308,6 +310,8 @@ class MethodHandler {
   private func stopVPN(result: @escaping FlutterResult) {
     Task {
       do {
+        // Stop auto location listener before connecting to a specific server
+
         var error: NSError?
         MobileStopAutoLocationListener(&error)
         if let error {
