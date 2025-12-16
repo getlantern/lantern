@@ -153,7 +153,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon: flag.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: flag),
-            label: displayName,
+            label: displayName.i18n,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -251,7 +251,7 @@ class LocalStorageService {
             serverType: ServerLocationType.auto.name,
             country: '',
             city: '',
-            displayName: 'Smart Location',
+            displayName: 'fastest_server'.i18n,
             countryCode: '',
           )
         : server.first;
