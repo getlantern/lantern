@@ -33,10 +33,14 @@ func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
-	startAutoLocationListener()
 	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
-	return vpn.QuickConnect("", platform)
+	err := vpn.QuickConnect("", platform)
+	if err != nil {
+		return fmt.Errorf("failed to start VPN: %w", err)
+	}
+	startAutoLocationListener()
+	return nil
 }
 
 // StopVPN will stop the VPN tunnel.
@@ -138,13 +142,18 @@ func startAutoLocationListener() {
 	locationManager.cancel = cancel
 	locationManager.isRunning = true
 	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 5*time.Second)
+		sourceChan := vpn.AutoSelectionsChangeListener(ctx, 10*time.Second)
 		for {
 			select {
 			case <-ctx.Done():
 				slog.Debug("Auto location listener context done, exiting goroutine")
 				return
-			case selection := <-sourceChan:
+			case selection, ok := <-sourceChan:
+				if !ok {
+					// Channel closed, exit goroutine
+					slog.Debug("Auto location listener channel closed, exiting goroutine")
+					return
+				}
 				// Emit event
 				events.Emit(vpn.AutoSelectionsEvent{
 					Selections: selection,
