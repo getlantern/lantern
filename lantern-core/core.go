@@ -65,7 +65,6 @@ type App interface {
 	GetServerByTag(tag string) (servers.Server, bool)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
-	NotifyFlutter(event EventType, message string)
 }
 
 type User interface {
@@ -172,7 +171,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		LogDir:   opts.LogDir,
 		DataDir:  opts.DataDir,
 		DeviceID: opts.Deviceid,
-		LogLevel: opts.LogDir,
+		LogLevel: opts.LogLevel,
 		Locale:   opts.Locale,
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
@@ -192,27 +191,10 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	// Listen for config updates and notify Flutter
 	events.Subscribe(func(evt config.NewConfigEvent) {
-		core.NotifyFlutter(EventTypeConfig, "Config is fetched/updated")
+		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
 	})
 
-	// Listen for server location changes and notify Flutter
-	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
-		tag := evt.Selections.Lantern
-		servers, ok := core.GetServerByTag(tag)
-		if !ok {
-			fmt.Errorf("no server found with tag: %s", tag)
-			return
-		}
-		jsonBytes, err := json.Marshal(servers)
-		if err != nil {
-			fmt.Errorf("error marshalling server: %v", err)
-			return
-		}
-		stringBody := string(jsonBytes)
-		slog.Debug("Auto location server:", "server", stringBody)
-		core.NotifyFlutter(EventTypeServerLocation, stringBody)
-	})
-
+	lc.listeningServerLocationChanges()
 	slog.Debug("LanternCore initialized successfully")
 
 	// If we have a legacy user ID, fetch user data
@@ -222,11 +204,31 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	return nil
 }
 
+// Listen for server location changes and notify Flutter
+func (lc *LanternCore) listeningServerLocationChanges() {
+	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
+		tag := evt.Selections.Lantern
+		servers, ok := lc.GetServerByTag(tag)
+		if !ok {
+			slog.Error("no server found with tag", "tag", tag)
+			return
+		}
+		jsonBytes, err := json.Marshal(servers)
+		if err != nil {
+			slog.Error("Error marshalling server location", "error", err)
+			return
+		}
+		stringBody := string(jsonBytes)
+		slog.Debug("Auto location server:", "server", stringBody)
+		lc.notifyFlutter(EventTypeServerLocation, stringBody)
+	})
+}
+
 // Internal methods
-// NotifyFlutter sends an event to the Flutter frontend via the event emitter.
+// notifyFlutter sends an event to the Flutter frontend via the event emitter.
 // For mobile it will use EventChannel to send events.
 // For desktop it will use FFI
-func (lc *LanternCore) NotifyFlutter(event EventType, message string) {
+func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	slog.Debug("Notifying Flutter")
 	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
 		Type:    string(event),
