@@ -16,6 +16,8 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/config"
+	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
@@ -187,7 +189,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
-	lc.rad.AddConfigListener(func() {
+	events.Subscribe(func(evt config.NewConfigEvent) {
 		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
 	})
 
