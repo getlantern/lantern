@@ -180,10 +180,10 @@ class LanternVpnService :
     fun onUnderlyingNetworkChanged() {
         serviceScope.launch {
             try {
-                if (!lantern.io.mobile.Mobile.isVPNConnected()) {
+                if (!Mobile.isVPNConnected()) {
                     return@launch
                 }
-                Log.d(TAG, "Underlying network changed, restarting VPN")
+                AppLogger.d(TAG, "Underlying network changed, restarting VPN")
 
                 // Silent, lightweight restart: no service teardown
                 doStopVPN(
@@ -194,7 +194,7 @@ class LanternVpnService :
                 kotlinx.coroutines.delay(300)
                 startVPN()
             } catch (e: Exception) {
-                Log.e(TAG, "Error restarting VPN after network change", e)
+                AppLogger.e(TAG, "Error restarting VPN after network change", e)
             }
         }
     }
@@ -271,7 +271,7 @@ class LanternVpnService :
         silent: Boolean = false,
         keepServiceAlive: Boolean = false,
     ) {
-        Log.d(TAG, "doStopVPN(silent=$silent, keepServiceAlive=$keepServiceAlive)")
+        AppLogger.d(TAG, "doStopVPN(silent=$silent, keepServiceAlive=$keepServiceAlive)")
         if (!silent) {
             VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
         }
@@ -285,7 +285,7 @@ class LanternVpnService :
                     .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
                 runCatching { DefaultNetworkMonitor.stop() }
-                    .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
+                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
 
                 if (!silent) {
                     notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)

@@ -7,7 +7,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import lantern.io.libbox.InterfaceUpdateListener
+import lantern.io.mobile.Mobile
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.Bugs
 import java.net.NetworkInterface
 
@@ -81,34 +83,40 @@ object DefaultNetworkMonitor {
     }
 
     private fun handleNetworkChanged(newNetwork: Network?) {
+        AppLogger.i(TAG, "Default network changed: $newNetwork")
         val previous = defaultNetwork
+        /// No-op if nothing changed
+        if (previous == newNetwork) {
+            AppLogger.i(TAG, "Default network same as before, no-op")
+            checkDefaultInterfaceUpdate(newNetwork)
+            return
+        }
+        /// Update the default network
         defaultNetwork = newNetwork
-
+        AppLogger.i(TAG, "Updated default network to: $defaultNetwork")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
             try {
-                val lp = newNetwork?.let { LanternApp.connectivity.getLinkProperties(it) }
-                val underlying = lp?.underlyingNetworks
-                val toSet: Array<Network>? = when {
-                    underlying != null && underlying.isNotEmpty() -> underlying.toTypedArray()
-                    newNetwork != null -> arrayOf(newNetwork)
-                    else -> null
-                }
-                LanternVpnService.instance.setUnderlyingNetworks(toSet)
+                val networksToSet: Array<Network>? =
+                    newNetwork?.let { arrayOf(it) }
+                AppLogger.i(
+                    TAG,
+                    "Setting underlying networks to: ${networksToSet?.contentToString() ?: "null"}"
+                )
+                LanternVpnService.instance.setUnderlyingNetworks(networksToSet)
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "setUnderlyingNetworks failed", e)
+                AppLogger.w(TAG, "setUnderlyingNetworks failed", e)
             }
         }
-
-        if (previous != null && newNetwork != null && previous != newNetwork) {
+        if (previous != null && newNetwork != null) {
             try {
-                if (lantern.io.mobile.Mobile.isVPNConnected()) {
+                if (Mobile.isVPNConnected()) {
+                    AppLogger.i(TAG, "Notifying LanternVpnService of underlying network change")
                     LanternVpnService.instance.onUnderlyingNetworkChanged()
                 }
             } catch (t: Throwable) {
-                android.util.Log.w(TAG, "Failed to handle network change", t)
+                AppLogger.w(TAG, "Failed to handle network change", t)
             }
         }
-
         checkDefaultInterfaceUpdate(newNetwork)
     }
 }
