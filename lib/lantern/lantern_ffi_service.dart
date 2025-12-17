@@ -479,7 +479,7 @@ class LanternFFIService implements LanternCoreService {
         );
         result.then(
               (value) {
-                appLogger.debug("auto location listener stops : $result");
+                appLogger.debug("auto location listener stops : $value");
           },
         );
       } catch (e) {
@@ -527,7 +527,7 @@ class LanternFFIService implements LanternCoreService {
           );
           result.then(
                 (value) {
-                  appLogger.debug("auto location listener stops : $result");
+                  appLogger.debug("auto location listener stops : $value");
             },
           );
         } catch (e) {
