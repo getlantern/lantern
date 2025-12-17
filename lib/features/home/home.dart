@@ -42,10 +42,16 @@ class _HomeState extends ConsumerState<Home>
       ///First time user shows telemetry dialog
       if (appSetting.showTelemetryDialog) {
         appLogger.info("Showing Telemetry Dialog");
-        showHelpLanternDialog();
-        //User has seen dialog, do not show again
-        appLogger.info("Setting showTelemetryDialog to false");
-        ref.read(appSettingProvider.notifier).setShowTelemetryDialog(false);
+        Future.delayed(
+          Duration(seconds: 1),
+          () {
+            showHelpLanternDialog();
+            ///User has seen dialog, do not show again
+            appLogger.info("Setting showTelemetryDialog to false");
+            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(false);
+          },
+        );
+
         return;
       }
 
@@ -230,7 +236,8 @@ class _HomeState extends ConsumerState<Home>
             textColor: AppColors.gray6,
             onPressed: () {
               context.pop();
-              ref.read(appSettingProvider.notifier)
+              ref
+                  .read(appSettingProvider.notifier)
                   .updateAnonymousDataConsent(false);
             },
           ),
@@ -239,7 +246,8 @@ class _HomeState extends ConsumerState<Home>
             textColor: AppColors.blue6,
             onPressed: () {
               context.pop();
-              ref.read(appSettingProvider.notifier)
+              ref
+                  .read(appSettingProvider.notifier)
                   .updateAnonymousDataConsent(true);
             },
           ),

@@ -1279,3 +1279,6 @@ msgstr "Anonymous Usage Data"
 msgid "helps_improve_lantern_performance"
 msgstr "Helps improve Lantern performance"
 
+msgid "changes_applied_after_restart"
+msgstr "Changes will be applied after restarting Lantern."
+

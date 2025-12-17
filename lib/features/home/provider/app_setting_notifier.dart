@@ -85,11 +85,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void updateAnonymousDataConsent(bool value) {
     update(state.copyWith(telemetryConsent: value));
-    if (value) {
-      enableTelemetry();
-    } else {
-      disableTelemetry();
-    }
+    updateTelemetryConsent(value);
   }
 
   void setSplashScreen(bool value) {
@@ -141,6 +137,14 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final file = File('${dir.path}/.telemetry_enabled');
     if (file.existsSync()) {
       await file.delete();
+    }
+  }
+
+  void updateTelemetryConsent(bool consent) {
+    if (consent) {
+      enableTelemetry();
+    } else {
+      disableTelemetry();
     }
   }
 }

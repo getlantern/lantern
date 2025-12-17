@@ -112,6 +112,21 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 	return C.CString("ok")
 }
 
+// updateTelemetryConsent updates the telemetry consent.
+//
+//export updateTelemetryConsent
+func updateTelemetryConsent(consent C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	err := c.UpdateTelemetryConsent(consent != 0)
+	if err != nil {
+		return sendError(err)
+	}
+	return C.CString("ok")
+}
+
 // availableFeatures returns a list of available features in JSON format.
 //
 //export availableFeatures

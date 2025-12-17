@@ -68,6 +68,7 @@ type App interface {
 	UpdateLocale(locale string) error
 	StartAutoLocationListener()
 	StopAutoLocationListener()
+	UpdateTelemetryConsent(consent bool) error
 }
 
 type User interface {
@@ -171,11 +172,12 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	slog.Debug("Starting LanternCore initialization")
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
-		LogDir:   opts.LogDir,
-		DataDir:  opts.DataDir,
-		DeviceID: opts.Deviceid,
-		LogLevel: opts.LogLevel,
-		Locale:   opts.Locale,
+		LogDir:           opts.LogDir,
+		DataDir:          opts.DataDir,
+		DeviceID:         opts.Deviceid,
+		LogLevel:         opts.LogLevel,
+		Locale:           opts.Locale,
+		TelemetryConsent: opts.TelemetryConsent,
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
 	}
@@ -203,6 +205,18 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	// If we have a legacy user ID, fetch user data
 	if lc.rad.UserInfo().LegacyID() != 0 {
 		core.FetchUserData()
+	}
+	return nil
+}
+
+func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
+	slog.Debug("Updating telemetry consent", "consent", consent)
+	if consent {
+		slog.Info("User has opted in to telemetry")
+		lc.rad.EnableTelemetry()
+	} else {
+		slog.Info("User has opted out of telemetry")
+		lc.rad.DisableTelemetry()
 	}
 	return nil
 }
