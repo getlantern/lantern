@@ -13,8 +13,6 @@ class LocationSetting extends HookConsumerWidget {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
 
-    final autoLoc = serverLocation.autoLocation;
-
     String title = '';
     String value = '';
     String flag = '';
@@ -22,16 +20,13 @@ class LocationSetting extends HookConsumerWidget {
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
+        final autoLoc = serverLocation.autoLocation;
 
-        // Prefer displayName, then autoLoc displayName/country
-        // else a smart location text fallback
-        value = serverLocation.displayName.trim().isNotEmpty
-            ? serverLocation.displayName
-            : (autoLoc?.displayName.isNotEmpty == true
-                ? autoLoc!.displayName
-                : (autoLoc?.country.isNotEmpty == true
-                    ? autoLoc!.country
-                    : 'smart_location'.i18n));
+        /// Should be using auto location display name if available
+        /// else fallback to smart location text
+        value = autoLoc != null && autoLoc.displayName.isNotEmpty
+            ? autoLoc.displayName
+            : 'fastest_server'.i18n;
 
         flag = autoLoc?.countryCode ?? '';
         break;
@@ -51,7 +46,7 @@ class LocationSetting extends HookConsumerWidget {
 
     return SettingTile(
       label: title,
-      value: value,
+      value: value.i18n,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)

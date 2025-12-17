@@ -2,6 +2,7 @@ package vpn_tunnel
 
 import (
 	"fmt"
+
 	"log/slog"
 
 	radianceCommon "github.com/getlantern/radiance/common"
@@ -23,13 +24,18 @@ const (
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // It passes the empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
 	if err := initCommon(opts); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
-	/// it should use InternalTagLantern so it will connect to best lantern server by default.
+	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
-	return vpn.QuickConnect("", platform)
+	err := vpn.QuickConnect("", platform)
+	if err != nil {
+		return fmt.Errorf("failed to start VPN: %w", err)
+	}
+	return nil
 }
 
 // StopVPN will stop the VPN tunnel.

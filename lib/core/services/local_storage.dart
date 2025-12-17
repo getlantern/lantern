@@ -232,27 +232,13 @@ class LocalStorageService {
   void updateInitialServerLocation() {
     final server = _serverLocationBox.getAll();
     if (server.isEmpty) {
-      final initialServer = ServerLocationEntity(
-        autoSelect: true,
-        serverName: '',
-        serverType: ServerLocationType.auto.name,
-        country: '',
-        city: '',
-        displayName: 'Smart Location',
-        countryCode: '',
-        autoLocationParam: AutoLocationEntity(
-          displayName: 'fastest_server'.i18n,
-          countryCode: '',
-          country: ''
-        ),
-      );
-      _serverLocationBox.put(initialServer);
+      _serverLocationBox.put(initialServerLocation());
     }
   }
 
-  void saveServerLocation(ServerLocationEntity server)  {
+  void saveServerLocation(ServerLocationEntity server) {
     _serverLocationBox.removeAll();
-     _serverLocationBox.put(server);
+    _serverLocationBox.put(server);
   }
 
   ServerLocationEntity getSavedServerLocations() {
@@ -264,7 +250,7 @@ class LocalStorageService {
             serverType: ServerLocationType.auto.name,
             country: '',
             city: '',
-            displayName: 'Smart Location',
+            displayName: 'fastest_server'.i18n,
             countryCode: '',
           )
         : server.first;

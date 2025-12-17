@@ -15,8 +15,8 @@ public class Profile {
   /// Loads or creates the NETunnelProviderManager and caches it in-memory.
   /// Subsequent calls return immediately without touching disk.
   func getManager() async -> NETunnelProviderManager? {
-  
-      do {
+
+    do {
       // 2️⃣ Hit the preferences store just once
       let all = try await NETunnelProviderManager.loadAllFromPreferences()
 

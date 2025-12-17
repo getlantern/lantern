@@ -192,7 +192,7 @@ ServerLocationEntity initialServerLocation() {
     autoLocationParam: AutoLocationEntity(
       country: '',
       countryCode: '',
-      displayName: 'fastest_server'.i18n,
+      displayName: ('fastest_server'.i18n),
     ),
   );
 }
