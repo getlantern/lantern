@@ -1254,3 +1254,28 @@ msgstr "Activation code must be 25 characters long."
 
 msgid "error_while_vpn_connection"
 msgstr "An error occurred while establishing the VPN connection. Please try again."
+
+msgid "help_improve_lantern"
+msgstr "Help Improve Lantern"
+
+msgid "share_anonymous_usage_data"
+msgstr "Share anonymous usage data to help improve speed and reliability."
+
+msgid "data_we_collect"
+msgstr "We never collect browsing history, traffic destinations, DNS queries, or connection logs."
+
+msgid "you_can_change_anytime"
+msgstr "You can change this anytime in VPN Settings."
+
+msgid "dont_allow"
+msgstr "Don't Allow"
+
+msgid "allow"
+msgstr "Allow"
+
+msgid "anonymous_usage_data"
+msgstr "Anonymous Usage Data"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Helps improve Lantern performance"
+

@@ -59,6 +59,26 @@ class VPNSetting extends HookConsumerWidget {
                   appRouter.push(const ServerSelection());
                 },
               ),
+              DividerSpace(),
+              AppTile(
+                label: 'anonymous_usage_data'.i18n,
+                icon: AppImagePaths.assessment,
+                subtitle: Text(
+                  'helps_improve_lantern_performance'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: AppColors.gray7,
+                    letterSpacing: 0.0,
+                  ),
+                ),
+                trailing: SwitchButton(
+                  value: preferences.telemetryConsent,
+                  onChanged: (value) {
+                    appLogger
+                        .info('Anonymous usage data consent changed: $value');
+                    notifier.updateAnonymousDataConsent(value);
+                  },
+                ),
+              ),
             ],
           ),
         ),

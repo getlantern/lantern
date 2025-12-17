@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_eum.dart';
@@ -5,6 +7,7 @@ import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -80,8 +83,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     });
   }
 
+  void updateAnonymousDataConsent(bool value) {
+    update(state.copyWith(telemetryConsent: value));
+    if (value) {
+      enableTelemetry();
+    } else {
+      disableTelemetry();
+    }
+  }
+
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
+  }
+
+  void setShowTelemetryDialog(bool value) {
+    update(state.copyWith(showTelemetryDialog: value));
   }
 
   Locale _detectDeviceLocale() {
@@ -109,5 +125,22 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       },
       (_) {},
     );
+  }
+
+  ///Internal method to create a file that enables native feature
+  Future<void> enableTelemetry() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final file = File('${dir.path}/.telemetry_enabled');
+    if (!file.existsSync()) {
+      await file.create(recursive: true);
+    }
+  }
+
+  Future<void> disableTelemetry() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final file = File('${dir.path}/.telemetry_enabled');
+    if (file.existsSync()) {
+      await file.delete();
+    }
   }
 }

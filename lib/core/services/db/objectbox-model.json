@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "11:8153428725932858000",
+      "lastPropertyId": "13:8918901309223826671",
       "name": "AppSetting",
       "properties": [
         {
@@ -117,6 +117,16 @@
           "id": "11:8153428725932858000",
           "name": "splitTunnelingModeRaw",
           "type": 9
+        },
+        {
+          "id": "12:8638115978305760525",
+          "name": "showTelemetryDialog",
+          "type": 1
+        },
+        {
+          "id": "13:8918901309223826671",
+          "name": "telemetryConsent",
+          "type": 1
         }
       ],
       "relations": []

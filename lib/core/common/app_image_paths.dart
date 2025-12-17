@@ -100,4 +100,5 @@ class AppImagePaths {
   static const greenCheck = 'assets/images/green_check.svg';
   static const shareV2 = 'assets/images/share_v2.svg';
   static const autoRenew = 'assets/images/auto_renew.svg';
+  static const assessment = 'assets/images/assessment.svg';
 }

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
@@ -33,20 +34,36 @@ class _HomeState extends ConsumerState<Home>
   @override
   void initState() {
     super.initState();
-    if (PlatformUtils.isMacOS) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final appSetting = ref.read(appSettingProvider);
-        appLogger.info(
-            "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appSetting = ref.read(appSettingProvider);
+      appLogger.info("App Setting - $appSetting");
+
+      ///First time user shows telemetry dialog
+      if (appSetting.showTelemetryDialog) {
+        appLogger.info("Showing Telemetry Dialog");
+        showHelpLanternDialog();
+        //User has seen dialog, do not show again
+        appLogger.info("Setting showTelemetryDialog to false");
+        ref.read(appSettingProvider.notifier).setShowTelemetryDialog(false);
+        return;
+      }
+
+      /// Show macOS system extension dialog if needed
+      /// after telemetry dialog
+      appLogger.info(
+          "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
+      if (PlatformUtils.isMacOS) {
         if (appSetting.showSplashScreen) {
           appLogger.info("Showing System Extension Dialog");
           appRouter.push(const MacOSExtensionDialog());
           //User has seen dialog, do not show again
           appLogger.info("Setting showSplashScreen to false");
           ref.read(appSettingProvider.notifier).setSplashScreen(false);
+          return;
         }
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -167,5 +184,65 @@ class _HomeState extends ConsumerState<Home>
         appRouter.push(const SplitTunneling());
         break;
     }
+  }
+
+  void showHelpLanternDialog() {
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 24),
+            AppImage(path: AppImagePaths.assessment),
+            SizedBox(height: 24),
+            Text(
+              'help_improve_lantern'.i18n,
+              style: textTheme!.headlineSmall!.copyWith(
+                color: AppColors.gray9,
+              ),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'share_anonymous_usage_data'.i18n,
+              style: textTheme!.bodyMedium!.copyWith(
+                color: AppColors.gray8,
+              ),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'data_we_collect'.i18n,
+              style: AppTextStyles.bodyMediumBold.copyWith(
+                color: AppColors.gray8,
+              ),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'you_can_change_anytime'.i18n,
+              style: textTheme!.bodyMedium!.copyWith(
+                color: AppColors.gray8,
+              ),
+            ),
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'dont_allow'.i18n,
+            textColor: AppColors.gray6,
+            onPressed: () {
+              context.pop();
+              ref.read(appSettingProvider.notifier)
+                  .updateAnonymousDataConsent(false);
+            },
+          ),
+          AppTextButton(
+            label: 'allow'.i18n,
+            textColor: AppColors.blue6,
+            onPressed: () {
+              context.pop();
+              ref.read(appSettingProvider.notifier)
+                  .updateAnonymousDataConsent(true);
+            },
+          ),
+        ]);
   }
 }
