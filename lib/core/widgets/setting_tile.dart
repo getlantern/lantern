@@ -59,8 +59,8 @@ class SettingTile extends StatelessWidget {
                   Expanded(
                     child: AutoSizeText(value,
                         maxLines: 1,
-                        minFontSize: 14,
                         maxFontSize: 16,
+                        minFontSize: 14,
                         style: textTheme.titleMedium!
                             .copyWith(color: AppColors.gray9)),
                   ),
