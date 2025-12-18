@@ -16,6 +16,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
+import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -175,9 +176,9 @@ class LanternFFIService implements LanternCoreService {
       }
       appLogger.debug("Loaded installed apps");
       final decoded = jsonDecode(json) as List<dynamic>;
-      final enabledAppNames = _getEnabledAppNames();
+      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
       final rawApps = decoded.cast<Map<String, dynamic>>();
-      yield _mapToAppData(rawApps, enabledAppNames);
+      yield _mapToAppData(rawApps, enabled);
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];
@@ -186,28 +187,24 @@ class LanternFFIService implements LanternCoreService {
 
   List<AppData> _mapToAppData(
     Iterable<Map<String, dynamic>> rawApps,
-    Set<String> enabledAppNames,
+    EnabledAppsSnapshot enabled,
   ) {
     return rawApps.map((raw) {
-      final isEnabled = enabledAppNames.contains(raw["name"]);
+      final name = (raw["name"] as String? ?? "").trim();
+      final bundleId = (raw["bundleId"] as String? ?? "").trim();
+
+      final key = bundleId.isNotEmpty ? bundleId : name;
+      final isEnabled = enabled.contains(key: key, name: name);
+
       return AppData(
-        name: raw["name"] as String,
-        bundleId: raw["bundleId"] as String,
+        name: name,
+        bundleId: bundleId,
         appPath: raw["appPath"] as String? ?? '',
         iconPath: raw["iconPath"] as String? ?? '',
         iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
         isEnabled: isEnabled,
       );
     }).toList();
-  }
-
-  Set<String> _getEnabledAppNames() {
-    final LocalStorageService db = sl<LocalStorageService>();
-    final savedApps = db.getAllApps();
-    return savedApps
-        .where((app) => app.isEnabled)
-        .map((app) => app.name)
-        .toSet();
   }
 
   // Split tunneling
@@ -471,7 +468,6 @@ class LanternFFIService implements LanternCoreService {
       String location, String tag) async {
     if (Platform.isWindows) {
       try {
-
         ///Do not await here to avoid blocking
         final result = runInBackground(
           () async {
@@ -479,8 +475,8 @@ class LanternFFIService implements LanternCoreService {
           },
         );
         result.then(
-              (value) {
-                appLogger.debug("auto location listener stops : $value");
+          (value) {
+            appLogger.debug("auto location listener stops : $value");
           },
         );
       } catch (e) {
@@ -527,8 +523,8 @@ class LanternFFIService implements LanternCoreService {
             },
           );
           result.then(
-                (value) {
-                  appLogger.debug("auto location listener stops : $value");
+            (value) {
+              appLogger.debug("auto location listener stops : $value");
             },
           );
         } catch (e) {

@@ -16,6 +16,7 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
+import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
@@ -174,41 +175,33 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   List<AppData> _mapToAppData(
-    Iterable<Map<String, dynamic>> rawApps,
-    Set<String> enabledAppNames,
-  ) {
+    Iterable<Map<String, dynamic>> rawApps, {
+    required EnabledAppsSnapshot enabled,
+  }) {
     return rawApps.map((raw) {
-      final bundleId = (raw["bundleId"] ?? raw["package"] ?? "") as String;
-      final name = (raw["name"] ?? raw["label"] ?? bundleId).toString();
+      final bundleId =
+          (raw["bundleId"] ?? raw["package"] ?? "").toString().trim();
+      final name = (raw["name"] ?? raw["label"] ?? bundleId).toString().trim();
       final lastUpdateTime = (raw["lastUpdateTime"] as num?)?.toInt() ?? 0;
       final removed = raw["removed"] == true || raw["isRemoved"] == true;
+
+      final key = bundleId.isNotEmpty ? bundleId : name;
 
       return AppData(
         bundleId: bundleId,
         name: name,
-        appPath: raw["appPath"] as String? ?? '',
-        iconPath: raw["iconPath"] as String? ?? '',
+        appPath: (raw["appPath"] ?? "").toString(),
+        iconPath: (raw["iconPath"] ?? "").toString(),
         iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
         lastUpdateTime: lastUpdateTime,
         removed: removed,
-        isEnabled: enabledAppNames.contains(name),
+        isEnabled: enabled.contains(key: key, name: name),
       );
     }).toList();
   }
 
-  Set<String> _getEnabledAppNames() {
-    final LocalStorageService db = sl<LocalStorageService>();
-    final savedApps = db.getAllApps();
-    return savedApps
-        .where((app) => app.isEnabled)
-        .map((app) => app.name)
-        .toSet();
-  }
-
   Stream<List<AppData>> androidAppsDataStream() async* {
     if (!Platform.isAndroid) throw UnimplementedError();
-
-    final enabledAppNames = _getEnabledAppNames();
 
     Stream<dynamic>? nativeStream;
     try {
@@ -229,7 +222,8 @@ class LanternPlatformService implements LanternCoreService {
         }
         final decoded = jsonDecode(json) as List<dynamic>;
         final rawApps = decoded.cast<Map<String, dynamic>>();
-        for (final a in _mapToAppData(rawApps, enabledAppNames)) {
+        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+        for (final a in _mapToAppData(rawApps, enabled: enabled)) {
           _androidAppCache[a.bundleId] = a;
         }
         yield _sortedCache();
@@ -244,14 +238,15 @@ class LanternPlatformService implements LanternCoreService {
       await for (final ev in nativeStream) {
         if (ev is! Map) continue;
         final e = AppDataEvent.fromMap(ev);
-
+        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
         _applyAppDataEvent(
           type: e.type,
-          items: e.items
-              .map((a) => a.copyWith(
-                    isEnabled: enabledAppNames.contains(a.name),
-                  ))
-              .toList(),
+          items: e.items.map((a) {
+            final key = a.bundleId.isNotEmpty ? a.bundleId : a.name;
+            return a.copyWith(
+              isEnabled: enabled.contains(key: key, name: a.name),
+            );
+          }).toList(),
           removed: e.removed,
         );
 
@@ -311,9 +306,9 @@ class LanternPlatformService implements LanternCoreService {
         return;
       }
       final decoded = jsonDecode(json) as List<dynamic>;
-      final enabledAppNames = _getEnabledAppNames();
+      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
       final rawApps = decoded.cast<Map<String, dynamic>>();
-      yield _mapToAppData(rawApps, enabledAppNames);
+      yield _mapToAppData(rawApps, enabled: enabled);
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];
