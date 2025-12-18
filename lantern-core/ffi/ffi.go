@@ -88,14 +88,14 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 }
 
 //export setup
-func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, consent C.int, api unsafe.Pointer) *C.char {
 	core, err := lanterncore.New(&utils.Opts{
 		LogDir:           C.GoString(_logDir),
 		DataDir:          C.GoString(_dataDir),
 		Locale:           C.GoString(_locale),
 		Deviceid:         "",
 		LogLevel:         lanterncore.DefaultLogLevel,
-		TelemetryConsent: true,
+		TelemetryConsent: consent == 1,
 	}, &ffiFlutterEventEmitter{})
 
 	if err != nil {

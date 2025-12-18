@@ -23,6 +23,10 @@ Future<void> injectServices() async {
       return storeUtils;
     });
 
+    sl.registerLazySingleton(() => LocalStorageService());
+    await sl<LocalStorageService>().init();
+    sl.registerLazySingleton(() => AppRouter());
+
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
     sl.registerLazySingleton<DeepLinkCallbackManager>(
@@ -41,9 +45,7 @@ Future<void> injectServices() async {
       sl.registerLazySingleton<LanternFFIService>(
           () => MockLanternFFIService());
     }
-    sl.registerLazySingleton(() => LocalStorageService());
-    await sl<LocalStorageService>().init();
-    sl.registerLazySingleton(() => AppRouter());
+
 
     if (PlatformUtils.isAndroid) {
       sl.registerSingletonAsync<StripeService>(() async {
