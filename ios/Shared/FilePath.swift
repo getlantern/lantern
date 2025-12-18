@@ -30,6 +30,14 @@ extension FilePath {
   // if this is changed, existing installations of Lantern will not be able to find profile
   // if needed to change this, a migration path must be implemented
   public static let vpnProfileName = "LanternVPN"
+
+  public static func isTelemetryEnabled() -> Bool {
+    let marker =
+      sharedDirectory
+      .appendingPathComponent(".telemetry_enabled")
+
+    return FileManager.default.fileExists(atPath: marker.path)
+  }
 }
 
 extension URL {

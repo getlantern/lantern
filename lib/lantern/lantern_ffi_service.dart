@@ -162,6 +162,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) {
+    // TODO: implement updateTelemetryEvents
+    throw UnimplementedError();
+  }
+
+  @override
   Stream<List<AppData>> appsDataStream() async* {
     try {
       final String dataDir = (await AppStorageUtils.getAppDirectory()).path;
@@ -1321,6 +1327,8 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+
 }
 
 void checkAPIError(dynamic result) {

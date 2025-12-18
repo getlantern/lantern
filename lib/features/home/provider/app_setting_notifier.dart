@@ -123,7 +123,26 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     );
   }
 
-  ///Internal method to create a file that enables native feature
+  Future<void> updateTelemetryConsent(bool consent) async {
+    final result =
+        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
+
+    result.fold(
+      (err) {
+        appLogger.error('updateTelemetryEvents failed: ${err.error}');
+      },
+      (_) {
+        appLogger.info('Telemetry consent updated: $consent');
+        if (consent) {
+          enableTelemetry();
+        } else {
+          disableTelemetry();
+        }
+      },
+    );
+  }
+
+  ///Internal method to create a file that indicates telemetry is enabled
   Future<void> enableTelemetry() async {
     final dir = await AppStorageUtils.getAppDirectory();
     final file = File('${dir.path}/.telemetry_enabled');
@@ -132,19 +151,12 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     }
   }
 
+  ///Internal method to delete the file that indicates telemetry is disabled
   Future<void> disableTelemetry() async {
     final dir = await AppStorageUtils.getAppDirectory();
     final file = File('${dir.path}/.telemetry_enabled');
     if (file.existsSync()) {
       await file.delete();
-    }
-  }
-
-  void updateTelemetryConsent(bool consent) {
-    if (consent) {
-      enableTelemetry();
-    } else {
-      disableTelemetry();
     }
   }
 }

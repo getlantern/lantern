@@ -34,11 +34,12 @@ class _HomeState extends ConsumerState<Home>
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
-      appLogger.info("App Setting - $appSetting");
 
+
+      appLogger.info(
+          "App Setting - showTelemetryDialog: ${appSetting.showTelemetryDialog}");
       ///First time user shows telemetry dialog
       if (appSetting.showTelemetryDialog) {
         appLogger.info("Showing Telemetry Dialog");
@@ -55,11 +56,12 @@ class _HomeState extends ConsumerState<Home>
         return;
       }
 
-      /// Show macOS system extension dialog if needed
-      /// after telemetry dialog
-      appLogger.info(
-          "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
+
       if (PlatformUtils.isMacOS) {
+        /// Show macOS system extension dialog if needed
+        /// after telemetry dialog
+        appLogger.info(
+            "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
         if (appSetting.showSplashScreen) {
           appLogger.info("Showing System Extension Dialog");
           appRouter.push(const MacOSExtensionDialog());

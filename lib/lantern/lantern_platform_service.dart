@@ -85,6 +85,18 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    try {
+      final _ =
+          await _methodChannel.invokeMethod('updateTelemetryEvents', consent);
+      return Right(unit);
+    } catch (e) {
+      appLogger.error('Error updating telemetry events', e);
+      return Left(e.toFailure());
+    }
+  }
+
   /// VPN methods
   @override
   Future<Either<Failure, String>> startVPN() async {

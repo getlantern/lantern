@@ -80,6 +80,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updateTelemetryEvents(consent);
+    }
+    return _platformService.updateTelemetryEvents(consent);
+  }
+
+  @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchVPNStatus();
@@ -619,6 +627,7 @@ class LanternService implements LanternCoreService {
     return _platformService.setBlockAdsEnabled(enabled);
   }
 
+  @override
   Future<Either<Failure, String>> attachReferralCode(String code) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.attachReferralCode(code);

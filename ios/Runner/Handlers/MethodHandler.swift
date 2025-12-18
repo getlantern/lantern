@@ -204,6 +204,11 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
+      case "updateTelemetryEvents":
+        guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.updateTelemetryEvents(consent: consent, result: result)
 
       default:
         result(FlutterMethodNotImplemented)
@@ -920,6 +925,20 @@ class MethodHandler {
       MobileSetBlockAdsEnabled(enabled, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func updateTelemetryEvents(consent: Bool, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileUpdateTelemetryConsent(consent, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
         return
       }
       await MainActor.run {

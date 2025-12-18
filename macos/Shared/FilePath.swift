@@ -33,7 +33,7 @@ public enum FilePath {
     do {
       let dir = FilePath.appSupportDir()
       if !FileManager.default.fileExists(atPath: dir.path) {
-        try? FileManager.default.createDirectory(
+        try FileManager.default.createDirectory(
           at: dir,
           withIntermediateDirectories: true
         )
@@ -64,7 +64,7 @@ public enum FilePath {
 
 extension FilePath {
   public static let groupName = "group.getlantern.lantern"
-    public static  let bundleId = Bundle.main.bundleIdentifier ?? "org.getlantern.lantern"
+  public static let bundleId = Bundle.main.bundleIdentifier ?? "org.getlantern.lantern"
 
   private static let containerSharedDirectory: URL! = FileManager.default.containerURL(
     forSecurityApplicationGroupIdentifier: FilePath.groupName)

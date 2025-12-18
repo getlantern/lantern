@@ -76,10 +76,6 @@ class VPNSetting extends HookConsumerWidget {
                     appLogger
                         .info('Anonymous usage data consent changed: $value');
                     notifier.updateAnonymousDataConsent(value);
-                    if (context.mounted) {
-                      context
-                          .showSnackBar("changes_applied_after_restart".i18n);
-                    }
                   },
                 ),
               ),
