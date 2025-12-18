@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/png"
 	"os"
+	"strconv"
 	"strings"
 	"unsafe"
 
@@ -15,11 +16,13 @@ import (
 )
 
 const (
-	BI_RGB = 0
-	// draw image + mask
-	DI_NORMAL = 0x0003
+	biRGB    = 0
+	diNormal = 0x0003
+
+	defaultIconSize = 32
 )
 
+// We call a few Win32 APIs directly for icon extraction
 var (
 	modShell32         = windows.NewLazySystemDLL("shell32.dll")
 	procExtractIconExW = modShell32.NewProc("ExtractIconExW")
@@ -38,12 +41,25 @@ var (
 	procDeleteObject       = modGdi32.NewProc("DeleteObject")
 )
 
-// parseIconLocation parses strings like:
-//
-//	"C:\Path\App.exe,0"
-//	"C:\Path\App.dll,-123"
-//
-// and returns (file, index)
+type bitmapInfoHeader struct {
+	Size          uint32
+	Width         int32
+	Height        int32
+	Planes        uint16
+	BitCount      uint16
+	Compression   uint32
+	SizeImage     uint32
+	XPelsPerMeter int32
+	YPelsPerMeter int32
+	ClrUsed       uint32
+	ClrImportant  uint32
+}
+type bitmapInfo struct {
+	Header bitmapInfoHeader
+	Colors [1]uint32
+}
+
+// parseIconLocation parses a Windows "IconLocation" string
 func parseIconLocation(s string) (string, int) {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -52,38 +68,32 @@ func parseIconLocation(s string) (string, int) {
 	s = expandPercentEnv(s)
 	s = strings.Trim(s, `"`)
 
+	// index is usually after the final comma
 	i := strings.LastIndex(s, ",")
 	if i < 0 {
 		return s, 0
 	}
-
 	left := strings.TrimSpace(strings.Trim(s[:i], `"`))
 	right := strings.TrimSpace(s[i+1:])
-	idx := 0
-	if right != "" {
-		sign := 1
-		if strings.HasPrefix(right, "-") {
-			sign = -1
-			right = strings.TrimPrefix(right, "-")
-		}
-		n := 0
-		for _, r := range right {
-			if r < '0' || r > '9' {
-				return s, 0
-			}
-			n = n*10 + int(r-'0')
-		}
-		idx = sign * n
+	if right == "" {
+		return left, 0
 	}
 
-	return left, idx
+	n, err := strconv.Atoi(right)
+	if err != nil {
+		// If parsing fails, treat the whole string as a path
+		return s, 0
+	}
+
+	return left, n
 }
 
-// For scanAppDirs fallback. Uses exe itself, index 0
+// getIconBytes is used by the directory-scan fallback
 func getIconBytes(appPath string) ([]byte, error) {
 	return getIconBytesFromLocation(appPath, 0)
 }
 
+// getIconBytesFromLocation extracts an icon from (file,index) and returns it as PNG bytes
 func getIconBytesFromLocation(file string, index int) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("empty icon file")
@@ -104,6 +114,7 @@ func getIconBytesFromLocation(file string, index int) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// extractIconAsImage pulls the requested icon resource from file and draws it into an RGBA bitmap
 func extractIconAsImage(path string, index int, size int) (*image.RGBA, error) {
 	p, err := windows.UTF16PtrFromString(path)
 	if err != nil {
@@ -146,7 +157,7 @@ func extractIconAsImage(path string, index int, size int) (*image.RGBA, error) {
 	}
 
 	out := image.NewRGBA(image.Rect(0, 0, size, size))
-	// BGRA -> RGBA
+	// Convert BGRA -> RGBA
 	for i := 0; i < len(bgra); i += 4 {
 		b, g, r, a := bgra[i], bgra[i+1], bgra[i+2], bgra[i+3]
 		out.Pix[i] = r
@@ -158,24 +169,7 @@ func extractIconAsImage(path string, index int, size int) (*image.RGBA, error) {
 	return out, nil
 }
 
-type bitmapInfoHeader struct {
-	Size          uint32
-	Width         int32
-	Height        int32
-	Planes        uint16
-	BitCount      uint16
-	Compression   uint32
-	SizeImage     uint32
-	XPelsPerMeter int32
-	YPelsPerMeter int32
-	ClrUsed       uint32
-	ClrImportant  uint32
-}
-type bitmapInfo struct {
-	Header bitmapInfoHeader
-	Colors [1]uint32
-}
-
+// drawIconToBGRA draws hicon into a 32-bit DIB section and returns raw BGRA bytes
 func drawIconToBGRA(hicon windows.Handle, w, h int) ([]byte, error) {
 	hdc, _, _ := procGetDC.Call(0)
 	if hdc == 0 {
@@ -195,13 +189,13 @@ func drawIconToBGRA(hicon windows.Handle, w, h int) ([]byte, error) {
 	bi.Header.Height = -int32(h)
 	bi.Header.Planes = 1
 	bi.Header.BitCount = 32
-	bi.Header.Compression = BI_RGB
+	bi.Header.Compression = biRGB
 
 	var bitsPtr uintptr
 	hbmp, _, _ := procCreateDIBSection.Call(
 		memDC,
 		uintptr(unsafe.Pointer(&bi)),
-		uintptr(BI_RGB),
+		uintptr(biRGB),
 		uintptr(unsafe.Pointer(&bitsPtr)),
 		0,
 		0,
@@ -221,12 +215,11 @@ func drawIconToBGRA(hicon windows.Handle, w, h int) ([]byte, error) {
 		uintptr(w), uintptr(h),
 		0,
 		0,
-		DI_NORMAL,
+		diNormal,
 	)
 	if ok == 0 {
 		return nil, fmt.Errorf("DrawIconEx failed")
 	}
-
 	n := w * h * 4
 	src := unsafe.Slice((*byte)(unsafe.Pointer(bitsPtr)), n)
 	out := make([]byte, n)
