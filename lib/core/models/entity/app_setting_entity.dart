@@ -16,7 +16,7 @@ class AppSetting {
   bool blockAds;
   String email;
   bool showSplashScreen;
-  bool showTelemetryDialog ;
+  bool telemetryDialogDismissed ;
   bool telemetryConsent ;
 
   AppSetting({
@@ -31,8 +31,8 @@ class AppSetting {
     this.email = '',
     this.locale = 'en_US',
     this.showSplashScreen = true,
-    this.showTelemetryDialog = true,
-    this.telemetryConsent = true,
+    this.telemetryDialogDismissed = false,
+    this.telemetryConsent = false,
   });
 
   AppSetting copyWith({
@@ -63,7 +63,7 @@ class AppSetting {
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
       showSplashScreen: showSplashScreen ?? this.showSplashScreen,
-      showTelemetryDialog: showTelemetryDialog ?? this.showTelemetryDialog,
+      telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
       telemetryConsent: telemetryConsent ?? this.telemetryConsent,
     );
   }

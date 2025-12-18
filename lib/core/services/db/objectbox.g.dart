@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(13, 8918901309223826671),
+    lastPropertyId: const obx_int.IdUid(14, 2408270352417603228),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -163,14 +163,14 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(12, 8638115978305760525),
-        name: 'showTelemetryDialog',
+        id: const obx_int.IdUid(13, 8918901309223826671),
+        name: 'telemetryConsent',
         type: 1,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(13, 8918901309223826671),
-        name: 'telemetryConsent',
+        id: const obx_int.IdUid(14, 2408270352417603228),
+        name: 'telemetryDialogDismissed',
         type: 1,
         flags: 0,
       ),
@@ -853,6 +853,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2938245810653001410,
       3575184890349121426,
       7033573124845738437,
+      8638115978305760525,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -965,7 +966,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final splitTunnelingModeRawOffset = fbb.writeString(
           object.splitTunnelingModeRaw,
         );
-        fbb.startTable(14);
+        fbb.startTable(15);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -977,8 +978,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(8, object.showSplashScreen);
         fbb.addOffset(9, bypassListRawOffset);
         fbb.addOffset(10, splitTunnelingModeRawOffset);
-        fbb.addBool(11, object.showTelemetryDialog);
         fbb.addBool(12, object.telemetryConsent);
+        fbb.addBool(13, object.telemetryDialogDismissed);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1036,10 +1037,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           20,
           false,
         );
-        final showTelemetryDialogParam = const fb.BoolReader().vTableGet(
+        final telemetryDialogDismissedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
-          26,
+          30,
           false,
         );
         final telemetryConsentParam = const fb.BoolReader().vTableGet(
@@ -1060,7 +1061,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           email: emailParam,
           locale: localeParam,
           showSplashScreen: showSplashScreenParam,
-          showTelemetryDialog: showTelemetryDialogParam,
+          telemetryDialogDismissed: telemetryDialogDismissedParam,
           telemetryConsent: telemetryConsentParam,
         );
 
@@ -1953,13 +1954,13 @@ class AppSetting_ {
     _entities[1].properties[10],
   );
 
-  /// See [AppSetting.showTelemetryDialog].
-  static final showTelemetryDialog = obx.QueryBooleanProperty<AppSetting>(
+  /// See [AppSetting.telemetryConsent].
+  static final telemetryConsent = obx.QueryBooleanProperty<AppSetting>(
     _entities[1].properties[11],
   );
 
-  /// See [AppSetting.telemetryConsent].
-  static final telemetryConsent = obx.QueryBooleanProperty<AppSetting>(
+  /// See [AppSetting.telemetryDialogDismissed].
+  static final telemetryDialogDismissed = obx.QueryBooleanProperty<AppSetting>(
     _entities[1].properties[12],
   );
 }

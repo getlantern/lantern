@@ -39,17 +39,17 @@ class _HomeState extends ConsumerState<Home>
 
 
       appLogger.info(
-          "App Setting - showTelemetryDialog: ${appSetting.showTelemetryDialog}");
+          "App Setting - showTelemetryDialog: ${appSetting.telemetryDialogDismissed}");
       ///First time user shows telemetry dialog
-      if (appSetting.showTelemetryDialog) {
+      if (!appSetting.telemetryDialogDismissed) {
         appLogger.info("Showing Telemetry Dialog");
         Future.delayed(
           Duration(seconds: 1),
           () {
             showHelpLanternDialog();
             ///User has seen dialog, do not show again
-            appLogger.info("Setting showTelemetryDialog to false");
-            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(false);
+            appLogger.info("Setting telemetryDialogDismissed to true");
+            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
           },
         );
 
