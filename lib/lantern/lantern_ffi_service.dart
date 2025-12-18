@@ -162,9 +162,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) {
-    // TODO: implement updateTelemetryEvents
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.updateTelemetryConsent(consent?1:0).toDartString();
+          },
+      );
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error updating telemetry events', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override

@@ -63,6 +63,7 @@ class VPNSetting extends HookConsumerWidget {
               AppTile(
                 label: 'anonymous_usage_data'.i18n,
                 icon: AppImagePaths.assessment,
+                contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 8),
                 subtitle: Text(
                   'helps_improve_lantern_performance'.i18n,
                   style: textTheme.labelMedium!.copyWith(

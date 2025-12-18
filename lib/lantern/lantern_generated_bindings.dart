@@ -5221,6 +5221,20 @@ class LanternBindings {
           int,
           ffi.Pointer<ffi.Void>)>();
 
+  ffi.Pointer<ffi.Char> updateTelemetryConsent(
+    int consent,
+  ) {
+    return _updateTelemetryConsent(
+      consent,
+    );
+  }
+
+  late final _updateTelemetryConsentPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+          'updateTelemetryConsent');
+  late final _updateTelemetryConsent = _updateTelemetryConsentPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
   ffi.Pointer<ffi.Char> availableFeatures() {
     return _availableFeatures();
   }

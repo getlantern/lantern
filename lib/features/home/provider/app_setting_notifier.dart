@@ -133,6 +133,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       },
       (_) {
         appLogger.info('Telemetry consent updated: $consent');
+        if(Platform.isWindows) {
+          appLogger.info("No need to create telemetry file on Windows");
+          return;
+        }
         if (consent) {
           enableTelemetry();
         } else {
