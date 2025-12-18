@@ -31,9 +31,17 @@ extension FilePath {
   // if needed to change this, a migration path must be implemented
   public static let vpnProfileName = "LanternVPN"
 
+    private static func appSupportDir() -> URL {
+      let base = FileManager.default
+        .urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let dir = base.appendingPathComponent(".lantern", isDirectory: true)
+
+        return dir
+    }
+    
   public static func isTelemetryEnabled() -> Bool {
     let marker =
-      sharedDirectory
+      appSupportDir()
       .appendingPathComponent(".telemetry_enabled")
 
     return FileManager.default.fileExists(atPath: marker.path)
