@@ -23,7 +23,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20251211231926-2c68ce772d10
+	github.com/getlantern/radiance v0.0.0-20251217170732-35d8fceaa855
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.12.12
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -176,7 +176,7 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20251211214212-dc61158e781e // indirect
+	github.com/getlantern/kindling v0.0.0-20251215193336-7bdf71fb05f0 // indirect
 	github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
@@ -243,7 +243,7 @@ require (
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
 	github.com/safchain/ethtool v0.3.0 // indirect
 	github.com/sagernet/sing v0.7.13 // indirect
-	github.com/sagernet/sing-tun v0.7.3 // indirect
+	github.com/sagernet/sing-tun v0.7.4-0.20251217114513-e6c219a61ef0 // indirect
 	github.com/sagernet/tailscale v1.80.3-sing-box-1.12-mod.2 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20231202035212-d3fa0460f47e // indirect

@@ -419,6 +419,21 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
       appLogger.debug('Starting VPN on Windows via IPC');
+      try {
+        final result = runInBackground(
+          () async {
+            return _ffiService.startAutoLocationListener().toDartString();
+          },
+        );
+        result.then(
+          (value) {
+            appLogger.debug("auto location listener started: $value");
+          },
+        );
+      } catch (e) {
+        appLogger.error("error starting auto location listener: $e");
+      }
+
       return _windowsService.connect();
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -448,12 +463,55 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isWindows) {
-      return _windowsService.watchLogs();
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
+    if (Platform.isWindows) {
+      try {
+
+        ///Do not await here to avoid blocking
+        final result = runInBackground(
+          () async {
+            return _ffiService.stopAutoLocationListener().toDartString();
+          },
+        );
+        result.then(
+              (value) {
+                appLogger.debug("auto location listener stops : $value");
+          },
+        );
+      } catch (e) {
+        appLogger.error("error stopping auto location listener: $e");
+      }
+
+      return _windowsService.connectToServer(location, tag);
     }
-    throw UnimplementedError();
+    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .connectToServer(
+                location.toCharPtr,
+                tag.toCharPtr,
+                ffiPaths.logFilePathPtr.cast<Char>(),
+                ffiPaths.dataDirPtr.cast<Char>(),
+                ffiPaths.localePtr.cast<Char>(),
+              )
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error connecting to server', e, stackTrace);
+      return Left(e.toFailure());
+    } finally {
+      ffiPaths.free();
+    }
   }
 
   @override
@@ -461,6 +519,21 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Stopping VPN');
       if (Platform.isWindows) {
+        try {
+          ///Do not await here to avoid blocking
+          final result = runInBackground(
+            () async {
+              return _ffiService.stopAutoLocationListener().toDartString();
+            },
+          );
+          result.then(
+                (value) {
+                  appLogger.debug("auto location listener stops : $value");
+            },
+          );
+        } catch (e) {
+          appLogger.error("error stopping auto location listener: $e");
+        }
         return _windowsService.disconnect();
       }
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
@@ -476,9 +549,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() => _status;
-
-  @override
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
       if (Platform.isWindows) {
@@ -491,6 +561,17 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Stream<List<String>> watchLogs(String path) {
+    if (PlatformUtils.isWindows) {
+      return _windowsService.watchLogs();
+    }
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
@@ -991,40 +1072,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error adding server manually', e, stackTrace);
       return Left(e.toFailure());
-    }
-  }
-
-  /// connectToServer is used to connect to a server
-  /// this will work with lantern customer and private server
-  /// requires location and tag
-  @override
-  Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
-    if (Platform.isWindows) {
-      return _windowsService.connectToServer(location, tag);
-    }
-    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
-    try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .connectToServer(
-                location.toCharPtr,
-                tag.toCharPtr,
-                ffiPaths.logFilePathPtr.cast<Char>(),
-                ffiPaths.dataDirPtr.cast<Char>(),
-                ffiPaths.localePtr.cast<Char>(),
-              )
-              .toDartString();
-        },
-      );
-      checkAPIError(result);
-      return Right('ok');
-    } catch (e, stackTrace) {
-      appLogger.error('Error connecting to server', e, stackTrace);
-      return Left(e.toFailure());
-    } finally {
-      ffiPaths.free();
     }
   }
 

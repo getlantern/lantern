@@ -13,6 +13,7 @@ import (
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
+	"github.com/getlantern/radiance/common"
 )
 
 var (
@@ -115,23 +116,82 @@ func IsRadianceConnected() bool {
 
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("Starting VPN")
-	return vpn_tunnel.StartVPN(platform, opts)
+	err := vpn_tunnel.StartVPN(platform, opts)
+	if err != nil {
+		return err
+	}
+	// On non-iOS/macOS platforms, start the auto location listener
+	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+	if !common.IsMacOS() && !common.IsIOS() {
+		slog.Info("Starting auto location listener on non-iOS/macOS platform")
+		return withCore(func(c lanterncore.Core) error {
+			c.StartAutoLocationListener()
+			return nil
+		})
+	}
+	return nil
+
 }
 
 func StopVPN() error {
-	return vpn_tunnel.StopVPN()
+	slog.Info("Stopping VPN")
+	err := vpn_tunnel.StopVPN()
+	if err != nil {
+		return err
+	}
+	// On non-iOS/macOS platforms, start the auto location listener since radiance is still running
+	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+	if !common.IsMacOS() && !common.IsIOS() {
+		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
+		return withCore(func(c lanterncore.Core) error {
+			c.StopAutoLocationListener()
+			return nil
+		})
+	}
+	return nil
+}
+
+// ConnectToServer connects to a server using the provided location type and tag.
+// It works with private servers and lantern location servers.
+func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
+	if err != nil {
+		return err
+	}
+	// On non-iOS/macOS platforms, start the auto location listener since radiance is still running
+	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+	if !common.IsMacOS() && !common.IsIOS() {
+		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
+		return withCore(func(c lanterncore.Core) error {
+			c.StopAutoLocationListener()
+			return nil
+		})
+	}
+	return nil
+}
+
+// StartAutoLocationListener starts the auto location listener in the core.
+// Should be called only on iOS and macOS
+func StartAutoLocationListener() error {
+	return withCore(func(c lanterncore.Core) error {
+		c.StartAutoLocationListener()
+		return nil
+	})
+}
+
+// StopAutoLocationListener stops the auto location listener in the core.
+// Should be called only on iOS and macOS
+func StopAutoLocationListener() error {
+	return withCore(func(c lanterncore.Core) error {
+		c.StopAutoLocationListener()
+		return nil
+	})
 }
 
 // // GetAvailableServers returns the available servers in JSON format.
 // // This function retrieves the servers from lantern
 func GetAvailableServers() ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
-}
-
-// ConnectToServer connects to a server using the provided location type and tag.
-// It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 }
 
 func IsVPNConnected() bool {

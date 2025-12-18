@@ -298,6 +298,30 @@ func getAutoLocation() *C.char {
 	return C.CString(string(jsonBytes))
 }
 
+// startAutoLocationListener starts the auto location listener.
+//
+//export startAutoLocationListener
+func startAutoLocationListener() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	c.StartAutoLocationListener()
+	return C.CString("ok")
+}
+
+// stopAutoLocationListener stops the auto location listener.
+//
+//export stopAutoLocationListener
+func stopAutoLocationListener() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	c.StopAutoLocationListener()
+	return C.CString("ok")
+}
+
 // GetAvailableServers returns the available servers in JSON format.
 //
 //export getAvailableServers

@@ -42,12 +42,20 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           appLogger.error("Failed to fetch auto server location: $error");
         },
         (autoLocation) {
+          final countryName = autoLocation.location!.country;
+          final cityName = autoLocation.location!.city;
           final autoServer = ServerLocationEntity(
             serverType: ServerLocationType.auto.name,
             serverName: '',
             autoSelect: true,
-            serverLocation:
-                '${autoLocation.location!.city} [${CountryUtils.getCountryCode(autoLocation.location!.country)}]',
+            displayName: '',
+            city: autoLocation.location!.city,
+            autoLocationParam: AutoLocationEntity(
+              countryCode:
+                  CountryUtils.getCountryCode(autoLocation.location!.country),
+              country: countryName,
+              displayName: '$countryName - $cityName',
+            ),
           );
 
           updateServerLocation(autoServer);
