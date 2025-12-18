@@ -211,3 +211,44 @@ func humanizeName(s string) string {
 	}
 	return string(unicode.ToUpper(r)) + s[size:]
 }
+
+// LoadInstalledApps scans for installed apps (and may return cached results first)
+func LoadInstalledApps(dataDir string, cb Callback) {
+	dirs := defaultAppDirs()
+	LoadInstalledAppsWithDirs(dataDir, dirs, excludeDirs, cb)
+}
+
+// LoadInstalledAppsWithDirs scans appDirs, emitting cached items first (if present),
+// then newly discovered ones. It returns the count of newly discovered apps
+func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []string, cb Callback) (int, error) {
+	seen := make(map[string]bool)
+
+	if cached, err := loadCacheFromFile(dataDir); err == nil {
+		for _, app := range cached {
+			if app == nil {
+				continue
+			}
+			if cb != nil {
+				cb(app)
+			}
+			if app.BundleID != "" {
+				seen[normalizeKey(app.BundleID)] = true
+			}
+			if app.AppPath != "" {
+				seen[normalizeKey(app.AppPath)] = true
+			}
+			if app.Name != "" {
+				// on non-windows scanAppDirs also dedups by name
+				seen[normalizeKey(app.Name)] = true
+			}
+		}
+	}
+
+	found := loadInstalledAppsPlatform(appDirs, seen, excludeDirs, cb)
+
+	if err := saveCacheToFile(dataDir, found...); err != nil {
+		slog.Error("unable to save apps cache", "error", err)
+		return len(found), err
+	}
+	return len(found), nil
+}

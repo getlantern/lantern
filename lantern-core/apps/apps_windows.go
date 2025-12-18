@@ -13,6 +13,23 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
+var excludeDirs = []string{
+	os.Getenv("WINDIR"),
+	// already handled via shortcuts scan
+	// filepath.Join(os.Getenv("ProgramData"), "Microsoft", "Windows", "Start Menu"),
+	// maybe skip common package caches
+	// filepath.Join(os.Getenv("LOCALAPPDATA"), "Packages"),
+}
+
+func defaultAppDirs() []string {
+	return []string{
+		os.Getenv("LOCALAPPDATA"),
+		os.Getenv("ProgramW6432"),
+		os.Getenv("ProgramFiles"),
+		os.Getenv("ProgramFiles(x86)"),
+	}
+}
+
 var excludeNames = map[string]bool{
 	"uninstall": true,
 	"update":    true,
@@ -27,10 +44,14 @@ const (
 	appExtension = ".exe"
 )
 
+// loadInstalledAppsPlatform returns a list of installed applications for Windows
+// Discovery order:
+//  1. Start Menu shortcuts: the best “user-facing apps” list
+//  2. Uninstall registry entries: catches apps that don’t have Start Menu shortcuts
+//  3. Fallback directory scan
 func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
 	var out []*AppData
 
-	// Best list: Start Menu shortcuts
 	out = append(out, collectAppsFromStartMenuShortcuts(seen, cb)...)
 
 	out = append(out, collectAppsFromUninstallRegistry(seen, cb)...)
@@ -54,11 +75,14 @@ func windowsStartMenuDirs() []string {
 	}
 }
 
+// collectAppsFromStartMenuShortcuts enumerates apps by walking Start Menu shortcut files (*.lnk)
 func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*AppData {
 	startDirs := windowsStartMenuDirs()
 	var out []*AppData
 
-	_ = ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED)
+	if err := ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED); err != nil {
+		return out
+	}
 	defer ole.CoUninitialize()
 
 	wshObj, err := oleutil.CreateObject("WScript.Shell")
@@ -90,10 +114,12 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if d.IsDir() {
 				return nil
 			}
+			// Only consider shortcut files
 			if !strings.HasSuffix(strings.ToLower(d.Name()), ".lnk") {
 				return nil
 			}
 
+			// Resolve the shortcut to target executable
 			targetExe, iconFile, iconIndex := resolveLnkViaWScript(wsh, p)
 			if targetExe == "" || !strings.HasSuffix(strings.ToLower(targetExe), ".exe") {
 				return nil
@@ -108,21 +134,19 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				return nil
 			}
 
-			// The shortcut file name is usually the user-facing display name
+			// The shortcut filename is usually the display name users expect
 			name := strings.TrimSuffix(d.Name(), ".lnk")
 			name = strings.TrimSpace(name)
 			if name == "" {
 				name = filepathBaseNoExt(targetExe)
 			}
 
-			// Icon extraction (returns PNG bytes)
 			var iconBytes []byte
 			if iconFile != "" {
 				if b, err := getIconBytesFromLocation(iconFile, iconIndex); err == nil {
 					iconBytes = b
 				}
 			} else {
-				// fallback: use target exe
 				if b, err := getIconBytesFromLocation(targetExe, 0); err == nil {
 					iconBytes = b
 				}
@@ -138,7 +162,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			}
 
 			if cb != nil {
-				_ = cb(app)
+				cb(app)
 			}
 
 			out = append(out, app)
