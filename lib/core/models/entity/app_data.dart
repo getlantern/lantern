@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -56,11 +57,13 @@ class AppData {
     final m = Map<String, dynamic>.from(raw);
     final bundleId = (m['package'] ?? m['bundleId'] ?? '') as String;
     final name = (m['label'] ?? m['name'] ?? bundleId).toString();
+
     return AppData(
       bundleId: bundleId,
       name: name,
       iconPath: (m['iconPath'] as String?) ?? '',
       appPath: (m['appPath'] as String?) ?? '',
+      iconBytes: iconToBytes(m['icon'] ?? m['iconBytes']),
       lastUpdateTime: (m['lastUpdateTime'] as num?)?.toInt() ?? 0,
       removed: m['removed'] == true || m['isRemoved'] == true,
     );
@@ -68,11 +71,14 @@ class AppData {
 
   factory AppData.fromJson(Map<String, dynamic> json) {
     return AppData(
-      name: json['name'] ?? '',
-      bundleId: json['bundleId'] ?? '',
-      iconPath: json['iconPath'] ?? '',
-      appPath: json['appPath'] ?? '',
-      isEnabled: json['isEnabled'] ?? false,
+      name: (json['name'] ?? '').toString(),
+      bundleId: (json['bundleId'] ?? json['package'] ?? '').toString(),
+      iconPath: (json['iconPath'] ?? '').toString(),
+      appPath: (json['appPath'] ?? '').toString(),
+      isEnabled: json['isEnabled'] == true,
+      iconBytes: iconToBytes(json['icon'] ?? json['iconBytes']),
+      lastUpdateTime: (json['lastUpdateTime'] as num?)?.toInt() ?? 0,
+      removed: json['removed'] == true || json['isRemoved'] == true,
     );
   }
 }

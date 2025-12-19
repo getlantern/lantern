@@ -1,15 +1,21 @@
+//go:build darwin
+
 package apps
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 
 	"howett.net/plist"
 )
 
-const appExtension = ".app"
+const (
+	appIsDir     = true
+	appExtension = ".app"
+)
+
+var excludeNames = map[string]bool{}
 
 func defaultAppDirs() []string {
 	home, _ := os.UserHomeDir()
@@ -26,21 +32,8 @@ var excludeDirs = []string{
 	"/Applications/Utilities",
 }
 
-var excludeNames = map[string]bool{}
-
-// getIconPath finds the .icns file inside the app bundle
-func getIconPath(appPath string) (string, error) {
-	resourcesPath := filepath.Join(appPath, "Contents", "Resources")
-	matches, err := filepath.Glob(filepath.Join(resourcesPath, "*.icns"))
-	if err != nil {
-		wrapped := fmt.Errorf("error globbing icons for %s: %w", appPath, err)
-		slog.Error("glob error:", "error", wrapped)
-		return "", wrapped
-	}
-	if len(matches) == 0 {
-		return "", nil
-	}
-	return matches[0], nil
+func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
+	return scanAppDirs(appDirs, seen, excludeDirs, cb)
 }
 
 func getAppID(appPath string) (string, error) {

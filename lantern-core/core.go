@@ -399,7 +399,8 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 }
 
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
-	split := strings.Split(items, ",")
+	split := splitCSVClean(items)
+
 	var vpnFilter vpn.Filter
 	if common.IsMacOS() {
 		vpnFilter = vpn.Filter{
@@ -419,11 +420,16 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
-	split := strings.Split(items, ",")
+	split := splitCSVClean(items)
+
 	var vpnFilter vpn.Filter
 	if common.IsMacOS() {
 		vpnFilter = vpn.Filter{
 			ProcessPathRegex: split,
+		}
+	} else if common.IsWindows() {
+		vpnFilter = vpn.Filter{
+			ProcessPath: split,
 		}
 	} else {
 		vpnFilter = vpn.Filter{
@@ -948,4 +954,28 @@ func (a *adBlockerStub) IsEnabled() bool {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	return a.enabled
+}
+
+// splitCSVClean splits a comma-separated string into a stable list
+// It trims whitespace and surrounding quotes and removes duplicates
+func splitCSVClean(s string) []string {
+	raw := strings.Split(s, ",")
+	out := make([]string, 0, len(raw))
+	seen := make(map[string]struct{}, len(raw))
+	for _, it := range raw {
+		it = strings.TrimSpace(it)
+		it = strings.Trim(it, `"`)
+		if it == "" {
+			continue
+		}
+		if common.IsWindows() {
+			it = strings.ToLower(it)
+		}
+		if _, ok := seen[it]; ok {
+			continue
+		}
+		seen[it] = struct{}{}
+		out = append(out, it)
+	}
+	return out
 }
