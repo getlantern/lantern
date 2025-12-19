@@ -196,7 +196,7 @@ class CountryUtils {
     "Zimbabwe": "ZW",
   };
 
-  static String getCountryCode(String countryName) {
-    return _countryNameToCode[countryName] ?? '';
-  }
+  // static String getCountryCode(String countryName) {
+  //   return _countryNameToCode[countryName] ?? '';
+  // }
 }

@@ -30,7 +30,7 @@ class _ServerMobileViewState extends State<ServerMobileView> {
       label: '${widget.location.country} - ${widget.location.city}',
       selected: widget.isSelected,
       icon: Flag(
-        countryCode: CountryUtils.getCountryCode(widget.location.country),
+        countryCode: widget.location.countryCode,
       ),
       onPressed: () {
         widget.onServerSelected(widget.location);

@@ -7,7 +7,6 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
@@ -262,7 +261,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           displayName: '$autoCountry - $autoCity',
           city: autoCity,
           country: autoCountry,
-          countryCode: CountryUtils.getCountryCode(autoCountry),
+          countryCode: auto.countryCode,
         );
         await ref
             .read(serverLocationProvider.notifier)
@@ -494,18 +493,18 @@ class _CountryServerTileState extends State<_CountryServerTile> {
 
   @override
   Widget build(BuildContext context) {
-    final countryCode = CountryUtils.getCountryCode(widget.country);
-
+    final countryCode = widget.locations.first.countryCode;
+    final country = widget.locations.first.country;
     if (PlatformUtils.isDesktop) {
       return Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           enableFeedback: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.symmetric(vertical: 8),
+          childrenPadding: const EdgeInsets.symmetric(vertical: 0,horizontal: 0),
           leading: Flag(countryCode: countryCode),
           title: Text(
-            widget.country,
+            country,
             style: Theme.of(context)
                 .textTheme
                 .bodyLarge!
@@ -519,8 +518,9 @@ class _CountryServerTileState extends State<_CountryServerTile> {
           children: widget.locations.map((loc) {
             final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
-              contentPadding: const EdgeInsets.only(left: 46, right: 14),
-              label: '${loc.country} - ${loc.city}',
+              minHeight: 45,
+              contentPadding: const EdgeInsets.only(left: 53, right: 14),
+              label: loc.city,
               tileTextStyle: Theme.of(context)
                   .textTheme
                   .bodyMedium!

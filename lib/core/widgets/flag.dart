@@ -10,7 +10,7 @@ class Flag extends StatelessWidget {
   const Flag({
     super.key,
     required this.countryCode,
-    this.size = const Size(24, 17),
+    this.size = const  Size(25, 18)
   });
 
   @override
@@ -20,7 +20,7 @@ class Flag extends StatelessWidget {
         border: Border.all(color: AppColors.gray3, width: .5),
       ),
       child: SizedBox.fromSize(
-        size: Size(25, 18),
+        size: size,
         child: CountryFlag.fromCountryCode(
           countryCode,
           theme: ImageTheme(

@@ -81,7 +81,7 @@ class ServerLocationEntity {
       country: server.country,
       city: server.city,
       displayName: '${server.country} - ${server.city}',
-      countryCode: CountryUtils.getCountryCode(server.country),
+      countryCode: server.countryCode,
       autoLocationParam: autoLocation,
     );
   }
