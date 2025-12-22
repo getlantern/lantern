@@ -191,9 +191,3 @@ func TestLoadInstalledAppsWithDirs_EmitsCachedThenNew(t *testing.T) {
 		t.Fatalf("callback did not receive both cached and fresh apps; got %v", seen)
 	}
 }
-
-func TestApps(t *testing.T) {
-	LoadInstalledApps(t.TempDir(), func(ad ...*AppData) error {
-		return nil
-	})
-}
