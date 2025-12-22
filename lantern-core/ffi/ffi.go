@@ -90,13 +90,14 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 }
 
 //export setup
-func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, consent C.int, api unsafe.Pointer) *C.char {
 	core, err := lanterncore.New(&utils.Opts{
-		LogDir:   C.GoString(_logDir),
-		DataDir:  C.GoString(_dataDir),
-		Locale:   C.GoString(_locale),
-		Deviceid: "",
-		LogLevel: lanterncore.DefaultLogLevel,
+		LogDir:           C.GoString(_logDir),
+		DataDir:          C.GoString(_dataDir),
+		Locale:           C.GoString(_locale),
+		Deviceid:         "",
+		LogLevel:         lanterncore.DefaultLogLevel,
+		TelemetryConsent: consent == 1,
 	}, &ffiFlutterEventEmitter{})
 
 	if err != nil {
@@ -111,6 +112,21 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 	appEventPort = int64(appEventP)
 
 	slog.Debug("Radiance setup successfully")
+	return C.CString("ok")
+}
+
+// updateTelemetryConsent updates the telemetry consent.
+//
+//export updateTelemetryConsent
+func updateTelemetryConsent(consent C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	err := c.UpdateTelemetryConsent(consent != 0)
+	if err != nil {
+		return SendError(err)
+	}
 	return C.CString("ok")
 }
 

@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "11:8153428725932858000",
+      "lastPropertyId": "14:2408270352417603228",
       "name": "AppSetting",
       "properties": [
         {
@@ -117,6 +117,16 @@
           "id": "11:8153428725932858000",
           "name": "splitTunnelingModeRaw",
           "type": 9
+        },
+        {
+          "id": "13:8918901309223826671",
+          "name": "telemetryConsent",
+          "type": 1
+        },
+        {
+          "id": "14:2408270352417603228",
+          "name": "telemetryDialogDismissed",
+          "type": 1
         }
       ],
       "relations": []
@@ -673,7 +683,8 @@
     713889304334787730,
     2938245810653001410,
     3575184890349121426,
-    7033573124845738437
+    7033573124845738437,
+    8638115978305760525
   ],
   "retiredRelationUids": [],
   "version": 1

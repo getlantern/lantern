@@ -112,9 +112,21 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
+      int consent = 0;
+      try {
+        final appSetting = sl<LocalStorageService>().getAppSetting();
+        if (appSetting != null) {
+          consent = appSetting.telemetryConsent ? 1 : 0;
+        }
+      } catch (_) {
+        appLogger.warning(
+            'No app setting found, defaulting telemetry consent to false');
+      }
+
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
+      appLogger.info(
+          'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent');
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
 
@@ -131,6 +143,7 @@ class LanternFFIService implements LanternCoreService {
             statusReceivePort.sendPort.nativePort,
             privateServerReceivePort.sendPort.nativePort,
             flutterEventReceivePort.sendPort.nativePort,
+            consent,
             NativeApi.initializeApiDLData,
           )
           .toDartString();
@@ -161,6 +174,24 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .updateTelemetryConsent(consent ? 1 : 0)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error updating telemetry events', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override

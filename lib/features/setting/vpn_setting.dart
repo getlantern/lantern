@@ -1,4 +1,5 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -133,6 +134,31 @@ class VPNSetting extends HookConsumerWidget {
                   onPressed: () => appRouter.push(const ManagePrivateServer()),
                 ),
             ],
+          ),
+        ),
+        DividerSpace(),
+        SizedBox(height: 16),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
+            label: 'anonymous_usage_data'.i18n,
+            icon: AppImagePaths.assessment,
+            subtitle: AutoSizeText(
+              'helps_improve_lantern_performance'.i18n,
+              minFontSize: 10,
+              maxFontSize: 12,
+              style: textTheme.labelMedium!.copyWith(
+                color: AppColors.gray7,
+                letterSpacing: 0.0,
+              ),
+            ),
+            trailing: SwitchButton(
+              value: preferences.telemetryConsent,
+              onChanged: (value) {
+                appLogger.info('Anonymous usage data consent changed: $value');
+                notifier.updateAnonymousDataConsent(value);
+              },
+            ),
           ),
         ),
       ],

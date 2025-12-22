@@ -59,7 +59,6 @@ func panicRecover() {
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Info("Setting up Radiance", "opts", opts)
-
 	// Initialize lantern core
 	c, err := lanterncore.New(opts, eventEmitter)
 	if err != nil {
@@ -67,6 +66,13 @@ func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) err
 	}
 	lanternCore.Store(c)
 	return nil
+}
+
+func UpdateTelemetryConsent(consent bool) error {
+	slog.Info("telemetry: UpdateTelemetryConsent", "consent", consent)
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdateTelemetryConsent(consent)
+	})
 }
 
 func SetBlockAdsEnabled(enabled bool) error {

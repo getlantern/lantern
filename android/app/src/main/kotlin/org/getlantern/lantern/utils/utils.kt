@@ -66,6 +66,11 @@ fun logDir(): String {
     return dir.absolutePath
 }
 
+fun isTelemetryEnabled(): Boolean {
+    val telemetryConsentFile = File(initConfigDir(),".telemetry_enabled")
+    return  telemetryConsentFile.exists()
+}
+
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {

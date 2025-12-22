@@ -27,7 +27,7 @@ class _ServerMobileViewState extends State<ServerMobileView> {
   @override
   Widget build(BuildContext context) {
     return AppTile(
-      label: '${widget.location.country} - ${widget.location.city}',
+      label: widget.location.city,
       selected: widget.isSelected,
       icon: Flag(
         countryCode: widget.location.countryCode,

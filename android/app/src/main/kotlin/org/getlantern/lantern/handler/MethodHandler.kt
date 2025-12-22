@@ -33,22 +33,20 @@ import kotlin.text.lowercase
 
 
 enum class Methods(val method: String) {
+
+    ///VPN methods
     Start("startVPN"),
     Stop("stopVPN"),
     ConnectToServer("connectToServer"),
     IsVpnConnected("isVPNConnected"),
 
+    //Payment methods
     StripeSubscription("stripeSubscription"),
     StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
-    GetUserData("getUserData"),
-    FetchUserData("fetchUserData"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     ReportIssue("reportIssue"),
-    FeatureFlag("featureFlag"),
-    GetDataCapInfo("getDataCapInfo"),
-    UpdateLocale("updateLocale"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -59,6 +57,9 @@ enum class Methods(val method: String) {
     ValidateRecoveryCode("validateRecoveryCode"),
     CompleteRecoveryByEmail("completeRecoveryByEmail"),
 
+    //User data
+    GetUserData("getUserData"),
+    FetchUserData("fetchUserData"),
     //Login
     Login("login"),
     SignUp("signUp"),
@@ -106,6 +107,13 @@ enum class Methods(val method: String) {
     RemoveAllItems("removeAllItems"),
     InstalledApps("installedApps"),
     GetAppIcon("getAppIcon"),
+
+    //App Methods
+    FeatureFlag("featureFlag"),
+    GetDataCapInfo("getDataCapInfo"),
+    UpdateLocale("updateLocale"),
+
+    UpdateTelemetryEvents("updateTelemetryEvents")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -1000,6 +1008,12 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.UpdateTelemetryEvents.method -> {
+                scope.handleResult(result, "UpdateTelemetryEvents") {
+                    val consent = call.arguments as Boolean
+                    Mobile.updateTelemetryConsent(consent)
+                }
+            }
             else -> {
                 result.notImplemented()
             }

@@ -24,6 +24,7 @@ import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
+import org.getlantern.lantern.utils.isTelemetryEnabled
 import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.toIpPrefix
 
@@ -366,6 +367,7 @@ class LanternVpnService :
                 logLevel = "debug"
                 deviceid = DeviceUtil.deviceId()
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+                telemetryConsent = isTelemetryEnabled()
             }
         return opts
     }

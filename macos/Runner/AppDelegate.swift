@@ -92,8 +92,11 @@ class AppDelegate: FlutterAppDelegate {
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = ""
     opts.logLevel = "trace"
+    opts.telemetryConsent = FilePath.isTelemetryEnabled()
     opts.locale = Locale.current.identifier
-    appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
+    appLogger.info(
+      "logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel) telemetryConsent: \(opts.telemetryConsent) locale: \(opts.locale)"
+    )
     var error: NSError?
     MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
     // Handle any error returned by the setup

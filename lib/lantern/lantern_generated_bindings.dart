@@ -5182,6 +5182,7 @@ class LanternBindings {
     int statusP,
     int privateServerP,
     int appEventP,
+    int consent,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
@@ -5193,6 +5194,7 @@ class LanternBindings {
       statusP,
       privateServerP,
       appEventP,
+      consent,
       api,
     );
   }
@@ -5208,6 +5210,7 @@ class LanternBindings {
               ffi.Int64,
               ffi.Int64,
               ffi.Int64,
+              ffi.Int,
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
@@ -5219,7 +5222,22 @@ class LanternBindings {
           int,
           int,
           int,
+          int,
           ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Char> updateTelemetryConsent(
+    int consent,
+  ) {
+    return _updateTelemetryConsent(
+      consent,
+    );
+  }
+
+  late final _updateTelemetryConsentPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+          'updateTelemetryConsent');
+  late final _updateTelemetryConsent = _updateTelemetryConsentPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
 
   ffi.Pointer<ffi.Char> availableFeatures() {
     return _availableFeatures();

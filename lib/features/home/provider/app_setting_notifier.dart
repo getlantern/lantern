@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_eum.dart';
@@ -5,6 +7,7 @@ import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -80,8 +83,17 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     });
   }
 
+  void updateAnonymousDataConsent(bool value) {
+    update(state.copyWith(telemetryConsent: value));
+    updateTelemetryConsent(value);
+  }
+
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
+  }
+
+  void setShowTelemetryDialog(bool value) {
+    update(state.copyWith(showTelemetryDialog: value));
   }
 
   Locale _detectDeviceLocale() {
@@ -109,5 +121,48 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       },
       (_) {},
     );
+  }
+
+  Future<void> updateTelemetryConsent(bool consent) async {
+    final result =
+        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
+
+    result.fold(
+      (err) {
+        ///if fail revert the state
+        update(state.copyWith(telemetryConsent: consent ? false : true));
+        appLogger.error('updateTelemetryEvents failed: ${err.error}');
+      },
+      (_) {
+        appLogger.info('Telemetry consent updated: $consent');
+        if (Platform.isWindows) {
+          appLogger.info("No need to create telemetry file on Windows");
+          return;
+        }
+        if (consent) {
+          enableTelemetry();
+        } else {
+          disableTelemetry();
+        }
+      },
+    );
+  }
+
+  ///Internal method to create a file that indicates telemetry is enabled
+  Future<void> enableTelemetry() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final file = File('${dir.path}/.telemetry_enabled');
+    if (!file.existsSync()) {
+      await file.create(recursive: true);
+    }
+  }
+
+  ///Internal method to delete the file that indicates telemetry is disabled
+  Future<void> disableTelemetry() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final file = File('${dir.path}/.telemetry_enabled');
+    if (file.existsSync()) {
+      await file.delete();
+    }
   }
 }
