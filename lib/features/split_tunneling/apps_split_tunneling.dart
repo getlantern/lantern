@@ -33,7 +33,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
         .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final installedApps = allApps;
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||

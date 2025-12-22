@@ -1,3 +1,5 @@
+//go:build !android && !ios
+
 package apps
 
 import (
@@ -188,4 +190,10 @@ func TestLoadInstalledAppsWithDirs_EmitsCachedThenNew(t *testing.T) {
 	if !hasCached || !hasFresh {
 		t.Fatalf("callback did not receive both cached and fresh apps; got %v", seen)
 	}
+}
+
+func TestApps(t *testing.T) {
+	LoadInstalledApps(t.TempDir(), func(ad ...*AppData) error {
+		return nil
+	})
 }
