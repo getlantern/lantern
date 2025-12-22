@@ -51,7 +51,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             displayName: '',
             city: autoLocation.location!.city,
             autoLocationParam: AutoLocationEntity(
-              countryCode:autoLocation.location!.countryCode,
+              countryCode: autoLocation.location!.countryCode,
               country: countryName,
               displayName: '$countryName - $cityName',
             ),

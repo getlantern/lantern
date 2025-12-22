@@ -501,7 +501,8 @@ class _CountryServerTileState extends State<_CountryServerTile> {
         child: ExpansionTile(
           enableFeedback: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.symmetric(vertical: 0,horizontal: 0),
+          childrenPadding:
+              const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
           leading: Flag(countryCode: countryCode),
           title: Text(
             country,

@@ -7,11 +7,8 @@ class Flag extends StatelessWidget {
   final String countryCode;
   final Size size;
 
-  const Flag({
-    super.key,
-    required this.countryCode,
-    this.size = const  Size(25, 18)
-  });
+  const Flag(
+      {super.key, required this.countryCode, this.size = const Size(25, 18)});
 
   @override
   Widget build(BuildContext context) {
