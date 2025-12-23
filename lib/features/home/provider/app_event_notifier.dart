@@ -5,6 +5,7 @@ import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -48,6 +49,7 @@ class AppEventNotifier extends _$AppEventNotifier {
 
           /// this will also refresh user data if needed
           ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
+          ref.read(featureFlagProvider.notifier).fetchFeatureFlags();
           break;
         case 'server-location':
           try {
