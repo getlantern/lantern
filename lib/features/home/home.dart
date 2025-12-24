@@ -70,6 +70,7 @@ class _HomeState extends ConsumerState<Home>
           appLogger.info("Showing Help Lantern Dialog");
           WidgetsBinding.instance.addPostFrameCallback((_) {
             showHelpLanternDialog();
+            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
           });
         }
       }
