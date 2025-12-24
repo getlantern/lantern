@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,6 +10,7 @@ part 'feature_flag_notifier.g.dart';
 class FeatureFlagNotifier extends _$FeatureFlagNotifier {
   @override
   Map<String, dynamic> build() {
+    fetchFeatureFlags();
     return {};
   }
 
@@ -32,10 +32,4 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
       },
     );
   }
-
-  bool get isSentryEnabled =>
-      state.getBool(FeatureFlag.sentry, defaultValue: false);
-
-  bool get isGCPEnabled =>
-      state.getBool(FeatureFlag.privateGcp, defaultValue: false);
 }

@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(14, 2408270352417603228),
+    lastPropertyId: const obx_int.IdUid(15, 2605651149110192739),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -171,6 +171,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(14, 2408270352417603228),
         name: 'telemetryDialogDismissed',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 2605651149110192739),
+        name: 'successfulConnection',
         type: 1,
         flags: 0,
       ),
@@ -966,7 +972,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final splitTunnelingModeRawOffset = fbb.writeString(
           object.splitTunnelingModeRaw,
         );
-        fbb.startTable(15);
+        fbb.startTable(16);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -980,6 +986,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(10, splitTunnelingModeRawOffset);
         fbb.addBool(12, object.telemetryConsent);
         fbb.addBool(13, object.telemetryDialogDismissed);
+        fbb.addBool(14, object.successfulConnection);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1049,6 +1056,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           28,
           false,
         );
+        final successfulConnectionParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -1063,6 +1076,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           showSplashScreen: showSplashScreenParam,
           telemetryDialogDismissed: telemetryDialogDismissedParam,
           telemetryConsent: telemetryConsentParam,
+          successfulConnection: successfulConnectionParam,
         );
 
         return object;
@@ -1962,6 +1976,11 @@ class AppSetting_ {
   /// See [AppSetting.telemetryDialogDismissed].
   static final telemetryDialogDismissed = obx.QueryBooleanProperty<AppSetting>(
     _entities[1].properties[12],
+  );
+
+  /// See [AppSetting.successfulConnection].
+  static final successfulConnection = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[13],
   );
 }
 

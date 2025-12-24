@@ -5,6 +5,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -38,6 +39,9 @@ class VpnNotifier extends _$VpnNotifier {
             if (PlatformUtils.isMobile) {
               HapticFeedback.mediumImpact();
             }
+
+            /// Mark successful connection in app settings
+            ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
             /// Fetch auto server location after a delay to ensure VPN is fully connected
             Future.delayed(Duration(seconds: 1), () {
