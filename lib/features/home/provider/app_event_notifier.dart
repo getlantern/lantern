@@ -49,7 +49,6 @@ class AppEventNotifier extends _$AppEventNotifier {
 
           /// this will also refresh user data if needed
           ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
-          ref.read(featureFlagProvider.notifier).fetchFeatureFlags();
           break;
         case 'server-location':
           try {
