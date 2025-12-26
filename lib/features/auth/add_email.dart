@@ -147,27 +147,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     _handleContinue(type, email);
   }
 
-  Future<void> onContinueTap(SignUpMethodType type, String email) async {
-    appLogger.debug('Continue tapped with type: $type');
-    try {
-      if (!_formKey.currentState!.validate()) {
-        return;
-      }
-      if (widget.authFlow == AuthFlow.changeEmail) {
-        //Change email flow
-        appLogger.debug('Starting change email flow');
-        startChangeEmailFlow(email);
-      } else {
-        appLogger.debug('Starting signup flow');
-        await signupFlow(email);
-        return;
-      }
-    } catch (e) {
-      appLogger.error('Error in onContinueTap: $e');
-      context.showSnackBar('error_occurred'.i18n);
-    }
-  }
-
   Future<void> _handleContinue(SignUpMethodType type, String email) async {
     try {
       if (!_formKey.currentState!.validate()) {
@@ -183,7 +162,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     } catch (e) {
-      appLogger.error('Error in onContinueTap: $e');
+      appLogger.error('Error in _handleContiune: $e');
       context.showSnackBar('error_occurred'.i18n);
     }
   }
@@ -423,8 +402,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             label: 'continue_anyway'.i18n,
             textColor: AppColors.blue6,
             onPressed: () {
-              onContinue.call();
               appRouter.maybePop();
+              Future.delayed(const Duration(milliseconds: 300), onContinue);
             },
           ),
         ]);
