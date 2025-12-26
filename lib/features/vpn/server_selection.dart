@@ -134,6 +134,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final autoLocation = serverLocation.autoLocation;
     final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
     final flag = autoLocation?.countryCode ?? '';
+    final protocol = autoLocation?.protocol ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -152,6 +153,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon:
                 flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
             label: displayName.i18n,
+            subtitle: protocol.isEmpty
+                ? null
+                : Text(
+                    protocol.capitalize,
+                    style: _textTheme!.labelMedium!.copyWith(
+                      color: AppColors.gray7,
+                    ),
+                  ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -217,14 +226,23 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Widget? getServerLocation(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
-      case ServerLocationType.lanternLocation:
       case ServerLocationType.auto:
-        return null; // No additional location info for these types
+        return null;
+      case ServerLocationType.lanternLocation:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Text(
+            serverLocation.protocol,
+            style: _textTheme!.labelMedium!.copyWith(
+              color: AppColors.gray7,
+            ),
+          ),
+        );
       case ServerLocationType.privateServer:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Text(
-            serverLocation.displayName,
+            '${serverLocation.displayName} - ${serverLocation.protocol}',
             style: _textTheme!.labelMedium!.copyWith(
               color: AppColors.gray7,
             ),
@@ -525,13 +543,15 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
-              subtitle:loc.protocol.isEmpty?null: Text(
-                loc.protocol.capitalize,
-                maxLines: 1,
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+              subtitle: loc.protocol.isEmpty
+                  ? null
+                  : Text(
+                      loc.protocol.capitalize,
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                            color: AppColors.gray7,
+                          ),
                     ),
-              ),
               tileTextStyle: Theme.of(context)
                   .textTheme
                   .bodyMedium!

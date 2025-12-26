@@ -67,6 +67,7 @@ class AppEventNotifier extends _$AppEventNotifier {
                 countryCode: autoLocation.location!.countryCode,
                 country: countryName,
                 displayName: '$countryName - $cityName',
+                tag: autoLocation.tag,
               ),
             );
             ref

@@ -16,6 +16,7 @@ class LocationSetting extends HookConsumerWidget {
     String title = '';
     String value = '';
     String flag = '';
+    String protocol = '';
 
     switch (serverType) {
       case ServerLocationType.auto:
@@ -29,24 +30,28 @@ class LocationSetting extends HookConsumerWidget {
             : 'fastest_server'.i18n;
 
         flag = autoLoc?.countryCode ?? '';
+        protocol = autoLoc?.protocol ?? '';
         break;
 
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;
         value = serverLocation.displayName;
         flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
         break;
 
       case ServerLocationType.privateServer:
         title = serverLocation.serverName;
         value = serverLocation.displayName;
         flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
         break;
     }
 
     return SettingTile(
       label: title,
       value: value.i18n,
+      subtitle: protocol,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)

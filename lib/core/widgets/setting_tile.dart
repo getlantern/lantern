@@ -5,14 +5,11 @@ import '../common/common.dart';
 
 class SettingTile extends StatelessWidget {
   final String label;
+  final String? subtitle;
   final String value;
-
   final Widget? child;
-
   final dynamic icon;
-
   final List<Widget> actions;
-
   final VoidCallback? onTap;
 
   const SettingTile({
@@ -23,6 +20,7 @@ class SettingTile extends StatelessWidget {
     required this.actions,
     this.onTap,
     this.child,
+    this.subtitle,
   });
 
   @override
@@ -67,6 +65,13 @@ class SettingTile extends StatelessWidget {
                 ...actions
               ],
             ),
+            if (subtitle != null && subtitle!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 32.0),
+                child: Text(subtitle!.capitalize,
+                    style:
+                        textTheme.labelLarge!.copyWith(color: AppColors.gray7)),
+              ),
           ],
         ),
       ),
