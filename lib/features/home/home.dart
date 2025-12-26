@@ -1,12 +1,15 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -36,30 +39,8 @@ class _HomeState extends ConsumerState<Home>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
-
-
-      appLogger.info(
-          "App Setting - showTelemetryDialog: ${appSetting.telemetryDialogDismissed}");
-      ///First time user shows telemetry dialog
-      if (!appSetting.telemetryDialogDismissed) {
-        appLogger.info("Showing Telemetry Dialog");
-        Future.delayed(
-          Duration(seconds: 1),
-          () {
-            showHelpLanternDialog();
-            ///User has seen dialog, do not show again
-            appLogger.info("Setting telemetryDialogDismissed to true");
-            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
-          },
-        );
-
-        return;
-      }
-
-
       if (PlatformUtils.isMacOS) {
         /// Show macOS system extension dialog if needed
-        /// after telemetry dialog
         appLogger.info(
             "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
         if (appSetting.showSplashScreen) {
@@ -77,14 +58,31 @@ class _HomeState extends ConsumerState<Home>
   @override
   Widget build(BuildContext context) {
     final isUserPro = ref.watch(isUserProProvider);
+    final featureFlag = ref.watch(featureFlagProvider);
+    final appSetting = ref.read(appSettingProvider);
+    useEffect(() {
+      if (appSetting.successfulConnection) {
+        appLogger.info(
+            "User has successfully connected, checking if needs to show Help Lantern Dialog or not");
+        if (!appSetting.telemetryDialogDismissed &&
+            (featureFlag.getBool(FeatureFlag.metrics) &&
+                featureFlag.getBool(FeatureFlag.traces))) {
+          appLogger.info("Showing Help Lantern Dialog");
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showHelpLanternDialog();
+            ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
+          });
+        }
+      }
+      return null;
+    }, [featureFlag]);
+
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
-          title: LanternLogo(
-            isPro: isUserPro,
-          ),
+          title: LanternLogo(isPro: isUserPro),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(0),
             child: DividerSpace(padding: EdgeInsets.zero),

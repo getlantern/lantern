@@ -1,9 +1,12 @@
 enum FeatureFlag {
   sentry('sentry'),
   privateGcp('private.gcp'),
-  autoUpdateEnabled('autoUpdateEnabled');
+  autoUpdateEnabled('autoUpdateEnabled'),
+  metrics('otel.metrics'),
+  traces('otel.traces');
 
   final String key;
+
   const FeatureFlag(this.key);
 }
 

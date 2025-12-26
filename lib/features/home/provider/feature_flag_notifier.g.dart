@@ -42,7 +42,7 @@ final class FeatureFlagNotifierProvider
 }
 
 String _$featureFlagNotifierHash() =>
-    r'fb9b17b6d71951364cbbbb09c1633e70dca46f24';
+    r'88c38b7775611b45410a927b4fdb146d8807af02';
 
 abstract class _$FeatureFlagNotifier extends $Notifier<Map<String, dynamic>> {
   Map<String, dynamic> build();
