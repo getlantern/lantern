@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/app_dimens.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 typedef OnPressed = VoidCallback;
@@ -207,7 +208,7 @@ class AppTextButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        padding: padding ?? EdgeInsets.symmetric(horizontal: 16.0),
+        padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
         visualDensity: VisualDensity.compact,
         textStyle: AppTextStyles.titleMedium.copyWith(
             overflow: TextOverflow.ellipsis,
