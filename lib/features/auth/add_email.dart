@@ -387,11 +387,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   void _showEmailDeliverabilityNotice(OnPressed onContinue) {
     AppDialog.customDialog(
         context: context,
-        // actionPadding: EdgeInsets.only(left: 8.0),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            SizedBox(height: defaultSize),
+            SizedBox(height: size24),
             Text(
               'email_deliverability_notice'.i18n,
               style: textTheme!.headlineSmall!.copyWith(
@@ -420,7 +419,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             },
           ),
           AppTextButton(
-            padding: EdgeInsets.only(left: 0),
+            padding: EdgeInsets.only(right: defaultSize),
             label: 'continue_anyway'.i18n,
             textColor: AppColors.blue6,
             onPressed: () {
