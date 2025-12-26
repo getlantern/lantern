@@ -14,7 +14,7 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
-import 'package:lantern/features/vpn/server_mobile_view.dart';
+import 'package:lantern/features/vpn/single_city_server_view.dart';
 
 import '../../core/models/entity/server_location_entity.dart'
     show ServerLocationEntity;
@@ -580,9 +580,10 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                 color: AppColors.gray7,
               ),
             ),
-      trailing: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: AppColors.gray9,
+      trailing: AppImage(
+        path: AppImagePaths.arrowForward,
+        height: 20.0,
+        color: AppColors.gray9
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );

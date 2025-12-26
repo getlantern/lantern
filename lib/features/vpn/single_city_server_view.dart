@@ -4,7 +4,7 @@ import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
-// server_mobile_view.dart
+// single_city_server_view.dart
 
 class SingleCityServerView extends StatefulWidget {
   final Location_ location;

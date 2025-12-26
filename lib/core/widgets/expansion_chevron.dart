@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/app_asset.dart';
+
+import '../common/app_image_paths.dart';
 
 class ExpansionChevron extends StatelessWidget {
   final bool isExpanded;
@@ -22,10 +24,9 @@ class ExpansionChevron extends StatelessWidget {
     return AnimatedRotation(
       duration: duration,
       turns: isExpanded ? expandedTurns : collapsedTurns,
-      child: Icon(
-        Icons.arrow_forward_ios_rounded,
-        color: AppColors.gray9,
-        size: size,
+      child: AppImage(
+        path: AppImagePaths.arrowForward,
+        height: size,
       ),
     );
   }
