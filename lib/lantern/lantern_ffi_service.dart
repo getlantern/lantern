@@ -79,7 +79,6 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-  @override
   Future<void> init() async {
     try {
       await _setupRadiance();
