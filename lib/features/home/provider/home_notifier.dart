@@ -60,7 +60,9 @@ class HomeNotifier extends _$HomeNotifier {
     if (!userData.legacyUserData.isPro()) {
       resetServerLocation();
     }
-    ref.read(appSettingProvider.notifier).setEmail(userData.legacyUserData.email);
+    ref
+        .read(appSettingProvider.notifier)
+        .setEmail(userData.legacyUserData.email);
     sl<LocalStorageService>().saveUser(userData.toEntity());
   }
 

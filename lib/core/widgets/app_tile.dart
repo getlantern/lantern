@@ -126,7 +126,7 @@ class AppTile extends StatelessWidget {
       hoverColor: hoverColor ?? AppColors.blue1,
       selectedTileColor: selectedTileColor ?? AppColors.blue1,
       tileColor: tileColor,
-      minTileHeight: minHeight?? effectiveMinHeight,
+      minTileHeight: minHeight ?? effectiveMinHeight,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius ?? BorderRadius.circular(16),
       ),

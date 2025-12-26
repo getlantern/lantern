@@ -572,7 +572,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      subtitle: widget.locations.first.protocol.isEmpty
+      subtitle: location.protocol.isEmpty
           ? null
           : Text(
               location.protocol.capitalize,
@@ -583,7 +583,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       trailing: AppImage(
         path: AppImagePaths.arrowForward,
         height: 20.0,
-        color: AppColors.gray9
+        color: AppColors.gray9,
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );

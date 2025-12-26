@@ -21,7 +21,7 @@ abstract class LanternCoreService {
 
   Stream<AppEvent> watchAppEvents();
 
-  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent );
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent);
 
   //VPN Methods
 

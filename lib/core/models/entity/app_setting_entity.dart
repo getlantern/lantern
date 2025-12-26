@@ -16,8 +16,8 @@ class AppSetting {
   bool blockAds;
   String email;
   bool showSplashScreen;
-  bool telemetryDialogDismissed ;
-  bool telemetryConsent ;
+  bool telemetryDialogDismissed;
+  bool telemetryConsent;
 
   AppSetting({
     this.id = 0,

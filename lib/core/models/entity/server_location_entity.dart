@@ -21,7 +21,9 @@ class ServerLocationEntity {
   /// DB field storing the nested object as JSON
   String autoLocationJson;
 
-  String get protocol => (serverName.isEmpty?'': serverName.split('-').first).capitalize;
+  String get protocol =>
+      (serverName.isEmpty ? '' : serverName.split('-').first).capitalize;
+
   /// Transient (non-persisted) convenience getter/setter
   @Transient()
   AutoLocationEntity? get autoLocation {

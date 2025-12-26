@@ -46,7 +46,6 @@ Future<void> injectServices() async {
           () => MockLanternFFIService());
     }
 
-
     if (PlatformUtils.isAndroid) {
       sl.registerSingletonAsync<StripeService>(() async {
         appLogger.info("Initializing StripeService");
