@@ -122,10 +122,11 @@ class AppTile extends StatelessWidget {
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,
+      titleAlignment: ListTileTitleAlignment.center,
       hoverColor: hoverColor ?? AppColors.blue1,
       selectedTileColor: selectedTileColor ?? AppColors.blue1,
       tileColor: tileColor,
-      minTileHeight: effectiveMinHeight,
+      minTileHeight: minHeight?? effectiveMinHeight,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius ?? BorderRadius.circular(16),
       ),

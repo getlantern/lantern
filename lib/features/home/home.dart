@@ -27,8 +27,7 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home>
-    with RouteAware, WidgetsBindingObserver {
+class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
   TextTheme? textTheme;
 
   @override
@@ -37,9 +36,9 @@ class _HomeState extends ConsumerState<Home>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
 
-
       appLogger.info(
           "App Setting - showTelemetryDialog: ${appSetting.telemetryDialogDismissed}");
+
       ///First time user shows telemetry dialog
       if (!appSetting.telemetryDialogDismissed) {
         appLogger.info("Showing Telemetry Dialog");
@@ -47,6 +46,7 @@ class _HomeState extends ConsumerState<Home>
           Duration(seconds: 1),
           () {
             showHelpLanternDialog();
+
             ///User has seen dialog, do not show again
             appLogger.info("Setting telemetryDialogDismissed to true");
             ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
@@ -55,7 +55,6 @@ class _HomeState extends ConsumerState<Home>
 
         return;
       }
-
 
       if (PlatformUtils.isMacOS) {
         /// Show macOS system extension dialog if needed

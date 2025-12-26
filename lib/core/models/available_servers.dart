@@ -67,6 +67,9 @@ class Location_ {
   // it will map to the endpoint tag
   String tag;
 
+  // Extract protocol from tag
+  String get protocol => tag.isEmpty?"": tag.split('-').first;
+
   Location_({
     required this.country,
     required this.countryCode,

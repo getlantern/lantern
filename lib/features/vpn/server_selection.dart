@@ -378,7 +378,7 @@ class _ServerLocationListViewState
 
                             if (countryLocations.length == 1) {
                               final serverData = countryLocations.first;
-                              return ServerMobileView(
+                              return SingleCityServerView(
                                 key: ValueKey(serverData.tag),
                                 onServerSelected: onServerSelected,
                                 location: serverData,
@@ -387,7 +387,8 @@ class _ServerLocationListViewState
                               );
                             }
 
-                            return _CountryServerTile(
+                            ///Multiple cities in the same country
+                            return _CountryCityListView(
                               country: country,
                               locations: countryLocations,
                               selectedServerTag: serverLocation.serverName,
@@ -470,13 +471,13 @@ class _ServerLocationListViewState
   }
 }
 
-class _CountryServerTile extends StatefulWidget {
+class _CountryCityListView extends StatefulWidget {
   final String country;
   final List<Location_> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
 
-  const _CountryServerTile({
+  const _CountryCityListView({
     required this.country,
     required this.locations,
     required this.selectedServerTag,
@@ -485,16 +486,17 @@ class _CountryServerTile extends StatefulWidget {
   });
 
   @override
-  State<_CountryServerTile> createState() => _CountryServerTileState();
+  State<_CountryCityListView> createState() => _CountryCityListViewState();
 }
 
-class _CountryServerTileState extends State<_CountryServerTile> {
+class _CountryCityListViewState extends State<_CountryCityListView> {
   bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final countryCode = widget.locations.first.countryCode;
     final country = widget.locations.first.country;
+    final textTheme = Theme.of(context).textTheme;
     if (PlatformUtils.isDesktop) {
       return Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -519,9 +521,17 @@ class _CountryServerTileState extends State<_CountryServerTile> {
           children: widget.locations.map((loc) {
             final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
-              minHeight: 45,
+              dense: true,
+              minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
+              subtitle:loc.protocol.isEmpty?null: Text(
+                loc.protocol.capitalize,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      color: AppColors.gray7,
+                    ),
+              ),
               tileTextStyle: Theme.of(context)
                   .textTheme
                   .bodyMedium!
@@ -538,9 +548,18 @@ class _CountryServerTileState extends State<_CountryServerTile> {
       );
     }
 
+    final location = widget.locations.first;
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
+      subtitle: widget.locations.first.protocol.isEmpty
+          ? null
+          : Text(
+              location.protocol.capitalize,
+              style: textTheme.labelMedium!.copyWith(
+                color: AppColors.gray7,
+              ),
+            ),
       trailing: Icon(
         Icons.keyboard_arrow_down_rounded,
         color: AppColors.gray9,
@@ -570,7 +589,7 @@ class _CountryServerTileState extends State<_CountryServerTile> {
               final loc = widget.locations[index];
               final isSelected = widget.selectedServerTag == loc.tag;
 
-              return ServerMobileView(
+              return SingleCityServerView(
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
