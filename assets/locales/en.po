@@ -1282,3 +1282,18 @@ msgstr "Helps improve Lantern performance"
 msgid "changes_applied_after_restart"
 msgstr "Changes will be applied after restarting Lantern."
 
+msgid "email_deliverability_notice"
+msgstr "Email Deliverability Notice"
+
+msgid "email_deliverability_notice_message"
+msgstr "Emails to 163.com, 126.com, qq.com, and sina.com addresses are sometimes blocked and may not arrive"
+
+msgid "email_deliverability_notice_message_two"
+msgstr "If you don't receive your confirmation code, consider using an alternative email provider."
+
+msgid "continue_anyway"
+msgstr "Continue Anyway"
+
+
+
+

@@ -88,7 +88,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                 label: 'continue'.i18n,
                 enabled: emailController.text.isValidEmail(),
                 isTaller: true,
-                onPressed: () => onContinueTap(
+                onPressed: () => onContinuePressed(
                   SignUpMethodType.email,
                   emailController.text,
                 ),
@@ -126,8 +126,28 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  Future<void> onContinueTap(SignUpMethodType type, String email) async {
-    appLogger.debug('Continue tapped with type: $type');
+  bool _isProblematicEmail(String email) {
+    const problematicDomains = [
+      '@sina.com',
+      '@qq.com',
+      '@163.com',
+      '@126.com',
+    ];
+
+    return problematicDomains.any(email.endsWith);
+  }
+
+  void onContinuePressed(SignUpMethodType type, String email) {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_isProblematicEmail(email)) {
+      _showEmailDeliverabilityNotice(() => _handleContinue(type, email));
+      return;
+    }
+    _handleContinue(type, email);
+  }
+
+  Future<void> _handleContinue(SignUpMethodType type, String email) async {
     try {
       if (!_formKey.currentState!.validate()) {
         return;
@@ -142,7 +162,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     } catch (e) {
-      appLogger.error('Error in onContinueTap: $e');
+      appLogger.error('Error in _handleContiune: $e');
       context.showSnackBar('error_occurred'.i18n);
     }
   }
@@ -341,5 +361,51 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         )
       ],
     );
+  }
+
+  void _showEmailDeliverabilityNotice(OnPressed onContinue) {
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: size24),
+            Text(
+              'email_deliverability_notice'.i18n,
+              style: textTheme!.headlineSmall!.copyWith(
+                color: AppColors.gray9,
+              ),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'email_deliverability_notice_message'.i18n,
+              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray9),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'email_deliverability_notice_message_two'.i18n,
+              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray9),
+            ),
+          ],
+        ),
+        action: [
+          AppTextButton(
+            padding: EdgeInsets.only(right: 8.0),
+            label: 'change_email'.i18n,
+            textColor: AppColors.gray6,
+            onPressed: () {
+              appRouter.maybePop();
+            },
+          ),
+          AppTextButton(
+            padding: EdgeInsets.only(right: defaultSize),
+            label: 'continue_anyway'.i18n,
+            textColor: AppColors.blue6,
+            onPressed: () {
+              appRouter.maybePop();
+              Future.delayed(const Duration(milliseconds: 300), onContinue);
+            },
+          ),
+        ]);
   }
 }

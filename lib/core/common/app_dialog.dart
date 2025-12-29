@@ -74,15 +74,18 @@ class AppDialog {
     required BuildContext context,
     required Widget content,
     required List<Widget> action,
+    EdgeInsetsGeometry? actionPadding,
   }) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
+          actionsAlignment: MainAxisAlignment.end,
+          actionsOverflowAlignment: OverflowBarAlignment.end,
           backgroundColor: AppColors.gray1,
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.only(
+          contentPadding: EdgeInsets.symmetric(horizontal: size24),
+          actionsPadding: actionPadding??EdgeInsets.only(
               top: defaultSize,
               bottom: defaultSize,
               left: defaultSize,
