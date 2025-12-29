@@ -92,7 +92,10 @@ class LanternProLicense extends HookConsumerWidget {
 
   Future<void> onActivatePro(
       String resellerCode, WidgetRef ref, BuildContext context) async {
-    appLogger.info('Lantern Pro license entered: $resellerCode');
+    final maskedCode = resellerCode.length > 4
+        ? '***${resellerCode.substring(resellerCode.length - 4)}'
+        : '***';
+    appLogger.info('Lantern Pro license entered (masked): $maskedCode');
 
     context.showLoadingDialog();
     final result = await ref
