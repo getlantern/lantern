@@ -13,10 +13,12 @@ class AvailableServers {
 
 class Lantern {
   List<Endpoint> endpoints;
+  List<Endpoint> outbounds;
   Map<String, Location_> locations;
 
   Lantern({
     required this.endpoints,
+    required this.outbounds,
     required this.locations,
   });
 
@@ -25,6 +27,10 @@ class Lantern {
             ? []
             : List<Endpoint>.from(
                 json["endpoints"].map((x) => Endpoint.fromJson(x))),
+        outbounds: json["outbounds"] == null
+            ? []
+            : List<Endpoint>.from(
+                json["outbounds"].map((x) => Endpoint.fromJson(x))),
         locations: (Map<String, Location_>.from(json["locations"].map(
           (k, v) => MapEntry(k, Location_.fromJson(v)..tag = k),
         ))),
@@ -63,9 +69,12 @@ class Location_ {
   double latitude;
   double longitude;
 
-  //tag will be assigned later, not in the JSON
+  // tag will be assigned later, not in the JSON
   // it will map to the endpoint tag
   String tag;
+
+  // As have default value, we can derive protocol from tag
+  String protocol = '';
 
   Location_({
     required this.country,

@@ -17,9 +17,7 @@ class AppSetting {
   String email;
   bool showSplashScreen;
   bool telemetryDialogDismissed;
-
   bool telemetryConsent;
-
   bool successfulConnection;
 
   AppSetting({

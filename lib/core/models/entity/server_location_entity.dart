@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/utils/country_utils.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -21,6 +20,9 @@ class ServerLocationEntity {
 
   /// DB field storing the nested object as JSON
   String autoLocationJson;
+
+  String get protocol =>
+      (serverName.isEmpty ? '' : serverName.split('-').first).capitalize;
 
   /// Transient (non-persisted) convenience getter/setter
   @Transient()
@@ -107,24 +109,30 @@ class AutoLocationEntity {
   final String country;
   final String countryCode;
   final String displayName;
+  final String? tag;
+
+  String get protocol =>
+      tag != null && tag!.isNotEmpty ? tag!.split('-').first : '';
 
   AutoLocationEntity({
     required this.country,
     required this.countryCode,
     required this.displayName,
+    this.tag,
   });
 
   Map<String, dynamic> toJson() => {
         'country': country,
         'countryCode': countryCode,
         'displayName': displayName,
+        'tag': tag,
       };
 
   factory AutoLocationEntity.fromJson(Map<String, dynamic> json) {
     return AutoLocationEntity(
-      country: (json['country'] ?? '') as String,
-      countryCode: (json['countryCode'] ?? '') as String,
-      displayName: (json['displayName'] ?? '') as String,
-    );
+        country: (json['country'] ?? '') as String,
+        countryCode: (json['countryCode'] ?? '') as String,
+        displayName: (json['displayName'] ?? '') as String,
+        tag: (json['tag'] ?? '') as String);
   }
 }

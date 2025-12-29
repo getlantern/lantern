@@ -19,7 +19,6 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
         throw Exception('Failed to available servers');
       },
       (servers) {
-        appLogger.debug('Available servers: ${servers.toJson()}');
         return servers;
       },
     );
@@ -40,7 +39,6 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
             'Error getting available servers: ${failure.localizedErrorMessage}');
       },
       (servers) {
-        appLogger.debug('Available servers: ${servers.toJson()}');
         state = AsyncValue.data(servers);
       },
     );

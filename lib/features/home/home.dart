@@ -30,8 +30,7 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home>
-    with RouteAware, WidgetsBindingObserver {
+class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
   TextTheme? textTheme;
 
   @override

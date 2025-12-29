@@ -14,7 +14,7 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
-import 'package:lantern/features/vpn/server_mobile_view.dart';
+import 'package:lantern/features/vpn/single_city_server_view.dart';
 
 import '../../core/models/entity/server_location_entity.dart'
     show ServerLocationEntity;
@@ -134,6 +134,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final autoLocation = serverLocation.autoLocation;
     final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
     final flag = autoLocation?.countryCode ?? '';
+    final protocol = autoLocation?.protocol ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -152,6 +153,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon:
                 flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
             label: displayName.i18n,
+            subtitle: protocol.isEmpty
+                ? null
+                : Text(
+                    protocol.capitalize,
+                    style: _textTheme!.labelMedium!.copyWith(
+                      color: AppColors.gray7,
+                    ),
+                  ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -217,14 +226,23 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Widget? getServerLocation(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
-      case ServerLocationType.lanternLocation:
       case ServerLocationType.auto:
-        return null; // No additional location info for these types
+        return null;
+      case ServerLocationType.lanternLocation:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Text(
+            serverLocation.protocol,
+            style: _textTheme!.labelMedium!.copyWith(
+              color: AppColors.gray7,
+            ),
+          ),
+        );
       case ServerLocationType.privateServer:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Text(
-            serverLocation.displayName,
+            '${serverLocation.displayName} - ${serverLocation.protocol}',
             style: _textTheme!.labelMedium!.copyWith(
               color: AppColors.gray7,
             ),
@@ -378,7 +396,7 @@ class _ServerLocationListViewState
 
                             if (countryLocations.length == 1) {
                               final serverData = countryLocations.first;
-                              return ServerMobileView(
+                              return SingleCityServerView(
                                 key: ValueKey(serverData.tag),
                                 onServerSelected: onServerSelected,
                                 location: serverData,
@@ -387,7 +405,8 @@ class _ServerLocationListViewState
                               );
                             }
 
-                            return _CountryServerTile(
+                            ///Multiple cities in the same country
+                            return _CountryCityListView(
                               country: country,
                               locations: countryLocations,
                               selectedServerTag: serverLocation.serverName,
@@ -470,13 +489,13 @@ class _ServerLocationListViewState
   }
 }
 
-class _CountryServerTile extends StatefulWidget {
+class _CountryCityListView extends StatefulWidget {
   final String country;
   final List<Location_> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
 
-  const _CountryServerTile({
+  const _CountryCityListView({
     required this.country,
     required this.locations,
     required this.selectedServerTag,
@@ -485,16 +504,17 @@ class _CountryServerTile extends StatefulWidget {
   });
 
   @override
-  State<_CountryServerTile> createState() => _CountryServerTileState();
+  State<_CountryCityListView> createState() => _CountryCityListViewState();
 }
 
-class _CountryServerTileState extends State<_CountryServerTile> {
+class _CountryCityListViewState extends State<_CountryCityListView> {
   bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final countryCode = widget.locations.first.countryCode;
     final country = widget.locations.first.country;
+    final textTheme = Theme.of(context).textTheme;
     if (PlatformUtils.isDesktop) {
       return Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -519,9 +539,19 @@ class _CountryServerTileState extends State<_CountryServerTile> {
           children: widget.locations.map((loc) {
             final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
-              minHeight: 45,
+              dense: true,
+              minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
+              subtitle: loc.protocol.isEmpty
+                  ? null
+                  : Text(
+                      loc.protocol.capitalize,
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                            color: AppColors.gray7,
+                          ),
+                    ),
               tileTextStyle: Theme.of(context)
                   .textTheme
                   .bodyMedium!
@@ -538,11 +568,21 @@ class _CountryServerTileState extends State<_CountryServerTile> {
       );
     }
 
+    final location = widget.locations.first;
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      trailing: Icon(
-        Icons.keyboard_arrow_down_rounded,
+      subtitle: location.protocol.isEmpty
+          ? null
+          : Text(
+              location.protocol.capitalize,
+              style: textTheme.labelMedium!.copyWith(
+                color: AppColors.gray7,
+              ),
+            ),
+      trailing: AppImage(
+        path: AppImagePaths.arrowForward,
+        height: 20.0,
         color: AppColors.gray9,
       ),
       onPressed: () => _showCountryBottomSheet(context),
@@ -570,7 +610,7 @@ class _CountryServerTileState extends State<_CountryServerTile> {
               final loc = widget.locations[index];
               final isSelected = widget.selectedServerTag == loc.tag;
 
-              return ServerMobileView(
+              return SingleCityServerView(
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);

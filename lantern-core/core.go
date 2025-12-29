@@ -369,9 +369,10 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	servers := lc.rad.ServerManager().Servers()
-	slog.Debug("Available servers", "servers", servers)
-	jsonBytes, err := json.Marshal(servers)
+	serversList := lc.rad.ServerManager().Servers()
+	slog.Debug("Available servers", "servers", serversList)
+
+	jsonBytes, err := json.Marshal(serversList)
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
 		return nil

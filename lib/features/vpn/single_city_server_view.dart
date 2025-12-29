@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
-// server_mobile_view.dart
+// single_city_server_view.dart
 
-class ServerMobileView extends StatefulWidget {
+class SingleCityServerView extends StatefulWidget {
   final Location_ location;
   final OnServerSelected onServerSelected;
   final bool isSelected;
 
-  const ServerMobileView({
+  const SingleCityServerView({
     super.key,
     required this.onServerSelected,
     required this.location,
@@ -20,18 +19,25 @@ class ServerMobileView extends StatefulWidget {
   });
 
   @override
-  State<ServerMobileView> createState() => _ServerMobileViewState();
+  State<SingleCityServerView> createState() => _SingleCityServerViewState();
 }
 
-class _ServerMobileViewState extends State<ServerMobileView> {
+class _SingleCityServerViewState extends State<SingleCityServerView> {
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return AppTile(
       label: widget.location.city,
       selected: widget.isSelected,
-      icon: Flag(
-        countryCode: widget.location.countryCode,
-      ),
+      subtitle: widget.location.protocol.isEmpty
+          ? null
+          : Text(
+              widget.location.protocol.capitalize,
+              style: textTheme.labelMedium!.copyWith(
+                color: AppColors.gray7,
+              ),
+            ),
+      icon: Flag(countryCode: widget.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.location);
       },
