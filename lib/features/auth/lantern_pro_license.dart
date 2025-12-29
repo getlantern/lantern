@@ -21,8 +21,19 @@ class LanternProLicense extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
     final validCode = useState(false);
+    final normalizedLen = useState<int>(0);
 
-    final normalizedLen = codeController.text.replaceAll('-', '').length;
+    void syncFromText(String text) {
+      final cleanedLen = text.replaceAll('-', '').length;
+      normalizedLen.value = cleanedLen;
+      validCode.value =
+          RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
+    }
+
+    useEffect(() {
+      syncFromText(codeController.text);
+      return null;
+    }, const []);
 
     return BaseScreen(
       title: 'lantern_pro_license'.i18n,
@@ -54,21 +65,14 @@ class LanternProLicense extends HookConsumerWidget {
 
               return null;
             },
-            onChanged: (value) {
-              if (RegExp(r'^[a-zA-Z0-9-]*$').hasMatch(value) &&
-                  value.replaceAll('-', '').length == 25) {
-                validCode.value = true;
-              } else {
-                validCode.value = false;
-              }
-            },
+            onChanged: (value) => syncFromText(value.toUpperCase()),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
             child: Align(
               alignment: Alignment.centerRight,
               child: Text(
-                '$normalizedLen/25',
+                '${normalizedLen.value}/25',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppColors.gray6,
                     ),
