@@ -67,6 +67,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(email: email));
   }
 
+  void setSuccessfulConnection(bool value) {
+    update(state.copyWith(successfulConnection: value));
+  }
+
   void setBlockAds(bool value) {
     final prev = state.blockAds;
     update(state.copyWith(blockAds: value));

@@ -49,7 +49,6 @@ class LanternPlatformService implements LanternCoreService {
 
   final Map<String, AppData> _androidAppCache = <String, AppData>{};
 
-  @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
 

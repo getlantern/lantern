@@ -56,14 +56,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<void> init() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.init();
-    }
-    return _platformService.init();
-  }
-
-  @override
   Future<Either<Failure, Unit>> updateLocal(String locale) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.updateLocal(locale);

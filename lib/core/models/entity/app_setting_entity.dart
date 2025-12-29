@@ -18,6 +18,7 @@ class AppSetting {
   bool showSplashScreen;
   bool telemetryDialogDismissed;
   bool telemetryConsent;
+  bool successfulConnection;
 
   AppSetting({
     this.id = 0,
@@ -33,6 +34,7 @@ class AppSetting {
     this.showSplashScreen = true,
     this.telemetryDialogDismissed = false,
     this.telemetryConsent = false,
+    this.successfulConnection = false,
   });
 
   AppSetting copyWith({
@@ -48,6 +50,7 @@ class AppSetting {
     bool? showSplashScreen,
     bool? showTelemetryDialog,
     bool? telemetryConsent,
+    bool? successfulConnection,
   }) {
     return AppSetting(
       id: id,
@@ -65,6 +68,7 @@ class AppSetting {
       showSplashScreen: showSplashScreen ?? this.showSplashScreen,
       telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
       telemetryConsent: telemetryConsent ?? this.telemetryConsent,
+      successfulConnection: successfulConnection ?? this.successfulConnection,
     );
   }
 

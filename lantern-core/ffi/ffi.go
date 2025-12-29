@@ -46,11 +46,6 @@ var (
 	appEventPort      int64
 )
 
-func core() lanterncore.Core {
-	c := lanternCore.Load()
-	return *c
-}
-
 func requireCore() (lanterncore.Core, *C.char) {
 	c := lanternCore.Load()
 	if c == nil {
@@ -239,6 +234,10 @@ func getDataCapInfo() *C.char {
 
 //export reportIssue
 func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	email := C.GoString(emailC)
 	issueType := C.GoString(typeC)
 	desc := C.GoString(descC)
@@ -246,7 +245,7 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 	model := C.GoString(modelC)
 	logPath := C.GoString(logPathC)
 
-	if err := core().ReportIssue(email, issueType, desc, device, model, logPath); err != nil {
+	if err := c.ReportIssue(email, issueType, desc, device, model, logPath); err != nil {
 		return C.CString(fmt.Sprintf("error reporting issue: %v", err))
 	}
 
@@ -344,7 +343,11 @@ func stopAutoLocationListener() *C.char {
 //
 //export getAvailableServers
 func getAvailableServers() *C.char {
-	return C.CString(string(core().GetAvailableServers()))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(string(c.GetAvailableServers()))
 }
 
 // connectToServer sets the private server with the given tag.
@@ -422,8 +425,12 @@ func getUserData() *C.char {
 //
 //export fetchUserData
 func fetchUserData() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("Getting user data")
-	bytes, err := core().FetchUserData()
+	bytes, err := c.FetchUserData()
 	if err != nil {
 		return SendError(fmt.Errorf("error marshalling user data: %v", err))
 	}
@@ -435,12 +442,16 @@ func fetchUserData() *C.char {
 //
 //export stripeSubscriptionPaymentRedirect
 func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	subscriptionType := C.GoString(subType)
 	planID := C.GoString(_planId)
 	email := C.GoString(_email)
 	slog.Debug("subscription type:", "subscriptionType", subscriptionType)
-	redirect, err := core().StripeSubscriptionPaymentRedirect(subscriptionType, planID, email)
+	redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email)
 	if err != nil {
 		return SendError(err)
 	}
@@ -452,11 +463,15 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 //
 //export paymentRedirect
 func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	plan := C.GoString(_plan)
 	provider := C.GoString(_provider)
 	email := C.GoString(_email)
 
-	redirect, err := core().PaymentRedirect(provider, plan, email)
+	redirect, err := c.PaymentRedirect(provider, plan, email)
 	if err != nil {
 		return SendError(err)
 	}
@@ -468,7 +483,11 @@ func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
 //
 //export stripeBillingPortalUrl
 func stripeBillingPortalUrl() *C.char {
-	url, err := core().StripeBillingPortalUrl()
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	url, err := c.StripeBillingPortalUrl()
 	if err != nil {
 		return SendError(err)
 	}
@@ -480,8 +499,12 @@ func stripeBillingPortalUrl() *C.char {
 //
 //export plans
 func plans() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("Getting plans")
-	jsonData, err := core().Plans("non-store")
+	jsonData, err := c.Plans("non-store")
 	if err != nil {
 		return SendError(err)
 	}
@@ -492,32 +515,28 @@ func plans() *C.char {
 //
 //export oauthLoginUrl
 func oauthLoginUrl(_provider *C.char) *C.char {
-	provider := C.GoString(_provider)
-	url, err := core().OAuthLoginUrl(provider)
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	url, err := c.OAuthLoginUrl(C.GoString(_provider))
 	if err != nil {
 		return SendError(err)
 	}
-	slog.Debug("OAuthLoginURL response:", "url", url)
 	return C.CString(url)
 }
 
-// oauthLoginCallback is called when the user has logged in with OAuth and the callback URL is called.
-//
 //export oAuthLoginCallback
 func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error login callback : %v", err)
-	// 	}
-	// }()
-	slog.Debug("Getting OAuth login callback")
-	oAuthToken := C.GoString(_oAuthToken)
-	bytes, err := core().OAuthLoginCallback(oAuthToken)
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	bytes, err := c.OAuthLoginCallback(C.GoString(_oAuthToken))
 	if err != nil {
 		return SendError(err)
 	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return C.CString(base64.StdEncoding.EncodeToString(bytes))
 }
 
 // User management
@@ -526,25 +545,24 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 //
 //export login
 func login(_email, _password *C.char) *C.char {
-	email := C.GoString(_email)
-	password := C.GoString(_password)
-	bytes, err := core().Login(email, password)
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	bytes, err := c.Login(C.GoString(_email), C.GoString(_password))
 	if err != nil {
 		return SendError(err)
 	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return C.CString(base64.StdEncoding.EncodeToString(bytes))
 }
 
-// signup is called when the user signs up with email and password.
-//
 //export signup
 func signup(_email, _password *C.char) *C.char {
-	slog.Debug("Signing up user")
-	email := C.GoString(_email)
-	password := C.GoString(_password)
-	err := core().SignUp(email, password)
-	if err != nil {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SignUp(C.GoString(_email), C.GoString(_password)); err != nil {
 		return SendError(err)
 	}
 	return C.CString("ok")
@@ -552,27 +570,28 @@ func signup(_email, _password *C.char) *C.char {
 
 //export logout
 func logout(_email *C.char) *C.char {
-	email := C.GoString(_email)
-	slog.Debug("Logging out")
-	bytes, err := core().Logout(email)
-	if err != nil {
-		return SendError(fmt.Errorf("error logging out: %v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
 	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	bytes, err := c.Logout(C.GoString(_email))
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(base64.StdEncoding.EncodeToString(bytes))
 }
 
 // startRecoveryByEmail will send recovery code to the email
 //
 //export startRecoveryByEmail
 func startRecoveryByEmail(_email *C.char) *C.char {
-	email := C.GoString(_email)
-	slog.Debug("Starting recovery by email for", "email", email)
-	err := core().StartRecoveryByEmail(email)
-	if err != nil {
-		return SendError(fmt.Errorf("error starting recovery by email: %v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
 	}
-	slog.Debug("Recovery by email started successfully")
+	if err := c.StartRecoveryByEmail(C.GoString(_email)); err != nil {
+		return SendError(err)
+	}
 	return C.CString("ok")
 }
 
@@ -580,14 +599,13 @@ func startRecoveryByEmail(_email *C.char) *C.char {
 //
 //export validateEmailRecoveryCode
 func validateEmailRecoveryCode(_email, _code *C.char) *C.char {
-	email := C.GoString(_email)
-	code := C.GoString(_code)
-	slog.Debug("Validating email recovery with code", "email", email, "code", code)
-	err := core().ValidateChangeEmailCode(email, code)
-	if err != nil {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.ValidateChangeEmailCode(C.GoString(_email), C.GoString(_code)); err != nil {
 		return SendError(fmt.Errorf("invalid_code: %v", err))
 	}
-	slog.Debug("Email recovery code validated successfully")
 	return C.CString("ok")
 }
 
@@ -595,15 +613,13 @@ func validateEmailRecoveryCode(_email, _code *C.char) *C.char {
 //
 //export completeRecoveryByEmail
 func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
-	email := C.GoString(_email)
-	code := C.GoString(_code)
-	newPassword := C.GoString(_newPassword)
-	slog.Debug("Completing recovery by email for %s with code %s", email, code)
-	err := core().CompleteRecoveryByEmail(email, newPassword, code)
-	if err != nil {
-		return SendError(fmt.Errorf("%v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
 	}
-	slog.Debug("Recovery by email completed successfully")
+	if err := c.CompleteRecoveryByEmail(C.GoString(_email), C.GoString(_newPassword), C.GoString(_code)); err != nil {
+		return SendError(err)
+	}
 	return C.CString("ok")
 }
 
@@ -611,11 +627,13 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 //
 //export removeDevice
 func removeDevice(deviceId *C.char) *C.char {
-	linkresp, err := core().RemoveDevice(C.GoString(deviceId))
-	if err != nil {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if _, err := c.RemoveDevice(C.GoString(deviceId)); err != nil {
 		return SendError(err)
 	}
-	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
 	return C.CString("ok")
 }
 
@@ -623,9 +641,11 @@ func removeDevice(deviceId *C.char) *C.char {
 //
 //export referralAttachment
 func referralAttachment(_referralCode *C.char) *C.char {
-	referralCode := C.GoString(_referralCode)
-	slog.Debug("Getting referral attachment")
-	ok, err := core().ReferralAttachment(referralCode)
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	ok, err := c.ReferralAttachment(C.GoString(_referralCode))
 	if err != nil {
 		return SendError(err)
 	}
@@ -639,11 +659,12 @@ func referralAttachment(_referralCode *C.char) *C.char {
 //
 //export startChangeEmail
 func startChangeEmail(_newEmail, _password *C.char) *C.char {
-	newEmail := C.GoString(_newEmail)
-	password := C.GoString(_password)
-	err := core().StartChangeEmail(newEmail, password)
-	if err != nil {
-		return SendError(fmt.Errorf("error starting email change: %v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.StartChangeEmail(C.GoString(_newEmail), C.GoString(_password)); err != nil {
+		return SendError(err)
 	}
 	return C.CString("ok")
 }
@@ -652,12 +673,12 @@ func startChangeEmail(_newEmail, _password *C.char) *C.char {
 //
 //export completeChangeEmail
 func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
-	newEmail := C.GoString(_newEmail)
-	password := C.GoString(_password)
-	code := C.GoString(_code)
-	err := core().CompleteChangeEmail(newEmail, password, code)
-	if err != nil {
-		return SendError(fmt.Errorf("error completing email change: %v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.CompleteChangeEmail(C.GoString(_newEmail), C.GoString(_password), C.GoString(_code)); err != nil {
+		return SendError(err)
 	}
 	return C.CString("ok")
 }
@@ -666,29 +687,28 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 //
 //export deleteAccount
 func deleteAccount(_email, _password *C.char) *C.char {
-	email := C.GoString(_email)
-	password := C.GoString(_password)
-	slog.Debug("Deleting account for:", "email", email)
-	bytes, err := core().DeleteAccount(email, password)
-	if err != nil {
-		return SendError(fmt.Errorf("Error deleting account: %v", err))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
 	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password))
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(base64.StdEncoding.EncodeToString(bytes))
 }
 
 // activationCode create subscription using activation code
 //
 //export activationCode
 func activationCode(_email, _resellerCode *C.char) *C.char {
-	email := C.GoString(_email)
-	resellerCode := C.GoString(_resellerCode)
-	slog.Debug("Getting activation code")
-	err := core().ActivationCode(email, resellerCode)
-	if err != nil {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.ActivationCode(C.GoString(_email), C.GoString(_resellerCode)); err != nil {
 		return SendError(err)
 	}
-	slog.Debug("ActivationCode success")
 	return C.CString("ok")
 }
 
@@ -743,8 +763,12 @@ func sendPrivateServerEvent(event string) {
 //
 //export digitalOceanPrivateServer
 func digitalOceanPrivateServer() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	ffiEventListener := &ffiPrivateServerEventListener{}
-	err := core().DigitalOceanPrivateServer(ffiEventListener)
+	err := c.DigitalOceanPrivateServer(ffiEventListener)
 	if err != nil {
 		slog.Error("Error starting DigitalOcean private server flow:", "err", err)
 		return SendError(err)
@@ -757,8 +781,12 @@ func digitalOceanPrivateServer() *C.char {
 //
 //export googleCloudPrivateServer
 func googleCloudPrivateServer() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	ffiEventListener := &ffiPrivateServerEventListener{}
-	err := core().GoogleCloudPrivateServer(ffiEventListener)
+	err := c.GoogleCloudPrivateServer(ffiEventListener)
 	if err != nil {
 		return SendError(fmt.Errorf("Error starting Google Cloud private server flow: %v", err))
 	}
@@ -770,9 +798,13 @@ func googleCloudPrivateServer() *C.char {
 //
 //export selectAccount
 func selectAccount(_account *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	account := C.GoString(_account)
 	slog.Debug("Selecting account:", "account", account)
-	if err := core().SelectAccount(account); err != nil {
+	if err := c.SelectAccount(account); err != nil {
 		return SendError(fmt.Errorf("Error selecting account: %v", err))
 	}
 	slog.Debug("Account selected successfully:", "account", account)
@@ -783,8 +815,12 @@ func selectAccount(_account *C.char) *C.char {
 //
 //export selectProject
 func selectProject(_project *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	project := C.GoString(_project)
-	err := core().SelectProject(project)
+	err := c.SelectProject(project)
 	if err != nil {
 		return SendError(fmt.Errorf("Error getting selected project: %v", err))
 	}
@@ -796,8 +832,12 @@ func selectProject(_project *C.char) *C.char {
 //
 //export validateSession
 func validateSession() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("Validating session")
-	err := core().ValidateSession()
+	err := c.ValidateSession()
 	if err != nil {
 		return SendError(fmt.Errorf("Error validating session: %v", err))
 	}
@@ -809,11 +849,15 @@ func validateSession() *C.char {
 //
 //export startDepolyment
 func startDepolyment(_selectedLocation, _serverName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	location := C.GoString(_selectedLocation)
 	serverName := C.GoString(_serverName)
 
 	slog.Debug("Starting deployment with location: %s and plan: %s", location, serverName)
-	err := core().StartDeployment(location, serverName)
+	err := c.StartDeployment(location, serverName)
 	if err != nil {
 		return SendError(fmt.Errorf("Error starting deployment: %v", err))
 	}
@@ -835,8 +879,12 @@ func setCert(fp *C.char) *C.char {
 //
 //export cancelDepolyment
 func cancelDepolyment() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("Cancelling deployment")
-	if err := core().CancelDeployment(); err != nil {
+	if err := c.CancelDeployment(); err != nil {
 		return SendError(fmt.Errorf("Error cancelling deployment: %v", err))
 	}
 	slog.Debug("Deployment cancelled successfully")
@@ -847,13 +895,17 @@ func cancelDepolyment() *C.char {
 //
 //export addServerManagerInstance
 func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	ffiEventListener := &ffiPrivateServerEventListener{}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	tag := C.GoString(_tag)
 
-	err := core().AddServerManagerInstance(ip, port, accessToken, tag, ffiEventListener)
+	err := c.AddServerManagerInstance(ip, port, accessToken, tag, ffiEventListener)
 	if err != nil {
 		return SendError(fmt.Errorf("Error adding server manager instance: %v", err))
 	}
@@ -865,12 +917,16 @@ func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
 //
 //export inviteToServerManagerInstance
 func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
 	slog.Debug("Inviting to server manager instance:", "ip", ip, "port", port, "inviteName", inviteName)
-	invite, err := core().InviteToServerManagerInstance(ip, port, accessToken, inviteName)
+	invite, err := c.InviteToServerManagerInstance(ip, port, accessToken, inviteName)
 	if err != nil {
 		return SendError(fmt.Errorf("Error inviting to server manager instance: %v", err))
 	}
@@ -882,12 +938,16 @@ func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char
 //
 //export revokeServerManagerInvite
 func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
 	slog.Debug("Revoking invite:", "inviteName", inviteName, "ip", ip, "port", port)
-	err := core().RevokeServerManagerInvite(ip, port, accessToken, inviteName)
+	err := c.RevokeServerManagerInvite(ip, port, accessToken, inviteName)
 	if err != nil {
 		return SendError(fmt.Errorf("Error revoking server manager invite: %v", err))
 	}

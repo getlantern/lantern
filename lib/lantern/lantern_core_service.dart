@@ -15,7 +15,6 @@ import '../core/services/app_purchase.dart';
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService {
   ///App Methods
-  Future<void> init();
 
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
