@@ -372,7 +372,6 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 	serversList := lc.rad.ServerManager().Servers()
 	slog.Debug("Available servers", "servers", serversList)
 
-	
 	jsonBytes, err := json.Marshal(serversList)
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
