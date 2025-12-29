@@ -13,24 +13,34 @@ class AvailableServers {
 
 class Lantern {
   List<Endpoint> endpoints;
+  List<Endpoint> outbounds;
   Map<String, Location_> locations;
 
   Lantern({
     required this.endpoints,
+    required this.outbounds,
     required this.locations,
   });
 
-  factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
+  factory Lantern.fromJson(Map<String, dynamic> json) =>
+      Lantern(
         endpoints: json["endpoints"] == null
             ? []
             : List<Endpoint>.from(
-                json["endpoints"].map((x) => Endpoint.fromJson(x))),
+            json["endpoints"].map((x) => Endpoint.fromJson(x))),
+        outbounds: json["outbounds"] == null
+            ? []
+            : List<Endpoint>.from(
+            json["outbounds"].map((x) => Endpoint.fromJson(x))),
         locations: (Map<String, Location_>.from(json["locations"].map(
-          (k, v) => MapEntry(k, Location_.fromJson(v)..tag = k),
+              (k, v) =>
+              MapEntry(k, Location_.fromJson(v)
+                ..tag = k),
         ))),
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
         "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
       };
@@ -45,12 +55,14 @@ class Endpoint {
     required this.tag,
   });
 
-  factory Endpoint.fromJson(Map<String, dynamic> json) => Endpoint(
+  factory Endpoint.fromJson(Map<String, dynamic> json) =>
+      Endpoint(
         type: json["type"],
         tag: json["tag"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "type": type,
         "tag": tag,
       };
@@ -63,12 +75,13 @@ class Location_ {
   double latitude;
   double longitude;
 
-  //tag will be assigned later, not in the JSON
+  // tag will be assigned later, not in the JSON
   // it will map to the endpoint tag
   String tag;
 
-  // Extract protocol from tag
-  String get protocol => tag.isEmpty ? "" : tag.split('-').first;
+  // As have default value, we can derive protocol from tag
+  String protocol = '';
+
 
   Location_({
     required this.country,
@@ -79,7 +92,8 @@ class Location_ {
     required this.tag,
   });
 
-  factory Location_.fromJson(Map<String, dynamic> json) => Location_(
+  factory Location_.fromJson(Map<String, dynamic> json) =>
+      Location_(
         country: json["country"] ?? '',
         countryCode: json["country_code"] ?? '',
         city: json["city"] ?? '',
@@ -88,7 +102,8 @@ class Location_ {
         tag: "",
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "country": country,
         "city": city,
         "latitude": latitude,
@@ -112,7 +127,8 @@ class Server {
     required this.location,
   });
 
-  factory Server.fromJson(Map<String, dynamic> json) => Server(
+  factory Server.fromJson(Map<String, dynamic> json) =>
+      Server(
         group: json["Group"],
         tag: json["Tag"],
         type: json["Type"],
@@ -120,7 +136,8 @@ class Server {
         location: Location_.fromJson(json["Location"]),
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "Group": group,
         "Tag": tag,
         "Type": type,

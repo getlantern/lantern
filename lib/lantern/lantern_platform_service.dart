@@ -1038,7 +1038,28 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final result =
           await _methodChannel.invokeMethod('getLanternAvailableServers');
-      return Right(AvailableServers.fromJson(jsonDecode(result)));
+      final servers = AvailableServers.fromJson(jsonDecode(result));
+
+      final outboundsByTag = {
+        for (var outbound in servers.lantern.outbounds)
+          outbound.tag: outbound.type
+      };
+
+      servers.lantern.locations.forEach((key, value) {
+        final protoValue = outboundsByTag[key];
+        if (protoValue != null) {
+          value.protocol = protoValue;
+        } else {
+          try {
+            //if not found, try to extract from tag
+            value.protocol = value.tag.split('-').first;
+          } catch (e) {
+            //if any error, set to empty
+            value.protocol = '';
+          }
+        }
+      });
+      return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(
           'Error fetching Lantern available servers', e, stackTrace);
@@ -1089,7 +1110,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
     try {
-      final result = await _methodChannel
+      final _ = await _methodChannel
           .invokeMethod<String>('isSystemExtensionInstalled');
       appLogger.info('Check if system extension is installed');
       return right(unit);
