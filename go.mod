@@ -23,9 +23,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20251219232620-73dc12573fe9
+	github.com/getlantern/radiance v0.0.0-20251229211934-662e3fc9204c
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	github.com/sagernet/sing-box v1.12.12
+	github.com/sagernet/sing-box v1.12.13
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.38.0
 	google.golang.org/protobuf v1.36.10
@@ -167,16 +167,12 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20251211213807-4cbc22624b9f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
-	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
-	github.com/getlantern/common v1.2.1-0.20251018002705-bb54703a7fcb // indirect
+	github.com/getlantern/common v1.2.1-0.20251223145917-671181028168 // indirect
 	github.com/getlantern/dnstt v0.0.0-20250530230749-4d64f4edcf0f // indirect
-	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
-	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
-	github.com/getlantern/fronted v0.0.0-20251118000818-058df28ec727 // indirect
+	github.com/getlantern/fronted v0.0.0-20251229001403-c0ba5ee228b9 // indirect
 	github.com/getlantern/geo v0.0.0-20241129152027-2fc88c10f91e // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
-	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
 	github.com/getlantern/kindling v0.0.0-20251219231434-21e0da2a7a32 // indirect
 	github.com/getlantern/lantern-box v0.0.6-0.20251219200503-ebc276f06e75 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
