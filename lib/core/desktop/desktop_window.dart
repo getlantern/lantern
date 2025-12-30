@@ -12,7 +12,7 @@ Future<void> configureDesktopWindow() async {
     maximumSize: desktopWindowSize,
     center: true,
     titleBarStyle: TitleBarStyle.normal,
-    title: PlatformUtils.isWindows ? 'Lantern' : null,
+    title: PlatformUtils.isWindows ? 'Lantern' : "",
   );
 
   await windowManager.setResizable(false);

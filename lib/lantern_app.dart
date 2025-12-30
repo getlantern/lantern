@@ -139,7 +139,6 @@ class _LanternAppState extends ConsumerState<LanternApp> {
             minTextAdapt: true,
             child: I18n(
               initialLocale: locale.toLocale,
-
               localizationsDelegates: [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
