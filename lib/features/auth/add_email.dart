@@ -33,93 +33,104 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
+
     textTheme = Theme.of(context).textTheme;
-    return BaseScreen(
-      title: widget.authFlow == AuthFlow.changeEmail
-          ? 'enter_new_email'.i18n
-          : 'add_your_email'.i18n,
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppTextField(
-                controller: emailController,
-                label: 'email'.i18n,
-                keyboardType: TextInputType.emailAddress,
-                prefixIcon: AppImagePaths.email,
-                hintText: 'example@gmail.com',
-                onChanged: (value) {
-                  setState(() {});
-                },
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return null;
-                  }
-                  if (value.isNotEmpty) {
-                    if (!value.isValidEmail()) {
-                      return 'invalid_email'.i18n;
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (emailController.text.isValidEmail()) {
+          onContinuePressed(
+            SignUpMethodType.email,
+            emailController.text,
+          );
+        }
+      },
+      child: BaseScreen(
+        title: widget.authFlow == AuthFlow.changeEmail
+            ? 'enter_new_email'.i18n
+            : 'add_your_email'.i18n,
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppTextField(
+                  controller: emailController,
+                  label: 'email'.i18n,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: AppImagePaths.email,
+                  hintText: 'example@gmail.com',
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return null;
                     }
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: defaultSize),
-              if (widget.authFlow == AuthFlow.changeEmail)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                  child: Text('change_email_message'.i18n,
-                      style: textTheme!.bodyMedium!.copyWith(
-                        color: AppColors.gray6,
-                      )),
-                )
-              else
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                  child: Text('add_your_email_message'.i18n,
-                      style: textTheme!.bodyMedium!.copyWith(
-                        color: AppColors.gray6,
-                      )),
+                    if (value.isNotEmpty) {
+                      if (!value.isValidEmail()) {
+                        return 'invalid_email'.i18n;
+                      }
+                    }
+                    return null;
+                  },
                 ),
-              SizedBox(height: 32),
-              PrimaryButton(
-                label: 'continue'.i18n,
-                enabled: emailController.text.isValidEmail(),
-                isTaller: true,
-                onPressed: () => onContinuePressed(
-                  SignUpMethodType.email,
-                  emailController.text,
-                ),
-              ),
-              SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.google,
-                onResult: (token) =>
-                    onOAuthResult(token, SignUpMethodType.google),
-              ),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.apple,
-                onResult: (token) =>
-                    onOAuthResult(token, SignUpMethodType.apple),
-              ),
-              SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: defaultSize),
-              if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
-                Center(
-                  child: AppTextButton(
-                    label: 'continue_without_email'.i18n,
-                    textColor: AppColors.gray9,
-                    onPressed: () =>
-                        navigateRoute(SignUpMethodType.withoutEmail, ""),
+                SizedBox(height: defaultSize),
+                if (widget.authFlow == AuthFlow.changeEmail)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text('change_email_message'.i18n,
+                        style: textTheme!.bodyMedium!.copyWith(
+                          color: AppColors.gray6,
+                        )),
+                  )
+                else
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text('add_your_email_message'.i18n,
+                        style: textTheme!.bodyMedium!.copyWith(
+                          color: AppColors.gray6,
+                        )),
+                  ),
+                SizedBox(height: 32),
+                PrimaryButton(
+                  label: 'continue'.i18n,
+                  enabled: emailController.text.isValidEmail(),
+                  isTaller: true,
+                  onPressed: () => onContinuePressed(
+                    SignUpMethodType.email,
+                    emailController.text,
                   ),
                 ),
-            ],
+                SizedBox(height: defaultSize),
+                DividerSpace(),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.google,
+                  onResult: (token) =>
+                      onOAuthResult(token, SignUpMethodType.google),
+                ),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.apple,
+                  onResult: (token) =>
+                      onOAuthResult(token, SignUpMethodType.apple),
+                ),
+                SizedBox(height: defaultSize),
+                DividerSpace(),
+                SizedBox(height: defaultSize),
+                if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
+                  Center(
+                    child: AppTextButton(
+                      label: 'continue_without_email'.i18n,
+                      textColor: AppColors.gray9,
+                      onPressed: () =>
+                          navigateRoute(SignUpMethodType.withoutEmail, ""),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

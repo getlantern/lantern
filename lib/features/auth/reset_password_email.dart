@@ -18,41 +18,50 @@ class ResetPasswordEmail extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController(text: email);
-    return BaseScreen(
-      title: 'reset_your_password'.i18n,
-      body: Column(
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          Text(
-            'enter_your_lantern_pro_account_email'.i18n,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          SizedBox(height: defaultSize),
-          AppTextField(
-            hintText: '',
-            controller: emailController,
-            maxLines: 1,
-            prefixIcon: AppImagePaths.email,
-            label: 'email'.i18n,
-            validator: (value) {
-              if (value!.isEmpty) {
-                return null;
-              }
-              if (value.isNotEmpty) {
-                if (!value.isValidEmail()) {
-                  return 'invalid_email'.i18n;
+    useListenable(emailController);
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (emailController.text.isValidEmail()) {
+          onNext(context, emailController.text, ref);
+        }
+      },
+      child: BaseScreen(
+        title: 'reset_your_password'.i18n,
+        body: Column(
+          children: <Widget>[
+            SizedBox(height: defaultSize),
+            Text(
+              'enter_your_lantern_pro_account_email'.i18n,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            SizedBox(height: defaultSize),
+            AppTextField(
+              hintText: '',
+              controller: emailController,
+              maxLines: 1,
+              prefixIcon: AppImagePaths.email,
+              label: 'email'.i18n,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return null;
                 }
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 32),
-          PrimaryButton(
-            label: 'next'.i18n,
-            isTaller: true,
-            onPressed: () => onNext(context, emailController.text, ref),
-          ),
-        ],
+                if (value.isNotEmpty) {
+                  if (!value.isValidEmail()) {
+                    return 'invalid_email'.i18n;
+                  }
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 32),
+            PrimaryButton(
+              label: 'next'.i18n,
+              isTaller: true,
+              enabled: emailController.text.isValidEmail(),
+              onPressed: () => onNext(context, emailController.text, ref),
+            ),
+          ],
+        ),
       ),
     );
   }

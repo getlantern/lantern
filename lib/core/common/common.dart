@@ -66,6 +66,7 @@ export '../../core/widgets/divider_space.dart';
 
 //Desktop export
 export 'package:lantern/core/desktop/app_intent.dart';
+export 'package:lantern/core/desktop/app_shortcuts.dart';
 
 AppRouter get appRouter => sl<AppRouter>();
 

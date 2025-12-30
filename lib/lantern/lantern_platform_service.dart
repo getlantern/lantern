@@ -704,8 +704,8 @@ class LanternPlatformService implements LanternCoreService {
         'password': password,
       });
       return Right(UserResponse.fromBuffer(bytes));
-    } catch (e, stackTrace) {
-      appLogger.error('Error logging', e, stackTrace);
+    } catch (e) {
+      appLogger.error('Error logging', e);
       return Left(e.toFailure());
     }
   }

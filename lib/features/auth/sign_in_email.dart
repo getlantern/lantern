@@ -19,66 +19,74 @@ class SignInEmail extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController();
-    return BaseScreen(
-      title: 'sign_in_to_lantern_pro'.i18n,
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            SizedBox(height: defaultSize),
-            Text(
-              'enter_your_lantern_pro_account_details'.i18n,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            SizedBox(height: defaultSize),
-            AppTextField(
-              hintText: '',
-              prefixIcon: AppImagePaths.email,
-              label: 'email'.i18n,
-              keyboardType: TextInputType.emailAddress,
-              controller: emailController,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return null;
-                }
-                if (value.isNotEmpty) {
-                  if (!value.isValidEmail()) {
-                    return 'invalid_email'.i18n;
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (emailController.text.isValidEmail()) {
+          appRouter.push(SignInPassword(email: emailController.text));
+          return;
+        }
+      },
+      child: BaseScreen(
+        title: 'sign_in_to_lantern_pro'.i18n,
+        body: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: defaultSize),
+              Text(
+                'enter_your_lantern_pro_account_details'.i18n,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: defaultSize),
+              AppTextField(
+                hintText: '',
+                prefixIcon: AppImagePaths.email,
+                label: 'email'.i18n,
+                keyboardType: TextInputType.emailAddress,
+                controller: emailController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return null;
                   }
-                }
-                return null;
-              },
-              onChanged: (value) {},
-            ),
-            SizedBox(height: 32),
-            PrimaryButton(
-              label: 'sign_in_with_email'.i18n,
-              onPressed: () => signInWithEmail(emailController.text, context),
-              isTaller: true,
-            ),
-            SizedBox(height: defaultSize),
-            DividerSpace(),
-            SizedBox(height: defaultSize),
-            OAuthLogin(
-              methodType: SignUpMethodType.google,
-              onResult: (token) => onOAuthResult(token, context, ref),
-            ),
-            SizedBox(height: defaultSize),
-            OAuthLogin(
-              methodType: SignUpMethodType.apple,
-              onResult: (token) => onOAuthResult(token, context, ref),
-            ),
-            SizedBox(height: defaultSize),
-            DividerSpace(),
-            SizedBox(height: 32),
-            AppRichText(
-              texts: '${'new_to_lantern_pro'.i18n} ',
-              boldTexts: 'create_an_account'.i18n,
-              boldUnderline: true,
-              boldOnPressed: () {
-                appRouter.push(Plans());
-              },
-            )
-          ],
+                  if (value.isNotEmpty) {
+                    if (!value.isValidEmail()) {
+                      return 'invalid_email'.i18n;
+                    }
+                  }
+                  return null;
+                },
+                onChanged: (value) {},
+              ),
+              SizedBox(height: 32),
+              PrimaryButton(
+                label: 'sign_in_with_email'.i18n,
+                onPressed: () => signInWithEmail(emailController.text, context),
+                isTaller: true,
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: defaultSize),
+              OAuthLogin(
+                methodType: SignUpMethodType.google,
+                onResult: (token) => onOAuthResult(token, context, ref),
+              ),
+              SizedBox(height: defaultSize),
+              OAuthLogin(
+                methodType: SignUpMethodType.apple,
+                onResult: (token) => onOAuthResult(token, context, ref),
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: 32),
+              AppRichText(
+                texts: '${'new_to_lantern_pro'.i18n} ',
+                boldTexts: 'create_an_account'.i18n,
+                boldUnderline: true,
+                boldOnPressed: () {
+                  appRouter.push(Plans());
+                },
+              )
+            ],
+          ),
         ),
       ),
     );

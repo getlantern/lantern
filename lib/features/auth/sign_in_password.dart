@@ -7,7 +7,6 @@ import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'SignInPassword')
@@ -29,50 +28,57 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     final obscureText = useState(true);
 
     useListenable(passwordController);
-    return BaseScreen(
-      title: widget.fromChangeEmail
-          ? 'change_email'.i18n
-          : 'welcome_to_lantern_pro'.i18n,
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            SizedBox(height: defaultSize),
-            Center(child: EmailTag(email: widget.email)),
-            SizedBox(height: defaultSize),
-            AppTextField(
-              hintText: '',
-              controller: passwordController,
-              prefixIcon: AppImagePaths.lock,
-              label: 'enter_password'.i18n,
-              obscureText: obscureText.value,
-              suffixIcon: _buildSuffix(obscureText),
-              onChanged: (value) {},
-            ),
-            SizedBox(height: 16),
-            if (widget.fromChangeEmail)
-              Text('confirm_password_to_continue'.i18n,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: AppColors.gray8,
-                      )),
-            SizedBox(height: 32),
-            PrimaryButton(
-              label: 'continue'.i18n,
-              enabled: passwordController.text.isNotEmpty,
-              isTaller: true,
-              onPressed: () =>
-                  signInWithPassword(passwordController.text.trim()),
-            ),
-            SizedBox(height: defaultSize),
-            DividerSpace(),
-            SizedBox(height: 32),
-            AppTextButton(
-              label: 'forgot_password'.i18n,
-              textColor: AppColors.gray9,
-              onPressed: () {
-                appRouter.push(ResetPasswordEmail(email: widget.email));
-              },
-            )
-          ],
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (passwordController.text.isNotEmpty) {
+          signInWithPassword(passwordController.text.trim());
+        }
+      },
+      child: BaseScreen(
+        title: widget.fromChangeEmail
+            ? 'change_email'.i18n
+            : 'welcome_to_lantern_pro'.i18n,
+        body: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: defaultSize),
+              Center(child: EmailTag(email: widget.email)),
+              SizedBox(height: defaultSize),
+              AppTextField(
+                hintText: '',
+                controller: passwordController,
+                prefixIcon: AppImagePaths.lock,
+                label: 'enter_password'.i18n,
+                obscureText: obscureText.value,
+                suffixIcon: _buildSuffix(obscureText),
+                onChanged: (value) {},
+              ),
+              SizedBox(height: 16),
+              if (widget.fromChangeEmail)
+                Text('confirm_password_to_continue'.i18n,
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        )),
+              SizedBox(height: 32),
+              PrimaryButton(
+                label: 'continue'.i18n,
+                enabled: passwordController.text.isNotEmpty,
+                isTaller: true,
+                onPressed: () =>
+                    signInWithPassword(passwordController.text.trim()),
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: 32),
+              AppTextButton(
+                label: 'forgot_password'.i18n,
+                textColor: AppColors.gray9,
+                onPressed: () {
+                  appRouter.push(ResetPasswordEmail(email: widget.email));
+                },
+              )
+            ],
+          ),
         ),
       ),
     );
