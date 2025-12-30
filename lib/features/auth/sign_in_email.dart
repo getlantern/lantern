@@ -19,6 +19,7 @@ class SignInEmail extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController();
+    useListenable(emailController);
     return EnterKeyShortcut(
       onEnter: () {
         if (emailController.text.isValidEmail()) {
