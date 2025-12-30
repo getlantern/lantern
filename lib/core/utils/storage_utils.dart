@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class AppStorageUtils {
@@ -25,8 +26,8 @@ class AppStorageUtils {
     } else {
       throw UnsupportedError("Unsupported platform for log directory");
     }
-    if (!logDir.existsSync()) {
-      logDir.createSync(recursive: true);
+    if (!await logDir.exists()) {
+      await logDir.create(recursive: true);
     }
     appLogger.debug("Using log directory $logDir");
     return logDir.path;
@@ -56,19 +57,20 @@ class AppStorageUtils {
       appDir = await getApplicationSupportDirectory();
     }
 
-    if (!appDir.existsSync()) {
-      appDir.createSync(recursive: true);
+    if (!await appDir.exists()) {
+      await appDir.create(recursive: true);
     }
+
     appLogger.debug("Using app directory $appDir");
     return appDir;
   }
 
-  static Future<File> appLogFile() async {
+  static Future<File> appLogFile({bool createIfMissing = true}) async {
     final logDir = await getAppLogDirectory();
-    final logFile = File("$logDir/lantern.log");
+    final logFile = File(p.join(logDir, "lantern.log"));
 
-    if (!logFile.existsSync()) {
-      throw Exception("Log file does not exist.");
+    if (createIfMissing && !await logFile.exists()) {
+      await logFile.create(recursive: true);
     }
     return logFile;
   }
@@ -79,19 +81,25 @@ class AppStorageUtils {
     if (!logFile.existsSync()) {
       logFile.createSync(recursive: true);
     }
-    print("Using flutter log file at: ${logFile.path}");
+    appLogger.debug("Using flutter log file at: ${logFile.path}");
     return logFile;
   }
 
   static Future<Directory> getWindowsAppDataDirectory() async {
-    if (!Platform.isWindows) {
-      throw UnsupportedError("Not running on Windows");
+    if (!Platform.isWindows) throw UnsupportedError("Not running on Windows");
+
+    final appData =
+        Platform.environment['APPDATA'] ?? Platform.environment['LOCALAPPDATA'];
+
+    if (appData == null || appData.isEmpty) {
+      final fallback = await getApplicationSupportDirectory();
+      final dir = Directory(fallback.path);
+      if (!await dir.exists()) await dir.create(recursive: true);
+      return dir;
     }
-    final appDataPath = Platform.environment['PUBLIC'];
-    final appDir = Directory("$appDataPath/Lantern");
-    if (!appDir.existsSync()) {
-      appDir.createSync(recursive: true);
-    }
+
+    final appDir = Directory(p.join(appData, "Lantern"));
+    if (!await appDir.exists()) await appDir.create(recursive: true);
     return appDir;
   }
 }
