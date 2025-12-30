@@ -139,12 +139,14 @@ class _LanternAppState extends ConsumerState<LanternApp> {
             minTextAdapt: true,
             child: I18n(
               initialLocale: locale.toLocale,
+
               localizationsDelegates: [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
               child: MaterialApp.router(
+                locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.appTheme(),
                 themeMode: ThemeMode.light,
