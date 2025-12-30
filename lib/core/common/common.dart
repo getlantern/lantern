@@ -64,6 +64,9 @@ export 'package:lantern/features/home/data_usage.dart';
 
 export '../../core/widgets/divider_space.dart';
 
+//Desktop export
+export 'package:lantern/core/desktop/app_intent.dart';
+
 AppRouter get appRouter => sl<AppRouter>();
 
 String generatePassword() {
