@@ -100,11 +100,6 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
             onPressed: () => onInstall(ref, context, systemExtensionStatus),
           ),
           const SizedBox(height: 16.0),
-          SecondaryButton(
-            label: 'learn_more'.i18n,
-            isTaller: true,
-            onPressed: onLearnMore,
-          )
         ],
       ),
     );
