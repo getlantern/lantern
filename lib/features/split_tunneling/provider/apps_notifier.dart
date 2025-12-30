@@ -23,34 +23,14 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return _db.getEnabledApps();
   }
 
-  Future<void> toggleApp(AppData app) async {
-    final isEnabled = state.any((a) => a.name == app.name);
-    final action =
-        isEnabled ? SplitTunnelActionType.remove : SplitTunnelActionType.add;
-
-    final result = isEnabled
-        ? await _lanternService.removeSplitTunnelItem(
-            getFilterType(), appPath(app))
-        : await _lanternService.addSplitTunnelItem(
-            getFilterType(), appPath(app));
-
-    if (result.isLeft()) {
-      final failure = result.fold((l) => l, (r) => null);
-      appLogger.error('Failed to $action item: ${failure?.error}');
-    } else {
-      state = isEnabled
-          ? state.where((a) => a.name != app.name).toSet()
-          : {
-              ...state,
-              app.copyWith(
-                isEnabled: true,
-              )
-            };
-      await _db.saveApps(state);
-    }
+  // Stable identity per platform
+  String _id(AppData a) {
+    if (PlatformUtils.isWindows) return a.appPath;
+    if (PlatformUtils.isMacOS) return a.appPath;
+    return a.bundleId;
   }
 
-  ///This should be called only for macOS & Android
+  /// Only called by macOS and Android
   SplitTunnelFilterType getFilterType() {
     if (PlatformUtils.isMacOS) {
       return SplitTunnelFilterType.processPathRegex;
@@ -60,8 +40,8 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return SplitTunnelFilterType.packageName;
   }
 
-  ///For macOS, we need to use regex to match the app path
-  ///For other platforms, we can use the bundleId/packageName
+  /// For macOS, we need to use regex to match the app path
+  /// For other platforms, we can use the bundleId/packageName
   String appPath(AppData appData) {
     if (PlatformUtils.isMacOS) {
       // Note that typically MacOS apps use the binary inside the .app bundle
@@ -77,39 +57,101 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return appData.bundleId;
   }
 
-  void selectAllApps() async {
-    final allApps = (ref.read(appsDataProvider).value ?? [])
-        .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+  bool _shouldRequireIcons() => PlatformUtils.isAndroid || PlatformUtils.isIOS;
+
+  List<AppData> _installedAppsSnapshot() {
+    final apps = ref.read(appsDataProvider);
+
+    final allApps = apps.maybeWhen(
+      data: (v) => v,
+      orElse: () => const <AppData>[],
+    );
+
+    return allApps
+        .where((a) {
+          if (_shouldRequireIcons()) {
+            return a.iconPath.isNotEmpty || a.iconBytes != null;
+          }
+          return true;
+        })
         .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
+  }
 
-    final all = allApps.map((a) => appPath(a)).toList();
+  Future<void> toggleApp(AppData app) async {
+    final id = _id(app);
+    final isEnabled = state.any((a) => _id(a) == id);
 
-    final result = await _lanternService.addAllItems(getFilterType(), all);
-    result.fold(
-      (l) => appLogger.error('Failed to add all apps: ${l.error}'),
-      (r) async {
-        state = allApps.map((a) => a.copyWith(isEnabled: true)).toSet();
+    final result = isEnabled
+        ? await _lanternService.removeSplitTunnelItem(
+            getFilterType(), appPath(app))
+        : await _lanternService.addSplitTunnelItem(
+            getFilterType(), appPath(app));
+
+    result.match(
+      (failure) => appLogger.error(
+          'Failed to ${isEnabled ? "remove" : "add"} item: ${failure.error}'),
+      (_) async {
+        if (isEnabled) {
+          state = state.where((a) => _id(a) != id).toSet();
+        } else {
+          state = {...state, app.copyWith(isEnabled: true)};
+        }
         await _db.saveApps(state);
       },
     );
   }
 
-  void deselectAllApps() async {
-    final allApps = state.toList();
-    final stringsList = allApps.map((a) => appPath(a)).toList();
-    final result =
-        await _lanternService.removeAllItems(getFilterType(), stringsList);
-    result.fold(
-      (l) => appLogger.error('Failed to remove all apps: ${l.error}'),
-      (r) async {
-        final newApps =
-            allApps.map((a) => a.copyWith(isEnabled: false)).toSet();
+  /// Select exactly these apps
+  Future<void> selectApps(Iterable<AppData> apps) async {
+    final toAdd =
+        apps.where((a) => !state.any((e) => _id(e) == _id(a))).toList();
 
-        await _db.saveApps(newApps);
-        state = _db.getEnabledApps();
+    if (toAdd.isEmpty) return;
+
+    final paths = toAdd.map(appPath).toList();
+    final result = await _lanternService.addAllItems(getFilterType(), paths);
+
+    result.match(
+      (l) => appLogger.error('Failed to add apps: ${l.error}'),
+      (_) async {
+        state = {
+          ...state,
+          ...toAdd.map((a) => a.copyWith(isEnabled: true)),
+        };
+        await _db.saveApps(state);
       },
     );
+  }
+
+  /// Deselect exactly these apps
+  Future<void> deselectApps(Iterable<AppData> apps) async {
+    final toRemove =
+        apps.where((a) => state.any((e) => _id(e) == _id(a))).toList();
+
+    if (toRemove.isEmpty) return;
+
+    final paths = toRemove.map(appPath).toList();
+    final result = await _lanternService.removeAllItems(getFilterType(), paths);
+
+    result.match(
+      (l) => appLogger.error('Failed to remove apps: ${l.error}'),
+      (_) async {
+        final removeIds = toRemove.map(_id).toSet();
+        state = state.where((a) => !removeIds.contains(_id(a))).toSet();
+        await _db.saveApps(state);
+      },
+    );
+  }
+
+  Future<void> selectAllApps() async {
+    await selectApps(_installedAppsSnapshot());
+  }
+
+  Future<void> deselectAllApps() async {
+    final enabled = state.toList();
+    if (enabled.isEmpty) return;
+    await deselectApps(enabled);
   }
 }
