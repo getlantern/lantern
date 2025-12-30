@@ -1,31 +1,44 @@
-// ignore_for_file: use_build_context_synchronously
-
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 
 class ResellerCodeFormatter extends TextInputFormatter {
+  static const _maxChars = 25;
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
-    TextEditingValue value,
+    TextEditingValue newValue,
   ) {
-    final newValue = value.text;
-    var formattedValue = '';
+    final raw = newValue.text.toUpperCase();
 
-    for (var i = 0; i < newValue.length; i++) {
-      if (newValue[i] != '-') formattedValue += newValue[i];
-      var index = i + 1;
-      var dashIndex = index == 5 || index == 11 || index == 17 || index == 23;
-      if (dashIndex &&
-          index != newValue.length &&
-          !(formattedValue.endsWith('-'))) {
-        formattedValue += '-';
-      }
+    // Count real chars (A-Z0-9) before cursor in the incoming value
+    final cursor = math.max(0, newValue.selection.baseOffset);
+    final rawBeforeCursor = raw.substring(0, math.min(cursor, raw.length));
+    final realCharsBeforeCursor =
+        RegExp(r'[A-Z0-9]').allMatches(rawBeforeCursor).length;
+
+    // Clean + limit to 25 real chars
+    final cleaned = raw.replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    final limited =
+        cleaned.length > _maxChars ? cleaned.substring(0, _maxChars) : cleaned;
+
+    // Format XXXXX-... every 5 chars
+    final buffer = StringBuffer();
+    for (var i = 0; i < limited.length; i++) {
+      if (i > 0 && i % 5 == 0) buffer.write('-');
+      buffer.write(limited[i]);
     }
-    return value.copyWith(
-      text: formattedValue,
-      selection: TextSelection.fromPosition(
-        TextPosition(offset: formattedValue.length),
-      ),
+    final formatted = buffer.toString();
+
+    final clampedReal = math.min(realCharsBeforeCursor, limited.length);
+    final hyphensBeforeCursor = clampedReal == 0 ? 0 : ((clampedReal - 1) ~/ 5);
+    final newCursor =
+        math.min(formatted.length, clampedReal + hyphensBeforeCursor);
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: newCursor),
+      composing: TextRange.empty,
     );
   }
 }
@@ -36,9 +49,12 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    return TextEditingValue(
-      text: newValue.text.toUpperCase(),
+    final upperText = newValue.text.toUpperCase();
+
+    return newValue.copyWith(
+      text: upperText,
       selection: newValue.selection,
+      composing: TextRange.empty,
     );
   }
 }

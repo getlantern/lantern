@@ -21,6 +21,15 @@ class LanternProLicense extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
     final validCode = useState(false);
+    final normalizedLen = useState<int>(0);
+
+    void syncFromText(String text) {
+      final cleanedLen = text.replaceAll('-', '').length;
+      normalizedLen.value = cleanedLen;
+      validCode.value =
+          RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
+    }
+
     return BaseScreen(
       title: 'lantern_pro_license'.i18n,
       body: Column(
@@ -31,30 +40,40 @@ class LanternProLicense extends HookConsumerWidget {
             hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
             controller: codeController,
             prefixIcon: AppImagePaths.lock,
-            label: 'activation_code'.i18n,
+            label: 'lantern_pro_license'.i18n,
             inputFormatters: [
               ResellerCodeFormatter(),
+              UpperCaseTextFormatter(),
             ],
             validator: (value) {
-              if (value!.isEmpty) {
-                return 'activation_code_required'.i18n;
+              final v = (value ?? '').trim();
+              if (v.isEmpty) {
+                return 'lantern_pro_license_required'.i18n;
               }
-              if (!RegExp(r'^[a-zA-Z0-9-]*$').hasMatch(value)) {
-                return 'invalid_activation_code'.i18n;
+
+              if (!RegExp(r'^[A-Z0-9-]*$').hasMatch(v)) {
+                return 'lantern_pro_license_invalid'.i18n;
               }
-              if (value.replaceAll('-', '').length != 25) {
-                return 'invalid_activation_code_length'.i18n;
+
+              if (v.replaceAll('-', '').length != 25) {
+                return 'lantern_pro_license_invalid_length'.i18n;
               }
+
               return null;
             },
-            onChanged: (value) {
-              if (RegExp(r'^[a-zA-Z0-9-]*$').hasMatch(value) &&
-                  value.replaceAll('-', '').length == 25) {
-                validCode.value = true;
-              } else {
-                validCode.value = false;
-              }
-            },
+            onChanged: (value) => syncFromText(value),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '${normalizedLen.value}/25',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.gray6,
+                    ),
+              ),
+            ),
           ),
           SizedBox(height: 32),
           PrimaryButton(
@@ -73,7 +92,10 @@ class LanternProLicense extends HookConsumerWidget {
 
   Future<void> onActivatePro(
       String resellerCode, WidgetRef ref, BuildContext context) async {
-    appLogger.info('Activation code entered: $resellerCode');
+    final maskedCode = resellerCode.length > 4
+        ? '***${resellerCode.substring(resellerCode.length - 4)}'
+        : '***';
+    appLogger.info('Lantern Pro license entered (masked): $maskedCode');
 
     context.showLoadingDialog();
     final result = await ref
@@ -83,27 +105,31 @@ class LanternProLicense extends HookConsumerWidget {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        appLogger.error('Activation code failed: $failure');
+        appLogger.error('Lantern Pro license activation failed: $failure');
         context.showSnackBarError(failure.localizedErrorMessage);
       },
       (_) async {
-        appLogger.info('Activation code successful');
+        appLogger.info('Lantern Pro license activation successful');
         await checkUserAccountStatus(ref, context);
         context.hideLoadingDialog();
+
         if (code.isEmpty) {
-          appLogger.info(
-              'No code provided, User is using OAuth skipping password creation');
+          appLogger
+              .info('No code provided, user is using OAuth (skip password)');
           AppDialog.showLanternProDialog(
             context: context,
-            onPressed: () {
-              appRouter.popUntilRoot();
-            },
+            onPressed: () => appRouter.popUntilRoot(),
           );
           return;
         }
 
-        context.pushRoute(CreatePassword(
-            email: email, authFlow: AuthFlow.lanternProLicense, code: code));
+        context.pushRoute(
+          CreatePassword(
+            email: email,
+            authFlow: AuthFlow.lanternProLicense,
+            code: code,
+          ),
+        );
       },
     );
   }

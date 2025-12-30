@@ -1179,6 +1179,15 @@ msgstr "Not a Lantern Pro user yet? You'll become one when your first referral s
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
+msgid "lantern_pro_license_required"
+msgstr “Lantern Pro license is required”
+
+msgid "lantern_pro_license_invalid"
+msgstr "Invalid Lantern Pro license”
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro license must be 25 characters"
+
 msgid "select_account"
 msgstr "Select Account"
 
@@ -1235,7 +1244,6 @@ msgstr "Could not open URL"
 
 msgid "new_to_lantern_pro"
 msgstr "New to Lantern Pro?"
-
 
 msgid "an_error_occurred"
 msgstr "An error occurred. Please try again later."
