@@ -397,7 +397,7 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	return string(b), nil
 }
 
-// Split Tunneling
+// SetSplitTunnelingEnabled turns split tunneling on or off for this device
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 	if enabled {
 		lc.splitTunnel.Enable()
@@ -405,14 +405,18 @@ func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 		lc.splitTunnel.Disable()
 	}
 }
+
+// IsSplitTunnelingEnabled returns whether split tunneling is currently enabled
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 	return lc.splitTunnel.IsEnabled()
 }
 
+// AddSplitTunnelItem adds a single split tunnel rule
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.AddItem(filterType, item)
 }
 
+// AddSplitTunnelItems adds multiple split tunnel rules from a comma-separated string
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 
@@ -454,10 +458,25 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	return lc.splitTunnel.RemoveItems(vpnFilter)
 }
 
+// RemoveSplitTunnelItem removes a single split tunnel rule
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.RemoveItem(filterType, item)
 }
 
+// resolveLogDir returns a directory that contains the logs
+func resolveLogDir(logFilePath string) string {
+	p := strings.TrimSpace(logFilePath)
+	if p == "" {
+		return common.LogPath()
+	}
+	if st, err := os.Stat(p); err == nil && st.IsDir() {
+		return p
+	}
+	return filepath.Dir(p)
+}
+
+// ReportIssue is used to send an issue report via Radiance.
+// We include a few helpful config files plus the main Lantern + Flutter logs when available
 func (lc *LanternCore) ReportIssue(
 	email, issueType, description, device, model, logFilePath string,
 ) error {
@@ -467,6 +486,7 @@ func (lc *LanternCore) ReportIssue(
 		Device:      device,
 		Model:       model,
 	}
+	logDir := resolveLogDir(logFilePath)
 
 	// Attach config files from the Lantern data directory
 	dataDir := common.DataPath()
@@ -499,21 +519,19 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
-	// Attach log file if provided
-	// Path must be available on iOS
-	if logFilePath != "" {
-		report.Attachments = append(
-			report.Attachments,
-			utils.CreateLogAttachment(logFilePath)...,
-		)
-	}
-
+	// Attach log files. Path must be available on iOS
+	report.Attachments = append(report.Attachments,
+		utils.CreateLogAttachments(
+			filepath.Join(logDir, common.LogFileName),
+			filepath.Join(logDir, "flutter.log"),
+		)...,
+	)
 	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
 
-	slog.Debug("Reported issue", "email", email, "type", issueType, "device", device, "model", model)
+	slog.Debug("Reported issue", "type", issueType, "device", device, "model", model)
 	return nil
 }
 

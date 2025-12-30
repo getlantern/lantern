@@ -3,6 +3,8 @@ package utils
 import (
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/getlantern/radiance/issue"
 )
@@ -32,19 +34,40 @@ type FlutterEventEmitter interface {
 	SendEvent(event *FlutterEvent)
 }
 
-// CreateLogAttachment tries to read the log file at logFilePath and returns
-// an []*issue.Attachment with the log (if found)
-func CreateLogAttachment(logFilePath string) []*issue.Attachment {
-	if logFilePath == "" {
+// CreateLogAttachment reads one or more log files and returns attachments
+func CreateLogAttachments(logDir string, files ...string) []*issue.Attachment {
+	if len(files) == 0 {
 		return nil
 	}
-	data, err := os.ReadFile(logFilePath)
-	if err != nil {
-		log.Printf("could not read log file %q: %v", logFilePath, err)
+
+	logDir = strings.TrimSpace(logDir)
+
+	var out []*issue.Attachment
+	for _, f := range files {
+		f = strings.TrimSpace(f)
+		if f == "" {
+			continue
+		}
+
+		path := f
+		if logDir != "" && !filepath.IsAbs(f) {
+			path = filepath.Join(logDir, f)
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			log.Printf("could not read log file %q: %v", path, err)
+			continue
+		}
+
+		out = append(out, &issue.Attachment{
+			Name: filepath.Base(path),
+			Data: data,
+		})
+	}
+
+	if len(out) == 0 {
 		return nil
 	}
-	return []*issue.Attachment{{
-		Name: "flutter.log",
-		Data: data,
-	}}
+	return out
 }
