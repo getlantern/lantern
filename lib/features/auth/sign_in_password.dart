@@ -51,6 +51,9 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                 label: 'enter_password'.i18n,
                 obscureText: obscureText.value,
                 suffixIcon: _buildSuffix(obscureText),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) =>
+                    signInWithPassword(passwordController.text.trim()),
                 onChanged: (value) {},
               ),
               SizedBox(height: 16),

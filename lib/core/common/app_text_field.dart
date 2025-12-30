@@ -8,6 +8,8 @@ import 'package:lantern/core/common/app_dimens.dart';
 class AppTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onEditingComplete;
   final TextEditingController? controller;
   final bool enable;
   final String hintText;
@@ -47,6 +49,8 @@ class AppTextField extends StatelessWidget {
     this.onTap,
     this.maxLength,
     this.autocorrect,
+    this.onSubmitted,
+    this.onEditingComplete,
   });
 
   @override
@@ -65,6 +69,8 @@ class AppTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText,
       onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
       readOnly: onTap != null,
       onTap: onTap,
       cursorColor: AppColors.blue10,

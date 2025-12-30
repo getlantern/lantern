@@ -42,6 +42,9 @@ class SignInEmail extends HookConsumerWidget {
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
                 label: 'email'.i18n,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) =>
+                    signInWithEmail(emailController.text, context),
                 keyboardType: TextInputType.emailAddress,
                 controller: emailController,
                 validator: (value) {

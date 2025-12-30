@@ -93,8 +93,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
                         trailing: AppTextButton(
                           label: 'deselect_all'.i18n,
                           fontSize: 14,
-                          onPressed: () {
-                            notifier.deselectAllApps();
+                          onPressed: () async {
+                            await notifier.deselectAllApps(filterEnabled);
                           },
                         ),
                       );

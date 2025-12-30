@@ -56,6 +56,17 @@ class ResetPassword extends HookConsumerWidget {
               controller: confirmPasswordController,
               prefixIcon: AppImagePaths.lock,
               onChanged: (value) {},
+              onSubmitted: (_) {
+                final canSubmit = passwordController.text.isNotEmpty &&
+                    confirmPasswordController.text.isNotEmpty &&
+                    passwordController.text == confirmPasswordController.text &&
+                    confirmPasswordController.text.isPasswordValid();
+
+                if (canSubmit) {
+                  onResetPasswordTap(
+                      context, confirmPasswordController.text, ref);
+                }
+              },
               validator: (value) {
                 if (value!.isEmpty) {
                   return "confirm_password_required".i18n;
