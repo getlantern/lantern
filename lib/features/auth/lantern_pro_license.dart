@@ -30,62 +30,69 @@ class LanternProLicense extends HookConsumerWidget {
           RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
     }
 
-    return BaseScreen(
-      title: 'lantern_pro_license'.i18n,
-      body: Column(
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          AppTextField(
-            maxLength: 29,
-            hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
-            controller: codeController,
-            prefixIcon: AppImagePaths.lock,
-            label: 'lantern_pro_license'.i18n,
-            inputFormatters: [
-              ResellerCodeFormatter(),
-              UpperCaseTextFormatter(),
-            ],
-            validator: (value) {
-              final v = (value ?? '').trim();
-              if (v.isEmpty) {
-                return 'lantern_pro_license_required'.i18n;
-              }
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (validCode.value) {
+          onActivatePro(codeController.text, ref, context);
+        }
+      },
+      child: BaseScreen(
+        title: 'lantern_pro_license'.i18n,
+        body: Column(
+          children: <Widget>[
+            SizedBox(height: defaultSize),
+            AppTextField(
+              maxLength: 29,
+              hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+              controller: codeController,
+              prefixIcon: AppImagePaths.lock,
+              label: 'lantern_pro_license'.i18n,
+              inputFormatters: [
+                ResellerCodeFormatter(),
+                UpperCaseTextFormatter(),
+              ],
+              validator: (value) {
+                final v = (value ?? '').trim();
+                if (v.isEmpty) {
+                  return 'lantern_pro_license_required'.i18n;
+                }
 
-              if (!RegExp(r'^[A-Z0-9-]*$').hasMatch(v)) {
-                return 'lantern_pro_license_invalid'.i18n;
-              }
+                if (!RegExp(r'^[A-Z0-9-]*$').hasMatch(v)) {
+                  return 'lantern_pro_license_invalid'.i18n;
+                }
 
-              if (v.replaceAll('-', '').length != 25) {
-                return 'lantern_pro_license_invalid_length'.i18n;
-              }
+                if (v.replaceAll('-', '').length != 25) {
+                  return 'lantern_pro_license_invalid_length'.i18n;
+                }
 
-              return null;
-            },
-            onChanged: (value) => syncFromText(value),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${normalizedLen.value}/25',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.gray6,
-                    ),
+                return null;
+              },
+              onChanged: (value) => syncFromText(value),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${normalizedLen.value}/25',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.gray6,
+                      ),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 32),
-          PrimaryButton(
-            label: 'activate_lantern_pro'.i18n,
-            enabled: validCode.value,
-            isTaller: true,
-            onPressed: () => onActivatePro(codeController.text, ref, context),
-          ),
-          SizedBox(height: defaultSize),
-          DividerSpace(),
-          SizedBox(height: defaultSize),
-        ],
+            SizedBox(height: 32),
+            PrimaryButton(
+              label: 'activate_lantern_pro'.i18n,
+              enabled: validCode.value,
+              isTaller: true,
+              onPressed: () => onActivatePro(codeController.text, ref, context),
+            ),
+            SizedBox(height: defaultSize),
+            DividerSpace(),
+            SizedBox(height: defaultSize),
+          ],
+        ),
       ),
     );
   }

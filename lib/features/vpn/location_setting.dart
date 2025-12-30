@@ -61,7 +61,7 @@ class LocationSetting extends HookConsumerWidget {
           onPressed: () => appRouter.push(const ServerSelection()),
           style: ElevatedButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-          icon: AppImage(path: AppImagePaths.verticalDots),
+          icon: AppImage(path: AppImagePaths.arrowForward),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           visualDensity: VisualDensity.compact,

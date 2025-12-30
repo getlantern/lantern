@@ -53,13 +53,10 @@ class VpnStatus extends HookConsumerWidget {
             AnimatedTextKit(
               animatedTexts: [
                 TyperAnimatedText(
-                  '.  ',
+                  '... ',
                   textStyle:
                       textTheme.titleMedium!.copyWith(color: AppColors.gray9),
                 ),
-                TyperAnimatedText('.. ',
-                    textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9)),
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!
                         .copyWith(color: AppColors.gray9)),

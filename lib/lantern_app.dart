@@ -145,6 +145,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               child: MaterialApp.router(
+                locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.appTheme(),
                 themeMode: ThemeMode.light,

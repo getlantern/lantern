@@ -26,37 +26,44 @@ class CreatePassword extends HookConsumerWidget {
     final passwordTextController = useTextEditingController();
     final obscureText = useState(true);
     final isValidPassword = useState(false);
-    return BaseScreen(
-      title: 'create_password'.i18n,
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            SizedBox(height: defaultSize),
-            EmailTag(email: email),
-            SizedBox(height: defaultSize),
-            AppTextField(
-              controller: passwordTextController,
-              hintText: '',
-              prefixIcon: AppImagePaths.lock,
-              label: "create_password".i18n,
-              suffixIcon: _buildSuffix(obscureText),
-              obscureText: obscureText.value,
-              onChanged: (value) {
-                isValidPassword.value = value.isPasswordValid();
-              },
-            ),
-            SizedBox(height: 32),
-            PrimaryButton(
-              label: 'continue'.i18n,
-              isTaller: true,
-              enabled: passwordTextController.text.isPasswordValid(),
-              onPressed: () =>
-                  onContinue(ref, passwordTextController.text, context),
-            ),
-            SizedBox(height: 32.0),
-            PasswordCriteriaWidget(
-                textEditingController: passwordTextController)
-          ],
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (passwordTextController.text.isPasswordValid()) {
+          onContinue(ref, passwordTextController.text, context);
+        }
+      },
+      child: BaseScreen(
+        title: 'create_password'.i18n,
+        body: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: defaultSize),
+              EmailTag(email: email),
+              SizedBox(height: defaultSize),
+              AppTextField(
+                controller: passwordTextController,
+                hintText: '',
+                prefixIcon: AppImagePaths.lock,
+                label: "create_password".i18n,
+                suffixIcon: _buildSuffix(obscureText),
+                obscureText: obscureText.value,
+                onChanged: (value) {
+                  isValidPassword.value = value.isPasswordValid();
+                },
+              ),
+              SizedBox(height: 32),
+              PrimaryButton(
+                label: 'continue'.i18n,
+                isTaller: true,
+                enabled: passwordTextController.text.isPasswordValid(),
+                onPressed: () =>
+                    onContinue(ref, passwordTextController.text, context),
+              ),
+              SizedBox(height: 32.0),
+              PasswordCriteriaWidget(
+                  textEditingController: passwordTextController)
+            ],
+          ),
         ),
       ),
     );

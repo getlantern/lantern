@@ -165,7 +165,7 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    icon: AppImage(path: AppImagePaths.verticalDots),
+                    icon: AppImage(path: AppImagePaths.arrowForward),
                     padding: EdgeInsets.zero,
                     constraints: BoxConstraints(),
                     visualDensity: VisualDensity.compact,

@@ -68,6 +68,7 @@ class ConfirmEmail extends HookConsumerWidget {
               onCompleted: (String value) {
                 isPinCodeValid.value = value.length == 6;
                 appLogger.info('PIN code completed: $value');
+                onContinueTap(context, ref, codeController.text);
               },
             ),
             SizedBox(height: defaultSize),
