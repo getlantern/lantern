@@ -73,64 +73,75 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       return null;
     }, [update]);
 
-    return BaseScreen(
-      title: 'report_an_issue'.i18n,
-      body: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Form(
-          key: formKey,
-          child: Column(
-            children: <Widget>[
-              AppTextField(
-                controller: emailController,
-                hintText: 'email_optional'.i18n,
-                label: 'email'.i18n,
-                prefixIcon: AppImagePaths.email,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !EmailValidator.validate(value)) {
-                    return 'please_enter_valid_email'.i18n;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              AppTextField(
-                autovalidateMode: AutovalidateMode.disabled,
-                controller: selectedIssueController,
-                label: 'select_an_issue'.i18n,
-                hintText: '',
-                onTap: () => openIssueSelection(
-                    selectedIssueController, groupValue.value),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'please_select_an_issue'.i18n
-                    : null,
-                prefixIcon: Icons.error_outline,
-                suffixIcon: Icons.arrow_drop_down,
-              ),
-              const SizedBox(height: 16),
-              AppTextField(
-                controller: descriptionController,
-                hintText: '',
-                label: 'issue_description'.i18n,
-                prefixIcon: Icons.description_outlined,
-                maxLines: 10,
-              ),
-              const SizedBox(height: size24),
-              PrimaryButton(
-                label: 'submit_issue_report'.i18n,
-                onPressed: () => submitReport(
-                  formKey,
-                  emailController.text.trim(),
-                  selectedIssueController.text,
-                  descriptionController.text.trim(),
-                  reset,
+    return EnterKeyShortcut(
+      onEnter: () {
+        submitReport(
+          formKey,
+          emailController.text.trim(),
+          selectedIssueController.text,
+          descriptionController.text.trim(),
+          reset,
+        );
+      },
+      child: BaseScreen(
+        title: 'report_an_issue'.i18n,
+        body: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: <Widget>[
+                AppTextField(
+                  controller: emailController,
+                  hintText: 'email_optional'.i18n,
+                  label: 'email'.i18n,
+                  prefixIcon: AppImagePaths.email,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value != null &&
+                        value.isNotEmpty &&
+                        !EmailValidator.validate(value)) {
+                      return 'please_enter_valid_email'.i18n;
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: size24),
-            ],
+                const SizedBox(height: 16),
+                AppTextField(
+                  autovalidateMode: AutovalidateMode.disabled,
+                  controller: selectedIssueController,
+                  label: 'select_an_issue'.i18n,
+                  hintText: '',
+                  onTap: () => openIssueSelection(
+                      selectedIssueController, groupValue.value),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'please_select_an_issue'.i18n
+                      : null,
+                  prefixIcon: Icons.error_outline,
+                  suffixIcon: Icons.arrow_drop_down,
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  controller: descriptionController,
+                  hintText: '',
+                  label: 'issue_description'.i18n,
+                  prefixIcon: Icons.description_outlined,
+                  maxLines: 10,
+                ),
+                const SizedBox(height: size24),
+                PrimaryButton(
+                  label: 'submit_issue_report'.i18n,
+                  onPressed: () => submitReport(
+                    formKey,
+                    emailController.text.trim(),
+                    selectedIssueController.text,
+                    descriptionController.text.trim(),
+                    reset,
+                  ),
+                ),
+                const SizedBox(height: size24),
+              ],
+            ),
           ),
         ),
       ),
