@@ -107,6 +107,7 @@ class AppPinField extends StatelessWidget {
     final digitsOnly = text.replaceAll(RegExp(r'\D'), '');
     if (digitsOnly.length == 6) {
       controller?.text = digitsOnly;
+      onCompleted?.call(digitsOnly);
     }
   }
 }
