@@ -30,11 +30,6 @@ class LanternProLicense extends HookConsumerWidget {
           RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
     }
 
-    useEffect(() {
-      syncFromText(codeController.text);
-      return null;
-    }, const []);
-
     return BaseScreen(
       title: 'lantern_pro_license'.i18n,
       body: Column(
@@ -48,6 +43,7 @@ class LanternProLicense extends HookConsumerWidget {
             label: 'lantern_pro_license'.i18n,
             inputFormatters: [
               ResellerCodeFormatter(),
+              UpperCaseTextFormatter(),
             ],
             validator: (value) {
               final v = (value ?? '').trim();
@@ -65,7 +61,7 @@ class LanternProLicense extends HookConsumerWidget {
 
               return null;
             },
-            onChanged: (value) => syncFromText(value.toUpperCase()),
+            onChanged: (value) => syncFromText(value),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
