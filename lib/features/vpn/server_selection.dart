@@ -289,21 +289,15 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         final auto = server.autoLocation;
         final autoCountry = auto?.country ?? '';
         final displayName = auto?.displayName ?? 'fastest_server'.i18n;
+
         final serverLocation = ServerLocationEntity(
             serverType: type.name,
             serverName: 'Smart Location',
-            autoSelect: true,
-            displayName: '',
-            city: '',
-            country: '',
-            countryCode: '',
-            protocol: '',
             autoLocationParam: AutoLocationEntity(
-              country: autoCountry,
-              countryCode: auto?.countryCode ?? '',
-              displayName: displayName,
-              tag: auto?.tag
-            ));
+                country: autoCountry,
+                countryCode: auto?.countryCode ?? '',
+                displayName: displayName,
+                tag: auto?.tag));
         await ref
             .read(serverLocationProvider.notifier)
             .updateServerLocation(serverLocation);
@@ -827,7 +821,6 @@ class _PrivateServerLocationListViewState
     final serverLocation = ServerLocationEntity(
       serverType: ServerLocationType.privateServer.name,
       serverName: privateServer.serverName,
-      autoSelect: false,
       displayName: privateServer.serverLocationName.locationName,
       city: privateServer.serverLocationName,
       countryCode: privateServer.serverCountryCode,

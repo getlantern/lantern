@@ -181,8 +181,6 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
   }
 
   void onSettingTileTap(_SettingTileType tileType) {
-    appRouter
-        .push(LanternProLicense(email: 'jigar@getlantern.org', code: 'gfffd'));
     return;
     switch (tileType) {
       case _SettingTileType.smartLocation:

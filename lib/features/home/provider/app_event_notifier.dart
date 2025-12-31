@@ -59,7 +59,6 @@ class AppEventNotifier extends _$AppEventNotifier {
             final autoServer = ServerLocationEntity(
               serverType: ServerLocationType.auto.name,
               serverName: ''.i18n,
-              autoSelect: true,
               displayName: '',
               protocol: '',
               city: autoLocation.location!.city,

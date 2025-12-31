@@ -10,7 +10,6 @@ class ServerLocationEntity {
   @Id(assignable: false)
   int id = 0;
 
-  final bool autoSelect;
   final String serverName;
   final String serverType;
   final String countryCode;
@@ -22,8 +21,6 @@ class ServerLocationEntity {
   /// DB field storing the nested object as JSON
   String autoLocationJson;
 
-  // String  protocol =>
-  //     (serverName.isEmpty ? '' : serverName.split('-').first).capitalize;
 
   /// Transient (non-persisted) convenience getter/setter
   @Transient()
@@ -47,7 +44,6 @@ class ServerLocationEntity {
   }
 
   ServerLocationEntity({
-    required this.autoSelect,
     required this.serverName,
     required this.serverType,
     this.protocol = '',
@@ -79,7 +75,6 @@ class ServerLocationEntity {
     bool autoSelect = false,
   }) {
     return ServerLocationEntity(
-      autoSelect: autoSelect,
       serverName: server.tag,
       serverType: ServerLocationType.lanternLocation.name,
       country: server.country,
@@ -96,7 +91,6 @@ class ServerLocationEntity {
     bool autoSelect = false,
   }) {
     return ServerLocationEntity(
-        autoSelect: autoSelect,
         serverName: privateServer.serverName,
         serverType: ServerLocationType.privateServer.name,
         countryCode: privateServer.serverCountryCode,

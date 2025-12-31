@@ -1,14 +1,13 @@
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/services/local_storage.dart';
 
 class FakeLocalStorageService extends LocalStorageService {
   final List<PrivateServerEntity> _servers = [];
   ServerLocationEntity _selected = ServerLocationEntity(
-    autoSelect: true,
     serverName: '',
     serverType: ServerLocationType.auto.name,
     autoLocationParam: AutoLocationEntity(
@@ -23,8 +22,10 @@ class FakeLocalStorageService extends LocalStorageService {
 
   @override
   Future<void> init() async {}
+
   @override
   void close() {}
+
   @override
   void updateInitialServerLocation() {}
 

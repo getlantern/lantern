@@ -1,9 +1,9 @@
 import 'dart:convert';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 class FakePrivateServerNotifier extends PrivateServerNotifier {
   FakePrivateServerNotifier() : super();
@@ -49,15 +49,14 @@ class FakePrivateServerNotifier extends PrivateServerNotifier {
 
     await Future.delayed(const Duration(milliseconds: 50));
 
-    final fakeEntity = PrivateServerEntity.withLocation(
+    final fakeEntity = PrivateServerEntity(
       serverName: serverName,
       externalIp: '203.0.113.10',
       port: '443',
       accessToken: 'abc123',
-      serverLocation: ServerLocation(
-        locationName: location,
-        countryCode: 'US',
-      ),
+      protocol: 'Vmess',
+      serverCountryCode: 'US',
+      serverLocationName: location,
       isJoined: false,
     );
 

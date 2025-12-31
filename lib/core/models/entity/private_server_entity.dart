@@ -51,27 +51,6 @@ class PrivateServerEntity {
         protocol: protocol ?? this.protocol);
   }
 
-  // factory PrivateServerEntity.withLocation({
-  //   required String serverName,
-  //   required String externalIp,
-  //   required String port,
-  //   required String accessToken,
-  //   required ServerLocation serverLocation,
-  //   bool isJoined = false,
-  //   bool userSelected = false,
-  // }) {
-  //   return PrivateServerEntity(
-  //     serverName: serverName,
-  //     externalIp: externalIp,
-  //     port: port,
-  //     accessToken: accessToken,
-  //     serverLocationName: serverLocation.locationName,
-  //     serverCountryCode: serverLocation.countryCode,
-  //     isJoined: isJoined,
-  //     userSelected: userSelected,
-  //   );
-  // }
-
   Map<String, dynamic> toJson() => {
         'tag': serverName,
         'external_ip': externalIp,
@@ -85,43 +64,28 @@ class PrivateServerEntity {
       };
 
   static PrivateServerEntity fromJson(Map<String, dynamic> e) {
-    return PrivateServerEntity(
-      serverName: e['tag'],
-      externalIp: e['external_ip'],
-      port: e['port'].toString(),
-      accessToken: e['access_token'],
-      serverLocationName: e['location'],
-      serverCountryCode: (e['location'].toString().countryCode) ?? '',
-      protocol: e['protocol'] ?? '',
-    );
+    try {
+      String countryCode = '';
+      try {
+        if (e.containsKey('location')) {
+          countryCode = e['location'].toString().countryCode;
+        }
+      } catch (e) {
+        appLogger.error('Error extracting country code: $e');
+      }
 
-    // if (locRaw is String) {
-    //   locationName = locRaw.toString();
-    //   //extract country code if possible
-    //   countryCode = locationName.countryCode;
-    // } else {
-    //   // try explicit fields
-    //   locationName = (e['location_name'] ?? e['locationName'] ?? '').toString();
-    //   countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
-    // }
-    //
-    // return PrivateServerEntity.withLocation(
-    //   serverName:
-    //       (e['tag'] ?? e['server_name'] ?? e['serverName'] ?? '').toString(),
-    //   externalIp: (e['external_ip'] ?? e['externalIp'] ?? '').toString(),
-    //   port: (e['port'] ?? '').toString(),
-    //   accessToken: (e['access_token'] ?? e['accessToken'] ?? '').toString(),
-    //   serverLocation: ServerLocation(
-    //     locationName: locationName,
-    //     countryCode: countryCode,
-    //   ),
-    //   isJoined: (e['is_joined'] ?? e['isJoined'] ?? false) == true,
-    //   userSelected: (e['user_selected'] ?? e['userSelected'] ?? false) == true,
-    // );
+      return PrivateServerEntity(
+        serverName: e['tag'] ?? '',
+        externalIp: e['external_ip'] ?? '',
+        port: e['port'].toString(),
+        accessToken: e['access_token'] ?? '',
+        serverLocationName: e['location'] ?? '',
+        serverCountryCode: countryCode,
+        protocol: e['protocol'] ?? '',
+      );
+    } catch (e) {
+      appLogger.error('PrivateServerEntity fromJson error: $e');
+      rethrow;
+    }
   }
-
-// ServerLocation get serverLocation => ServerLocation(
-//       locationName: serverLocation.locationName,
-//       countryCode: serverLocation.locationName,
-//     );
 }

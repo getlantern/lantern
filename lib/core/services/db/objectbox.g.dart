@@ -729,12 +729,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 2297478623142907793),
-        name: 'autoSelect',
-        type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(4, 8032330847275345473),
         name: 'serverName',
         type: 9,
@@ -872,6 +866,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       3575184890349121426,
       7033573124845738437,
       8638115978305760525,
+      2297478623142907793,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -1782,7 +1777,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final protocolOffset = fbb.writeString(object.protocol);
         fbb.startTable(12);
         fbb.addInt64(0, object.id);
-        fbb.addBool(1, object.autoSelect);
         fbb.addOffset(3, serverNameOffset);
         fbb.addOffset(4, serverTypeOffset);
         fbb.addOffset(5, countryCodeOffset);
@@ -1797,12 +1791,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
-        final autoSelectParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          6,
-          false,
-        );
         final serverNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
@@ -1826,7 +1814,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 20, '');
         final object =
             ServerLocationEntity(
-                autoSelect: autoSelectParam,
                 serverName: serverNameParam,
                 serverType: serverTypeParam,
                 protocol: protocolParam,
@@ -2404,49 +2391,44 @@ class ServerLocationEntity_ {
     _entities[12].properties[0],
   );
 
-  /// See [ServerLocationEntity.autoSelect].
-  static final autoSelect = obx.QueryBooleanProperty<ServerLocationEntity>(
-    _entities[12].properties[1],
-  );
-
   /// See [ServerLocationEntity.serverName].
   static final serverName = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[2],
+    _entities[12].properties[1],
   );
 
   /// See [ServerLocationEntity.serverType].
   static final serverType = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[3],
+    _entities[12].properties[2],
   );
 
   /// See [ServerLocationEntity.countryCode].
   static final countryCode = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[4],
+    _entities[12].properties[3],
   );
 
   /// See [ServerLocationEntity.country].
   static final country = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[5],
+    _entities[12].properties[4],
   );
 
   /// See [ServerLocationEntity.city].
   static final city = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[6],
+    _entities[12].properties[5],
   );
 
   /// See [ServerLocationEntity.displayName].
   static final displayName = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[7],
+    _entities[12].properties[6],
   );
 
   /// See [ServerLocationEntity.autoLocationJson].
   static final autoLocationJson = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[8],
+    _entities[12].properties[7],
   );
 
   /// See [ServerLocationEntity.protocol].
   static final protocol = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[9],
+    _entities[12].properties[8],
   );
 }
 
