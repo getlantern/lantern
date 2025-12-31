@@ -285,9 +285,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
-        final auto = ref.read(serverLocationProvider);
-        final autoCountry = auto.country;
-        final autoCity = auto.city;
+        final server = ref.read(serverLocationProvider);
+        final auto = server.autoLocation;
+        final autoCountry = auto?.country ?? '';
+        final displayName = auto?.displayName ?? 'fastest_server'.i18n;
         final serverLocation = ServerLocationEntity(
             serverType: type.name,
             serverName: 'Smart Location',
@@ -299,8 +300,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             protocol: '',
             autoLocationParam: AutoLocationEntity(
               country: autoCountry,
-              countryCode: auto.countryCode,
-              displayName: '$autoCountry - $autoCity',
+              countryCode: auto?.countryCode ?? '',
+              displayName: displayName,
+              tag: auto?.tag
             ));
         await ref
             .read(serverLocationProvider.notifier)
