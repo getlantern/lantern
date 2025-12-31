@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 final regex = RegExp(r'.+? - (.+?) \[[A-Z]{2}\]');
 
 extension CapExtension on String {
-  String get capitalize => this[0].toUpperCase() + substring(1);
+
+  String get capitalize =>  isEmpty?'': this[0].toUpperCase() + substring(1);
 }
 
 extension EmailValidation on String {

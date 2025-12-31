@@ -234,12 +234,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       case ServerLocationType.auto:
         return null;
       case ServerLocationType.lanternLocation:
-        return Text(
-          serverLocation.protocol.capitalize,
-          style: _textTheme!.labelMedium!.copyWith(
-            color: AppColors.gray7,
-          ),
-        );
+        return serverLocation.protocol.isEmpty
+            ? null
+            : Text(
+                serverLocation.protocol.capitalize,
+                style: _textTheme!.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
+              );
       case ServerLocationType.privateServer:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,34 +255,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 ),
               ),
             ),
-            Text(
-              serverLocation.protocol.capitalize,
-              style: _textTheme!.labelMedium!.copyWith(
-                color: AppColors.gray7,
-              ),
-            ),
-          ],
-        );
-        return Container(
-          color: Colors.amber,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                serverLocation.displayName.locationName,
-                style: _textTheme!.labelMedium!.copyWith(
-                  color: AppColors.gray7,
-                ),
-              ),
+            if (serverLocation.protocol.isNotEmpty)
               Text(
                 serverLocation.protocol.capitalize,
                 style: _textTheme!.labelMedium!.copyWith(
                   color: AppColors.gray7,
                 ),
               ),
-            ],
-          ),
+          ],
         );
     }
   }
@@ -750,12 +732,13 @@ class _PrivateServerLocationListViewState
                           ),
                         ),
                       ),
-                      Text(
-                        server.protocol.capitalize,
-                        style: _textTheme!.labelMedium!.copyWith(
-                          color: AppColors.gray7,
+                      if (server.protocol.isNotEmpty)
+                        Text(
+                          server.protocol.capitalize,
+                          style: _textTheme!.labelMedium!.copyWith(
+                            color: AppColors.gray7,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   trailing: AppRadioButton<String>(
