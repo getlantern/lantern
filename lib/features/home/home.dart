@@ -181,7 +181,6 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
   }
 
   void onSettingTileTap(_SettingTileType tileType) {
-    return;
     switch (tileType) {
       case _SettingTileType.smartLocation:
         appRouter.push(const ServerSelection());

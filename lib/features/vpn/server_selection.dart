@@ -535,10 +535,10 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           enableFeedback: true,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding:
-              const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16,vertical: 2),
+          childrenPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
           leading: Flag(countryCode: countryCode),
+
           title: Text(
             country,
             style: Theme.of(context)
