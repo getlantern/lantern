@@ -31,7 +31,7 @@ class SettingTile extends StatelessWidget {
       onTap: onTap,
       splashColor: AppColors.gray2,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

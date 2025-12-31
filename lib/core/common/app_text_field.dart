@@ -25,6 +25,7 @@ class AppTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final int? maxLength;
   final bool? autocorrect;
+  final Widget? counter;
 
   const AppTextField({
     super.key,
@@ -47,6 +48,7 @@ class AppTextField extends StatelessWidget {
     this.onTap,
     this.maxLength,
     this.autocorrect,
+    this.counter,
   });
 
   @override
@@ -77,8 +79,11 @@ class AppTextField extends StatelessWidget {
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
+
       textInputAction: textInputAction,
       maxLines: maxLines,
+
+      buildCounter: (context, {required currentLength, required isFocused, required maxLength}) => counter,
       decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
@@ -87,6 +92,7 @@ class AppTextField extends StatelessWidget {
           hintStyle: textTheme.bodyMedium!.copyWith(
             color: AppColors.gray4,
           ),
+
           prefixIcon: prefixIcon != null ? _buildFix(prefixIcon!) : null,
           suffixIcon: suffixIcon != null ? _buildFix(suffixIcon!) : null,
           border: OutlineInputBorder(

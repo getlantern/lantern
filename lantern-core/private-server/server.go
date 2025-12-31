@@ -46,6 +46,7 @@ type provisionerResponse struct {
 	AccessToken string `json:"access_token"`
 	Tag         string `json:"tag"`
 	Location    string `json:"location,omitempty"`
+	Protocol    string `json:"protocol,omitempty"`
 }
 
 type certSummary struct {
@@ -217,6 +218,7 @@ func listenToServerEvents(ps provisionSession) {
 				// we have the response, now we can add the server manager instance
 				resp := provisionerResponse{}
 				err := json.Unmarshal([]byte(e.Message), &resp)
+
 				if err != nil {
 					log.Errorf("Error unmarshalling provisioner response: %v", err)
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
@@ -231,6 +233,11 @@ func listenToServerEvents(ps provisionSession) {
 					return
 				}
 				log.Debugf("Server manager instance added successfully: %s", resp.Tag)
+				serverInfo, found := ps.manager.GetServerByTag(resp.Tag)
+				// add protocol info if found
+				if found {
+					resp.Protocol = serverInfo.Type
+				}
 				server, err := json.Marshal(resp)
 				if err != nil {
 					log.Errorf("Error marshalling server response: %v", err)

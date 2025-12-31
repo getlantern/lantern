@@ -192,6 +192,7 @@ ServerLocationEntity initialServerLocation() {
     country: '',
     city: '',
     displayName: 'Smart Location',
+    protocol: '',
     countryCode: '',
     autoLocationParam: AutoLocationEntity(
       country: '',

@@ -1,5 +1,4 @@
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -12,6 +11,8 @@ class PrivateServerEntity {
   final String accessToken;
   final String serverLocationName;
   final String serverCountryCode;
+  final String protocol;
+
   bool isJoined;
   bool userSelected;
 
@@ -22,6 +23,7 @@ class PrivateServerEntity {
     required this.accessToken,
     required this.serverLocationName,
     required this.serverCountryCode,
+    required this.protocol,
     this.isJoined = false,
     this.userSelected = false,
   });
@@ -33,46 +35,42 @@ class PrivateServerEntity {
     String? accessToken,
     String? serverLocationName,
     String? serverCountryCode,
-    ServerLocation? serverLocation,
     bool? isJoined,
     bool? userSelected,
+    String? protocol,
   }) {
     return PrivateServerEntity(
-      serverName: serverName ?? this.serverName,
-      externalIp: externalIp ?? this.externalIp,
-      port: port ?? this.port,
-      accessToken: accessToken ?? this.accessToken,
-      serverLocationName: serverLocation?.locationName ??
-          serverLocationName ??
-          this.serverLocationName,
-      serverCountryCode: serverLocation?.countryCode ??
-          serverCountryCode ??
-          this.serverCountryCode,
-      isJoined: isJoined ?? this.isJoined,
-      userSelected: userSelected ?? this.userSelected,
-    );
+        serverName: serverName ?? this.serverName,
+        externalIp: externalIp ?? this.externalIp,
+        port: port ?? this.port,
+        accessToken: accessToken ?? this.accessToken,
+        serverLocationName: serverLocationName ?? this.serverLocationName,
+        serverCountryCode: serverCountryCode ?? this.serverCountryCode,
+        isJoined: isJoined ?? this.isJoined,
+        userSelected: userSelected ?? this.userSelected,
+        protocol: protocol ?? this.protocol);
   }
 
-  factory PrivateServerEntity.withLocation({
-    required String serverName,
-    required String externalIp,
-    required String port,
-    required String accessToken,
-    required ServerLocation serverLocation,
-    bool isJoined = false,
-    bool userSelected = false,
-  }) {
-    return PrivateServerEntity(
-      serverName: serverName,
-      externalIp: externalIp,
-      port: port,
-      accessToken: accessToken,
-      serverLocationName: serverLocation.locationName,
-      serverCountryCode: serverLocation.countryCode,
-      isJoined: isJoined,
-      userSelected: userSelected,
-    );
-  }
+  // factory PrivateServerEntity.withLocation({
+  //   required String serverName,
+  //   required String externalIp,
+  //   required String port,
+  //   required String accessToken,
+  //   required ServerLocation serverLocation,
+  //   bool isJoined = false,
+  //   bool userSelected = false,
+  // }) {
+  //   return PrivateServerEntity(
+  //     serverName: serverName,
+  //     externalIp: externalIp,
+  //     port: port,
+  //     accessToken: accessToken,
+  //     serverLocationName: serverLocation.locationName,
+  //     serverCountryCode: serverLocation.countryCode,
+  //     isJoined: isJoined,
+  //     userSelected: userSelected,
+  //   );
+  // }
 
   Map<String, dynamic> toJson() => {
         'tag': serverName,
@@ -87,40 +85,43 @@ class PrivateServerEntity {
       };
 
   static PrivateServerEntity fromJson(Map<String, dynamic> e) {
-    final dynamic locRaw = e['location'] ?? e['server_location'];
-    String locationName = '';
-    String countryCode = '';
-
-    if (locRaw is Map<String, dynamic>) {
-      final sl = ServerLocation.fromJson(locRaw);
-      locationName = sl.locationName;
-      countryCode = sl.countryCode;
-    } else if (locRaw is String) {
-      locationName = locRaw;
-      countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
-    } else {
-      // try explicit fields
-      locationName = (e['location_name'] ?? e['locationName'] ?? '').toString();
-      countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
-    }
-
-    return PrivateServerEntity.withLocation(
-      serverName:
-          (e['tag'] ?? e['server_name'] ?? e['serverName'] ?? '').toString(),
-      externalIp: (e['external_ip'] ?? e['externalIp'] ?? '').toString(),
-      port: (e['port'] ?? '').toString(),
-      accessToken: (e['access_token'] ?? e['accessToken'] ?? '').toString(),
-      serverLocation: ServerLocation(
-        locationName: locationName,
-        countryCode: countryCode,
-      ),
-      isJoined: (e['is_joined'] ?? e['isJoined'] ?? false) == true,
-      userSelected: (e['user_selected'] ?? e['userSelected'] ?? false) == true,
+    return PrivateServerEntity(
+      serverName: e['tag'],
+      externalIp: e['external_ip'],
+      port: e['port'].toString(),
+      accessToken: e['access_token'],
+      serverLocationName: e['location'],
+      serverCountryCode: (e['location'].toString().countryCode) ?? '',
+      protocol: e['protocol'] ?? '',
     );
+
+    // if (locRaw is String) {
+    //   locationName = locRaw.toString();
+    //   //extract country code if possible
+    //   countryCode = locationName.countryCode;
+    // } else {
+    //   // try explicit fields
+    //   locationName = (e['location_name'] ?? e['locationName'] ?? '').toString();
+    //   countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
+    // }
+    //
+    // return PrivateServerEntity.withLocation(
+    //   serverName:
+    //       (e['tag'] ?? e['server_name'] ?? e['serverName'] ?? '').toString(),
+    //   externalIp: (e['external_ip'] ?? e['externalIp'] ?? '').toString(),
+    //   port: (e['port'] ?? '').toString(),
+    //   accessToken: (e['access_token'] ?? e['accessToken'] ?? '').toString(),
+    //   serverLocation: ServerLocation(
+    //     locationName: locationName,
+    //     countryCode: countryCode,
+    //   ),
+    //   isJoined: (e['is_joined'] ?? e['isJoined'] ?? false) == true,
+    //   userSelected: (e['user_selected'] ?? e['userSelected'] ?? false) == true,
+    // );
   }
 
-  ServerLocation get serverLocation => ServerLocation(
-        locationName: serverLocationName.locationName,
-        countryCode: serverLocationName.countryCode,
-      );
+// ServerLocation get serverLocation => ServerLocation(
+//       locationName: serverLocation.locationName,
+//       countryCode: serverLocation.locationName,
+//     );
 }

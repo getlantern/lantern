@@ -239,7 +239,7 @@
     },
     {
       "id": "6:4973796228302910111",
-      "lastPropertyId": "10:2586080786978004288",
+      "lastPropertyId": "11:5980712756656597442",
       "name": "PrivateServerEntity",
       "properties": [
         {
@@ -286,6 +286,11 @@
         {
           "id": "10:2586080786978004288",
           "name": "serverCountryCode",
+          "type": 9
+        },
+        {
+          "id": "11:5980712756656597442",
+          "name": "protocol",
           "type": 9
         }
       ],
@@ -590,7 +595,7 @@
     },
     {
       "id": "15:8199208392537907961",
-      "lastPropertyId": "10:8116798153105246070",
+      "lastPropertyId": "11:4150978985643450510",
       "name": "ServerLocationEntity",
       "properties": [
         {
@@ -637,6 +642,11 @@
         {
           "id": "10:8116798153105246070",
           "name": "autoLocationJson",
+          "type": 9
+        },
+        {
+          "id": "11:4150978985643450510",
+          "name": "protocol",
           "type": 9
         }
       ],
