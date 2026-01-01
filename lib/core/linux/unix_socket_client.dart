@@ -21,21 +21,27 @@ class UnixSocketClient {
     final addr = InternetAddress(socketPath, type: InternetAddressType.unix);
     _sock = await Socket.connect(addr, 0);
 
-    _sub = _sock!
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen(_onLine, onError: (e, st) {
-      // Fail all pending
-      for (final c in _pending.values) {
-        if (!c.isCompleted) c.completeError(e, st);
-      }
-      _pending.clear();
-    }, onDone: () {
-      for (final c in _pending.values) {
-        if (!c.isCompleted) c.completeError(StateError('socket closed'));
-      }
-      _pending.clear();
-    });
+    // Socket is Stream<Uint8List>. utf8.decoder expects Stream<List<int>>
+    final lines = const LineSplitter().bind(
+      utf8.decoder.bind(_sock!.cast<List<int>>()),
+    );
+
+    _sub = lines.listen(
+      _onLine,
+      onError: (e, st) {
+        for (final c in _pending.values) {
+          if (!c.isCompleted) c.completeError(e, st);
+        }
+        _pending.clear();
+      },
+      onDone: () {
+        for (final c in _pending.values) {
+          if (!c.isCompleted) c.completeError(StateError('socket closed'));
+        }
+        _pending.clear();
+      },
+      cancelOnError: true,
+    );
   }
 
   Future<void> close() async {
@@ -91,13 +97,14 @@ class UnixSocketClient {
     };
     sock.write('${jsonEncode(req)}\n');
 
-    await for (final line
-        in sock.transform(utf8.decoder).transform(const LineSplitter())) {
+    final lines = const LineSplitter().bind(
+      utf8.decoder.bind(sock.cast<List<int>>()),
+    );
+
+    await for (final line in lines) {
       if (line.trim().isEmpty) continue;
       final obj = jsonDecode(line);
-      if (obj is Map<String, dynamic>) {
-        yield obj;
-      }
+      if (obj is Map<String, dynamic>) yield obj;
     }
   }
 }

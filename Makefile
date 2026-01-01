@@ -71,6 +71,10 @@ WINTUN_DLL         := $(WINTUN_OUT_DIR)/wintun.dll
 WINTUN_DLL_RELEASE := $(WINDOWS_RELEASE_DIR)/wintun.dll
 WINTUN_DLL_DEBUG   := $(WINDOWS_DEBUG_DIR)/wintun.dll
 
+LINUX_SERVICE_NAME := lanternsvc
+LINUX_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
+LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
+LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -261,14 +265,39 @@ linux-debug:
 	flutter build linux --debug
 
 .PHONY: linux-release
-linux-release: clean linux pubget gen
-	@echo "Building Flutter app (release) for Linux..."
+linux-release: clean linux pubget gen linux-service-amd64
 	flutter build linux --release $(DART_DEFINES)
-	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
+
+	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle/
+	patchelf --set-rpath '$$ORIGIN' build/linux/x64/release/bundle/lantern
+
+	# Stage service and systemd unit into a packaging directory
+	mkdir -p packaging/linux/usr/lib/lantern
+	cp $(LINUX_SERVICE_BUILD_AMD64) packaging/linux/usr/lib/lantern/lanternsvc
+	mkdir -p packaging/linux/usr/lib/systemd/system
+	cp linux/lantern.service packaging/linux/usr/lib/systemd/system/lantern.service
+
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
   	--build-dart-define=VERSION=$(VERSION) --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
+
+.PHONY: linux-service-amd64 linux-service-arm64
+
+linux-service-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_AMD64)))
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
+	  go build -v -trimpath -tags "$(TAGS)" \
+	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
+	  -o $(LINUX_SERVICE_BUILD_AMD64) $(LINUX_SERVICE_SRC)
+
+linux-service-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_ARM64)))
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+	  go build -v -trimpath -tags "$(TAGS)" \
+	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
+	  -o $(LINUX_SERVICE_BUILD_ARM64) $(LINUX_SERVICE_SRC)
+
 
 # Windows Build
 .PHONY: build-lanternsvc-windows windows-service-build \
