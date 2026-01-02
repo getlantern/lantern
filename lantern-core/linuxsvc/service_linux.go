@@ -26,6 +26,7 @@ import (
 	"github.com/getlantern/radiance/vpn/ipc"
 )
 
+// TODO Move to common package
 type Request struct {
 	ID     string          `json:"id"`
 	Cmd    common.Command  `json:"cmd"`
@@ -53,7 +54,8 @@ type ServiceOptions struct {
 	DataDir    string
 	LogDir     string
 	Locale     string
-	TokenPath  string
+	// TokenPath is where we persist a random shared secret used to authenticate clients
+	TokenPath string
 }
 
 type Service struct {
@@ -78,6 +80,7 @@ func (ce *concurrentEncoder) Encode(v any) error {
 	return ce.enc.Encode(v)
 }
 
+// randID generates short-ish IDs for logging/tracing
 func randID(prefix string, n int) string {
 	if n <= 0 {
 		n = 8
@@ -96,6 +99,9 @@ func recoverErr(where string, perr *error) {
 	}
 }
 
+// getToken loads the IPC token from disk, creating it if needed
+// Notes:
+// - Token is stored 0600 so only the owning user (or root/system service user) can read it
 func (s *Service) getToken() (string, error) {
 	if _, err := os.Stat(s.opts.TokenPath); errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(filepath.Dir(s.opts.TokenPath), 0o755); err != nil {
@@ -115,13 +121,10 @@ func (s *Service) getToken() (string, error) {
 	return strings.TrimSpace(string(b)), err
 }
 
-// ---- public
-
 func (s *Service) Start(ctx context.Context) error {
 	var err error
 	defer recoverErr("Service.Start", &err)
 
-	// Defaults (you can override via flags/env in main)
 	if s.opts.SocketPath == "" {
 		// Prefer XDG runtime when available (per-user), else system-wide
 		if xdg := os.Getenv("XDG_RUNTIME_DIR"); xdg != "" {
@@ -131,7 +134,7 @@ func (s *Service) Start(ctx context.Context) error {
 		}
 	}
 	if s.opts.TokenPath == "" {
-		// System-wide token path (works well for system service)
+		// System-wide token path
 		s.opts.TokenPath = "/var/lib/lantern/ipc-token"
 	}
 	if s.opts.LogDir == "" {
@@ -141,7 +144,7 @@ func (s *Service) Start(ctx context.Context) error {
 		s.opts.DataDir = "/var/lib/lantern"
 	}
 
-	slog.Info("Starting Linux service",
+	slog.Info("Starting Lantern",
 		"socket", s.opts.SocketPath,
 		"data_dir", s.opts.DataDir,
 		"log_dir", s.opts.LogDir,
@@ -221,6 +224,9 @@ func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder)
 	}()
 }
 
+// This is a very lightweight "tail -f" implementation
+// It's intentionally dumb-but-portable: no inotify dependency, just polling
+// TODO: switch to fsnotify/inotify
 func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, done <-chan struct{}) {
 	logFile := filepath.Join(s.opts.LogDir, "lantern.log")
 	_ = os.MkdirAll(s.opts.LogDir, 0o755)
@@ -228,16 +234,17 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 		_ = os.WriteFile(logFile, nil, 0o644)
 	}
 
+	// On subscribe, send a small backlog so the UI has context
 	const maxTail = 200
 	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
 		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
 	}
 
-	// Poll tail (simple + portable)
 	go func() {
 		var f *os.File
 		var off int64
 
+		// open (and optionally reset) the file and seek to the right offset
 		open := func(reset bool) {
 			if f != nil {
 				_ = f.Close()
@@ -286,6 +293,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 					continue
 				}
 
+				// Read only the delta since last tick
 				n := fi.Size() - off
 				buf := make([]byte, n)
 				_, err = io.ReadFull(f, buf)
@@ -295,6 +303,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 				}
 				off = fi.Size()
 
+				// Split into lines, drop empty trailing fragments
 				raw := strings.Split(string(buf), "\n")
 				var lines []string
 				for _, ln := range raw {
@@ -375,7 +384,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 				LogDir:   s.opts.LogDir,
 				LogLevel: "trace",
 				Deviceid: "",
-				// TelemetryConsent: ...
+				// TelemetryConsent: TODO add this
 			}); err != nil {
 				slog.Error("StartVPN failed", "err", err)
 				events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
@@ -441,6 +450,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	}
 }
 
+// readLastLines reads the last lines of the log file
 func readLastLines(path string, max int) ([]string, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
