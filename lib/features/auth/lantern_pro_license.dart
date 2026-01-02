@@ -45,7 +45,7 @@ class LanternProLicense extends HookConsumerWidget {
               maxLength: 29,
               hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
               controller: codeController,
-              prefixIcon: AppImagePaths.lock,
+              prefixIcon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
               inputFormatters: [
                 ResellerCodeFormatter(),
@@ -68,6 +68,12 @@ class LanternProLicense extends HookConsumerWidget {
                 return null;
               },
               onChanged: (value) => syncFromText(value),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) {
+                if (validCode.value) {
+                  onActivatePro(codeController.text, ref, context);
+                }
+              },
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, top: 4),

@@ -134,6 +134,7 @@ class AppTile extends StatelessWidget {
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(
         label,
+        textAlign: TextAlign.start,
         style: textStyle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,

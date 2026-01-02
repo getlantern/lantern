@@ -303,7 +303,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(6, 4973796228302910111),
     name: 'PrivateServerEntity',
-    lastPropertyId: const obx_int.IdUid(10, 2586080786978004288),
+    lastPropertyId: const obx_int.IdUid(11, 5980712756656597442),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -357,6 +357,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(10, 2586080786978004288),
         name: 'serverCountryCode',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 5980712756656597442),
+        name: 'protocol',
         type: 9,
         flags: 0,
       ),
@@ -713,7 +719,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(15, 8199208392537907961),
     name: 'ServerLocationEntity',
-    lastPropertyId: const obx_int.IdUid(10, 8116798153105246070),
+    lastPropertyId: const obx_int.IdUid(11, 4150978985643450510),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -721,12 +727,6 @@ final _entities = <obx_int.ModelEntity>[
         name: 'id',
         type: 6,
         flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 2297478623142907793),
-        name: 'autoSelect',
-        type: 1,
-        flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(4, 8032330847275345473),
@@ -767,6 +767,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(10, 8116798153105246070),
         name: 'autoLocationJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 4150978985643450510),
+        name: 'protocol',
         type: 9,
         flags: 0,
       ),
@@ -860,6 +866,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       3575184890349121426,
       7033573124845738437,
       8638115978305760525,
+      2297478623142907793,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -1253,7 +1260,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final serverCountryCodeOffset = fbb.writeString(
           object.serverCountryCode,
         );
-        fbb.startTable(11);
+        final protocolOffset = fbb.writeString(object.protocol);
+        fbb.startTable(12);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, serverNameOffset);
         fbb.addOffset(2, externalIpOffset);
@@ -1263,6 +1271,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(7, object.userSelected);
         fbb.addOffset(8, serverLocationNameOffset);
         fbb.addOffset(9, serverCountryCodeOffset);
+        fbb.addOffset(10, protocolOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1287,6 +1296,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final serverCountryCodeParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 22, '');
+        final protocolParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 24, '');
         final isJoinedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -1306,6 +1318,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           accessToken: accessTokenParam,
           serverLocationName: serverLocationNameParam,
           serverCountryCode: serverCountryCodeParam,
+          protocol: protocolParam,
           isJoined: isJoinedParam,
           userSelected: userSelectedParam,
         )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
@@ -1761,9 +1774,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final cityOffset = fbb.writeString(object.city);
         final displayNameOffset = fbb.writeString(object.displayName);
         final autoLocationJsonOffset = fbb.writeString(object.autoLocationJson);
-        fbb.startTable(11);
+        final protocolOffset = fbb.writeString(object.protocol);
+        fbb.startTable(12);
         fbb.addInt64(0, object.id);
-        fbb.addBool(1, object.autoSelect);
         fbb.addOffset(3, serverNameOffset);
         fbb.addOffset(4, serverTypeOffset);
         fbb.addOffset(5, countryCodeOffset);
@@ -1771,24 +1784,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(7, cityOffset);
         fbb.addOffset(8, displayNameOffset);
         fbb.addOffset(9, autoLocationJsonOffset);
+        fbb.addOffset(10, protocolOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
-        final autoSelectParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          6,
-          false,
-        );
         final serverNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
         final serverTypeParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
+        final protocolParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 24, '');
         final countryCodeParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 14, '');
@@ -1803,9 +1814,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 20, '');
         final object =
             ServerLocationEntity(
-                autoSelect: autoSelectParam,
                 serverName: serverNameParam,
                 serverType: serverTypeParam,
+                protocol: protocolParam,
                 countryCode: countryCodeParam,
                 country: countryParam,
                 city: cityParam,
@@ -2109,6 +2120,11 @@ class PrivateServerEntity_ {
   static final serverCountryCode = obx.QueryStringProperty<PrivateServerEntity>(
     _entities[5].properties[8],
   );
+
+  /// See [PrivateServerEntity.protocol].
+  static final protocol = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[5].properties[9],
+  );
 }
 
 /// [ProvidersEntity] entity fields to define ObjectBox queries.
@@ -2375,43 +2391,43 @@ class ServerLocationEntity_ {
     _entities[12].properties[0],
   );
 
-  /// See [ServerLocationEntity.autoSelect].
-  static final autoSelect = obx.QueryBooleanProperty<ServerLocationEntity>(
-    _entities[12].properties[1],
-  );
-
   /// See [ServerLocationEntity.serverName].
   static final serverName = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[2],
+    _entities[12].properties[1],
   );
 
   /// See [ServerLocationEntity.serverType].
   static final serverType = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[3],
+    _entities[12].properties[2],
   );
 
   /// See [ServerLocationEntity.countryCode].
   static final countryCode = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[4],
+    _entities[12].properties[3],
   );
 
   /// See [ServerLocationEntity.country].
   static final country = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[5],
+    _entities[12].properties[4],
   );
 
   /// See [ServerLocationEntity.city].
   static final city = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[6],
+    _entities[12].properties[5],
   );
 
   /// See [ServerLocationEntity.displayName].
   static final displayName = obx.QueryStringProperty<ServerLocationEntity>(
-    _entities[12].properties[7],
+    _entities[12].properties[6],
   );
 
   /// See [ServerLocationEntity.autoLocationJson].
   static final autoLocationJson = obx.QueryStringProperty<ServerLocationEntity>(
+    _entities[12].properties[7],
+  );
+
+  /// See [ServerLocationEntity.protocol].
+  static final protocol = obx.QueryStringProperty<ServerLocationEntity>(
     _entities[12].properties[8],
   );
 }

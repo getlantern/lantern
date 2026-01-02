@@ -243,17 +243,10 @@ class LocalStorageService {
 
   ServerLocationEntity getSavedServerLocations() {
     final server = _serverLocationBox.getAll();
-    return server.isEmpty
-        ? ServerLocationEntity(
-            autoSelect: true,
-            serverName: '',
-            serverType: ServerLocationType.auto.name,
-            country: '',
-            city: '',
-            displayName: 'fastest_server'.i18n,
-            countryCode: '',
-          )
-        : server.first;
+    if (server.isEmpty) {
+      return initialServerLocation();
+    }
+    return server.first;
   }
 
   /// Developer Mode methods

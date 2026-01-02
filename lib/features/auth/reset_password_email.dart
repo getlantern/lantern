@@ -41,6 +41,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
               maxLines: 1,
               prefixIcon: AppImagePaths.email,
               label: 'email'.i18n,
+              onSubmitted: (_) => onNext(context, emailController.text, ref),
               validator: (value) {
                 if (value!.isEmpty) {
                   return null;
