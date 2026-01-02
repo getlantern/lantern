@@ -47,6 +47,11 @@ class CreatePassword extends HookConsumerWidget {
                 label: "create_password".i18n,
                 suffixIcon: _buildSuffix(obscureText),
                 obscureText: obscureText.value,
+                onSubmitted: (_) {
+                  if (passwordTextController.text.isPasswordValid()) {
+                    onContinue(ref, passwordTextController.text, context);
+                  }
+                },
                 onChanged: (value) {
                   isValidPassword.value = value.isPasswordValid();
                 },

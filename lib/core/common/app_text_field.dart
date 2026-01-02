@@ -8,6 +8,8 @@ import 'package:lantern/core/common/app_dimens.dart';
 class AppTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onEditingComplete;
   final TextEditingController? controller;
   final bool enable;
   final String hintText;
@@ -48,6 +50,8 @@ class AppTextField extends StatelessWidget {
     this.onTap,
     this.maxLength,
     this.autocorrect,
+    this.onSubmitted,
+    this.onEditingComplete,
     this.counter,
   });
 
@@ -67,6 +71,8 @@ class AppTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText,
       onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
       readOnly: onTap != null,
       onTap: onTap,
       cursorColor: AppColors.blue10,
@@ -79,11 +85,13 @@ class AppTextField extends StatelessWidget {
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
-
       textInputAction: textInputAction,
       maxLines: maxLines,
-
-      buildCounter: (context, {required currentLength, required isFocused, required maxLength}) => counter,
+      buildCounter: (context,
+              {required currentLength,
+              required isFocused,
+              required maxLength}) =>
+          counter,
       decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
@@ -92,7 +100,6 @@ class AppTextField extends StatelessWidget {
           hintStyle: textTheme.bodyMedium!.copyWith(
             color: AppColors.gray4,
           ),
-
           prefixIcon: prefixIcon != null ? _buildFix(prefixIcon!) : null,
           suffixIcon: suffixIcon != null ? _buildFix(suffixIcon!) : null,
           border: OutlineInputBorder(
