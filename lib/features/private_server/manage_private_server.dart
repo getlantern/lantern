@@ -103,10 +103,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             mainAxisSize: MainAxisSize.min,
             children: [
               AppTile(
-                contentPadding: const EdgeInsets.all(0),
                 label: item.serverName,
-                subtitle: Text(item.serverLocation.locationName),
-                icon: Flag(countryCode: item.serverLocation.countryCode),
+                subtitle: Text(item.serverLocationName),
+                icon: Flag(countryCode: item.serverCountryCode),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[

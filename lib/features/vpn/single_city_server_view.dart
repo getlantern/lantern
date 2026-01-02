@@ -27,7 +27,9 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AppTile(
-      label: widget.location.city,
+      // minHeight: 55,
+      // contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      label: '${widget.location.country} - ${widget.location.city}',
       selected: widget.isSelected,
       subtitle: widget.location.protocol.isEmpty
           ? null

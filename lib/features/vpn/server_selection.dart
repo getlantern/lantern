@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart'
+    show ServerLocationEntity, AutoLocationEntity;
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_text.dart';
@@ -15,9 +17,6 @@ import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
-
-import '../../core/models/entity/server_location_entity.dart'
-    show ServerLocationEntity;
 
 typedef OnServerSelected = Function(Location_ selectedServer);
 
@@ -55,7 +54,6 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSelectedLocation(serverLocation),
                 _buildSmartLocation(serverLocation),
                 SizedBox(height: 8),
                 Padding(
@@ -78,7 +76,6 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _buildSelectedLocation(serverLocation),
           _buildSmartLocation(serverLocation),
           SizedBox(height: 8),
           Padding(
@@ -153,6 +150,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon:
                 flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
             label: displayName.i18n,
+            onPressed: () {
+              onSmartLocation(ServerLocationType.auto);
+            },
             subtitle: protocol.isEmpty
                 ? null
                 : Text(
@@ -163,16 +163,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                AppImage(path: AppImagePaths.blot),
-                AppRadioButton<bool>(
-                  value: true,
-                  groupValue: serverLocation.serverType.toServerLocationType ==
-                      ServerLocationType.auto,
-                  onChanged: (value) =>
-                      onSmartLocation(ServerLocationType.auto),
-                ),
-              ],
+              children: [AppImage(path: AppImagePaths.blot)],
             ),
           ),
         ),
@@ -180,43 +171,49 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     );
   }
 
-  Widget _buildSelectedLocation(ServerLocationEntity serverLocation) {
-    if (serverLocation.serverType.toServerLocationType ==
-        ServerLocationType.auto) {
-      return const SizedBox.shrink();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('selected_location'.i18n,
-              style: _textTheme?.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              )),
-        ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: AppTile(
-            icon: Flag(countryCode: serverLocation.countryCode),
-            label: getServerName(serverLocation),
-            subtitle: getServerLocation(serverLocation),
-            trailing: AppRadioButton<String>(
-              value: serverLocation.serverName,
-              groupValue: serverLocation.serverName,
-              onChanged: (value) {},
-            ),
-          ),
-        ),
-        SizedBox(height: defaultSize),
-      ],
-    );
-  }
+  // Widget _buildSelectedLocation(ServerLocationEntity serverLocation) {
+  //   if (serverLocation.serverType.toServerLocationType ==
+  //       ServerLocationType.auto) {
+  //     return const SizedBox.shrink();
+  //   }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: <Widget>[
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //         child: Text('selected_location'.i18n,
+  //             style: _textTheme?.labelLarge!.copyWith(
+  //               color: AppColors.gray8,
+  //             )),
+  //       ),
+  //       AppCard(
+  //         padding: EdgeInsets.zero,
+  //         child: AppTile(
+  //           contentPadding: EdgeInsets.symmetric(
+  //               horizontal: 16,
+  //               vertical: serverLocation.serverType.toServerLocationType ==
+  //                       ServerLocationType.privateServer
+  //                   ? 8
+  //                   : 0),
+  //           icon: Flag(countryCode: serverLocation.countryCode),
+  //           label: getServerName(serverLocation),
+  //           subtitle: getServerLocation(serverLocation),
+  //           trailing: AppRadioButton<String>(
+  //             value: serverLocation.serverName,
+  //             groupValue: serverLocation.serverName,
+  //             onChanged: (value) {},
+  //           ),
+  //         ),
+  //       ),
+  //       SizedBox(height: defaultSize),
+  //     ],
+  //   );
+  // }
 
   String getServerName(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
       case ServerLocationType.lanternLocation:
-        return serverLocation.displayName.split('[')[0].trim();
+        return serverLocation.displayName;
       case ServerLocationType.privateServer:
         return serverLocation.serverName;
       case ServerLocationType.auto:
@@ -229,24 +226,35 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       case ServerLocationType.auto:
         return null;
       case ServerLocationType.lanternLocation:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Text(
-            serverLocation.protocol,
-            style: _textTheme!.labelMedium!.copyWith(
-              color: AppColors.gray7,
-            ),
-          ),
-        );
+        return serverLocation.protocol.isEmpty
+            ? null
+            : Text(
+                serverLocation.protocol.capitalize,
+                style: _textTheme!.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
+              );
       case ServerLocationType.privateServer:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Text(
-            '${serverLocation.displayName} - ${serverLocation.protocol}',
-            style: _textTheme!.labelMedium!.copyWith(
-              color: AppColors.gray7,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1),
+              child: Text(
+                serverLocation.displayName,
+                style: _textTheme!.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
+              ),
             ),
-          ),
+            if (serverLocation.protocol.isNotEmpty)
+              Text(
+                serverLocation.protocol.capitalize,
+                style: _textTheme!.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
+              ),
+          ],
         );
     }
   }
@@ -269,18 +277,19 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
-        final auto = ref.read(serverLocationProvider);
-        final autoCountry = auto.country;
-        final autoCity = auto.city;
+        final server = ref.read(serverLocationProvider);
+        final auto = server.autoLocation;
+        final autoCountry = auto?.country ?? '';
+        final displayName = auto?.displayName ?? 'fastest_server'.i18n;
+
         final serverLocation = ServerLocationEntity(
-          serverType: type.name,
-          serverName: 'Smart Location',
-          autoSelect: true,
-          displayName: '$autoCountry - $autoCity',
-          city: autoCity,
-          country: autoCountry,
-          countryCode: auto.countryCode,
-        );
+            serverType: type.name,
+            serverName: 'Smart Location',
+            autoLocationParam: AutoLocationEntity(
+                country: autoCountry,
+                countryCode: auto?.countryCode ?? '',
+                displayName: displayName,
+                tag: auto?.tag));
         await ref
             .read(serverLocationProvider.notifier)
             .updateServerLocation(serverLocation);
@@ -386,9 +395,7 @@ class _ServerLocationListViewState
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
                           itemCount: countryEntries.length,
-                          separatorBuilder: (_, __) => const DividerSpace(
-                            padding: EdgeInsets.zero,
-                          ),
+                          separatorBuilder: (_, __) => const DividerSpace(),
                           itemBuilder: (context, index) {
                             final entry = countryEntries[index];
                             final country = entry.key;
@@ -520,7 +527,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           enableFeedback: true,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           childrenPadding:
               const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
           leading: Flag(countryCode: countryCode),
@@ -537,10 +544,9 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           trailing: ExpansionChevron(isExpanded: _isExpanded),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
           children: widget.locations.map((loc) {
-            final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
               dense: true,
-              minHeight: 58,
+              minHeight:58 ,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
               subtitle: loc.protocol.isEmpty
@@ -552,15 +558,9 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                             color: AppColors.gray7,
                           ),
                     ),
-              tileTextStyle: Theme.of(context)
-                  .textTheme
-                  .bodyMedium!
-                  .copyWith(color: AppColors.gray9),
-              trailing: AppRadioButton<String>(
-                value: loc.tag,
-                groupValue: isSelected ? loc.tag : null,
-                onChanged: (_) => _onLocationSelected(context, loc),
-              ),
+              tileTextStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: AppColors.gray9,
+                  ),
               onPressed: () => _onLocationSelected(context, loc),
             );
           }).toList(),
@@ -678,62 +678,52 @@ class _PrivateServerLocationListViewState
         SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            children: myServer.map(
-              (server) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppTile(
-                      onPressed: () {
-                        if (userSelectedServer.serverName ==
-                            server.serverName) {
-                          appLogger.debug('Already selected this server');
-                          context.showSnackBar('server_already_selected'.i18n);
-                          return;
-                        }
-                        onPrivateServerSelected(server);
-                      },
-                      icon: Flag(
-                        countryCode: server.serverLocation.countryCode,
-                        size: Size(40, 28),
-                      ),
-                      label: server.serverName,
-                      subtitle: Padding(
+          child: ListView.separated(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: myServer.length,
+              separatorBuilder: (context, index) => DividerSpace(),
+              itemBuilder: (context, index) {
+                final server = myServer[index];
+                return AppTile(
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  onPressed: () {
+                    if (userSelectedServer.serverName == server.serverName) {
+                      appLogger.debug('Already selected this server');
+                      context.showSnackBar('server_already_selected'.i18n);
+                      return;
+                    }
+                    onPrivateServerSelected(server);
+                  },
+                  icon: Flag(
+                    countryCode: server.serverCountryCode,
+                    size: Size(40, 28),
+                  ),
+                  label: server.serverName,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
                         padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Text(
-                          '${server.serverLocation.locationName} - ${server.externalIp}',
+                          '${server.serverLocationName.locationName} - ${server.externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
                             color: AppColors.gray7,
                           ),
                         ),
                       ),
-                      trailing: AppRadioButton<String>(
-                        value: server.serverName,
-                        groupValue:
-                            (userSelectedServer.serverName == server.serverName)
-                                ? server.serverName
-                                : null,
-                        onChanged: (value) {
-                          if (userSelectedServer.serverName ==
-                              server.serverName) {
-                            appLogger.debug('Already selected this server');
-                            context
-                                .showSnackBar('server_already_selected'.i18n);
-                            return;
-                          }
-                          onPrivateServerSelected(server);
-                        },
-                      ),
-                    ),
-                    DividerSpace(padding: EdgeInsets.zero),
-                  ],
+                      if (server.protocol.isNotEmpty)
+                        Text(
+                          server.protocol.capitalize,
+                          style: _textTheme!.labelMedium!.copyWith(
+                            color: AppColors.gray7,
+                          ),
+                        ),
+                    ],
+                  ),
                 );
-              },
-            ).toList(),
-          ),
+              }),
         ),
         SizedBox(height: 16),
         if (joinedServer.isNotEmpty) ...{
@@ -757,28 +747,18 @@ class _PrivateServerLocationListViewState
                           onPrivateServerSelected(server);
                         },
                         icon: Flag(
-                          countryCode: server.serverLocation.countryCode,
+                          countryCode: server.serverCountryCode,
                           size: Size(40, 28),
                         ),
                         label: server.serverName,
                         subtitle: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 3),
                           child: Text(
-                            '${server.serverLocation.locationName} - ${server.externalIp}',
+                            '${server.serverLocationName} - ${server.externalIp}',
                             style: _textTheme!.labelMedium!.copyWith(
                               color: AppColors.gray7,
                             ),
                           ),
-                        ),
-                        trailing: AppRadioButton<String>(
-                          value: server.serverName,
-                          groupValue: (userSelectedServer.serverName ==
-                                  server.serverName)
-                              ? server.serverName
-                              : null,
-                          onChanged: (value) {
-                            onPrivateServerSelected(server);
-                          },
                         ),
                       ),
                       DividerSpace(padding: EdgeInsets.zero),
@@ -801,11 +781,11 @@ class _PrivateServerLocationListViewState
     final serverLocation = ServerLocationEntity(
       serverType: ServerLocationType.privateServer.name,
       serverName: privateServer.serverName,
-      autoSelect: false,
-      displayName: privateServer.serverLocationName,
+      displayName: privateServer.serverLocationName.locationName,
       city: privateServer.serverLocationName,
       countryCode: privateServer.serverCountryCode,
       country: '',
+      protocol: privateServer.protocol,
     );
 
     ref

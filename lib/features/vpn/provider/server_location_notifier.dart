@@ -47,8 +47,8 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           final autoServer = ServerLocationEntity(
             serverType: ServerLocationType.auto.name,
             serverName: '',
-            autoSelect: true,
             displayName: '',
+            protocol: '',
             city: autoLocation.location!.city,
             autoLocationParam: AutoLocationEntity(
                 countryCode: autoLocation.location!.countryCode,

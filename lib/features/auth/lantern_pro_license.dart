@@ -45,7 +45,7 @@ class LanternProLicense extends HookConsumerWidget {
               maxLength: 29,
               hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
               controller: codeController,
-              prefixIcon: AppImagePaths.lock,
+              prefixIcon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
               inputFormatters: [
                 ResellerCodeFormatter(),
