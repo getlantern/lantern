@@ -1,5 +1,7 @@
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+// lantern_service.dart
+import 'dart:async';
+
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
@@ -16,11 +18,10 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import '../core/common/common.dart';
 import '../core/models/available_servers.dart';
 
-///LanternService is wrapper around native and ffi services
-/// all communication happens here
+/// LanternService is wrapper around native and ffi services
+/// all communication happens here.
 class LanternService implements LanternCoreService {
   final LanternFFIService _ffiService;
-
   final LanternPlatformService _platformService;
 
   LanternService({
@@ -30,164 +31,119 @@ class LanternService implements LanternCoreService {
   })  : _platformService = platformService,
         _ffiService = ffiService;
 
-  @override
-  Future<Either<Failure, String>> startVPN() async {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.startVPN();
-    }
-    return _platformService.startVPN();
+  T _choose<T>(
+    T Function(LanternFFIService ffi) ffi,
+    T Function(LanternPlatformService platform) platform,
+  ) {
+    if (PlatformUtils.isFFISupported) return ffi(_ffiService);
+    return platform(_platformService);
   }
 
   @override
-  Future<Either<Failure, String>> stopVPN() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.stopVPN();
-    }
-    return _platformService.stopVPN();
-  }
+  Future<Either<Failure, String>> startVPN() =>
+      _choose((s) => s.startVPN(), (s) => s.startVPN());
 
   @override
-  Stream<List<AppData>> appsDataStream() async* {
-    if (PlatformUtils.isFFISupported) {
-      yield* _ffiService.appsDataStream();
-    } else {
-      yield* _platformService.appsDataStream();
-    }
-  }
+  Future<Either<Failure, String>> stopVPN() =>
+      _choose((s) => s.stopVPN(), (s) => s.stopVPN());
 
   @override
-  Future<Either<Failure, Unit>> updateLocal(String locale) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.updateLocal(locale);
-    }
-    return _platformService.updateLocal(locale);
-  }
+  Stream<List<AppData>> appsDataStream() =>
+      _choose((s) => s.appsDataStream(), (s) => s.appsDataStream());
 
   @override
-  Stream<AppEvent> watchAppEvents() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.watchAppEvents();
-    }
-    return _platformService.watchAppEvents();
-  }
+  Future<Either<Failure, Unit>> updateLocal(String locale) =>
+      _choose((s) => s.updateLocal(locale), (s) => s.updateLocal(locale));
 
   @override
-  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.updateTelemetryEvents(consent);
-    }
-    return _platformService.updateTelemetryEvents(consent);
-  }
+  Stream<AppEvent> watchAppEvents() =>
+      _choose((s) => s.watchAppEvents(), (s) => s.watchAppEvents());
 
   @override
-  Stream<LanternStatus> watchVPNStatus() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.watchVPNStatus();
-    }
-    return _platformService.watchVPNStatus();
-  }
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) => _choose(
+      (s) => s.updateTelemetryEvents(consent),
+      (s) => s.updateTelemetryEvents(consent));
 
   @override
-  Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isFFISupported) {
-      throw UnimplementedError();
-    }
-    return _platformService.watchLogs(path);
-  }
+  Stream<LanternStatus> watchVPNStatus() =>
+      _choose((s) => s.watchVPNStatus(), (s) => s.watchVPNStatus());
 
   @override
-  Future<Either<Failure, bool>> isVPNConnected() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isVPNConnected();
-    }
-    return _platformService.isVPNConnected();
-  }
+  Stream<List<String>> watchLogs(String path) =>
+      _choose((s) => s.watchLogs(path), (s) => s.watchLogs(path));
+
+  @override
+  Future<Either<Failure, bool>> isVPNConnected() =>
+      _choose((s) => s.isVPNConnected(), (s) => s.isVPNConnected());
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
-  }) {
-    if (PlatformUtils.isFFISupported) {
-      throw UnimplementedError();
-    }
-    return _platformService.startInAppPurchaseFlow(
-      planId: planId,
-      onSuccess: onSuccess,
-      onError: onError,
-    );
-  }
-
-  @override
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getDataCapInfo();
-    }
-    return _platformService.getDataCapInfo();
-  }
-
-  @override
-  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required BillingType type,
-      required String planId,
-      required String email}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.stipeSubscriptionPaymentRedirect(
-        type: type,
-        planId: planId,
-        email: email,
+  }) =>
+      _choose(
+        (_) => Future.value(left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'In-app purchase flow is not supported here',
+        ))),
+        (s) => s.startInAppPurchaseFlow(
+          planId: planId,
+          onSuccess: onSuccess,
+          onError: onError,
+        ),
       );
-    }
-    return _platformService.stipeSubscriptionPaymentRedirect(
-      type: type,
-      planId: planId,
-      email: email,
-    );
-  }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId, required String email}) {
-    if (PlatformUtils.isFFISupported) {
-      throw UnimplementedError();
-    }
-    return _platformService.stipeSubscription(planId: planId, email: email);
-  }
+  Future<Either<Failure, DataCapInfo>> getDataCapInfo() =>
+      _choose((s) => s.getDataCapInfo(), (s) => s.getDataCapInfo());
+
+  @override
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+  }) =>
+      _choose(
+        (s) => s.stipeSubscriptionPaymentRedirect(
+            type: type, planId: planId, email: email),
+        (s) => s.stipeSubscriptionPaymentRedirect(
+            type: type, planId: planId, email: email),
+      );
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
+    required String planId,
+    required String email,
+  }) =>
+      _choose(
+        (_) => Future.value(left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This flow is not supported on this platform',
+        ))),
+        (s) => s.stipeSubscription(planId: planId, email: email),
+      );
 
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.addSplitTunnelItem(type, value);
-    }
-    return _platformService.addSplitTunnelItem(type, value);
-  }
+          SplitTunnelFilterType type, String value) =>
+      _choose((s) => s.addSplitTunnelItem(type, value),
+          (s) => s.addSplitTunnelItem(type, value));
 
   @override
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.removeSplitTunnelItem(type, value);
-    }
-    return _platformService.removeSplitTunnelItem(type, value);
-  }
+          SplitTunnelFilterType type, String value) =>
+      _choose((s) => s.removeSplitTunnelItem(type, value),
+          (s) => s.removeSplitTunnelItem(type, value));
 
   @override
-  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setSplitTunnelingEnabled(enabled);
-    }
-    return _platformService.setSplitTunnelingEnabled(enabled);
-  }
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) =>
+      _choose((s) => s.setSplitTunnelingEnabled(enabled),
+          (s) => s.setSplitTunnelingEnabled(enabled));
 
   @override
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isSplitTunnelingEnabled();
-    }
-    return _platformService.isSplitTunnelingEnabled();
-  }
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() => _choose(
+      (s) => s.isSplitTunnelingEnabled(), (s) => s.isSplitTunnelingEnabled());
 
   @override
   Future<Either<Failure, Unit>> reportIssue(
@@ -197,433 +153,316 @@ class LanternService implements LanternCoreService {
     String device,
     String model,
     String logFilePath,
-  ) async {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.reportIssue(
-        email,
-        issueType,
-        description,
-        device,
-        model,
-        logFilePath,
+  ) =>
+      _choose(
+        (s) => s.reportIssue(
+            email, issueType, description, device, model, logFilePath),
+        (s) => s.reportIssue(
+            email, issueType, description, device, model, logFilePath),
       );
-    }
-    return _platformService.reportIssue(
-      email,
-      issueType,
-      description,
-      device,
-      model,
-      logFilePath,
-    );
-  }
 
   @override
-  Future<Either<Failure, PlansData>> plans() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.plans();
-    }
-    return _platformService.plans();
-  }
+  Future<Either<Failure, PlansData>> plans() =>
+      _choose((s) => s.plans(), (s) => s.plans());
 
   @override
-  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getOAuthLoginUrl(provider);
-    }
-    return _platformService.getOAuthLoginUrl(provider);
-  }
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) => _choose(
+      (s) => s.getOAuthLoginUrl(provider), (s) => s.getOAuthLoginUrl(provider));
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.oAuthLoginCallback(token);
-    }
-    return _platformService.oAuthLoginCallback(token);
-  }
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) =>
+      _choose((s) => s.oAuthLoginCallback(token),
+          (s) => s.oAuthLoginCallback(token));
 
   @override
-  Future<Either<Failure, UserResponse>> getUserData() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getUserData();
-    }
-    return _platformService.getUserData();
-  }
+  Future<Either<Failure, UserResponse>> getUserData() =>
+      _choose((s) => s.getUserData(), (s) => s.getUserData());
 
   @override
-  Future<Either<Failure, String>> stripeBillingPortal() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.stripeBillingPortal();
-    }
-    return _platformService.stripeBillingPortal();
-  }
+  Future<Either<Failure, String>> stripeBillingPortal() =>
+      _choose((s) => s.stripeBillingPortal(), (s) => s.stripeBillingPortal());
 
   @override
-  Future<Either<Failure, Unit>> showManageSubscriptions() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.showManageSubscriptions();
-    }
-    return _platformService.showManageSubscriptions();
-  }
+  Future<Either<Failure, Unit>> showManageSubscriptions() => _choose(
+      (s) => s.showManageSubscriptions(), (s) => s.showManageSubscriptions());
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.fetchUserData();
-    }
-    return _platformService.fetchUserData();
-  }
+  Future<Either<Failure, UserResponse>> fetchUserData() =>
+      _choose((s) => s.fetchUserData(), (s) => s.fetchUserData());
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
-      {required String purchaseToken, required String planId}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.acknowledgeInAppPurchase(
-          purchaseToken: purchaseToken, planId: planId);
-    }
-    return _platformService.acknowledgeInAppPurchase(
-        purchaseToken: purchaseToken, planId: planId);
-  }
-
-  @override
-  Future<Either<Failure, UserResponse>> logout(String email) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.logout(email);
-    }
-    return _platformService.logout(email);
-  }
-
-  @override
-  Future<Either<Failure, String>> paymentRedirect(
-      {required String provider,
-      required String planId,
-      required String email}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.paymentRedirect(
-          provider: provider, planId: planId, email: email);
-    }
-    return _platformService.paymentRedirect(
-        provider: provider, planId: planId, email: email);
-  }
-
-  @override
-  Future<Either<Failure, UserResponse>> login(
-      {required String email, required String password}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.login(email: email, password: password);
-    }
-    return _platformService.login(email: email, password: password);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.startRecoveryByEmail(email);
-    }
-    return _platformService.startRecoveryByEmail(email);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> validateRecoveryCode(
-      {required String email, required String code}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.validateRecoveryCode(email: email, code: code);
-    }
-    return _platformService.validateRecoveryCode(email: email, code: code);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> completeRecoveryByEmail(
-      {required String email,
-      required String code,
-      required String newPassword}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.completeRecoveryByEmail(
-          email: email, code: code, newPassword: newPassword);
-    }
-    return _platformService.completeRecoveryByEmail(
-        email: email, code: code, newPassword: newPassword);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> signUp(
-      {required String email, required String password}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.signUp(email: email, password: password);
-    }
-    return _platformService.signUp(email: email, password: password);
-  }
-
-  @override
-  Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.deleteAccount(email: email, password: password);
-    }
-    return _platformService.deleteAccount(email: email, password: password);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> activationCode(
-      {required String email, required String resellerCode}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.activationCode(
-        email: email,
-        resellerCode: resellerCode,
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+  }) =>
+      _choose(
+        (s) => s.acknowledgeInAppPurchase(
+            purchaseToken: purchaseToken, planId: planId),
+        (s) => s.acknowledgeInAppPurchase(
+            purchaseToken: purchaseToken, planId: planId),
       );
-    }
-    return _platformService.activationCode(
-      email: email,
-      resellerCode: resellerCode,
-    );
-  }
 
   @override
-  Future<Either<Failure, Unit>> digitalOceanPrivateServer() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.digitalOceanPrivateServer();
-    }
-    return _platformService.digitalOceanPrivateServer();
-  }
+  Future<Either<Failure, UserResponse>> logout(String email) =>
+      _choose((s) => s.logout(email), (s) => s.logout(email));
 
   @override
-  Future<Either<Failure, Unit>> googleCloudPrivateServer() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.googleCloudPrivateServer();
-    }
-    return _platformService.googleCloudPrivateServer();
-  }
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String email,
+  }) =>
+      _choose(
+        (s) =>
+            s.paymentRedirect(provider: provider, planId: planId, email: email),
+        (s) =>
+            s.paymentRedirect(provider: provider, planId: planId, email: email),
+      );
 
   @override
-  Stream<PrivateServerStatus> watchPrivateServerStatus() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.watchPrivateServerStatus();
-    }
-    return _platformService.watchPrivateServerStatus();
-  }
+  Future<Either<Failure, UserResponse>> login({
+    required String email,
+    required String password,
+  }) =>
+      _choose((s) => s.login(email: email, password: password),
+          (s) => s.login(email: email, password: password));
 
   @override
-  Future<Either<Failure, Unit>> validateSession() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.validateSession();
-    }
-    return _platformService.validateSession();
-  }
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) => _choose(
+      (s) => s.startRecoveryByEmail(email),
+      (s) => s.startRecoveryByEmail(email));
 
   @override
-  Future<Either<Failure, Unit>> setUserInput(
-      {required PrivateServerInput methodType, required String input}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setUserInput(methodType: methodType, input: input);
-    }
-    return _platformService.setUserInput(methodType: methodType, input: input);
-  }
+  Future<Either<Failure, Unit>> validateRecoveryCode({
+    required String email,
+    required String code,
+  }) =>
+      _choose((s) => s.validateRecoveryCode(email: email, code: code),
+          (s) => s.validateRecoveryCode(email: email, code: code));
 
   @override
-  Future<Either<Failure, Unit>> cancelDeployment() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.cancelDeployment();
-    }
-    return _platformService.cancelDeployment();
-  }
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) =>
+      _choose(
+        (s) => s.completeRecoveryByEmail(
+            email: email, code: code, newPassword: newPassword),
+        (s) => s.completeRecoveryByEmail(
+            email: email, code: code, newPassword: newPassword),
+      );
 
   @override
-  Future<Either<Failure, Unit>> startDeployment(
-      {required String location, required String serverName}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.startDeployment(
-          location: location, serverName: serverName);
-    }
-    return _platformService.startDeployment(
-        location: location, serverName: serverName);
-  }
+  Future<Either<Failure, Unit>> signUp({
+    required String email,
+    required String password,
+  }) =>
+      _choose((s) => s.signUp(email: email, password: password),
+          (s) => s.signUp(email: email, password: password));
 
   @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setCert(fingerprint: fingerprint);
-    }
-    return _platformService.setCert(fingerprint: fingerprint);
-  }
+  Future<Either<Failure, UserResponse>> deleteAccount({
+    required String email,
+    required String password,
+  }) =>
+      _choose((s) => s.deleteAccount(email: email, password: password),
+          (s) => s.deleteAccount(email: email, password: password));
 
   @override
-  Future<Either<Failure, Unit>> addServerManually(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String serverName}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.addServerManually(
-          ip: ip, port: port, accessToken: accessToken, serverName: serverName);
-    }
-    return _platformService.addServerManually(
-        ip: ip, port: port, accessToken: accessToken, serverName: serverName);
-  }
-
-  /// connectToServer is used to connect to a server
-  /// this will work with lantern customer and private server
-  /// requires location and tag
-  @override
-  Future<Either<Failure, String>> connectToServer(String location, String tag) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.connectToServer(location, tag);
-    }
-    return _platformService.connectToServer(location, tag);
-  }
+  Future<Either<Failure, Unit>> activationCode({
+    required String email,
+    required String resellerCode,
+  }) =>
+      _choose((s) => s.activationCode(email: email, resellerCode: resellerCode),
+          (s) => s.activationCode(email: email, resellerCode: resellerCode));
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String inviteName}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.inviteToServerManagerInstance(
-          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
-    }
-    return _platformService.inviteToServerManagerInstance(
-        ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
-  }
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() => _choose(
+      (s) => s.digitalOceanPrivateServer(),
+      (s) => s.digitalOceanPrivateServer());
 
   @override
-  Future<Either<Failure, String>> revokeServerManagerInstance(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String inviteName}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.revokeServerManagerInstance(
-          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
-    }
-    return _platformService.revokeServerManagerInstance(
-        ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
-  }
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() => _choose(
+      (s) => s.googleCloudPrivateServer(), (s) => s.googleCloudPrivateServer());
 
   @override
-  Future<Either<Failure, String>> featureFlag() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.featureFlag();
-    }
-    return _platformService.featureFlag();
-  }
+  Stream<PrivateServerStatus> watchPrivateServerStatus() => _choose(
+      (s) => s.watchPrivateServerStatus(), (s) => s.watchPrivateServerStatus());
 
   @override
-  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getLanternAvailableServers();
-    }
-    return _platformService.getLanternAvailableServers();
-  }
+  Future<Either<Failure, Unit>> validateSession() =>
+      _choose((s) => s.validateSession(), (s) => s.validateSession());
 
   @override
-  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.deviceRemove(deviceId: deviceId);
-    }
-    return _platformService.deviceRemove(deviceId: deviceId);
-  }
+  Future<Either<Failure, Unit>> setUserInput({
+    required PrivateServerInput methodType,
+    required String input,
+  }) =>
+      _choose((s) => s.setUserInput(methodType: methodType, input: input),
+          (s) => s.setUserInput(methodType: methodType, input: input));
 
   @override
-  Future<Either<Failure, String>> completeChangeEmail(
-      {required String newEmail,
-      required String password,
-      required String code}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.completeChangeEmail(
-          newEmail: newEmail, password: password, code: code);
-    }
-    return _platformService.completeChangeEmail(
-        newEmail: newEmail, password: password, code: code);
-  }
+  Future<Either<Failure, Unit>> cancelDeployment() =>
+      _choose((s) => s.cancelDeployment(), (s) => s.cancelDeployment());
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment({
+    required String location,
+    required String serverName,
+  }) =>
+      _choose(
+          (s) => s.startDeployment(location: location, serverName: serverName),
+          (s) => s.startDeployment(location: location, serverName: serverName));
+
+  @override
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) =>
+      _choose((s) => s.setCert(fingerprint: fingerprint),
+          (s) => s.setCert(fingerprint: fingerprint));
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String serverName,
+  }) =>
+      _choose(
+        (s) => s.addServerManually(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            serverName: serverName),
+        (s) => s.addServerManually(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            serverName: serverName),
+      );
+
+  @override
+  Future<Either<Failure, String>> connectToServer(
+          String location, String tag) =>
+      _choose((s) => s.connectToServer(location, tag),
+          (s) => s.connectToServer(location, tag));
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) =>
+      _choose(
+        (s) => s.inviteToServerManagerInstance(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            inviteName: inviteName),
+        (s) => s.inviteToServerManagerInstance(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            inviteName: inviteName),
+      );
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) =>
+      _choose(
+        (s) => s.revokeServerManagerInstance(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            inviteName: inviteName),
+        (s) => s.revokeServerManagerInstance(
+            ip: ip,
+            port: port,
+            accessToken: accessToken,
+            inviteName: inviteName),
+      );
+
+  @override
+  Future<Either<Failure, String>> featureFlag() =>
+      _choose((s) => s.featureFlag(), (s) => s.featureFlag());
+
+  @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() =>
+      _choose((s) => s.getLanternAvailableServers(),
+          (s) => s.getLanternAvailableServers());
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) =>
+      _choose((s) => s.deviceRemove(deviceId: deviceId),
+          (s) => s.deviceRemove(deviceId: deviceId));
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail({
+    required String newEmail,
+    required String password,
+    required String code,
+  }) =>
+      _choose(
+        (s) => s.completeChangeEmail(
+            newEmail: newEmail, password: password, code: code),
+        (s) => s.completeChangeEmail(
+            newEmail: newEmail, password: password, code: code),
+      );
 
   @override
   Future<Either<Failure, String>> startChangeEmail(
-      String newEmail, String password) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.startChangeEmail(newEmail, password);
-    }
-    return _platformService.startChangeEmail(newEmail, password);
-  }
+          String newEmail, String password) =>
+      _choose((s) => s.startChangeEmail(newEmail, password),
+          (s) => s.startChangeEmail(newEmail, password));
 
   @override
-  Future<Either<Failure, Server>> getAutoServerLocation() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getAutoServerLocation();
-    }
-    return _platformService.getAutoServerLocation();
-  }
+  Future<Either<Failure, Server>> getAutoServerLocation() => _choose(
+      (s) => s.getAutoServerLocation(), (s) => s.getAutoServerLocation());
 
   @override
-  Future<Either<Failure, String>> triggerSystemExtension() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.triggerSystemExtension();
-    }
-    return _platformService.triggerSystemExtension();
-  }
+  Future<Either<Failure, String>> triggerSystemExtension() => _choose(
+      (s) => s.triggerSystemExtension(), (s) => s.triggerSystemExtension());
 
   @override
-  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.watchSystemExtensionStatus();
-    }
-    return _platformService.watchSystemExtensionStatus();
-  }
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() => _choose(
+      (s) => s.watchSystemExtensionStatus(),
+      (s) => s.watchSystemExtensionStatus());
 
   @override
-  Future<Either<Failure, Unit>> openSystemExtension() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.openSystemExtension();
-    }
-    return _platformService.openSystemExtension();
-  }
+  Future<Either<Failure, Unit>> openSystemExtension() =>
+      _choose((s) => s.openSystemExtension(), (s) => s.openSystemExtension());
 
   @override
-  Future<Either<Failure, Unit>> isSystemExtensionInstalled() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isSystemExtensionInstalled();
-    }
-    return _platformService.isSystemExtensionInstalled();
-  }
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() => _choose(
+      (s) => s.isSystemExtensionInstalled(),
+      (s) => s.isSystemExtensionInstalled());
 
   @override
   Future<Either<Failure, Unit>> addAllItems(
-      SplitTunnelFilterType type, List<String> value) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.addAllItems(type, value);
-    }
-    return _platformService.addAllItems(type, value);
-  }
+          SplitTunnelFilterType type, List<String> value) =>
+      _choose(
+          (s) => s.addAllItems(type, value), (s) => s.addAllItems(type, value));
 
   @override
   Future<Either<Failure, Unit>> removeAllItems(
-      SplitTunnelFilterType type, List<String> value) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.removeAllItems(type, value);
-    }
-    return _platformService.removeAllItems(type, value);
-  }
+          SplitTunnelFilterType type, List<String> value) =>
+      _choose((s) => s.removeAllItems(type, value),
+          (s) => s.removeAllItems(type, value));
 
   @override
-  Future<Either<Failure, bool>> isBlockAdsEnabled() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isBlockAdsEnabled();
-    }
-    return _platformService.isBlockAdsEnabled();
-  }
+  Future<Either<Failure, bool>> isBlockAdsEnabled() =>
+      _choose((s) => s.isBlockAdsEnabled(), (s) => s.isBlockAdsEnabled());
 
   @override
-  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setBlockAdsEnabled(enabled);
-    }
-    return _platformService.setBlockAdsEnabled(enabled);
-  }
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) => _choose(
+      (s) => s.setBlockAdsEnabled(enabled),
+      (s) => s.setBlockAdsEnabled(enabled));
 
   @override
-  Future<Either<Failure, String>> attachReferralCode(String code) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.attachReferralCode(code);
-    }
-    return _platformService.attachReferralCode(code);
-  }
+  Future<Either<Failure, String>> attachReferralCode(String code) => _choose(
+      (s) => s.attachReferralCode(code), (s) => s.attachReferralCode(code));
 }
