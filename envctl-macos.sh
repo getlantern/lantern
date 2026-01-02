@@ -8,9 +8,12 @@ fi
 DISABLE_FETCH=0
 LOG_PATH=""
 DATA_PATH=""
+LOG_LEVEL=""
 DEV=0
+PRINT_CURL=0
 UNSET_LOG=0
 UNSET_DATA=0
+UNSET_LOG_LEVEL=0
 
 show_help() {
 	cat <<EOF
@@ -26,7 +29,9 @@ Options:
   --disable-fetch-config   Disables fetching config (RADIANCE_DISABLE_FETCH_CONFIG)
   --log-path [path]        Override log path (RADIANCE_LOG_PATH)
   --data-path [path]       Override data path (RADIANCE_DATA_PATH)
+  --log-level [level]      Set log level (RADIANCE_LOG_LEVEL). Options: trace, debug, info, warn, error
   --dev                    Set environment to 'dev' (RADIANCE_ENV). Default is 'prod'
+  --print-curl             Log the API request as a curl command (RADIANCE_PRINT_CURL)
   --help                   Show this help message
 
 Examples:
@@ -71,6 +76,10 @@ while [[ $# -gt 0 ]]; do
 		DEV=1
 		shift
 		;;
+	--print-curl)
+		PRINT_CURL=1
+		shift
+		;;
 	--log-path)
 		if [[ "$COMMAND" == "unset" ]]; then
 			UNSET_LOG=1
@@ -97,6 +106,19 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 		fi
 		;;
+	--log-level)
+		if [[ "$COMMAND" == "unset" ]]; then
+			UNSET_LOG_LEVEL=1
+			shift
+		else
+			if [[ -z "$2" || "$2" == --* ]]; then
+				echo "Error: --log-level requires a value"
+				exit 1
+			fi
+			LOG_LEVEL="$2"
+			shift 2
+		fi
+		;;
 	--help)
 		show_help
 		exit 0
@@ -115,12 +137,16 @@ set)
 	[[ -n "$DATA_PATH" ]] && launchctl setenv RADIANCE_DATA_PATH "$DATA_PATH"
 	[[ "$DISABLE_FETCH" -eq 1 ]] && launchctl setenv RADIANCE_DISABLE_FETCH_CONFIG true
 	[[ "$DEV" -eq 1 ]] && launchctl setenv RADIANCE_ENV dev
+	[[ "$PRINT_CURL" -eq 1 ]] && launchctl setenv RADIANCE_PRINT_CURL true
+	[[ -n "$LOG_LEVEL" ]] && launchctl setenv RADIANCE_LOG_LEVEL "$LOG_LEVEL"
 	;;
 unset)
 	[[ "$UNSET_LOG" -eq 1 ]] && launchctl unsetenv RADIANCE_LOG_PATH
 	[[ "$UNSET_DATA" -eq 1 ]] && launchctl unsetenv RADIANCE_DATA_PATH
 	[[ "$DISABLE_FETCH" -eq 1 ]] && launchctl unsetenv RADIANCE_DISABLE_FETCH_CONFIG
 	[[ "$DEV" -eq 1 ]] && launchctl unsetenv RADIANCE_ENV
+	[[ "$PRINT_CURL" -eq 1 ]] && launchctl unsetenv RADIANCE_PRINT_CURL
+	[[ "$UNSET_LOG_LEVEL" -eq 1 ]] && launchctl unsetenv RADIANCE_LOG_LEVEL
 	;;
 run-with)
 	CMD=(open -a "Lantern")
@@ -128,10 +154,12 @@ run-with)
 	[[ -n "$DATA_PATH" ]] && CMD+=(--env RADIANCE_DATA_PATH="$DATA_PATH")
 	[[ "$DISABLE_FETCH" -eq 1 ]] && CMD+=(--env RADIANCE_DISABLE_FETCH_CONFIG=true)
 	[[ "$DEV" -eq 1 ]] && CMD+=(--env RADIANCE_ENV=dev)
+	[[ "$PRINT_CURL" -eq 1 ]] && CMD+=(--env RADIANCE_PRINT_CURL=true)
+	[[ -n "$LOG_LEVEL" ]] && CMD+=(--env RADIANCE_LOG_LEVEL="$LOG_LEVEL")
 	"${CMD[@]}"
 	;;
 list)
-	for var in RADIANCE_LOG_PATH RADIANCE_DATA_PATH RADIANCE_DISABLE_FETCH_CONFIG RADIANCE_ENV; do
+	for var in RADIANCE_LOG_PATH RADIANCE_DATA_PATH RADIANCE_DISABLE_FETCH_CONFIG RADIANCE_ENV RADIANCE_PRINT_CURL RADIANCE_LOG_LEVEL; do
 		value=$(launchctl getenv "$var")
 		if [[ -n "$value" ]]; then
 			echo "$var=$value"
