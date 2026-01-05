@@ -24,9 +24,9 @@ import (
 	"github.com/getlantern/radiance/vpn"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/getlantern/lantern-outline/lantern-core/apps"
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/apps"
+	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
+	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
 type EventType = string

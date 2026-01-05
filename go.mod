@@ -1,4 +1,4 @@
-module github.com/getlantern/lantern-outline
+module github.com/getlantern/lantern
 
 go 1.25.4
 

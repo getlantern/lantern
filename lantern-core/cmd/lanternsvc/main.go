@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/getlantern/lantern-outline/lantern-core/common"
-	"github.com/getlantern/lantern-outline/lantern-core/wintunmgr"
+	"github.com/getlantern/lantern/lantern-core/common"
+	"github.com/getlantern/lantern/lantern-core/wintunmgr"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 

@@ -3,7 +3,7 @@ package wintunmgr
 import (
 	"encoding/json"
 
-	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/lantern/lantern-core/common"
 )
 
 // IPC structs
