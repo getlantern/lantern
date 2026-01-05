@@ -23,11 +23,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String stableAppId(AppData a) {
-      if (Platform.isWindows || Platform.isMacOS) return a.appPath;
-      return a.bundleId;
-    }
-
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
