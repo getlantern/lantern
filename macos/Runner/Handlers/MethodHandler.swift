@@ -3,6 +3,7 @@
 //  Lantern
 //
 
+import Cocoa
 import FlutterMacOS
 import Foundation
 import Liblantern
@@ -133,6 +134,13 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         let deviceId = data?["deviceId"] as? String ?? ""
         self.deviceRemove(result: result, deviceId: deviceId)
+
+      case "appIconBytes":
+        let args = (call.arguments as? [String: Any]) ?? [:]
+        let iconPath = args["iconPath"] as? String ?? ""
+        let appPath = args["appPath"] as? String ?? ""
+        let sizePx = args["sizePx"] as? Int ?? 48
+        self.appIconBytes(result: result, iconPath: iconPath, appPath: appPath, sizePx: sizePx)
 
       case "attachReferralCode":
         let code = call.arguments as? String ?? ""
@@ -368,6 +376,34 @@ class MethodHandler {
 
       await MainActor.run {
         result(data)
+      }
+    }
+  }
+
+  private func appIconBytes(
+    result: @escaping FlutterResult,
+    iconPath: String,
+    appPath: String,
+    sizePx: Int
+  ) {
+    Task {
+      if appPath.isEmpty {
+        result(nil)
+        return
+      }
+
+      let target = CGSize(width: sizePx, height: sizePx)
+
+      let data: Data? = await MainActor.run {
+        // Always prefer the bundle path
+        let nsImage = NSWorkspace.shared.icon(forFile: appPath)
+        return nsImage.pngData(resizeTo: target)
+      }
+
+      if let data, !data.isEmpty {
+        result(FlutterStandardTypedData(bytes: data))
+      } else {
+        result(nil)
       }
     }
   }
@@ -897,7 +933,7 @@ class MethodHandler {
   func updateTelemetryEvents(consent: Bool, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      MobileUpdateTelemetryConsent(consent, &error)
+      //MobileUpdateTelemetryConsent(consent, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
         return
@@ -1184,4 +1220,49 @@ class MethodHandler {
     return value
   }
 
+}
+
+extension NSImage {
+  @MainActor
+  fileprivate func pngData(resizeTo targetSize: CGSize) -> Data? {
+    // Fast path: try CGImage-backed conversion
+    var rect = NSRect(origin: .zero, size: targetSize)
+    if let cg = self.cgImage(forProposedRect: &rect, context: nil, hints: nil) {
+      let rep = NSBitmapImageRep(cgImage: cg)
+      rep.size = targetSize
+      return rep.representation(using: .png, properties: [:])
+    }
+
+    // Fallback: draw into a bitmap (more reliable for some NSImage types)
+    let rep = NSBitmapImageRep(
+      bitmapDataPlanes: nil,
+      pixelsWide: Int(targetSize.width),
+      pixelsHigh: Int(targetSize.height),
+      bitsPerSample: 8,
+      samplesPerPixel: 4,
+      hasAlpha: true,
+      isPlanar: false,
+      colorSpaceName: .deviceRGB,
+      bytesPerRow: 0,
+      bitsPerPixel: 0
+    )
+    guard let rep else { return nil }
+
+    rep.size = targetSize
+    NSGraphicsContext.saveGraphicsState()
+    defer { NSGraphicsContext.restoreGraphicsState() }
+
+    guard let ctx = NSGraphicsContext(bitmapImageRep: rep) else { return nil }
+    NSGraphicsContext.current = ctx
+    ctx.imageInterpolation = .high
+
+    self.draw(
+      in: NSRect(origin: .zero, size: targetSize),
+      from: .zero,
+      operation: .sourceOver,
+      fraction: 1.0
+    )
+
+    return rep.representation(using: .png, properties: [:])
+  }
 }

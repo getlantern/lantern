@@ -173,7 +173,14 @@ class AppRow extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final iconAsync = ref.watch(appIconBytesProvider(app));
+    final key = AppIconKey(
+      id: stableAppId(app),
+      iconPath: app.iconPath,
+      appPath: app.appPath,
+      existingBytes: app.iconBytes,
+    );
+
+    final iconAsync = ref.watch(appIconBytesProvider(key));
 
     Widget iconWidget() {
       return iconAsync.maybeWhen(
