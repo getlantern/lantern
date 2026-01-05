@@ -933,7 +933,7 @@ class MethodHandler {
   func updateTelemetryEvents(consent: Bool, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      //MobileUpdateTelemetryConsent(consent, &error)
+      MobileUpdateTelemetryConsent(consent, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
         return
