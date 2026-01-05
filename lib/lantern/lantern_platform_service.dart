@@ -133,9 +133,44 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) async* {
-    yield* logsChannel
-        .receiveBroadcastStream()
-        .map((event) => (event as List).map((e) => e as String).toList());
+    const maxBufferedLines = 4000;
+
+    final buffer = <String>[];
+
+    final stream = logsChannel.receiveBroadcastStream();
+
+    await for (final event in stream) {
+      final batch = _coerceLogBatch(event);
+      if (batch.isEmpty) continue;
+
+      buffer.addAll(batch);
+
+      // Trim to last N lines
+      if (buffer.length > maxBufferedLines) {
+        buffer.removeRange(0, buffer.length - maxBufferedLines);
+      }
+
+      yield List<String>.unmodifiable(buffer);
+    }
+  }
+
+  List<String> _coerceLogBatch(dynamic event) {
+    if (event is List) {
+      return event
+          .whereType<String>()
+          .expand((s) => s.split(RegExp(r'\r?\n')))
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    if (event is String) {
+      return event
+          .split(RegExp(r'\r?\n'))
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    return const <String>[];
   }
 
   @override

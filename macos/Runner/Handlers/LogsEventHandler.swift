@@ -1,5 +1,6 @@
 import Combine
 import FlutterMacOS
+import Foundation
 
 final class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/logs"
@@ -25,12 +26,16 @@ final class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     let logFile = FilePath.logsDirectory.appendingPathComponent("lantern.log")
 
     if let last = try? LogTailer.readLastLines(path: logFile.path, maxLines: 200) {
-      events(last)
+     DispatchQueue.main.async {
+        events(last)
+      }
     }
 
     tailer = LogTailer(path: logFile.path) { [weak self] newLines in
-      self?.eventSink?(newLines)
-    }
+      DispatchQueue.main.async {
+        self?.eventSink?(newLines)
+      }
+     }
 
     return nil
   }
@@ -58,8 +63,7 @@ final class LogTailer {
     if !FileManager.default.fileExists(atPath: path) {
       FileManager.default.createFile(atPath: path, contents: nil)
     }
-    guard let h = FileHandle(forReadingAtPath: path) else { return nil }
-    handle = h
+    handle = FileHandle(forReadingAtPath: path)
 
     fd = open(path, O_EVTONLY)
     guard fd >= 0 else { return nil }
@@ -82,6 +86,20 @@ final class LogTailer {
     src?.cancel()
     src = nil
     try? handle?.close()
+    handle = nil
+  }
+
+  private func reopenHandleIfNeeded(resetOffset: Bool) {
+    if !FileManager.default.fileExists(atPath: path) {
+      FileManager.default.createFile(atPath: path, contents: nil)
+    }
+    if handle == nil {
+      handle = FileHandle(forReadingAtPath: path)
+    }
+    if resetOffset {
+      offset = 0
+    }
+    try? handle?.seek(toOffset: offset)
   }
 
   private func handleEvent() {
@@ -91,16 +109,21 @@ final class LogTailer {
     if ev.contains(.rename) || ev.contains(.delete) {
       src.suspend()
       try? handle?.close()
-      handle = FileHandle(forReadingAtPath: path)
-      offset = 0
-      try? handle?.seek(toOffset: offset)
+      handle = nil
+      // reopen and reset offset to start of new file
+      reopenHandleIfNeeded(resetOffset: true)
       src.resume()
       return
     }
 
     do {
-      try handle?.seek(toOffset: offset)
-      let data = try handle?.readToEnd() ?? Data()
+      // If the handle is missing, try to reopen
+      if handle == nil {
+        reopenHandleIfNeeded(resetOffset: false)
+      }
+      guard let handle else { return }
+      try handle.seek(toOffset: offset)
+      let data = try handle.readToEnd() ?? Data()
       guard !data.isEmpty else { return }
       offset += UInt64(data.count)
       let text = String(decoding: data, as: UTF8.self)

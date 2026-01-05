@@ -18,15 +18,29 @@ class Logs extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
-
     final scrollController = useScrollController();
 
-    // Scroll to bottom when new logs arrive
-    void scrollToBottom() {
+    final pinnedToBottom = useState(true);
+
+    useEffect(() {
+      void listener() {
+        if (!scrollController.hasClients) return;
+        final pos = scrollController.position;
+
+        // Consider "near bottom" within 64px
+        final nearBottom = (pos.maxScrollExtent - pos.pixels) < 64;
+        pinnedToBottom.value = nearBottom;
+      }
+
+      scrollController.addListener(listener);
+      return () => scrollController.removeListener(listener);
+    }, [scrollController]);
+
+    void maybeScrollToBottom() {
+      if (!pinnedToBottom.value) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.jumpTo(scrollController.position.maxScrollExtent);
-        }
+        if (!scrollController.hasClients) return;
+        scrollController.jumpTo(scrollController.position.maxScrollExtent);
       });
     }
 
@@ -72,7 +86,7 @@ class Logs extends HookConsumerWidget {
               ),
               child: logAsyncValue.when(
                 data: (logs) {
-                  scrollToBottom(); // scroll when logs update
+                  maybeScrollToBottom();
                   return ListView.builder(
                     controller: scrollController,
                     padding: const EdgeInsets.all(8.0),
