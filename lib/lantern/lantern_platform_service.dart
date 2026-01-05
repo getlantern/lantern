@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -41,6 +42,9 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/app_events", JSONMethodCodec());
   static const EventChannel appStreamChannel =
       EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
+  static final RegExp _newlineRegex = RegExp(r'\r?\n');
+  static const int _maxBufferedLines = 4000;
+  static const double _trimFraction = 0.25;
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
@@ -133,8 +137,6 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) async* {
-    const maxBufferedLines = 4000;
-
     final buffer = <String>[];
 
     final stream = logsChannel.receiveBroadcastStream();
@@ -146,11 +148,17 @@ class LanternPlatformService implements LanternCoreService {
       buffer.addAll(batch);
 
       // Trim to last N lines
-      if (buffer.length > maxBufferedLines) {
-        buffer.removeRange(0, buffer.length - maxBufferedLines);
-      }
+      if (buffer.length > _maxBufferedLines) {
+        // Instead of removing only the excess, drop a chunk to reduce how
+        // often we shift the list
+        final targetLen = (_maxBufferedLines * (1.0 - _trimFraction)).round();
+        final removeCount = math.max(0, buffer.length - targetLen);
+        if (removeCount > 0) {
+          buffer.removeRange(0, removeCount);
+        }
 
-      yield List<String>.unmodifiable(buffer);
+        yield List<String>.unmodifiable(buffer);
+      }
     }
   }
 
@@ -158,14 +166,14 @@ class LanternPlatformService implements LanternCoreService {
     if (event is List) {
       return event
           .whereType<String>()
-          .expand((s) => s.split(RegExp(r'\r?\n')))
+          .expand((s) => s.split(_newlineRegex))
           .where((s) => s.isNotEmpty)
           .toList(growable: false);
     }
 
     if (event is String) {
       return event
-          .split(RegExp(r'\r?\n'))
+          .split(_newlineRegex)
           .where((s) => s.isNotEmpty)
           .toList(growable: false);
     }
