@@ -1,0 +1,134 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'app_icon_provider.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(AppIconCache)
+const appIconCacheProvider = AppIconCacheProvider._();
+
+final class AppIconCacheProvider
+    extends $NotifierProvider<AppIconCache, Map<String, Uint8List>> {
+  const AppIconCacheProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appIconCacheProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appIconCacheHash();
+
+  @$internal
+  @override
+  AppIconCache create() => AppIconCache();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, Uint8List> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, Uint8List>>(value),
+    );
+  }
+}
+
+String _$appIconCacheHash() => r'690960b88a03c4bb5cc7ead7479f4015641b5e41';
+
+abstract class _$AppIconCache extends $Notifier<Map<String, Uint8List>> {
+  Map<String, Uint8List> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref =
+        this.ref as $Ref<Map<String, Uint8List>, Map<String, Uint8List>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<Map<String, Uint8List>, Map<String, Uint8List>>,
+        Map<String, Uint8List>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}
+
+@ProviderFor(appIconBytes)
+const appIconBytesProvider = AppIconBytesFamily._();
+
+final class AppIconBytesProvider extends $FunctionalProvider<
+        AsyncValue<Uint8List?>, Uint8List?, FutureOr<Uint8List?>>
+    with $FutureModifier<Uint8List?>, $FutureProvider<Uint8List?> {
+  const AppIconBytesProvider._(
+      {required AppIconBytesFamily super.from, required AppData super.argument})
+      : super(
+          retry: null,
+          name: r'appIconBytesProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appIconBytesHash();
+
+  @override
+  String toString() {
+    return r'appIconBytesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Uint8List?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Uint8List?> create(Ref ref) {
+    final argument = this.argument as AppData;
+    return appIconBytes(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AppIconBytesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$appIconBytesHash() => r'44f3e34a02d361e8ec89ce4b229e441b4baa32ac';
+
+final class AppIconBytesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Uint8List?>, AppData> {
+  const AppIconBytesFamily._()
+      : super(
+          retry: null,
+          name: r'appIconBytesProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  AppIconBytesProvider call(
+    AppData app,
+  ) =>
+      AppIconBytesProvider._(argument: app, from: this);
+
+  @override
+  String toString() => r'appIconBytesProvider';
+}

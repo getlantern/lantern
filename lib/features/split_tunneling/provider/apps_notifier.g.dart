@@ -42,7 +42,7 @@ final class SplitTunnelingAppsProvider
 }
 
 String _$splitTunnelingAppsHash() =>
-    r'17120dba1c32311cd62f64c5233007a2cf152f24';
+    r'5d1b87f4a0770f12c8858b1291eb69f6d4c40877';
 
 abstract class _$SplitTunnelingApps extends $Notifier<Set<AppData>> {
   Set<AppData> build();
