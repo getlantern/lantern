@@ -48,13 +48,13 @@ Censorship circumvention tool available for free download on any operating syste
     <tr>
         <th>macOS</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer.dmg">macOS 10.13&#43;</a>
+            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">macOS 10.13&#43;</a>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">macOS 10.15&#43;</a>
         </td>
     </tr>
     <tr>
@@ -64,17 +64,6 @@ Censorship circumvention tool available for free download on any operating syste
             <a href="https://apps.apple.com/app/id1457872372?l">iOS 11&#43;</a>
         </td>
         <td></td>
-    </tr>
-    <tr>
-        <th>Linux (32-bit)</th>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-bit)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-bit)</a>
-        </td>
-        <td></td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb">Ubuntu 14.04&#43; (32-bit)</a>
-        </td>
     </tr>
     <tr>
         <th>Linux (64-bit)</th>
@@ -98,34 +87,30 @@ Censorship circumvention tool available for free download on any operating syste
 - [Frequently Asked Questions](https://lantern.io/faq)
 - [wiki](https://github.com/getlantern/guide/wiki)
 - GitHub Discussions | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
-- Instagram | [اَلْعَرَبِيَّةُ](https://www.instagram.com/lanternio_uae/) | [беларуская](https://www.instagram.com/getlantern_belarus/) | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/) | [française](https://www.instagram.com/lanternio_guinea/) | [русский](https://www.instagram.com/lantern.io_ru) | [українська](https://www.instagram.com/getlantern_ua/) | [中文](https://www.instagram.com/lanternio_ch/)
-- Telegram | [اَلْعَرَبِيَّةُ](https://t.me/lantern_uae) | [беларуская](https://t.me/lantern_belarus) | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [française](https://t.me/LanternGuinea) | [русский](https://t.me/lantern_russia) | [українська](https://t.me/lanternukraine) | [中文](https://t.me/lantern_china)
-- Telegram (beta testers) | [اَلْعَرَبِيَّةُ](https://t.me/&#43;cUgbK1eqrrE0MDQx) | [беларуская](https://t.me/&#43;bRTww4oDsrsxY2Mx) | [فارسی](https://t.me/lanternbetaIR) | [française](https://t.me/&#43;_G9WGtSTXvs3ZDQx) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [українська](https://t.me/&#43;c_K4oFhv7NMzZjlh) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
-- Twitter | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [française](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
+- Instagram | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/)
+- Telegram | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [русский](https://t.me/lantern_russia) | [中文](https://t.me/lantern_china)
+- Telegram (beta testers) | [فارسی](https://t.me/lanternbetaIR) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
+- Twitter | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [中文](https://twitter.com/getlantern_CN)
 
 ## Release Notes
-### 7.9.9
-- Localization bug fixes
-- Updated circumvention protocols and improved proxy selection
-- Dektop system tray UI/UX updates
-- Bug fixes for app crashes
-### 7.9.8
-- iOS username and password support
-- Desktop username and password support
-- Bug fixes
-- Reduced file size on Android
-### 7.9.7
+### 8.3.7 
+- Fixed an issue preventing some users from sending issue reports from the application
+- Fixed an issue that prevented 25-digit activation codes from being redeemed
+### 8.3.5
+- Front end and UI optimization
+- Fixed payment issue with Google Play Store
 - Updated circumvention protocols
-- Spanish language update for Cuban users
-- Bug fixes for desktop device authorization
-### 7.9.6
-- Windows, macOS, and Linux UI/UX updates
-- Updated proxy selection protocols
-- Bug fixes
-### 7.9.5
-- Translation and localization updates
-- Android crashing bug fixes
-### 7.9.4
+### 8.3.4
+- Updated dialer protocols
+- Payment page bug fixes
+### 8.3.3
+- Updated proxy routes
+- Web traffic optimization
+### 8.3.2
 - Updated circumvention protocols
-- Desktop bug fixes
+### 8.3.1
+- Updated circumvention protocols
+### 8.3.0
+- Updated circumvention protocols
+- Web traffic optimization
 
