@@ -23,7 +23,6 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
         Task.detached { [weak self] in
             let dataDir = FilePath.dataDirectory.path
 
-            // 1) Emit cached immediately (fast)
             let cached = self?.readCachedApps(dataDir: dataDir) ?? []
             await MainActor.run {
                 events([
@@ -34,7 +33,6 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
                 ])
             }
 
-            // 2) Run the full Go scan (slower), then emit updated snapshot
             var error: NSError?
             let jsonString = MobileLoadInstalledApps(dataDir, &error)
 
