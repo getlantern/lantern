@@ -18,7 +18,7 @@ import requests
 import xml.etree.ElementTree as ET
 
 # -------- Configuration --------
-REPO = "getlantern/lantern-outline"
+REPO = "getlantern/lantern"
 OUT_PATH = "appcast.xml"
 PLATFORMS = {
     "macos": ".dmg",
