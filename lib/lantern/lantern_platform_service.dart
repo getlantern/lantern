@@ -44,7 +44,10 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
   static final RegExp _newlineRegex = RegExp(r'\r?\n');
   static const int _maxBufferedLines = 4000;
-  static const double _trimFraction = 0.25;
+  // Fraction of lines to keep when trimming the buffer.
+  static const double _keepFraction = 0.25;
+  // Backwards-compatible alias; prefer `_keepFraction` in new code.
+  static const double _trimFraction = _keepFraction;
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
