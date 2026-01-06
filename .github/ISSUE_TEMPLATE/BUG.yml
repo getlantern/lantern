@@ -41,4 +41,3 @@ body:
       placeholder: ex. TICKET-123, TICKET-9876543
     validations:
       required: false
-  
