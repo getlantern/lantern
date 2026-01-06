@@ -2,4 +2,5 @@ blank_issues_enabled: false
 contact_links:
   - name: Helpdesk
     url: https://support.lantern.io/support/tickets/new
-    about: Account issues or general support
+    about: Confidential email-based helpdesk for account issues or general support
+
