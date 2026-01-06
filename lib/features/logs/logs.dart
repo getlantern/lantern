@@ -27,8 +27,10 @@ class Logs extends HookConsumerWidget {
         if (!scrollController.hasClients) return;
         final pos = scrollController.position;
 
-        // Consider "near bottom" within 64px
-        final nearBottom = (pos.maxScrollExtent - pos.pixels) < 64;
+        // Only treat as "near bottom" when there is meaningful scrollable content.
+        final canScrollMeaningfully = pos.maxScrollExtent > 64;
+        final nearBottom =
+            canScrollMeaningfully && (pos.maxScrollExtent - pos.pixels) < 64;
         pinnedToBottom.value = nearBottom;
       }
 
