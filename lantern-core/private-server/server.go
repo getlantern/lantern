@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern/lantern-core/utils"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	gcp "github.com/getlantern/lantern-server-provisioner/gcp"
+	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/radiance/servers"
 )
 
@@ -173,7 +173,7 @@ func listenToServerEvents(ps provisionSession) {
 					name := accountNames[0]
 					userCompartment := pcommon.CompartmentByName(compartments, name)
 					ps.userCompartment = userCompartment
-					//Store the user selected project
+					// Store the user selected project
 					projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
 					if len(projectList) == 0 {
 						err := errors.New("no projects found in the selected compartment")
@@ -185,9 +185,9 @@ func listenToServerEvents(ps provisionSession) {
 					project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
 					ps.userProject = project
 					ps.userProjectString = selectedProject
-					//store session
+					// store session
 					storeSession(&ps)
-					//Send location list to the event sink
+					// Send location list to the event sink
 					locationList := pcommon.CompartmentEntryLocations(project)
 					// add delay
 					time.Sleep(1 * time.Second)
@@ -198,8 +198,8 @@ func listenToServerEvents(ps provisionSession) {
 					// update map
 					storeSession(&ps)
 					log.Debug("Validation completed, ready to create resources")
-					//Accounts
-					//send account to the client
+					// Accounts
+					// send account to the client
 					accountNames := pcommon.CompartmentNames(compartments)
 					log.Debugf("Available accounts: %v", strings.Join(accountNames, ", "))
 					events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
@@ -210,7 +210,7 @@ func listenToServerEvents(ps provisionSession) {
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
 			case pcommon.EventTypeProvisioningCompleted:
 				log.Debugf("Provisioning completed successfully %s", e.Message)
-				//get session
+				// get session
 				provisioner, perr := getSession()
 				if perr != nil {
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", perr))
@@ -218,7 +218,6 @@ func listenToServerEvents(ps provisionSession) {
 				// we have the response, now we can add the server manager instance
 				resp := provisionerResponse{}
 				err := json.Unmarshal([]byte(e.Message), &resp)
-
 				if err != nil {
 					log.Errorf("Error unmarshalling provisioner response: %v", err)
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
@@ -257,6 +256,7 @@ func listenToServerEvents(ps provisionSession) {
 		}
 	}
 }
+
 func ValidateSession(ctx context.Context) error {
 	ps, err := getSession()
 	if err != nil {
@@ -275,7 +275,7 @@ func SelectAccount(name string) error {
 	if err != nil {
 		return err
 	}
-	//Store the user selected compartment
+	// Store the user selected compartment
 	userCompartment := pcommon.CompartmentByName(ps.CurrentCompartments, name)
 	ps.userCompartment = userCompartment
 	storeSession(ps)
@@ -291,12 +291,12 @@ func SelectProject(selectedProject string) error {
 	if err != nil {
 		return err
 	}
-	//Store the user selected project
+	// Store the user selected project
 	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
 	ps.userProject = project
 	ps.userProjectString = selectedProject
 	storeSession(ps)
-	//Send location list to the event sink
+	// Send location list to the event sink
 	locationList := pcommon.CompartmentEntryLocations(project)
 	ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
 	return nil
@@ -366,7 +366,7 @@ func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSe
 
 		log.Debugf("Available server manager instances: %v", string(jsonBytes))
 		provisioner.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeServerTofuPermission", string(jsonBytes)))
-		//Now wait for user to select the figerprint
+		// Now wait for user to select the figerprint
 		// Wait for selected fingerprint from Flutter
 		selectedFp := <-certFingerprintChan
 		for i := range details {
