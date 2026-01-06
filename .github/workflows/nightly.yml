@@ -52,9 +52,6 @@ jobs:
           RELEASE_BASE_NEXT=$(echo "$RELEASE_BASE" | awk -F'\\.' -v OFS='.' '{ $NF = $NF + 1; print }')
           echo "version base (next): $RELEASE_BASE_NEXT"
 
-          # hardcoded for now so that the 9.0.0 release does not appear to be behind a nightly
-          RELEASE_BASE_NEXT="v9.0.0" # TODO: remove after "v9.0.0" release and allow to increment naturally
-
           DATE=$(date -u +%Y%m%dT%H%M%SZ) # ISO 8601 without colons or dashes
           REF=$(git rev-parse --short HEAD)
           VER="${RELEASE_BASE_NEXT}-${REF}-${DATE}"
@@ -257,6 +254,15 @@ jobs:
         run: |
           # Publish the draft release (only if artifact upload succeeded)
           gh release edit "$VERSION" --draft=false
+
+      # Don't keep releases where artifact creation or upload has failed.
+      - name: Cleanup Failed GitHub Pre-Release
+        if: failure() && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          gh release delete "$VERSION" --cleanup-tag
 
       - name: Upload to S3 (nightly + latest)
         if: github.event.inputs.dry_run != 'true'
