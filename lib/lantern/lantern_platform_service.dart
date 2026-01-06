@@ -159,9 +159,10 @@ class LanternPlatformService implements LanternCoreService {
         if (removeCount > 0) {
           buffer.removeRange(0, removeCount);
         }
-
-        yield List<String>.unmodifiable(buffer);
       }
+
+      // Emit the current buffered logs on every batch
+      yield List<String>.unmodifiable(buffer);
     }
   }
 
