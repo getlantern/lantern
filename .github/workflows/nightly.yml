@@ -34,7 +34,7 @@ jobs:
       run_windows: ${{ steps.platforms.outputs.run_windows }}
       run_android: ${{ steps.platforms.outputs.run_android }}
       run_ios: ${{ steps.platforms.outputs.run_ios }}
-      stage: ${{ github.event.inputs.stage }}
+      stage: ${{ steps.platforms.outputs.stage }}
     steps:
       - uses: actions/checkout@v4
 
