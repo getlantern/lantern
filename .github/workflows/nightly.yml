@@ -67,6 +67,7 @@ jobs:
         shell: bash
         env:
           RAW_INPUT: ${{ github.event_name == 'schedule' && 'all' || github.event.inputs.platforms }}
+          STAGE_INPUT: ${{ github.event.inputs.stage }}
         run: |
           RAW="${RAW_INPUT:-all}"
           # normalize input
@@ -92,7 +93,8 @@ jobs:
           echo "run_windows=$(want windows)" >> "$GITHUB_OUTPUT"
           echo "run_android=$(want android)" >> "$GITHUB_OUTPUT"
           echo "run_ios=$(want ios)"         >> "$GITHUB_OUTPUT"
-          echo "stage=${{ github.event.inputs.stage }}" >> "$GITHUB_OUTPUT"
+          echo "stage=${STAGE_INPUT:-false}" >> "$GITHUB_OUTPUT"
+          echo "stage=${STAGE_INPUT:-false}"
 
       - name: Update pubspec.yaml (build number only)
         shell: bash
