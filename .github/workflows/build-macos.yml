@@ -94,14 +94,10 @@ jobs:
       - name: Install dependencies
         run: make install-macos-deps
 
-      - name: Stage environment file
+      - name: Stage environment
         if: ${{ inputs.stage_env == true }}
         run: |
-          if [[ "${{ inputs.stage_env }}" == "true" ]]; then
-            echo "RADIANCE_ENV=stage" >> $GITHUB_ENV
-          else
-            echo "RADIANCE_ENV=prod" >> $GITHUB_ENV
-          fi
+          echo "RADIANCE_ENV=stage" >> $GITHUB_ENV
 
       - name: Build macOS release
         run: make macos-release
