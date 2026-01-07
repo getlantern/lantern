@@ -21,7 +21,6 @@ class ServerLocationEntity {
   /// DB field storing the nested object as JSON
   String autoLocationJson;
 
-
   /// Transient (non-persisted) convenience getter/setter
   @Transient()
   AutoLocationEntity? get autoLocation {

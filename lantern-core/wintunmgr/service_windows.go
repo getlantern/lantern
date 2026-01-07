@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"github.com/Microsoft/go-winio"
-	"github.com/getlantern/lantern-outline/lantern-core/common"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
+	"github.com/getlantern/lantern/lantern-core/common"
+	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/vpn/ipc"
 )

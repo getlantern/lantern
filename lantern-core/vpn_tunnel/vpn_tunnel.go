@@ -10,7 +10,7 @@ import (
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
 
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
 type InternalTag string

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
 )
 
 // LogHandler is a function that handles new log messages.

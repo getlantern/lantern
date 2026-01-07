@@ -1,0 +1,25 @@
+name: Update READMEs and download links from GitHub profile page
+
+on: 
+  repository_dispatch:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Dispatch trigger
+      run: |
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "GitHub Action"
+
+        # pull generated files from github profile page and commit them
+        git remote add readmes https://github.com/getlantern/.github.git
+        git fetch readmes
+        git checkout --no-overlay readmes/main -- profile
+        mv profile/* .
+        rm -rf profile
+        git add README*
+        git diff --quiet && git diff --staged --quiet || git commit -m 'fetched from getlantern/.github/profile'; git push
