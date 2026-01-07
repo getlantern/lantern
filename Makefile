@@ -170,12 +170,7 @@ macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
-	@if [ "$(RADIANCE_ENV)" = "stage" ]; then \
-		echo "Running STAGE build"; \
-
-	else \
-		echo "Running PROD build"; \
-	fi
+	echo "RADIANCE_ENV $(RADIANCE_ENV)"
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo  -trimpath \
