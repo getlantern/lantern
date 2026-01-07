@@ -157,7 +157,7 @@ class VPNSetting extends HookConsumerWidget {
             trailing: SwitchButton(
               value: preferences.telemetryConsent,
               onChanged: (value) {
-                appLogger.info('Anonymous usageusage data consent changed: $value');
+                appLogger.info('Anonymous usage data consent changed: $value');
                 notifier.updateAnonymousDataConsent(value);
               },
             ),
