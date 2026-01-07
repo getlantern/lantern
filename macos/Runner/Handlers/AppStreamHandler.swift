@@ -8,11 +8,17 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
     private func readCachedApps(dataDir: String) -> [[String: Any]] {
         let cachePath = (dataDir as NSString).appendingPathComponent("apps_cache.json")
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: cachePath)),
-            let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+              let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
         else {
             return []
         }
         return arr
+    }
+
+    @MainActor
+    private func emit(_ payload: [String: Any]) {
+        guard let sink = eventSink else { return }
+        sink(payload)
     }
 
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
@@ -21,11 +27,14 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
         self.eventSink = events
 
         Task.detached { [weak self] in
-            let dataDir = FilePath.dataDirectory.path
+            guard let self else { return }
 
-            let cached = self?.readCachedApps(dataDir: dataDir) ?? []
+            let dataDir = FilePath.dataDirectory.path
+            let cached = self.readCachedApps(dataDir: dataDir)
+
+            // Send cached snapshot only if stream is still active
             await MainActor.run {
-                events([
+                self.emit([
                     "type": "snapshot",
                     "items": cached,
                     "removed": [],
@@ -36,11 +45,11 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
             var error: NSError?
             let jsonString = MobileLoadInstalledApps(dataDir, &error)
 
-            guard let self, self.eventSink != nil else { return }
+            guard self.eventSink != nil else { return }
 
             if let error {
                 await MainActor.run {
-                    events([
+                    self.emit([
                         "type": "error",
                         "items": [],
                         "removed": [],
@@ -51,10 +60,9 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
             }
 
             if let data = jsonString.data(using: .utf8),
-                let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-            {
+               let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
                 await MainActor.run {
-                    events([
+                    self.emit([
                         "type": "snapshot",
                         "items": arr,
                         "removed": [],
