@@ -5,12 +5,11 @@ title: "[Feature]: "
 body:
   - type: markdown
     attributes:
-      value: |
-        What would make Lantern better?
+      value: What would make Lantern better?
   - type: textarea
     id: request-body
     attributes:
       label: Request a feature
       description: Tell us how you'd use the feature and why it's important to you.
-      validations:
-        required: true
+    validations:
+      required: true
