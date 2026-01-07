@@ -9,8 +9,8 @@ on:
         description: "Space-separated list of platforms to build"
         required: false
         default: "linux"
-      staging:
-        description: "Staging mode"
+      stage:
+        description: "Stage environment"
         required: false
         type: boolean
         default: false
@@ -117,7 +117,7 @@ jobs:
       version: ${{ needs.set-nightly-metadata.outputs.version }}
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
-      stage: ${{ github.event.inputs.staging || 'false' }}
+      stage: ${{ github.event.inputs.stage || false }}
 
   build-windows:
     needs: set-nightly-metadata
