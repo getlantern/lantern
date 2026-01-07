@@ -12,7 +12,7 @@ on:
       installer_name:
         required: true
         type: string
-      stage:
+      stage_env:
         required: false
         type: boolean
 
@@ -26,6 +26,7 @@ jobs:
       AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
+      STAGE_ENV: ${{ inputs.stage_env}}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -93,7 +94,7 @@ jobs:
         run: make install-macos-deps
 
       - name: Stage environment file
-        if: ${{ inputs.stage == true }}
+        if: env.STAGE_ENV == 'true'
         run: export RADIANCE_ENV=stage
 
       - name: Build macOS release
