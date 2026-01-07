@@ -39,7 +39,9 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (PlatformUtils.isAndroid || PlatformUtils.isMacOS||PlatformUtils.isWindows) ...{
+              if (PlatformUtils.isAndroid ||
+                  PlatformUtils.isMacOS ||
+                  PlatformUtils.isWindows) ...{
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
@@ -141,7 +143,7 @@ class VPNSetting extends HookConsumerWidget {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            minHeight: PlatformUtils.isWindows?82.0:72.0,
+            minHeight: PlatformUtils.isWindows ? 82.0 : 72.0,
             label: 'anonymous_usage_data'.i18n,
             icon: AppImagePaths.assessment,
             subtitle: AutoSizeText(

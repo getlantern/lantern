@@ -5,8 +5,6 @@ class PasteIntent extends Intent {
   const PasteIntent();
 }
 
-
 class EnterIntent extends Intent {
   const EnterIntent();
 }
-
