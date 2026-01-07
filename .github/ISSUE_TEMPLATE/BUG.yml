@@ -1,0 +1,43 @@
+name: Bug Report
+type: bug
+description: Client application not working as expected
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bug reports are only for existing features that are not functioning correctly.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: And what did you expect to happen?
+      placeholder: Provide enough detail that we can reproduce the behavior.
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of our software are you running?
+      placeholder: ex. 9.0.1
+  - type: checkboxes
+    id: platform
+    attributes:
+      label: Which platform(s) does this affect?
+      description: Select all that apply.
+      options:
+        - label: Android
+        - label: iOS
+        - label: Desktop (Windows)
+        - label: Desktop (MacOS)
+        - label: Desktop (Linux)
+  - type: input
+    id: ticket
+    attributes:
+      label: Related Support Tickets
+      description: Is this related to any support tickets? Add their ticket numbers below.
+      placeholder: ex. TICKET-123, TICKET-9876543
+      validations:
+        required: false
