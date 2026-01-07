@@ -85,11 +85,12 @@ class AppDialog {
           actionsOverflowAlignment: OverflowBarAlignment.end,
           backgroundColor: AppColors.gray1,
           contentPadding: EdgeInsets.symmetric(horizontal: size24),
-          actionsPadding: actionPadding??EdgeInsets.only(
-              top: defaultSize,
-              bottom: defaultSize,
-              left: defaultSize,
-              right: defaultSize),
+          actionsPadding: actionPadding ??
+              EdgeInsets.only(
+                  top: defaultSize,
+                  bottom: defaultSize,
+                  left: defaultSize,
+                  right: defaultSize),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: AppColors.gray3, width: 1),

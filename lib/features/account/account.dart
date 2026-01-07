@@ -82,10 +82,12 @@ class Account extends HookConsumerWidget {
             label: user.legacyUserData.toDate(),
             contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.autoRenew,
-            trailing: !user.legacyUserData.subscriptionData.autoRenew?null: AppTextButton(
-              label: 'manage_subscription'.i18n,
-              onPressed: () => onManageSubscriptionTap(ref, buildContext),
-            ),
+            trailing: !user.legacyUserData.subscriptionData.autoRenew
+                ? null
+                : AppTextButton(
+                    label: 'manage_subscription'.i18n,
+                    onPressed: () => onManageSubscriptionTap(ref, buildContext),
+                  ),
           ),
         ),
         SizedBox(height: defaultSize),
