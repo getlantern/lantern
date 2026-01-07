@@ -5,8 +5,7 @@ title: "[Bug]: "
 body:
   - type: markdown
     attributes:
-      value: |
-        Bug reports are only for existing features that are not functioning correctly.
+      value: Bug reports are for existing features that are not functioning correctly.
   - type: textarea
     id: what-happened
     attributes:
