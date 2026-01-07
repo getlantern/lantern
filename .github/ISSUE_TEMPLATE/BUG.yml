@@ -39,5 +39,5 @@ body:
       label: Related Support Tickets
       description: Is this related to any support tickets? Add their ticket numbers below.
       placeholder: ex. TICKET-123, TICKET-9876543
-    validations:
-      required: false
+      validations:
+        required: false
