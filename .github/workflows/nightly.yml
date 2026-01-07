@@ -126,7 +126,7 @@ jobs:
       version: ${{ needs.set-nightly-metadata.outputs.version }}
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
-      stage_env: ${{ needs.set-nightly-metadata.outputs.stage }}
+      stage_env: ${{ needs.set-nightly-metadata.outputs.stage == 'true' }}
 
   build-windows:
     needs: set-nightly-metadata
