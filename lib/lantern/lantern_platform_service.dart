@@ -356,6 +356,51 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   Stream<List<AppData>> macAppsDataStream() async* {
+    Stream<dynamic>? nativeStream;
+    try {
+      nativeStream = appStreamChannel.receiveBroadcastStream({"sizePx": 96});
+    } on MissingPluginException {
+      nativeStream = null;
+    } catch (_) {
+      nativeStream = null;
+    }
+
+    // If stream exists, consume it
+    if (nativeStream != null) {
+      final cache = <String, AppData>{};
+
+      try {
+        await for (final ev in nativeStream) {
+          if (ev is! Map) continue;
+          final e = AppDataEvent.fromMap(ev);
+          final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+
+          for (final id in e.removed) {
+            cache.remove(id);
+          }
+          for (final a in e.items) {
+            final key = a.bundleId.isNotEmpty ? a.bundleId : a.appPath;
+            cache[key] = a.copyWith(
+              isEnabled: enabled.contains(key: key, name: a.name),
+            );
+          }
+
+          final list = cache.values.toList()
+            ..sort(
+                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          yield list;
+        }
+      } catch (e, st) {
+        appLogger.error("mac app stream failed", e, st);
+        final list = cache.values.toList()
+          ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        yield list;
+      }
+      return;
+    }
+
+    // Fallback: old method channel snapshot
     try {
       final String? json =
           await _methodChannel.invokeMethod<String>("installedApps");
