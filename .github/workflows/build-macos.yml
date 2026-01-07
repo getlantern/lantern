@@ -28,7 +28,6 @@ jobs:
       AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
-      STAGE_ENV: ${{ inputs.stage_env }}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -96,8 +95,13 @@ jobs:
         run: make install-macos-deps
 
       - name: Stage environment file
-        if: env.STAGE_ENV == 'true'
-        run: export RADIANCE_ENV=stage
+        if: ${{ inputs.stage_env == true }}
+        run: |
+          if [[ "${{ inputs.stage_env }}" == "true" ]]; then
+            echo "RADIANCE_ENV=stage" >> $GITHUB_ENV
+          else
+            echo "RADIANCE_ENV=prod" >> $GITHUB_ENV
+          fi
 
       - name: Build macOS release
         run: make macos-release
