@@ -21,6 +21,7 @@ class AppIconKey {
   final String id;
   final String iconPath;
   final String appPath;
+
   final Uint8List? existingBytes;
 
   const AppIconKey({
@@ -70,6 +71,8 @@ Future<Uint8List?> appIconBytes(Ref ref, AppIconKey k) async {
   }
 
   if (Platform.isMacOS) {
+    if (k.iconPath.isEmpty && k.appPath.isEmpty) return null;
+
     final bytes = await _methodChannel.invokeMethod<Uint8List>(
       'appIconBytes',
       {
@@ -78,10 +81,11 @@ Future<Uint8List?> appIconBytes(Ref ref, AppIconKey k) async {
         'sizePx': 48,
       },
     );
+
     if (bytes != null && bytes.isNotEmpty) {
       cacheNotifier.put(k.id, bytes);
+      return bytes;
     }
-    return bytes;
   }
 
   return null;
