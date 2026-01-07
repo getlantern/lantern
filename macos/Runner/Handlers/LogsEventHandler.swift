@@ -26,15 +26,11 @@ final class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     let logFile = FilePath.logsDirectory.appendingPathComponent("lantern.log")
 
     if let last = try? LogTailer.readLastLines(path: logFile.path, maxLines: 200) {
-     DispatchQueue.main.async {
         events(last)
-      }
     }
 
     tailer = LogTailer(path: logFile.path) { [weak self] newLines in
-      DispatchQueue.main.async {
         self?.eventSink?(newLines)
-      }
      }
 
     return nil
