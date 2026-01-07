@@ -12,5 +12,5 @@ body:
     attributes:
       label: Request a feature
       description: Tell us how you'd use the feature and why it's important to you.
-    validations:
-      required: true
+      validations:
+        required: true
