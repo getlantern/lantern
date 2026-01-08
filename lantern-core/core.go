@@ -522,8 +522,9 @@ func (lc *LanternCore) ReportIssue(
 	// Attach log files. Path must be available on iOS
 	report.Attachments = append(report.Attachments,
 		utils.CreateLogAttachments(
-			filepath.Join(logDir, common.LogFileName),
-			filepath.Join(logDir, "flutter.log"),
+			logDir,
+			common.LogFileName,
+			"flutter.log",
 		)...,
 	)
 	// Send issue report via Radiance
