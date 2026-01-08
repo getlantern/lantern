@@ -1302,6 +1302,25 @@ msgstr "If you don't receive your confirmation code, consider using an alternati
 msgid "continue_anyway"
 msgstr "Continue Anyway"
 
+msgid "routing_mode"
+msgstr "Routing Mode"
+
+msgid "smart_routing"
+msgstr "Smart Routing"
+
+msgid "full_tunnel"
+msgstr "Full Tunnel"
+
+msgid "region_optimized_routing"
+msgstr "Rule-based routing optimized for your region"
+
+msgid "all_traffic_through_vpn"
+msgstr "All traffic through VPN"
+
+msgid "smart_routing_description"
+msgstr "Smart Routing uses region-specific rules to automatically send traffic that needs the VPN through Lantern. All other traffic goes direct for speed and reliability."
+
+
 
 
 

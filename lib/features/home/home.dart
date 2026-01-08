@@ -20,6 +20,7 @@ import '../../core/common/common.dart';
 enum _SettingTileType {
   smartLocation,
   splitTunneling,
+  smartRouting,
 }
 
 @RoutePage(name: 'Home')
@@ -173,6 +174,27 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
               ),
+              DividerSpace(),
+              SettingTile(
+                label: 'routing_mode'.i18n,
+                icon: AppImagePaths.route,
+                value: setting.isSplitTunnelingOn
+                    ? setting.splitTunnelingMode.value.capitalize
+                    : 'disabled'.i18n,
+                actions: [
+                  IconButton(
+                    onPressed: () => appRouter.push(SplitTunneling()),
+                    style: ElevatedButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: AppImage(path: AppImagePaths.arrowForward),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  )
+                ],
+                onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
+              ),
             },
           ],
         ),
@@ -188,6 +210,8 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
       case _SettingTileType.splitTunneling:
         appRouter.push(const SplitTunneling());
         break;
+      case _SettingTileType.smartRouting:
+        appRouter.push(const SmartRouting());
     }
   }
 

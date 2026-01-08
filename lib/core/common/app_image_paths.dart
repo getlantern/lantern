@@ -101,4 +101,5 @@ class AppImagePaths {
   static const shareV2 = 'assets/images/share_v2.svg';
   static const autoRenew = 'assets/images/auto_renew.svg';
   static const assessment = 'assets/images/assessment.svg';
+  static const route = 'assets/images/route.svg';
 }

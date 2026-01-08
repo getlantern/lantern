@@ -112,7 +112,7 @@ final class AppIconBytesProvider extends $FunctionalProvider<
   }
 }
 
-String _$appIconBytesHash() => r'1fd4828aec90856d3063af353d76f2cc265fa5e4';
+String _$appIconBytesHash() => r'583f5284e1ccc6aac98594cc04eaf80151cfd260';
 
 final class AppIconBytesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Uint8List?>, AppIconKey> {

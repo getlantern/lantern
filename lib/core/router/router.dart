@@ -180,5 +180,9 @@ class AppRouter extends RootStackRouter {
       path: '/developer-mode',
       page: DeveloperMode.page,
     ),
+    AutoRoute(
+      path: '/smart-routing',
+      page: SmartRouting.page,
+    ),
   ];
 }
