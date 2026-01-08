@@ -292,6 +292,32 @@ jobs:
             aws s3 cp appcast.xml "s3://${bucket}/releases/appcast.xml" --acl public-read
           fi
 
+      - name: Build Slack message
+        id: slack_msg
+        run: |
+          prefix="releases/${BUILD_TYPE}"
+          tag="${RELEASE_TAG}"
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag }}|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+
+          if [[ "$RUN_MACOS" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
+          fi
+          if [[ "$RUN_WINDOWS" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe|Windows>"
+          fi
+          if [[ "$RUN_ANDROID" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
+          fi
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          fi
+
+          # Expose as output
+          echo "text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$text"   >> "$GITHUB_OUTPUT"
+          echo "EOF"     >> "$GITHUB_OUTPUT"
+
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
         with:
@@ -299,7 +325,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Latest downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>\n\n*Tag-scoped:* <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/|releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/>"
+              "text": ${{ steps.slack_msg.outputs.text }}
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
