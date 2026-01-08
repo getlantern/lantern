@@ -82,21 +82,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-dart-
 
-      - name: Prepare gomobile cache dir
-        shell: bash
-        run: |
-          set -euxo pipefail
-          mkdir -p "${GOMOBILECACHE}"
-
-      - name: Cache gomobile init outputs
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.GOMOBILECACHE }}
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('go.mod') }}-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
-
       - name: Set gradle properties
         env:
           GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
