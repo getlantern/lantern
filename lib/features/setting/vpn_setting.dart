@@ -39,6 +39,26 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              AppTile(
+                label: 'server_locations'.i18n,
+                icon: AppImagePaths.location,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
+                onPressed: () {
+                  appRouter.push(const ServerSelection());
+                },
+              ),
+              DividerSpace(),
+              SplitTunnelingTile(
+                label: 'routing_mode'.i18n,
+                icon: AppImagePaths.route,
+                actionText:
+                    splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                onPressed: () => appRouter.push(const SmartRouting()),
+              ),
+              DividerSpace(),
               if (PlatformUtils.isAndroid ||
                   PlatformUtils.isMacOS ||
                   PlatformUtils.isWindows) ...{
@@ -51,17 +71,6 @@ class VPNSetting extends HookConsumerWidget {
                 ),
                 DividerSpace()
               },
-              AppTile(
-                label: 'server_locations'.i18n,
-                icon: AppImagePaths.location,
-                trailing: AppImage(
-                  path: AppImagePaths.arrowForward,
-                  height: 20,
-                ),
-                onPressed: () {
-                  appRouter.push(const ServerSelection());
-                },
-              ),
             ],
           ),
         ),

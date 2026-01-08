@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 import 'package:lantern/features/split_tunneling/website_domain_input.dart';
@@ -19,7 +18,6 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
-    final appSetting = ref.watch(appSettingProvider);
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
     matchesSearch(website) =>
@@ -82,7 +80,6 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
       ),
     );
   }
-
 }
 
 class WebsiteRow extends StatelessWidget {
