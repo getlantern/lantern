@@ -117,7 +117,7 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
                     text: 'private_server_usage_message'.i18n,
                   )
                 else
-                  const SizedBox()
+                  const DataUsage()
               },
               SizedBox(height: 8),
               _buildSetting(ref),

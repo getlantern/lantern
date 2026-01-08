@@ -364,7 +364,7 @@ class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = "debug"
+                logLevel = "trace"
                 deviceid = DeviceUtil.deviceId()
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
                 telemetryConsent = isTelemetryEnabled()

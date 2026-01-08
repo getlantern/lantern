@@ -57,9 +57,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return appData.bundleId;
   }
 
-  bool _shouldRequireIcons() =>
-      PlatformUtils.isAndroid || PlatformUtils.isMacOS;
-
   List<AppData> _installedAppsSnapshot() {
     final apps = ref.read(appsDataProvider);
 
@@ -69,12 +66,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     );
 
     return allApps
-        .where((a) {
-          if (_shouldRequireIcons()) {
-            return a.iconPath.isNotEmpty || a.iconBytes != null;
-          }
-          return true;
-        })
         .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));

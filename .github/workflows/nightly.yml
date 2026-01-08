@@ -179,7 +179,100 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
 
+      - name: Create GitHub Pre-Release
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+
+          cat > release_notes.md <<EOF
+          ## Nightly Build
+
+          This is an automated nightly build from commit \`$sha\`.
+
+          **Branch:** \`${{ github.ref_name }}\`
+          **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ### Downloads
+          EOF
+
+          if [[ "$RUN_MACOS" == "true" ]]; then
+            echo "- macOS: \`${INSTALLER_NAME}.dmg\`" >> release_notes.md
+          fi
+          if [[ "$RUN_WINDOWS" == "true" ]]; then
+            echo "- Windows: \`${INSTALLER_NAME}.exe\`" >> release_notes.md
+          fi
+          if [[ "$RUN_ANDROID" == "true" ]]; then
+            echo "- Android: \`${INSTALLER_NAME}.apk\`" >> release_notes.md
+          fi
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            echo "- Linux: \`${INSTALLER_NAME}.deb\`, \`${INSTALLER_NAME}.rpm\`" >> release_notes.md
+          fi
+
+          # Create the pre-release as a draft, because immutable releases 
+          # forbid uploading artifacts after publication.
+          gh release create "$VERSION" \
+            --draft \
+            --prerelease \
+            --title "Nightly $VERSION" \
+            --notes-file release_notes.md
+
+      - name: Upload artifacts to GitHub Release
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          if [[ "$RUN_MACOS" == "true" ]] && [[ -f "lantern-installer-dmg/${INSTALLER_NAME}.dmg" ]]; then
+            gh release upload "$VERSION" "lantern-installer-dmg/${INSTALLER_NAME}.dmg"
+          fi
+
+          if [[ "$RUN_WINDOWS" == "true" ]] && [[ -f "lantern-installer-exe/${INSTALLER_NAME}.exe" ]]; then
+            gh release upload "$VERSION" "lantern-installer-exe/${INSTALLER_NAME}.exe"
+          fi
+
+          if [[ "$RUN_ANDROID" == "true" ]] && [[ -f "lantern-installer-apk/${INSTALLER_NAME}.apk" ]]; then
+            gh release upload "$VERSION" "lantern-installer-apk/${INSTALLER_NAME}.apk"
+          fi
+
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            if [[ -f "lantern-installer-deb/${INSTALLER_NAME}.deb" ]]; then
+              gh release upload "$VERSION" "lantern-installer-deb/${INSTALLER_NAME}.deb"
+            fi
+            if [[ -f "lantern-installer-rpm/${INSTALLER_NAME}.rpm" ]]; then
+              gh release upload "$VERSION" "lantern-installer-rpm/${INSTALLER_NAME}.rpm"
+            fi
+          fi
+
+      - name: Publish GitHub Pre-Release
+        if: success() && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          # Publish the draft release (only if artifact upload succeeded)
+          gh release edit "$VERSION" --draft=false
+
+      # Don't keep releases where artifact creation or upload has failed.
+      - name: Cleanup Failed GitHub Pre-Release
+        if: |
+          (failure() ||
+           needs.build-macos.result == 'failure' ||
+           needs.build-windows.result == 'failure' ||
+           needs.build-linux.result == 'failure' ||
+           needs.build-android.result == 'failure' ||
+           needs.build-ios.result == 'failure') &&
+          github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          gh release delete "$VERSION" --cleanup-tag
+
       - name: Upload to S3 (nightly + latest)
+        if: github.event.inputs.dry_run != 'true'
         run: |
           sha="$(git rev-parse --short HEAD)"
 
@@ -224,6 +317,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Links
+        if: github.event.inputs.dry_run != 'true'
         run: |
           sha="$(git rev-parse --short HEAD)"
           {
@@ -244,6 +338,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build Slack message
+        if: github.event.inputs.dry_run != 'true'
         id: slack_msg
         run: |
           sha="$(git rev-parse --short HEAD)"
@@ -270,6 +365,7 @@ jobs:
           echo "EOF"     >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack
+        if: github.event.inputs.dry_run != 'true'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
