@@ -1,4 +1,4 @@
-import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -24,7 +24,6 @@ class AppSetting {
     this.isPro = false,
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
-
     this.oAuthToken = '',
     this.blockAds = false,
     this.email = '',
@@ -33,7 +32,7 @@ class AppSetting {
     this.telemetryDialogDismissed = false,
     this.telemetryConsent = false,
     this.successfulConnection = false,
-    this.routingMode = '',
+    this.routingMode ='Full Tunnel',
   });
 
   AppSetting copyWith({
@@ -54,11 +53,9 @@ class AppSetting {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
-
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
@@ -69,7 +66,4 @@ class AppSetting {
       routingMode: routingMode ?? this.routingMode,
     );
   }
-
-
-
 }

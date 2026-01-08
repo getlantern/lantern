@@ -14,10 +14,17 @@ class SmartRouting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final appSetting = ref.watch(appSettingProvider);
-    final routeMode = appSetting.routingMode;
+    final routeMode = appSetting.routingMode.isEmpty
+        ? 'full_tunnel'.i18n
+        : appSetting.routingMode;
 
     void updateRoutingMode(String mode) {
       ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+      WidgetsBinding.instance.addPersistentFrameCallback(
+        (timeStamp) {
+          appRouter.pop();
+        },
+      );
     }
 
     return BaseScreen(

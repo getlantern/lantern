@@ -171,45 +171,6 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     );
   }
 
-  // Widget _buildSelectedLocation(ServerLocationEntity serverLocation) {
-  //   if (serverLocation.serverType.toServerLocationType ==
-  //       ServerLocationType.auto) {
-  //     return const SizedBox.shrink();
-  //   }
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: <Widget>[
-  //       Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-  //         child: Text('selected_location'.i18n,
-  //             style: _textTheme?.labelLarge!.copyWith(
-  //               color: AppColors.gray8,
-  //             )),
-  //       ),
-  //       AppCard(
-  //         padding: EdgeInsets.zero,
-  //         child: AppTile(
-  //           contentPadding: EdgeInsets.symmetric(
-  //               horizontal: 16,
-  //               vertical: serverLocation.serverType.toServerLocationType ==
-  //                       ServerLocationType.privateServer
-  //                   ? 8
-  //                   : 0),
-  //           icon: Flag(countryCode: serverLocation.countryCode),
-  //           label: getServerName(serverLocation),
-  //           subtitle: getServerLocation(serverLocation),
-  //           trailing: AppRadioButton<String>(
-  //             value: serverLocation.serverName,
-  //             groupValue: serverLocation.serverName,
-  //             onChanged: (value) {},
-  //           ),
-  //         ),
-  //       ),
-  //       SizedBox(height: defaultSize),
-  //     ],
-  //   );
-  // }
-
   String getServerName(ServerLocationEntity serverLocation) {
     switch (serverLocation.serverType.toServerLocationType) {
       case ServerLocationType.lanternLocation:
@@ -568,18 +529,9 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       );
     }
 
-    final location = widget.locations.first;
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      subtitle: location.protocol.isEmpty
-          ? null
-          : Text(
-              location.protocol.capitalize,
-              style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
-              ),
-            ),
       trailing: AppImage(
         path: AppImagePaths.arrowForward,
         height: 20.0,
@@ -616,6 +568,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   widget.onServerSelected(selected);
                 },
                 location: loc,
+                nested: true,
                 isSelected: isSelected,
               );
             },

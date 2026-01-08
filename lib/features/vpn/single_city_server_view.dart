@@ -10,12 +10,14 @@ class SingleCityServerView extends StatefulWidget {
   final Location_ location;
   final OnServerSelected onServerSelected;
   final bool isSelected;
+  final bool nested;
 
   const SingleCityServerView({
     super.key,
     required this.onServerSelected,
     required this.location,
     this.isSelected = false,
+    this.nested = false,
   });
 
   @override
@@ -27,9 +29,9 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AppTile(
-      // minHeight: 55,
-      // contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      label: '${widget.location.country} - ${widget.location.city}',
+      label: widget.nested
+          ? widget.location.city
+          : '${widget.location.country} - ${widget.location.city}',
       selected: widget.isSelected,
       subtitle: widget.location.protocol.isEmpty
           ? null

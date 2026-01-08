@@ -77,7 +77,9 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
       return null;
     }, [featureFlag]);
 
-    textTheme = Theme.of(context).textTheme;
+    textTheme = Theme
+        .of(context)
+        .textTheme;
     ref.read(appEventProvider);
     return Scaffold(
       appBar: AppBar(
@@ -107,7 +109,8 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          if (isUserPro) SizedBox(height: 0) else ProBanner(),
+          if (isUserPro) SizedBox(height: 0) else
+            ProBanner(),
           VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -150,27 +153,31 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            DividerSpace(),
-            SettingTile(
-              label: 'routing_mode'.i18n,
-              icon: AppImagePaths.route,
-              value: setting.routingMode.isEmpty
-                  ? 'disabled'.i18n
-                  : setting.routingMode,
-              actions: [
-                IconButton(
-                  onPressed: () => appRouter.push(SplitTunneling()),
-                  style: ElevatedButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: AppImage(path: AppImagePaths.arrowForward),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                )
-              ],
-              onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
-            ),
+            if(!PlatformUtils.isIOS)...{
+
+
+              DividerSpace(),
+              SettingTile(
+                label: 'routing_mode'.i18n,
+                icon: AppImagePaths.route,
+                value: setting.routingMode.isEmpty
+                    ? 'full_tunnel'.i18n
+                    : setting.routingMode,
+                actions: [
+                  IconButton(
+                    onPressed: () => appRouter.push(SplitTunneling()),
+                    style: ElevatedButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: AppImage(path: AppImagePaths.arrowForward),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  )
+                ],
+                onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
+              ),
+            },
             if (PlatformUtils.isAndroid ||
                 PlatformUtils.isMacOS ||
                 PlatformUtils.isWindows) ...{
