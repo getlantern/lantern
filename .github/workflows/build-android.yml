@@ -21,6 +21,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
+      GOMOBILECACHE: "/tmp/gomobile"
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -80,6 +81,12 @@ jobs:
           key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-dart-
+
+      - name: Prepare gomobile cache dir
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "${GOMOBILECACHE}"
 
       - name: Cache gomobile init outputs
         uses: actions/cache@v4
