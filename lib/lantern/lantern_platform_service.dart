@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -41,6 +42,12 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/app_events", JSONMethodCodec());
   static const EventChannel appStreamChannel =
       EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
+  static final RegExp _newlineRegex = RegExp(r'\r?\n');
+  static const int _maxBufferedLines = 4000;
+  // Fraction of lines to keep when trimming the buffer.
+  static const double _keepFraction = 0.25;
+  // Backwards-compatible alias; prefer `_keepFraction` in new code.
+  static const double _trimFraction = _keepFraction;
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
@@ -133,9 +140,49 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) async* {
-    yield* logsChannel
-        .receiveBroadcastStream()
-        .map((event) => (event as List).map((e) => e as String).toList());
+    final buffer = <String>[];
+
+    final stream = logsChannel.receiveBroadcastStream();
+
+    await for (final event in stream) {
+      final batch = _coerceLogBatch(event);
+      if (batch.isEmpty) continue;
+
+      buffer.addAll(batch);
+
+      // Trim to last N lines
+      if (buffer.length > _maxBufferedLines) {
+        // Instead of removing only the excess, drop a chunk to reduce how
+        // often we shift the list
+        final targetLen = (_maxBufferedLines * (1.0 - _trimFraction)).round();
+        final removeCount = math.max(0, buffer.length - targetLen);
+        if (removeCount > 0) {
+          buffer.removeRange(0, removeCount);
+        }
+      }
+
+      // Emit the current buffered logs on every batch
+      yield List<String>.unmodifiable(buffer);
+    }
+  }
+
+  List<String> _coerceLogBatch(dynamic event) {
+    if (event is List) {
+      return event
+          .whereType<String>()
+          .expand((s) => s.split(_newlineRegex))
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    if (event is String) {
+      return event
+          .split(_newlineRegex)
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    return const <String>[];
   }
 
   @override
@@ -309,6 +356,51 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   Stream<List<AppData>> macAppsDataStream() async* {
+    Stream<dynamic>? nativeStream;
+    try {
+      nativeStream = appStreamChannel.receiveBroadcastStream({"sizePx": 96});
+    } on MissingPluginException {
+      nativeStream = null;
+    } catch (_) {
+      nativeStream = null;
+    }
+
+    // If stream exists, consume it
+    if (nativeStream != null) {
+      final cache = <String, AppData>{};
+
+      try {
+        await for (final ev in nativeStream) {
+          if (ev is! Map) continue;
+          final e = AppDataEvent.fromMap(ev);
+          final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+
+          for (final id in e.removed) {
+            cache.remove(id);
+          }
+          for (final a in e.items) {
+            final key = a.bundleId.isNotEmpty ? a.bundleId : a.appPath;
+            cache[key] = a.copyWith(
+              isEnabled: enabled.contains(key: key, name: a.name),
+            );
+          }
+
+          final list = cache.values.toList()
+            ..sort(
+                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          yield list;
+        }
+      } catch (e, st) {
+        appLogger.error("mac app stream failed", e, st);
+        final list = cache.values.toList()
+          ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        yield list;
+      }
+      return;
+    }
+
+    // Fallback: old method channel snapshot
     try {
       final String? json =
           await _methodChannel.invokeMethod<String>("installedApps");

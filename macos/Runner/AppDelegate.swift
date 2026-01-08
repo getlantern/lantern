@@ -73,6 +73,13 @@ class AppDelegate: FlutterAppDelegate {
 
     let logsRegistrar = registry.registrar(forPlugin: "LogsEventHandler")
     LogsEventHandler.register(with: logsRegistrar)
+
+    let appStream = FlutterEventChannel(
+      name: "org.getlantern.lantern/app_stream",
+      binaryMessenger: controller.engine.binaryMessenger,
+      codec: FlutterJSONMethodCodec.sharedInstance()
+    )
+    appStream.setStreamHandler(AppStreamHandler())
   }
 
   /// Initializes the native method channel handler

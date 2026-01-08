@@ -42,6 +42,8 @@ class AppStorageUtils {
         baseDir = Directory(path.replaceFirst("/app_flutter", ""));
       }
       appDir = Directory("${baseDir.path}/.lantern");
+    } else if (Platform.isMacOS) {
+      appDir = Directory('/Users/Shared/Lantern');
     } else if (Platform.isWindows) {
       Directory appDataDir = await getWindowsAppDataDirectory();
 
@@ -49,7 +51,7 @@ class AppStorageUtils {
       // the app directory. It passes the empty string to the radiance
       // common.Init function, which creates the app data directory as
       // a subdirectory of the Lantern app data directory at
-      // C:\Users\<User>\AppData\Roaming\Lantern\data
+      // C:\Users\Public\Lantern. So we need to follow the same logic here.
       appDir = Directory("${appDataDir.path}/data");
     } else {
       // Note this is the application support directory *with*

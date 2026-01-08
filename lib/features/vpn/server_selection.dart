@@ -546,7 +546,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           children: widget.locations.map((loc) {
             return AppTile(
               dense: true,
-              minHeight:58 ,
+              minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
               subtitle: loc.protocol.isEmpty

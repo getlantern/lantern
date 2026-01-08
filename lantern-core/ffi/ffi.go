@@ -17,12 +17,12 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
-	"github.com/getlantern/lantern-outline/lantern-core/apps"
-	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
+	lanterncore "github.com/getlantern/lantern/lantern-core"
+	"github.com/getlantern/lantern/lantern-core/apps"
+	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
+	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
+	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
 type VPNStatus string
