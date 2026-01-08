@@ -36,6 +36,8 @@ jobs:
       run_ios: ${{ steps.platforms.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
 
       - id: meta
         shell: bash
