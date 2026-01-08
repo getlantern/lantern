@@ -486,7 +486,6 @@ func (lc *LanternCore) ReportIssue(
 		Device:      device,
 		Model:       model,
 	}
-	logDir := resolveLogDir(logFilePath)
 
 	// Attach config files from the Lantern data directory
 	dataDir := common.DataPath()
@@ -519,14 +518,6 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
-	// Attach log files. Path must be available on iOS
-	report.Attachments = append(report.Attachments,
-		utils.CreateLogAttachments(
-			logDir,
-			common.LogFileName,
-			"flutter.log",
-		)...,
-	)
 	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
