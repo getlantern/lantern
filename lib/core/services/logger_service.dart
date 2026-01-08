@@ -180,9 +180,14 @@ class LogRotation {
           '${directory.path}${Platform.pathSeparator}${nameWithoutExt}_$timestamp.zip';
       final compressionSucceeded = _compressFile(backupPath, zipPath);
       
-      // Only delete the backup file if compression succeeded
-      if (compressionSucceeded) {
-        File(backupPath).deleteSync();
+      // Only delete the backup file if compression succeeded and zip file exists
+      if (compressionSucceeded && File(zipPath).existsSync()) {
+        final zipFile = File(zipPath);
+        if (zipFile.lengthSync() > 0) {
+          File(backupPath).deleteSync();
+        } else {
+          debugPrint("Warning: Zip file is empty, keeping backup file");
+        }
       }
       
       // Create new log file
