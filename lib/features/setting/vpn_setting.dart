@@ -24,12 +24,13 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
+    final preferences = ref.read(appSettingProvider);
+    final notifier = ref.read(appSettingProvider.notifier);
     final isPrivateServerFound =
         ref.read(localStorageProvider).getPrivateServer().isNotEmpty;
-    final preferences = ref.read(appSettingProvider);
-    final notifier = ref.watch(appSettingProvider.notifier);
     final splitTunnelingEnabled =
         ref.read(appSettingProvider).isSplitTunnelingOn;
+    final routingMode = preferences.routingMode;
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -55,7 +56,7 @@ class VPNSetting extends HookConsumerWidget {
                 label: 'routing_mode'.i18n,
                 icon: AppImagePaths.route,
                 actionText:
-                    splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                    routingMode.isNotEmpty ? routingMode : 'disabled'.i18n,
                 onPressed: () => appRouter.push(const SmartRouting()),
               ),
               DividerSpace(),
