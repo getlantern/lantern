@@ -20,7 +20,7 @@ LoggyPrinter _defaultConsolePrinter() {
   }
 }
 
-Future<void> initLogger([String? path]) async {
+void initLogger([String? path]) {
   LoggyPrinter logPrinter;
 
   if (path != null) {
@@ -31,7 +31,7 @@ Future<void> initLogger([String? path]) async {
         maxBackupFiles: 1,
       );
     } catch (e) {
-      print("Log rotation check failed: $e");
+      debugPrint("Log rotation check failed: $e");
     }
     logPrinter = MultiLogPrinter([
       _defaultConsolePrinter(),
@@ -123,14 +123,29 @@ class FileLogPrinter extends LoggyPrinter {
   }
 }
 
-// Utility class for log file rotation management
+/// Utility class for log file rotation management.
+///
+/// Handles log file size checking, rotation, compression, and cleanup of old backups.
+/// Performs synchronous I/O operations, so it should be called before the logger
+/// starts writing to files to avoid race conditions.
 class LogRotation {
+  /// Checks if the log file exceeds the size limit and rotates it if needed.
+  ///
+  /// Creates the log file if it doesn't exist. If the file size exceeds
+  /// [maxFileSizeInBytes], rotates the log by renaming it with a timestamp,
+  /// compressing it to a zip archive, and creating a new empty log file.
+  /// Also cleans up old backup files beyond [maxBackupFiles] limit.
+  ///
+  /// Parameters:
+  /// - [path]: Path to the log file to check
+  /// - [maxFileSizeInBytes]: Maximum file size before rotation
+  /// - [maxBackupFiles]: Maximum number of backup zip files to keep (default: 2)
   static void checkAndRotateIfNeeded({
     required String path,
     required int maxFileSizeInBytes,
     int maxBackupFiles = 2,
   }) {
-    print("Checking log file size for rotation: $path");
+    debugPrint("Checking log file size for rotation: $path");
     final file = File(path);
 
     if (!file.existsSync()) {
@@ -146,11 +161,14 @@ class LogRotation {
 
   static void _rotateLog(File currentFile, int maxBackupFiles) {
     try {
-      print("Rotating log file: ${currentFile.path}");
+      debugPrint("Rotating log file: ${currentFile.path}");
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final directory = currentFile.parent;
       final fileName = currentFile.path.split(Platform.pathSeparator).last;
-      final nameWithoutExt = fileName.replaceAll('.log', '');
+      const logSuffix = '.log';
+      final nameWithoutExt = fileName.endsWith(logSuffix)
+          ? fileName.substring(0, fileName.length - logSuffix.length)
+          : fileName;
 
       // Create backup file path
       final backupPath =
@@ -160,14 +178,17 @@ class LogRotation {
       // Compress the backup file to zip
       final zipPath =
           '${directory.path}${Platform.pathSeparator}${nameWithoutExt}_$timestamp.zip';
-      _compressFile(backupPath, zipPath);
-      // Delete the original log file after compression
-      File(backupPath).deleteSync();
+      final compressionSucceeded = _compressFile(backupPath, zipPath);
+      
+      // Only delete the backup file if compression succeeded
+      if (compressionSucceeded) {
+        File(backupPath).deleteSync();
+      }
+      
       // Create new log file
       File(currentFile.path).createSync();
       // Clean up old backups (now looking for .zip files)
-      _cleanupOldBackups(
-          directory, nameWithoutExt, currentFile.path, maxBackupFiles);
+      _cleanupOldBackups(directory, nameWithoutExt, maxBackupFiles);
 
       debugPrint("Log rotated and compressed: $zipPath");
     } catch (e, st) {
@@ -175,7 +196,7 @@ class LogRotation {
     }
   }
 
-  static void _compressFile(String sourcePath, String zipPath) {
+  static bool _compressFile(String sourcePath, String zipPath) {
     try {
       final sourceFile = File(sourcePath);
       final bytes = sourceFile.readAsBytesSync();
@@ -191,16 +212,18 @@ class LogRotation {
       // Write zip file
       if (zipData != null) {
         File(zipPath).writeAsBytesSync(zipData);
+        return true;
       }
+      return false;
     } catch (e, st) {
       debugPrint("Failed to compress log file: $e\n$st");
+      return false;
     }
   }
 
   static void _cleanupOldBackups(
     Directory directory,
     String nameWithoutExt,
-    String currentPath,
     int maxBackupFiles,
   ) {
     try {
@@ -211,10 +234,12 @@ class LogRotation {
             name.endsWith('.zip'); // Look for .zip files
       }).toList();
 
+      // Sort by modification time in ascending order (oldest first).
       backupFiles
           .sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
 
       if (backupFiles.length > maxBackupFiles) {
+        // Delete the oldest files beyond the maxBackupFiles limit, keeping the newest ones.
         final filesToDelete =
             backupFiles.take(backupFiles.length - maxBackupFiles);
         for (var file in filesToDelete) {
