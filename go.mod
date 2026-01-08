@@ -268,7 +268,7 @@ require (
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/tkuchiki/go-timezone v0.2.0 // indirect
-	github.com/ulikunitz/xz v0.5.10 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.20 // indirect
