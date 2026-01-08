@@ -21,7 +21,6 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
-      GOMOBILECACHE: "/tmp/gomobile"
     runs-on: macos-26
     steps:
       - name: Checkout code
@@ -104,9 +103,14 @@ jobs:
           fileDir: "./android/app"
           encodedString: ${{ secrets.KEYSTORE }}
 
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
+
       - name: Install dependencies (gomobile)
         run: |
-          mkdir -p "${GOMOBILECACHE}"
           make install-android-deps
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
