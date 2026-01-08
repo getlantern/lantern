@@ -22,7 +22,7 @@ jobs:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
       GOMOBILECACHE: "/tmp/gomobile"
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
