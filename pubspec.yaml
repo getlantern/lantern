@@ -136,6 +136,7 @@ dev_dependencies:
 
   riverpod_lint: ^3.0.3
   ffigen: ^20.0.0
+  archive: ^4.0.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
