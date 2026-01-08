@@ -51,6 +51,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: value));
   }
 
+  void setRoutingMode(String mode) {
+    update(state.copyWith(routingMode: mode));
+  }
+
 
   void setUserLoggedIn(bool value) {
     update(state.copyWith(userLoggedIn: value));

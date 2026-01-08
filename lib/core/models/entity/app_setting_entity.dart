@@ -17,6 +17,7 @@ class AppSetting {
   bool telemetryDialogDismissed;
   bool telemetryConsent;
   bool successfulConnection;
+  String routingMode;
 
   AppSetting({
     this.id = 0,
@@ -32,6 +33,7 @@ class AppSetting {
     this.telemetryDialogDismissed = false,
     this.telemetryConsent = false,
     this.successfulConnection = false,
+    this.routingMode = '',
   });
 
   AppSetting copyWith({
@@ -47,6 +49,7 @@ class AppSetting {
     bool? showTelemetryDialog,
     bool? telemetryConsent,
     bool? successfulConnection,
+    String? routingMode,
   }) {
     return AppSetting(
       id: id,
@@ -63,6 +66,7 @@ class AppSetting {
       telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
       telemetryConsent: telemetryConsent ?? this.telemetryConsent,
       successfulConnection: successfulConnection ?? this.successfulConnection,
+      routingMode: routingMode ?? this.routingMode,
     );
   }
 

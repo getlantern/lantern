@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "15:2605651149110192739",
+      "lastPropertyId": "16:4485043618273916447",
       "name": "AppSetting",
       "properties": [
         {
@@ -122,6 +122,11 @@
           "id": "15:2605651149110192739",
           "name": "successfulConnection",
           "type": 1
+        },
+        {
+          "id": "16:4485043618273916447",
+          "name": "routingMode",
+          "type": 9
         }
       ],
       "relations": []

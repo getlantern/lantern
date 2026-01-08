@@ -150,6 +150,27 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
+            DividerSpace(),
+            SettingTile(
+              label: 'routing_mode'.i18n,
+              icon: AppImagePaths.route,
+              value: setting.routingMode.isEmpty
+                  ? 'disabled'.i18n
+                  : setting.routingMode,
+              actions: [
+                IconButton(
+                  onPressed: () => appRouter.push(SplitTunneling()),
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: AppImage(path: AppImagePaths.arrowForward),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                )
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
+            ),
             if (PlatformUtils.isAndroid ||
                 PlatformUtils.isMacOS ||
                 PlatformUtils.isWindows) ...{
@@ -173,25 +194,6 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
                   )
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
-              ),
-              DividerSpace(),
-              SettingTile(
-                label: 'routing_mode'.i18n,
-                icon: AppImagePaths.route,
-                value:  'disabled'.i18n,
-                actions: [
-                  IconButton(
-                    onPressed: () => appRouter.push(SplitTunneling()),
-                    style: ElevatedButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: AppImage(path: AppImagePaths.arrowForward),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                  )
-                ],
-                onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
             },
           ],
