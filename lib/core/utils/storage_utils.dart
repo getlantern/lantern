@@ -80,8 +80,8 @@ class AppStorageUtils {
   static Future<File> flutterLogFile() async {
     final dir = await getAppLogDirectory();
     final logFile = File("$dir/flutter.log");
-    if (!logFile.existsSync()) {
-      logFile.createSync(recursive: true);
+    if (!await logFile.exists()) {
+      await logFile.create(recursive: true);
     }
     appLogger.debug("Using flutter log file at: ${logFile.path}");
     return logFile;
