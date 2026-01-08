@@ -297,7 +297,7 @@ jobs:
         run: |
           prefix="releases/${BUILD_TYPE}"
           tag="${RELEASE_TAG}"
-          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag }}|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
 
           if [[ "$RUN_MACOS" == "true" ]]; then
             text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
