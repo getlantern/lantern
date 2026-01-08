@@ -158,7 +158,7 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
                 value: setting.isSplitTunnelingOn
-                    ? setting.splitTunnelingMode.value.capitalize
+                    ? 'enabled'.i18n
                     : 'disabled'.i18n,
                 actions: [
                   IconButton(
@@ -178,9 +178,7 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
               SettingTile(
                 label: 'routing_mode'.i18n,
                 icon: AppImagePaths.route,
-                value: setting.isSplitTunnelingOn
-                    ? setting.splitTunnelingMode.value.capitalize
-                    : 'disabled'.i18n,
+                value:  'disabled'.i18n,
                 actions: [
                   IconButton(
                     onPressed: () => appRouter.push(SplitTunneling()),

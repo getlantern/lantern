@@ -51,9 +51,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: value));
   }
 
-  void setSplitTunnelingMode(SplitTunnelingMode mode) {
-    update(state.copyWith(newSplitTunnelingMode: mode));
-  }
 
   void setUserLoggedIn(bool value) {
     update(state.copyWith(userLoggedIn: value));

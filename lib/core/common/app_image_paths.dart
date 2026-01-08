@@ -102,4 +102,5 @@ class AppImagePaths {
   static const autoRenew = 'assets/images/auto_renew.svg';
   static const assessment = 'assets/images/assessment.svg';
   static const route = 'assets/images/route.svg';
+  static const world = 'assets/images/world.svg';
 }

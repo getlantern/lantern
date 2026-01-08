@@ -1321,6 +1321,9 @@ msgid "smart_routing_description"
 msgstr "Smart Routing uses region-specific rules to automatically send traffic that needs the VPN through Lantern. All other traffic goes direct for speed and reliability."
 
 
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Add apps & websites to bypass the VPN"
+
 
 
 
