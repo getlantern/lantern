@@ -297,12 +297,13 @@ jobs:
         run: |
           prefix="releases/${BUILD_TYPE}"
           tag="${RELEASE_TAG}"
+          s3_tag="${S3_TAG:-$tag}"
           text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe|Windows>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.exe|Windows>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
 
           # Expose as output
           echo "text<<EOF" >> "$GITHUB_OUTPUT"
