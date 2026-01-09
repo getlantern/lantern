@@ -36,24 +36,24 @@ jobs:
       run_ios: ${{ steps.platforms.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - id: meta
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          RELEASE_LATEST=$(gh release list --json tagName -q=".[0].tagName")
-          echo "version release (latest): $RELEASE_LATEST"
+          TAG_LATEST=$(git describe --tags --abbrev=0)
+          echo "version tag (latest): $TAG_LATEST"
 
-          RELEASE_BASE=$(echo "$RELEASE_LATEST" | awk -F'-' '{print $1}')
+          RELEASE_BASE=$(echo "$TAG_LATEST" | awk -F'-' '{print $1}')
           echo "version base (current): $RELEASE_BASE"
 
-          # increment the patch of the latest release by 1
+          # increment the patch of the latest tag by 1
           RELEASE_BASE_NEXT=$(echo "$RELEASE_BASE" | awk -F'\\.' -v OFS='.' '{ $NF = $NF + 1; print }')
           echo "version base (next): $RELEASE_BASE_NEXT"
-
-          # hardcoded for now so that the 9.0.0 release does not appear to be behind a nightly
-          RELEASE_BASE_NEXT="v9.0.0" # TODO: remove after "v9.0.0" release and allow to increment naturally
 
           DATE=$(date -u +%Y%m%dT%H%M%SZ) # ISO 8601 without colons or dashes
           REF=$(git rev-parse --short HEAD)
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       INSTALLER_NAME: ${{ needs.set-nightly-metadata.outputs.installer_name }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       RUN_MACOS: ${{ needs.set-nightly-metadata.outputs.run_macos }}
       RUN_WINDOWS: ${{ needs.set-nightly-metadata.outputs.run_windows }}
       RUN_ANDROID: ${{ needs.set-nightly-metadata.outputs.run_android }}
@@ -191,31 +191,29 @@ jobs:
           sha="$(git rev-parse --short HEAD)"
 
           cat > release_notes.md <<EOF
-          ## Nightly Build
 
           This is an automated nightly build from commit \`$sha\`.
 
           **Branch:** \`${{ github.ref_name }}\`
-          **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-
-          ### Downloads
           EOF
 
           if [[ "$RUN_MACOS" == "true" ]]; then
-            echo "- macOS: \`${INSTALLER_NAME}.dmg\`" >> release_notes.md
+            echo "- macOS: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.dmg" >> release_notes.md
           fi
           if [[ "$RUN_WINDOWS" == "true" ]]; then
-            echo "- Windows: \`${INSTALLER_NAME}.exe\`" >> release_notes.md
+            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.exe" >> release_notes.md
           fi
           if [[ "$RUN_ANDROID" == "true" ]]; then
-            echo "- Android: \`${INSTALLER_NAME}.apk\`" >> release_notes.md
+            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk" >> release_notes.md
           fi
           if [[ "$RUN_LINUX" == "true" ]]; then
-            echo "- Linux: \`${INSTALLER_NAME}.deb\`, \`${INSTALLER_NAME}.rpm\`" >> release_notes.md
+            echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.deb" >> release_notes.md
+            echo "- Linux (.rpm): https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.rpm" >> release_notes.md
           fi
 
           # Create the pre-release as a draft, because immutable releases 
           # forbid uploading artifacts after publication.
+          # Subsequent steps may either delete this or publish it.
           gh release create "$VERSION" \
             --draft \
             --prerelease \
@@ -326,17 +324,17 @@ jobs:
           {
             echo "## Nightly links (commit \`$sha\`)"
             if [[ "$RUN_MACOS" == "true" ]]; then
-              echo "- macOS:     https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
+              echo "- macOS:     https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.dmg"
             fi
             if [[ "$RUN_WINDOWS" == "true" ]]; then
-              echo "- Windows:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
+              echo "- Windows:   https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.exe"
             fi
             if [[ "$RUN_ANDROID" == "true" ]]; then
-              echo "- Android:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
+              echo "- Android:   https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk"
             fi
             if [[ "$RUN_LINUX" == "true" ]]; then
-              echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
-              echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+              echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.deb"
+              echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.rpm"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -345,20 +343,21 @@ jobs:
         id: slack_msg
         run: |
           sha="$(git rev-parse --short HEAD)"
-          text="Lantern nightly '${{ needs.set-nightly-metadata.outputs.version }}' is ready.\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          version="${{ needs.set-nightly-metadata.outputs.version }}"
+          text="Lantern nightly <https://github.com/getlantern/lantern/releases/tag/$version|$version> is ready.\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
 
           if [[ "$RUN_MACOS" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg|macOS>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.dmg|macOS>"
           fi
           if [[ "$RUN_WINDOWS" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe|Windows>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.exe|Windows>"
           fi
           if [[ "$RUN_ANDROID" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk|Android>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk|Android>"
           fi
           if [[ "$RUN_LINUX" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb|Linux (.deb)>"
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
           fi
 
           # Expose as output
