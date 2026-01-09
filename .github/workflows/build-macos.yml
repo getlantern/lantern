@@ -12,6 +12,11 @@ on:
       installer_name:
         required: true
         type: string
+      stage_env:
+        required: false
+        type: boolean
+        default: false
+
 
 jobs:
   build-macos:
@@ -88,6 +93,11 @@ jobs:
 
       - name: Install dependencies
         run: make install-macos-deps
+
+      - name: Stage environment
+        if: ${{ inputs.stage_env == true }}
+        run: |
+          echo "RADIANCE_ENV=stage" >> $GITHUB_ENV
 
       - name: Build macOS release
         run: make macos-release
