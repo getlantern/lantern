@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/config"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/issue"
@@ -44,7 +45,6 @@ type LanternCore struct {
 	rad           *radiance.Radiance
 	splitTunnel   *vpn.SplitTunnel
 	serverManager *servers.Manager
-	userInfo      common.UserInfo
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
@@ -189,7 +189,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
-	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
 	lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
@@ -338,7 +337,7 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 }
 
 func (lc *LanternCore) MyDeviceId() string {
-	return lc.userInfo.DeviceID()
+	return settings.GetString(settings.DeviceIDKey)
 }
 
 func (lc *LanternCore) UpdateLocale(locale string) error {
@@ -631,7 +630,7 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 	redirectBody := api.PaymentRedirectData{
 		Provider:    "stripe",
 		Plan:        planID,
-		DeviceName:  lc.userInfo.DeviceID(),
+		DeviceName:  settings.GetString(settings.DeviceIDKey),
 		Email:       email,
 		BillingType: api.SubscriptionType(subscriptionType),
 	}
@@ -714,7 +713,7 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRe
 
 func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, error) {
 	slog.Debug("Payment redirect")
-	deviceName := lc.userInfo.DeviceID()
+	deviceName := settings.GetString(settings.DeviceIDKey)
 	body := api.PaymentRedirectData{
 		Provider:   provider,
 		Plan:       planId,
@@ -733,7 +732,7 @@ func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, 
 
 func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 	slog.Debug("Logging in user")
-	deviceID := lc.userInfo.DeviceID()
+	deviceID := settings.GetString(settings.DeviceIDKey)
 	loginResponse, err := lc.apiClient.Login(context.Background(), email, password, deviceID)
 	if err != nil {
 		return nil, fmt.Errorf("error logging in: %w", err)
