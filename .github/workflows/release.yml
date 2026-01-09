@@ -187,7 +187,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       RELEASE_TAG: ${{ github.ref_name }}
       S3_TAG: ${{ needs.set-release-metadata.outputs.tag_base }}
     steps:
@@ -284,7 +284,7 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml" || echo "No changes to commit"
           git push
-          bucket="${{ secrets.S3_RELEASES_BUCKET }}"
+          bucket="${{ vars.S3_RELEASES_BUCKET }}"
 
           aws s3 cp appcast.xml "s3://${bucket}/releases/${{ env.BUILD_TYPE }}/latest/appcast.xml" --acl public-read
 
