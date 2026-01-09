@@ -297,21 +297,12 @@ jobs:
         run: |
           prefix="releases/${BUILD_TYPE}"
           tag="${RELEASE_TAG}"
-          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
-
-          if [[ "$RUN_MACOS" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
-          fi
-          if [[ "$RUN_WINDOWS" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe|Windows>"
-          fi
-          if [[ "$RUN_ANDROID" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
-          fi
-          if [[ "$RUN_LINUX" == "true" ]]; then
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-            text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
-          fi
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe|Windows>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
 
           # Expose as output
           echo "text<<EOF" >> "$GITHUB_OUTPUT"
