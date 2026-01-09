@@ -204,7 +204,7 @@ jobs:
             echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.exe" >> release_notes.md
           fi
           if [[ "$RUN_ANDROID" == "true" ]]; then
-            echo "- Android:   https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk" >> release_notes.md
+            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk" >> release_notes.md
           fi
           if [[ "$RUN_LINUX" == "true" ]]; then
             echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.deb" >> release_notes.md
