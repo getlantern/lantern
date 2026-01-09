@@ -325,7 +325,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": ${{ steps.slack_msg.outputs.text }}
+              "text": "${{ steps.slack_msg.outputs.text }}"
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
