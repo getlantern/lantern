@@ -195,11 +195,25 @@ jobs:
           This is an automated nightly build from commit \`$sha\`.
 
           **Branch:** \`${{ github.ref_name }}\`
-
           EOF
+
+          if [[ "$RUN_MACOS" == "true" ]]; then
+            echo "- macOS: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.dmg" >> release_notes.md
+          fi
+          if [[ "$RUN_WINDOWS" == "true" ]]; then
+            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.exe" >> release_notes.md
+          fi
+          if [[ "$RUN_ANDROID" == "true" ]]; then
+            echo "- Android:   https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.apk" >> release_notes.md
+          fi
+          if [[ "$RUN_LINUX" == "true" ]]; then
+            echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.deb" >> release_notes.md
+            echo "- Linux (.rpm): https://$BUCKET.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.rpm" >> release_notes.md
+          fi
 
           # Create the pre-release as a draft, because immutable releases 
           # forbid uploading artifacts after publication.
+          # Subsequent steps may either delete this or publish it.
           gh release create "$VERSION" \
             --draft \
             --prerelease \
