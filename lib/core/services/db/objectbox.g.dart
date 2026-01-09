@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(15, 2605651149110192739),
+    lastPropertyId: const obx_int.IdUid(16, 4485043618273916447),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -151,18 +151,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(10, 6825758662513353714),
-        name: 'bypassListRaw',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(11, 8153428725932858000),
-        name: 'splitTunnelingModeRaw',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(13, 8918901309223826671),
         name: 'telemetryConsent',
         type: 1,
@@ -178,6 +166,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(15, 2605651149110192739),
         name: 'successfulConnection',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 4485043618273916447),
+        name: 'routingMode',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -867,6 +861,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
       7033573124845738437,
       8638115978305760525,
       2297478623142907793,
+      8153428725932858000,
+      6825758662513353714,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -975,11 +971,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeOffset = fbb.writeString(object.locale);
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
-        final bypassListRawOffset = fbb.writeString(object.bypassListRaw);
-        final splitTunnelingModeRawOffset = fbb.writeString(
-          object.splitTunnelingModeRaw,
-        );
-        fbb.startTable(16);
+        final routingModeOffset = fbb.writeString(object.routingMode);
+        fbb.startTable(17);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -989,11 +982,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(6, object.blockAds);
         fbb.addOffset(7, emailOffset);
         fbb.addBool(8, object.showSplashScreen);
-        fbb.addOffset(9, bypassListRawOffset);
-        fbb.addOffset(10, splitTunnelingModeRawOffset);
         fbb.addBool(12, object.telemetryConsent);
         fbb.addBool(13, object.telemetryDialogDismissed);
         fbb.addBool(14, object.successfulConnection);
+        fbb.addOffset(15, routingModeOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1024,9 +1016,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           14,
           false,
         );
-        final splitTunnelingModeRawParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 24, '');
         final oAuthTokenParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -1036,9 +1025,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
-        final bypassListRawParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 22, '');
         final emailParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
@@ -1069,21 +1055,23 @@ obx_int.ModelDefinition getObjectBoxModel() {
           32,
           false,
         );
+        final routingModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 34, '');
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
           isSplitTunnelingOn: isSplitTunnelingOnParam,
           userLoggedIn: userLoggedInParam,
-          splitTunnelingModeRaw: splitTunnelingModeRawParam,
           oAuthToken: oAuthTokenParam,
           blockAds: blockAdsParam,
-          bypassListRaw: bypassListRawParam,
           email: emailParam,
           locale: localeParam,
           showSplashScreen: showSplashScreenParam,
           telemetryDialogDismissed: telemetryDialogDismissedParam,
           telemetryConsent: telemetryConsentParam,
           successfulConnection: successfulConnectionParam,
+          routingMode: routingModeParam,
         );
 
         return object;
@@ -1969,29 +1957,24 @@ class AppSetting_ {
     _entities[1].properties[8],
   );
 
-  /// See [AppSetting.bypassListRaw].
-  static final bypassListRaw = obx.QueryStringProperty<AppSetting>(
-    _entities[1].properties[9],
-  );
-
-  /// See [AppSetting.splitTunnelingModeRaw].
-  static final splitTunnelingModeRaw = obx.QueryStringProperty<AppSetting>(
-    _entities[1].properties[10],
-  );
-
   /// See [AppSetting.telemetryConsent].
   static final telemetryConsent = obx.QueryBooleanProperty<AppSetting>(
-    _entities[1].properties[11],
+    _entities[1].properties[9],
   );
 
   /// See [AppSetting.telemetryDialogDismissed].
   static final telemetryDialogDismissed = obx.QueryBooleanProperty<AppSetting>(
-    _entities[1].properties[12],
+    _entities[1].properties[10],
   );
 
   /// See [AppSetting.successfulConnection].
   static final successfulConnection = obx.QueryBooleanProperty<AppSetting>(
-    _entities[1].properties[13],
+    _entities[1].properties[11],
+  );
+
+  /// See [AppSetting.routingMode].
+  static final routingMode = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[12],
   );
 }
 

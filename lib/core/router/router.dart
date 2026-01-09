@@ -123,10 +123,6 @@ class AppRouter extends RootStackRouter {
       page: SplitTunnelingInfo.page,
     ),
     AutoRoute(
-      path: '/default-bypass-lists',
-      page: DefaultBypassLists.page,
-    ),
-    AutoRoute(
       path: '/apps-split-tunneling',
       page: AppsSplitTunneling.page,
     ),
@@ -179,6 +175,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/developer-mode',
       page: DeveloperMode.page,
+    ),
+    AutoRoute(
+      path: '/smart-routing',
+      page: SmartRouting.page,
     ),
   ];
 }

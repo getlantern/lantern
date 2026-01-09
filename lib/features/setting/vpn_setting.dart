@@ -24,12 +24,13 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
+    final preferences = ref.read(appSettingProvider);
+    final notifier = ref.read(appSettingProvider.notifier);
     final isPrivateServerFound =
         ref.read(localStorageProvider).getPrivateServer().isNotEmpty;
-    final preferences = ref.read(appSettingProvider);
-    final notifier = ref.watch(appSettingProvider.notifier);
     final splitTunnelingEnabled =
         ref.read(appSettingProvider).isSplitTunnelingOn;
+    final routingMode = preferences.routingMode;
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -39,6 +40,28 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              AppTile(
+                label: 'server_locations'.i18n,
+                icon: AppImagePaths.location,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
+                onPressed: () {
+                  appRouter.push(const ServerSelection());
+                },
+              ),
+              if (!PlatformUtils.isIOS) ...{
+                DividerSpace(),
+                SplitTunnelingTile(
+                  label: 'routing_mode'.i18n,
+                  icon: AppImagePaths.route,
+                  actionText:
+                      routingMode.isNotEmpty ? routingMode : 'full_tunnel'.i18n,
+                  onPressed: () => appRouter.push(const SmartRouting()),
+                )
+              },
+              DividerSpace(),
               if (PlatformUtils.isAndroid ||
                   PlatformUtils.isMacOS ||
                   PlatformUtils.isWindows) ...{
@@ -51,17 +74,6 @@ class VPNSetting extends HookConsumerWidget {
                 ),
                 DividerSpace()
               },
-              AppTile(
-                label: 'server_locations'.i18n,
-                icon: AppImagePaths.location,
-                trailing: AppImage(
-                  path: AppImagePaths.arrowForward,
-                  height: 20,
-                ),
-                onPressed: () {
-                  appRouter.push(const ServerSelection());
-                },
-              ),
             ],
           ),
         ),
