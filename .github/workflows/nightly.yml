@@ -346,7 +346,7 @@ jobs:
         run: |
           sha="$(git rev-parse --short HEAD)"
           version="${{ needs.set-nightly-metadata.outputs.version }}"
-          text="Lantern nightly <https://github.com/getlantern/lantern/releases/tag/$version|$version}}> is ready.\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          text="Lantern nightly <https://github.com/getlantern/lantern/releases/tag/$version|$version> is ready.\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
 
           if [[ "$RUN_MACOS" == "true" ]]; then
             text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/nightly/${sha}/${INSTALLER_NAME}.dmg|macOS>"
