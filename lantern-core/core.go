@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
@@ -101,6 +100,7 @@ type PrivateServer interface {
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	SelectedCertFingerprint(fp string)
 	StartDeployment(location, serverName string) error
+	AddServerBasedOnURLs(urls string, skipCertVerification bool) error
 }
 
 type Payment interface {
@@ -274,26 +274,7 @@ func (lc *LanternCore) StartAutoLocationListener() {
 	ctx, cancel := context.WithCancel(context.Background())
 	locationManager.cancel = cancel
 	locationManager.isRunning = true
-	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, (15 * time.Second))
-		for {
-			select {
-			case <-ctx.Done():
-				slog.Info("Auto location listener context done, exiting goroutine")
-				return
-			case selection, ok := <-sourceChan:
-				if !ok {
-					// Channel closed, exit goroutine
-					slog.Info("Auto location listener channel closed, exiting goroutine")
-					return
-				}
-				// Emit event
-				events.Emit(vpn.AutoSelectionsEvent{
-					Selections: selection,
-				})
-			}
-		}
-	}()
+	vpn.AutoSelectionsChangeListener(ctx)
 	slog.Info("Auto location listener started")
 }
 
@@ -760,6 +741,11 @@ func (lc *LanternCore) IsBlockAdsEnabled() bool {
 		return false
 	}
 	return lc.adBlocker.IsEnabled()
+}
+
+func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
+	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification)
 }
 
 type adBlockerStub struct {
