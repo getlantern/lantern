@@ -170,8 +170,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	slog.Debug("Starting LanternCore initialization")
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
-		LogDir:           settings.GetString(settings.LogPathKey),
-		DataDir:          settings.GetString(settings.DataPathKey),
+		LogDir:           opts.LogDir,
+		DataDir:          opts.DataDir,
 		DeviceID:         opts.Deviceid,
 		LogLevel:         opts.LogLevel,
 		Locale:           opts.Locale,
