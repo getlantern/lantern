@@ -37,7 +37,7 @@ class Lantern {
         locations: json["locations"] == null
             ? <String, Location_>{}
             : Map<String, Location_>.from(
-                (json["locations"] as Map).map(
+                (json["locations"] as Map<String, dynamic>).map(
                   (k, v) => MapEntry(
                     k as String,
                     Location_.fromJson(v as Map<String, dynamic>)..tag = k,
