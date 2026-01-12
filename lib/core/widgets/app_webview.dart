@@ -174,7 +174,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return NavigationActionPolicy.ALLOW;
     }
 
-    if (u.host == 'www.lantern.io' &&
+    if (isLanternHost(u.host) &&
         u.path == '/auth' &&
         u.queryParameters.containsKey('token')) {
       await appRouter.maybePop(u.queryParameters);
