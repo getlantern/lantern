@@ -9,11 +9,13 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
+import 'package:lantern/lantern_app.dart';
 
 import '../../core/common/common.dart';
 
@@ -30,12 +32,15 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
+class _HomeState extends ConsumerState<Home>
+    with WidgetsBindingObserver, RouteAware {
   TextTheme? textTheme;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
       if (PlatformUtils.isMacOS) {
@@ -52,6 +57,38 @@ class _HomeState extends ConsumerState<Home> with WidgetsBindingObserver {
         }
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    /// Refresh when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      appLogger.info("App resumed, refreshing data cap info");
+      ref.invalidate(dataCapInfoProvider);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    appLogger.info("Returned to Home screen, refreshing data cap info");
+    ref.invalidate(dataCapInfoProvider);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override

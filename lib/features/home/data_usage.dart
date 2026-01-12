@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
@@ -14,14 +16,18 @@ class DataUsage extends ConsumerWidget {
 
     return dataCapAsync.when(
       data: (dataCapResponse) {
-        // If data cap is not enabled, don't show the widget
+        /// If data cap is not enabled, don't show the widget
         if (!dataCapResponse.enabled || dataCapResponse.usage == null) {
           return const SizedBox.shrink();
         }
-
         final dataCap = dataCapResponse.usage!;
-        final remainingData = ((dataCap.bytesAllotted - dataCap.bytesUsed) / (1024 * 1024)).round();
         final totalData = (dataCap.bytesAllotted / (1024 * 1024)).round();
+        /// Round up used data, but ensure it doesn't exceed total
+        final usedData = dataCap.bytesUsed > 0
+            ? min(
+                totalData, max(1, (dataCap.bytesUsed / (1024 * 1024)).round()))
+            : 0;
+        final remainingData = max(0, totalData - usedData);
         final usageString = '$remainingData/$totalData';
 
         return Container(
@@ -70,11 +76,11 @@ class DataUsage extends ConsumerWidget {
                       value: totalData == 0
                           ? 0
                           : (dataCap.bytesUsed / dataCap.bytesAllotted)
-                          .clamp(0, 1)
-                          .toDouble(),
+                              .clamp(0, 1)
+                              .toDouble(),
                       minHeight: 8,
                       borderRadius:
-                      const BorderRadius.all(Radius.circular(defaultSize)),
+                          const BorderRadius.all(Radius.circular(defaultSize)),
                       trackGap: 10,
                       backgroundColor: AppColors.gray1,
                       valueColor: AlwaysStoppedAnimation(AppColors.yellow3),
@@ -86,8 +92,8 @@ class DataUsage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox.shrink(), // Or show a loading indicator
-      error: (error, stack) => const SizedBox.shrink(), // Or show error message
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 }
