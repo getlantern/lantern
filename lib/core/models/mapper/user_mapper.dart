@@ -44,6 +44,7 @@ extension UserDataMapper on UserResponse_UserData {
       invitees: invitees.toList().join(','),
       purchases: purchases.toList().join(','),
       deviceID: deviceID,
+      unpassRegistered: unpassRegistered
     );
     user.devices.addAll(devices.map((e) => e.toEntity()));
 

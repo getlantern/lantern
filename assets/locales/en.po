@@ -1302,6 +1302,11 @@ msgstr "If you don't receive your confirmation code, consider using an alternati
 msgid "continue_anyway"
 msgstr "Continue Anyway"
 
+msgid "lantern_pro_license_applied"
+msgstr "Your Lantern Pro License will be applied to your existing account"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Your purchase will be applied to your existing account"
 
 
 

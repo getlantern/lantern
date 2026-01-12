@@ -47,6 +47,8 @@ message UserResponse {
 
     SubscriptionData subscriptionData = 20;
     string deviceID = 21;
+    // informs us whether the legacy id and token are username-password flow registered
+    bool unpassRegistered = 22;
   }
   bool Success = 5;
   // this maps to /user-data call in pro-server and is returned only on successful login
