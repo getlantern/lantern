@@ -223,8 +223,8 @@ github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d h1:2/9rPC1x
 github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d/go.mod h1:enUAvxkJ15QUtTKOKoO9WJV2L5u33P8YmqkC+iu8iT4=
 github.com/getlantern/kindling v0.0.0-20260105215242-8df765e82461 h1:PwgggQLmIFSjlMr5SgvO0M8jK3XjrJsxLu7IccACs2Y=
 github.com/getlantern/kindling v0.0.0-20260105215242-8df765e82461/go.mod h1:eg1zov65hEXytiISbE4lcExN3gVhi+ZnPxkoiuVzC6c=
-github.com/getlantern/lantern-box v0.0.6-0.20251219200503-ebc276f06e75 h1:ZFxFKHjX79NIbjeaVx3s4l5BU1UlvsSgP3I1ufOYqr4=
-github.com/getlantern/lantern-box v0.0.6-0.20251219200503-ebc276f06e75/go.mod h1:UahcUmo7uITNOHJ481oTyNSEOTMi7zeMLXVBDUYEqSA=
+github.com/getlantern/lantern-box v0.0.6-0.20260106193059-bc4a6c15f1e2 h1:xkkLpULQWdzktpdtE7KEH/V5sS4YYFR20dqAQiARbSY=
+github.com/getlantern/lantern-box v0.0.6-0.20260106193059-bc4a6c15f1e2/go.mod h1:UahcUmo7uITNOHJ481oTyNSEOTMi7zeMLXVBDUYEqSA=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9 h1:6seyD2f9tz2am0YQd/Qn+q7LFiiQgnmxgwWFnVceGZw=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9/go.mod h1:s0VKrlJf/z+M0U8IKHFL2hfuflocRw3SINmMacrTlMA=
 github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 h1:w5Ff0OeAOEWkAs8BxCfHilE0MsXdCrI1101rSQT8Y8w=
@@ -243,8 +243,6 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YLAuT8r51ApR5z0d8/qjhHu3TW+divQ2C98Ac=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
-github.com/getlantern/radiance v0.0.0-20260107185021-6a84eb299890 h1:wOkieU2aXHgMQAYOOARNrclazh1N2we8BgbnNrcWdRM=
-github.com/getlantern/radiance v0.0.0-20260107185021-6a84eb299890/go.mod h1:U2ANzqsaIrj+rd7YmsSLPK0QmdB3eXZu7hBM9IcwMJU=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692 h1:pK9igrNx0ipBe6xGDgwVnob3JCFwOp2bmEizwanDVk4=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-minimal v1.12.13-0.20251205011046-be268b083378 h1:qUUykWom/NFUfQhEVNJ7SsKXYTDP27nTCEoqY78FtOA=

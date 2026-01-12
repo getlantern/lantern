@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.25.4
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -23,7 +23,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260107185021-6a84eb299890
+	github.com/getlantern/radiance v0.0.0-20260109015929-6813da97af73
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.12.13
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -173,7 +173,7 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/kindling v0.0.0-20260105215242-8df765e82461 // indirect
-	github.com/getlantern/lantern-box v0.0.6-0.20251219200503-ebc276f06e75 // indirect
+	github.com/getlantern/lantern-box v0.0.6-0.20260106193059-bc4a6c15f1e2 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect

@@ -1,22 +1,93 @@
-class DataCapInfo {
-  final int bytesAllotted;
-  final int bytesRemaining;
-  final DateTime allotmentStart;
-  final DateTime allotmentEnd;
+import 'dart:convert';
 
-  DataCapInfo({
-    required this.bytesAllotted,
-    required this.bytesRemaining,
-    required this.allotmentStart,
-    required this.allotmentEnd,
+/// Response containing data cap usage information
+class DataCapUsageResponse {
+  /// Whether data cap is enabled for this device/user
+  final bool enabled;
+
+  /// Data cap usage details (only populated if enabled is true)
+  final DataCapUsageDetails? usage;
+
+  DataCapUsageResponse({
+    required this.enabled,
+    this.usage,
   });
 
-  factory DataCapInfo.fromJson(Map<String, dynamic> json) => DataCapInfo(
-        bytesAllotted: json['bytesAllotted'] as int,
-        bytesRemaining: json['bytesRemaining'] as int,
-        allotmentStart:
-            DateTime.fromMillisecondsSinceEpoch(json['allotmentStart'] * 1000),
-        allotmentEnd:
-            DateTime.fromMillisecondsSinceEpoch(json['allotmentEnd'] * 1000),
-      );
+  /// Create from JSON
+  factory DataCapUsageResponse.fromJson(Map<String, dynamic> json) {
+    return DataCapUsageResponse(
+      enabled: json['enabled'] as bool,
+      usage: json['usage'] != null
+          ? DataCapUsageDetails.fromJson(json['usage'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'enabled': enabled,
+      if (usage != null) 'usage': usage!.toJson(),
+    };
+  }
+
+  /// Create from JSON string
+  factory DataCapUsageResponse.fromJsonString(String jsonString) {
+    return DataCapUsageResponse.fromJson(
+      json.decode(jsonString) as Map<String, dynamic>,
+    );
+  }
+
+  /// Convert to JSON string
+  String toJsonString() {
+    return json.encode(toJson());
+  }
+
+  @override
+  String toString() {
+    return 'GetDataCapUsageResponse(enabled: $enabled, usage: $usage)';
+  }
+}
+
+/// Details of the data cap usage
+class DataCapUsageDetails {
+  final int bytesAllotted;
+  final int bytesUsed;
+  final String allotmentStartTime;
+  final String allotmentEndTime;
+
+  DataCapUsageDetails({
+    required this.bytesAllotted,
+    required this.bytesUsed,
+    required this.allotmentStartTime,
+    required this.allotmentEndTime,
+  });
+
+  factory DataCapUsageDetails.fromJson(Map<String, dynamic> json) {
+    return DataCapUsageDetails(
+      bytesAllotted: json['bytesAllotted'] != ""
+          ? int.tryParse(json['bytesAllotted'])!
+          : 0,
+      bytesUsed: json['bytesUsed'] != ""
+          ? int.tryParse(json['bytesUsed'])!
+          : 0,
+      allotmentStartTime: json['allotmentStartTime'] as String,
+      allotmentEndTime: json['allotmentEndTime'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'bytesAllotted': bytesAllotted,
+      'bytesUsed': bytesUsed,
+      'allotmentStartTime': allotmentStartTime,
+      'allotmentEndTime': allotmentEndTime,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'DataCapUsageDetails(bytesAllotted: $bytesAllotted, bytesUsed: $bytesUsed, '
+        'allotmentStartTime: $allotmentStartTime, allotmentEndTime: $allotmentEndTime)';
+  }
 }

@@ -73,7 +73,7 @@ type App interface {
 
 type User interface {
 	UserData() ([]byte, error)
-	DataCapInfo() ([]byte, error)
+	DataCapInfo() (string, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -528,17 +528,18 @@ func (lc *LanternCore) ReportIssue(
 }
 
 // GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() ([]byte, error) {
+func (lc *LanternCore) DataCapInfo() (string, error) {
 	dataCap, err := lc.apiClient.DataCapInfo(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("error getting data cap info: %w", err)
+		return "", fmt.Errorf("error getting data cap info: %w", err)
 	}
 	jsonBytes, err := json.Marshal(dataCap)
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling data cap info: %w", err)
+		return "", fmt.Errorf("error marshalling data cap info: %w", err)
 	}
-	slog.Debug("Data cap info: ", "info", string(jsonBytes))
-	return jsonBytes, nil
+	jsonString := string(jsonBytes)
+	slog.Debug("datacap useage", "info", jsonString)
+	return jsonString, nil
 }
 
 // User Methods
