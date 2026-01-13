@@ -36,7 +36,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final user = ref.watch(homeProvider).value;
     final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     if (isUserRegistered) {
-      /// this mean user has already registered via
+      /// this mean user has already registered
       emailController.text = user?.legacyUserData.email ?? '';
     }
 
