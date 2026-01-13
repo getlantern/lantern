@@ -45,7 +45,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG_LATEST=$(git describe --tags --abbrev=0)
+          # To ensure the nightly build versions increment the semver patch,
+          # we exclude ancient malformed tags (like '_4.5.5'), and
+          # exclude nightly tags (to prevent them from incrementing upon each other).
+          TAG_LATEST=$(git tag -l --sort=version:refname 'v*' | grep -v 'T.*Z' | tail -1)
           echo "version tag (latest): $TAG_LATEST"
 
           RELEASE_BASE=$(echo "$TAG_LATEST" | awk -F'-' '{print $1}')
