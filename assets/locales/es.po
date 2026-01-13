@@ -1,15 +1,15 @@
 # 
 # Translators:
 # e2f <projects@e2f.com>, 2025
-# Lantern, 2025
 # Aimara pena, 2025
 # strel, 2025
 # e2f_es r2 <tx_e2f_es_r2@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Spanish (https://app.transifex.com/lantern-1/teams/94371/es/)\n"
 "Language: es\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
@@ -1266,13 +1266,13 @@ msgid "annual_plan"
 msgstr " Plan anual:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "+1 mes cada uno"
 
 msgid "two_year_plan"
 msgstr " Plan de dos años:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "+2 meses cada uno"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1281,6 +1281,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "Licencia Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "Se requiere licencia de Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Licencia de Lantern Pro inválida"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "La licencia de Lantern Pro debe tener 25 caracteres"
 
 msgid "select_account"
 msgstr "Seleccionar cuenta"
@@ -1300,58 +1309,115 @@ msgstr ""
 " del proveedor de nube."
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "Agregar detalles de facturación"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean requiere información de pago para crear servidores."
 
 msgid "tap"
-msgstr ""
+msgstr "Toca"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "abajo para ir a DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "Agrega un método de pago (tarjeta de crédito o PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "Regresa a Lantern y toca \"Continuar\" para proceder con la configuración"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "Cómo agregar detalles de facturación:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"Por favor agrega un método de pago a tu cuenta de DigitalOcean. Si ya lo has"
+" hecho, espera unos minutos e intenta nuevamente."
 
 msgid "ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "No se pudo abrir la URL"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "¿Nuevo en Lantern Pro?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "Ocurrió un error. Por favor intenta de nuevo más tarde."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Modo de desarrollador"
 
 msgid "developer_mode_note"
 msgstr ""
+"El Modo de desarrollador es exclusivamente para que los desarrolladores de "
+"Lantern prueben funciones durante el desarrollo."
 
 msgid "invalid_activation_code"
 msgstr ""
+"Código de activación inválido. Por favor verifica el código e intenta de "
+"nuevo."
 
 msgid "invalid_activation_code_length"
+msgstr "El código de activación debe tener 25 caracteres."
+
+msgid "error_while_vpn_connection"
 msgstr ""
+"Ocurrió un error al establecer la conexión VPN. Por favor intenta de nuevo."
+
+msgid "help_improve_lantern"
+msgstr "Ayuda a mejorar Lantern"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Comparte datos de uso anónimos para ayudar a mejorar la velocidad y "
+"confiabilidad."
+
+msgid "data_we_collect"
+msgstr ""
+"Nunca recopilamos historial de navegación, destinos de tráfico, consultas "
+"DNS ni registros de conexión."
+
+msgid "you_can_change_anytime"
+msgstr "Puedes cambiar esto en cualquier momento en la Configuración de VPN."
+
+msgid "dont_allow"
+msgstr "No permitir"
+
+msgid "allow"
+msgstr "Permitir"
+
+msgid "anonymous_usage_data"
+msgstr "Datos de uso anónimos"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Ayuda a mejorar el rendimiento de Lantern"
+
+msgid "changes_applied_after_restart"
+msgstr "Los cambios se aplicarán después de reiniciar Lantern."
+
+msgid "email_deliverability_notice"
+msgstr "Aviso de entregabilidad de correo"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"Los correos a direcciones de 163.com, 126.com, qq.com y sina.com a veces son"
+" bloqueados y pueden no llegar"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Si no recibes tu código de confirmación, considera usar un proveedor de "
+"correo alternativo."
+
+msgid "continue_anyway"
+msgstr "Continuar de todos modos"
