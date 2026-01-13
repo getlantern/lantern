@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:lantern/core/hooks/use_app_lifecycle_listener.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 @RoutePage(name: 'QrCodeScanner')
 class QrCodeScanner extends HookConsumerWidget {
@@ -17,17 +19,24 @@ class QrCodeScanner extends HookConsumerWidget {
       const [],
     );
 
-    final handled = useState(false);
+    final isHandling = useRef(false);
 
-    useEffect(() => controller.dispose, [controller]);
+    useEffect(() {
+      return controller.dispose;
+    }, [controller]);
 
     // Lifecycle: stop camera in background, restart on resume
     useAppLifecycleListener((state) {
+      final isCurrentRoute = (ModalRoute.of(context)?.isCurrent ?? true);
+
       if (state == AppLifecycleState.paused ||
           state == AppLifecycleState.inactive) {
         controller.stop();
-      } else if (state == AppLifecycleState.resumed) {
-        if (!handled.value) controller.start();
+        return;
+      }
+
+      if (state == AppLifecycleState.resumed && isCurrentRoute) {
+        if (!isHandling.value) controller.start();
       }
     });
 
@@ -38,13 +47,8 @@ class QrCodeScanner extends HookConsumerWidget {
     );
 
     Future<void> handleCode(String code) async {
-      if (handled.value) return;
-      handled.value = true;
-
       appLogger.info('Barcode found! $code');
-
       await controller.stop();
-
       if (!context.mounted) return;
       appRouter.pop(code);
     }
@@ -59,15 +63,16 @@ class QrCodeScanner extends HookConsumerWidget {
               controller: controller,
               scanWindow: scanWindow,
               fit: BoxFit.cover,
-              onDetect: (capture) async {
-                if (handled.value) return;
+              onDetect: (capture) {
+                if (isHandling.value) return;
 
                 for (final barcode in capture.barcodes) {
                   final code = barcode.rawValue;
                   if (code == null || code.isEmpty) continue;
 
-                  await handleCode(code);
                   // stop after first valid code
+                  isHandling.value = true;
+                  unawaited(handleCode(code));
                   break;
                 }
               },

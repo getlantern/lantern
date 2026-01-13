@@ -3,13 +3,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 /// Hook that lets a widget react to app lifecycle transitions
 void useAppLifecycleListener(void Function(AppLifecycleState state) onState) {
-  final onStateCb = useCallback(onState, [onState]);
+  final onStateRef = useRef<void Function(AppLifecycleState)>(onState);
+  onStateRef.value = onState;
 
   useEffect(() {
-    final observer = _LifecycleObserver(onStateCb);
+    final observer = _LifecycleObserver((state) => onStateRef.value(state));
     WidgetsBinding.instance.addObserver(observer);
     return () => WidgetsBinding.instance.removeObserver(observer);
-  }, [onStateCb]);
+  }, const []);
 }
 
 class _LifecycleObserver extends WidgetsBindingObserver {
