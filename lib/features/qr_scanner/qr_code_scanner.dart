@@ -47,10 +47,14 @@ class QrCodeScanner extends HookConsumerWidget {
     );
 
     Future<void> handleCode(String code) async {
-      appLogger.info('Barcode found! $code');
-      await controller.stop();
-      if (!context.mounted) return;
-      appRouter.pop(code);
+      try {
+        appLogger.info('Barcode found! $code');
+        await controller.stop();
+        if (!context.mounted) return;
+        appRouter.pop(code);
+      } finally {
+        isHandling.value = false;
+      }
     }
 
     return BaseScreen(
