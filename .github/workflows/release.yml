@@ -187,7 +187,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       RELEASE_TAG: ${{ github.ref_name }}
       S3_TAG: ${{ needs.set-release-metadata.outputs.tag_base }}
     steps:
@@ -284,13 +284,31 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml" || echo "No changes to commit"
           git push
-          bucket="${{ secrets.S3_RELEASES_BUCKET }}"
+          bucket="${{ vars.S3_RELEASES_BUCKET }}"
 
           aws s3 cp appcast.xml "s3://${bucket}/releases/${{ env.BUILD_TYPE }}/latest/appcast.xml" --acl public-read
 
           if [[ "${{ env.BUILD_TYPE }}" == "production" ]]; then
             aws s3 cp appcast.xml "s3://${bucket}/releases/appcast.xml" --acl public-read
           fi
+
+      - name: Build Slack message
+        id: slack_msg
+        run: |
+          prefix="releases/${BUILD_TYPE}"
+          tag="${RELEASE_TAG}"
+          s3_tag="${S3_TAG:-$tag}"
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.exe|Windows>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+
+          # Expose as output
+          echo "text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$text"   >> "$GITHUB_OUTPUT"
+          echo "EOF"     >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -299,7 +317,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Latest downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>\n\n*Tag-scoped:* <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/|releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/>"
+              "text": "${{ steps.slack_msg.outputs.text }}"
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}

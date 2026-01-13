@@ -1,6 +1,5 @@
 # 
 # Translators:
-# Lantern, 2025
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
 # e2f <projects@e2f.com>, 2025
@@ -8,10 +7,11 @@
 # Anh Phan <vietnamesel10n@gmail.com>, 2025
 # e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Vietnamese (https://app.transifex.com/lantern-1/teams/94371/vi/)\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -1256,13 +1256,13 @@ msgid "annual_plan"
 msgstr "Gói năm:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "+1 tháng cho mỗi người"
 
 msgid "two_year_plan"
 msgstr " Gói hai năm:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "+2 tháng cho mỗi người"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1271,6 +1271,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr " Giấy phép Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "Cần có giấy phép Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Giấy phép Lantern Pro không hợp lệ"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Giấy phép Lantern Pro phải có 25 ký tự"
 
 msgid "select_account"
 msgstr " Chọn tài khoản"
@@ -1290,58 +1299,111 @@ msgstr ""
 "mây của bạn trước."
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "Thêm thông tin thanh toán"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean yêu cầu thông tin thanh toán để tạo máy chủ."
 
 msgid "tap"
-msgstr ""
+msgstr "Nhấn"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "bên dưới để đi đến DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "Thêm phương thức thanh toán (thẻ tín dụng hoặc PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "Quay lại Lantern và nhấn \"Tiếp tục\" để tiếp tục thiết lập"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "Cách thêm thông tin thanh toán:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"Vui lòng thêm phương thức thanh toán vào tài khoản DigitalOcean của bạn. Nếu"
+" bạn đã thêm, hãy đợi vài phút và thử lại."
 
 msgid "ok"
-msgstr ""
+msgstr "OK"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "Không thể mở URL"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "Mới sử dụng Lantern Pro?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "Đã xảy ra lỗi. Vui lòng thử lại sau."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Chế độ nhà phát triển"
 
 msgid "developer_mode_note"
 msgstr ""
+"Chế độ nhà phát triển chỉ dành cho các nhà phát triển Lantern để kiểm tra "
+"tính năng trong quá trình phát triển."
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "Mã kích hoạt không hợp lệ. Vui lòng kiểm tra mã và thử lại."
 
 msgid "invalid_activation_code_length"
+msgstr "Mã kích hoạt phải có độ dài 25 ký tự."
+
+msgid "error_while_vpn_connection"
+msgstr "Đã xảy ra lỗi khi thiết lập kết nối VPN. Vui lòng thử lại."
+
+msgid "help_improve_lantern"
+msgstr "Giúp cải thiện Lantern"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"Chia sẻ dữ liệu sử dụng ẩn danh để giúp cải thiện tốc độ và độ tin cậy."
+
+msgid "data_we_collect"
+msgstr ""
+"Chúng tôi không bao giờ thu thập lịch sử duyệt web, điểm đến lưu lượng truy "
+"cập, truy vấn DNS hoặc nhật ký kết nối."
+
+msgid "you_can_change_anytime"
+msgstr "Bạn có thể thay đổi điều này bất cứ lúc nào trong Cài đặt VPN."
+
+msgid "dont_allow"
+msgstr "Không cho phép"
+
+msgid "allow"
+msgstr "Cho phép"
+
+msgid "anonymous_usage_data"
+msgstr "Dữ liệu sử dụng ẩn danh"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Giúp cải thiện hiệu suất của Lantern"
+
+msgid "changes_applied_after_restart"
+msgstr "Các thay đổi sẽ được áp dụng sau khi khởi động lại Lantern."
+
+msgid "email_deliverability_notice"
+msgstr "Thông báo về khả năng gửi email"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"Email gửi đến địa chỉ 163.com, 126.com, qq.com và sina.com đôi khi bị chặn "
+"và có thể không đến được"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Nếu bạn không nhận được mã xác nhận, hãy cân nhắc sử dụng nhà cung cấp email"
+" khác."
+
+msgid "continue_anyway"
+msgstr "Vẫn tiếp tục"

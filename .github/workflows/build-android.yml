@@ -21,7 +21,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,10 +35,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
-
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+          cache: true
 
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
@@ -54,16 +51,12 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-
-          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --update
-
           sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0" \
             "ndk;27.0.12077973" \
             "cmake;3.22.1"
-
           yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses >/dev/null || true
 
           echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
@@ -72,10 +65,21 @@ jobs:
           done
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version-file: pubspec.yaml
+          cache: true
+
+      - name: Cache Dart pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-dart-
 
       - name: Set gradle properties
         env:
@@ -93,21 +97,30 @@ jobs:
           encodedString: ${{ secrets.APP_ENV }}
 
       - name: Decode Keystore
-        id: write_file
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "keystore.release.jks"
           fileDir: "./android/app"
           encodedString: ${{ secrets.KEYSTORE }}
 
-      - name: Install dependencies
-        run: make install-android-deps
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
 
-      - name: Build Android release
-        run: make android-release
+      - name: Install dependencies (gomobile)
+        run: |
+          make install-android-deps
+        env:
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Build Android (APK + AAB)
+        run: make android-release-ci
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
@@ -115,12 +128,6 @@ jobs:
           name: lantern-installer-apk
           path: ${{ inputs.installer_name }}.apk
           retention-days: 2
-
-      - name: Build Android bundle (AAB)
-        run: make android-aab-release
-        env:
-          BUILD_TYPE: ${{ inputs.build_type }}
-          VERSION: ${{ inputs.version }}
 
       - name: Upload Android AAB
         uses: actions/upload-artifact@v4

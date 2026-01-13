@@ -10,11 +10,11 @@
 # sayanvd <sayanvd@yandex.ru>, 2025
 # e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
-# Lantern, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Russian (Russia) (https://app.transifex.com/lantern-1/teams/94371/ru_RU/)\n"
 "Language: ru_RU\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
@@ -1264,13 +1264,13 @@ msgid "annual_plan"
 msgstr "Годовой план:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "+1 месяц каждому"
 
 msgid "two_year_plan"
 msgstr "+1 месяц каждому"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "+2 месяца каждому"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1279,6 +1279,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr " Лицензия Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "Требуется лицензия Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Недействительная лицензия Lantern Pro"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Лицензия Lantern Pro должна содержать 25 символов"
 
 msgid "select_account"
 msgstr " Выберите аккаунт"
@@ -1337,22 +1346,77 @@ msgid "ok"
 msgstr "Ок"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "Не удалось открыть URL"
 
 msgid "new_to_lantern_pro"
 msgstr "Впервые пользуетесь Lantern Pro?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "Произошла ошибка. Пожалуйста, попробуйте позже."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Режим разработчика"
 
 msgid "developer_mode_note"
 msgstr ""
+"Режим разработчика предназначен исключительно для разработчиков Lantern для "
+"тестирования функций в процессе разработки."
 
 msgid "invalid_activation_code"
 msgstr ""
+"Недействительный код активации. Пожалуйста, проверьте код и попробуйте "
+"снова."
 
 msgid "invalid_activation_code_length"
+msgstr "Код активации должен содержать 25 символов."
+
+msgid "error_while_vpn_connection"
 msgstr ""
+"Произошла ошибка при установке VPN-соединения. Пожалуйста, попробуйте снова."
+
+msgid "help_improve_lantern"
+msgstr "Помогите улучшить Lantern"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Делитесь анонимными данными об использовании, чтобы помочь улучшить скорость"
+" и надежность."
+
+msgid "data_we_collect"
+msgstr ""
+"Мы никогда не собираем историю просмотров, места назначения трафика, DNS-"
+"запросы или журналы подключений."
+
+msgid "you_can_change_anytime"
+msgstr "Вы можете изменить это в любое время в настройках VPN."
+
+msgid "dont_allow"
+msgstr "Не разрешать"
+
+msgid "allow"
+msgstr "Разрешить"
+
+msgid "anonymous_usage_data"
+msgstr "Анонимные данные об использовании"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Помогает улучшить производительность Lantern"
+
+msgid "changes_applied_after_restart"
+msgstr "Изменения будут применены после перезапуска Lantern."
+
+msgid "email_deliverability_notice"
+msgstr "Уведомление о доставке электронной почты"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"Электронные письма на адреса 163.com, 126.com, qq.com и sina.com иногда "
+"блокируются и могут не дойти"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Если вы не получили код подтверждения, рассмотрите возможность использования"
+" альтернативного поставщика электронной почты."
+
+msgid "continue_anyway"
+msgstr "Все равно продолжить"

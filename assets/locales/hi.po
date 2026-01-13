@@ -1,16 +1,16 @@
 # 
 # Translators:
 # Kalyan Dikshit <dikshitrocks93@gmail.com>, 2025
-# Lantern, 2025
 # tx_e2f_hi c3 <tx_e2f_hi_c3@ate2f.com>, 2025
 # tx_e2f_hi_r3 tx_e2f_hi_r3 <tx_e2f_hi_r3@ate2f.com>, 2025
 # e2f <projects@e2f.com>, 2025
 # E2F_HI T1 <tx_e2f_hi_t1@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Hindi (India) (https://app.transifex.com/lantern-1/teams/94371/hi_IN/)\n"
 "Language: hi_IN\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -1256,13 +1256,13 @@ msgid "annual_plan"
 msgstr "वार्षिक योजना:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "प्रत्येक को +1 महीना"
 
 msgid "two_year_plan"
 msgstr "दो-वर्षीय योजना:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "प्रत्येक को +2 महीने"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1271,6 +1271,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "लैम्पटर्न प्रो लाइसेंस"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro लाइसेंस आवश्यक है"
+
+msgid "lantern_pro_license_invalid"
+msgstr "अमान्य Lantern Pro लाइसेंस"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro लाइसेंस 25 अक्षरों का होना चाहिए"
 
 msgid "select_account"
 msgstr "खाता चुनें"
@@ -1290,58 +1299,111 @@ msgstr ""
 "प्रोजेक्ट बनाएं।"
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "बिलिंग विवरण जोड़ें"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean को सर्वर बनाने के लिए भुगतान जानकारी की आवश्यकता है।"
 
 msgid "tap"
-msgstr ""
+msgstr "टैप करें"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "DigitalOcean पर जाने के लिए नीचे"
 
 msgid "1"
-msgstr ""
+msgstr "१"
 
 msgid "2"
-msgstr ""
+msgstr "२"
 
 msgid "3"
-msgstr ""
+msgstr "३"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "एक भुगतान विधि जोड़ें (क्रेडिट कार्ड या PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "Lantern पर वापस जाएं और सेटअप जारी रखने के लिए \"जारी रखें\" पर टैप करें"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "बिलिंग विवरण कैसे जोड़ें:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"कृपया अपने DigitalOcean अकाउंट में एक भुगतान विधि जोड़ें। यदि आपने पहले से "
+"जोड़ दिया है, तो कुछ मिनट प्रतीक्षा करें और पुनः प्रयास करें।"
 
 msgid "ok"
-msgstr ""
+msgstr "ठीक है"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "URL नहीं खोला जा सका"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "Lantern Pro पर नए हैं?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "एक त्रुटि हुई। कृपया बाद में पुनः प्रयास करें।"
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Developer Mode"
 
 msgid "developer_mode_note"
 msgstr ""
+"Developer Mode विशेष रूप से Lantern डेवलपर्स के लिए विकास के दौरान सुविधाओं "
+"का परीक्षण करने के लिए है।"
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "अमान्य सक्रियण कोड। कृपया कोड जांचें और पुनः प्रयास करें।"
 
 msgid "invalid_activation_code_length"
+msgstr "सक्रियण कोड 25 अक्षरों का होना चाहिए।"
+
+msgid "error_while_vpn_connection"
+msgstr "VPN कनेक्शन स्थापित करते समय एक त्रुटि हुई। कृपया पुनः प्रयास करें।"
+
+msgid "help_improve_lantern"
+msgstr "Lantern को बेहतर बनाने में मदद करें"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"गति और विश्वसनीयता सुधारने में मदद के लिए गुमनाम उपयोग डेटा साझा करें।"
+
+msgid "data_we_collect"
+msgstr ""
+"हम कभी भी ब्राउज़िंग इतिहास, ट्रैफ़िक गंतव्य, DNS क्वेरी या कनेक्शन लॉग "
+"एकत्र नहीं करते।"
+
+msgid "you_can_change_anytime"
+msgstr "आप इसे VPN सेटिंग्स में कभी भी बदल सकते हैं।"
+
+msgid "dont_allow"
+msgstr "अनुमति न दें"
+
+msgid "allow"
+msgstr "अनुमति दें"
+
+msgid "anonymous_usage_data"
+msgstr "गुमनाम उपयोग डेटा"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Lantern के प्रदर्शन को बेहतर बनाने में मदद करता है"
+
+msgid "changes_applied_after_restart"
+msgstr "परिवर्तन Lantern को पुनः आरंभ करने के बाद लागू होंगे।"
+
+msgid "email_deliverability_notice"
+msgstr "ईमेल डिलीवरी सूचना"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com, 126.com, qq.com और sina.com पतों पर भेजे गए ईमेल कभी-कभी ब्लॉक हो "
+"जाते हैं और नहीं पहुंच सकते"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"यदि आपको अपना पुष्टि कोड प्राप्त नहीं होता है, तो वैकल्पिक ईमेल प्रदाता का "
+"उपयोग करने पर विचार करें।"
+
+msgid "continue_anyway"
+msgstr "फिर भी जारी रखें"

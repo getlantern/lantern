@@ -1,10 +1,11 @@
 # 
 # Translators:
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Turkmen (https://app.transifex.com/lantern-1/teams/94371/tk/)\n"
 "Language: tk\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -1234,13 +1235,13 @@ msgid "annual_plan"
 msgstr " Ýyllyk plan:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "Her birine +1 aý"
 
 msgid "two_year_plan"
 msgstr " Iki ýyllyk plan:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "Her birine +2 aý"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1249,6 +1250,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr " Lantern Pro Ygtyýarnamasy"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro ygtyýarnamasy zerur"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Nädogry Lantern Pro ygtyýarnamasy"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro ygtyýarnamasy 25 simwoldan ybarat bolmaly"
 
 msgid "select_account"
 msgstr "Hasaby saýlaň"
@@ -1268,58 +1278,115 @@ msgstr ""
 "taslama dörediň."
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "Hasap-faktura maglumatlaryny goşuň"
 
 msgid "do_billing_details_message"
 msgstr ""
+"DigitalOcean serwerleri döretmek üçin töleg maglumatlaryny talap edýär."
 
 msgid "tap"
-msgstr ""
+msgstr "Basyň"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "DigitalOcean-a gitmek üçin aşakda"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "Töleg usulyny goşuň (kredit kartasy ýa-da PayPal)"
 
 msgid "return_to_lantern"
 msgstr ""
+"Lantern-e gaýdyň we sazlamalary dowam etdirmek üçin \"Dowam et\" düwmesine "
+"basyň"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "Hasap-faktura maglumatlaryny nädip goşmaly:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"DigitalOcean hasabyňyza töleg usulyny goşuň. Eýýäm goşan bolsaňyz, birnäçe "
+"minut garaşyň we täzeden synanyşyň."
 
 msgid "ok"
-msgstr ""
+msgstr "OK"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "URL açyp bolmady"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "Lantern Pro täze ulanýarsyňyzmy?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "Säwlik ýüze çykdy. Soňra täzeden synanyşyň."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Dörediji tertibi"
 
 msgid "developer_mode_note"
 msgstr ""
+"Dörediji tertibi diňe Lantern döredijileri üçin ösüş döwründe aýratynlyklary"
+" barlamak üçin niýetlenendir."
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "Nädogry işjeňleşdiriş kody. Kody barlap görüň we täzeden synanyşyň."
 
 msgid "invalid_activation_code_length"
+msgstr "Işjeňleşdiriş kody 25 simwoldan ybarat bolmaly."
+
+msgid "error_while_vpn_connection"
+msgstr "VPN birikdirilende säwlik ýüze çykdy. Täzeden synanyşyň."
+
+msgid "help_improve_lantern"
+msgstr "Lantern-i gowulandyrmaga kömek ediň"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"Tizligi we ygtybarlylygyny ýokarlandyrmaga kömek etmek üçin anonim ulanma "
+"maglumatlaryny paýlaşyň."
+
+msgid "data_we_collect"
+msgstr ""
+"Biz hiç haçan gözleg geçmişini, trafik ýerlerini, DNS soraglaryny ýa-da "
+"birikdirme gündelikleri ýygnamarys."
+
+msgid "you_can_change_anytime"
+msgstr "Muny islendik wagt VPN sazlamalarynda üýtgedip bilersiňiz."
+
+msgid "dont_allow"
+msgstr "Rugsat berme"
+
+msgid "allow"
+msgstr "Rugsat ber"
+
+msgid "anonymous_usage_data"
+msgstr "Anonim ulanma maglumatlary"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Lantern-iň öndürijiligini ýokarlandyrmaga kömek edýär"
+
+msgid "changes_applied_after_restart"
+msgstr "Üýtgeşmeler Lantern täzeden başlandan soň ulanylýar."
+
+msgid "email_deliverability_notice"
+msgstr "E-poçta ýetirilişi barada habar"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com, 126.com, qq.com we sina.com salgylaryna iberilen e-poçtalar käwagt "
+"petiklenýär we ýetip bilmeýär"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Tassyklama kody almadyk bolsaňyz, başga e-poçta üpjün edijisini ulanmagy göz"
+" öňünde tutuň."
+
+msgid "continue_anyway"
+msgstr "Ýene-de dowam et"

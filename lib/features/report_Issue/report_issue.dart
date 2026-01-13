@@ -176,16 +176,23 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     hideKeyboard();
 
     context.showLoadingDialog();
-    appLogger
-        .debug("Submitting issue report: $email, $issueType, $description");
+    appLogger.debug("Submitting issue report: $issueType, $description");
     final deviceInfo = await DeviceUtils.getDeviceAndModel();
     final device = deviceInfo.$1;
     final model = deviceInfo.$2;
     String logFilePath = "";
-    if (PlatformUtils.isIOS) {
-      /// this should be passed only on IOS since we are using app groups
-      /// and we don't have app group path on flutter end
-      logFilePath = (await AppStorageUtils.flutterLogFile()).path;
+
+    try {
+      if (PlatformUtils.isIOS) {
+        logFilePath = (await AppStorageUtils.flutterLogFile()).path;
+      } else {
+        logFilePath =
+            (await AppStorageUtils.appLogFile(createIfMissing: true)).path;
+      }
+    } catch (e, st) {
+      // Don't block reporting if logs fail. Just report without logs
+      appLogger.error("Unable to resolve log file: $e", st);
+      logFilePath = "";
     }
     final result = await ref
         .read(lanternServiceProvider)

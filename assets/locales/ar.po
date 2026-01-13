@@ -1,6 +1,6 @@
 # 
 # Translators:
-# lamine Kacimi <k_lamine27@yahoo.fr>, 2025
+# Lamine Kacimi <k_lamine27@yahoo.fr>, 2025
 # Rima Sghaier, 2025
 # e2f <projects@e2f.com>, 2025
 # Abed Abedd <abderrahman.younis@gmail.com>, 2025
@@ -10,10 +10,11 @@
 # Mhawesh, 2025
 # 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Arabic (https://app.transifex.com/lantern-1/teams/94371/ar/)\n"
 "Language: ar\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
@@ -1228,18 +1229,29 @@ msgstr "الخطة السنوية:"
 
 msgid "1_month_each"
 msgstr ""
+"شهر واحد إضافي لكل منهما\n"
+" "
 
 msgid "two_year_plan"
 msgstr "خطة لمدة عامين:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "شهرين إضافيين لكل منهما"
 
 msgid "referral_code_info"
 msgstr "لست مستخدمًا لـ Lantern Pro بعد؟ ستصبح كذلك عندما يشترك أول شخص تحيله"
 
 msgid "lantern_pro_license"
 msgstr "ترخيص لانترن برو"
+
+msgid "lantern_pro_license_required"
+msgstr "يلزم ترخيص Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "ترخيص Lantern Pro غير صالح"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "يجب أن يكون ترخيص Lantern Pro مكونًا من 25 حرفًا"
 
 msgid "select_account"
 msgstr "اختيار حساب"
@@ -1259,58 +1271,106 @@ msgstr ""
 "أولاً."
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "إضافة تفاصيل الدفع"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "يتطلب DigitalOcean معلومات الدفع لإنشاء الخوادم."
 
 msgid "tap"
-msgstr ""
+msgstr "اضغط على"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "أدناه للانتقال إلى DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "أضف طريقة دفع (بطاقة ائتمان أو PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "ارجع إلى Lantern واضغط على \"متابعة\" للمضي قدمًا في الإعداد"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "كيفية إضافة تفاصيل الدفع:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"يُرجى إضافة طريقة دفع إلى حساب DigitalOcean الخاص بك. إذا كنت قد أضفتها "
+"بالفعل، انتظر بضع دقائق وحاول مرة أخرى."
 
 msgid "ok"
-msgstr ""
+msgstr "حسنًا"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "تعذر فتح الرابط"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "جديد على Lantern Pro؟"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "حدث خطأ. يُرجى المحاولة مرة أخرى لاحقًا."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "وضع المطور"
 
 msgid "developer_mode_note"
-msgstr ""
+msgstr "وضع المطور مخصص حصريًا لمطوري Lantern لاختبار الميزات أثناء التطوير."
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "رمز التفعيل غير صالح. يُرجى التحقق من الرمز والمحاولة مرة أخرى."
 
 msgid "invalid_activation_code_length"
+msgstr "يجب أن يكون رمز التفعيل مكونًا من 25 حرفًا."
+
+msgid "error_while_vpn_connection"
+msgstr "حدث خطأ أثناء إنشاء اتصال VPN. يُرجى المحاولة مرة أخرى."
+
+msgid "help_improve_lantern"
+msgstr "ساعد في تحسين Lantern"
+
+msgid "share_anonymous_usage_data"
+msgstr "شارك بيانات الاستخدام المجهولة للمساعدة في تحسين السرعة والموثوقية."
+
+msgid "data_we_collect"
 msgstr ""
+"نحن لا نجمع أبدًا سجل التصفح أو وجهات حركة المرور أو استعلامات DNS أو سجلات "
+"الاتصال."
+
+msgid "you_can_change_anytime"
+msgstr "يمكنك تغيير ذلك في أي وقت من إعدادات VPN."
+
+msgid "dont_allow"
+msgstr "عدم السماح"
+
+msgid "allow"
+msgstr "السماح"
+
+msgid "anonymous_usage_data"
+msgstr "بيانات الاستخدام المجهولة"
+
+msgid "helps_improve_lantern_performance"
+msgstr "يساعد في تحسين أداء Lantern"
+
+msgid "changes_applied_after_restart"
+msgstr "سيتم تطبيق التغييرات بعد إعادة تشغيل Lantern."
+
+msgid "email_deliverability_notice"
+msgstr "إشعار إمكانية تسليم البريد الإلكتروني"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"قد يتم حظر رسائل البريد الإلكتروني المرسلة إلى عناوين 163.com و126.com "
+"وqq.com وsina.com في بعض الأحيان وقد لا تصل"
+
+msgid "email_deliverability_notice_message_two"
+msgstr "إذا لم تستلم رمز التأكيد، ففكر في استخدام مزود بريد إلكتروني بديل."
+
+msgid "continue_anyway"
+msgstr "المتابعة على أي حال"

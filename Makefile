@@ -79,7 +79,7 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
+ANDROID_TARGET_PLATFORMS := android-arm,android-arm64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
@@ -96,7 +96,8 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,wit
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
-
+GOMOBILECACHE ?= $(HOME)/.cache/gomobile
+GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
@@ -364,7 +365,14 @@ windows-release: clean windows pubget gen build-windows-release prepare-windows-
 install-gomobile:
 	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
 	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
-	GOTOOLCHAIN=$(GO_VERSION) gomobile init
+	@mkdir -p "$(GOMOBILECACHE)"
+	@if [ ! -f "$(GOMOBILECACHE)/.init-$(GO_VERSION)" ]; then \
+		echo "Running gomobile init (first time for $(GO_VERSION))..."; \
+		GOMOBILECACHE="$(GOMOBILECACHE)" GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
+		touch "$(GOMOBILECACHE)/.init-$(GO_VERSION)"; \
+	else \
+		echo "Skipping gomobile init (cached for $(GO_VERSION))"; \
+	fi
 
 # Android Build
 .PHONY: install-android-deps
@@ -381,8 +389,10 @@ build-android: check-gomobile
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
+	GOMOBILECACHE="$(GOMOBILECACHE)" \
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
 		-androidapi=23 \
+		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
@@ -421,6 +431,9 @@ android-aab-release:
 
 .PHONY: android-release
 android-release: clean android pubget gen android-apk-release
+
+.PHONY: android-release-ci
+android-release-ci: android pubget gen android-apk-release android-aab-release
 
 # iOS Build
 .PHONY: install-ios-deps

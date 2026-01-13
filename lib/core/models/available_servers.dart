@@ -6,7 +6,10 @@ class AvailableServers {
   });
 
   factory AvailableServers.fromJson(Map<String, dynamic> json) =>
-      AvailableServers(lantern: Lantern.fromJson(json["lantern"]));
+      AvailableServers(
+        lantern: Lantern.fromJson(
+            (json["lantern"] as Map<String, dynamic>?) ?? const {}),
+      );
 
   Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
 }
@@ -26,14 +29,21 @@ class Lantern {
         endpoints: json["endpoints"] == null
             ? []
             : List<Endpoint>.from(
-                json["endpoints"].map((x) => Endpoint.fromJson(x))),
+                (json["endpoints"] as List).map((x) => Endpoint.fromJson(x))),
         outbounds: json["outbounds"] == null
             ? []
             : List<Endpoint>.from(
-                json["outbounds"].map((x) => Endpoint.fromJson(x))),
-        locations: (Map<String, Location_>.from(json["locations"].map(
-          (k, v) => MapEntry(k, Location_.fromJson(v)..tag = k),
-        ))),
+                (json["outbounds"] as List).map((x) => Endpoint.fromJson(x))),
+        locations: json["locations"] == null
+            ? <String, Location_>{}
+            : Map<String, Location_>.from(
+                (json["locations"] as Map<String, dynamic>).map(
+                  (k, v) => MapEntry(
+                    k as String,
+                    Location_.fromJson(v as Map<String, dynamic>)..tag = k,
+                  ),
+                ),
+              ),
       );
 
   Map<String, dynamic> toJson() => {

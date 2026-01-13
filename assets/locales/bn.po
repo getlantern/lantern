@@ -3,10 +3,11 @@
 # code smite <codesmite@gmail.com>, 2025
 # tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Bengali (https://app.transifex.com/lantern-1/teams/94371/bn/)\n"
 "Language: bn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -1250,13 +1251,13 @@ msgid "annual_plan"
 msgstr "বার্ষিক পরিকল্পনা:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "প্রতিটিতে +১ মাস"
 
 msgid "two_year_plan"
 msgstr "দুই বছরের পরিকল্পনা:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "প্রতিটিতে +২ মাস"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1265,6 +1266,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "ল্যান্টার্ন প্রো লাইসেন্স"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro লাইসেন্স প্রয়োজন"
+
+msgid "lantern_pro_license_invalid"
+msgstr "অবৈধ Lantern Pro লাইসেন্স"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro লাইসেন্স অবশ্যই ২৫টি অক্ষরের হতে হবে"
 
 msgid "select_account"
 msgstr "অ্যাকাউন্ট নির্বাচন করুন"
@@ -1284,58 +1294,112 @@ msgstr ""
 "প্রকল্প তৈরি করুন।"
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "বিলিং বিবরণ যোগ করুন"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "সার্ভার তৈরি করতে DigitalOcean পেমেন্ট তথ্য প্রয়োজন।"
 
 msgid "tap"
-msgstr ""
+msgstr "ট্যাপ "
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "DigitalOcean-এ যেতে নিচে"
 
 msgid "1"
-msgstr ""
+msgstr "১"
 
 msgid "2"
-msgstr ""
+msgstr "२"
 
 msgid "3"
-msgstr ""
+msgstr "३"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "একটি পেমেন্ট পদ্ধতি যোগ করুন (ক্রেডিট কার্ড বা PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "Lantern-এ ফিরে যান এবং সেটআপ চালিয়ে যেতে \"চালিয়ে যান\" ট্যাপ করুন"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "বিলিং বিবরণ কীভাবে যোগ করবেন:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"আপনার DigitalOcean অ্যাকাউন্টে একটি পেমেন্ট পদ্ধতি যোগ করুন। যদি ইতিমধ্যে "
+"যোগ করে থাকেন, কয়েক মিনিট অপেক্ষা করুন এবং আবার চেষ্টা করুন।"
 
 msgid "ok"
-msgstr ""
+msgstr "ঠিক আছে"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "URL খুলতে পারেনি"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "Lantern Pro-তে নতুন?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "একটি ত্রুটি ঘটেছে। পরে আবার চেষ্টা করুন।"
 
 msgid "developer_mode"
-msgstr ""
+msgstr "ডেভেলপার মোড"
 
 msgid "developer_mode_note"
 msgstr ""
+"ডেভেলপার মোড শুধুমাত্র Lantern ডেভেলপারদের জন্য ডেভেলপমেন্টের সময় ফিচার "
+"পরীক্ষা করার জন্য।"
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "অবৈধ অ্যাক্টিভেশন কোড। কোডটি চেক করুন এবং আবার চেষ্টা করুন।"
 
 msgid "invalid_activation_code_length"
+msgstr "অ্যাক্টিভেশন কোড অবশ্যই ২৫টি অক্ষরের হতে হবে।"
+
+msgid "error_while_vpn_connection"
+msgstr "VPN সংযোগ স্থাপনের সময় একটি ত্রুটি ঘটেছে। আবার চেষ্টা করুন।"
+
+msgid "help_improve_lantern"
+msgstr "Lantern উন্নত করতে সাহায্য করুন"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"গতি এবং নির্ভরযোগ্যতা উন্নত করতে সাহায্য করার জন্য বেনামী ব্যবহার ডেটা "
+"শেয়ার করুন।"
+
+msgid "data_we_collect"
+msgstr ""
+"আমরা কখনো ব্রাউজিং ইতিহাস, ট্রাফিক গন্তব্য, DNS কোয়েরি বা সংযোগ লগ সংগ্রহ "
+"করি না।"
+
+msgid "you_can_change_anytime"
+msgstr "আপনি যেকোনো সময় VPN সেটিংসে এটি পরিবর্তন করতে পারেন।"
+
+msgid "dont_allow"
+msgstr "অনুমতি দেবেন না"
+
+msgid "allow"
+msgstr "অনুমতি দিন"
+
+msgid "anonymous_usage_data"
+msgstr "বেনামী ব্যবহার ডেটা"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Lantern এর পারফরম্যান্স উন্নত করতে সাহায্য করে"
+
+msgid "changes_applied_after_restart"
+msgstr "Lantern পুনরায় চালু করার পরে পরিবর্তনগুলি প্রয়োগ করা হবে।"
+
+msgid "email_deliverability_notice"
+msgstr "ইমেইল ডেলিভারির নোটিশ"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com, 126.com, qq.com, এবং sina.com ঠিকানায় পাঠানো ইমেইল কখনো কখনো ব্লক "
+"হয় এবং নাও পৌঁছাতে পারে"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"আপনি যদি আপনার কনফার্মেশন কোড না পান, একটি বিকল্প ইমেইল প্রদানকারী ব্যবহার "
+"করার কথা বিবেচনা করুন।"
+
+msgid "continue_anyway"
+msgstr "যাই হোক চালিয়ে যান"
