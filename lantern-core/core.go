@@ -499,23 +499,8 @@ func (lc *LanternCore) ReportIssue(
 	return nil
 }
 
-// GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() (string, error) {
-	dataCap, err := lc.apiClient.DataCapInfo(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("error getting data cap info: %w", err)
-	}
-	jsonBytes, err := json.Marshal(dataCap)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling data cap info: %w", err)
-	}
-	jsonString := string(jsonBytes)
-	slog.Debug("datacap useage", "info", jsonString)
-	return jsonString, nil
-}
-
 // DataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() ([]byte, error) {
+func (lc *LanternCore) DataCapInfo() (string, error) {
 	return lc.apiClient.DataCapInfo(context.Background())
 }
 

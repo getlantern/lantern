@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
@@ -21,14 +19,22 @@ class DataUsage extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final dataCap = dataCapResponse.usage!;
-        final totalData = (dataCap.bytesAllotted / (1024 * 1024)).round();
-        /// Round up used data, but ensure it doesn't exceed total
-        final usedData = dataCap.bytesUsed > 0
-            ? min(
-                totalData, max(1, (dataCap.bytesUsed / (1024 * 1024)).round()))
-            : 0;
-        final remainingData = max(0, totalData - usedData);
-        final usageString = '$remainingData/$totalData';
+
+        /// Do all math in BYTES
+        final int totalBytes = dataCap.bytesAllotted;
+        final int usedBytes = dataCap.bytesUsed.clamp(0, totalBytes);
+        final int remainingBytes = totalBytes - usedBytes;
+
+        /// Convert to MB only for display
+        final int totalData = (totalBytes.toMB).round();
+        final int remainingData = (remainingBytes.toMB).round();
+        final int usedData = (usedBytes.toMB).round();
+
+        final usageString = '$usedData/$totalData';
+
+        final newProgress = dataCap.bytesAllotted == 0
+            ? 0.0
+            : (dataCap.bytesUsed / dataCap.bytesAllotted).clamp(0.0, 1.0);
 
         return Container(
           decoration: BoxDecoration(boxShadow: [
@@ -72,18 +78,20 @@ class DataUsage extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: LinearProgressIndicator(
-                      value: totalData == 0
-                          ? 0
-                          : (dataCap.bytesUsed / dataCap.bytesAllotted)
-                              .clamp(0, 1)
-                              .toDouble(),
-                      minHeight: 8,
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(defaultSize)),
-                      trackGap: 10,
-                      backgroundColor: AppColors.gray1,
-                      valueColor: AlwaysStoppedAnimation(AppColors.yellow3),
+                    child: TweenAnimationBuilder<double>(
+                      duration: Duration(milliseconds: 400),
+                      tween: Tween(begin: 0, end: newProgress),
+                      curve: Curves.easeInOut,
+                      builder: (context, value, child) =>
+                          LinearProgressIndicator(
+                        value: value,
+                        minHeight: 8,
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(defaultSize)),
+                        trackGap: 10,
+                        backgroundColor: AppColors.gray1,
+                        valueColor: AlwaysStoppedAnimation(AppColors.yellow3),
+                      ),
                     ),
                   ),
                 ],

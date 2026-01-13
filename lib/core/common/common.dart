@@ -39,6 +39,7 @@ export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
+export 'package:lantern/core/extensions/int.dart';
 export 'package:lantern/core/localization/i18n.dart';
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
