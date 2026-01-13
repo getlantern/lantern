@@ -444,3 +444,10 @@ func InviteToServerManagerInstance(ip string, port string, accessToken string, i
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
+
+func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
+	return withCore(func(c lanterncore.Core) error {
+		return c.AddServerBasedOnURLs(urls, skipCertVerification)
+	})
+}
