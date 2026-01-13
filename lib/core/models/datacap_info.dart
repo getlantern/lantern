@@ -65,11 +65,11 @@ class DataCapUsageDetails {
 
   factory DataCapUsageDetails.fromJson(Map<String, dynamic> json) {
     return DataCapUsageDetails(
-      bytesAllotted: json['bytesAllotted'] != ""
-          ? int.tryParse(json['bytesAllotted'])!
+      bytesAllotted: json['bytesAllotted'] != null && json['bytesAllotted'] != ""
+          ? int.tryParse(json['bytesAllotted'].toString()) ?? 0
           : 0,
-      bytesUsed: json['bytesUsed'] != ""
-          ? int.tryParse(json['bytesUsed'])!
+      bytesUsed: json['bytesUsed'] != null && json['bytesUsed'] != ""
+          ? int.tryParse(json['bytesUsed'].toString()) ?? 0
           : 0,
       allotmentStartTime: json['allotmentStartTime'] as String,
       allotmentEndTime: json['allotmentEndTime'] as String,

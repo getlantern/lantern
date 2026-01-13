@@ -456,6 +456,7 @@ class MethodHandler {
       let data = MobileGetDataCapInfo(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
+        return
       }
       await MainActor.run {
         result(data)

@@ -58,7 +58,7 @@ class UserDataEntity {
   String purchases;
   final subscriptionData = ToOne<SubscriptionDataEntity>();
   final String deviceID;
-final  bool unpassRegistered;
+  final bool unpassRegistered;
 
   UserDataEntity({
     this.id = 0,

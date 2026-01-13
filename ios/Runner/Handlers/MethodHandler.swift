@@ -406,18 +406,19 @@ class MethodHandler {
     }
   }
 
-    private func getDataCapInfo(result: @escaping FlutterResult) {
-      Task {
-        var error: NSError?
-        let data = MobileGetDataCapInfo(&error)
-        if let error {
-          await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
-        }
-        await MainActor.run {
-          result(data)
-        }
+  private func getDataCapInfo(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetDataCapInfo(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(data)
       }
     }
+  }
 
   private func fetchUserData(result: @escaping FlutterResult) {
     Task {

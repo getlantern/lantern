@@ -199,7 +199,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       } else {
         if (isUserRegistered) {
           ///This mean user is already registered
-          /// plan is expired on user are creating new account with same email
+          /// plan is expired or user are creating new account with same email
           /// by pass signup flow and start forgot password flow
           startForgotPasswordFlow(email);
           appLogger
@@ -211,7 +211,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         }
       }
     } catch (e) {
-      appLogger.error('Error in _handleContiune: $e');
+      appLogger.error('Error in _handleContinue: $e');
       context.showSnackBar('error_occurred'.i18n);
     }
   }
