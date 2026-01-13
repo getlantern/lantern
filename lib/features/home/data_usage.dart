@@ -30,7 +30,7 @@ class DataUsage extends ConsumerWidget {
         final int remainingData = (remainingBytes.toMB).round();
         final int usedData = (usedBytes.toMB).round();
 
-        final usageString = '$remainingData/$totalData';
+        final usageString = '$usedData/$totalData';
 
         final newProgress = dataCap.bytesAllotted == 0
             ? 0.0
