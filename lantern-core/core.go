@@ -490,6 +490,16 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
+	// On IOS flutter.log file should be attached separately
+	// since flutter.log is in a different location due to tunnel running in a different process
+	// On other platforms flutter.log is already included in the main Lantern log file
+	if logFilePath != "" {
+		report.Attachments = append(
+			report.Attachments,
+			utils.CreateLogAttachment(logFilePath)...,
+		)
+	}
+
 	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
