@@ -66,6 +66,9 @@ type App interface {
 	StartAutoLocationListener()
 	StopAutoLocationListener()
 	UpdateTelemetryConsent(consent bool) error
+	// Tunnel related methods
+	SetSmartRoutingMode(mode bool) error
+	GetSmartRoutingMode() bool
 }
 
 type User interface {
@@ -206,18 +209,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	return nil
 }
 
-func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
-	slog.Debug("Updating telemetry consent", "consent", consent)
-	if consent {
-		slog.Info("User has opted in to telemetry")
-		lc.rad.EnableTelemetry()
-	} else {
-		slog.Info("User has opted out of telemetry")
-		lc.rad.DisableTelemetry()
-	}
-	return nil
-}
-
 // Listen for server location changes and notify Flutter
 func (lc *LanternCore) listeningServerLocationChanges() {
 	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
@@ -236,6 +227,30 @@ func (lc *LanternCore) listeningServerLocationChanges() {
 		slog.Debug("Auto location server:", "server", stringBody)
 		lc.notifyFlutter(EventTypeServerLocation, stringBody)
 	})
+}
+
+func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
+	slog.Debug("Updating telemetry consent", "consent", consent)
+	if consent {
+		slog.Info("User has opted in to telemetry")
+		lc.rad.EnableTelemetry()
+	} else {
+		slog.Info("User has opted out of telemetry")
+		lc.rad.DisableTelemetry()
+	}
+	return nil
+}
+
+func (lc *LanternCore) SetSmartRoutingMode(mode bool) error {
+	slog.Debug("Setting Smart Routing Mode to:", "mode", mode)
+	if err := vpn.SetSmartRouting(mode); err != nil {
+		return fmt.Errorf("failed to set Smart Routing Mode: %w", err)
+	}
+	return nil
+}
+
+func (lc *LanternCore) GetSmartRoutingMode() bool {
+	return vpn.SmartRoutingEnabled()
 }
 
 // Internal methods

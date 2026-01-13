@@ -80,6 +80,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setRoutingMode(mode);
+    }
+    return _platformService.setRoutingMode(mode);
+  }
+
+  @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchVPNStatus();

@@ -451,3 +451,27 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
 		return c.AddServerBasedOnURLs(urls, skipCertVerification)
 	})
 }
+
+// Smart Routing Methods
+
+// SetSmartRoutingMode sets the smart routing mode.
+func SetSmartRoutingMode(mode bool) error {
+	slog.Debug("mobile: SetSmartRoutingMode called", "mode", mode)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetSmartRoutingMode(mode)
+	})
+}
+
+// GetSmartRoutingMode gets the current smart routing mode.
+func GetSmartRoutingMode() bool {
+	slog.Debug("mobile: GetSmartRoutingMode called")
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.GetSmartRoutingMode(), nil
+	})
+	if err != nil {
+		slog.Error("mobile: GetSmartRoutingMode error", "error", err)
+		return false
+	}
+	slog.Debug("mobile: GetSmartRoutingMode result", "mode", ok)
+	return ok
+}

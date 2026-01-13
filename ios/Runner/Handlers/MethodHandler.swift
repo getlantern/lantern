@@ -209,7 +209,11 @@ class MethodHandler {
           return
         }
         self.updateTelemetryEvents(consent: consent, result: result)
-
+      case "setRoutingMode":
+        guard let mode: Bool = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+          self.setSmartRouteMode(mode: mode, result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -945,6 +949,21 @@ class MethodHandler {
         result("ok")
       }
     }
+  }
+
+  func setSmartRouteMode(mode: Bool, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileSetSmartRouteMode(mode, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_SMART_ROUTE_MODE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+
   }
 
   // MARK: - Utils

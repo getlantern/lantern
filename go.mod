@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.25.4
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -165,7 +165,7 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20251211213807-4cbc22624b9f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
-	github.com/getlantern/common v1.2.1-0.20251223145917-671181028168 // indirect
+	github.com/getlantern/common v1.2.1-0.20260109020250-db160bf6ea8c // indirect
 	github.com/getlantern/dnstt v0.0.0-20250530230749-4d64f4edcf0f // indirect
 	github.com/getlantern/fronted v0.0.0-20260105215156-9ae1d001d54f // indirect
 	github.com/getlantern/geo v0.0.0-20241129152027-2fc88c10f91e // indirect

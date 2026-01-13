@@ -105,6 +105,18 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
+    try {
+      final _ = await _methodChannel.invokeMethod('setRoutingMode', mode);
+      return Right(unit);
+    } catch (e) {
+      appLogger.error('Error setting routing mode', e);
+      return Left(e.toFailure());
+    }
+  }
+
+
   /// VPN methods
   @override
   Future<Either<Failure, String>> startVPN() async {
@@ -1223,4 +1235,5 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
 }

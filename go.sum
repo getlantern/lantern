@@ -192,8 +192,8 @@ github.com/getlantern/amp v0.0.0-20251211213807-4cbc22624b9f h1:EaMXfKXz+zPM6Jb1
 github.com/getlantern/amp v0.0.0-20251211213807-4cbc22624b9f/go.mod h1:qnMv9szb8JK3kA9W4N2FlYUMj1GkA0x7QEUEPD7tk4o=
 github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 h1:Mmeh4/DA1OKN9tVWRAvTL5efFx4c7v9/55hoK17NclA=
 github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01/go.mod h1:3vR6+jQdWfWojZ77w+htCqEF5MO/Y2twJOpAvFuM9po=
-github.com/getlantern/common v1.2.1-0.20251223145917-671181028168 h1:u3oLCACdQJ3n4KmfntUVUiT/HOVOXpoVjD1EKaEnKEg=
-github.com/getlantern/common v1.2.1-0.20251223145917-671181028168/go.mod h1:eSSuV4bMPgQJnczBw+KWWqWNo1itzmVxC++qUBPRTt0=
+github.com/getlantern/common v1.2.1-0.20260109020250-db160bf6ea8c h1:+FLdzuInIqhzspReJ0j66LyrpE4Ag8B+g6gHYXhlQdM=
+github.com/getlantern/common v1.2.1-0.20260109020250-db160bf6ea8c/go.mod h1:eSSuV4bMPgQJnczBw+KWWqWNo1itzmVxC++qUBPRTt0=
 github.com/getlantern/context v0.0.0-20190109183933-c447772a6520/go.mod h1:L+mq6/vvYHKjCX2oez0CgEAJmbq1fbb/oNJIWQkBybY=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201/go.mod h1:Y9WZUHEb+mpra02CbQ/QczLUe6f0Dezxaw5DCJlJQGo=
@@ -243,8 +243,6 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YLAuT8r51ApR5z0d8/qjhHu3TW+divQ2C98Ac=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
-github.com/getlantern/radiance v0.0.0-20260112192920-f010aca26b23 h1:0Psg6HP8wfd6sFSFCNR+fdS/Jxcoqr+fTmjhfHJxocM=
-github.com/getlantern/radiance v0.0.0-20260112192920-f010aca26b23/go.mod h1:6el6Vi2wTVtE9n6JFfWf0Pqz0LYFX48g73xewsE/39w=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692 h1:pK9igrNx0ipBe6xGDgwVnob3JCFwOp2bmEizwanDVk4=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-minimal v1.12.13-0.20251205011046-be268b083378 h1:qUUykWom/NFUfQhEVNJ7SsKXYTDP27nTCEoqY78FtOA=
