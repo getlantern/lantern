@@ -1,6 +1,4 @@
-import 'dart:convert';
 
-/// Response containing data cap usage information
 class DataCapUsageResponse {
   /// Whether data cap is enabled for this device/user
   final bool enabled;
@@ -13,7 +11,6 @@ class DataCapUsageResponse {
     this.usage,
   });
 
-  /// Create from JSON
   factory DataCapUsageResponse.fromJson(Map<String, dynamic> json) {
     return DataCapUsageResponse(
       enabled: json['enabled'] as bool,
@@ -23,24 +20,11 @@ class DataCapUsageResponse {
     );
   }
 
-  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'enabled': enabled,
       if (usage != null) 'usage': usage!.toJson(),
     };
-  }
-
-  /// Create from JSON string
-  factory DataCapUsageResponse.fromJsonString(String jsonString) {
-    return DataCapUsageResponse.fromJson(
-      json.decode(jsonString) as Map<String, dynamic>,
-    );
-  }
-
-  /// Convert to JSON string
-  String toJsonString() {
-    return json.encode(toJson());
   }
 
   @override
