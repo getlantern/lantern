@@ -71,6 +71,7 @@ class _HomeState extends ConsumerState<Home>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+
     /// Refresh when app comes back to foreground
     if (state == AppLifecycleState.resumed) {
       appLogger.info("App resumed, refreshing data cap info");
