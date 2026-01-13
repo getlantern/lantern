@@ -46,8 +46,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # To ensure the nightly build versions increment the semver patch,
-          # we exclude ancient malformed tags (like '_4.5.5'), and
-          # exclude nightly tags (to prevent them from incrementing upon each other).
+          # we exclude ancient malformed tags (like '_4.5.5') by requiring 'v*', and
+          # exclude tags with timestamps so nightly tags don't increment on themselves.
           TAG_LATEST=$(git tag -l --sort=version:refname 'v*' | grep -v 'T.*Z' | tail -1)
           echo "version tag (latest): $TAG_LATEST"
 
