@@ -370,6 +370,7 @@ class LanternFFIService implements LanternCoreService {
       );
       checkAPIError(result);
       final map = jsonDecode(result);
+      appLogger.debug('Data cap info: $map');
       final dataCap = DataCapUsageResponse.fromJson(map);
       return right(dataCap);
     } catch (e, st) {
