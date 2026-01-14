@@ -26,7 +26,8 @@ class QrCodeScanner extends HookConsumerWidget {
     }, [controller]);
 
     // Lifecycle: stop camera in background, restart on resume
-    useAppLifecycleListener((state) {
+    useOnAppLifecycleStateChange((previous, current) {
+      final state = current;
       final isCurrentRoute = (ModalRoute.of(context)?.isCurrent ?? true);
 
       if (state == AppLifecycleState.paused ||
