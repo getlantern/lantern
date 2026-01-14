@@ -93,15 +93,15 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  build-windows:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-windows.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+#  build-windows:
+#    needs: set-release-metadata
+#    uses: ./.github/workflows/build-windows.yml
+#    secrets: inherit
+#    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
+#    with:
+#      version: ${{ needs.set-release-metadata.outputs.version }}
+#      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+#      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-linux:
     needs: set-release-metadata
@@ -183,7 +183,6 @@ jobs:
       [
         set-release-metadata,
         build-macos,
-        build-windows,
         build-linux,
         build-android,
         build-ios,
