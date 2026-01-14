@@ -31,7 +31,7 @@ class DataUsage extends ConsumerWidget {
 
         final dataCapResetTime = formatDailyResetTime(dataCap.allotmentEndTime);
         appLogger.debug(
-            "Data Usage - Total: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
+            "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
 
         /// Convert to MB only for display
         final int totalData = (totalBytes.toMB).round();
