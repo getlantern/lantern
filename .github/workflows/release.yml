@@ -26,18 +26,18 @@ jobs:
           # Extract platform suffix (if any, after final hyphen)
           platform_suffix="${tag##*-}"
 
-          if [[ "$tag" == *"-beta" ]]; then
-            echo "build_type=beta" >> $GITHUB_OUTPUT
-          elif [[ "$tag" == *"-internal" ]]; then
+          if [[ "$tag" == *"-internal"* ]]; then
             echo "build_type=internal" >> $GITHUB_OUTPUT
+          elif [[ "$tag" == *"-beta"* ]]; then
+            echo "build_type=beta" >> $GITHUB_OUTPUT
           else
             echo "build_type=production" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "$tag" == *"-beta"* ]]; then
-            echo "installer_name=lantern-installer-beta" >> $GITHUB_OUTPUT
-          elif [[ "$tag" == *"-internal"* ]]; then
+          if [[ "$tag" == *"-internal"* ]]; then
             echo "installer_name=lantern-installer-internal" >> $GITHUB_OUTPUT
+          elif [[ "$tag" == *"-beta"* ]]; then
+            echo "installer_name=lantern-installer-beta" >> $GITHUB_OUTPUT
           else
             echo "installer_name=lantern-installer" >> $GITHUB_OUTPUT
           fi
