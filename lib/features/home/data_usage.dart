@@ -144,6 +144,9 @@ class DataUsage extends ConsumerWidget {
 
   /// Formats the daily reset time based on whether it's today or another day.
   String formatDailyResetTime(String serverTime) {
+    if(serverTime.isEmpty){
+      return "";
+    }
     final DateTime endTime = DateTime.parse(
       '${serverTime.replaceFirst(' ', 'T')}Z',
     ).toLocal();
