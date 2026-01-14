@@ -53,6 +53,9 @@ jobs:
             android)
               echo "platform=android" >> $GITHUB_OUTPUT
               ;;
+            ios)
+              echo "platform=ios" >> $GITHUB_OUTPUT
+              ;;
             *)
               echo "platform=all" >> $GITHUB_OUTPUT
               ;;
@@ -112,7 +115,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -181,6 +184,7 @@ jobs:
         build-windows,
         build-linux,
         build-android,
+        build-ios,
       ]
     if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
     runs-on: ubuntu-latest
@@ -217,12 +221,14 @@ jobs:
           aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" --acl public-read
           aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" --acl public-read || true
           aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" --acl public-read || true
+          aws s3 cp "lantern-installer-ipa/${INSTALLER_NAME}.ipa" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.ipa" --acl public-read || true
 
           aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" --acl public-read
           aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.exe" --acl public-read
           aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" --acl public-read
           aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" --acl public-read || true
           aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+          aws s3 cp "lantern-installer-ipa/${INSTALLER_NAME}.ipa" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.ipa" --acl public-read || true
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -243,13 +249,14 @@ jobs:
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb"
             echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm"
+            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.ipa"
             echo ""
             echo "**Latest aliases**"
             echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.dmg"
             echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.exe"
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.deb"
-            echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.rpm"
+            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.ipa"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
@@ -266,6 +273,7 @@ jobs:
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
             lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
+            lantern-installer-ipa/${{ env.INSTALLER_NAME }}.ipa
 
       - name: Install Python dependencies
         if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
@@ -323,15 +331,16 @@ jobs:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [publish, build-ios, set-release-metadata]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all'
-      && needs.set-release-metadata.outputs.build_type == 'production' }}
+    needs: [build-ios, set-release-metadata]
+    if:
+      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
+      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
     runs-on: macos-15
     steps:
       - name: Download iOS Artifact
         uses: actions/download-artifact@v4
         with:
-          name: lantern-ios
+          name: lantern-installer-ios
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3.0.0
