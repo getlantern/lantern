@@ -76,7 +76,6 @@ class _HomeState extends ConsumerState<Home>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     /// Refresh when app comes back to foreground
     if (state == AppLifecycleState.resumed) {
       appLogger.info("App resumed, refreshing data cap info");
@@ -102,8 +101,10 @@ class _HomeState extends ConsumerState<Home>
   }
 
   void _refreshDataCapIfNeeded() {
+    if (PlatformUtils.isIOS) {
+      return;
+    }
     final isPro = ref.read(isUserProProvider);
-
     if (!isPro) {
       appLogger.info("User is not Pro, refreshing data cap info");
       ref.invalidate(dataCapInfoProvider);
@@ -175,7 +176,7 @@ class _HomeState extends ConsumerState<Home>
                     text: 'private_server_usage_message'.i18n,
                   )
                 else
-                  const DataUsage()
+                  PlatformUtils.isIOS ? SizedBox() : DataUsage()
               },
               SizedBox(height: 8),
               _buildSetting(ref),
