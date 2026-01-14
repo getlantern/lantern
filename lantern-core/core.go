@@ -70,7 +70,7 @@ type App interface {
 
 type User interface {
 	UserData() ([]byte, error)
-	DataCapInfo() ([]byte, error)
+	DataCapInfo() (string, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -490,6 +490,16 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
+	// On IOS flutter.log file should be attached separately
+	// since flutter.log is in a different location due to tunnel running in a different process
+	// On other platforms flutter.log is already included in the main Lantern log file
+	if logFilePath != "" {
+		report.Attachments = append(
+			report.Attachments,
+			utils.CreateLogAttachment(logFilePath)...,
+		)
+	}
+
 	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
@@ -500,7 +510,7 @@ func (lc *LanternCore) ReportIssue(
 }
 
 // DataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() ([]byte, error) {
+func (lc *LanternCore) DataCapInfo() (string, error) {
 	return lc.apiClient.DataCapInfo(context.Background())
 }
 

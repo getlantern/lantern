@@ -453,13 +453,13 @@ class MethodHandler {
   private func getDataCapInfo(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      if let bytes = MobileGetDataCapInfo(&error) {
-        let json = String(data: bytes as Data, encoding: .utf8) ?? "{}"
-        await MainActor.run { result(json) }
-      } else if let error {
+      let data = MobileGetDataCapInfo(&error)
+      if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
-      } else {
-        await MainActor.run { result("{}") }
+        return
+      }
+      await MainActor.run {
+        result(data)
       }
     }
   }

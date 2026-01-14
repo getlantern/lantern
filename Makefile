@@ -477,10 +477,17 @@ format:
 	$(MAKE) swift-format
 
 ios-release: clean pubget ios
-	flutter build ipa --release --export-options-plist ./ExportOptions.plist
-	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
-	echo "iOS IPA generated under: $$IPA_PATH"; \
-	open "$$IPA_PATH"
+	flutter build ipa --release --export-options-plist ./ExportOptions.plist $(DART_DEFINES)
+	@set -e; \
+	  IPA_DIR="$(CURDIR)/build/ios/ipa"; \
+	  IPA_SRC=$$(ls -t "$$IPA_DIR"/*.ipa 2>/dev/null | head -n 1); \
+	  if [ -z "$$IPA_SRC" ]; then \
+	    echo "ERROR: No .ipa found under $$IPA_DIR"; \
+	    ls -la "$$IPA_DIR" || true; \
+	    exit 1; \
+	  fi; \
+	  cp -f "$$IPA_SRC" "$(INSTALLER_NAME).ipa"; \
+	  echo "iOS IPA generated under: $$IPA_SRC"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

@@ -345,8 +345,8 @@ func Logout(email string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
-func GetDataCapInfo() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DataCapInfo() })
+func GetDataCapInfo() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.DataCapInfo() })
 }
 
 // Email Recovery Methods

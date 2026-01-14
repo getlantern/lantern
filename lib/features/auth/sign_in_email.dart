@@ -41,6 +41,7 @@ class SignInEmail extends HookConsumerWidget {
               AppTextField(
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
+                autofillHints: [AutofillHints.email],
                 label: 'email'.i18n,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) =>

@@ -101,6 +101,10 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
+    if (password == null) {
+      appRouter.pop();
+      return;
+    }
     final appSettings = ref.read(appSettingProvider);
     final isLoggedIn = appSettings.userLoggedIn;
 

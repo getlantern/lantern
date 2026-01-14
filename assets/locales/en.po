@@ -1302,6 +1302,18 @@ msgstr "If you don't receive your confirmation code, consider using an alternati
 msgid "continue_anyway"
 msgstr "Continue Anyway"
 
+msgid "lantern_pro_license_applied"
+msgstr "Your Lantern Pro License will be applied to your existing account"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Your purchase will be applied to your existing account"
+
+msgid "daily_data_cap_reached"
+msgstr "Daily data cap reached"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Speed reduced to 128 kb/sec - Resets at %s."
+
 
 
 

@@ -33,6 +33,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
+    final user = ref.watch(homeProvider).value;
+    final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
+    if (isUserRegistered) {
+      /// this mean user has already registered
+      emailController.text = user?.legacyUserData.email ?? '';
+    }
 
     textTheme = Theme.of(context).textTheme;
     return EnterKeyShortcut(
@@ -41,6 +47,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           onContinuePressed(
             SignUpMethodType.email,
             emailController.text,
+            isUserRegistered,
           );
         }
       },
@@ -56,6 +63,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppTextField(
+                  enable: !isUserRegistered,
                   controller: emailController,
                   label: 'email'.i18n,
                   keyboardType: TextInputType.emailAddress,
@@ -76,7 +84,16 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     return null;
                   },
                 ),
-                SizedBox(height: defaultSize),
+                SizedBox(height: 4),
+                if (isUserRegistered) ...{
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text(userRegisterMessageTip(),
+                        style: textTheme!.bodyMedium!
+                            .copyWith(color: AppColors.gray6, fontSize: 12)),
+                  ),
+                  SizedBox(height: defaultSize),
+                },
                 if (widget.authFlow == AuthFlow.changeEmail)
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
@@ -101,6 +118,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   onPressed: () => onContinuePressed(
                     SignUpMethodType.email,
                     emailController.text,
+                    isUserRegistered,
                   ),
                 ),
                 SizedBox(height: defaultSize),
@@ -148,17 +166,28 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     return problematicDomains.any(email.endsWith);
   }
 
-  void onContinuePressed(SignUpMethodType type, String email) {
+  String userRegisterMessageTip() {
+    if (widget.authFlow == AuthFlow.lanternProLicense) {
+      return 'lantern_pro_license_applied'.i18n;
+    } else {
+      return 'your_purchase_will_be_applied_to_your_existing_account'.i18n;
+    }
+  }
+
+  void onContinuePressed(
+      SignUpMethodType type, String email, bool isUserRegistered) {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isProblematicEmail(email)) {
-      _showEmailDeliverabilityNotice(() => _handleContinue(type, email));
+      _showEmailDeliverabilityNotice(
+          () => _handleContinue(type, email, isUserRegistered));
       return;
     }
-    _handleContinue(type, email);
+    _handleContinue(type, email, isUserRegistered);
   }
 
-  Future<void> _handleContinue(SignUpMethodType type, String email) async {
+  Future<void> _handleContinue(
+      SignUpMethodType type, String email, bool isUserRegistered) async {
     try {
       if (!_formKey.currentState!.validate()) {
         return;
@@ -168,12 +197,21 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         appLogger.debug('Starting change email flow');
         startChangeEmailFlow(email);
       } else {
-        appLogger.debug('Starting signup flow');
-        await signupFlow(email);
-        return;
+        if (isUserRegistered) {
+          ///This mean user is already registered
+          /// plan is expired or user are creating new account with same email
+          /// by pass signup flow and start forgot password flow
+          startForgotPasswordFlow(email);
+          appLogger
+              .info("User already registered, starting forgot password flow");
+        } else {
+          appLogger.debug('Starting signup flow');
+          await signupFlow(email);
+          return;
+        }
       }
     } catch (e) {
-      appLogger.error('Error in _handleContiune: $e');
+      appLogger.error('Error in _handleContinue: $e');
       context.showSnackBar('error_occurred'.i18n);
     }
   }
