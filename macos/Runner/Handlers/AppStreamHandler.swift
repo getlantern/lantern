@@ -42,10 +42,10 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
         ])
       }
 
+      guard self.eventSink != nil else { return }
+
       var error: NSError?
       let jsonString = MobileLoadInstalledApps(dataDir, &error)
-
-      guard self.eventSink != nil else { return }
 
       if let error {
         await MainActor.run {

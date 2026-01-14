@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
@@ -11,7 +14,7 @@ class DataUsage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final dataCapAsync = ref.watch(dataCapInfoProvider);
-
+    appLogger.debug('Building DataUsage widget');
     return dataCapAsync.when(
       data: (dataCapResponse) {
         /// If data cap is not enabled, don't show the widget
@@ -24,11 +27,19 @@ class DataUsage extends ConsumerWidget {
         final int totalBytes = dataCap.bytesAllotted;
         final int usedBytes = dataCap.bytesUsed.clamp(0, totalBytes);
         final int remainingBytes = totalBytes - usedBytes;
+        final isDataCapReached = usedBytes >= totalBytes;
+
+        final dataCapResetTime = formatDailyResetTime(dataCap.allotmentEndTime);
+        appLogger.debug(
+            "Data Usage - Total: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
 
         /// Convert to MB only for display
         final int totalData = (totalBytes.toMB).round();
         final int remainingData = (remainingBytes.toMB).round();
-        final int usedData = (usedBytes.toMB).round();
+        final int usedData =
+            usedBytes == 0 ? 0 : max(1, usedBytes.toMB.round());
+        appLogger.debug(
+            "Data Usage - Total: $totalData MB, Used: $usedData MB, Remaining: $remainingData MB");
 
         final usageString = '$usedData/$totalData';
 
@@ -50,31 +61,55 @@ class DataUsage extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       AppImage(path: AppImagePaths.dataUsage),
                       SizedBox(width: 8),
                       Text(
-                        'daily_data_usage'.i18n,
+                        isDataCapReached
+                            ? 'daily_data_cap_reached'.i18n
+                            : 'daily_data_usage'.i18n,
                         style: textTheme.labelLarge!.copyWith(
-                          color: AppColors.gray7,
+                          color: isDataCapReached
+                              ? AppColors.red8
+                              : AppColors.gray7,
                         ),
                       ),
                       Spacer(),
-                      Text(
-                        '$usageString${'mb'.i18n}',
-                        style: textTheme.titleSmall!.copyWith(
-                          color: AppColors.gray9,
+                      if (!isDataCapReached)
+                        Text(
+                          '$usageString${'mb'.i18n}',
+                          style: textTheme.titleSmall!.copyWith(
+                            color: AppColors.gray9,
+                          ),
                         ),
-                      ),
                     ],
                   ),
+                  if (isDataCapReached)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 30),
+                      child: AutoSizeText(
+                        "daily_data_cap_reached_message"
+                            .i18n
+                            .fill([dataCapResetTime]),
+                        minFontSize: 11,
+                        maxFontSize: 12,
+                        maxLines: 1,
+                        style: textTheme.bodySmall!.copyWith(
+                          color: AppColors.red8,
+                        ),
+                      ),
+                    ),
                   SizedBox(height: 8),
                   Container(
                     decoration: ShapeDecoration(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 1, color: AppColors.gray3),
+                        side: isDataCapReached
+                            ? BorderSide.none
+                            : BorderSide(width: 1, color: AppColors.gray3),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -85,12 +120,14 @@ class DataUsage extends ConsumerWidget {
                       builder: (context, value, child) =>
                           LinearProgressIndicator(
                         value: value,
-                        minHeight: 8,
+                        minHeight: 9,
                         borderRadius: const BorderRadius.all(
                             Radius.circular(defaultSize)),
                         trackGap: 10,
                         backgroundColor: AppColors.gray1,
-                        valueColor: AlwaysStoppedAnimation(AppColors.yellow3),
+                        valueColor: AlwaysStoppedAnimation(isDataCapReached
+                            ? AppColors.red6
+                            : AppColors.yellow3),
                       ),
                     ),
                   ),
@@ -103,5 +140,21 @@ class DataUsage extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => const SizedBox.shrink(),
     );
+  }
+
+  /// Formats the daily reset time based on whether it's today or another day.
+  String formatDailyResetTime(String serverTime) {
+    final DateTime endTime = DateTime.parse(
+      '${serverTime.replaceFirst(' ', 'T')}Z',
+    ).toLocal();
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime endDate = DateTime(endTime.year, endTime.month, endTime.day);
+    if (endDate == today) {
+      return AppDateFormats.time.format(endTime);
+    }
+
+    return '${AppDateFormats.weekday.format(endTime)}, '
+        '${AppDateFormats.time.format(endTime)}';
   }
 }

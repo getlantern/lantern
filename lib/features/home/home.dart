@@ -35,6 +35,7 @@ class Home extends StatefulHookConsumerWidget {
 class _HomeState extends ConsumerState<Home>
     with WidgetsBindingObserver, RouteAware {
   TextTheme? textTheme;
+  bool _isRouteObserverSubscribed = false;
 
   @override
   void initState() {
@@ -62,9 +63,13 @@ class _HomeState extends ConsumerState<Home>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_isRouteObserverSubscribed) {
+      return;
+    }
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
+      _isRouteObserverSubscribed = true;
     }
   }
 
@@ -75,21 +80,36 @@ class _HomeState extends ConsumerState<Home>
     /// Refresh when app comes back to foreground
     if (state == AppLifecycleState.resumed) {
       appLogger.info("App resumed, refreshing data cap info");
-      ref.invalidate(dataCapInfoProvider);
+      _refreshDataCapIfNeeded();
     }
   }
 
   @override
   void didPopNext() {
     appLogger.info("Returned to Home screen, refreshing data cap info");
-    ref.invalidate(dataCapInfoProvider);
+    _refreshDataCapIfNeeded();
   }
 
   @override
   void dispose() {
-    routeObserver.unsubscribe(this);
+    if (_isRouteObserverSubscribed) {
+      routeObserver.unsubscribe(this);
+      _isRouteObserverSubscribed = false;
+    }
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _refreshDataCapIfNeeded() {
+    final isPro = ref.read(isUserProProvider);
+
+    if (!isPro) {
+      appLogger.info("User is not Pro, refreshing data cap info");
+      ref.invalidate(dataCapInfoProvider);
+    } else {
+      appLogger.info("User is Pro, skipping data cap refresh");
+    }
   }
 
   @override
