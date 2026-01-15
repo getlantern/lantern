@@ -11,10 +11,10 @@ import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
-import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
@@ -34,7 +34,6 @@ class _PlansState extends ConsumerState<Plans> {
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-
     return BaseScreen(
       backgroundColor: AppColors.white,
       padded: false,
@@ -74,7 +73,7 @@ class _PlansState extends ConsumerState<Plans> {
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.4,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.39,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -133,6 +132,47 @@ class _PlansState extends ConsumerState<Plans> {
                     onPressed: onGetLanternProTap,
                   ),
                 ),
+                if (PlatformUtils.isIOS) ...{
+                  SizedBox(height: defaultSize),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      'subscription_renewal_info'.i18n,
+                      style: textTheme.labelMedium!.copyWith(
+                        color: AppColors.gray7,
+                      ),
+                    ),
+                  ),
+                  IntrinsicHeight(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        AppTextButton(
+                          label: 'privacy_policy'.i18n,
+                          fontSize: 12,
+                          textColor: AppColors.gray7,
+                          onPressed: () {
+                            UrlUtils.openWithSystemBrowser(
+                                AppUrls.privacyPolicy);
+                          },
+                        ),
+                        VerticalDivider(
+                          indent: 10,
+                          endIndent: 10,
+                        ),
+                        AppTextButton(
+                          label: 'terms_of_service'.i18n,
+                          fontSize: 12,
+                          textColor: AppColors.gray7,
+                          onPressed: () {
+                            UrlUtils.openWithSystemBrowser(
+                                AppUrls.termsOfService);
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                },
                 SizedBox(height: size24),
               ],
             ),

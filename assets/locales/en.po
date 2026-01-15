@@ -681,7 +681,6 @@ msgstr "Select a region for your Private Server. Closer locations may improve sp
 msgid "gcp_location_options"
 msgstr "Google Cloud Platform Location Options (%d):"
 
-
 msgid "australia_sydney"
 msgstr "Australia - Sydney"
 
@@ -1313,6 +1312,9 @@ msgstr "Daily data cap reached"
 
 msgid "daily_data_cap_reached_message"
 msgstr "Speed reduced to 128 kb/sec - Resets at %s."
+
+msgid "subscription_renewal_info"
+msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in App Store Settings."
 
 
 
