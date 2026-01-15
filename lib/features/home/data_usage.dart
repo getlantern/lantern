@@ -148,7 +148,7 @@ class DataUsage extends ConsumerWidget {
       return "";
     }
     final DateTime endTime = DateTime.parse(
-      '${serverTime.replaceFirst(' ', 'T')}Z',
+      serverTime,
     ).toLocal();
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
