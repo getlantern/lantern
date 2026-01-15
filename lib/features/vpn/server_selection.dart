@@ -521,7 +521,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
   Widget build(BuildContext context) {
     final countryCode = widget.locations.first.countryCode;
     final country = widget.locations.first.country;
-    final textTheme = Theme.of(context).textTheme;
     if (PlatformUtils.isDesktop) {
       return Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -567,19 +566,9 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
         ),
       );
     }
-
-    final location = widget.locations.first;
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      subtitle: location.protocol.isEmpty
-          ? null
-          : Text(
-              location.protocol.capitalize,
-              style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
-              ),
-            ),
       trailing: AppImage(
         path: AppImagePaths.arrowForward,
         height: 20.0,
@@ -611,6 +600,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               final isSelected = widget.selectedServerTag == loc.tag;
 
               return SingleCityServerView(
+                nested: true,
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
