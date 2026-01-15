@@ -28,10 +28,16 @@ class DataUsage extends ConsumerWidget {
         final int usedBytes = dataCap.bytesUsed.clamp(0, totalBytes);
         final int remainingBytes = totalBytes - usedBytes;
         final isDataCapReached = usedBytes >= totalBytes;
-
-        final dataCapResetTime = formatDailyResetTime(dataCap.allotmentEndTime);
         appLogger.debug(
             "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
+        final dataCapResetTime = formatDailyResetTime(dataCap.allotmentEndTime);
+        String dataCapMessage =
+            "daily_data_cap_reached_message".i18n.fill([dataCapResetTime]);
+        ///If parsing fails and returns empty string
+        ///do not show time
+        if (dataCapResetTime.isEmpty) {
+          dataCapMessage = dataCapMessage.split('-').first;
+        }
 
         /// Convert to MB only for display
         final int totalData = (totalBytes.toMB).round();
@@ -92,9 +98,7 @@ class DataUsage extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 30),
                       child: AutoSizeText(
-                        "daily_data_cap_reached_message"
-                            .i18n
-                            .fill([dataCapResetTime]),
+                        dataCapMessage,
                         minFontSize: 11,
                         maxFontSize: 12,
                         maxLines: 1,
@@ -144,20 +148,26 @@ class DataUsage extends ConsumerWidget {
 
   /// Formats the daily reset time based on whether it's today or another day.
   String formatDailyResetTime(String serverTime) {
-    if(serverTime.isEmpty){
+    try {
+      if (serverTime.isEmpty) {
+        return "";
+      }
+      final DateTime endTime = DateTime.parse(
+        serverTime,
+      ).toLocal();
+      final DateTime now = DateTime.now();
+      final DateTime today = DateTime(now.year, now.month, now.day);
+      final DateTime endDate =
+          DateTime(endTime.year, endTime.month, endTime.day);
+      if (endDate == today) {
+        return AppDateFormats.time.format(endTime);
+      }
+
+      return '${AppDateFormats.weekday.format(endTime)}, '
+          '${AppDateFormats.time.format(endTime)}';
+    } catch (e) {
+      appLogger.error('Error formatting daily reset time: $e');
       return "";
     }
-    final DateTime endTime = DateTime.parse(
-      '${serverTime.replaceFirst(' ', 'T')}Z',
-    ).toLocal();
-    final DateTime now = DateTime.now();
-    final DateTime today = DateTime(now.year, now.month, now.day);
-    final DateTime endDate = DateTime(endTime.year, endTime.month, endTime.day);
-    if (endDate == today) {
-      return AppDateFormats.time.format(endTime);
-    }
-
-    return '${AppDateFormats.weekday.format(endTime)}, '
-        '${AppDateFormats.time.format(endTime)}';
   }
 }
