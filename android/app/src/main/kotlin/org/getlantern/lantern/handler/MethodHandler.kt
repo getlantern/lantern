@@ -530,8 +530,7 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val data = Mobile.getDataCapInfo()
-                        val json = String(data, Charsets.UTF_8)
-                        withContext(Dispatchers.Main) { success(json) }
+                        withContext(Dispatchers.Main) { success(data) }
                     }.onFailure { e ->
                         result.error("GetDataCapInfo", e.localizedMessage ?: "Please try again", e)
                     }

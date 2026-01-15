@@ -126,7 +126,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo();
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo();
 
   Future<Either<Failure, UserResponse>> logout(String email);
 

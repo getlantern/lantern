@@ -128,7 +128,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getDataCapInfo();
     }

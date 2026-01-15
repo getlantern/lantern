@@ -70,6 +70,7 @@ const UserResponse_UserData$json = {
     {'1': 'yinbiEnabled', '3': 19, '4': 1, '5': 8, '10': 'yinbiEnabled'},
     {'1': 'subscriptionData', '3': 20, '4': 1, '5': 11, '6': '.UserResponse.UserData.SubscriptionData', '10': 'subscriptionData'},
     {'1': 'deviceID', '3': 21, '4': 1, '5': 9, '10': 'deviceID'},
+    {'1': 'unpassRegistered', '3': 22, '4': 1, '5': 8, '10': 'unpassRegistered'},
   ],
   '3': [UserResponse_UserData_SubscriptionData$json],
 };
@@ -100,7 +101,7 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'N5VXNlckRhdGEYBiABKAsyFi5Vc2VyUmVzcG9uc2UuVXNlckRhdGFSDmxlZ2FjeVVzZXJEYXRh'
     'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBkRldm'
     'ljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMgASgD'
-    'UgdjcmVhdGVkGpoICghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
+    'UgdjcmVhdGVkGsYICghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
     'IgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVIIcmVm'
     'ZXJyYWwSGAoFcGhvbmUYBSABKAlCAhgBUgVwaG9uZRIUCgVlbWFpbBgGIAEoCVIFZW1haWwSHg'
     'oKdXNlclN0YXR1cxgHIAEoCVIKdXNlclN0YXR1cxIcCgl1c2VyTGV2ZWwYCCABKAlSCXVzZXJM'
@@ -112,14 +113,14 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'V2aWNlcxgSIAMoCzIULlVzZXJSZXNwb25zZS5EZXZpY2VSB2RldmljZXMSIgoMeWluYmlFbmFi'
     'bGVkGBMgASgIUgx5aW5iaUVuYWJsZWQSUwoQc3Vic2NyaXB0aW9uRGF0YRgUIAEoCzInLlVzZX'
     'JSZXNwb25zZS5Vc2VyRGF0YS5TdWJzY3JpcHRpb25EYXRhUhBzdWJzY3JpcHRpb25EYXRhEhoK'
-    'CGRldmljZUlEGBUgASgJUghkZXZpY2VJRBrwAgoQU3Vic2NyaXB0aW9uRGF0YRImCg5zdWJzY3'
-    'JpcHRpb25JRBgBIAEoCVIOc3Vic2NyaXB0aW9uSUQSFgoGcGxhbklEGAIgASgJUgZwbGFuSUQS'
-    'KgoQc3RyaXBlQ3VzdG9tZXJJRBgDIAEoCVIQc3RyaXBlQ3VzdG9tZXJJRBIWCgZzdGF0dXMYBC'
-    'ABKAlSBnN0YXR1cxIuChJjYW5jZWxsYXRpb25SZWFzb24YBSABKAlSEmNhbmNlbGxhdGlvblJl'
-    'YXNvbhIcCgljcmVhdGVkQXQYBiABKANSCWNyZWF0ZWRBdBIYCgdzdGFydEF0GAcgASgDUgdzdG'
-    'FydEF0EhQKBWVuZEF0GAggASgDUgVlbmRBdBIgCgtjYW5jZWxsZWRBdBgJIAEoA1ILY2FuY2Vs'
-    'bGVkQXQSHAoJYXV0b1JlbmV3GAogASgIUglhdXRvUmVuZXcSGgoIcHJvdmlkZXIYCyABKAlSCH'
-    'Byb3ZpZGVy');
+    'CGRldmljZUlEGBUgASgJUghkZXZpY2VJRBIqChB1bnBhc3NSZWdpc3RlcmVkGBYgASgIUhB1bn'
+    'Bhc3NSZWdpc3RlcmVkGvACChBTdWJzY3JpcHRpb25EYXRhEiYKDnN1YnNjcmlwdGlvbklEGAEg'
+    'ASgJUg5zdWJzY3JpcHRpb25JRBIWCgZwbGFuSUQYAiABKAlSBnBsYW5JRBIqChBzdHJpcGVDdX'
+    'N0b21lcklEGAMgASgJUhBzdHJpcGVDdXN0b21lcklEEhYKBnN0YXR1cxgEIAEoCVIGc3RhdHVz'
+    'Ei4KEmNhbmNlbGxhdGlvblJlYXNvbhgFIAEoCVISY2FuY2VsbGF0aW9uUmVhc29uEhwKCWNyZW'
+    'F0ZWRBdBgGIAEoA1IJY3JlYXRlZEF0EhgKB3N0YXJ0QXQYByABKANSB3N0YXJ0QXQSFAoFZW5k'
+    'QXQYCCABKANSBWVuZEF0EiAKC2NhbmNlbGxlZEF0GAkgASgDUgtjYW5jZWxsZWRBdBIcCglhdX'
+    'RvUmVuZXcYCiABKAhSCWF1dG9SZW5ldxIaCghwcm92aWRlchgLIAEoCVIIcHJvdmlkZXI=');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

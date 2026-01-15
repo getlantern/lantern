@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/formatter.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'LanternProLicense')
@@ -109,7 +110,7 @@ class LanternProLicense extends HookConsumerWidget {
         ? '***${resellerCode.substring(resellerCode.length - 4)}'
         : '***';
     appLogger.info('Lantern Pro license entered (masked): $maskedCode');
-
+    final user = ref.read(homeProvider).value;
     context.showLoadingDialog();
     final result = await ref
         .read(lanternServiceProvider)
@@ -135,14 +136,15 @@ class LanternProLicense extends HookConsumerWidget {
           );
           return;
         }
-
-        context.pushRoute(
-          CreatePassword(
+        if (user!.legacyUserData.unpassRegistered) {
+          appRouter.popUntilRoot();
+        } else {
+          appRouter.push(CreatePassword(
             email: email,
             authFlow: AuthFlow.lanternProLicense,
             code: code,
-          ),
-        );
+          ));
+        }
       },
     );
   }

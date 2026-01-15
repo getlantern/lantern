@@ -28,6 +28,7 @@ class AppTextField extends StatelessWidget {
   final int? maxLength;
   final bool? autocorrect;
   final Widget? counter;
+  final List<String>? autofillHints;
 
   const AppTextField({
     super.key,
@@ -53,49 +54,51 @@ class AppTextField extends StatelessWidget {
     this.onSubmitted,
     this.onEditingComplete,
     this.counter,
+    this.autofillHints,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
-      textAlign: TextAlign.start,
-      textAlignVertical: TextAlignVertical.top,
-      keyboardType: keyboardType,
-      autocorrect: autocorrect ?? !obscureText,
-      enableSuggestions: enableSuggestions,
-      controller: controller,
-      maxLength: maxLength,
-      enabled: enable,
-      initialValue: initialValue,
-      inputFormatters: inputFormatters,
-      obscureText: obscureText,
-      onChanged: onChanged,
-      onFieldSubmitted: onSubmitted,
-      onEditingComplete: onEditingComplete,
-      readOnly: onTap != null,
-      onTap: onTap,
-      cursorColor: AppColors.blue10,
-      autovalidateMode: autovalidateMode,
-      validator: validator,
-      cursorRadius: Radius.circular(16),
-      cursorHeight: defaultSize,
-      cursorOpacityAnimates: true,
-      style: textTheme.bodyMedium!.copyWith(
-        color: AppColors.gray9,
-        fontSize: 14.sp,
-      ),
-      textInputAction: textInputAction,
-      maxLines: maxLines,
-      buildCounter: (context,
-              {required currentLength,
-              required isFocused,
-              required maxLength}) =>
-          counter,
-      decoration: InputDecoration(
+        textAlign: TextAlign.start,
+        textAlignVertical: TextAlignVertical.top,
+        keyboardType: keyboardType,
+        autocorrect: autocorrect ?? !obscureText,
+        autofillHints: autofillHints,
+        enableSuggestions: enableSuggestions,
+        controller: controller,
+        maxLength: maxLength,
+        enabled: enable,
+        initialValue: initialValue,
+        inputFormatters: inputFormatters,
+        obscureText: obscureText,
+        onChanged: onChanged,
+        onFieldSubmitted: onSubmitted,
+        onEditingComplete: onEditingComplete,
+        readOnly: onTap != null,
+        onTap: onTap,
+        cursorColor: AppColors.blue10,
+        autovalidateMode: autovalidateMode,
+        validator: validator,
+        cursorRadius: Radius.circular(16),
+        cursorHeight: defaultSize,
+        cursorOpacityAnimates: true,
+        style: textTheme.bodyMedium!.copyWith(
+          color: AppColors.gray9,
+          fontSize: 14.sp,
+        ),
+        textInputAction: textInputAction,
+        maxLines: maxLines,
+        buildCounter: (context,
+                {required currentLength,
+                required isFocused,
+                required maxLength}) =>
+            counter,
+        decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: enable ? AppColors.white : AppColors.gray3,
           hintText: hintText,
           hintStyle: textTheme.bodyMedium!.copyWith(
             color: AppColors.gray4,
@@ -129,8 +132,15 @@ class AppTextField extends StatelessWidget {
               color: Colors.grey,
               width: 1,
             ),
-          )),
-    );
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: defaultBorderRadius,
+            borderSide: BorderSide(
+              color: AppColors.gray3,
+              width: 1,
+            ),
+          ),
+        ));
 
     // If a label is provided, wrap the input field in a Column with a Text widget above.
     if (label != null) {
