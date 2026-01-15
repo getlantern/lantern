@@ -85,7 +85,7 @@ func initCommon(opts *utils.Opts, platIfce libbox.PlatformInterface) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.
 	platIfceFn := func() libbox.PlatformInterface { return platIfce }
-	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
+	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() || radianceCommon.IsAndroid() {
 		slog.Debug("Initializing common for Apple platforms", "dataDir", opts.DataDir, "logDir:",
 			opts.LogDir, "logLevel:", opts.LogLevel)
 		if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfceFn); err != nil {
