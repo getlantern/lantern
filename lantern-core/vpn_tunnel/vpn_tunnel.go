@@ -92,7 +92,7 @@ func initCommon(opts *utils.Opts, platIfce libbox.PlatformInterface) error {
 			return fmt.Errorf("failed to initialize common: %w", err)
 		}
 	} else if radianceCommon.IsWindows() {
-		if _, err := vpn.InitIPC("", "", "debug", platIfceFn); err != nil {
+		if _, err := vpn.InitIPC("", "", opts.LogLevel, platIfceFn); err != nil {
 			return fmt.Errorf("failed to initialize common: %w", err)
 		}
 	}

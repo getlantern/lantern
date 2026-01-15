@@ -22,6 +22,7 @@ class DataUsage extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final dataCap = dataCapResponse.usage!;
+        appLogger.info("dataCap: $dataCap");
 
         /// Do all math in BYTES
         final int totalBytes = dataCap.bytesAllotted;
@@ -148,7 +149,7 @@ class DataUsage extends ConsumerWidget {
       return "";
     }
     final DateTime endTime = DateTime.parse(
-      '${serverTime.replaceFirst(' ', 'T')}Z',
+      serverTime,
     ).toLocal();
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);

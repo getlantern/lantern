@@ -33,8 +33,6 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
-	defaultAdBlockURL                 = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
-	adBlockSettingsFile               = "adblock.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -45,7 +43,6 @@ type LanternCore struct {
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
-	adBlocker     *adBlockerStub
 }
 
 var (
@@ -195,7 +192,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.serverManager = lc.rad.ServerManager()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
-	lc.adBlocker = newAdBlockerStub(settings.GetString(settings.DataPathKey), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
 	events.Subscribe(func(evt config.NewConfigEvent) {
@@ -761,69 +757,6 @@ func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification)
-}
-
-type adBlockerStub struct {
-	mu      sync.RWMutex
-	path    string
-	enabled bool
-	url     string
-}
-
-type adBlockSettings struct {
-	Enabled bool   `json:"enabled"`
-	URL     string `json:"url,omitempty"`
-}
-
-func newAdBlockerStub(basePath, defaultURL string) *adBlockerStub {
-	ab := &adBlockerStub{
-		path: filepath.Join(basePath, adBlockSettingsFile),
-		url:  defaultURL,
-	}
-	ab.load()
-	return ab
-}
-
-func (a *adBlockerStub) load() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	data, err := os.ReadFile(a.path)
-	if err != nil || len(data) == 0 {
-		return
-	}
-	var s adBlockSettings
-	if err := json.Unmarshal(data, &s); err == nil {
-		a.enabled = s.Enabled
-		if s.URL != "" {
-			a.url = s.URL
-		}
-	}
-}
-
-func (a *adBlockerStub) save() error {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	b, err := json.Marshal(adBlockSettings{
-		Enabled: a.enabled,
-		URL:     a.url,
-	})
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(a.path, b, 0644)
-}
-
-func (a *adBlockerStub) SetEnabled(v bool) error {
-	a.mu.Lock()
-	a.enabled = v
-	a.mu.Unlock()
-	return a.save()
-}
-
-func (a *adBlockerStub) IsEnabled() bool {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	return a.enabled
 }
 
 // splitCSVClean splits a comma-separated string into a stable list

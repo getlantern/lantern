@@ -46,7 +46,7 @@ func init() {
 
 func main() {
 	// Initialize radiance to ensure our directories and logging are set up.
-	rcommon.InitReadOnly("", "", "debug")
+	rcommon.InitReadOnly("", "", "trace")
 	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
 	flag.Parse()
 
