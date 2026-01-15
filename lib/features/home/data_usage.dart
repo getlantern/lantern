@@ -170,3 +170,5 @@ class DataUsage extends ConsumerWidget {
       appLogger.error('Error formatting daily reset time: $e');
       return "";
     }
+  }
+}
