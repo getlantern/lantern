@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/hooks/use_app_lifecycle_listener.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 @RoutePage(name: 'QrCodeScanner')
