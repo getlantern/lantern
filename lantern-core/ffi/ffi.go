@@ -971,3 +971,24 @@ func isBlockAdsEnabled() C.int {
 	}
 	return 0
 }
+
+//export setSmartRoutingEnabled
+func setSmartRoutingEnabled(enabled C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SetSmartRoutingEnabled(enabled != 0); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export isSmartRoutingEnabled
+func isSmartRoutingEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsSmartRoutingEnabled() {
+		return 1
+	}
+	return 0
+}

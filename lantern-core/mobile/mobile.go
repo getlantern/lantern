@@ -10,10 +10,11 @@ import (
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
+	"github.com/getlantern/radiance/common"
+
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
-	"github.com/getlantern/radiance/common"
 )
 
 var (
@@ -85,6 +86,23 @@ func SetBlockAdsEnabled(enabled bool) error {
 func IsBlockAdsEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsBlockAdsEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+func SetSmartRoutingEnabled(enabled bool) error {
+	slog.Info("smart-routing: SetSmartRoutingEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetSmartRoutingEnabled(enabled)
+	})
+}
+
+func IsSmartRoutingEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsSmartRoutingEnabled(), nil
 	})
 	if err != nil {
 		return false

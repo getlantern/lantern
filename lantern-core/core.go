@@ -130,6 +130,11 @@ type Ads interface {
 	IsBlockAdsEnabled() bool
 }
 
+type SmartRouting interface {
+	SetSmartRoutingEnabled(bool) error
+	IsSmartRoutingEnabled() bool
+}
+
 type Core interface {
 	App
 	User
@@ -137,6 +142,7 @@ type Core interface {
 	PrivateServer
 	SplitTunnel
 	Ads
+	SmartRouting
 }
 
 // Make sure LanternCore implements the Core interface
