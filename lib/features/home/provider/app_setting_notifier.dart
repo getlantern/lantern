@@ -51,10 +51,19 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: value));
   }
 
-  void setRoutingMode(String mode) {
-    update(state.copyWith(routingMode: mode));
-  }
+  Future<void> setRoutingMode(RoutingMode mode) async {
+    final prev = state.routingModeRaw;
 
+    update(state.copyWith(routingModeRaw: mode.key));
+
+    final lantern = ref.read(lanternServiceProvider);
+    final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
+
+    res.fold((f) {
+      appLogger.error('Failed to set routing mode', f);
+      update(state.copyWith(routingModeRaw: prev));
+    }, (_) {});
+  }
 
   void setUserLoggedIn(bool value) {
     update(state.copyWith(userLoggedIn: value));
@@ -78,13 +87,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     final svc = ref.read(lanternServiceProvider);
     svc.setBlockAdsEnabled(value).then((res) {
-      res.match(
-        (err) {
-          appLogger.error('setBlockAdsEnabled failed: ${err.error}');
-          update(state.copyWith(blockAds: prev));
-        },
-        (_) {},
-      );
+      res.match((err) {
+        appLogger.error('setBlockAdsEnabled failed: ${err.error}');
+        update(state.copyWith(blockAds: prev));
+      }, (_) {});
     });
   }
 
@@ -119,18 +125,16 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: enabled));
     appLogger.info('Setting split tunneling: $enabled');
     final res = await svc.setSplitTunnelingEnabled(enabled);
-    res.match(
-      (err) {
-        appLogger.error('setSplitTunnelingEnabled failed: ${err.error}');
-        update(state.copyWith(newIsSpiltTunnelingOn: previous));
-      },
-      (_) {},
-    );
+    res.match((err) {
+      appLogger.error('setSplitTunnelingEnabled failed: ${err.error}');
+      update(state.copyWith(newIsSpiltTunnelingOn: previous));
+    }, (_) {});
   }
 
   Future<void> updateTelemetryConsent(bool consent) async {
-    final result =
-        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
+    final result = await ref
+        .read(lanternServiceProvider)
+        .updateTelemetryEvents(consent);
 
     result.fold(
       (err) {

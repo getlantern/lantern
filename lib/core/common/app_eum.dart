@@ -7,11 +7,7 @@ enum VPNStatus {
   error,
 }
 
-enum ServerLocationType {
-  auto,
-  privateServer,
-  lanternLocation;
-}
+enum ServerLocationType { auto, privateServer, lanternLocation }
 
 extension ServerLocationTypeExtension on String {
   ServerLocationType get toServerLocationType {
@@ -168,6 +164,27 @@ enum CloudProvider {
         return "Google";
       case CloudProvider.digitalOcean:
         return "Digital Ocean";
+    }
+  }
+}
+
+enum RoutingMode { smart, full }
+
+extension RoutingModeX on RoutingMode {
+  String get key => switch (this) {
+    RoutingMode.smart => 'smart_routing',
+    RoutingMode.full => 'full_tunnel',
+  };
+
+  String label() => key.i18n;
+
+  static RoutingMode fromRaw(String raw) {
+    switch (raw) {
+      case 'smart_routing':
+        return RoutingMode.smart;
+      case 'full_tunnel':
+      default:
+        return RoutingMode.full;
     }
   }
 }

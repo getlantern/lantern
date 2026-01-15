@@ -14,34 +14,26 @@ class SmartRouting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final appSetting = ref.watch(appSettingProvider);
-    final routeMode = appSetting.routingMode.isEmpty
-        ? 'full_tunnel'.i18n
-        : appSetting.routingMode;
+    final selected = appSetting.routingMode;
 
-    void updateRoutingMode(String mode) {
-      ref.read(appSettingProvider.notifier).setRoutingMode(mode);
-      WidgetsBinding.instance.addPersistentFrameCallback(
-        (timeStamp) {
-          appRouter.pop();
-        },
-      );
+    Future<void> select(RoutingMode mode) async {
+      await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+      if (context.mounted) appRouter.pop();
     }
 
     return BaseScreen(
       title: 'routing_mode'.i18n,
       body: Column(
-        children: <Widget>[
+        children: [
           AppCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
                 AppTile(
-                  onPressed: () {
-                    updateRoutingMode('smart_routing'.i18n);
-                  },
-                  icon: AppRadioButton<String>(
-                    groupValue: routeMode,
-                    value: 'smart_routing'.i18n,
+                  onPressed: () => select(RoutingMode.smart),
+                  icon: AppRadioButton<RoutingMode>(
+                    groupValue: selected,
+                    value: RoutingMode.smart,
                   ),
                   label: 'smart_routing'.i18n,
                   subtitle: Text(
@@ -56,12 +48,10 @@ class SmartRouting extends HookConsumerWidget {
                 ),
                 DividerSpace(),
                 AppTile(
-                  onPressed: () {
-                    updateRoutingMode('full_tunnel'.i18n);
-                  },
-                  icon: AppRadioButton(
-                    groupValue: routeMode,
-                    value: 'full_tunnel'.i18n,
+                  onPressed: () => select(RoutingMode.full),
+                  icon: AppRadioButton<RoutingMode>(
+                    groupValue: selected,
+                    value: RoutingMode.full,
                   ),
                   label: 'full_tunnel'.i18n,
                   subtitle: Text(
@@ -78,7 +68,7 @@ class SmartRouting extends HookConsumerWidget {
             ),
           ),
           SizedBox(height: size24),
-          InfoRow(text: 'smart_routing_description'.i18n)
+          InfoRow(text: 'smart_routing_description'.i18n),
         ],
       ),
     );

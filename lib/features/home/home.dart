@@ -19,11 +19,7 @@ import 'package:lantern/lantern_app.dart';
 
 import '../../core/common/common.dart';
 
-enum _SettingTileType {
-  smartLocation,
-  splitTunneling,
-  smartRouting,
-}
+enum _SettingTileType { smartLocation, splitTunneling, smartRouting }
 
 @RoutePage(name: 'Home')
 class Home extends StatefulHookConsumerWidget {
@@ -48,7 +44,8 @@ class _HomeState extends ConsumerState<Home>
       if (PlatformUtils.isMacOS) {
         /// Show macOS system extension dialog if needed
         appLogger.info(
-            "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
+          "App Setting - showSplashScreen: ${appSetting.showSplashScreen}",
+        );
         if (appSetting.showSplashScreen) {
           appLogger.info("Showing System Extension Dialog");
           appRouter.push(const MacOSExtensionDialog());
@@ -77,6 +74,7 @@ class _HomeState extends ConsumerState<Home>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+
     /// Refresh when app comes back to foreground
     if (state == AppLifecycleState.resumed) {
       appLogger.info("App resumed, refreshing data cap info");
@@ -122,7 +120,8 @@ class _HomeState extends ConsumerState<Home>
     useEffect(() {
       if (appSetting.successfulConnection) {
         appLogger.info(
-            "User has successfully connected, checking if needs to show Help Lantern Dialog or not");
+          "User has successfully connected, checking if needs to show Help Lantern Dialog or not",
+        );
         if (!appSetting.telemetryDialogDismissed &&
             (featureFlag.getBool(FeatureFlag.metrics) &&
                 featureFlag.getBool(FeatureFlag.traces))) {
@@ -136,27 +135,25 @@ class _HomeState extends ConsumerState<Home>
       return null;
     }, [featureFlag]);
 
-    textTheme = Theme
-        .of(context)
-        .textTheme;
+    textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: AppColors.white,
-          title: LanternLogo(isPro: isUserPro),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(0),
-            child: DividerSpace(padding: EdgeInsets.zero),
-          ),
-          elevation: 5,
-          leading: IconButton(
-              onPressed: () {
-                appRouter.push(Setting());
-              },
-              icon: const AppImage(path: AppImagePaths.menu))),
-      body: SafeArea(
-        child: _buildBody(ref, isUserPro),
+        backgroundColor: AppColors.white,
+        title: LanternLogo(isPro: isUserPro),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(0),
+          child: DividerSpace(padding: EdgeInsets.zero),
+        ),
+        elevation: 5,
+        leading: IconButton(
+          onPressed: () {
+            appRouter.push(Setting());
+          },
+          icon: const AppImage(path: AppImagePaths.menu),
+        ),
       ),
+      body: SafeArea(child: _buildBody(ref, isUserPro)),
     );
   }
 
@@ -168,19 +165,16 @@ class _HomeState extends ConsumerState<Home>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          if (isUserPro) SizedBox(height: 0) else
-            ProBanner(),
+          if (isUserPro) SizedBox(height: 0) else ProBanner(),
           VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               if (!isUserPro) ...{
                 if (serverType == ServerLocationType.privateServer)
-                  InfoRow(
-                    text: 'private_server_usage_message'.i18n,
-                  )
+                  InfoRow(text: 'private_server_usage_message'.i18n)
                 else
-                  PlatformUtils.isIOS ? SizedBox() : DataUsage()
+                  PlatformUtils.isIOS ? SizedBox() : DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),
@@ -196,14 +190,16 @@ class _HomeState extends ConsumerState<Home>
     final setting = ref.watch(appSettingProvider);
 
     return Container(
-      decoration: BoxDecoration(boxShadow: [
-        BoxShadow(
-          color: AppColors.shadowColor,
-          blurRadius: 32,
-          offset: Offset(0, 4),
-          spreadRadius: 0,
-        )
-      ]),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
       child: Card(
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -212,19 +208,15 @@ class _HomeState extends ConsumerState<Home>
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if(!PlatformUtils.isIOS)...{
-
-
+            if (!PlatformUtils.isIOS) ...{
               DividerSpace(),
               SettingTile(
                 label: 'routing_mode'.i18n,
                 icon: AppImagePaths.route,
-                value: setting.routingMode.isEmpty
-                    ? 'full_tunnel'.i18n
-                    : setting.routingMode,
+                value: setting.routingMode.label(),
                 actions: [
                   IconButton(
-                    onPressed: () => appRouter.push(SplitTunneling()),
+                    onPressed: () => appRouter.push(const SmartRouting()),
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -232,7 +224,7 @@ class _HomeState extends ConsumerState<Home>
                     padding: EdgeInsets.zero,
                     constraints: BoxConstraints(),
                     visualDensity: VisualDensity.compact,
-                  )
+                  ),
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
@@ -257,7 +249,7 @@ class _HomeState extends ConsumerState<Home>
                     padding: EdgeInsets.zero,
                     constraints: BoxConstraints(),
                     visualDensity: VisualDensity.compact,
-                  )
+                  ),
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
               ),
@@ -283,63 +275,58 @@ class _HomeState extends ConsumerState<Home>
 
   void showHelpLanternDialog() {
     AppDialog.customDialog(
-        context: context,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(height: 24),
-            AppImage(path: AppImagePaths.assessment),
-            SizedBox(height: 24),
-            Text(
-              'help_improve_lantern'.i18n,
-              style: textTheme!.headlineSmall!.copyWith(
-                color: AppColors.gray9,
-              ),
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          AppImage(path: AppImagePaths.assessment),
+          SizedBox(height: 24),
+          Text(
+            'help_improve_lantern'.i18n,
+            style: textTheme!.headlineSmall!.copyWith(color: AppColors.gray9),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'share_anonymous_usage_data'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'data_we_collect'.i18n,
+            style: AppTextStyles.bodyMediumBold.copyWith(
+              color: AppColors.gray8,
             ),
-            SizedBox(height: defaultSize),
-            Text(
-              'share_anonymous_usage_data'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(
-                color: AppColors.gray8,
-              ),
-            ),
-            SizedBox(height: defaultSize),
-            Text(
-              'data_we_collect'.i18n,
-              style: AppTextStyles.bodyMediumBold.copyWith(
-                color: AppColors.gray8,
-              ),
-            ),
-            SizedBox(height: defaultSize),
-            Text(
-              'you_can_change_anytime'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(
-                color: AppColors.gray8,
-              ),
-            ),
-          ],
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'you_can_change_anytime'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'dont_allow'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            context.pop();
+            ref
+                .read(appSettingProvider.notifier)
+                .updateAnonymousDataConsent(false);
+          },
         ),
-        action: [
-          AppTextButton(
-            label: 'dont_allow'.i18n,
-            textColor: AppColors.gray6,
-            onPressed: () {
-              context.pop();
-              ref
-                  .read(appSettingProvider.notifier)
-                  .updateAnonymousDataConsent(false);
-            },
-          ),
-          AppTextButton(
-            label: 'allow'.i18n,
-            textColor: AppColors.blue6,
-            onPressed: () {
-              context.pop();
-              ref
-                  .read(appSettingProvider.notifier)
-                  .updateAnonymousDataConsent(true);
-            },
-          ),
-        ]);
+        AppTextButton(
+          label: 'allow'.i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            context.pop();
+            ref
+                .read(appSettingProvider.notifier)
+                .updateAnonymousDataConsent(true);
+          },
+        ),
+      ],
+    );
   }
 }

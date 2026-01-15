@@ -17,7 +17,7 @@ class AppSetting {
   bool telemetryDialogDismissed;
   bool telemetryConsent;
   bool successfulConnection;
-  String routingMode;
+  String routingModeRaw;
 
   AppSetting({
     this.id = 0,
@@ -32,7 +32,7 @@ class AppSetting {
     this.telemetryDialogDismissed = false,
     this.telemetryConsent = false,
     this.successfulConnection = false,
-    this.routingMode ='Full Tunnel',
+    this.routingModeRaw = 'full_tunnel',
   });
 
   AppSetting copyWith({
@@ -48,7 +48,7 @@ class AppSetting {
     bool? showTelemetryDialog,
     bool? telemetryConsent,
     bool? successfulConnection,
-    String? routingMode,
+    String? routingModeRaw,
   }) {
     return AppSetting(
       id: id,
@@ -63,7 +63,10 @@ class AppSetting {
       telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
       telemetryConsent: telemetryConsent ?? this.telemetryConsent,
       successfulConnection: successfulConnection ?? this.successfulConnection,
-      routingMode: routingMode ?? this.routingMode,
+      routingModeRaw: routingModeRaw ?? this.routingModeRaw,
     );
   }
+
+  RoutingMode get routingMode => RoutingModeX.fromRaw(routingModeRaw);
+  set routingMode(RoutingMode mode) => routingModeRaw = mode.key;
 }
