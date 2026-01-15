@@ -405,7 +405,7 @@
     },
     {
       "id": "11:4557824412096950738",
-      "lastPropertyId": "21:6487851609758792533",
+      "lastPropertyId": "22:3794833187885345640",
       "name": "UserDataEntity",
       "properties": [
         {
@@ -516,6 +516,11 @@
           "id": "21:6487851609758792533",
           "name": "deviceID",
           "type": 9
+        },
+        {
+          "id": "22:3794833187885345640",
+          "name": "unpassRegistered",
+          "type": 1
         }
       ],
       "relations": [

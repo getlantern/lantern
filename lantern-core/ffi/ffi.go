@@ -225,11 +225,7 @@ func getDataCapInfo() *C.char {
 	if err != nil {
 		return SendError(err)
 	}
-	data, err := json.Marshal(info)
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(string(data))
+	return C.CString(info)
 }
 
 //export reportIssue

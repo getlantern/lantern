@@ -7,7 +7,7 @@ part 'data_cap_info_provider.g.dart';
 @Riverpod(keepAlive: true)
 class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   @override
-  Future<DataCapInfo> build() async {
+  Future<DataCapUsageResponse> build() async {
     final result = await ref.read(lanternServiceProvider).getDataCapInfo();
     return result.fold(
       (failure) {

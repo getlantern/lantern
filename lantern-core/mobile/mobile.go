@@ -345,8 +345,8 @@ func Logout(email string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
-func GetDataCapInfo() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DataCapInfo() })
+func GetDataCapInfo() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.DataCapInfo() })
 }
 
 // Email Recovery Methods
@@ -443,4 +443,11 @@ func InviteToServerManagerInstance(ip string, port string, accessToken string, i
 
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
+}
+
+func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
+	return withCore(func(c lanterncore.Core) error {
+		return c.AddServerBasedOnURLs(urls, skipCertVerification)
+	})
 }

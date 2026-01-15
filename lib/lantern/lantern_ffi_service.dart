@@ -361,7 +361,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -370,7 +370,8 @@ class LanternFFIService implements LanternCoreService {
       );
       checkAPIError(result);
       final map = jsonDecode(result);
-      final dataCap = DataCapInfo.fromJson(map);
+      appLogger.debug('Data cap info: $map');
+      final dataCap = DataCapUsageResponse.fromJson(map);
       return right(dataCap);
     } catch (e, st) {
       appLogger.error('Failed to get data cap info: $e', e, st);

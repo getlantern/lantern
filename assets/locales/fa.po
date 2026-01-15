@@ -7,13 +7,13 @@
 # NoProfile, 2025
 # e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2025
 # Mokah <unfilternet@getlantern.org>, 2025
-# Lantern, 2025
 # Mersen M, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Persian (Iran) (https://app.transifex.com/lantern-1/teams/94371/fa_IR/)\n"
 "Language: fa_IR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -1251,13 +1251,13 @@ msgid "annual_plan"
 msgstr "برنامه سالانه:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "+۱ ماه برای هر یک"
 
 msgid "two_year_plan"
 msgstr "برنامه دو ساله:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "+۲ ماه برای هر یک"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1265,6 +1265,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "لایسنس لنترن پرو"
+
+msgid "lantern_pro_license_required"
+msgstr "لایسنس Lantern Pro مورد نیاز است"
+
+msgid "lantern_pro_license_invalid"
+msgstr "لایسنس Lantern Pro نامعتبر است"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "لایسنس Lantern Pro باید ۲۵ کاراکتر باشد"
 
 msgid "select_account"
 msgstr "انتخاب حساب کاربری"
@@ -1284,58 +1293,113 @@ msgstr ""
 "ایجاد کنید."
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "افزودن جزئیات صورتحساب"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean برای ایجاد سرورها به اطلاعات پرداخت نیاز دارد."
 
 msgid "tap"
-msgstr ""
+msgstr "ضربه بزنید"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "زیر برای رفتن به DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "۱"
 
 msgid "2"
-msgstr ""
+msgstr "۲"
 
 msgid "3"
-msgstr ""
+msgstr "۳"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "یک روش پرداخت اضافه کنید (کارت اعتباری یا PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "به Lantern برگردید و برای ادامه نصب، \"ادامه\" را بزنید"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "نحوه افزودن جزئیات صورتحساب:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"لطفاً یک روش پرداخت به حساب DigitalOcean خود اضافه کنید. اگر قبلاً اضافه "
+"کرده‌اید، چند دقیقه صبر کنید و دوباره امتحان کنید."
 
 msgid "ok"
-msgstr ""
+msgstr "باشه"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "نتوانست URL را باز کند"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "تازه وارد Lantern Pro شده‌اید؟"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "خطایی رخ داد. لطفاً بعداً دوباره امتحان کنید."
 
 msgid "developer_mode"
-msgstr ""
+msgstr "حالت توسعه‌دهنده"
 
 msgid "developer_mode_note"
 msgstr ""
+"حالت توسعه‌دهنده به طور خاص برای توسعه‌دهندگان Lantern است تا هنگام توسعه، "
+"ویژگی‌ها را آزمایش کنند."
 
 msgid "invalid_activation_code"
 msgstr ""
+"کد فعال‌سازی نامعتبر است. لطفاً کد را بررسی کنید و دوباره امتحان کنید."
 
 msgid "invalid_activation_code_length"
+msgstr "کد فعال‌سازی باید ۲۵ کاراکتر باشد."
+
+msgid "error_while_vpn_connection"
+msgstr "هنگام برقراری اتصال VPN خطایی رخ داد. لطفاً دوباره امتحان کنید."
+
+msgid "help_improve_lantern"
+msgstr "کمک به بهبود Lantern"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"اطلاعات استفاده ناشناس را به اشتراک بگذارید تا به بهبود سرعت و قابلیت "
+"اطمینان کمک کند."
+
+msgid "data_we_collect"
+msgstr ""
+"ما هرگز تاریخچه مرور، مقاصد ترافیک، درخواست‌های DNS یا گزارش‌های اتصال را "
+"جمع‌آوری نمی‌کنیم."
+
+msgid "you_can_change_anytime"
+msgstr "می‌توانید این را هر زمان در تنظیمات VPN تغییر دهید."
+
+msgid "dont_allow"
+msgstr "اجازه ندهید"
+
+msgid "allow"
+msgstr "اجازه دهید"
+
+msgid "anonymous_usage_data"
+msgstr "داده‌های استفاده ناشناس"
+
+msgid "helps_improve_lantern_performance"
+msgstr "به بهبود عملکرد Lantern کمک می‌کند"
+
+msgid "changes_applied_after_restart"
+msgstr "تغییرات پس از راه‌اندازی مجدد Lantern اعمال خواهند شد."
+
+msgid "email_deliverability_notice"
+msgstr "اطلاعیه تحویل ایمیل"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"ایمیل‌های ارسالی به آدرس‌های 163.com، 126.com، qq.com و sina.com گاهی مسدود "
+"می‌شوند و ممکن است نرسند"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"اگر کد تأیید خود را دریافت نکردید، استفاده از ارائه‌دهنده ایمیل جایگزین را "
+"در نظر بگیرید."
+
+msgid "continue_anyway"
+msgstr "به هر حال ادامه دهید"

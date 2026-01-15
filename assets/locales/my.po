@@ -4,10 +4,11 @@
 # tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2025
 # e2f <projects@e2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Burmese (https://app.transifex.com/lantern-1/teams/94371/my/)\n"
 "Language: my\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -1274,13 +1275,13 @@ msgid "annual_plan"
 msgstr "နှစ်ရှည်အစီအစဉ်:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "တစ်လစီ "
 
 msgid "two_year_plan"
 msgstr "နှစ်နှစ်ကြာ အစီအစဉ်:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "နှစ်လစီ ထပ်တိုး"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1289,6 +1290,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "လန်တန် ပရိုလိုင်စင်"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro လိုင်စင် လိုအပ်ပါသည်"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Lantern Pro လိုင်စင် မမှန်ကန်ပါ"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro လိုင်စင်သည် စာလုံး ၂၅ လုံး ဖြစ်ရမည်"
 
 msgid "select_account"
 msgstr "အကောင့်ရွေးပါ"
@@ -1308,58 +1318,117 @@ msgstr ""
 "ပရောဂျက်တစ်ခုကို အရင်ဆုံး ဖန်တီးပါ။"
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "ငွေပေးချေမှု အသေးစိတ် ထည့်ရန်"
 
 msgid "do_billing_details_message"
 msgstr ""
+"DigitalOcean သည် ဆာဗာများ ဖန်တီးရန် ငွေပေးချေမှု အချက်အလက် လိုအပ်ပါသည်။"
 
 msgid "tap"
-msgstr ""
+msgstr "နှိပ်ပါ"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "DigitalOcean သို့ သွားရန် အောက်တွင်"
 
 msgid "1"
-msgstr ""
+msgstr "၁"
 
 msgid "2"
-msgstr ""
+msgstr "၂"
 
 msgid "3"
-msgstr ""
+msgstr "၃"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "ငွေပေးချေမှု နည်းလမ်း တစ်ခု ထည့်ပါ (ခရက်ဒစ်ကတ် သို့မဟုတ် PayPal) "
 
 msgid "return_to_lantern"
 msgstr ""
+"Lantern သို့ ပြန်သွားပြီး တပ်ဆင်မှု ဆက်လုပ်ရန် \"ဆက်လက်လုပ်ဆောင်ပါ\" ကို "
+"နှိပ်ပါ"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "ငွေပေးချေမှု အသေးစိတ် ထည့်နည်း:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"သင့် DigitalOcean အကောင့်တွင် ငွေပေးချေမှု နည်းလမ်း တစ်ခု ထည့်ပါ။ ရှိပြီးသား"
+" ဖြစ်ပါက၊ မိနစ်အနည်းငယ် စောင့်ပြီး ထပ်စမ်းကြည့်ပါ။"
 
 msgid "ok"
-msgstr ""
+msgstr "OK"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "URL ကို ဖွင့်၍ မရပါ"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "Lantern Pro အသစ်လား?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "အမှားအယွင်း တစ်ခု ဖြစ်ပွားခဲ့သည်။ နောက်မှ ထပ်စမ်းကြည့်ပါ။"
 
 msgid "developer_mode"
-msgstr ""
+msgstr "Developer Mode"
 
 msgid "developer_mode_note"
 msgstr ""
+"Developer Mode သည် Lantern Developer များ အတွက်သာ ဖွံ့ဖြိုးတည်ဆောက်နေစဉ် "
+"လုပ်ဆောင်ချက်များ စမ်းသပ်ရန် ဖြစ်သည်။"
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "အသက်ဝင်စေသော ကုဒ် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။"
 
 msgid "invalid_activation_code_length"
+msgstr "အသက်ဝင်စေသော ကုဒ်သည် စာလုံး ၂၅ လုံး ရှည်ရမည်။"
+
+msgid "error_while_vpn_connection"
 msgstr ""
+"VPN ချိတ်ဆက်မှု ထူထောင်နေစဉ် အမှားအယွင်း တစ်ခု ဖြစ်ပွားခဲ့သည်။ "
+"ထပ်စမ်းကြည့်ပါ။"
+
+msgid "help_improve_lantern"
+msgstr "Lantern ကို တိုးတက်စေရန် ကူညီပါ"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"အမည်မသိ အသုံးပြုမှု ဒေတာကို မျှဝေခြင်းဖြင့် အမြန်နှုန်းနှင့် "
+"ယုံကြည်စိတ်ချရမှု တိုးတက်စေရန် ကူညီပါ။"
+
+msgid "data_we_collect"
+msgstr ""
+"ကျွန်ုပ်တို့သည် ရှာဖွေကြည့်ရှုမှု မှတ်တမ်း၊ ဒေတာ သွားရောက်ရာနေရာများ၊ DNS "
+"queries သို့မဟုတ် ချိတ်ဆက်မှု မှတ်တမ်းများကို ဘယ်တော့မှ စုဆောင်းမည် မဟုတ်ပါ။"
+
+msgid "you_can_change_anytime"
+msgstr "VPN ဆက်တင်များတွင် ဤအရာကို အချိန်မရွေး ပြောင်းလဲနိုင်ပါသည်။"
+
+msgid "dont_allow"
+msgstr "ခွင့်မပြုပါ"
+
+msgid "allow"
+msgstr "ခွင့်ပြုပါ"
+
+msgid "anonymous_usage_data"
+msgstr "အမည်မသိ အသုံးပြုမှု ဒေတာ"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Lantern စွမ်းဆောင်ရည် တိုးတက်စေရန် ကူညီသည်"
+
+msgid "changes_applied_after_restart"
+msgstr "Lantern ကို ပြန်လည်စတင်ပြီးနောက် ပြောင်းလဲမှုများ အကျုံးဝင်မည်။"
+
+msgid "email_deliverability_notice"
+msgstr "အီးမေးလ် ပို့ဆောင်နိုင်စွမ်း အကြောင်းကြားချက်"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com၊ 126.com၊ qq.com နှင့် sina.com လိပ်စာများသို့ ပို့သော "
+"အီးမေးလ်များကို တစ်ခါတစ်ရံ ပိတ်ဆို့ထားပြီး မရောက်ရှိနိုင်ပါ"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"အတည်ပြုကုဒ် မရရှိပါက အခြား အီးမေးလ် ဝန်ဆောင်မှုပေးသူ တစ်ခု အသုံးပြုရန် "
+"စဉ်းစားပါ။"
+
+msgid "continue_anyway"
+msgstr "ဘာပဲဖြစ်ဖြစ် ဆက်လုပ်ပါ"

@@ -308,6 +308,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     $core.bool? yinbiEnabled,
     UserResponse_UserData_SubscriptionData? subscriptionData,
     $core.String? deviceID,
+    $core.bool? unpassRegistered,
   }) {
     final $result = create();
     if (userId != null) {
@@ -374,6 +375,9 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     if (deviceID != null) {
       $result.deviceID = deviceID;
     }
+    if (unpassRegistered != null) {
+      $result.unpassRegistered = unpassRegistered;
+    }
     return $result;
   }
   UserResponse_UserData._() : super();
@@ -402,6 +406,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     ..aOB(19, _omitFieldNames ? '' : 'yinbiEnabled', protoName: 'yinbiEnabled')
     ..aOM<UserResponse_UserData_SubscriptionData>(20, _omitFieldNames ? '' : 'subscriptionData', protoName: 'subscriptionData', subBuilder: UserResponse_UserData_SubscriptionData.create)
     ..aOS(21, _omitFieldNames ? '' : 'deviceID', protoName: 'deviceID')
+    ..aOB(22, _omitFieldNames ? '' : 'unpassRegistered', protoName: 'unpassRegistered')
     ..hasRequiredFields = false
   ;
 
@@ -590,6 +595,16 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
   $core.bool hasDeviceID() => $_has(20);
   @$pb.TagNumber(21)
   void clearDeviceID() => $_clearField(21);
+
+  /// informs us whether the legacy id and token are username-password flow registered
+  @$pb.TagNumber(22)
+  $core.bool get unpassRegistered => $_getBF(21);
+  @$pb.TagNumber(22)
+  set unpassRegistered($core.bool v) { $_setBool(21, v); }
+  @$pb.TagNumber(22)
+  $core.bool hasUnpassRegistered() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearUnpassRegistered() => $_clearField(22);
 }
 
 class UserResponse extends $pb.GeneratedMessage {

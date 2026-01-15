@@ -5,10 +5,11 @@
 # YFdyh000 <yfdyh000@gmail.com>, 2025
 # Aki, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Chinese Traditional (https://app.transifex.com/lantern-1/teams/94371/zh-Hant/)\n"
 "Language: zh-Hant\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -1160,19 +1161,28 @@ msgid "annual_plan"
 msgstr "年度計劃："
 
 msgid "1_month_each"
-msgstr ""
+msgstr "每个 +1 个月"
 
 msgid "two_year_plan"
 msgstr "兩年計劃："
 
 msgid "2_month_each"
-msgstr ""
+msgstr "每个 +2 个月"
 
 msgid "referral_code_info"
 msgstr "尚未成為 Lantern Pro 用戶？當您的第一位推薦人訂閱時，您將成為用戶。"
 
 msgid "lantern_pro_license"
 msgstr "燈籠專業版許可證"
+
+msgid "lantern_pro_license_required"
+msgstr "需要蓝灯 Pro 许可证"
+
+msgid "lantern_pro_license_invalid"
+msgstr "蓝灯 Pro 许可证无效"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "蓝灯 Pro 许可证必须为 25 个字符"
 
 msgid "select_account"
 msgstr "選擇帳戶"
@@ -1190,58 +1200,100 @@ msgid "no_projects_found_desc"
 msgstr "找不到專案。請先在您的雲端供應商帳戶中建立一個專案。"
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "添加账单详情"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean 需要付款信息才能创建服务器。"
 
 msgid "tap"
-msgstr ""
+msgstr "点击"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "下方前往 DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "添加付款方式(信用卡或 PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "返回蓝灯并点击\"继续\"以继续设置"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "如何添加账单详情:"
 
 msgid "add_payment_method_message"
-msgstr ""
+msgstr "请在您的 DigitalOcean 账户中添加付款方式。如果已添加,请等待几分钟后重试。"
 
 msgid "ok"
-msgstr ""
+msgstr "好的"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "无法打开 URL"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "初次使用蓝灯 Pro?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "发生错误。请稍后重试。"
 
 msgid "developer_mode"
-msgstr ""
+msgstr "开发者模式"
 
 msgid "developer_mode_note"
-msgstr ""
+msgstr "开发者模式专供蓝灯开发人员在开发过程中测试功能使用。"
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "激活码无效。请检查代码后重试。"
 
 msgid "invalid_activation_code_length"
-msgstr ""
+msgstr "激活码必须为 25 个字符。"
+
+msgid "error_while_vpn_connection"
+msgstr "建立 VPN 连接时发生错误。请重试。"
+
+msgid "help_improve_lantern"
+msgstr "帮助改进蓝灯"
+
+msgid "share_anonymous_usage_data"
+msgstr "分享匿名使用数据以帮助改善速度和可靠性。"
+
+msgid "data_we_collect"
+msgstr "我们从不收集浏览历史、流量目的地、DNS 查询或连接日志。"
+
+msgid "you_can_change_anytime"
+msgstr "您可以随时在 VPN 设置中更改此项。"
+
+msgid "dont_allow"
+msgstr "不允许"
+
+msgid "allow"
+msgstr "允许"
+
+msgid "anonymous_usage_data"
+msgstr "匿名使用数据"
+
+msgid "helps_improve_lantern_performance"
+msgstr "帮助提升蓝灯性能"
+
+msgid "changes_applied_after_restart"
+msgstr "更改将在重启蓝灯后生效。"
+
+msgid "email_deliverability_notice"
+msgstr "邮件送达提醒"
+
+msgid "email_deliverability_notice_message"
+msgstr "发送到 163.com、126.com、qq.com 和 sina.com 地址的邮件有时会被拦截且可能无法送达"
+
+msgid "email_deliverability_notice_message_two"
+msgstr "如果您没有收到确认码,请考虑使用其他邮箱服务商。"
+
+msgid "continue_anyway"
+msgstr "仍然继续"

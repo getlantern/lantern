@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
@@ -31,10 +32,15 @@ export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_image_paths.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
+export 'package:lantern/core/common/date_formatters.dart';
 // Utils
 export 'package:lantern/core/common/app_urls.dart';
+//Desktop export
+export 'package:lantern/core/desktop/app_intent.dart';
+export 'package:lantern/core/desktop/app_shortcuts.dart';
 export 'package:lantern/core/extensions/context.dart';
 export 'package:lantern/core/extensions/error.dart';
+export 'package:lantern/core/extensions/int.dart';
 export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
 // Extensions
@@ -63,10 +69,6 @@ export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/features/home/data_usage.dart';
 
 export '../../core/widgets/divider_space.dart';
-
-//Desktop export
-export 'package:lantern/core/desktop/app_intent.dart';
-export 'package:lantern/core/desktop/app_shortcuts.dart';
 
 AppRouter get appRouter => sl<AppRouter>();
 
@@ -200,3 +202,4 @@ ServerLocationEntity initialServerLocation() {
     ),
   );
 }
+

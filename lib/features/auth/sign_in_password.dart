@@ -47,6 +47,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               AppTextField(
                 hintText: '',
                 controller: passwordController,
+                autofillHints: [AutofillHints.password],
                 prefixIcon: AppImagePaths.lock,
                 label: 'enter_password'.i18n,
                 obscureText: obscureText.value,

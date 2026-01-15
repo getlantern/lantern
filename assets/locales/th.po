@@ -1,16 +1,16 @@
 # 
 # Translators:
-# Lantern, 2025
 # Acclaro Thailand <bkk-project@acclaro.com>, 2025
 # e2f <projects@e2f.com>, 2025
 # Amazing Nev <nev@nevagency.com>, 2025
 # Thai Localization, 2025
 # tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Thai (https://app.transifex.com/lantern-1/teams/94371/th/)\n"
 "Language: th\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -1233,13 +1233,13 @@ msgid "annual_plan"
 msgstr " แผนรายปี:"
 
 msgid "1_month_each"
-msgstr ""
+msgstr "+1 เดือนต่อแผน"
 
 msgid "two_year_plan"
 msgstr "แผน 2 ปี:"
 
 msgid "2_month_each"
-msgstr ""
+msgstr "+2 เดือนต่อแผน"
 
 msgid "referral_code_info"
 msgstr ""
@@ -1247,6 +1247,15 @@ msgstr ""
 
 msgid "lantern_pro_license"
 msgstr "ใบอนุญาต Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "ต้องการใบอนุญาต Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "ใบอนุญาต Lantern Pro ไม่ถูกต้อง"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "ใบอนุญาต Lantern Pro ต้องมี 25 ตัวอักษร"
 
 msgid "select_account"
 msgstr " เลือกบัญชี"
@@ -1264,58 +1273,109 @@ msgid "no_projects_found_desc"
 msgstr "ไม่พบโครงการ โปรดสร้างโครงการในบัญชีผู้ให้บริการคลาวด์ของคุณก่อน"
 
 msgid "add_billing_details"
-msgstr ""
+msgstr "เพิ่มรายละเอียดการเรียกเก็บเงิน"
 
 msgid "do_billing_details_message"
-msgstr ""
+msgstr "DigitalOcean ต้องการข้อมูลการชำระเงินเพื่อสร้างเซิร์ฟเวอร์"
 
 msgid "tap"
-msgstr ""
+msgstr "แตะ"
 
 msgid "below_to_go_to_do"
-msgstr ""
+msgstr "ด้านล่างเพื่อไปยัง DigitalOcean"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "add_payment_method"
-msgstr ""
+msgstr "เพิ่มวิธีการชำระเงิน (บัตรเครดิตหรือ PayPal)"
 
 msgid "return_to_lantern"
-msgstr ""
+msgstr "กลับไปที่ Lantern และแตะ \"ดำเนินการต่อ\" เพื่อดำเนินการตั้งค่าต่อ"
 
 msgid "how_to_add_billing_details"
-msgstr ""
+msgstr "วิธีเพิ่มรายละเอียดการเรียกเก็บเงิน:"
 
 msgid "add_payment_method_message"
 msgstr ""
+"โปรดเพิ่มวิธีการชำระเงินในบัญชี DigitalOcean ของคุณ หากคุณได้เพิ่มแล้ว "
+"กรุณารอสักครู่แล้วลองอีกครั้ง"
 
 msgid "ok"
-msgstr ""
+msgstr "ตกลง"
 
 msgid "could_not_open_url"
-msgstr ""
+msgstr "ไม่สามารถเปิด URL ได้"
 
 msgid "new_to_lantern_pro"
-msgstr ""
+msgstr "ใหม่กับ Lantern Pro?"
 
 msgid "an_error_occurred"
-msgstr ""
+msgstr "เกิดข้อผิดพลาด โปรดลองอีกครั้งในภายหลัง"
 
 msgid "developer_mode"
-msgstr ""
+msgstr "โหมดนักพัฒนา"
 
 msgid "developer_mode_note"
 msgstr ""
+"โหมดนักพัฒนาเป็นโหมดที่ใช้สำหรับนักพัฒนา Lantern "
+"ในการทดสอบฟีเจอร์ระหว่างการพัฒนาเท่านั้น"
 
 msgid "invalid_activation_code"
-msgstr ""
+msgstr "รหัสเปิดใช้งานไม่ถูกต้อง โปรดตรวจสอบรหัสและลองอีกครั้ง"
 
 msgid "invalid_activation_code_length"
+msgstr "รหัสเปิดใช้งานต้องมีความยาว 25 ตัวอักษร"
+
+msgid "error_while_vpn_connection"
+msgstr "เกิดข้อผิดพลาดขณะสร้างการเชื่อมต่อ VPN โปรดลองอีกครั้ง"
+
+msgid "help_improve_lantern"
+msgstr "ช่วยปรับปรุง Lantern"
+
+msgid "share_anonymous_usage_data"
 msgstr ""
+"แชร์ข้อมูลการใช้งานแบบไม่ระบุชื่อเพื่อช่วยปรับปรุงความเร็วและความน่าเชื่อถือ"
+
+msgid "data_we_collect"
+msgstr ""
+"เราไม่เคยเก็บรวบรวมประวัติการเรียกดู ปลายทางของการรับส่งข้อมูล การค้นหา DNS "
+"หรือบันทึกการเชื่อมต่อ"
+
+msgid "you_can_change_anytime"
+msgstr "คุณสามารถเปลี่ยนแปลงได้ทุกเมื่อในการตั้งค่า VPN"
+
+msgid "dont_allow"
+msgstr "ไม่อนุญาต"
+
+msgid "allow"
+msgstr "อนุญาต"
+
+msgid "anonymous_usage_data"
+msgstr "ข้อมูลการใช้งานแบบไม่ระบุชื่อ"
+
+msgid "helps_improve_lantern_performance"
+msgstr "ช่วยปรับปรุงประสิทธิภาพของ Lantern"
+
+msgid "changes_applied_after_restart"
+msgstr "การเปลี่ยนแปลงจะมีผลหลังจากรีสตาร์ท Lantern"
+
+msgid "email_deliverability_notice"
+msgstr "ประกาศการส่งอีเมล"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"อีเมลไปยังที่อยู่ 163.com, 126.com, qq.com และ sina.com "
+"บางครั้งถูกบล็อกและอาจไม่ถึงผู้รับ"
+
+msgid "email_deliverability_notice_message_two"
+msgstr "หากคุณไม่ได้รับรหัสยืนยัน โปรดพิจารณาใช้ผู้ให้บริการอีเมลอื่น"
+
+msgid "continue_anyway"
+msgstr "ดำเนินการต่อต่อไป"
