@@ -737,20 +737,19 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
-	if lc.adBlocker == nil {
-		lc.adBlocker = newAdBlockerStub(settings.GetString(settings.DataPathKey), defaultAdBlockURL)
-	}
-	if err := lc.adBlocker.SetEnabled(enabled); err != nil {
-		return err
-	}
-	return nil
+	return vpn.SetAdBlock(enabled)
 }
 
 func (lc *LanternCore) IsBlockAdsEnabled() bool {
-	if lc.adBlocker == nil {
-		return false
-	}
-	return lc.adBlocker.IsEnabled()
+	return vpn.AdBlockEnabled()
+}
+
+func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
+	return vpn.SetSmartRouting(enabled)
+}
+
+func (lc *LanternCore) IsSmartRoutingEnabled() bool {
+	return vpn.SmartRoutingEnabled()
 }
 
 func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
