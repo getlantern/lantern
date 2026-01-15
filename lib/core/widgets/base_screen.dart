@@ -8,6 +8,7 @@ class BaseScreen extends StatelessWidget {
   final bool padded;
   final AppBar? appBar;
   final Widget? bottomNavigationBar;
+  final Widget? bottomSheet;
   final Color? backgroundColor;
   final bool extendBody;
 
@@ -20,6 +21,7 @@ class BaseScreen extends StatelessWidget {
     this.appBar,
     this.backgroundColor,
     this.extendBody = false,
+    this.bottomSheet,
   });
 
   @override
@@ -34,6 +36,7 @@ class BaseScreen extends StatelessWidget {
         padding: padded ? defaultPadding : EdgeInsets.zero,
         child: body,
       ),
+      bottomSheet: bottomSheet,
       bottomNavigationBar: bottomNavigationBar,
       extendBody: extendBody,
     );
