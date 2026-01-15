@@ -56,7 +56,7 @@ class PaymentNotifier extends _$PaymentNotifier {
         .paymentRedirect(provider: provider, planId: planId, email: email);
   }
 
-  Future<Either<Failure, Unit>> startUpgradeFlow({
+  Future<Either<Failure, String?>> startUpgradeFlow({
     required String planId,
     required String email,
     required BillingType billingType,
@@ -66,10 +66,15 @@ class PaymentNotifier extends _$PaymentNotifier {
   }) async {
     if (_isAndroidStoreBuild) {
       // Google Play build uses IAP
-      return startInAppPurchaseFlow(
+      final result = await startInAppPurchaseFlow(
         planId: planId,
         onSuccess: onSuccess,
         onError: onError,
+      );
+
+      return result.match(
+        (failure) => left(failure),
+        (_) => right(null),
       );
     }
 
@@ -82,9 +87,7 @@ class PaymentNotifier extends _$PaymentNotifier {
 
     return redirectResult.match(
       (failure) => left(failure),
-      (url) {
-        return right(unit);
-      },
+      (url) => right(url),
     );
   }
 }
