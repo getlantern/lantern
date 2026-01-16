@@ -370,7 +370,7 @@ jobs:
           path: .
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.0
+        uses: apple-actions/upload-testflight-build@v4.0.0
         with:
           app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
