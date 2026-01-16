@@ -361,7 +361,7 @@ jobs:
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - name: Download iOS Artifact
         uses: actions/download-artifact@v4
