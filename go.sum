@@ -247,6 +247,8 @@ github.com/getlantern/radiance v0.0.0-20260115175031-8a15f3904554 h1:D4IE1hI79sP
 github.com/getlantern/radiance v0.0.0-20260115175031-8a15f3904554/go.mod h1:6yTHFlwLnaKHPDhbyYn1ohPb/8N3MiwRa9hBok6TquM=
 github.com/getlantern/radiance v0.0.0-20260115194915-586fbb198516 h1:nZbZpWW+1Nc4ap4Wx0FFtf+hpqpdpuhi88aKlYhoyVU=
 github.com/getlantern/radiance v0.0.0-20260115194915-586fbb198516/go.mod h1:6yTHFlwLnaKHPDhbyYn1ohPb/8N3MiwRa9hBok6TquM=
+github.com/getlantern/radiance v0.0.0-20260115202011-3fa1e4c7a95d h1:BcgBZ1mOZ8Y14UfZEXwLozjGSeqfku4tuZiID7Wgo5E=
+github.com/getlantern/radiance v0.0.0-20260115202011-3fa1e4c7a95d/go.mod h1:6yTHFlwLnaKHPDhbyYn1ohPb/8N3MiwRa9hBok6TquM=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692 h1:pK9igrNx0ipBe6xGDgwVnob3JCFwOp2bmEizwanDVk4=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-minimal v1.12.13-0.20251205011046-be268b083378 h1:qUUykWom/NFUfQhEVNJ7SsKXYTDP27nTCEoqY78FtOA=

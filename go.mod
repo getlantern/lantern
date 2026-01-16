@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.25.4
 
-replace github.com/getlantern/radiance => ../radiance
+// replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -23,7 +23,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260115194915-586fbb198516
+	github.com/getlantern/radiance v0.0.0-20260115202011-3fa1e4c7a95d
 	github.com/sagernet/sing-box v1.12.13
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.40.0

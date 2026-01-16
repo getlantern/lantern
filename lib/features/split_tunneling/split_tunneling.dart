@@ -69,14 +69,14 @@ class SplitTunneling extends HookConsumerWidget {
                   DividerSpace(),
                   SplitTunnelingTile(
                     icon: AppImagePaths.keypad,
-                    label: 'Apps',
+                    label: 'apps'.i18n,
                     actionText: '${enabledApps.length} Added',
                     onPressed: () => appRouter.push(AppsSplitTunneling()),
                   ),
                   DividerSpace(),
                   SplitTunnelingTile(
                     icon: AppImagePaths.world,
-                    label: 'Websites',
+                    label: 'websites'.i18n,
                     actionText: '${enabledWebsites.length} Added',
                     onPressed: () => appRouter.push(WebsiteSplitTunneling()),
                   ),

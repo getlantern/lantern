@@ -115,9 +115,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
         : deviceLocale;
   }
 
-  void setBypassList(List<BypassListOption> list) {
-    update(state.copyWith(newBypassList: list));
-  }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
     final LanternService svc = ref.read(lanternServiceProvider);

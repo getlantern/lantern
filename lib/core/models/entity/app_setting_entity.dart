@@ -43,7 +43,6 @@ class AppSetting {
     bool? blockAds,
     String? oAuthToken,
     String? email,
-    List<BypassListOption>? newBypassList,
     bool? showSplashScreen,
     bool? showTelemetryDialog,
     bool? telemetryConsent,

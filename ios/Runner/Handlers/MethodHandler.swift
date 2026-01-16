@@ -954,7 +954,7 @@ class MethodHandler {
   func setSmartRouteMode(mode: Bool, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      MobileSetSmartRouteMode(mode, &error)
+      MobileSetSmartRoutingEnabled(mode, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SET_SMART_ROUTE_MODE_ERROR")
         return

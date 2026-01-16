@@ -1340,6 +1340,12 @@ msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew aut
 msgid "failed_to_update_routing_mode"
 msgstr "Failed to update routing mode. Please try again."
 
+msgid "apps"
+msgstr "Apps"
+
+msgid "websites"
+msgstr "Websites"
+
 
 
 

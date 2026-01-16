@@ -112,7 +112,7 @@ enum class Methods(val method: String) {
     UpdateLocale("updateLocale"),
     UpdateTelemetryEvents("updateTelemetryEvents"),
 
-    //Smart routing
+    // Smart routing
     SetRoutingMode("setRoutingMode"),
 }
 
@@ -1016,8 +1016,8 @@ class MethodHandler : FlutterPlugin,
 
             Methods.SetRoutingMode.method -> {
                 scope.handleResult(result, "SetRoutingMode") {
-                    val consent = call.arguments as Boolean
-                    Mobile.setSmartRoutingEnabled(consent)
+                    val enable = call.arguments as Boolean
+                    Mobile.setSmartRoutingEnabled(enable)
                 }
             }
 
