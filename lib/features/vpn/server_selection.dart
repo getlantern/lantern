@@ -144,9 +144,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: flag.isEmpty
-                ? AppImagePaths.location
-                : Flag(countryCode: flag),
+            icon:
+                flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
             label: displayName.i18n,
             onPressed: () {
               onSmartLocation(ServerLocationType.auto);
@@ -407,9 +406,7 @@ class _ServerLocationListViewState
   }
 
   Future<void> onServerSelected(Location_ selectedServer) async {
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .connectToServer(
+    final result = await ref.read(vpnProvider.notifier).connectToServer(
           ServerLocationType.lanternLocation,
           selectedServer.tag,
         );
@@ -422,8 +419,8 @@ class _ServerLocationListViewState
         final vpnStatus = ref.read(vpnProvider);
         if (vpnStatus == VPNStatus.connected) {
           ///User is already connected, just update the server location
-          final savedServerLocation = sl<LocalStorageService>()
-              .getSavedServerLocations();
+          final savedServerLocation =
+              sl<LocalStorageService>().getSavedServerLocations();
           final serverLocation = savedServerLocation.lanternLocation(
             server: selectedServer,
             autoSelect: false,
@@ -441,8 +438,8 @@ class _ServerLocationListViewState
         ) async {
           if (next is AsyncData<LanternStatus> &&
               next.value.status == VPNStatus.connected) {
-            final savedServerLocation = sl<LocalStorageService>()
-                .getSavedServerLocations();
+            final savedServerLocation =
+                sl<LocalStorageService>().getSavedServerLocations();
             final serverLocation = savedServerLocation.lanternLocation(
               server: selectedServer,
               autoSelect: false,
@@ -530,7 +527,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
         ),
       );
     }
-
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
@@ -751,9 +747,7 @@ class _PrivateServerLocationListViewState
         .updateServerLocation(serverLocation);
 
     /// Connect to the private server
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .connectToServer(
+    final result = await ref.read(vpnProvider.notifier).connectToServer(
           ServerLocationType.privateServer,
           privateServer.serverName.trim(),
         );

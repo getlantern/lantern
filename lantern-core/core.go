@@ -33,8 +33,6 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
-	defaultAdBlockURL                 = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
-	adBlockSettingsFile               = "adblock.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -45,7 +43,6 @@ type LanternCore struct {
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
-	adBlocker     *adBlockerStub
 }
 
 var (
@@ -133,6 +130,11 @@ type Ads interface {
 	IsBlockAdsEnabled() bool
 }
 
+type SmartRouting interface {
+	SetSmartRoutingEnabled(bool) error
+	IsSmartRoutingEnabled() bool
+}
+
 type Core interface {
 	App
 	User
@@ -140,6 +142,7 @@ type Core interface {
 	PrivateServer
 	SplitTunnel
 	Ads
+	SmartRouting
 }
 
 // Make sure LanternCore implements the Core interface
@@ -192,7 +195,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.serverManager = lc.rad.ServerManager()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
-	lc.adBlocker = newAdBlockerStub(settings.GetString(settings.DataPathKey), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
 	events.Subscribe(func(evt config.NewConfigEvent) {
@@ -752,88 +754,24 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
-	if lc.adBlocker == nil {
-		lc.adBlocker = newAdBlockerStub(settings.GetString(settings.DataPathKey), defaultAdBlockURL)
-	}
-	if err := lc.adBlocker.SetEnabled(enabled); err != nil {
-		return err
-	}
-	return nil
+	return vpn.SetAdBlock(enabled)
 }
 
 func (lc *LanternCore) IsBlockAdsEnabled() bool {
-	if lc.adBlocker == nil {
-		return false
-	}
-	return lc.adBlocker.IsEnabled()
+	return vpn.AdBlockEnabled()
+}
+
+func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
+	return vpn.SetSmartRouting(enabled)
+}
+
+func (lc *LanternCore) IsSmartRoutingEnabled() bool {
+	return vpn.SmartRoutingEnabled()
 }
 
 func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification)
-}
-
-type adBlockerStub struct {
-	mu      sync.RWMutex
-	path    string
-	enabled bool
-	url     string
-}
-
-type adBlockSettings struct {
-	Enabled bool   `json:"enabled"`
-	URL     string `json:"url,omitempty"`
-}
-
-func newAdBlockerStub(basePath, defaultURL string) *adBlockerStub {
-	ab := &adBlockerStub{
-		path: filepath.Join(basePath, adBlockSettingsFile),
-		url:  defaultURL,
-	}
-	ab.load()
-	return ab
-}
-
-func (a *adBlockerStub) load() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	data, err := os.ReadFile(a.path)
-	if err != nil || len(data) == 0 {
-		return
-	}
-	var s adBlockSettings
-	if err := json.Unmarshal(data, &s); err == nil {
-		a.enabled = s.Enabled
-		if s.URL != "" {
-			a.url = s.URL
-		}
-	}
-}
-
-func (a *adBlockerStub) save() error {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	b, err := json.Marshal(adBlockSettings{
-		Enabled: a.enabled,
-		URL:     a.url,
-	})
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(a.path, b, 0644)
-}
-
-func (a *adBlockerStub) SetEnabled(v bool) error {
-	a.mu.Lock()
-	a.enabled = v
-	a.mu.Unlock()
-	return a.save()
-}
-
-func (a *adBlockerStub) IsEnabled() bool {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	return a.enabled
 }
 
 // splitCSVClean splits a comma-separated string into a stable list
