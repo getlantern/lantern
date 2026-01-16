@@ -82,7 +82,6 @@ jobs:
           
           echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
           sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
-          cat pubspec.yaml
           echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload pubspec.yaml as artifact
@@ -195,7 +194,7 @@ jobs:
         build-android,
         build-ios,
       ]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+    if: always()
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
