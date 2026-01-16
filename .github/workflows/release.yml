@@ -68,14 +68,22 @@ jobs:
       - name: Update app version in pubspec.yaml
         shell: bash
         env:
-          RUN_NUMBER: ${{ github.run_number }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          NEW_VERSION="${VERSION}+${RUN_NUMBER}"
-          echo "Updating pubspec.yaml to version: $NEW_VERSION"
-          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          NEW_VERSION="${VERSION}"
+          echo "Updating version number to: $NEW_VERSION (incrementing build number)"
+          
+          # Extract current build number from pubspec.yaml
+          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          
+          # Increment build number by 1
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          FULL_VERSION="${NEW_VERSION}+${NEW_BUILD}"
+          
+          echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
+          sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
           cat pubspec.yaml
-          echo "app_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload pubspec.yaml as artifact
         uses: actions/upload-artifact@v4
