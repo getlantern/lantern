@@ -241,14 +241,12 @@ jobs:
           fi
 
           upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" || true
-#          upload_if_exists "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.exe" || true
           upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" || true
           upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" || true
           upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" || true
 
           # Latest aliases
           upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" || true
-#          upload_if_exists "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.exe" || true
           upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" || true
           upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" || true
           upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" || true
@@ -268,7 +266,6 @@ jobs:
             echo "## Release links (${BUILD_TYPE})"
             echo ""
             echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg"
-            # echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe"
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb"
             echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm"
@@ -276,7 +273,6 @@ jobs:
             echo ""
             echo "**Latest aliases**"
             echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.dmg"
-            # echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.exe"
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.deb"
             echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.ipa"
@@ -293,7 +289,6 @@ jobs:
           generate_release_notes: false
           files: |
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
-#            lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
             lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
@@ -332,7 +327,6 @@ jobs:
           s3_tag="${S3_TAG:-$tag}"
           text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
-#          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.exe|Windows>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"

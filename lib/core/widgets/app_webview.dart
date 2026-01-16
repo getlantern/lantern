@@ -67,11 +67,13 @@ class _InnerWebView extends StatefulHookConsumerWidget {
 class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   final setting = InAppWebViewSettings(
     javaScriptEnabled: true,
+    javaScriptCanOpenWindowsAutomatically: true,
+    supportMultipleWindows: true,
+    useShouldOverrideUrlLoading: true,
     mediaPlaybackRequiresUserGesture: false,
     useOnDownloadStart: true,
     useOnLoadResource: true,
     applicationNameForUserAgent: 'Lantern',
-    useShouldOverrideUrlLoading: true,
     hardwareAcceleration: true,
     // userAgent: _getUserAgent(),
     supportZoom: true,
@@ -94,6 +96,14 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
       onWebViewCreated: (controller) {},
+      onCreateWindow: (controller, createWindowAction) async {
+        final req = createWindowAction.request;
+        if (req.url != null) {
+          await controller.loadUrl(urlRequest: req);
+          return true;
+        }
+        return false;
+      },
       onLoadStart: (_, __) {
         // Handle load start
         ref.read(webViewLoadingProvider.notifier).state = true;
@@ -112,7 +122,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         // Handle received error
         appLogger.error("Received error: $error");
         // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).state = true;
+        ref.read(webViewLoadingProvider.notifier).state = false;
 
         final url = webResourceRequest.url;
 
@@ -129,26 +139,50 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
-    if (uri?.rawValue == "https://lantern.io/") {
-      return NavigationActionPolicy.CANCEL;
-    }
-    if (uri?.fragment.contains('purchaseResult=') ?? false) {
-      final normalized = uri.toString().replaceFirst(RegExp(r'#\/\?'), '?');
-      final uri2 = Uri.parse(normalized);
-      final result = uri2.queryParameters['purchaseResult'];
-      await appRouter.maybePop(bool.parse(result ?? 'false'));
-      return NavigationActionPolicy.CANCEL;
-    } else if (uri?.host == 'www.lantern.io' &&
-        uri?.path == '/auth' &&
-        uri!.queryParameters.containsKey('token')) {
-      // appRouter.navigatorKey.currentContext
-      //     ?.showSnackBar("Successfully logged in");
-      // User has successfully logged in to google or apple
-      await appRouter.maybePop(uri.queryParameters);
+    if (uri == null) return NavigationActionPolicy.ALLOW;
 
+    final u = Uri.parse(uri.toString());
+
+    bool isLanternHost(String host) =>
+        host == 'lantern.io' || host == 'www.lantern.io';
+
+    // Collect purchaseResult from query
+    String? purchaseResult = u.queryParameters['purchaseResult'];
+
+    // Handle fragment like "#/?purchaseResult=true" or "#purchaseResult=true"
+    if (purchaseResult == null && u.fragment.isNotEmpty) {
+      final frag = u.fragment;
+
+      final normalized = frag.startsWith('/?')
+          ? frag.substring(2)
+          : frag.startsWith('?')
+              ? frag.substring(1)
+              : frag;
+
+      try {
+        final fragParams = Uri.splitQueryString(normalized);
+        purchaseResult = fragParams['purchaseResult'];
+      } catch (_) {}
+    }
+
+    if (purchaseResult != null && isLanternHost(u.host)) {
+      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
       return NavigationActionPolicy.CANCEL;
     }
+
+    if (isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
+      return NavigationActionPolicy.ALLOW;
+    }
+
+    if (isLanternHost(u.host) &&
+        u.path == '/auth' &&
+        u.queryParameters.containsKey('token')) {
+      await appRouter.maybePop(u.queryParameters);
+      return NavigationActionPolicy.CANCEL;
+    }
+
     appLogger.debug("shouldOverrideUrlLoading: $uri");
+
     return NavigationActionPolicy.ALLOW;
   }
 }
