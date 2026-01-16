@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_eum.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/services/local_storage.dart';
-import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -51,9 +50,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: value));
   }
 
-  Future<void> setRoutingMode(RoutingMode mode) async {
+  Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
     final prev = state.routingModeRaw;
 
+    appLogger.info('Setting routing mode to: ${mode.key}');
     update(state.copyWith(routingModeRaw: mode.key));
 
     final lantern = ref.read(lanternServiceProvider);
@@ -63,6 +63,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       appLogger.error('Failed to set routing mode', f);
       update(state.copyWith(routingModeRaw: prev));
     }, (_) {});
+    return res;
   }
 
   void setUserLoggedIn(bool value) {
@@ -132,9 +133,8 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> updateTelemetryConsent(bool consent) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .updateTelemetryEvents(consent);
+    final result =
+        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
 
     result.fold(
       (err) {

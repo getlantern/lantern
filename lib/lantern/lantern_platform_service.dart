@@ -116,7 +116,6 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   /// VPN methods
   @override
   Future<Either<Failure, String>> startVPN() async {

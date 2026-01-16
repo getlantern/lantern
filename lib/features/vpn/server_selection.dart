@@ -567,7 +567,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   widget.onServerSelected(selected);
                 },
                 location: loc,
-                nested: true,
                 isSelected: isSelected,
               );
             },

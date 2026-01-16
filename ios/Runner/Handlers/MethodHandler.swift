@@ -213,7 +213,7 @@ class MethodHandler {
         guard let mode: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
         }
-          self.setSmartRouteMode(mode: mode, result: result)
+        self.setSmartRouteMode(mode: mode, result: result)
       default:
         result(FlutterMethodNotImplemented)
       }

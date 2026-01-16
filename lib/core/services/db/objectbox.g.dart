@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(16, 4485043618273916447),
+    lastPropertyId: const obx_int.IdUid(17, 557133969672494375),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -169,8 +169,8 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(16, 4485043618273916447),
-        name: 'routingMode',
+        id: const obx_int.IdUid(17, 557133969672494375),
+        name: 'routingModeRaw',
         type: 9,
         flags: 0,
       ),
@@ -869,6 +869,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2297478623142907793,
       8153428725932858000,
       6825758662513353714,
+      4485043618273916447,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -977,8 +978,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeOffset = fbb.writeString(object.locale);
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
-        final routingModeOffset = fbb.writeString(object.routingMode);
-        fbb.startTable(17);
+        final routingModeRawOffset = fbb.writeString(object.routingModeRaw);
+        fbb.startTable(18);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -991,7 +992,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(12, object.telemetryConsent);
         fbb.addBool(13, object.telemetryDialogDismissed);
         fbb.addBool(14, object.successfulConnection);
-        fbb.addOffset(15, routingModeOffset);
+        fbb.addOffset(16, routingModeRawOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1061,9 +1062,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           32,
           false,
         );
-        final routingModeParam = const fb.StringReader(
+        final routingModeRawParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 34, '');
+        ).vTableGet(buffer, rootOffset, 36, '');
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -1077,7 +1078,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           telemetryDialogDismissed: telemetryDialogDismissedParam,
           telemetryConsent: telemetryConsentParam,
           successfulConnection: successfulConnectionParam,
-          routingMode: routingModeParam,
+          routingModeRaw: routingModeRawParam,
         );
 
         return object;
@@ -1986,8 +1987,8 @@ class AppSetting_ {
     _entities[1].properties[11],
   );
 
-  /// See [AppSetting.routingMode].
-  static final routingMode = obx.QueryStringProperty<AppSetting>(
+  /// See [AppSetting.routingModeRaw].
+  static final routingModeRaw = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[12],
   );
 }

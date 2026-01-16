@@ -216,7 +216,7 @@ class _HomeState extends ConsumerState<Home>
                 value: setting.routingMode.label(),
                 actions: [
                   IconButton(
-                    onPressed: () => appRouter.push(const SmartRouting()),
+                    onPressed: null,
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -241,7 +241,7 @@ class _HomeState extends ConsumerState<Home>
                     : 'disabled'.i18n,
                 actions: [
                   IconButton(
-                    onPressed: () => appRouter.push(SplitTunneling()),
+                    onPressed: null,
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),

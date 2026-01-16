@@ -17,8 +17,17 @@ class SmartRouting extends HookConsumerWidget {
     final selected = appSetting.routingMode;
 
     Future<void> select(RoutingMode mode) async {
-      await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
-      if (context.mounted) appRouter.pop();
+      final result =
+          await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+      result.fold(
+        (failure) {
+          context.showSnackBar('failed_to_update_routing_mode'.i18n);
+        },
+        (_) {},
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) appRouter.pop();
+      });
     }
 
     return BaseScreen(

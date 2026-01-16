@@ -56,8 +56,7 @@ class VPNSetting extends HookConsumerWidget {
                 SplitTunnelingTile(
                   label: 'routing_mode'.i18n,
                   icon: AppImagePaths.route,
-                  actionText:
-                      routingMode.isNotEmpty ? routingMode : 'full_tunnel'.i18n,
+                  actionText: routingMode.label(),
                   onPressed: () => appRouter.push(const SmartRouting()),
                 )
               },

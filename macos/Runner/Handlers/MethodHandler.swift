@@ -270,6 +270,11 @@ class MethodHandler {
         let value: String = requireArg(call: call, name: "value", result: result)!
         self.removeItemsToSplitTunnel(result: result, value: value)
 
+      // Smart routing
+      case "setRoutingMode":
+        let enable = self.decodeValue(from: call.arguments, result: result) as Bool?
+        self.setRoutingMode(result: result, enable: enable ?? false)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -1128,6 +1133,20 @@ class MethodHandler {
       MobileSetSplitTunnelingEnabled(enabled, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  //Smart routing
+
+  private func setRoutingMode(result: @escaping FlutterResult, enable: Bool) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSmartRoutingEnabled(enable, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SMART_ROUTING_MODE_FAILED")
         return
       }
       await MainActor.run { result("ok") }

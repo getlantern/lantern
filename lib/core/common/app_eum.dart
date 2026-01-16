@@ -1,3 +1,5 @@
+import 'package:lantern/core/common/common.dart';
+
 enum VPNStatus {
   connected,
   disconnected,
@@ -75,33 +77,7 @@ enum SplitTunnelActionType {
     }
   }
 }
-//
-// enum SplitTunnelingMode {
-//   automatic,
-//   manual;
-//
-//   String get value {
-//     switch (this) {
-//       case SplitTunnelingMode.automatic:
-//         return 'automatic';
-//       case SplitTunnelingMode.manual:
-//         return 'manual';
-//     }
-//   }
-// }
-//
-// extension SplitTunnelingModeString on String {
-//   SplitTunnelingMode get toSplitTunnelingMode {
-//     switch (toLowerCase()) {
-//       case 'automatic':
-//         return SplitTunnelingMode.automatic;
-//       case 'manual':
-//         return SplitTunnelingMode.manual;
-//       default:
-//         return SplitTunnelingMode.automatic;
-//     }
-//   }
-// }
+
 
 enum BypassListOption {
   global,
