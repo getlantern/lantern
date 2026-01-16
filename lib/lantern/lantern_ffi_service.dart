@@ -119,13 +119,15 @@ class LanternFFIService implements LanternCoreService {
         }
       } catch (_) {
         appLogger.warning(
-            'No app setting found, defaulting telemetry consent to false');
+          'No app setting found, defaulting telemetry consent to false',
+        );
       }
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
       appLogger.info(
-          'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent');
+        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent',
+      );
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
 
@@ -156,8 +158,11 @@ class LanternFFIService implements LanternCoreService {
 
   Future<void> _initializeWindowsService() async {
     final tokenFile = File(
-      p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-          'Lantern', 'ipc-token'),
+      p.join(
+        Platform.environment['ProgramData'] ?? r'C:\ProgramData',
+        'Lantern',
+        'ipc-token',
+      ),
     );
     final token = (await tokenFile.readAsString()).trim();
     final pipe = PipeClient(token: token);
@@ -178,13 +183,11 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .updateTelemetryConsent(consent ? 1 : 0)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .updateTelemetryConsent(consent ? 1 : 0)
+            .toDartString();
+      });
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -194,11 +197,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setRoutingMode(bool mode) {
-    // TODO: implement setRoutingMode
-    throw UnimplementedError();
-  }
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
+      });
 
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error setting routing mode via FFI', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
@@ -257,8 +268,11 @@ class LanternFFIService implements LanternCoreService {
     commandPort.listen((message) async {
       final msg = message as SplitTunnelMessage;
       try {
-        final result =
-            await _runSplitTunnelCall(msg.type, msg.value, msg.action);
+        final result = await _runSplitTunnelCall(
+          msg.type,
+          msg.value,
+          msg.action,
+        );
         if (result.isLeft()) {
           final failure = result.fold((f) => f, (_) => null)!;
           msg.replyPort.send({
@@ -295,8 +309,9 @@ class LanternFFIService implements LanternCoreService {
     if (_commandSendPort == null) {
       throw StateError('Command isolate not initialized');
     }
-    _commandSendPort!
-        .send(SplitTunnelMessage(type, value, action, responsePort.sendPort));
+    _commandSendPort!.send(
+      SplitTunnelMessage(type, value, action, responsePort.sendPort),
+    );
 
     final result = await responsePort.first;
     responsePort.close();
@@ -305,7 +320,8 @@ class LanternFFIService implements LanternCoreService {
       return left(
         Failure(
           error: result['error'] ?? 'Unknown error',
-          localizedErrorMessage: result['localizedErrorMessage'] ??
+          localizedErrorMessage:
+              result['localizedErrorMessage'] ??
               result['error'] ??
               'Unknown error',
         ),
@@ -319,11 +335,7 @@ class LanternFFIService implements LanternCoreService {
     SplitTunnelFilterType type,
     String value,
   ) {
-    return _sendSplitTunnel(
-      type,
-      value,
-      SplitTunnelActionType.add,
-    );
+    return _sendSplitTunnel(type, value, SplitTunnelActionType.add);
   }
 
   @override
@@ -331,23 +343,17 @@ class LanternFFIService implements LanternCoreService {
     SplitTunnelFilterType type,
     String value,
   ) {
-    return _sendSplitTunnel(
-      type,
-      value,
-      SplitTunnelActionType.remove,
-    );
+    return _sendSplitTunnel(type, value, SplitTunnelActionType.remove);
   }
 
   @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .setSplitTunnelingEnabled(enabled ? 1 : 0)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setSplitTunnelingEnabled(enabled ? 1 : 0)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -370,11 +376,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.getDataCapInfo().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getDataCapInfo().toDartString();
+      });
       checkAPIError(result);
       final map = jsonDecode(result);
       appLogger.debug('Data cap info: $map');
@@ -403,20 +407,16 @@ class LanternFFIService implements LanternCoreService {
         final error = result.cast<Utf8>().toDartString();
         malloc.free(result);
         appLogger.error('$action split tunnel error: $error');
-        return left(
-          Failure(
-            error: error,
-            localizedErrorMessage: error,
-          ),
-        );
+        return left(Failure(error: error, localizedErrorMessage: error));
       }
       return right(unit);
     } catch (e) {
       return left(
         Failure(
           error: e.toString(),
-          localizedErrorMessage:
-              (e is Exception) ? e.localizedDescription : e.toString(),
+          localizedErrorMessage: (e is Exception)
+              ? e.localizedDescription
+              : e.toString(),
         ),
       );
     } finally {
@@ -435,19 +435,18 @@ class LanternFFIService implements LanternCoreService {
     String logFilePath,
   ) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .reportIssue(
-                  email.toCharPtr,
-                  issueType.toCharPtr,
-                  description.toCharPtr,
-                  device.toCharPtr,
-                  model.toCharPtr,
-                  "".toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .reportIssue(
+              email.toCharPtr,
+              issueType.toCharPtr,
+              description.toCharPtr,
+              device.toCharPtr,
+              model.toCharPtr,
+              "".toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -461,16 +460,12 @@ class LanternFFIService implements LanternCoreService {
     if (Platform.isWindows) {
       appLogger.debug('Starting VPN on Windows via IPC');
       try {
-        final result = runInBackground(
-          () async {
-            return _ffiService.startAutoLocationListener().toDartString();
-          },
-        );
-        result.then(
-          (value) {
-            appLogger.debug("auto location listener started: $value");
-          },
-        );
+        final result = runInBackground(() async {
+          return _ffiService.startAutoLocationListener().toDartString();
+        });
+        result.then((value) {
+          appLogger.debug("auto location listener started: $value");
+        });
       } catch (e) {
         appLogger.error("error starting auto location listener: $e");
       }
@@ -489,10 +484,7 @@ class LanternFFIService implements LanternCoreService {
           .cast<Utf8>()
           .toDartString();
       if (result.isNotEmpty) {
-        return left(Failure(
-          error: result,
-          localizedErrorMessage: result,
-        ));
+        return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('startVPN result: $result');
       return right(result);
@@ -509,20 +501,18 @@ class LanternFFIService implements LanternCoreService {
   /// requires location and tag
   @override
   Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
+    String location,
+    String tag,
+  ) async {
     if (Platform.isWindows) {
       try {
         ///Do not await here to avoid blocking
-        final result = runInBackground(
-          () async {
-            return _ffiService.stopAutoLocationListener().toDartString();
-          },
-        );
-        result.then(
-          (value) {
-            appLogger.debug("auto location listener stops : $value");
-          },
-        );
+        final result = runInBackground(() async {
+          return _ffiService.stopAutoLocationListener().toDartString();
+        });
+        result.then((value) {
+          appLogger.debug("auto location listener stops : $value");
+        });
       } catch (e) {
         appLogger.error("error stopping auto location listener: $e");
       }
@@ -531,19 +521,17 @@ class LanternFFIService implements LanternCoreService {
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .connectToServer(
-                location.toCharPtr,
-                tag.toCharPtr,
-                ffiPaths.logFilePathPtr.cast<Char>(),
-                ffiPaths.dataDirPtr.cast<Char>(),
-                ffiPaths.localePtr.cast<Char>(),
-              )
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .connectToServer(
+              location.toCharPtr,
+              tag.toCharPtr,
+              ffiPaths.logFilePathPtr.cast<Char>(),
+              ffiPaths.dataDirPtr.cast<Char>(),
+              ffiPaths.localePtr.cast<Char>(),
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -561,16 +549,12 @@ class LanternFFIService implements LanternCoreService {
       if (Platform.isWindows) {
         try {
           ///Do not await here to avoid blocking
-          final result = runInBackground(
-            () async {
-              return _ffiService.stopAutoLocationListener().toDartString();
-            },
-          );
-          result.then(
-            (value) {
-              appLogger.debug("auto location listener stops : $value");
-            },
-          );
+          final result = runInBackground(() async {
+            return _ffiService.stopAutoLocationListener().toDartString();
+          });
+          result.then((value) {
+            appLogger.debug("auto location listener stops : $value");
+          });
         } catch (e) {
           appLogger.error("error stopping auto location listener: $e");
         }
@@ -614,31 +598,31 @@ class LanternFFIService implements LanternCoreService {
   Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
-  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
-      {required String planId,
-      required PaymentSuccessCallback onSuccess,
-      required PaymentErrorCallback onError}) {
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
+    required String planId,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  }) {
     throw UnimplementedError("This not supported on desktop");
   }
 
   @override
-  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required BillingType type,
-      required String planId,
-      required String email}) async {
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+  }) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .stripeSubscriptionPaymentRedirect(
-                type.name.toCharPtr,
-                planId.toCharPtr,
-                email.toCharPtr,
-              )
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .stripeSubscriptionPaymentRedirect(
+              type.name.toCharPtr,
+              planId.toCharPtr,
+              email.toCharPtr,
+            )
+            .toDartString();
+      });
 
       return right(result);
     } catch (e) {
@@ -647,19 +631,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId, required String email}) {
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
+    required String planId,
+    required String email,
+  }) {
     throw Exception("Desktop flow should not be here, this is just for mobile");
   }
 
   @override
   Future<Either<Failure, String>> stripeBillingPortal() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.stripeBillingPortalUrl().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.stripeBillingPortalUrl().toDartString();
+      });
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error getting stipe billing', e, stackTrace);
@@ -670,11 +654,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.plans().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.plans().toDartString();
+      });
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
       //Sort plans
@@ -701,11 +683,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.oauthLoginUrl(provider.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.oauthLoginUrl(provider.toCharPtr).toDartString();
+      });
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('error getting oauth url', e, stackTrace);
@@ -716,11 +696,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
+      });
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
@@ -736,11 +714,9 @@ class LanternFFIService implements LanternCoreService {
     //   return _windowsService.getUserData();
     // }
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.getUserData().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getUserData().toDartString();
+      });
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
@@ -758,11 +734,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, UserResponse>> fetchUserData() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.fetchUserData().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.fetchUserData().toDartString();
+      });
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
@@ -773,28 +747,29 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
-      {required String purchaseToken, required String planId}) {
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+  }) {
     throw Exception("This not supported on desktop, this is only for mobile");
   }
 
   @override
-  Future<Either<Failure, String>> paymentRedirect(
-      {required String provider,
-      required String planId,
-      required String email}) async {
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String email,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .paymentRedirect(
-                planId.toCharPtr,
-                provider.toCharPtr,
-                email.toCharPtr,
-              )
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .paymentRedirect(
+              planId.toCharPtr,
+              provider.toCharPtr,
+              email.toCharPtr,
+            )
+            .toDartString();
+      });
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('error payment redirect', e, stackTrace);
@@ -805,11 +780,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, UserResponse>> logout(String email) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.logout(email.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.logout(email.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
@@ -821,16 +794,16 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login(
-      {required String email, required String password}) async {
+  Future<Either<Failure, UserResponse>> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .login(email.toCharPtr, password.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .login(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
@@ -844,13 +817,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .startRecoveryByEmail(email.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.startRecoveryByEmail(email.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -865,13 +834,11 @@ class LanternFFIService implements LanternCoreService {
     required String code,
   }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .validateEmailRecoveryCode(email.toCharPtr, code.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .validateEmailRecoveryCode(email.toCharPtr, code.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -887,14 +854,15 @@ class LanternFFIService implements LanternCoreService {
     required String newPassword,
   }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .completeRecoveryByEmail(
-                  email.toCharPtr, newPassword.toCharPtr, code.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .completeRecoveryByEmail(
+              email.toCharPtr,
+              newPassword.toCharPtr,
+              code.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -904,16 +872,16 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> signUp(
-      {required String email, required String password}) async {
+  Future<Either<Failure, Unit>> signUp({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .signup(email.toCharPtr, password.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .signup(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -923,16 +891,16 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) async {
+  Future<Either<Failure, UserResponse>> deleteAccount({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .deleteAccount(email.toCharPtr, password.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .deleteAccount(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       final decodedResult = base64Decode(result);
       final user = UserResponse.fromBuffer(decodedResult);
@@ -944,16 +912,16 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> activationCode(
-      {required String email, required String resellerCode}) async {
+  Future<Either<Failure, Unit>> activationCode({
+    required String email,
+    required String resellerCode,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .activationCode(email.toCharPtr, resellerCode.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .activationCode(email.toCharPtr, resellerCode.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -965,16 +933,17 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.digitalOceanPrivateServer().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.digitalOceanPrivateServer().toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.info(
-          'Error starting Digital Ocean private server', e, stackTrace);
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
@@ -982,16 +951,17 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.googleCloudPrivateServer().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.googleCloudPrivateServer().toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.info(
-          'Error starting Digital Ocean private server', e, stackTrace);
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
@@ -1004,11 +974,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> validateSession() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.validateSession().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.validateSession().toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1018,40 +986,43 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput(
-      {required PrivateServerInput methodType, required String input}) async {
+  Future<Either<Failure, Unit>> setUserInput({
+    required PrivateServerInput methodType,
+    required String input,
+  }) async {
     try {
       final value = input.toCharPtr;
-      final result = await runInBackground<String>(
-        () async {
-          switch (methodType) {
-            case PrivateServerInput.selectAccount:
-              return _ffiService.selectAccount(value).toDartString();
-            case PrivateServerInput.selectProject:
-              return _ffiService.selectProject(value).toDartString();
-          }
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        switch (methodType) {
+          case PrivateServerInput.selectAccount:
+            return _ffiService.selectAccount(value).toDartString();
+          case PrivateServerInput.selectProject:
+            return _ffiService.selectProject(value).toDartString();
+        }
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.info(
-          'Error starting Digital Ocean private server', e, stackTrace);
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
 
   @override
-  Future<Either<Failure, Unit>> startDeployment(
-      {required String location, required String serverName}) async {
+  Future<Either<Failure, Unit>> startDeployment({
+    required String location,
+    required String serverName,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .startDepolyment(location.toCharPtr, serverName.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .startDepolyment(location.toCharPtr, serverName.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1063,11 +1034,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> cancelDeployment() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.cancelDepolyment().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.cancelDepolyment().toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1079,11 +1048,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.setCert(fingerprint.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.setCert(fingerprint.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1093,20 +1060,23 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String serverName}) async {
+  Future<Either<Failure, Unit>> addServerManually({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String serverName,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .addServerManagerInstance(ip.toCharPtr, port.toCharPtr,
-                  accessToken.toCharPtr, serverName.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .addServerManagerInstance(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              serverName.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1116,44 +1086,53 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String inviteName}) async {
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .inviteToServerManagerInstance(ip.toCharPtr, port.toCharPtr,
-                  accessToken.toCharPtr, inviteName.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .inviteToServerManagerInstance(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              inviteName.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error(
-          'Error inviting to server manager instance', e, stackTrace);
+        'Error inviting to server manager instance',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
 
   @override
-  Future<Either<Failure, String>> revokeServerManagerInstance(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String inviteName}) async {
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .revokeServerManagerInvite(ip.toCharPtr, port.toCharPtr,
-                  accessToken.toCharPtr, inviteName.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .revokeServerManagerInvite(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              inviteName.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -1165,11 +1144,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> featureFlag() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.availableFeatures().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.availableFeatures().toDartString();
+      });
       checkAPIError(result);
       return Right(result);
     } catch (e, stackTrace) {
@@ -1181,16 +1158,14 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.getAvailableServers().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getAvailableServers().toDartString();
+      });
       checkAPIError(result);
       final servers = AvailableServers.fromJson(jsonDecode(result));
       final outboundsByTag = {
         for (var outbound in servers.lantern.outbounds)
-          outbound.tag: outbound.type
+          outbound.tag: outbound.type,
       };
 
       servers.lantern.locations.forEach((key, value) {
@@ -1215,14 +1190,13 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> deviceRemove(
-      {required String deviceId}) async {
+  Future<Either<Failure, String>> deviceRemove({
+    required String deviceId,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.removeDevice(deviceId.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.removeDevice(deviceId.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -1234,11 +1208,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> attachReferralCode(String code) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.referralAttachment(code.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.referralAttachment(code.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -1248,19 +1220,21 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> completeChangeEmail(
-      {required String newEmail,
-      required String password,
-      required String code}) async {
+  Future<Either<Failure, String>> completeChangeEmail({
+    required String newEmail,
+    required String password,
+    required String code,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .completeChangeEmail(
-                  newEmail.toCharPtr, password.toCharPtr, code.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .completeChangeEmail(
+              newEmail.toCharPtr,
+              password.toCharPtr,
+              code.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -1271,15 +1245,15 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startChangeEmail(
-      String newEmail, String password) async {
+    String newEmail,
+    String password,
+  ) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
@@ -1291,11 +1265,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.getAutoLocation().toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getAutoLocation().toDartString();
+      });
       checkAPIError(result);
       return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
@@ -1355,14 +1327,18 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> addAllItems(
-      SplitTunnelFilterType type, List<String> value) {
+    SplitTunnelFilterType type,
+    List<String> value,
+  ) {
     // TODO: implement addAllItems
     throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, Unit>> removeAllItems(
-      SplitTunnelFilterType type, List<String> value) {
+    SplitTunnelFilterType type,
+    List<String> value,
+  ) {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
@@ -1370,11 +1346,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.updateLocale(locale.toCharPtr).toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService.updateLocale(locale.toCharPtr).toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1382,8 +1356,6 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
-
 }
 
 void checkAPIError(dynamic result) {
