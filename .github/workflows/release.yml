@@ -68,14 +68,21 @@ jobs:
       - name: Update app version in pubspec.yaml
         shell: bash
         env:
-          RUN_NUMBER: ${{ github.run_number }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          NEW_VERSION="${VERSION}+${RUN_NUMBER}"
-          echo "Updating pubspec.yaml to version: $NEW_VERSION"
-          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-          cat pubspec.yaml
-          echo "app_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          NEW_VERSION="${VERSION}"
+          echo "Updating version number to: $NEW_VERSION (incrementing build number)"
+          
+          # Extract current build number from pubspec.yaml
+          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          
+          # Increment build number by 1
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          FULL_VERSION="${NEW_VERSION}+${NEW_BUILD}"
+          
+          echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
+          sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
+          echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload pubspec.yaml as artifact
         uses: actions/upload-artifact@v4
@@ -93,15 +100,15 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-#  build-windows:
-#    needs: set-release-metadata
-#    uses: ./.github/workflows/build-windows.yml
-#    secrets: inherit
-#    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
-#    with:
-#      version: ${{ needs.set-release-metadata.outputs.version }}
-#      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-#      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  #  build-windows:
+  #    needs: set-release-metadata
+  #    uses: ./.github/workflows/build-windows.yml
+  #    secrets: inherit
+  #    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
+  #    with:
+  #      version: ${{ needs.set-release-metadata.outputs.version }}
+  #      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  #      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-linux:
     needs: set-release-metadata
@@ -134,7 +141,7 @@ jobs:
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-google-play:
-    needs: [set-release-metadata, build-android]
+    needs: [ set-release-metadata, build-android ]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
@@ -187,7 +194,7 @@ jobs:
         build-android,
         build-ios,
       ]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+    if: always()
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -255,6 +262,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Write links to job summary
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
         shell: bash
         run: |
           set -euxo pipefail
@@ -295,11 +303,11 @@ jobs:
             lantern-installer-ipa/${{ env.INSTALLER_NAME }}.ipa
 
       - name: Install Python dependencies
-        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
         run: python3 -m pip install -r scripts/requirements.txt
 
       - name: Update appcast.xml
-        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -322,15 +330,29 @@ jobs:
       - name: Build Slack message
         id: slack_msg
         run: |
+          platform="${{ needs.set-release-metadata.outputs.platform }}"
           prefix="releases/${BUILD_TYPE}"
           tag="${RELEASE_TAG}"
           s3_tag="${S3_TAG:-$tag}"
-          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag}}> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+          
+          # Add platform-specific download links based on the platform
+          if [[ "$platform" == "all" ]]; then
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
           text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
-
+          elif [[ "$platform" == "macos" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
+          elif [[ "$platform" == "android" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
+          elif [[ "$platform" == "linux" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          elif [[ "$platform" == "ios" ]]; then
+          text="${text}\n• Build uploaded to TestFlight (iOS)"
+          fi
+          
           # Expose as output
           echo "text<<EOF" >> "$GITHUB_OUTPUT"
           echo "$text"   >> "$GITHUB_OUTPUT"
@@ -349,11 +371,11 @@ jobs:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [build-ios, set-release-metadata]
+    needs: [ build-ios, set-release-metadata ]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - name: Download iOS Artifact
         uses: actions/download-artifact@v4
@@ -362,7 +384,7 @@ jobs:
           path: .
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.0
+        uses: apple-actions/upload-testflight-build@v3.0.1
         with:
           app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
