@@ -100,7 +100,7 @@ type PrivateServer interface {
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	SelectedCertFingerprint(fp string)
 	StartDeployment(location, serverName string) error
-	AddServerBasedOnURLs(urls string, skipCertVerification bool) error
+	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
 }
 
 type Payment interface {
@@ -769,7 +769,7 @@ func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 	return vpn.SmartRoutingEnabled()
 }
 
-func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification)
 }

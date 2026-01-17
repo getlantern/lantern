@@ -188,6 +188,11 @@ abstract class LanternCoreService {
       required String accessToken,
       required String serverName});
 
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
+      required bool skipCertVerification,
+      required String serverName});
+
   Future<Either<Failure, Unit>> cancelDeployment();
 
   Future<Either<Failure, String>> inviteToServerManagerInstance({

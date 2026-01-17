@@ -463,10 +463,10 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
 
-func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
-		return c.AddServerBasedOnURLs(urls, skipCertVerification)
+		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
 	})
 }
 

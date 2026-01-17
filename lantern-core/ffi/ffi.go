@@ -951,6 +951,26 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 	return C.CString("ok")
 }
 
+// addServerBasedOnURLs adds a server based on the provided URLs.
+//
+//export addServerBasedOnURLs
+func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	urls := C.GoString(_urls)
+	skipCertVerification := _skipCertVerification != 0
+	serverName := C.GoString(_serverName)
+	slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
+	err := c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	if err != nil {
+		return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
+	}
+	slog.Debug("Server added successfully based on URLs:", "urls", urls)
+	return C.CString("ok")
+}
+
 //export setBlockAdsEnabled
 func setBlockAdsEnabled(enabled C.int) *C.char {
 	c, errStr := requireCore()

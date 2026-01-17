@@ -1116,6 +1116,30 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
+      required bool skipCertVerification,
+      required String serverName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .addServerManagerInstanceBasedOnURLs(
+                  urls.toCharPtr,
+                  skipCertVerification ? 1 : 0,
+                  serverName.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server based on URLs', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> inviteToServerManagerInstance(
       {required String ip,
       required String port,
