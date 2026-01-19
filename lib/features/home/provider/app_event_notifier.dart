@@ -39,6 +39,7 @@ class AppEventNotifier extends _$AppEventNotifier {
     _appEventSub =
         ref.read(lanternServiceProvider).watchAppEvents().listen((event) {
       final eventType = event.eventType;
+      appLogger.debug('Received app event of type: $eventType');
       switch (eventType) {
         case 'config':
           appLogger.debug('Received new config event.');
@@ -75,6 +76,11 @@ class AppEventNotifier extends _$AppEventNotifier {
           } catch (e) {
             appLogger.error('Error parsing server-location event: $e');
           }
+          break;
+        case 'data-cap-event':
+          final data = event.message;
+          appLogger.debug(
+              'Received data-cap-event, refreshing user data. Data: $data');
           break;
         default:
           break;

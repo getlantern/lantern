@@ -146,15 +146,15 @@ func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	}
 	// On non-iOS/macOS platforms, start the auto location listener
 	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+
 	if !common.IsMacOS() && !common.IsIOS() {
 		slog.Info("Starting auto location listener on non-iOS/macOS platform")
 		return withCore(func(c lanterncore.Core) error {
-			c.StartAutoLocationListener()
+			c.StartBackgroundListeners()
 			return nil
 		})
 	}
 	return nil
-
 }
 
 func StopVPN() error {
@@ -168,7 +168,7 @@ func StopVPN() error {
 	if !common.IsMacOS() && !common.IsIOS() {
 		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
 		return withCore(func(c lanterncore.Core) error {
-			c.StopAutoLocationListener()
+			c.StopBackgroundListeners()
 			return nil
 		})
 	}
@@ -187,7 +187,7 @@ func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface
 	if !common.IsMacOS() && !common.IsIOS() {
 		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
 		return withCore(func(c lanterncore.Core) error {
-			c.StopAutoLocationListener()
+			c.StopBackgroundListeners()
 			return nil
 		})
 	}
@@ -198,7 +198,7 @@ func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface
 // Should be called only on iOS and macOS
 func StartAutoLocationListener() error {
 	return withCore(func(c lanterncore.Core) error {
-		c.StartAutoLocationListener()
+		c.StartBackgroundListeners()
 		return nil
 	})
 }
@@ -207,7 +207,7 @@ func StartAutoLocationListener() error {
 // Should be called only on iOS and macOS
 func StopAutoLocationListener() error {
 	return withCore(func(c lanterncore.Core) error {
-		c.StopAutoLocationListener()
+		c.StopBackgroundListeners()
 		return nil
 	})
 }
@@ -474,20 +474,20 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
 
 // SetSmartRoutingMode sets the smart routing mode.
 func SetSmartRoutingMode(mode bool) error {
-	slog.Debug("mobile: SetSmartRoutingMode called", "mode", mode)
+	slog.Debug("mobile: SetSmartRoutingEnabled called", "mode", mode)
 	return withCore(func(c lanterncore.Core) error {
-		return c.SetSmartRoutingMode(mode)
+		return c.SetSmartRoutingEnabled(mode)
 	})
 }
 
-// GetSmartRoutingMode gets the current smart routing mode.
-func GetSmartRoutingMode() bool {
-	slog.Debug("mobile: GetSmartRoutingMode called")
+// GetSmartRoutingEnabled gets the current smart routing enabled state.
+func GetSmartRoutingEnabled() bool {
+	slog.Debug("mobile: GetSmartRoutingEnabled called")
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		return c.GetSmartRoutingMode(), nil
+		return c.IsSmartRoutingEnabled(), nil
 	})
 	if err != nil {
-		slog.Error("mobile: GetSmartRoutingMode error", "error", err)
+		slog.Error("mobile: GetSmartRoutingEnableds error", "error", err)
 		return false
 	}
 	slog.Debug("mobile: GetSmartRoutingMode result", "mode", ok)
