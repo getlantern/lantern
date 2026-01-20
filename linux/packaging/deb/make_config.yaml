@@ -10,7 +10,6 @@ installed_size: 6604
 essential: false
 icon: ./assets/images/launch_icon.png
 
-
 keywords:
   - Lantern
 
@@ -20,3 +19,11 @@ categories:
   - Network
 
 startup_notify: true
+
+postinstall_scripts:
+  - systemctl daemon-reload
+  - systemctl enable lantern.service || true
+
+postuninstall_scripts:
+  - systemctl disable --now lantern.service || true
+  - systemctl daemon-reload
