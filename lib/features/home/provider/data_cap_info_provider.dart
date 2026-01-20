@@ -18,4 +18,10 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
       },
     );
   }
+
+
+  void updateDateCapInfo(DataCapUsageResponse newInfo) {
+    state = AsyncValue.data(newInfo);
+  }
+
 }

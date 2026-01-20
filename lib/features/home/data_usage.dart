@@ -14,7 +14,6 @@ class DataUsage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final dataCapAsync = ref.watch(dataCapInfoProvider);
-    appLogger.debug('Building DataUsage widget');
     return dataCapAsync.when(
       data: (dataCapResponse) {
         /// If data cap is not enabled, don't show the widget
