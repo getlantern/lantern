@@ -100,16 +100,16 @@ class _HomeState extends ConsumerState<Home>
   }
 
   void _refreshDataCapIfNeeded() {
-    if (PlatformUtils.isIOS) {
-      return;
-    }
-    final isPro = ref.read(isUserProProvider);
-    if (!isPro) {
-      appLogger.info("User is not Pro, refreshing data cap info");
-      ref.invalidate(dataCapInfoProvider);
-    } else {
-      appLogger.info("User is Pro, skipping data cap refresh");
-    }
+    // if (PlatformUtils.isIOS) {
+    //   return;
+    // }
+    // final isPro = ref.read(isUserProProvider);
+    // if (!isPro) {
+    //   appLogger.info("User is not Pro, refreshing data cap info");
+    //   ref.invalidate(dataCapInfoProvider);
+    // } else {
+    //   appLogger.info("User is Pro, skipping data cap refresh");
+    // }
   }
 
   @override

@@ -231,7 +231,7 @@ func (lc *LanternCore) listeningServerLocationChanges() {
 }
 func (lc *LanternCore) listeningDataCapChanges() {
 	events.Subscribe(func(evt api.DataCapChangeEvent) {
-		slog.Debug("DataCap event received", "event", evt)
+		slog.Debug("Recevied data cap event received", "event", evt)
 		dataCapResponse := evt.DataCapUsageResponse
 		jsonBytes, err := json.Marshal(dataCapResponse)
 		if err != nil {
@@ -311,7 +311,7 @@ func (lc *LanternCore) StartBackgroundListeners() {
 	// DataCap SSE stream
 	go func() {
 		if err := lc.apiClient.DataCapStream(ctx); err != nil {
-			slog.Error("DataCapStream stopped", "error", err)
+			slog.Error("datacap stopped", "error", err)
 		}
 	}()
 
