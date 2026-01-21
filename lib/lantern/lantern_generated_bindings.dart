@@ -6044,6 +6044,29 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('isBlockAdsEnabled');
   late final _isBlockAdsEnabled =
       _isBlockAdsEnabledPtr.asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> setSmartRoutingEnabled(
+    int enabled,
+  ) {
+    return _setSmartRoutingEnabled(
+      enabled,
+    );
+  }
+
+  late final _setSmartRoutingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+          'setSmartRoutingEnabled');
+  late final _setSmartRoutingEnabled = _setSmartRoutingEnabledPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isSmartRoutingEnabled() {
+    return _isSmartRoutingEnabled();
+  }
+
+  late final _isSmartRoutingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isSmartRoutingEnabled');
+  late final _isSmartRoutingEnabled =
+      _isSmartRoutingEnabledPtr.asFunction<int Function()>();
 }
 
 typedef va_list = ffi.Pointer<ffi.Char>;
