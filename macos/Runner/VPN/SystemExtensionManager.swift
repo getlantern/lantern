@@ -116,14 +116,43 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
-    guard let enabled = props.first(where: { $0.isEnabled }) else {
-      if props.contains(where: { $0.isAwaitingUserApproval }) { return .requiresApproval }
-      if props.contains(where: { $0.isUninstalling }) { return .uninstalling }
-      return .notInstalled
+    guard !props.isEmpty else { return .notInstalled }
+
+    if props.contains(where: { $0.isAwaitingUserApproval }) { return .requiresApproval }
+    if props.contains(where: { $0.isUninstalling }) { return .uninstalling }
+
+    let enabled = props.first(where: { $0.isEnabled })
+
+    // Highest installed version
+    let installedMax = props.max { a, b in
+      (buildInt(a.bundleVersion) ?? -1) < (buildInt(b.bundleVersion) ?? -1)
     }
 
-    appLogger.info("Enabled extension version: \(enabled.bundleShortVersion ?? "?")/\(enabled.bundleVersion ?? "?")")
-    return .activated
+    // version in the app bundle
+    let bundled = bundledExtensionBuildAndShort()
+
+    func fmt(_ p: OSSystemExtensionProperties?) -> String {
+      guard let p else { return "nil" }
+      return "\(p.bundleShortVersion ?? "?")/\(p.bundleVersion ?? "?")"
+    }
+
+    if let enabled {
+      let enabledBuild = buildInt(enabled.bundleVersion) ?? -1
+      let installedMaxBuild = buildInt(installedMax?.bundleVersion) ?? -1
+
+      if installedMaxBuild > enabledBuild {
+        return .updatePending(details: "enabled=\(fmt(enabled)) installedMax=\(fmt(installedMax))")
+      }
+
+      if let bundledBuild = bundled.build, bundledBuild > enabledBuild {
+        return .updatePending(details: "enabled=\(fmt(enabled)) bundled=\(bundled.short ?? "?")/\(bundledBuild)")
+      }
+
+      appLogger.info("Enabled extension version: \(fmt(enabled))")
+      return .activated
+    }
+
+    return .notInstalled
   }
 
   private func mapResult(_ result: OSSystemExtensionRequest.Result) -> ExtensionStatus {
