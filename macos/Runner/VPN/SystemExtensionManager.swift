@@ -116,45 +116,25 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
-    appLogger.info("Mapping system extension properties to status.")
-    guard !props.isEmpty else {
-      appLogger.info("Array of extension properties is empty - returning not installed")
+    guard let enabled = props.first(where: { $0.isEnabled }) else {
+      if props.contains(where: { $0.isAwaitingUserApproval }) { return .requiresApproval }
+      if props.contains(where: { $0.isUninstalling }) { return .uninstalling }
       return .notInstalled
     }
-    if #available(macOS 12.0, *) {
-      // Process the array of system extensions. The device may have old extensions
-      // that are in the process of uninstalling, for example. If any of them is
-      // enabled, however, we should consider the extension to be activated.
-      for (i, p) in props.enumerated() {
-        if p.isEnabled {
-          appLogger.info("System extension \(i) is enabled.")
-          return .activated
-        }
-      }
-      for (i, p) in props.enumerated() {
-        if p.isAwaitingUserApproval {
-          appLogger.info("System extension \(i) requires user approval.")
-          return .requiresApproval
-        }
-        if p.isUninstalling {
-          appLogger.info("System extension \(i) is uninstalling.")
-          return .uninstalling
-        }
-      }
-      appLogger.info("No enabled system extensions found.")
-      return .notInstalled
-    } else {
-      appLogger.info("macOS version does not support isAwaitingUserApproval check.")
-      return .notInstalled
-    }
+
+    appLogger.info("Enabled extension version: \(enabled.bundleShortVersion ?? "?")/\(enabled.bundleVersion ?? "?")")
+    return .activated
   }
 
   private func mapResult(_ result: OSSystemExtensionRequest.Result) -> ExtensionStatus {
     appLogger.info("Mapping system extension request result to status.")
     switch result {
-    case .completed: return .activated
-    case .willCompleteAfterReboot: return .activated
-    @unknown default: return .error("Unknown result")
+    case .completed:
+      return .activated
+    case .willCompleteAfterReboot:
+      return .requiresReboot
+    @unknown default:
+      return .error("Unknown result")
     }
   }
 
@@ -219,6 +199,7 @@ public enum ExtensionStatus: Equatable {
   case notInstalled
   case installed
   case requiresApproval
+  case requiresReboot
   case uninstalling
   case error(String)
   case timedOut
@@ -230,6 +211,7 @@ public enum ExtensionStatus: Equatable {
     case .notInstalled: return "notInstalled"
     case .installed: return "installed"
     case .requiresApproval: return "requiresApproval"
+    case .requiresReboot: return "requiresReboot"
     case .uninstalling: return "uninstalling"
     case .error(let msg): return "error:\(msg)"
     case .timedOut: return "timedOut"
