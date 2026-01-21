@@ -365,41 +365,20 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> processPurchase(
       PurchaseDetails purchase, InAppPurchase inAppPurchase, Plan plan) async {
+    context.hideLoadingDialog();
     appLogger.info('Subscription successful for plan: ${plan.id}');
-    context.showLoadingDialog();
-    final acknowledgeResult = await acknowledgeInAppPurchase(
-        purchase.verificationData.serverVerificationData, plan.id);
-
-    acknowledgeResult.fold(
-      (error) {
-        context.hideLoadingDialog();
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error acknowledging purchase: $error');
-      },
-      (success) async {
-        // Handle success
-        appLogger.info('Successfully acknowledged purchase');
-        context.hideLoadingDialog();
-        if (purchase.pendingCompletePurchase) {
-          appLogger.debug("Completing pending purchase");
-          await inAppPurchase.completePurchase(purchase);
-        }
-        /// IOS Send old purchases to stream
-        sl<AppPurchase>().clearCallbacks();
-        signUpFlow();
-      },
-    );
+    /// IOS Send old purchases to stream
+    sl<AppPurchase>().clearCallbacks();
+    signUpFlow();
   }
 
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
       String purchaseToken, String planId) async {
     appLogger.debug("Acknowledging purchase");
-    final result =
-        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
-              purchaseToken: purchaseToken,
-              planId: planId,
-            );
-    return result;
+    return ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken,
+          planId: planId,
+        );
   }
 
   void signUpFlow() {

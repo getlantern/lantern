@@ -12,6 +12,8 @@ let appLogger = LanternLogger()
 class LanternLogger {
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Lantern-IOS")
   private let logFileURL: URL
+  let formatter = DateFormatter()
+  let utcTimeZone = TimeZone(identifier: "UTC")
 
   init() {
     // Ensure Logs directory exists
@@ -31,10 +33,8 @@ class LanternLogger {
 
   private func writeToFile(_ message: String) {
     let timestamp = ISO8601DateFormatter().string(from: Date())
-    let formatted = "[\(timestamp)] \(message)\n"
-
+    let formatted = "time=\"\(timestamp)\" \(message)\n"
     guard let data = formatted.data(using: .utf8) else { return }
-
     if let fileHandle = try? FileHandle(forWritingTo: logFileURL) {
       fileHandle.seekToEndOfFile()
       fileHandle.write(data)
@@ -59,5 +59,12 @@ class LanternLogger {
 
   func logFile() -> URL {
     return logFileURL
+  }
+
+  /// Formats timestamp as: 2026-01-20 16:03:50.628 UTC
+  private func formatTimestamp(_ date: Date) -> String {
+    formatter.timeZone = utcTimeZone
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+    return "\(formatter.string(from: date)) UTC"
   }
 }
