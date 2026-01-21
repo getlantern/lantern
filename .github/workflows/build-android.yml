@@ -37,6 +37,31 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-    
+
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
         with:
