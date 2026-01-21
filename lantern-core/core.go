@@ -771,7 +771,7 @@ func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 
 func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
-	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification)
+	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification, serverName)
 }
 
 // splitCSVClean splits a comma-separated string into a stable list
