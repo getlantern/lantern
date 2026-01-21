@@ -7,8 +7,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   static let shared = SystemExtensionManager()
   private var tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
   private var approvalRequired = false
+
   @Published private(set) var status: String = ExtensionStatus.notInstalled.asString
-  //Called when an existing installed extension is detected and the system asks what to do.
+
+  // Called when an existing installed extension is detected and the system asks what to do.
   // Returns `.replace` to replace installed extension with the bundled one, `.cancel` to skip.
   public func request(
     _ request: OSSystemExtensionRequest,
@@ -115,44 +117,117 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
+  // MARK: - Helpers
+
+  private func buildInt(_ s: String?) -> Int? {
+    guard let s else { return nil }
+    return Int(s.trimmingCharacters(in: .whitespacesAndNewlines))
+  }
+
+  private func fmt(_ p: OSSystemExtensionProperties?) -> String {
+    guard let p else { return "nil" }
+    return "\(p.bundleShortVersion ?? "?")/\(p.bundleVersion ?? "?")"
+  }
+
+  // Look inside the app bundle to find the version/build of the embedded system extension.
+  // Note: this is not the installed/activated version — it’s what this app *ships*.
+  private func bundledExtensionBuildAndShort() -> (build: Int?, short: String?) {
+    guard let sysExtURL = Bundle.main.builtInPlugInsURL?
+      .deletingLastPathComponent()
+      .appendingPathComponent("Library/SystemExtensions", isDirectory: true)
+    else { return (nil, nil) }
+
+    let fm = FileManager.default
+    guard let items = try? fm.contentsOfDirectory(at: sysExtURL, includingPropertiesForKeys: nil) else {
+      return (nil, nil)
+    }
+
+    let match = items.first { url in
+      url.pathExtension == "systemextension" &&
+      (Bundle(url: url)?.bundleIdentifier == tunnelBundleID)
+    }
+
+    guard let url = match, let b = Bundle(url: url) else { return (nil, nil) }
+
+    let short = b.infoDictionary?["CFBundleShortVersionString"] as? String
+    let buildStr = b.infoDictionary?["CFBundleVersion"] as? String
+    return (buildInt(buildStr), short)
+  }
+
+  // MARK: - Status Mapping
+
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
     guard !props.isEmpty else { return .notInstalled }
 
-    if props.contains(where: { $0.isAwaitingUserApproval }) { return .requiresApproval }
-    if props.contains(where: { $0.isUninstalling }) { return .uninstalling }
+    if props.contains(where: { $0.isAwaitingUserApproval }) {
+      return .requiresApproval
+    }
 
     let enabled = props.first(where: { $0.isEnabled })
+    let enabledBuild = enabled.flatMap { buildInt($0.bundleVersion) } ?? -1
 
-    // Highest installed version
-    let installedMax = props.max { a, b in
-      (buildInt(a.bundleVersion) ?? -1) < (buildInt(b.bundleVersion) ?? -1)
+    let uninstalling = props.filter { $0.isUninstalling }
+    let nonUninstalling = props.filter { !$0.isUninstalling }
+
+    let uninstallingMax = uninstalling.max {
+      (buildInt($0.bundleVersion) ?? -1) < (buildInt($1.bundleVersion) ?? -1)
     }
+    let uninstallingMaxBuild = buildInt(uninstallingMax?.bundleVersion) ?? -1
 
-    // version in the app bundle
+    // Highest build version
+    let installedMax = nonUninstalling.max {
+      (buildInt($0.bundleVersion) ?? -1) < (buildInt($1.bundleVersion) ?? -1)
+    }
+    let installedMaxBuild = buildInt(installedMax?.bundleVersion) ?? -1
+
+    // Version/build shipped inside the app bundle
     let bundled = bundledExtensionBuildAndShort()
+    let bundledBuild = bundled.build ?? -1
+    let haveBundled = bundled.build != nil
 
-    func fmt(_ p: OSSystemExtensionProperties?) -> String {
-      guard let p else { return "nil" }
-      return "\(p.bundleShortVersion ?? "?")/\(p.bundleVersion ?? "?")"
+    let desiredBuild: Int = {
+      if haveBundled {
+        return max(bundledBuild, installedMaxBuild)
+      }
+      return installedMaxBuild
+    }()
+
+    appLogger.info(
+      "SysExt snapshot: enabled=\(fmt(enabled)) enabledBuild=\(enabledBuild) " +
+      "installedMax=\(fmt(installedMax)) installedMaxBuild=\(installedMaxBuild) " +
+      "uninstallingMax=\(fmt(uninstallingMax)) uninstallingMaxBuild=\(uninstallingMaxBuild) " +
+      "bundled=\(bundled.short ?? "?")/\(bundled.build.map(String.init) ?? "?") desiredBuild=\(desiredBuild)"
+    )
+
+    if desiredBuild >= 0 && uninstallingMaxBuild == desiredBuild {
+      return .requiresReboot
     }
 
-    if let enabled {
-      let enabledBuild = buildInt(enabled.bundleVersion) ?? -1
-      let installedMaxBuild = buildInt(installedMax?.bundleVersion) ?? -1
-
-      if installedMaxBuild > enabledBuild {
-        return .updatePending(details: "enabled=\(fmt(enabled)) installedMax=\(fmt(installedMax))")
+    // If nothing is enabled but we can see candidates, explicitly surface updatePending
+    guard let enabled else {
+      if desiredBuild >= 0 {
+        let desiredDesc = haveBundled
+          ? "desired=\(bundled.short ?? "?")/\(desiredBuild)"
+          : "desiredInstalledMax=\(fmt(installedMax))"
+        return .updatePending(details: "noneEnabled \(desiredDesc)")
       }
-
-      if let bundledBuild = bundled.build, bundledBuild > enabledBuild {
-        return .updatePending(details: "enabled=\(fmt(enabled)) bundled=\(bundled.short ?? "?")/\(bundledBuild)")
-      }
-
-      appLogger.info("Enabled extension version: \(fmt(enabled))")
-      return .activated
+      return .notInstalled
     }
 
-    return .notInstalled
+    // If enabled is behind desired, we want the newer one to “win”:
+    // - If the newer one is stuck uninstalling, require reboot
+    // - Otherwise mark updatePending
+    if desiredBuild > enabledBuild {
+      if uninstallingMaxBuild == desiredBuild {
+        return .requiresReboot
+      }
+      if haveBundled, bundledBuild == desiredBuild {
+        return .updatePending(details: "enabled=\(fmt(enabled)) bundled=\(bundled.short ?? "?")/\(desiredBuild)")
+      }
+      return .updatePending(details: "enabled=\(fmt(enabled)) installedMax=\(fmt(installedMax))")
+    }
+
+    return .activated
   }
 
   private func mapResult(_ result: OSSystemExtensionRequest.Result) -> ExtensionStatus {
@@ -182,7 +257,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     // This URL scheme attempts to open the System Extensions section directly if available.
     // Fallback to the general Security & Privacy pane.
     let generalSecurityPaneURL = URL(
-      string: "x-apple.systempreferences:com.apple.preference.security")
+      string: "x-apple.systempreferences:com.apple.preference.security"
+    )
 
     // macOS Sequoia (15.0), Ventura (13.0), and earlier all use different paths for allowing the extension
     // in system settings.
@@ -198,13 +274,13 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     } else if #available(macOS 13.0, *) {
       // For macOS 13 and later, "Privacy & Security"
       if let url = URL(
-        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension")
-      {  // Ideal but might not always work
+        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension"
+      ) {  // Ideal but might not always work
         appLogger.log("Opening PrivacySecurity.extension URL")
         NSWorkspace.shared.open(url)
       } else if let url = URL(
-        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity")
-      {
+        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity"
+      ) {
         appLogger.log("Opening PrivacySecurity URL")
         NSWorkspace.shared.open(url)
       } else if let fallbackUrl = generalSecurityPaneURL {
@@ -214,8 +290,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     } else {
       // For macOS versions prior to 13.0 (e.g., Monterey, Big Sur)
       if let url = URL(
-        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SystemExtensions")
-      {
+        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SystemExtensions"
+      ) {
         NSWorkspace.shared.open(url)
       } else if let fallbackUrl = generalSecurityPaneURL {
         NSWorkspace.shared.open(fallbackUrl)
@@ -230,6 +306,7 @@ public enum ExtensionStatus: Equatable {
   case requiresApproval
   case requiresReboot
   case uninstalling
+  case updatePending(details: String)
   case error(String)
   case timedOut
   case activated
@@ -242,6 +319,7 @@ public enum ExtensionStatus: Equatable {
     case .requiresApproval: return "requiresApproval"
     case .requiresReboot: return "requiresReboot"
     case .uninstalling: return "uninstalling"
+    case .updatePending(let details): return "updatePending:\(details)"
     case .error(let msg): return "error:\(msg)"
     case .timedOut: return "timedOut"
     case .activated: return "activated"
