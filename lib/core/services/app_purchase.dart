@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 
-typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
+typedef PaymentSuccessCallback = void Function(
+    PurchaseDetails purchase, InAppPurchase inappPurchase);
 typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
@@ -60,7 +61,7 @@ class AppPurchase {
   /// Starts the subscription flow and only triggers the callbacks related to this purchase.
   Future<void> startSubscription({
     required String plan,
-    required void Function(PurchaseDetails purchase) onSuccess,
+    required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
   }) async {
     _onSuccess = onSuccess;
@@ -95,7 +96,6 @@ class AppPurchase {
     appLogger.info('Handling purchase: ${purchaseDetails.toString()}');
     try {
       final status = purchaseDetails.status;
-
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
@@ -103,10 +103,9 @@ class AppPurchase {
           /// iOS specific handling
           await _inAppPurchase.completePurchase(purchaseDetails);
         }
-
-        /// User has cancelled the purchase
-        _onError?.call(purchaseDetails.error?.message.localizedDescription ??
-            "Unknown error");
+        final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
+        /// Invoke error callback
+        _onError?.call(errorMessage);
         return;
       }
       if (status == PurchaseStatus.canceled) {
@@ -119,10 +118,7 @@ class AppPurchase {
         return;
       }
       if (status == PurchaseStatus.purchased) {
-        _onSuccess?.call(purchaseDetails);
-        if (purchaseDetails.pendingCompletePurchase) {
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
+        _onSuccess?.call(purchaseDetails, InAppPurchase.instance);
         return;
       }
     } catch (e) {

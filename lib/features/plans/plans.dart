@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -333,13 +336,8 @@ class _PlansState extends ConsumerState<Plans> {
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
-      onSuccess: (purchase) {
-        /// Subscription successful
-        appLogger.info('Subscription successful for plan: ${plan.id}');
-        context.hideLoadingDialog();
-        acknowledgeInAppPurchase(
-            purchase.verificationData.serverVerificationData, plan.id);
-      },
+      onSuccess: (purchase, inAppPurchase) =>
+          processPurchase(purchase, inAppPurchase, plan),
       onError: (error) {
         if (!mounted) {
           return;
@@ -365,16 +363,14 @@ class _PlansState extends ConsumerState<Plans> {
     );
   }
 
-  Future<void> acknowledgeInAppPurchase(
-      String purchaseToken, String planId) async {
-    appLogger.debug("Acknowledging purchase");
+  Future<void> processPurchase(
+      PurchaseDetails purchase, InAppPurchase inAppPurchase, Plan plan) async {
+    appLogger.info('Subscription successful for plan: ${plan.id}');
     context.showLoadingDialog();
-    final result =
-        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
-              purchaseToken: purchaseToken,
-              planId: planId,
-            );
-    result.fold(
+    final acknowledgeResult = await acknowledgeInAppPurchase(
+        purchase.verificationData.serverVerificationData, plan.id);
+
+    acknowledgeResult.fold(
       (error) {
         context.hideLoadingDialog();
         context.showSnackBar(error.localizedErrorMessage);
@@ -384,12 +380,26 @@ class _PlansState extends ConsumerState<Plans> {
         // Handle success
         appLogger.info('Successfully acknowledged purchase');
         context.hideLoadingDialog();
-
+        if (purchase.pendingCompletePurchase) {
+          appLogger.debug("Completing pending purchase");
+          await inAppPurchase.completePurchase(purchase);
+        }
         /// IOS Send old purchases to stream
         sl<AppPurchase>().clearCallbacks();
         signUpFlow();
       },
     );
+  }
+
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      String purchaseToken, String planId) async {
+    appLogger.debug("Acknowledging purchase");
+    final result =
+        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
+              purchaseToken: purchaseToken,
+              planId: planId,
+            );
+    return result;
   }
 
   void signUpFlow() {
