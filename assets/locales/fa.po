@@ -757,15 +757,6 @@ msgstr ""
 "صبور باشید! سرور خصوصی شما در حال راه‌اندازی است. این کار ممکن است چند دقیقه"
 " طول بکشد."
 
-msgid "confirm_server_fingerprint"
-msgstr "تأیید اثر انگشت سرور"
-
-msgid "server_fingerprint"
-msgstr "اثر انگشت سرور"
-
-msgid "confirm_fingerprint"
-msgstr "تأیید اثر انگشت"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "صبور باشید! سرور خصوصی شما در حال راه‌اندازی است. این کار ممکن است چند دقیقه"

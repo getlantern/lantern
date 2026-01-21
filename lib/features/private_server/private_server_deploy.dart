@@ -56,14 +56,6 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
       if (serverState.status == 'EventTypeProvisioningCancelled') {
         appLogger.info("Private server deployment was cancelled.");
       }
-      if (serverState.status == 'EventTypeServerTofuPermission') {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final List<dynamic> data = jsonDecode(serverState.data!);
-          final certList =
-              data.map((item) => CertSummary.fromJson(item)).toList();
-          onConfirmFingerprint(certList.first);
-        });
-      }
       return null;
     }, [serverState.status]);
 
@@ -181,23 +173,6 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
     );
   }
 
-  Future<void> onConfirmFingerprint(CertSummary cert) async {
-    final result = await ref
-        .read(privateServerProvider.notifier)
-        .setCert(cert.fingerprint);
-
-    result.fold(
-      (failure) {
-        // Handle failure case, e.g., show an error message
-        appLogger.error("Failed to set cert: ${failure.localizedErrorMessage}");
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (_) {
-        // Handle success case, e.g., navigate to the next screen or show a success message
-        appLogger.info("Cert set successfully.");
-      },
-    );
-  }
 
   Future<void> cancelDeployment() async {
     context.showLoadingDialog();

@@ -763,15 +763,6 @@ msgstr ""
 "Tunggu sebentar! Pelayan Peribadi anda sedang disediakan. Ini mungkin "
 "mengambil beberapa minit."
 
-msgid "confirm_server_fingerprint"
-msgstr "Sahkan Cap Jari Pelayan"
-
-msgid "server_fingerprint"
-msgstr "Cap Jari Pelayan"
-
-msgid "confirm_fingerprint"
-msgstr "Sahkan Cap Jari"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Tunggu sebentar! Pelayan Peribadi anda sedang disediakan. Ini mungkin "

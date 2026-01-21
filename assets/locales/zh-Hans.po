@@ -704,15 +704,6 @@ msgstr "正在部署私有服务器"
 msgid "deploying_server_status"
 msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟。"
 
-msgid "confirm_server_fingerprint"
-msgstr "确认服务器指纹"
-
-msgid "server_fingerprint"
-msgstr "服务器指纹"
-
-msgid "confirm_fingerprint"
-msgstr "确认指纹"
-
 msgid "private_server_setup_in_progress"
 msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟,请保持此屏幕打开。"
 

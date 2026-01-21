@@ -758,15 +758,6 @@ msgid "deploying_server_status"
 msgstr ""
 "धैर्य रखें! आपका निजी सर्वर सेट अप हो रहा है। इसमें कुछ मिनट लग सकते हैं।"
 
-msgid "confirm_server_fingerprint"
-msgstr "सर्वर फिंगरप्रिंट की पुष्टि करें"
-
-msgid "server_fingerprint"
-msgstr "सर्वर फिंगरप्रिंट"
-
-msgid "confirm_fingerprint"
-msgstr "फिंगरप्रिंट की पुष्टि करें"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "धैर्य रखें! आपका निजी सर्वर सेट अप हो रहा है। इसमें कुछ मिनट लग सकते हैं, "

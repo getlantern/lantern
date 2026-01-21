@@ -212,11 +212,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        if (failure.localizedErrorMessage
-            .contains('failed to get trusted server fingerprint')) {
-          showFingerprintChangedDialog(server);
-          return;
-        }
         AppDialog.errorDialog(
           context: context,
           title: 'error'.i18n,
@@ -230,62 +225,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         sharePrivateAccessKey(server, tokenData);
       },
     );
-  }
-
-  void showFingerprintChangedDialog(PrivateServerEntity server) {
-    AppDialog.customDialog(
-        context: context,
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(height: 16),
-            Center(
-              child: AppImage(
-                  path: AppImagePaths.warning,
-                  height: 40,
-                  color: AppColors.yellow4),
-            ),
-            SizedBox(height: defaultSize),
-            Text('identity_changed'.i18n.fill([server.serverName]),
-                style:
-                    textTheme!.headlineSmall!.copyWith(color: AppColors.gray7),
-                textAlign: TextAlign.center),
-            SizedBox(height: defaultSize),
-            Text(
-              'identity_changed_message'.i18n.fill([server.serverName]),
-              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray7),
-            ),
-            SizedBox(height: defaultSize),
-            Text(
-              'recommendation'.i18n,
-              style:
-                  AppTextStyles.bodyMediumBold.copyWith(color: AppColors.gray7),
-            ),
-            Text(
-              'recommendation_message'.i18n.fill([server.serverName]),
-              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray7),
-            )
-          ],
-        ),
-        action: [
-          AppTextButton(
-            label: 'cancel'.i18n,
-            textColor: AppColors.gray6,
-            underLine: false,
-            onPressed: () {
-              appRouter.pop();
-            },
-          ),
-          AppTextButton(
-            label: 'remove_server'.i18n,
-            textColor: AppColors.red7,
-            onPressed: () {
-              onDelete(server.serverName);
-              appRouter.pop();
-            },
-          )
-        ]);
   }
 
   void showRenameDialog(String serverName) {
