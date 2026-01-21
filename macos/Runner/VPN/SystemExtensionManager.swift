@@ -129,8 +129,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     return "\(p.bundleShortVersion ?? "?")/\(p.bundleVersion ?? "?")"
   }
 
-  // Look inside the app bundle to find the version/build of the embedded system extension.
-  // Note: this is not the installed/activated version — it’s what this app *ships*.
+  // Look inside the app bundle to find the version/build of the embedded system extension
   private func bundledExtensionBuildAndShort() -> (build: Int?, short: String?) {
     guard let sysExtURL = Bundle.main.builtInPlugInsURL?
       .deletingLastPathComponent()
