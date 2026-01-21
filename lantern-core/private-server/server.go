@@ -344,40 +344,7 @@ func CancelDeployment() error {
 // this call radiance and store connect last part
 func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSession) error {
 	log.Debug("Adding server manager instance")
-	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []servers.CertDetail) *servers.CertDetail {
-		if len(details) == 0 {
-			return nil
-		}
-		summaries := make([]certSummary, len(details))
-		for i, detail := range details {
-			// F5:0E:E4:9A:32:DA:09:B9:4E:E3:5C:08:F1:40:94:AE:9A:31:45:13 - 147.182.166.138 [147.182.166.138]
-			summaries[i] = certSummary{
-				Fingerprint: detail.Fingerprint,
-				Issuer:      detail.Issuer,
-				Subject:     detail.Subject,
-			}
-		}
-		jsonBytes, err := json.Marshal(summaries)
-		if err != nil {
-			log.Errorf("Error marshalling cert details: %v", err)
-			provisioner.eventSink.OnError(convertErrorToJSON("EventTypeServerTofuPermissionError", err))
-			return nil
-		}
-
-		log.Debugf("Available server manager instances: %v", string(jsonBytes))
-		provisioner.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeServerTofuPermission", string(jsonBytes)))
-		// Now wait for user to select the figerprint
-		// Wait for selected fingerprint from Flutter
-		selectedFp := <-certFingerprintChan
-		for i := range details {
-			if details[i].Fingerprint == selectedFp {
-				log.Debugf("Matched selected cert: %v", details[i])
-				return &details[i]
-			}
-		}
-		log.Error("No certificate matched selected fingerprint")
-		return nil
-	})
+	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		return log.Errorf("Error adding server manager instance: %v", err)
 	}
