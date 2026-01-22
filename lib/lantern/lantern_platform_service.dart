@@ -1030,17 +1030,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
-    try {
-      await _methodChannel.invokeMethod('selectCertFingerprint', fingerprint);
-      return Right(unit);
-    } catch (e, stackTrace) {
-      appLogger.error('Error canceling deployment', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, Unit>> addServerManually(
       {required String ip,
       required String port,

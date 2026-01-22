@@ -84,7 +84,6 @@ enum class Methods(val method: String) {
     SelectProject("selectProject"),
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
-    SelectCertFingerprint("selectCertFingerprint"),
 
     ValidateSession("validateSession"),
     AddServerManually("addServerManually"),
@@ -809,15 +808,6 @@ class MethodHandler : FlutterPlugin,
                     Mobile.cancelDeployment()
                 }
 
-            }
-
-            Methods.SelectCertFingerprint.method -> {
-                scope.handleResult(
-                    result,
-                    "SelectCertFingerprint"
-                ) {
-                    Mobile.selectedCertFingerprint(call.arguments as String)
-                }
             }
 
             Methods.ValidateSession.method -> {

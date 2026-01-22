@@ -44,6 +44,8 @@ jobs:
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
         with:
           path: |
             ~/.pub-cache
@@ -54,11 +56,11 @@ jobs:
 
       - name: Cache iOS CocoaPods
         uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
         with:
           path: |
             ios/Pods
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
           key: ${{ runner.os }}-ios-pods-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-pods-      

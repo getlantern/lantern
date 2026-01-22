@@ -763,15 +763,6 @@ msgstr ""
 "¡Espera un momento! Tu Servidor Privado se está configurando. Esto puede "
 "tomar unos minutos."
 
-msgid "confirm_server_fingerprint"
-msgstr "Confirmar Huella del Servidor"
-
-msgid "server_fingerprint"
-msgstr "Huella del Servidor"
-
-msgid "confirm_fingerprint"
-msgstr "Confirmar Huella"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "¡Espera un momento! Tu Servidor Privado se está configurando. Esto puede "

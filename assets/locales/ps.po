@@ -773,15 +773,6 @@ msgstr "شخصي سرور ځای پر ځای کیږي"
 msgid "deploying_server_status"
 msgstr "صبر وکړئ! ستاسو شخصي سرور تنظیمیږي. دا ممکن څو دقیقې ونیسي."
 
-msgid "confirm_server_fingerprint"
-msgstr "د سرور ګوتې نښه تایید کړئ"
-
-msgid "server_fingerprint"
-msgstr "د سرور ګوتې نښه"
-
-msgid "confirm_fingerprint"
-msgstr "ګوتې نښه تایید کړئ"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "صبر وکړئ! ستاسو خصوصي سرور جوړېږي. دا ممکن څو دقیقې ونیسي، مهرباني وکړئ دا "

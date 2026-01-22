@@ -744,15 +744,6 @@ msgstr "نشر الخادم الخاص"
 msgid "deploying_server_status"
 msgstr "يرجى الانتظار قليلاً! يتم إعداد خادمك الخاص. قد يستغرق هذا بضع دقائق."
 
-msgid "confirm_server_fingerprint"
-msgstr "تأكيد بصمة الخادم"
-
-msgid "server_fingerprint"
-msgstr "بصمة الخادم"
-
-msgid "confirm_fingerprint"
-msgstr "تأكيد البصمة"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "يرجى الانتظار قليلاً! يتم إعداد خادمك الخاص. قد يستغرق هذا بضع دقائق، يرجى "
