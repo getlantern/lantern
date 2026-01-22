@@ -57,7 +57,7 @@ jobs:
         with:
           path: |
             macos/Pods
-          key: ${{ runner.os }}-macos-pods-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-macos-pods-${{ hashFiles('macos/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-macos-pods-          
 
