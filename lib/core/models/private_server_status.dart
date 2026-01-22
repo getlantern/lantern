@@ -55,20 +55,3 @@ class PrivateServerStatus {
   @override
   int get hashCode => Object.hash(status, data, error);
 }
-
-class CertSummary {
-  final String fingerprint;
-  final String issuer;
-  final String subject;
-
-  factory CertSummary.fromJson(Map<String, dynamic> json) {
-    return CertSummary(
-      fingerprint: json['fingerprint'] ?? '',
-      issuer: json['issuer'] ?? '',
-      subject: json['subject'] ?? '',
-    );
-  }
-
-  CertSummary(
-      {required this.fingerprint, required this.issuer, required this.subject});
-}

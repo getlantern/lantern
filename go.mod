@@ -166,9 +166,9 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260113204224-600f8e8dfe5f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
-	github.com/getlantern/common v1.2.1-0.20260113231444-c651c79beddf // indirect
-	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
-	github.com/getlantern/fronted v0.0.0-20260120003233-f451b84d326e // indirect
+	github.com/getlantern/common v1.2.1-0.20260121160752-d8ee5791108f // indirect
+	github.com/getlantern/dnstt v0.0.0-20250530230749-4d64f4edcf0f // indirect
+	github.com/getlantern/fronted v0.0.0-20260121001528-92134131dcd2 // indirect
 	github.com/getlantern/geo v0.0.0-20241129152027-2fc88c10f91e // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/kindling v0.0.0-20260112160127-bea07e410e0b // indirect

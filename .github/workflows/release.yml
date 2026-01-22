@@ -201,7 +201,6 @@ jobs:
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       RELEASE_TAG: ${{ github.ref_name }}
-      S3_TAG: ${{ needs.set-release-metadata.outputs.tag_base }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -221,7 +220,7 @@ jobs:
           set -euxo pipefail
 
           prefix="releases/${BUILD_TYPE}"
-          tag="${S3_TAG}"
+          tag="${RELEASE_TAG}"
           platform="${{ needs.set-release-metadata.outputs.platform }}"
 
           upload_if_exists () {
@@ -333,22 +332,21 @@ jobs:
           platform="${{ needs.set-release-metadata.outputs.platform }}"
           prefix="releases/${BUILD_TYPE}"
           tag="${RELEASE_TAG}"
-          s3_tag="${S3_TAG:-$tag}"
           text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
-          
+
           # Add platform-specific download links based on the platform
           if [[ "$platform" == "all" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
           elif [[ "$platform" == "macos" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
           elif [[ "$platform" == "android" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
           elif [[ "$platform" == "linux" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${s3_tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
           elif [[ "$platform" == "ios" ]]; then
           text="${text}\n• Build uploaded to TestFlight (iOS)"
           fi

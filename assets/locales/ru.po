@@ -763,15 +763,6 @@ msgstr ""
 "Подождите немного! Ваш частный сервер настраивается. Это может занять "
 "несколько минут."
 
-msgid "confirm_server_fingerprint"
-msgstr "Подтвердить отпечаток сервера"
-
-msgid "server_fingerprint"
-msgstr "Отпечаток сервера"
-
-msgid "confirm_fingerprint"
-msgstr "Подтвердить отпечаток"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Подождите немного! Ваш частный сервер настраивается. Это может занять "

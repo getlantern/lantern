@@ -745,15 +745,6 @@ msgstr "Hususy serwer ýerleşdirilýär"
 msgid "deploying_server_status"
 msgstr "Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler."
 
-msgid "confirm_server_fingerprint"
-msgstr "Serwer barmak yzyny tassykla"
-
-msgid "server_fingerprint"
-msgstr "Serwer barmak yzy"
-
-msgid "confirm_fingerprint"
-msgstr "Barmak yzyny tassykla"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler, şu "

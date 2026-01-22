@@ -702,15 +702,6 @@ msgstr "Deploying Private Server"
 msgid "deploying_server_status"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
 
-msgid "confirm_server_fingerprint"
-msgstr "Confirm Server Fingerprint"
-
-msgid "server_fingerprint"
-msgstr "Server Fingerprint"
-
-msgid "confirm_fingerprint"
-msgstr "Confirm Fingerprint"
-
 msgid "private_server_setup_in_progress"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
 
@@ -847,7 +838,7 @@ msgid "trust_server_operator_message_two"
 msgstr "Lantern does not manage or monitor private servers. Make sure you know and trust the server operator before joining one."
 
 msgid "trust_server_operator_message_three"
-msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list"
+msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list."
 
 msgid "invalid_server_details"
 msgstr "Invalid server details. Please check the access key and try again."
