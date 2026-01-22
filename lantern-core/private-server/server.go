@@ -327,7 +327,7 @@ func CancelDeployment() error {
 // this call radiance and store connect last part
 func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSession) error {
 	log.Debug("Adding server manager instance")
-	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, http.DefaultClient)
+	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		return log.Errorf("Error adding server manager instance: %v", err)
 	}
@@ -369,12 +369,12 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 
 func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) (string, error) {
 	log.Debugf("Inviting to server manager instance %s:%d with invite name %s", ip, port, inviteName)
-	return vpnClient.InviteToPrivateServer(ip, port, accessToken, inviteName, http.DefaultClient)
+	return vpnClient.InviteToPrivateServer(ip, port, accessToken, inviteName)
 }
 
 func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) error {
 	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
-	return vpnClient.RevokePrivateServerInvite(ip, port, accessToken, inviteName, http.DefaultClient)
+	return vpnClient.RevokePrivateServerInvite(ip, port, accessToken, inviteName)
 }
 
 type geoInfo struct {
