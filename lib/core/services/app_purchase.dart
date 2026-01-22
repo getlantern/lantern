@@ -141,7 +141,7 @@ class AppPurchase {
               _onError?.call('Purchase acknowledgment failed: $error');
             },
             (success) async {
-              appLogger.info('Acknowledgment successful: $success');
+              appLogger.info('Acknowledgment successful');
               if (purchaseDetails.pendingCompletePurchase) {
                 await _inAppPurchase.completePurchase(purchaseDetails);
               }
