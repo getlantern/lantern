@@ -336,7 +336,7 @@ class _PlansState extends ConsumerState<Plans> {
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
-      onSuccess: (purchase, inAppPurchase) => processPurchase(purchase, inAppPurchase, plan),
+      onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
         if (!mounted) {
           return;
@@ -362,7 +362,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Future<void> processPurchase(
-      PurchaseDetails purchase, InAppPurchase inAppPurchase, Plan plan) async {
+      PurchaseDetails purchase, Plan plan) async {
     context.hideLoadingDialog();
     appLogger.info('Subscription successful for plan: ${plan.id}');
     /// IOS Send old purchases to stream

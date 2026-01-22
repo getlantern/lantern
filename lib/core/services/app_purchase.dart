@@ -7,7 +7,7 @@ import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'injection_container.dart' show sl;
 
 typedef PaymentSuccessCallback = void Function(
-    PurchaseDetails purchase, InAppPurchase inappPurchase);
+    PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
@@ -18,7 +18,7 @@ class AppPurchase {
 
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
-  String planId = '';
+
 
   void init() {
     if (PlatformUtils.isDesktop) {
@@ -70,7 +70,6 @@ class AppPurchase {
   }) async {
     _onSuccess = onSuccess;
     _onError = onError;
-    planId = plan;
     final product = _normalizePlan(plan);
     if (product == null) {
       _onError?.call("Invalid plan: $plan");
@@ -146,7 +145,7 @@ class AppPurchase {
               if (purchaseDetails.pendingCompletePurchase) {
                 await _inAppPurchase.completePurchase(purchaseDetails);
               }
-              _onSuccess?.call(purchaseDetails, InAppPurchase.instance);
+              _onSuccess?.call(purchaseDetails);
             },
           );
         } catch (e) {
@@ -184,6 +183,5 @@ class AppPurchase {
   void clearCallbacks() {
     _onSuccess = null;
     _onError = null;
-    planId = '';
   }
 }
