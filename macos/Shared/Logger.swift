@@ -14,8 +14,8 @@ class LanternLogger {
   private let queue = DispatchQueue(label: "LanternLoggerQueue", qos: .utility)
   private var fileHandle: FileHandle?
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Lantern")
-  let formatter = DateFormatter()
-  let utcTimeZone = TimeZone(identifier: "UTC")
+  private let formatter = DateFormatter()
+  private let utcTimeZone = TimeZone(identifier: "UTC")
 
   init() {
     let logFileURL = FilePath.logsDirectory.appendingPathComponent("lantern_macos.log")
@@ -37,9 +37,9 @@ class LanternLogger {
   private func writeToFile(_ message: String, level: String) {
     queue.async { [weak self] in
       guard let self = self else { return }
-      let timestamp = ISO8601DateFormatter().string(from: Date())
-      let formatted = "time=\"\(timestamp)\" \(message)\n"
-      guard let data = logLine.data(using: .utf8) else { return }
+      let timestamp = formatTimestamp(Date.now)
+      let formatted = "time=\"\(timestamp)\" level \(level) \(message)\n"
+      guard let data = formatted.data(using: .utf8) else { return }
       do {
         _ = try self.fileHandle?.seekToEnd()
         self.fileHandle?.write(data)

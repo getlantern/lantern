@@ -336,13 +336,11 @@ class _PlansState extends ConsumerState<Plans> {
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
-      onSuccess: (purchase, inAppPurchase) =>
-          processPurchase(purchase, inAppPurchase, plan),
+      onSuccess: (purchase, inAppPurchase) => processPurchase(purchase, inAppPurchase, plan),
       onError: (error) {
         if (!mounted) {
           return;
         }
-
         ///Error while subscribing
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
@@ -371,16 +369,6 @@ class _PlansState extends ConsumerState<Plans> {
     sl<AppPurchase>().clearCallbacks();
     signUpFlow();
   }
-
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
-      String purchaseToken, String planId) async {
-    appLogger.debug("Acknowledging purchase");
-    return ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
-          purchaseToken: purchaseToken,
-          planId: planId,
-        );
-  }
-
   void signUpFlow() {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
