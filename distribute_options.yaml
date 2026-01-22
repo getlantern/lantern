@@ -9,11 +9,27 @@ releases:
           build_args:
             dart-define:
               APP_ENV: dev
-      # See full documentation: https://fastforge.dev/makers/exe
+
       - name: windows-exe
         package:
           platform: windows
           target: exe
+          build_args:
+            dart-define:
+              APP_ENV: dev
+
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb
+          build_args:
+            dart-define:
+              APP_ENV: dev
+
+      - name: linux-rpm
+        package:
+          platform: linux
+          target: rpm
           build_args:
             dart-define:
               APP_ENV: dev
