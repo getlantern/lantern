@@ -7,7 +7,6 @@ import (
 
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/sagernet/sing-box/experimental/libbox"
 
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
@@ -22,7 +21,7 @@ const (
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // It passes the empty string so it will connect to best server available.
-func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(platform vpn.PlatformInterface, opts *utils.Opts) error {
 	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
 	if err := initIPC(opts, platform); err != nil {
@@ -45,7 +44,7 @@ func StopVPN() error {
 // ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
-func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
+func ConnectToServer(group, tag string, platIfce vpn.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
 	if err := initIPC(opts, platIfce); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
@@ -80,7 +79,7 @@ func GetSelectedServer() string {
 	return status.SelectedServer
 }
 
-func initIPC(opts *utils.Opts, platIfce libbox.PlatformInterface) error {
+func initIPC(opts *utils.Opts, platIfce vpn.PlatformInterface) error {
 	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir:", opts.LogDir, "logLevel:", opts.LogLevel)
 	if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
