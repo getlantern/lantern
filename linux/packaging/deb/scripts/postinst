@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+UNIT="lantern.service"
+
+case "$1" in
+  configure)
+    systemctl daemon-reload >/dev/null 2>&1 || true
+
+    # Enable on install (and start immediately)
+    systemctl enable --now "$UNIT" >/dev/null 2>&1 || true
+    ;;
+esac
+
+exit 0
