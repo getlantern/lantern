@@ -754,15 +754,6 @@ msgstr "Özel Sunucu Dağıtılıyor"
 msgid "deploying_server_status"
 msgstr "Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir."
 
-msgid "confirm_server_fingerprint"
-msgstr "Sunucu Parmak İzini Onayla"
-
-msgid "server_fingerprint"
-msgstr "Sunucu Parmak İzi"
-
-msgid "confirm_fingerprint"
-msgstr "Parmak İzini Onayla"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir, lütfen bu "

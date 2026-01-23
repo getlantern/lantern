@@ -38,6 +38,29 @@ jobs:
         with:
           go-version-file: "go.mod"
 
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-    
+
+      - name: Cache macOS CocoaPods
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: |
+            macos/Pods
+          key: ${{ runner.os }}-macos-pods-${{ hashFiles('macos/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-macos-pods-          
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
         with:

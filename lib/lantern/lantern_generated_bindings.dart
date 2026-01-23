@@ -5911,20 +5911,6 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> setCert(
-    ffi.Pointer<ffi.Char> fp,
-  ) {
-    return _setCert(
-      fp,
-    );
-  }
-
-  late final _setCertPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>>('setCert');
-  late final _setCert = _setCertPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
-
   ffi.Pointer<ffi.Char> cancelDepolyment() {
     return _cancelDepolyment();
   }

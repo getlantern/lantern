@@ -165,10 +165,6 @@ class MethodHandler {
       case "cancelDeployment":
         self.cancelDeployment(result: result)
 
-      case "selectCertFingerprint":
-        let fingerprint = call.arguments as? String ?? ""
-        self.selectCertFingerprint(result: result, fingerprint: fingerprint)
-
       case "addServerManually":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerManually(result: result, data: data)
@@ -758,15 +754,6 @@ class MethodHandler {
       }
       await MainActor.run {
         result(success ? "ok" : "failed")
-      }
-    }
-  }
-
-  func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
-    Task {
-      MobileSelectedCertFingerprint(fingerprint)
-      await MainActor.run {
-        result("ok")
       }
     }
   }
