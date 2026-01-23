@@ -26,7 +26,7 @@ const (
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
-	if err := initCommon(opts); err != nil {
+	if err := initCommon(opts, platform); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
 	// it should use InternalTagLantern so it will connect to best lantern server by default.
@@ -48,7 +48,7 @@ func StopVPN() error {
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
-	if err := initCommon(opts); err != nil {
+	if err := initCommon(opts, platIfce); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
 	switch group {
@@ -81,17 +81,18 @@ func GetSelectedServer() string {
 	return status.SelectedServer
 }
 
-func initCommon(opts *utils.Opts) error {
+func initCommon(opts *utils.Opts, platIfce libbox.PlatformInterface) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.
-	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
+	platIfceFn := func() libbox.PlatformInterface { return platIfce }
+	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() || radianceCommon.IsAndroid() {
 		slog.Debug("Initializing common for Apple platforms", "dataDir", opts.DataDir, "logDir:",
 			opts.LogDir, "logLevel:", opts.LogLevel)
-		if err := radianceCommon.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+		if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfceFn); err != nil {
 			return fmt.Errorf("failed to initialize common: %w", err)
 		}
 	} else if radianceCommon.IsWindows() {
-		if err := radianceCommon.Init("", "", "debug"); err != nil {
+		if _, err := vpn.InitIPC("", "", opts.LogLevel, platIfceFn); err != nil {
 			return fmt.Errorf("failed to initialize common: %w", err)
 		}
 	}

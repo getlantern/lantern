@@ -139,6 +139,12 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			if isExcludedName(rawName) {
 				return nil
 			}
+			if shouldExcludeAppBundle(path, rawName, appID) {
+				if appIsDir {
+					return filepath.SkipDir
+				}
+				return nil
+			}
 
 			keyID := normalizeKey(appID)
 			keyPath := normalizeKey(path)

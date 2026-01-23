@@ -20,7 +20,6 @@ import (
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
-	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
@@ -225,11 +224,7 @@ func getDataCapInfo() *C.char {
 	if err != nil {
 		return SendError(err)
 	}
-	data, err := json.Marshal(info)
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(string(data))
+	return C.CString(info)
 }
 
 //export reportIssue
@@ -865,16 +860,6 @@ func startDepolyment(_selectedLocation, _serverName *C.char) *C.char {
 	return C.CString("ok")
 }
 
-// setCert sets the certificate fingerprint for the private server.
-//
-//export setCert
-func setCert(fp *C.char) *C.char {
-	slog.Debug("Setting cert")
-	privateserver.SelectedCertFingerprint(C.GoString(fp))
-	slog.Debug("Cert set successfully")
-	return C.CString("ok")
-}
-
 // cancelDepolyment cancels the deployment for the private server.
 //
 //export cancelDepolyment
@@ -971,6 +956,27 @@ func setBlockAdsEnabled(enabled C.int) *C.char {
 func isBlockAdsEnabled() C.int {
 	c, _ := requireCore()
 	if c != nil && c.IsBlockAdsEnabled() {
+		return 1
+	}
+	return 0
+}
+
+//export setSmartRoutingEnabled
+func setSmartRoutingEnabled(enabled C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SetSmartRoutingEnabled(enabled != 0); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export isSmartRoutingEnabled
+func isSmartRoutingEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsSmartRoutingEnabled() {
 		return 1
 	}
 	return 0

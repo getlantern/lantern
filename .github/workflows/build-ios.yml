@@ -42,6 +42,29 @@ jobs:
           channel: stable
           flutter-version-file: pubspec.yaml
 
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-    
+
+      - name: Cache iOS CocoaPods
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: |
+            ios/Pods
+          key: ${{ runner.os }}-ios-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-pods-      
+
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
         with:
@@ -107,6 +130,6 @@ jobs:
       - name: Upload application
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-ios
+          name: lantern-installer-ipa
           path: ${{ inputs.installer_name }}.ipa
           retention-days: 2

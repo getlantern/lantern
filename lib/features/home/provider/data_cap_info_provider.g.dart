@@ -13,7 +13,7 @@ part of 'data_cap_info_provider.dart';
 const dataCapInfoProvider = DataCapInfoNotifierProvider._();
 
 final class DataCapInfoNotifierProvider
-    extends $AsyncNotifierProvider<DataCapInfoNotifier, DataCapInfo> {
+    extends $AsyncNotifierProvider<DataCapInfoNotifier, DataCapUsageResponse> {
   const DataCapInfoNotifierProvider._()
       : super(
           from: null,
@@ -34,18 +34,20 @@ final class DataCapInfoNotifierProvider
 }
 
 String _$dataCapInfoNotifierHash() =>
-    r'1adc99fa5869e3420efeae4c09cabfaf4bc899f8';
+    r'e718e0758538826b5a4a823cadf60ce03a527522';
 
-abstract class _$DataCapInfoNotifier extends $AsyncNotifier<DataCapInfo> {
-  FutureOr<DataCapInfo> build();
+abstract class _$DataCapInfoNotifier
+    extends $AsyncNotifier<DataCapUsageResponse> {
+  FutureOr<DataCapUsageResponse> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<DataCapInfo>, DataCapInfo>;
+    final ref = this.ref
+        as $Ref<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<DataCapInfo>, DataCapInfo>,
-        AsyncValue<DataCapInfo>,
+        AnyNotifier<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>,
+        AsyncValue<DataCapUsageResponse>,
         Object?,
         Object?>;
     element.handleValue(ref, created);

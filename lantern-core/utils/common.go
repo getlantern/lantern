@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/getlantern/radiance/issue"
@@ -40,7 +40,7 @@ func CreateLogAttachment(logFilePath string) []*issue.Attachment {
 	}
 	data, err := os.ReadFile(logFilePath)
 	if err != nil {
-		log.Printf("could not read log file %q: %v", logFilePath, err)
+		slog.Debug("could not read log file %q: %v", logFilePath, err)
 		return nil
 	}
 	return []*issue.Attachment{{

@@ -58,8 +58,4 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
       },
     );
   }
-
-  void updateByPassList(List<BypassListOption> bypass) {
-    ref.read(appSettingProvider.notifier).setBypassList(bypass);
-  }
 }

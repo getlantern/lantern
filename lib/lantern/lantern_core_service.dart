@@ -1,13 +1,13 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_event.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -15,12 +15,13 @@ import '../core/services/app_purchase.dart';
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService {
   ///App Methods
-
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
   Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent);
+
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode);
 
   //VPN Methods
 
@@ -125,7 +126,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo();
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo();
 
   Future<Either<Failure, UserResponse>> logout(String email);
 
@@ -177,9 +178,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> startDeployment(
       {required String location, required String serverName});
-
-  //cert
-  Future<Either<Failure, Unit>> setCert({required String fingerprint});
 
   Future<Either<Failure, Unit>> addServerManually(
       {required String ip,

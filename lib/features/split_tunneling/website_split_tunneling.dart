@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 import 'package:lantern/features/split_tunneling/website_domain_input.dart';
@@ -19,7 +18,6 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
-    final appSetting = ref.watch(appSettingProvider);
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
     matchesSearch(website) =>
@@ -41,57 +39,6 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           SliverToBoxAdapter(
             child: Focus(autofocus: true, child: WebsiteDomainInput()),
           ),
-          SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
-          SliverToBoxAdapter(
-            child: AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                onPressed: () {
-                  appRouter.push(DefaultBypassLists());
-                },
-                contentPadding: EdgeInsets.only(left: 16),
-                icon: AppImagePaths.bypassList,
-                label: 'default_bypass'.i18n,
-                trailing: AppIconButton(
-                  path: AppImagePaths.arrowForward,
-                  onPressed: () => appRouter.push(DefaultBypassLists()),
-                ),
-              ),
-            ),
-          ),
-          if (appSetting.bypassList.isNotEmpty) ...{
-            SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
-            SliverToBoxAdapter(
-                child: SectionLabel('enabled_bypass_lists'
-                    .i18n
-                    .fill([appSetting.bypassList.length]))),
-            SliverToBoxAdapter(
-              child: AppCard(
-                padding: EdgeInsets.zero,
-                child: ListView.separated(
-                    itemCount: appSetting.bypassList.length,
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) =>
-                        DividerSpace(padding: EdgeInsets.zero),
-                    itemBuilder: (context, index) {
-                      final bypassList = appSetting.bypassList[index];
-                      return AppTile(
-                        contentPadding: EdgeInsets.only(left: 16),
-                        label: '${bypassList.value}_bypass_list'.i18n,
-                        subtitle: Text(
-                          '${bypassList.value}_bypass_desc'.i18n,
-                          style: textTheme.labelMedium!
-                              .copyWith(color: AppColors.gray7),
-                        ),
-                        trailing: AppIconButton(
-                          path: AppImagePaths.close,
-                          onPressed: () => removeBypassList(ref, bypassList),
-                        ),
-                      );
-                    }),
-              ),
-            )
-          },
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
           SliverToBoxAdapter(child: DividerSpace()),
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
@@ -132,14 +79,6 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         ],
       ),
     );
-  }
-
-  void removeBypassList(WidgetRef ref, BypassListOption bypassList) {
-    final appSetting = ref.read(appSettingProvider);
-    final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
-    final selectedBypassList = appSetting.bypassList;
-    selectedBypassList.remove(bypassList);
-    websiteNr.updateByPassList(selectedBypassList);
   }
 }
 

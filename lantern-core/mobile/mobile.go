@@ -10,10 +10,11 @@ import (
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
+	"github.com/getlantern/radiance/common"
+
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
-	"github.com/getlantern/radiance/common"
 )
 
 var (
@@ -85,6 +86,23 @@ func SetBlockAdsEnabled(enabled bool) error {
 func IsBlockAdsEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsBlockAdsEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+func SetSmartRoutingEnabled(enabled bool) error {
+	slog.Info("smart-routing: SetSmartRoutingEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetSmartRoutingEnabled(enabled)
+	})
+}
+
+func IsSmartRoutingEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsSmartRoutingEnabled(), nil
 	})
 	if err != nil {
 		return false
@@ -345,8 +363,8 @@ func Logout(email string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
-func GetDataCapInfo() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DataCapInfo() })
+func GetDataCapInfo() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.DataCapInfo() })
 }
 
 // Email Recovery Methods
@@ -424,13 +442,6 @@ func CancelDeployment() error {
 	return withCore(func(c lanterncore.Core) error { return c.CancelDeployment() })
 }
 
-func SelectedCertFingerprint(fp string) {
-	withCore(func(c lanterncore.Core) error {
-		c.SelectedCertFingerprint(fp)
-		return nil
-	})
-}
-
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return withCore(func(c lanterncore.Core) error { return c.AddServerManagerInstance(ip, port, accessToken, tag, events) })
 }
@@ -443,4 +454,35 @@ func InviteToServerManagerInstance(ip string, port string, accessToken string, i
 
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
+}
+
+func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
+	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
+	return withCore(func(c lanterncore.Core) error {
+		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	})
+}
+
+// Smart Routing Methods
+
+// SetSmartRoutingMode sets the smart routing mode.
+func SetSmartRoutingMode(mode bool) error {
+	slog.Debug("mobile: SetSmartRoutingMode called", "mode", mode)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetSmartRoutingMode(mode)
+	})
+}
+
+// GetSmartRoutingMode gets the current smart routing mode.
+func GetSmartRoutingMode() bool {
+	slog.Debug("mobile: GetSmartRoutingMode called")
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.GetSmartRoutingMode(), nil
+	})
+	if err != nil {
+		slog.Error("mobile: GetSmartRoutingMode error", "error", err)
+		return false
+	}
+	slog.Debug("mobile: GetSmartRoutingMode result", "mode", ok)
+	return ok
 }

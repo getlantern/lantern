@@ -80,6 +80,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setRoutingMode(mode);
+    }
+    return _platformService.setRoutingMode(mode);
+  }
+
+  @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchVPNStatus();
@@ -120,7 +128,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getDataCapInfo();
     }
@@ -436,14 +444,6 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.startDeployment(
         location: location, serverName: serverName);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setCert(fingerprint: fingerprint);
-    }
-    return _platformService.setCert(fingerprint: fingerprint);
   }
 
   @override

@@ -69,10 +69,6 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         );
   }
 
-  Future<Either<Failure, Unit>> setCert(String fingerprint) async {
-    return ref.read(lanternServiceProvider).setCert(fingerprint: fingerprint);
-  }
-
   void watchPrivateServerLogs() {
     _privateServerStatusSub = ref
         .read(lanternServiceProvider)

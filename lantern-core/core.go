@@ -11,18 +11,16 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
-	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/config"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
@@ -35,8 +33,6 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
-	defaultAdBlockURL                 = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
-	adBlockSettingsFile               = "adblock.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -44,11 +40,9 @@ type LanternCore struct {
 	rad           *radiance.Radiance
 	splitTunnel   *vpn.SplitTunnel
 	serverManager *servers.Manager
-	userInfo      common.UserInfo
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
-	adBlocker     *adBlockerStub
 }
 
 var (
@@ -69,11 +63,14 @@ type App interface {
 	StartAutoLocationListener()
 	StopAutoLocationListener()
 	UpdateTelemetryConsent(consent bool) error
+	// Tunnel related methods
+	SetSmartRoutingMode(mode bool) error
+	GetSmartRoutingMode() bool
 }
 
 type User interface {
 	UserData() ([]byte, error)
-	DataCapInfo() ([]byte, error)
+	DataCapInfo() (string, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -101,8 +98,8 @@ type PrivateServer interface {
 	AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error
 	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
-	SelectedCertFingerprint(fp string)
 	StartDeployment(location, serverName string) error
+	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
 }
 
 type Payment interface {
@@ -132,6 +129,11 @@ type Ads interface {
 	IsBlockAdsEnabled() bool
 }
 
+type SmartRouting interface {
+	SetSmartRoutingEnabled(bool) error
+	IsSmartRoutingEnabled() bool
+}
+
 type Core interface {
 	App
 	User
@@ -139,6 +141,7 @@ type Core interface {
 	PrivateServer
 	SplitTunnel
 	Ads
+	SmartRouting
 }
 
 // Make sure LanternCore implements the Core interface
@@ -181,7 +184,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
 	}
-	slog.Debug("Paths:", "logs", common.LogPath(), "data", common.DataPath())
+	slog.Debug("Paths:", "logs", settings.GetString(settings.LogPathKey), "data", settings.GetString(settings.DataPathKey))
 
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
@@ -189,10 +192,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
-	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
-	lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
 	events.Subscribe(func(evt config.NewConfigEvent) {
@@ -203,20 +204,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	slog.Debug("LanternCore initialized successfully")
 
 	// If we have a legacy user ID, fetch user data
-	if lc.rad.UserInfo().LegacyID() != 0 {
+	if settings.GetInt64(settings.UserIDKey) != 0 {
 		core.FetchUserData()
-	}
-	return nil
-}
-
-func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
-	slog.Debug("Updating telemetry consent", "consent", consent)
-	if consent {
-		slog.Info("User has opted in to telemetry")
-		lc.rad.EnableTelemetry()
-	} else {
-		slog.Info("User has opted out of telemetry")
-		lc.rad.DisableTelemetry()
 	}
 	return nil
 }
@@ -239,6 +228,30 @@ func (lc *LanternCore) listeningServerLocationChanges() {
 		slog.Debug("Auto location server:", "server", stringBody)
 		lc.notifyFlutter(EventTypeServerLocation, stringBody)
 	})
+}
+
+func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
+	slog.Debug("Updating telemetry consent", "consent", consent)
+	if consent {
+		slog.Info("User has opted in to telemetry")
+		lc.rad.EnableTelemetry()
+	} else {
+		slog.Info("User has opted out of telemetry")
+		lc.rad.DisableTelemetry()
+	}
+	return nil
+}
+
+func (lc *LanternCore) SetSmartRoutingMode(mode bool) error {
+	slog.Debug("Setting Smart Routing Mode to:", "mode", mode)
+	if err := vpn.SetSmartRouting(mode); err != nil {
+		return fmt.Errorf("failed to set Smart Routing Mode: %w", err)
+	}
+	return nil
+}
+
+func (lc *LanternCore) GetSmartRoutingMode() bool {
+	return vpn.SmartRoutingEnabled()
 }
 
 // Internal methods
@@ -277,26 +290,7 @@ func (lc *LanternCore) StartAutoLocationListener() {
 	ctx, cancel := context.WithCancel(context.Background())
 	locationManager.cancel = cancel
 	locationManager.isRunning = true
-	go func() {
-		sourceChan := vpn.AutoSelectionsChangeListener(ctx, (15 * time.Second))
-		for {
-			select {
-			case <-ctx.Done():
-				slog.Info("Auto location listener context done, exiting goroutine")
-				return
-			case selection, ok := <-sourceChan:
-				if !ok {
-					// Channel closed, exit goroutine
-					slog.Info("Auto location listener channel closed, exiting goroutine")
-					return
-				}
-				// Emit event
-				events.Emit(vpn.AutoSelectionsEvent{
-					Selections: selection,
-				})
-			}
-		}
-	}()
+	vpn.AutoSelectionsChangeListener(ctx)
 	slog.Info("Auto location listener started")
 }
 
@@ -338,23 +332,17 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 }
 
 func (lc *LanternCore) MyDeviceId() string {
-	return lc.userInfo.DeviceID()
+	return settings.GetString(settings.DeviceIDKey)
 }
 
 func (lc *LanternCore) UpdateLocale(locale string) error {
 	slog.Debug("Updating locale", "locale", locale)
-	lc.rad.UserInfo().SetLocale(locale)
+	settings.Set(settings.LocaleKey, locale)
 	return nil
 }
 
 func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
-	slog.Debug("Attaching referral code", "code", referralCode)
-	success, err := lc.apiClient.ReferralAttach(context.Background(), referralCode)
-	if err != nil {
-		return false, err
-	}
-	slog.Debug("ReferralAttachment response: ", "success", success)
-	return success, nil
+	return lc.apiClient.ReferralAttach(context.Background(), referralCode)
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {
@@ -397,7 +385,7 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	return string(b), nil
 }
 
-// Split Tunneling
+// SetSplitTunnelingEnabled turns split tunneling on or off for this device
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 	if enabled {
 		lc.splitTunnel.Enable()
@@ -405,14 +393,18 @@ func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 		lc.splitTunnel.Disable()
 	}
 }
+
+// IsSplitTunnelingEnabled returns whether split tunneling is currently enabled
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 	return lc.splitTunnel.IsEnabled()
 }
 
+// AddSplitTunnelItem adds a single split tunnel rule
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.AddItem(filterType, item)
 }
 
+// AddSplitTunnelItems adds multiple split tunnel rules from a comma-separated string
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 
@@ -454,10 +446,25 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	return lc.splitTunnel.RemoveItems(vpnFilter)
 }
 
+// RemoveSplitTunnelItem removes a single split tunnel rule
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.RemoveItem(filterType, item)
 }
 
+// resolveLogDir returns a directory that contains the logs
+func resolveLogDir(logFilePath string) string {
+	p := strings.TrimSpace(logFilePath)
+	if p == "" {
+		return settings.GetString(settings.LogPathKey)
+	}
+	if st, err := os.Stat(p); err == nil && st.IsDir() {
+		return p
+	}
+	return filepath.Dir(p)
+}
+
+// ReportIssue is used to send an issue report via Radiance.
+// We include a few helpful config files plus the main Lantern + Flutter logs when available
 func (lc *LanternCore) ReportIssue(
 	email, issueType, description, device, model, logFilePath string,
 ) error {
@@ -469,7 +476,7 @@ func (lc *LanternCore) ReportIssue(
 	}
 
 	// Attach config files from the Lantern data directory
-	dataDir := common.DataPath()
+	dataDir := settings.GetString(settings.DataPathKey)
 	configFiles := []string{
 		"config.json",
 		"servers.json",
@@ -499,8 +506,9 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
-	// Attach log file if provided
-	// Path must be available on iOS
+	// On IOS flutter.log file should be attached separately
+	// since flutter.log is in a different location due to tunnel running in a different process
+	// On other platforms flutter.log is already included in the main Lantern log file
 	if logFilePath != "" {
 		report.Attachments = append(
 			report.Attachments,
@@ -513,22 +521,13 @@ func (lc *LanternCore) ReportIssue(
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
 
-	slog.Debug("Reported issue", "email", email, "type", issueType, "device", device, "model", model)
+	slog.Debug("Reported issue", "type", issueType, "device", device, "model", model)
 	return nil
 }
 
-// GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() ([]byte, error) {
-	dataCap, err := lc.apiClient.DataCapInfo(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error getting data cap info: %w", err)
-	}
-	jsonBytes, err := json.Marshal(dataCap)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling data cap info: %w", err)
-	}
-	slog.Debug("Data cap info: ", "info", string(jsonBytes))
-	return jsonBytes, nil
+// DataCapInfo returns information about this user's data cap. Only valid for free accounts
+func (lc *LanternCore) DataCapInfo() (string, error) {
+	return lc.apiClient.DataCapInfo(context.Background())
 }
 
 // User Methods
@@ -536,92 +535,28 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 // If user data has not been fetched yet (e.g., for a first-time user), this method will return an error.
 // This is expected behavior and not necessarily a problem.
 func (lc *LanternCore) UserData() ([]byte, error) {
-	slog.Debug("Getting user data")
-	user, err := lc.userInfo.GetData()
-	if err != nil {
-		return nil, fmt.Errorf("error getting user data: %w [This is fine for first time user this is expected]", err)
-	}
-	bytes, err := proto.Marshal(user)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	return bytes, nil
+	return lc.apiClient.UserData()
 }
 
 // FetchUserData will get the user data from the server
 func (lc *LanternCore) FetchUserData() ([]byte, error) {
-	slog.Debug("Getting user data")
-	// this call will also save the user data in the user config
-	// so we can use it later
-	user, err := lc.apiClient.UserData(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error getting user data: %w", err)
-	}
-	slog.Debug("UserId: ", "userId", user.UserId, "legacyToken", user.Token)
-	login := &protos.LoginResponse{
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	slog.Debug("Fetched user data: Login ", "data", login)
-	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	slog.Debug("Fetched user data: ", "data", string(protoUserData))
-	return protoUserData, nil
+	return lc.apiClient.FetchUserData(context.Background())
 }
 
 // OAuth Methods
 func (lc *LanternCore) OAuthLoginUrl(provider string) (string, error) {
-	slog.Debug("Getting OAuth login URL")
-	oauthLoginURL, err := lc.apiClient.OAuthLoginUrl(context.Background(), provider)
-	if err != nil {
-		return "", fmt.Errorf("error getting OAuth login URL: %w", err)
-	}
-	slog.Debug("OAuthLoginUrl response: %v", "oauthLoginURL", oauthLoginURL)
-	return oauthLoginURL, nil
+	return lc.apiClient.OAuthLoginUrl(context.Background(), provider)
 }
 
 func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	slog.Debug("Getting OAuth login callback")
-	jwtUserInfo, err := utils.DecodeJWT(oAuthToken)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding JWT: %w", err)
-	}
-
-	// Temporary  set user data to so api can read it
-	login := &protos.LoginResponse{
-		LegacyID:    jwtUserInfo.LegacyUserId,
-		LegacyToken: jwtUserInfo.LegacyToken,
-	}
-	lc.userInfo.SetData(login)
-	///Get user data from api this will also save data in user config
-	user, err := lc.apiClient.UserData(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error getting user data: %w", err)
-	}
-	slog.Debug("UserData response:", "user", user)
-	userResponse := &protos.LoginResponse{
-		Id:             jwtUserInfo.Email,
-		EmailConfirmed: true,
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	lc.userInfo.SetData(userResponse)
-	bytes, err := proto.Marshal(userResponse)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	return bytes, nil
+	return lc.apiClient.OAuthLoginCallback(context.Background(), oAuthToken)
 }
 
 func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
 	redirectBody := api.PaymentRedirectData{
 		Provider:    "stripe",
 		Plan:        planID,
-		DeviceName:  lc.userInfo.DeviceID(),
+		DeviceName:  settings.GetString(settings.DeviceIDKey),
 		Email:       email,
 		BillingType: api.SubscriptionType(subscriptionType),
 	}
@@ -630,43 +565,16 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 
 func (lc *LanternCore) StripeSubscription(email, planID string) (string, error) {
 	slog.Debug("Creating stripe subscription")
-	stripeSubscription, err := lc.apiClient.NewStripeSubscription(context.Background(), email, planID)
-	if err != nil {
-		return "", fmt.Errorf("error creating stripe subscription: %w", err)
-	}
-	slog.Debug("StripeSubscription response:", "response", stripeSubscription)
-	jsonData, err := json.Marshal(stripeSubscription)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling stripe subscription: %w", err)
-	}
-	// Convert bytes to string and print
-	jsonString := string(jsonData)
-	slog.Debug("StripeSubscription response:", "response", jsonString)
-	return jsonString, nil
+	return lc.apiClient.NewStripeSubscription(context.Background(), email, planID)
 }
 
 func (lc *LanternCore) Plans(channel string) (string, error) {
 	slog.Debug("Getting plans")
-	plans, err := lc.apiClient.SubscriptionPlans(context.Background(), channel)
-	if err != nil {
-		return "", fmt.Errorf("error getting plans: %w", err)
-	}
-	jsonData, err := json.Marshal(plans)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling plans: %w", err)
-	}
-	slog.Debug("Plans response:", "response", string(jsonData))
-	// Convert bytes to string and print
-	return string(jsonData), nil
+	return lc.apiClient.SubscriptionPlans(context.Background(), channel)
 }
 func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	slog.Debug("Getting stripe billing portal")
-	billingPortal, err := lc.apiClient.StripeBillingPortalUrl(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("error getting stripe billing portal: %w", err)
-	}
-	slog.Debug("StripeBillingPortal response: ", "portal", billingPortal)
-	return billingPortal, nil
+	return lc.apiClient.StripeBillingPortalUrl(context.Background())
 }
 
 func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
@@ -704,7 +612,7 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRe
 
 func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, error) {
 	slog.Debug("Payment redirect")
-	deviceName := lc.userInfo.DeviceID()
+	deviceName := settings.GetString(settings.DeviceIDKey)
 	body := api.PaymentRedirectData{
 		Provider:   provider,
 		Plan:       planId,
@@ -723,17 +631,7 @@ func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, 
 
 func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 	slog.Debug("Logging in user")
-	deviceID := lc.userInfo.DeviceID()
-	loginResponse, err := lc.apiClient.Login(context.Background(), email, password, deviceID)
-	if err != nil {
-		return nil, fmt.Errorf("error logging in: %w", err)
-	}
-	slog.Debug("Login response: ", "response", loginResponse)
-	protoUserData, err := proto.Marshal(loginResponse)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	return protoUserData, nil
+	return lc.apiClient.Login(context.Background(), email, password)
 }
 
 func (lc *LanternCore) SignUp(email, password string) error {
@@ -743,25 +641,7 @@ func (lc *LanternCore) SignUp(email, password string) error {
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {
 	slog.Debug("Logging out")
-	err := lc.apiClient.Logout(context.Background(), email)
-	if err != nil {
-		return nil, fmt.Errorf("error logging out: %w", err)
-	}
-	// this call will save data
-	user, err := lc.apiClient.NewUser(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error creating user: %w", err)
-	}
-	login := &protos.LoginResponse{
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	return protoUserData, nil
+	return lc.apiClient.Logout(context.Background(), email)
 }
 
 // Email Recovery Methods
@@ -785,26 +665,7 @@ func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) err
 
 func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 	slog.Debug("Deleting account")
-	err := lc.apiClient.DeleteAccount(context.Background(), email, password)
-	if err != nil {
-		return nil, fmt.Errorf("error deleting account: %w", err)
-	}
-	user, err := lc.apiClient.NewUser(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("error creating user: %w", err)
-	}
-	login := &protos.LoginResponse{
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-
-	lc.userInfo.SetData(login)
-	return protoUserData, nil
+	return lc.apiClient.DeleteAccount(context.Background(), email, password)
 }
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
@@ -868,10 +729,6 @@ func (lc *LanternCore) CancelDeployment() error {
 	return privateserver.CancelDeployment()
 }
 
-func (lc *LanternCore) SelectedCertFingerprint(fp string) {
-	privateserver.SelectedCertFingerprint(fp)
-}
-
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.serverManager, events)
 }
@@ -892,83 +749,24 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
-	if lc.adBlocker == nil {
-		lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
-	}
-	if err := lc.adBlocker.SetEnabled(enabled); err != nil {
-		return err
-	}
-	return nil
+	return vpn.SetAdBlock(enabled)
 }
 
 func (lc *LanternCore) IsBlockAdsEnabled() bool {
-	if lc.adBlocker == nil {
-		return false
-	}
-	return lc.adBlocker.IsEnabled()
+	return vpn.AdBlockEnabled()
 }
 
-type adBlockerStub struct {
-	mu      sync.RWMutex
-	path    string
-	enabled bool
-	url     string
+func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
+	return vpn.SetSmartRouting(enabled)
 }
 
-type adBlockSettings struct {
-	Enabled bool   `json:"enabled"`
-	URL     string `json:"url,omitempty"`
+func (lc *LanternCore) IsSmartRoutingEnabled() bool {
+	return vpn.SmartRoutingEnabled()
 }
 
-func newAdBlockerStub(basePath, defaultURL string) *adBlockerStub {
-	ab := &adBlockerStub{
-		path: filepath.Join(basePath, adBlockSettingsFile),
-		url:  defaultURL,
-	}
-	ab.load()
-	return ab
-}
-
-func (a *adBlockerStub) load() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	data, err := os.ReadFile(a.path)
-	if err != nil || len(data) == 0 {
-		return
-	}
-	var s adBlockSettings
-	if err := json.Unmarshal(data, &s); err == nil {
-		a.enabled = s.Enabled
-		if s.URL != "" {
-			a.url = s.URL
-		}
-	}
-}
-
-func (a *adBlockerStub) save() error {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	b, err := json.Marshal(adBlockSettings{
-		Enabled: a.enabled,
-		URL:     a.url,
-	})
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(a.path, b, 0644)
-}
-
-func (a *adBlockerStub) SetEnabled(v bool) error {
-	a.mu.Lock()
-	a.enabled = v
-	a.mu.Unlock()
-	return a.save()
-}
-
-func (a *adBlockerStub) IsEnabled() bool {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	return a.enabled
+func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
+	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
+	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification, serverName)
 }
 
 // splitCSVClean splits a comma-separated string into a stable list

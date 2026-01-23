@@ -16,10 +16,11 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/getlantern/lantern/lantern-core/common"
-	"github.com/getlantern/lantern/lantern-core/wintunmgr"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
+
+	"github.com/getlantern/lantern/lantern-core/common"
+	"github.com/getlantern/lantern/lantern-core/wintunmgr"
 
 	rcommon "github.com/getlantern/radiance/common"
 )
@@ -45,7 +46,7 @@ func init() {
 
 func main() {
 	// Initialize radiance to ensure our directories and logging are set up.
-	rcommon.Init("", "", "debug")
+	rcommon.InitReadOnly("", "", "trace")
 	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
 	flag.Parse()
 

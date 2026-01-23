@@ -681,7 +681,6 @@ msgstr "Select a region for your Private Server. Closer locations may improve sp
 msgid "gcp_location_options"
 msgstr "Google Cloud Platform Location Options (%d):"
 
-
 msgid "australia_sydney"
 msgstr "Australia - Sydney"
 
@@ -702,15 +701,6 @@ msgstr "Deploying Private Server"
 
 msgid "deploying_server_status"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
-
-msgid "confirm_server_fingerprint"
-msgstr "Confirm Server Fingerprint"
-
-msgid "server_fingerprint"
-msgstr "Server Fingerprint"
-
-msgid "confirm_fingerprint"
-msgstr "Confirm Fingerprint"
 
 msgid "private_server_setup_in_progress"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
@@ -848,7 +838,7 @@ msgid "trust_server_operator_message_two"
 msgstr "Lantern does not manage or monitor private servers. Make sure you know and trust the server operator before joining one."
 
 msgid "trust_server_operator_message_three"
-msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list"
+msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list."
 
 msgid "invalid_server_details"
 msgstr "Invalid server details. Please check the access key and try again."
@@ -1301,6 +1291,51 @@ msgstr "If you don't receive your confirmation code, consider using an alternati
 
 msgid "continue_anyway"
 msgstr "Continue Anyway"
+
+msgid "routing_mode"
+msgstr "Routing Mode"
+
+msgid "smart_routing"
+msgstr "Smart Routing"
+
+msgid "full_tunnel"
+msgstr "Full Tunnel"
+
+msgid "region_optimized_routing"
+msgstr "Rule-based routing optimized for your region"
+
+msgid "all_traffic_through_vpn"
+msgstr "All traffic through VPN"
+
+msgid "smart_routing_description"
+msgstr "Smart Routing uses region-specific rules to automatically send traffic that needs the VPN through Lantern. All other traffic goes direct for speed and reliability."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Add apps & websites to bypass the VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "Your Lantern Pro License will be applied to your existing account"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Your purchase will be applied to your existing account"
+
+msgid "daily_data_cap_reached"
+msgstr "Daily data cap reached"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Speed reduced to 128 kb/sec - Resets at %s."
+
+msgid "subscription_renewal_info"
+msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in App Store Settings."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Failed to update routing mode. Please try again."
+
+msgid "apps"
+msgstr "Apps"
+
+msgid "websites"
+msgstr "Websites"
 
 
 

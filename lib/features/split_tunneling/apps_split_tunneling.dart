@@ -11,6 +11,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
+import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
@@ -38,10 +39,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
+    final enabledIds = enabledApps.map(stableAppId).toSet();
     final filteredEnabled = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.compareTo(b.name));
     final filteredDisabled = allApps
-        .where((a) => !enabledApps.any((e) => e.bundleId == a.bundleId))
+        .where((a) => !enabledIds.contains(stableAppId(a)))
         .where(matchesSearch)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -152,7 +154,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
   }
 }
 
-class AppRow extends StatelessWidget {
+class AppRow extends HookConsumerWidget {
   final AppData app;
   final bool enabled;
   final VoidCallback? onToggle;
@@ -164,25 +166,38 @@ class AppRow extends StatelessWidget {
     this.onToggle,
   });
 
-  Widget buildAppIcon(AppData appData) {
-    Uint8List? iconBytes = appData.iconBytes;
-    if (iconBytes != null) {
-      return Image.memory(iconBytes, width: 24, height: 24);
-    } else if (appData.iconPath.isNotEmpty) {
-      return Image.file(
-        File(app.iconPath),
-        width: 24,
-        height: 24,
-        fit: BoxFit.cover,
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final key = AppIconKey(
+      id: stableAppId(app),
+      iconPath: app.iconPath,
+      appPath: app.appPath,
+      existingBytes: app.iconBytes,
+    );
+
+    final iconAsync = ref.watch(appIconBytesProvider(key));
+
+    Widget iconWidget() {
+      return iconAsync.maybeWhen(
+        data: (bytes) {
+          if (bytes != null && bytes.isNotEmpty) {
+            return Image.memory(bytes, width: 24, height: 24);
+          }
+          if (app.iconPath.isNotEmpty &&
+              !app.iconPath.toLowerCase().endsWith('.icns')) {
+            return Image.file(
+              File(app.iconPath),
+              width: 24,
+              height: 24,
+              fit: BoxFit.cover,
+            );
+          }
+          return Icon(Icons.apps, size: 24, color: AppColors.gray6);
+        },
+        orElse: () => Icon(Icons.apps, size: 24, color: AppColors.gray6),
       );
     }
 
-    // fallback
-    return Icon(Icons.apps, size: 24, color: AppColors.gray6);
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SizedBox(
       height: 54.h,
       child: Row(
@@ -190,7 +205,7 @@ class AppRow extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                buildAppIcon(app),
+                iconWidget(),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

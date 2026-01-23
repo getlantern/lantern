@@ -3,6 +3,7 @@
 //  Lantern
 //
 
+import Cocoa
 import FlutterMacOS
 import Foundation
 import Liblantern
@@ -134,6 +135,13 @@ class MethodHandler {
         let deviceId = data?["deviceId"] as? String ?? ""
         self.deviceRemove(result: result, deviceId: deviceId)
 
+      case "appIconBytes":
+        let args = (call.arguments as? [String: Any]) ?? [:]
+        let iconPath = args["iconPath"] as? String ?? ""
+        let appPath = args["appPath"] as? String ?? ""
+        let sizePx = args["sizePx"] as? Int ?? 48
+        self.appIconBytes(result: result, iconPath: iconPath, appPath: appPath, sizePx: sizePx)
+
       case "attachReferralCode":
         let code = call.arguments as? String ?? ""
         self.referralAttach(result: result, code: code)
@@ -156,10 +164,6 @@ class MethodHandler {
 
       case "cancelDeployment":
         self.cancelDeployment(result: result)
-
-      case "selectCertFingerprint":
-        let fingerprint = call.arguments as? String ?? ""
-        self.selectCertFingerprint(result: result, fingerprint: fingerprint)
 
       case "addServerManually":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
@@ -261,6 +265,11 @@ class MethodHandler {
       case "removeAllItems":
         let value: String = requireArg(call: call, name: "value", result: result)!
         self.removeItemsToSplitTunnel(result: result, value: value)
+
+      // Smart routing
+      case "setRoutingMode":
+        let enable = self.decodeValue(from: call.arguments, result: result) as Bool?
+        self.setRoutingMode(result: result, enable: enable ?? false)
 
       default:
         result(FlutterMethodNotImplemented)
@@ -372,6 +381,34 @@ class MethodHandler {
     }
   }
 
+  private func appIconBytes(
+    result: @escaping FlutterResult,
+    iconPath: String,
+    appPath: String,
+    sizePx: Int
+  ) {
+    Task {
+      if appPath.isEmpty {
+        result(nil)
+        return
+      }
+
+      let target = CGSize(width: sizePx, height: sizePx)
+
+      let data: Data? = await MainActor.run {
+        // Always prefer the bundle path
+        let nsImage = NSWorkspace.shared.icon(forFile: appPath)
+        return nsImage.pngData(resizeTo: target)
+      }
+
+      if let data, !data.isEmpty {
+        result(FlutterStandardTypedData(bytes: data))
+      } else {
+        result(nil)
+      }
+    }
+  }
+
   private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
     Task {
       var error: NSError?
@@ -417,13 +454,13 @@ class MethodHandler {
   private func getDataCapInfo(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      if let bytes = MobileGetDataCapInfo(&error) {
-        let json = String(data: bytes as Data, encoding: .utf8) ?? "{}"
-        await MainActor.run { result(json) }
-      } else if let error {
+      let data = MobileGetDataCapInfo(&error)
+      if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
-      } else {
-        await MainActor.run { result("{}") }
+        return
+      }
+      await MainActor.run {
+        result(data)
       }
     }
   }
@@ -717,15 +754,6 @@ class MethodHandler {
       }
       await MainActor.run {
         result(success ? "ok" : "failed")
-      }
-    }
-  }
-
-  func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
-    Task {
-      MobileSelectedCertFingerprint(fingerprint)
-      await MainActor.run {
-        result("ok")
       }
     }
   }
@@ -1098,6 +1126,20 @@ class MethodHandler {
     }
   }
 
+  //Smart routing
+
+  private func setRoutingMode(result: @escaping FlutterResult, enable: Bool) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSmartRoutingEnabled(enable, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SMART_ROUTING_MODE_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
   // MARK: - Utils
 
   /// Helper for handling Flutter errors
@@ -1184,4 +1226,49 @@ class MethodHandler {
     return value
   }
 
+}
+
+extension NSImage {
+  @MainActor
+  fileprivate func pngData(resizeTo targetSize: CGSize) -> Data? {
+    // Fast path: try CGImage-backed conversion
+    var rect = NSRect(origin: .zero, size: targetSize)
+    if let cg = self.cgImage(forProposedRect: &rect, context: nil, hints: nil) {
+      let rep = NSBitmapImageRep(cgImage: cg)
+      rep.size = targetSize
+      return rep.representation(using: .png, properties: [:])
+    }
+
+    // Fallback: draw into a bitmap (more reliable for some NSImage types)
+    let rep = NSBitmapImageRep(
+      bitmapDataPlanes: nil,
+      pixelsWide: Int(targetSize.width),
+      pixelsHigh: Int(targetSize.height),
+      bitsPerSample: 8,
+      samplesPerPixel: 4,
+      hasAlpha: true,
+      isPlanar: false,
+      colorSpaceName: .deviceRGB,
+      bytesPerRow: 0,
+      bitsPerPixel: 0
+    )
+    guard let rep else { return nil }
+
+    rep.size = targetSize
+    NSGraphicsContext.saveGraphicsState()
+    defer { NSGraphicsContext.restoreGraphicsState() }
+
+    guard let ctx = NSGraphicsContext(bitmapImageRep: rep) else { return nil }
+    NSGraphicsContext.current = ctx
+    ctx.imageInterpolation = .high
+
+    self.draw(
+      in: NSRect(origin: .zero, size: targetSize),
+      from: .zero,
+      operation: .sourceOver,
+      fraction: 1.0
+    )
+
+    return rep.representation(using: .png, properties: [:])
+  }
 }

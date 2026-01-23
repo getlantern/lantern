@@ -162,10 +162,6 @@ class MethodHandler {
       case "cancelDeployment":
         self.cancelDeployment(result: result)
 
-      case "selectCertFingerprint":
-        let fingerprint = call.arguments as? String ?? ""
-        self.selectCertFingerprint(result: result, fingerprint: fingerprint)
-
       case "addServerManually":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerManually(result: result, data: data)
@@ -209,7 +205,11 @@ class MethodHandler {
           return
         }
         self.updateTelemetryEvents(consent: consent, result: result)
-
+      case "setRoutingMode":
+        guard let mode: Bool = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.setSmartRouteMode(mode: mode, result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -409,13 +409,13 @@ class MethodHandler {
   private func getDataCapInfo(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      if let bytes = MobileGetDataCapInfo(&error) {
-        let json = String(data: bytes as Data, encoding: .utf8) ?? "{}"
-        await MainActor.run { result(json) }
-      } else if let error {
+      let data = MobileGetDataCapInfo(&error)
+      if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
-      } else {
-        await MainActor.run { result("{}") }
+        return
+      }
+      await MainActor.run {
+        result(data)
       }
     }
   }
@@ -755,20 +755,6 @@ class MethodHandler {
     }
   }
 
-  func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
-    Task {
-      var error: NSError?
-      MobileSelectedCertFingerprint(fingerprint)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
-      }
-    }
-  }
-
   func addServerManually(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let ip = data["ip"] as? String
@@ -945,6 +931,21 @@ class MethodHandler {
         result("ok")
       }
     }
+  }
+
+  func setSmartRouteMode(mode: Bool, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileSetSmartRoutingEnabled(mode, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_SMART_ROUTE_MODE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+
   }
 
   // MARK: - Utils

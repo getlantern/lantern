@@ -27,9 +27,6 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
-import kotlin.text.Charsets
-import kotlin.text.String
-import kotlin.text.lowercase
 
 
 enum class Methods(val method: String) {
@@ -60,6 +57,7 @@ enum class Methods(val method: String) {
     //User data
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
+
     //Login
     Login("login"),
     SignUp("signUp"),
@@ -86,7 +84,6 @@ enum class Methods(val method: String) {
     SelectProject("selectProject"),
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
-    SelectCertFingerprint("selectCertFingerprint"),
 
     ValidateSession("validateSession"),
     AddServerManually("addServerManually"),
@@ -112,8 +109,10 @@ enum class Methods(val method: String) {
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
     UpdateLocale("updateLocale"),
+    UpdateTelemetryEvents("updateTelemetryEvents"),
 
-    UpdateTelemetryEvents("updateTelemetryEvents")
+    // Smart routing
+    SetRoutingMode("setRoutingMode"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -530,8 +529,7 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val data = Mobile.getDataCapInfo()
-                        val json = String(data, Charsets.UTF_8)
-                        withContext(Dispatchers.Main) { success(json) }
+                        withContext(Dispatchers.Main) { success(data) }
                     }.onFailure { e ->
                         result.error("GetDataCapInfo", e.localizedMessage ?: "Please try again", e)
                     }
@@ -812,14 +810,6 @@ class MethodHandler : FlutterPlugin,
 
             }
 
-            Methods.SelectCertFingerprint.method -> {
-                scope.handleResult(
-                    result,
-                    "SelectCertFingerprint"
-                ) {
-                    Mobile.selectedCertFingerprint(call.arguments as String)
-                }
-            }
             Methods.ValidateSession.method -> {
                 scope.handleResult(
                     result,
@@ -828,7 +818,6 @@ class MethodHandler : FlutterPlugin,
                     Mobile.validateSession()
                 }
             }
-
 
 
             Methods.AddServerManually.method -> {
@@ -1014,6 +1003,14 @@ class MethodHandler : FlutterPlugin,
                     Mobile.updateTelemetryConsent(consent)
                 }
             }
+
+            Methods.SetRoutingMode.method -> {
+                scope.handleResult(result, "SetRoutingMode") {
+                    val enable = call.arguments as Boolean
+                    Mobile.setSmartRoutingEnabled(enable)
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }
@@ -1063,7 +1060,11 @@ private fun getLaunchableUserAppsJson(ctx: Context): String {
     val ownPkg = ctx.packageName
     val entries = resolveInfos.mapNotNull { ri ->
         val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
-        val label = try { ri.loadLabel(pm).toString() } catch (_: Exception) { pkg }
+        val label = try {
+            ri.loadLabel(pm).toString()
+        } catch (_: Exception) {
+            pkg
+        }
 
         // filter ourselves, and system apps except allowlisted ones
         if (AppFilters.shouldSkip(pkg, ownPkg)) {
@@ -1113,7 +1114,7 @@ private fun isSystemApp(pm: PackageManager, packageName: String): Boolean {
     return try {
         val ai = pm.getApplicationInfo(packageName, 0)
         (ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
-        (ai.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                (ai.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
     } catch (_: Exception) {
         false
     }

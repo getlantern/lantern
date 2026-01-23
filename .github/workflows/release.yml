@@ -26,16 +26,18 @@ jobs:
           # Extract platform suffix (if any, after final hyphen)
           platform_suffix="${tag##*-}"
 
-          if [[ "$tag" == *"-beta" ]]; then
-            echo "build_type=beta" >> $GITHUB_OUTPUT
-          elif [[ "$tag" == *"-internal" ]]; then
+          if [[ "$tag" == *"-internal"* ]]; then
             echo "build_type=internal" >> $GITHUB_OUTPUT
+          elif [[ "$tag" == *"-beta"* ]]; then
+            echo "build_type=beta" >> $GITHUB_OUTPUT
           else
             echo "build_type=production" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "$tag" == *"-beta" || "$tag" == *"-internal" ]]; then
-            echo "installer_name=lantern-installer-${tag##*-}" >> $GITHUB_OUTPUT
+          if [[ "$tag" == *"-internal"* ]]; then
+            echo "installer_name=lantern-installer-internal" >> $GITHUB_OUTPUT
+          elif [[ "$tag" == *"-beta"* ]]; then
+            echo "installer_name=lantern-installer-beta" >> $GITHUB_OUTPUT
           else
             echo "installer_name=lantern-installer" >> $GITHUB_OUTPUT
           fi
@@ -53,6 +55,9 @@ jobs:
             android)
               echo "platform=android" >> $GITHUB_OUTPUT
               ;;
+            ios)
+              echo "platform=ios" >> $GITHUB_OUTPUT
+              ;;
             *)
               echo "platform=all" >> $GITHUB_OUTPUT
               ;;
@@ -63,14 +68,21 @@ jobs:
       - name: Update app version in pubspec.yaml
         shell: bash
         env:
-          RUN_NUMBER: ${{ github.run_number }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          NEW_VERSION="${VERSION}+${RUN_NUMBER}"
-          echo "Updating pubspec.yaml to version: $NEW_VERSION"
-          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-          cat pubspec.yaml
-          echo "app_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          NEW_VERSION="${VERSION}"
+          echo "Updating version number to: $NEW_VERSION (incrementing build number)"
+          
+          # Extract current build number from pubspec.yaml
+          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          
+          # Increment build number by 1
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          FULL_VERSION="${NEW_VERSION}+${NEW_BUILD}"
+          
+          echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
+          sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
+          echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload pubspec.yaml as artifact
         uses: actions/upload-artifact@v4
@@ -88,15 +100,15 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  build-windows:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-windows.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  #  build-windows:
+  #    needs: set-release-metadata
+  #    uses: ./.github/workflows/build-windows.yml
+  #    secrets: inherit
+  #    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
+  #    with:
+  #      version: ${{ needs.set-release-metadata.outputs.version }}
+  #      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  #      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-linux:
     needs: set-release-metadata
@@ -112,7 +124,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -129,7 +141,7 @@ jobs:
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-google-play:
-    needs: [set-release-metadata, build-android]
+    needs: [ set-release-metadata, build-android ]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
@@ -178,18 +190,17 @@ jobs:
       [
         set-release-metadata,
         build-macos,
-        build-windows,
         build-linux,
         build-android,
+        build-ios,
       ]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
+    if: always()
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       RELEASE_TAG: ${{ github.ref_name }}
-      S3_TAG: ${{ needs.set-release-metadata.outputs.tag_base }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -209,25 +220,48 @@ jobs:
           set -euxo pipefail
 
           prefix="releases/${BUILD_TYPE}"
-          tag="${S3_TAG}"
+          tag="${RELEASE_TAG}"
+          platform="${{ needs.set-release-metadata.outputs.platform }}"
 
-          # Tag-scoped uploads
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" --acl public-read
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.exe" --acl public-read
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" --acl public-read
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" --acl public-read || true
+          upload_if_exists () {
+            local src="$1"
+            local dst="$2"
+            if [[ -f "$src" ]]; then
+              aws s3 cp "$src" "$dst" --acl public-read
+              return 0
+            fi
+            return 1
+          }
 
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" --acl public-read
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.exe" --acl public-read
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" --acl public-read
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+          IPA="lantern-installer-ipa/${INSTALLER_NAME}.ipa"
+          if [[ "$platform" == "ios" ]]; then
+            if ! upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.ipa"; then
+              echo "ERROR: Missing IPA: $IPA"
+              ls -la lantern-installer-ipa || true
+              exit 1
+            fi
+            aws s3 cp "$IPA" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.ipa" --acl public-read
+          else
+            upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.ipa" || true
+            upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.ipa" || true
+          fi
+
+          upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" || true
+          upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" || true
+          upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" || true
+          upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" || true
+
+          # Latest aliases
+          upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" || true
+          upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" || true
+          upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" || true
+          upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" || true
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Write links to job summary
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
         shell: bash
         run: |
           set -euxo pipefail
@@ -239,20 +273,20 @@ jobs:
             echo "## Release links (${BUILD_TYPE})"
             echo ""
             echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg"
-            echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.exe"
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb"
             echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm"
+            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.ipa"
             echo ""
             echo "**Latest aliases**"
             echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.dmg"
-            echo "- Windows: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.exe"
             echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.apk"
             echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.deb"
-            echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.rpm"
+            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.ipa"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ github.token }}
@@ -262,17 +296,17 @@ jobs:
           generate_release_notes: false
           files: |
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
-            lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
             lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
+            lantern-installer-ipa/${{ env.INSTALLER_NAME }}.ipa
 
       - name: Install Python dependencies
-        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
         run: python3 -m pip install -r scripts/requirements.txt
 
       - name: Update appcast.xml
-        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -284,13 +318,43 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml" || echo "No changes to commit"
           git push
-          bucket="${{ secrets.S3_RELEASES_BUCKET }}"
+          bucket="${{ vars.S3_RELEASES_BUCKET }}"
 
           aws s3 cp appcast.xml "s3://${bucket}/releases/${{ env.BUILD_TYPE }}/latest/appcast.xml" --acl public-read
 
           if [[ "${{ env.BUILD_TYPE }}" == "production" ]]; then
             aws s3 cp appcast.xml "s3://${bucket}/releases/appcast.xml" --acl public-read
           fi
+
+      - name: Build Slack message
+        id: slack_msg
+        run: |
+          platform="${{ needs.set-release-metadata.outputs.platform }}"
+          prefix="releases/${BUILD_TYPE}"
+          tag="${RELEASE_TAG}"
+          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
+
+          # Add platform-specific download links based on the platform
+          if [[ "$platform" == "all" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          elif [[ "$platform" == "macos" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
+          elif [[ "$platform" == "android" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
+          elif [[ "$platform" == "linux" ]]; then
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
+          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+          elif [[ "$platform" == "ios" ]]; then
+          text="${text}\n• Build uploaded to TestFlight (iOS)"
+          fi
+          
+          # Expose as output
+          echo "text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$text"   >> "$GITHUB_OUTPUT"
+          echo "EOF"     >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -299,24 +363,26 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Latest downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>\n\n*Tag-scoped:* <https://${{ env.BUCKET }}.s3.amazonaws.com/releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/|releases/${{ env.BUILD_TYPE }}/${{ github.ref_name }}/>"
+              "text": "${{ steps.slack_msg.outputs.text }}"
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [publish, build-ios, set-release-metadata]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all'
-      && needs.set-release-metadata.outputs.build_type == 'production' }}
-    runs-on: macos-15
+    needs: [ build-ios, set-release-metadata ]
+    if:
+      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
+      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+    runs-on: macos-14
     steps:
       - name: Download iOS Artifact
         uses: actions/download-artifact@v4
         with:
-          name: lantern-ios
+          name: lantern-installer-ipa
+          path: .
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.0
+        uses: apple-actions/upload-testflight-build@v3.0.1
         with:
           app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}

@@ -18,7 +18,7 @@ class SwitchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const trackWidth = 75.0;
+    const trackWidth = 70.0;
 
     return CustomAnimatedToggleSwitch<bool>(
       current: value,
