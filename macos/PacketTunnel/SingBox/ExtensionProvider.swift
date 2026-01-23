@@ -103,7 +103,14 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
+    appLogger.log("(lantern-tunnel) tunnel closed")
     platformInterface.reset()
+    #if os(macOS)
+      // HACK: There is a bug in the NetworkExtension code so it doesn't reliably teardown
+      // and terminate the extension process on return -- causing the tunnel to remain in
+      // memory or stuck in an inconsistent state.
+      exit(0)
+    #endif
   }
 
   private func stopService() {
@@ -134,8 +141,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     // }
   }
 
-  func reloadService() {
-    appLogger.log("(lantern-tunnel) reloading service")
+  func restartService() {
+    appLogger.log("(lantern-tunnel) restarting service")
     reasserting = true
     defer {
       reasserting = false
