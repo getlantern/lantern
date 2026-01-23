@@ -131,19 +131,21 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   // Look inside the app bundle to find the version/build of the embedded system extension
   private func bundledExtensionBuildAndShort() -> (build: Int?, short: String?) {
-    guard let sysExtURL = Bundle.main.builtInPlugInsURL?
-      .deletingLastPathComponent()
-      .appendingPathComponent("Library/SystemExtensions", isDirectory: true)
+    guard
+      let sysExtURL = Bundle.main.builtInPlugInsURL?
+        .deletingLastPathComponent()
+        .appendingPathComponent("Library/SystemExtensions", isDirectory: true)
     else { return (nil, nil) }
 
     let fm = FileManager.default
-    guard let items = try? fm.contentsOfDirectory(at: sysExtURL, includingPropertiesForKeys: nil) else {
+    guard let items = try? fm.contentsOfDirectory(at: sysExtURL, includingPropertiesForKeys: nil)
+    else {
       return (nil, nil)
     }
 
     let match = items.first { url in
-      url.pathExtension == "systemextension" &&
-      (Bundle(url: url)?.bundleIdentifier == tunnelBundleID)
+      url.pathExtension == "systemextension"
+        && (Bundle(url: url)?.bundleIdentifier == tunnelBundleID)
     }
 
     guard let url = match, let b = Bundle(url: url) else { return (nil, nil) }
@@ -158,8 +160,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
     guard !props.isEmpty else { return .notInstalled }
 
-    if props.contains(where: { $0.isAwaitingUserApproval }) {
-      return .requiresApproval
+    if #available(macOS 12.0, *) {
+      if props.contains(where: { $0.isAwaitingUserApproval }) {
+        return .requiresApproval
+      }
     }
 
     let enabled = props.first(where: { $0.isEnabled })
@@ -192,10 +196,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     }()
 
     appLogger.info(
-      "SysExt snapshot: enabled=\(fmt(enabled)) enabledBuild=\(enabledBuild) " +
-      "installedMax=\(fmt(installedMax)) installedMaxBuild=\(installedMaxBuild) " +
-      "uninstallingMax=\(fmt(uninstallingMax)) uninstallingMaxBuild=\(uninstallingMaxBuild) " +
-      "bundled=\(bundled.short ?? "?")/\(bundled.build.map(String.init) ?? "?") desiredBuild=\(desiredBuild)"
+      "SysExt snapshot: enabled=\(fmt(enabled)) enabledBuild=\(enabledBuild) "
+        + "installedMax=\(fmt(installedMax)) installedMaxBuild=\(installedMaxBuild) "
+        + "uninstallingMax=\(fmt(uninstallingMax)) uninstallingMaxBuild=\(uninstallingMaxBuild) "
+        + "bundled=\(bundled.short ?? "?")/\(bundled.build.map(String.init) ?? "?") desiredBuild=\(desiredBuild)"
     )
 
     if desiredBuild >= 0 && uninstallingMaxBuild == desiredBuild {
@@ -205,7 +209,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     // If nothing is enabled but we can see candidates, explicitly surface updatePending
     guard let enabled else {
       if desiredBuild >= 0 {
-        let desiredDesc = haveBundled
+        let desiredDesc =
+          haveBundled
           ? "desired=\(bundled.short ?? "?")/\(desiredBuild)"
           : "desiredInstalledMax=\(fmt(installedMax))"
         return .updatePending(details: "noneEnabled \(desiredDesc)")
@@ -221,7 +226,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         return .requiresReboot
       }
       if haveBundled, bundledBuild == desiredBuild {
-        return .updatePending(details: "enabled=\(fmt(enabled)) bundled=\(bundled.short ?? "?")/\(desiredBuild)")
+        return .updatePending(
+          details: "enabled=\(fmt(enabled)) bundled=\(bundled.short ?? "?")/\(desiredBuild)")
       }
       return .updatePending(details: "enabled=\(fmt(enabled)) installedMax=\(fmt(installedMax))")
     }
