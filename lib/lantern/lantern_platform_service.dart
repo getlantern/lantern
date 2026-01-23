@@ -58,7 +58,6 @@ class LanternPlatformService implements LanternCoreService {
 
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
-
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
