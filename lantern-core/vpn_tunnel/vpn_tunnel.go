@@ -26,7 +26,7 @@ func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
 	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
 	if err := initIPC(opts, platform); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+		return fmt.Errorf("failed to initialize IPC server: %w", err)
 	}
 	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
@@ -48,7 +48,7 @@ func StopVPN() error {
 func ConnectToServer(group, tag string, platIfce rvpn.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
 	if err := initIPC(opts, platIfce); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+		return fmt.Errorf("failed to initialize IPC server: %w", err)
 	}
 	switch group {
 	case string(InternalTagAutoAll), "auto":
@@ -81,9 +81,9 @@ func GetSelectedServer() string {
 }
 
 func initIPC(opts *utils.Opts, platIfce rvpn.PlatformInterface) error {
-	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir:", opts.LogDir, "logLevel:", opts.LogLevel)
+	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir", opts.LogDir, "logLevel", opts.LogLevel)
 	if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+		return err
 	}
 	return nil
 }
