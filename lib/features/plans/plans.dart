@@ -354,9 +354,7 @@ class _PlansState extends ConsumerState<Plans> {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
       },
-      (success) {
-        // Handle success
-        appLogger.info('Successfully started subscription flow');
+      (_) {
       },
     );
   }
