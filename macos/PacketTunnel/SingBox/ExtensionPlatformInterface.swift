@@ -467,7 +467,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   public func postServiceClose() {
     reset()
-    tunnel.postServiceClose()
   }
 
   public func send(_ notification: LibboxNotification?) throws {
@@ -504,22 +503,22 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func setTunnelNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings?) throws {
+    let sem = DispatchSemaphore(value: 0)
     var systemErr: Error?
-    let condition = NSCondition()
-
-    condition.lock()
-    defer { condition.unlock() }
 
     self.tunnel.setTunnelNetworkSettings(networkSettings) { error in
       systemErr = error
-      condition.signal()
+      sem.signal()
     }
-    if condition.wait(until: Date().addingTimeInterval(5)) {
-      if let systemErr = systemErr {
-        throw systemErr
-      }
-    } else {
+
+    let result = sem.wait(timeout: .now() + 5)
+    if result == .timedOut {
       appLogger.error("(lantern-tunnel) setTunnelNetworkSettings timed out after 5s")
+      throw NSError(
+        domain: "lantern-tunnel",
+        code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "setTunnelNetworkSettings timed out"]
+      )
     }
   }
 }
