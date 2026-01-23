@@ -115,6 +115,25 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   private func stopService() {
     appLogger.info("ExtensionProvider stopService")
+    var error: NSError?
+    MobileStopVPN(&error)
+    if error != nil {
+      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+    }
+    postServiceClose()
+  }
+
+  func restartService() {
+    appLogger.log("(lantern-tunnel) restarting service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startVPN()
+  }
+
+  func postServiceClose() {
     platformInterface.reset()
   }
 
@@ -140,19 +159,4 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     //     boxService.wake()
     // }
   }
-
-  func restartService() {
-    appLogger.log("(lantern-tunnel) restarting service")
-    reasserting = true
-    defer {
-      reasserting = false
-    }
-    stopService()
-    startVPN()
-  }
-
-  func postServiceClose() {
-    platformInterface.reset()
-  }
-
 }
