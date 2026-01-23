@@ -21,7 +21,7 @@ import UserNotifications
   import CoreWLAN
 #endif
 
-public class ExtensionPlatformInterface: NSObject, RvpnPlatformInterfaceProtocol {
+public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol {
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 

@@ -10,7 +10,6 @@ import (
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/common"
-	"github.com/getlantern/radiance/vpn/rvpn"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
@@ -138,7 +137,7 @@ func IsRadianceConnected() bool {
 	return ok
 }
 
-func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("Starting VPN")
 	err := vpn_tunnel.StartVPN(platform, opts)
 	if err != nil {
@@ -177,7 +176,7 @@ func StopVPN() error {
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string, platIfce rvpn.PlatformInterface, options *utils.Opts) error {
+func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
 	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 	if err != nil {
 		return err
