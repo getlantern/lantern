@@ -91,7 +91,6 @@ class AppPurchase {
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     appLogger.info('Received purchase updates: ${purchases.length}');
     for (final purchase in purchases) {
-      appLogger.info('Processing new purchase: $purchase');
       await _handlePurchase(purchase);
     }
   }
@@ -126,7 +125,7 @@ class AppPurchase {
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
         try {
-          appLogger.info('Purchase successful: $purchaseDetails');
+          appLogger.info('Purchase successful: ${purchaseDetails.productID}');
           final lanternService = sl<LanternPlatformService>();
 
           final purchaseToken =
