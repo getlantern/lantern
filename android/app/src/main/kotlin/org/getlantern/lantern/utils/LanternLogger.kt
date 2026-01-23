@@ -11,6 +11,9 @@ import kotlinx.coroutines.launch
 import org.getlantern.lantern.LanternApp
 import java.io.File
 import java.io.FileWriter
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 object AppLogger {
 
@@ -19,9 +22,14 @@ object AppLogger {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val simpleDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    private val simpleDateFormat = java.text.SimpleDateFormat(
+        "yyyy-MM-dd HH:mm:ss.SSS 'UTC'",
+        Locale.US
+    ).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
 
-    fun init(context: Context) {
+    fun init() {
         logFile = File(LanternApp.application.dataDir, ".lantern/logs/lantern_android.log")
 
         if (!logFile.exists()) {
@@ -59,20 +67,11 @@ object AppLogger {
         }
         writeAsync("ERROR", tag, errorMessage)
     }
-
-    private fun writeAsync(level: String, tag: String, msg: String) {
-        scope.launch {
-            try {
-                writer?.apply {
-                    append("${timestamp()} [$level][$tag] $msg\n")
-                    flush()
-                }
-
-            } catch (e: Exception) {
-                Log.e("AppLogger", "Log write failure", e)
-            }
-        }
+    private fun log(tag: String, msg: String) {
+        d(tag, msg)
+        writeAsync("DEBUG", tag, msg)
     }
+
 
     private fun rotateIfNeeded() {
         // Only rotate if an old file exists and > 5MB
@@ -93,14 +92,22 @@ object AppLogger {
         }
     }
 
-    private fun timestamp(): String {
-        val now = System.currentTimeMillis()
-        return simpleDateFormat
-            .format(java.util.Date(now))
+    private fun writeAsync(level: String, tag: String, msg: String) {
+        scope.launch {
+            try {
+                writer?.apply {
+                    append("time=\"${timestamp()}\" level=$level [$tag] $msg\n")
+                    flush()
+                }
+
+            } catch (e: Exception) {
+                Log.e("AppLogger", "Log write failure", e)
+            }
+        }
     }
 
-    private fun log(tag: String, msg: String) {
-        d(tag, msg)
-        writeAsync("DEBUG", tag, msg)
+    private fun timestamp(): String {
+        return simpleDateFormat.format(Date())
     }
+
 }

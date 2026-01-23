@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -333,18 +336,11 @@ class _PlansState extends ConsumerState<Plans> {
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
-      onSuccess: (purchase) {
-        /// Subscription successful
-        appLogger.info('Subscription successful for plan: ${plan.id}');
-        context.hideLoadingDialog();
-        acknowledgeInAppPurchase(
-            purchase.verificationData.serverVerificationData, plan.id);
-      },
+      onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
         if (!mounted) {
           return;
         }
-
         ///Error while subscribing
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
@@ -358,40 +354,19 @@ class _PlansState extends ConsumerState<Plans> {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
       },
-      (success) {
-        // Handle success
-        appLogger.info('Successfully started subscription flow');
+      (_) {
       },
     );
   }
 
-  Future<void> acknowledgeInAppPurchase(
-      String purchaseToken, String planId) async {
-    appLogger.debug("Acknowledging purchase");
-    context.showLoadingDialog();
-    final result =
-        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
-              purchaseToken: purchaseToken,
-              planId: planId,
-            );
-    result.fold(
-      (error) {
-        context.hideLoadingDialog();
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error acknowledging purchase: $error');
-      },
-      (success) async {
-        // Handle success
-        appLogger.info('Successfully acknowledged purchase');
-        context.hideLoadingDialog();
-
-        /// IOS Send old purchases to stream
-        sl<AppPurchase>().clearCallbacks();
-        signUpFlow();
-      },
-    );
+  Future<void> processPurchase(
+      PurchaseDetails purchase, Plan plan) async {
+    context.hideLoadingDialog();
+    appLogger.info('Subscription successful for plan: ${plan.id}');
+    /// IOS Send old purchases to stream
+    sl<AppPurchase>().clearCallbacks();
+    signUpFlow();
   }
-
   void signUpFlow() {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
