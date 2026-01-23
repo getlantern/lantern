@@ -15,16 +15,15 @@ import (
 	"github.com/getlantern/golog"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
-	gcp "github.com/getlantern/lantern-server-provisioner/gcp"
+	"github.com/getlantern/lantern-server-provisioner/gcp"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/radiance/servers"
 )
 
 var (
-	log                 = golog.LoggerFor("privateserver")
-	provisionerMutex    sync.Mutex
-	sessions            = sync.Map{}
-	certFingerprintChan = make(chan string, 1)
+	log              = golog.LoggerFor("privateserver")
+	provisionerMutex sync.Mutex
+	sessions         = sync.Map{}
 )
 
 type provisionSession struct {
@@ -47,12 +46,6 @@ type provisionerResponse struct {
 	Tag         string `json:"tag"`
 	Location    string `json:"location,omitempty"`
 	Protocol    string `json:"protocol,omitempty"`
-}
-
-type certSummary struct {
-	Fingerprint string `json:"fingerprint"`
-	Issuer      string `json:"issuer"`
-	Subject     string `json:"subject"`
 }
 
 // storeSession stores the provision session in a global map.
@@ -316,16 +309,6 @@ func StartDepolyment(selectedLocation, serverName string) error {
 	log.Debug("Starting provisioning")
 	ps.provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
 	return nil
-}
-
-// SelectedCertFingerprint sends the selected certificate fingerprint to the channel.
-func SelectedCertFingerprint(fp string) {
-	select {
-	case certFingerprintChan <- fp:
-		log.Debugf("Received selected fingerprint: %s", fp)
-	default:
-		log.Debug("Cert fingerprint channel full or unused")
-	}
 }
 
 // CancelDeployment cancels the current provisioning session.

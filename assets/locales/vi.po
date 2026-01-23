@@ -760,15 +760,6 @@ msgstr ""
 "Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
 "thể mất vài phút."
 
-msgid "confirm_server_fingerprint"
-msgstr "Xác nhận dấu vân tay máy chủ"
-
-msgid "server_fingerprint"
-msgstr "Dấu vân tay máy chủ"
-
-msgid "confirm_fingerprint"
-msgstr "Xác nhận dấu vân tay"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "

@@ -98,7 +98,6 @@ type PrivateServer interface {
 	AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error
 	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
-	SelectedCertFingerprint(fp string)
 	StartDeployment(location, serverName string) error
 	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
 }
@@ -206,7 +205,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	// If we have a legacy user ID, fetch user data
 	if settings.GetInt64(settings.UserIDKey) != 0 {
-		core.FetchUserData()
+		userData, _ := core.FetchUserData()
+		slog.Debug("Fetched user data", "data", string(userData))
 	}
 	return nil
 }
@@ -728,10 +728,6 @@ func (lc *LanternCore) StartDeployment(location, serverName string) error {
 
 func (lc *LanternCore) CancelDeployment() error {
 	return privateserver.CancelDeployment()
-}
-
-func (lc *LanternCore) SelectedCertFingerprint(fp string) {
-	privateserver.SelectedCertFingerprint(fp)
 }
 
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {

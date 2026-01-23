@@ -702,15 +702,6 @@ msgstr "Deploying Private Server"
 msgid "deploying_server_status"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
 
-msgid "confirm_server_fingerprint"
-msgstr "Confirm Server Fingerprint"
-
-msgid "server_fingerprint"
-msgstr "Server Fingerprint"
-
-msgid "confirm_fingerprint"
-msgstr "Confirm Fingerprint"
-
 msgid "private_server_setup_in_progress"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
 

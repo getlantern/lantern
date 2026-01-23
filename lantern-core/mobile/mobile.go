@@ -442,13 +442,6 @@ func CancelDeployment() error {
 	return withCore(func(c lanterncore.Core) error { return c.CancelDeployment() })
 }
 
-func SelectedCertFingerprint(fp string) {
-	withCore(func(c lanterncore.Core) error {
-		c.SelectedCertFingerprint(fp)
-		return nil
-	})
-}
-
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return withCore(func(c lanterncore.Core) error { return c.AddServerManagerInstance(ip, port, accessToken, tag, events) })
 }

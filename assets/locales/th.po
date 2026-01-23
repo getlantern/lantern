@@ -744,15 +744,6 @@ msgstr "กำลังติดตั้งเซิร์ฟเวอร์ส
 msgid "deploying_server_status"
 msgstr "รอสักครู่! เซิร์ฟเวอร์ส่วนตัวของคุณกำลังถูกตั้งค่า อาจใช้เวลาสักครู่"
 
-msgid "confirm_server_fingerprint"
-msgstr "ยืนยันลายนิ้วมือของเซิร์ฟเวอร์"
-
-msgid "server_fingerprint"
-msgstr "ลายนิ้วมือของเซิร์ฟเวอร์"
-
-msgid "confirm_fingerprint"
-msgstr "ยืนยันลายนิ้วมือ"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "รอสักครู่! เซิร์ฟเวอร์ส่วนตัวของคุณกำลังถูกตั้งค่า อาจใช้เวลาสักครู่ "

@@ -750,15 +750,6 @@ msgstr ""
 "অপেক্ষা করুন! আপনার প্রাইভেট সার্ভার সেটআপ করা হচ্ছে। এতে কয়েক মিনিট সময় "
 "লাগতে পারে।"
 
-msgid "confirm_server_fingerprint"
-msgstr "সার্ভার ফিঙ্গারপ্রিন্ট নিশ্চিত করুন"
-
-msgid "server_fingerprint"
-msgstr "সার্ভার ফিঙ্গারপ্রিন্ট"
-
-msgid "confirm_fingerprint"
-msgstr "ফিঙ্গারপ্রিন্ট নিশ্চিত করুন"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "অপেক্ষা করুন! আপনার প্রাইভেট সার্ভার সেটআপ করা হচ্ছে। এতে কয়েক মিনিট সময় "

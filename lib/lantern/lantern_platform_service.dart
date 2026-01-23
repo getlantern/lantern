@@ -58,7 +58,6 @@ class LanternPlatformService implements LanternCoreService {
 
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
-
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
@@ -1023,17 +1022,6 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> cancelDeployment() async {
     try {
       await _methodChannel.invokeMethod('cancelDeployment');
-      return Right(unit);
-    } catch (e, stackTrace) {
-      appLogger.error('Error canceling deployment', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
-    try {
-      await _methodChannel.invokeMethod('selectCertFingerprint', fingerprint);
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error canceling deployment', e, stackTrace);

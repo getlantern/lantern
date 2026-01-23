@@ -1046,20 +1046,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
-    try {
-      final result = await runInBackground<String>(() async {
-        return _ffiService.setCert(fingerprint.toCharPtr).toDartString();
-      });
-      checkAPIError(result);
-      return Right(unit);
-    } catch (e, stackTrace) {
-      appLogger.error('Error starting deployment', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, Unit>> addServerManually({
     required String ip,
     required String port,

@@ -179,9 +179,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> startDeployment(
       {required String location, required String serverName});
 
-  //cert
-  Future<Either<Failure, Unit>> setCert({required String fingerprint});
-
   Future<Either<Failure, Unit>> addServerManually(
       {required String ip,
       required String port,

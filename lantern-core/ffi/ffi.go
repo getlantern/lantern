@@ -20,7 +20,6 @@ import (
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
-	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
@@ -858,16 +857,6 @@ func startDepolyment(_selectedLocation, _serverName *C.char) *C.char {
 		return SendError(fmt.Errorf("Error starting deployment: %v", err))
 	}
 	slog.Debug("Deployment started successfully with location: %s and plan: %s", location, serverName)
-	return C.CString("ok")
-}
-
-// setCert sets the certificate fingerprint for the private server.
-//
-//export setCert
-func setCert(fp *C.char) *C.char {
-	slog.Debug("Setting cert")
-	privateserver.SelectedCertFingerprint(C.GoString(fp))
-	slog.Debug("Cert set successfully")
 	return C.CString("ok")
 }
 

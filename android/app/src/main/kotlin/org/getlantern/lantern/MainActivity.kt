@@ -60,7 +60,7 @@ class MainActivity : FlutterFragmentActivity() {
         instance = this
         setupDirs()
         Log.d(TAG, "Config directories set up")
-        AppLogger.init(this)
+        AppLogger.init()
         AppLogger.d(TAG, "AppLogger initialized")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
@@ -99,7 +99,7 @@ class MainActivity : FlutterFragmentActivity() {
             AppLogger.d(TAG, "LanternService started")
             pendingServiceStart = false
             retryCount = 0
-            retryCountResume=0
+            retryCountResume = 0
         } catch (e: IllegalStateException) {
             AppLogger.e(TAG, "Cannot start service in background: ${e.message}")
             // App is in background, schedule for when app comes to foreground
