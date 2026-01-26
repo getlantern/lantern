@@ -344,14 +344,14 @@ msgid "create_password"
 msgstr "Create Password"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Sign In to Lantern Pro"
+msgstr "Sign In to Lantern"
 
 
 msgid "sign_in_with_email"
 msgstr "Sign in with Email"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Enter your Lantern Pro Account details."
+msgstr "Enter your Lantern account details."
 
 msgid "email"
 msgstr "Email"
@@ -367,7 +367,7 @@ msgid "reset_your_password"
 msgstr "Reset Your Password"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Enter your Lantern Pro Account Email."
+msgstr "Enter your Lantern account email."
 
 
 msgid "reset_password"
@@ -1233,7 +1233,7 @@ msgid "could_not_open_url"
 msgstr "Could not open URL"
 
 msgid "new_to_lantern_pro"
-msgstr "New to Lantern Pro?"
+msgstr "New to Lantern?"
 
 msgid "an_error_occurred"
 msgstr "An error occurred. Please try again later."

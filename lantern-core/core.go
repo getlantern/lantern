@@ -205,7 +205,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	// If we have a legacy user ID, fetch user data
 	if settings.GetInt64(settings.UserIDKey) != 0 {
-		core.FetchUserData()
+		userData, _ := core.FetchUserData()
+		slog.Debug("Fetched user data", "data", string(userData))
 	}
 	return nil
 }

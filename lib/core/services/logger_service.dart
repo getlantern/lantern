@@ -89,10 +89,10 @@ class FileLogPrinter extends LoggyPrinter {
   @override
   void onLog(LogRecord record) {
     final buffer = StringBuffer()
-      ..write("[${record.time.toIso8601String()}] ")
-      ..write("[${record.level.name}] ")
-      ..write("[${record.loggerName}] ")
-      ..writeln(record.message);
+      ..write('time="${_formatTimestamp(record.time)}" ')
+      ..write("level=${record.level.name} ")
+      ..write("logger=${record.loggerName} ")
+      ..write("message=${record.message}");
 
     if (record.error != null) buffer.writeln("Error: ${record.error}");
     if (record.stackTrace != null) {
@@ -104,6 +104,23 @@ class FileLogPrinter extends LoggyPrinter {
     } catch (_) {
       // If add throws (controller closed between check and add), ignore silently.
     }
+  }
+
+  /// Formats timestamp as: 2026-01-20 16:03:50.628 UTC
+  /// Same as radiance logs
+  String _formatTimestamp(DateTime timestamp) {
+    final utc = timestamp.toUtc();
+
+    final year = utc.year.toString().padLeft(4, '0');
+    final month = utc.month.toString().padLeft(2, '0');
+    final day = utc.day.toString().padLeft(2, '0');
+
+    final hour = utc.hour.toString().padLeft(2, '0');
+    final minute = utc.minute.toString().padLeft(2, '0');
+    final second = utc.second.toString().padLeft(2, '0');
+    final millisecond = utc.millisecond.toString().padLeft(3, '0');
+
+    return '$year-$month-$day $hour:$minute:$second.$millisecond UTC';
   }
 
   Future<void> close() async {
