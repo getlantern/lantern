@@ -1080,7 +1080,7 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .addServerManagerInstanceBasedOnURLs(
+              .addServerBasedOnURLs(
                   urls.toCharPtr,
                   skipCertVerification ? 1 : 0,
                   serverName.toCharPtr)

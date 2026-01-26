@@ -3211,6 +3211,26 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> addServerBasedOnURLs(
+    ffi.Pointer<ffi.Char> _urls,
+    int _skipCertVerification,
+    ffi.Pointer<ffi.Char> _serverName,
+  ) {
+    return _addServerBasedOnURLs(
+      _urls,
+      _skipCertVerification,
+      _serverName,
+    );
+  }
+
+  late final _addServerBasedOnURLsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, ffi.Int,
+              ffi.Pointer<ffi.Char>)>>('addServerBasedOnURLs');
+  late final _addServerBasedOnURLs = _addServerBasedOnURLsPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> setBlockAdsEnabled(
     int enabled,
   ) {
@@ -4857,16 +4877,6 @@ const int __MAC_15_4 = 150400;
 
 const int __MAC_15_5 = 150500;
 
-const int __MAC_15_6 = 150600;
-
-const int __MAC_16_0 = 160000;
-
-const int __MAC_26_0 = 260000;
-
-const int __MAC_26_1 = 260100;
-
-const int __MAC_26_2 = 260200;
-
 const int __IPHONE_2_0 = 20000;
 
 const int __IPHONE_2_1 = 20100;
@@ -4971,6 +4981,8 @@ const int __IPHONE_14_3 = 140300;
 
 const int __IPHONE_14_5 = 140500;
 
+const int __IPHONE_14_4 = 140400;
+
 const int __IPHONE_14_6 = 140600;
 
 const int __IPHONE_14_7 = 140700;
@@ -5038,16 +5050,6 @@ const int __IPHONE_18_3 = 180300;
 const int __IPHONE_18_4 = 180400;
 
 const int __IPHONE_18_5 = 180500;
-
-const int __IPHONE_18_6 = 180600;
-
-const int __IPHONE_19_0 = 190000;
-
-const int __IPHONE_26_0 = 260000;
-
-const int __IPHONE_26_1 = 260100;
-
-const int __IPHONE_26_2 = 260200;
 
 const int __WATCHOS_1_0 = 10000;
 
@@ -5159,16 +5161,6 @@ const int __WATCHOS_11_4 = 110400;
 
 const int __WATCHOS_11_5 = 110500;
 
-const int __WATCHOS_11_6 = 110600;
-
-const int __WATCHOS_12_0 = 120000;
-
-const int __WATCHOS_26_0 = 260000;
-
-const int __WATCHOS_26_1 = 260100;
-
-const int __WATCHOS_26_2 = 260200;
-
 const int __TVOS_9_0 = 90000;
 
 const int __TVOS_9_1 = 90100;
@@ -5279,16 +5271,6 @@ const int __TVOS_18_4 = 180400;
 
 const int __TVOS_18_5 = 180500;
 
-const int __TVOS_18_6 = 180600;
-
-const int __TVOS_19_0 = 190000;
-
-const int __TVOS_26_0 = 260000;
-
-const int __TVOS_26_1 = 260100;
-
-const int __TVOS_26_2 = 260200;
-
 const int __BRIDGEOS_2_0 = 20000;
 
 const int __BRIDGEOS_3_0 = 30000;
@@ -5355,14 +5337,6 @@ const int __BRIDGEOS_9_4 = 90400;
 
 const int __BRIDGEOS_9_5 = 90500;
 
-const int __BRIDGEOS_9_6 = 90600;
-
-const int __BRIDGEOS_10_0 = 100000;
-
-const int __BRIDGEOS_10_1 = 100100;
-
-const int __BRIDGEOS_10_2 = 100200;
-
 const int __DRIVERKIT_19_0 = 190000;
 
 const int __DRIVERKIT_20_0 = 200000;
@@ -5403,14 +5377,6 @@ const int __DRIVERKIT_24_4 = 240400;
 
 const int __DRIVERKIT_24_5 = 240500;
 
-const int __DRIVERKIT_24_6 = 240600;
-
-const int __DRIVERKIT_25_0 = 250000;
-
-const int __DRIVERKIT_25_1 = 250100;
-
-const int __DRIVERKIT_25_2 = 250200;
-
 const int __VISIONOS_1_0 = 10000;
 
 const int __VISIONOS_1_1 = 10100;
@@ -5430,16 +5396,6 @@ const int __VISIONOS_2_3 = 20300;
 const int __VISIONOS_2_4 = 20400;
 
 const int __VISIONOS_2_5 = 20500;
-
-const int __VISIONOS_2_6 = 20600;
-
-const int __VISIONOS_3_0 = 30000;
-
-const int __VISIONOS_26_0 = 260000;
-
-const int __VISIONOS_26_1 = 260100;
-
-const int __VISIONOS_26_2 = 260200;
 
 const int MAC_OS_X_VERSION_10_0 = 1000;
 
@@ -5581,16 +5537,6 @@ const int MAC_OS_VERSION_15_4 = 150400;
 
 const int MAC_OS_VERSION_15_5 = 150500;
 
-const int MAC_OS_VERSION_15_6 = 150600;
-
-const int MAC_OS_VERSION_16_0 = 160000;
-
-const int MAC_OS_VERSION_26_0 = 260000;
-
-const int MAC_OS_VERSION_26_1 = 260100;
-
-const int MAC_OS_VERSION_26_2 = 260200;
-
 const int __AVAILABILITY_VERSIONS_VERSION_HASH = 93585900;
 
 const String __AVAILABILITY_VERSIONS_VERSION_STRING = 'Local';
@@ -5599,7 +5545,7 @@ const String __AVAILABILITY_FILE = 'AvailabilityVersions.h';
 
 const int __MAC_OS_X_VERSION_MIN_REQUIRED = 150000;
 
-const int __MAC_OS_X_VERSION_MAX_ALLOWED = 260200;
+const int __MAC_OS_X_VERSION_MAX_ALLOWED = 150500;
 
 const int __ENABLE_LEGACY_MAC_AVAILABILITY = 1;
 
@@ -5680,8 +5626,6 @@ const int SIGEV_NONE = 0;
 const int SIGEV_SIGNAL = 1;
 
 const int SIGEV_THREAD = 3;
-
-const int SIGEV_KEVENT = 4;
 
 const int ILL_NOOP = 0;
 
@@ -6037,8 +5981,6 @@ const int IOPOL_TYPE_VFS_ALLOW_LOW_SPACE_WRITES = 9;
 
 const int IOPOL_TYPE_VFS_DISALLOW_RW_FOR_O_EVTONLY = 10;
 
-const int IOPOL_TYPE_VFS_ENTITLED_RESERVE_ACCESS = 14;
-
 const int IOPOL_SCOPE_PROCESS = 0;
 
 const int IOPOL_SCOPE_THREAD = 1;
@@ -6070,10 +6012,6 @@ const int IOPOL_MATERIALIZE_DATALESS_FILES_DEFAULT = 0;
 const int IOPOL_MATERIALIZE_DATALESS_FILES_OFF = 1;
 
 const int IOPOL_MATERIALIZE_DATALESS_FILES_ON = 2;
-
-const int IOPOL_MATERIALIZE_DATALESS_FILES_ORIG = 4;
-
-const int IOPOL_MATERIALIZE_DATALESS_FILES_BASIC_MASK = 3;
 
 const int IOPOL_VFS_STATFS_NO_DATA_VOLUME_DEFAULT = 0;
 
@@ -6108,10 +6046,6 @@ const int IOPOL_VFS_DISALLOW_RW_FOR_O_EVTONLY_ON = 1;
 const int IOPOL_VFS_NOCACHE_WRITE_FS_BLKSIZE_DEFAULT = 0;
 
 const int IOPOL_VFS_NOCACHE_WRITE_FS_BLKSIZE_ON = 1;
-
-const int IOPOL_VFS_ENTITLED_RESERVE_ACCESS_OFF = 0;
-
-const int IOPOL_VFS_ENTITLED_RESERVE_ACCESS_ON = 1;
 
 const int WNOHANG = 1;
 
@@ -6158,5 +6092,3 @@ const int EXIT_FAILURE = 1;
 const int EXIT_SUCCESS = 0;
 
 const int RAND_MAX = 2147483647;
-
-const int _MALLOC_TYPE_MALLOC_BACKDEPLOY_PUBLIC = 1;
