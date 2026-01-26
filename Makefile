@@ -517,7 +517,7 @@ gen:
 	dart run build_runner build --delete-conflicting-outputs
 
 # FFI generation
-PHONY: macos-ffi-amd64 macos-ffi-arm64 macos-ffi-headers macos-ffigen ffigen-prep ffigen
+.PHONY: macos-ffi-amd64 macos-ffi-arm64 macos-ffi-headers ffigen-prep ffigen
 
 macos-ffi-amd64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(DARWIN_LIB_AMD64)))
@@ -537,7 +537,6 @@ ifeq ($(UNAME_S),Darwin)
 		$(MAKE) macos-ffi-headers; \
 	fi
 endif
-
 
 ffigen: ffigen-prep
 	dart run ffigen
