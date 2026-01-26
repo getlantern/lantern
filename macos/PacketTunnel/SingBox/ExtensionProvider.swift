@@ -109,6 +109,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       // HACK: There is a bug in the NetworkExtension code so it doesn't reliably teardown
       // and terminate the extension process on return -- causing the tunnel to remain in
       // memory or stuck in an inconsistent state.
+      // see https://github.com/WireGuard/wireguard-apple/blob/master/Sources/WireGuardNetworkExtension/PacketTunnelProvider.swift#L83-L88
       exit(0)
     #endif
   }
