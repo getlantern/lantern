@@ -1337,6 +1337,13 @@ msgstr "Apps"
 msgid "websites"
 msgstr "Websites"
 
+msgid "main_channel"
+msgstr "Main Channel"
+
+msgid "data_cap_channel_"
+msgstr "Data Usage Alerts"
+
+
 
 
 

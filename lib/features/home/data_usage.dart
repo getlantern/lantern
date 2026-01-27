@@ -21,7 +21,6 @@ class DataUsage extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final dataCap = dataCapResponse.usage!;
-        // appLogger.info("dataCap: $dataCap");
 
         /// Do all math in BYTES
         final int totalBytes = dataCap.bytesAllotted;
