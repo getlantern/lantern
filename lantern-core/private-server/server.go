@@ -13,11 +13,12 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/radiance/servers"
+
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
 	"github.com/getlantern/lantern/lantern-core/utils"
-	"github.com/getlantern/radiance/servers"
 )
 
 var (

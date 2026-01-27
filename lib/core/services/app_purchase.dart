@@ -6,8 +6,7 @@ import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
 
-typedef PaymentSuccessCallback = void Function(
-    PurchaseDetails purchase);
+typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
@@ -19,6 +18,8 @@ class AppPurchase {
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
 
+// Use a simple in-memory set to prevent double-processing in the SAME session
+  final Set<String> _inflightOrCompletedIds = {};
 
   void init() {
     if (PlatformUtils.isDesktop) {
@@ -96,6 +97,13 @@ class AppPurchase {
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
+    final String? purchaseId = purchaseDetails.purchaseID;
+    //EXIT EARLY if we are already handling this ID right now
+    if (purchaseId != null && _inflightOrCompletedIds.contains(purchaseId)) {
+      appLogger.info(
+          'Already processing or finished transaction: $purchaseId. Skipping.');
+      return;
+    }
     appLogger.info(
         'Handling purchase: ${purchaseDetails.productID} with status: ${purchaseDetails.status}');
     try {
@@ -103,10 +111,6 @@ class AppPurchase {
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
-        if (PlatformUtils.isIOS) {
-          /// iOS specific handling
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
         final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
 
         /// Invoke error callback
@@ -124,10 +128,12 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
+        if (purchaseId != null) {
+          _inflightOrCompletedIds.add(purchaseId);
+        }
         try {
           appLogger.info('Purchase successful: ${purchaseDetails.productID}');
           final lanternService = sl<LanternPlatformService>();
-
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = '${purchaseDetails.productID.split('_').first}-usd-10';
@@ -137,17 +143,17 @@ class AppPurchase {
           ack.fold(
             (error) {
               appLogger.error('Acknowledgment failed: $error');
+              _finalize(purchaseDetails);
               _onError?.call('Purchase acknowledgment failed: $error');
             },
             (success) async {
               appLogger.info('Acknowledgment successful');
-              if (purchaseDetails.pendingCompletePurchase) {
-                await _inAppPurchase.completePurchase(purchaseDetails);
-              }
+              _finalize(purchaseDetails);
               _onSuccess?.call(purchaseDetails);
             },
           );
         } catch (e) {
+          if (purchaseId != null) _inflightOrCompletedIds.remove(purchaseId);
           _onError?.call('Error during purchase acknowledgment: $e');
         }
         return;
@@ -155,6 +161,13 @@ class AppPurchase {
     } catch (e) {
       appLogger.error('Error handling purchase: $e');
       _onError?.call(e.toString());
+    }
+  }
+
+  // Separate helper to ensure the Store is cleared
+  Future<void> _finalize(PurchaseDetails purchaseDetails) async {
+    if (purchaseDetails.pendingCompletePurchase) {
+      await _inAppPurchase.completePurchase(purchaseDetails);
     }
   }
 
