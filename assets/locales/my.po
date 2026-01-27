@@ -771,15 +771,6 @@ msgstr ""
 "စိတ်ရှည်ပါ! သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်နေပါသည်။ မိနစ်အနည်းငယ် "
 "ကြာနိုင်ပါသည်။"
 
-msgid "confirm_server_fingerprint"
-msgstr "ဆာဗာ လက်ဗွေရာ အတည်ပြုပါ"
-
-msgid "server_fingerprint"
-msgstr "ဆာဗာ လက်ဗွေရာ"
-
-msgid "confirm_fingerprint"
-msgstr "လက်ဗွေရာ အတည်ပြုပါ"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "စိတ်ရှည်ပါ! သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်နေပါသည်။ မိနစ်အနည်းငယ် "

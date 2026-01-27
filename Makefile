@@ -30,6 +30,7 @@ MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+MACOS_FFI_HEADER := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
 SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
@@ -106,6 +107,8 @@ GOMOBILE_REPOS = \
 	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
+
+UNAME_S := $(shell uname -s)
 
 define osxcodesign
 	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
@@ -265,9 +268,12 @@ linux-debug:
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
+
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
+
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
   	--build-dart-define=VERSION=$(VERSION) --platform linux --targets "deb,rpm" --skip-clean
+
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
@@ -510,8 +516,29 @@ update-dart-api-dl:
 gen:
 	dart run build_runner build --delete-conflicting-outputs
 
-#FFI generation
-ffigen:
+# FFI generation
+.PHONY: macos-ffi-amd64 macos-ffi-arm64 macos-ffi-headers ffigen-prep ffigen
+
+macos-ffi-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_AMD64)))
+	GOOS=darwin GOARCH=amd64 LIB_NAME=$(DARWIN_LIB_AMD64) $(MAKE) desktop-lib
+
+macos-ffi-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_ARM64)))
+	GOOS=darwin GOARCH=arm64 LIB_NAME=$(DARWIN_LIB_ARM64) $(MAKE) desktop-lib
+
+macos-ffi-headers: macos-ffi-arm64
+	@echo "macOS FFI headers available under bin/macos-arm64/liblantern.h"
+
+ffigen-prep:
+ifeq ($(UNAME_S),Darwin)
+	@if [ ! -f "$(MACOS_FFI_HEADER)" ]; then \
+		echo "Missing $(MACOS_FFI_HEADER) — generating macOS FFI headers for ffigen..."; \
+		$(MAKE) macos-ffi-headers; \
+	fi
+endif
+
+ffigen: ffigen-prep
 	dart run ffigen
 
 pubget:

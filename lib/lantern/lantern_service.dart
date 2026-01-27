@@ -447,14 +447,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setCert(fingerprint: fingerprint);
-    }
-    return _platformService.setCert(fingerprint: fingerprint);
-  }
-
-  @override
   Future<Either<Failure, Unit>> addServerManually(
       {required String ip,
       required String port,

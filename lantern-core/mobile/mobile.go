@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/common"
@@ -138,7 +137,7 @@ func IsRadianceConnected() bool {
 	return ok
 }
 
-func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("Starting VPN")
 	err := vpn_tunnel.StartVPN(platform, opts)
 	if err != nil {
@@ -177,7 +176,7 @@ func StopVPN() error {
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
 	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 	if err != nil {
 		return err
@@ -442,13 +441,6 @@ func CancelDeployment() error {
 	return withCore(func(c lanterncore.Core) error { return c.CancelDeployment() })
 }
 
-func SelectedCertFingerprint(fp string) {
-	withCore(func(c lanterncore.Core) error {
-		c.SelectedCertFingerprint(fp)
-		return nil
-	})
-}
-
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return withCore(func(c lanterncore.Core) error { return c.AddServerManagerInstance(ip, port, accessToken, tag, events) })
 }
@@ -463,10 +455,10 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
 
-func AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
-		return c.AddServerBasedOnURLs(urls, skipCertVerification)
+		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
 	})
 }
 

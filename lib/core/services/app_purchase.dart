@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/lantern/lantern_platform_service.dart';
+
+import 'injection_container.dart' show sl;
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
@@ -14,6 +17,9 @@ class AppPurchase {
 
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
+
+// Use a simple in-memory set to prevent double-processing in the SAME session
+  final Set<String> _inflightOrCompletedIds = {};
 
   void init() {
     if (PlatformUtils.isDesktop) {
@@ -60,7 +66,7 @@ class AppPurchase {
   /// Starts the subscription flow and only triggers the callbacks related to this purchase.
   Future<void> startSubscription({
     required String plan,
-    required void Function(PurchaseDetails purchase) onSuccess,
+    required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
   }) async {
     _onSuccess = onSuccess;
@@ -84,29 +90,31 @@ class AppPurchase {
   }
 
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
-    appLogger.info('Purchase updates: $purchases');
+    appLogger.info('Received purchase updates: ${purchases.length}');
     for (final purchase in purchases) {
-      appLogger.info('Processing new purchase: $purchase');
       await _handlePurchase(purchase);
     }
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
-    appLogger.info('Handling purchase: ${purchaseDetails.toString()}');
+    final String? purchaseId = purchaseDetails.purchaseID;
+    //EXIT EARLY if we are already handling this ID right now
+    if (purchaseId != null && _inflightOrCompletedIds.contains(purchaseId)) {
+      appLogger.info(
+          'Already processing or finished transaction: $purchaseId. Skipping.');
+      return;
+    }
+    appLogger.info(
+        'Handling purchase: ${purchaseDetails.productID} with status: ${purchaseDetails.status}');
     try {
       final status = purchaseDetails.status;
-
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
-        if (PlatformUtils.isIOS) {
-          /// iOS specific handling
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
+        final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
 
-        /// User has cancelled the purchase
-        _onError?.call(purchaseDetails.error?.message.localizedDescription ??
-            "Unknown error");
+        /// Invoke error callback
+        _onError?.call(errorMessage);
         return;
       }
       if (status == PurchaseStatus.canceled) {
@@ -118,16 +126,48 @@ class AppPurchase {
         _onError?.call("Purchase canceled");
         return;
       }
-      if (status == PurchaseStatus.purchased) {
-        _onSuccess?.call(purchaseDetails);
-        if (purchaseDetails.pendingCompletePurchase) {
-          await _inAppPurchase.completePurchase(purchaseDetails);
+      if (status == PurchaseStatus.purchased ||
+          status == PurchaseStatus.restored) {
+        if (purchaseId != null) {
+          _inflightOrCompletedIds.add(purchaseId);
+        }
+        try {
+          appLogger.info('Purchase successful: ${purchaseDetails.productID}');
+          final lanternService = sl<LanternPlatformService>();
+          final purchaseToken =
+              purchaseDetails.verificationData.serverVerificationData;
+          final planId = '${purchaseDetails.productID.split('_').first}-usd-10';
+          appLogger.info('Acknowledging purchase with planId: $planId');
+          final ack = await lanternService.acknowledgeInAppPurchase(
+              purchaseToken: purchaseToken, planId: planId);
+          ack.fold(
+            (error) {
+              appLogger.error('Acknowledgment failed: $error');
+              _finalize(purchaseDetails);
+              _onError?.call('Purchase acknowledgment failed: $error');
+            },
+            (success) async {
+              appLogger.info('Acknowledgment successful');
+              _finalize(purchaseDetails);
+              _onSuccess?.call(purchaseDetails);
+            },
+          );
+        } catch (e) {
+          if (purchaseId != null) _inflightOrCompletedIds.remove(purchaseId);
+          _onError?.call('Error during purchase acknowledgment: $e');
         }
         return;
       }
     } catch (e) {
       appLogger.error('Error handling purchase: $e');
       _onError?.call(e.toString());
+    }
+  }
+
+  // Separate helper to ensure the Store is cleared
+  Future<void> _finalize(PurchaseDetails purchaseDetails) async {
+    if (purchaseDetails.pendingCompletePurchase) {
+      await _inAppPurchase.completePurchase(purchaseDetails);
     }
   }
 

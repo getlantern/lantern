@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/getlantern/radiance/issue"
+	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
 type Opts struct {
@@ -47,4 +48,10 @@ func CreateLogAttachment(logFilePath string) []*issue.Attachment {
 		Name: "flutter.log",
 		Data: data,
 	}}
+}
+
+type PlatformInterface interface {
+	libbox.PlatformInterface
+	RestartService() error
+	PostServiceClose()
 }

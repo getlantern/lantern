@@ -36,15 +36,6 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     final serverState = ref.watch(privateServerProvider);
 
     useEffect(() {
-      if (serverState.status == 'EventTypeServerTofuPermission') {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.hideLoadingDialog();
-          final List<dynamic> data = jsonDecode(serverState.data!);
-          final certList =
-              data.map((item) => CertSummary.fromJson(item)).toList();
-          showFingerprintDialog(certList);
-        });
-      }
       if (serverState.status == 'EventTypeProvisioningCompleted') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info("Private server deployment completed successfully.",
@@ -281,65 +272,6 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     );
   }
 
-  void showFingerprintDialog(List<CertSummary> cert) {
-    final textTheme = Theme.of(context).textTheme;
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24),
-          Center(child: Icon(Icons.fingerprint, size: 40)),
-          SizedBox(height: 16),
-          Text(
-            'confirm_server_fingerprint'.i18n,
-            style: textTheme.titleLarge,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'server_fingerprint'.i18n,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          Text(
-            cert.first.fingerprint,
-            style: textTheme.bodyMedium,
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: "confirm_fingerprint".i18n,
-          textColor: AppColors.blue6,
-          onPressed: () {
-            appRouter.pop();
-            onConfirmFingerprint(cert.first);
-          },
-        ),
-      ],
-    );
-  }
-
-  Future<void> onConfirmFingerprint(CertSummary cert) async {
-    context.showLoadingDialog();
-    final result = await ref
-        .read(privateServerProvider.notifier)
-        .setCert(cert.fingerprint);
-
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        // Handle failure case, e.g., show an error message
-        appLogger.error("Failed to set cert: ${failure.localizedErrorMessage}");
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (_) {
-        context.hideLoadingDialog();
-        // Handle success case, e.g., navigate to the next screen or show a success message
-        appLogger.info("Cert set successfully.");
-      },
-    );
-  }
 
   void showSuccessDialog(String name) {
     final textTheme = Theme.of(context).textTheme;
