@@ -24,6 +24,7 @@ class SignInPassword extends StatefulHookConsumerWidget {
 class _SignInPasswordState extends ConsumerState<SignInPassword> {
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final passwordController = useTextEditingController();
     final obscureText = useState(true);
 
@@ -37,7 +38,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
       child: BaseScreen(
         title: widget.fromChangeEmail
             ? 'change_email'.i18n
-            : 'welcome_to_lantern_pro'.i18n,
+            : 'welcome_to_lantern'.i18n,
         body: SingleChildScrollView(
           child: Column(
             children: <Widget>[
@@ -56,6 +57,18 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                 onSubmitted: (_) =>
                     signInWithPassword(passwordController.text.trim()),
                 onChanged: (value) {},
+              ),
+              SizedBox(height: 4),
+              if (!widget.fromChangeEmail)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: defaultSize),
+                child: Text(
+                  'if_you_have_not_set_password'.i18n,
+                  textAlign: TextAlign.start,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: AppColors.gray6,
+                  ),
+                ),
               ),
               SizedBox(height: 16),
               if (widget.fromChangeEmail)
@@ -138,9 +151,6 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
           ..setUserLoggedIn(true)
           ..setEmail(widget.email);
         ref.read(homeProvider.notifier).updateUserData(user);
-        // ref
-        //     .read(availableServersProvider.notifier)
-        //     .forceFetchAvailableServers();
         appRouter.popUntilRoot();
       },
     );
