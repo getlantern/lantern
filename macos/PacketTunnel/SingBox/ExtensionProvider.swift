@@ -25,8 +25,6 @@ import OSLog
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
-  //    let appLogger = Logger(
-  //      subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
@@ -147,17 +145,5 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     opts.logDir = FilePath.logsDirectory.relativePath
     appLogger.info("logging to \(opts.logDir)")
     return opts
-  }
-
-  override open func sleep() async {
-    // if let boxService {
-    //     boxService.pause()
-    // }
-  }
-
-  override open func wake() {
-    // if let boxService {
-    //     boxService.wake()
-    // }
   }
 }
