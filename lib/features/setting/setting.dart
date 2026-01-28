@@ -72,7 +72,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (isUserPro || isExpired)
+          if (isUserPro || (isExpired && appSetting.userLoggedIn))
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -89,12 +89,14 @@ class _SettingState extends ConsumerState<Setting> {
                   ],
                 ),
                 icon: AppImagePaths.accountSetting,
-                subtitle: Text(
-                  email,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: AppColors.blue7,
-                  ),
-                ),
+                subtitle: email.isEmpty
+                    ? null
+                    : Text(
+                        email,
+                        style: textTheme.labelMedium!.copyWith(
+                          color: AppColors.blue7,
+                        ),
+                      ),
                 onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),
