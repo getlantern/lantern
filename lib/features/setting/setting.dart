@@ -263,8 +263,10 @@ class _SettingState extends ConsumerState<Setting> {
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         if (localUser.legacyUserData.isPro() && !userSignedIn) {
+          final email = localUser.legacyUserData.email;
+
           /// this means user has pro account but not signed in
-          updateProAccountFlow();
+          updateProAccountFlow(email.isNotEmpty);
           return;
         }
         appRouter.push(Account());
@@ -334,7 +336,7 @@ class _SettingState extends ConsumerState<Setting> {
     );
   }
 
-  void updateProAccountFlow() {
+  void updateProAccountFlow(bool hasEmail) {
     AppDialog.customDialog(
       context: context,
       content: Column(
@@ -344,12 +346,14 @@ class _SettingState extends ConsumerState<Setting> {
           AppImage(path: AppImagePaths.personAdd),
           SizedBox(height: 16.0),
           Text(
-            'set_account_password'.i18n,
+            hasEmail ? 'set_account_password'.i18n : 'update_pro_account'.i18n,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           SizedBox(height: defaultSize),
           Text(
-            'update_pro_account_message'.i18n,
+            hasEmail
+                ? 'set_account_password_message'.i18n
+                : 'update_pro_account_message'.i18n,
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: AppColors.gray8,
                 ),
@@ -365,7 +369,7 @@ class _SettingState extends ConsumerState<Setting> {
           },
         ),
         AppTextButton(
-          label: 'set_account_password'.i18n,
+          label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
           onPressed: () {
             appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
           },
