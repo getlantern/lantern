@@ -17,7 +17,7 @@ class ProBanner extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isExpired = ref.watch(isUserExpired);
+    final isExpired = ref.watch(isUserExpiredProvider);
     final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: EdgeInsets.only(top: topMargin),

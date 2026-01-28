@@ -40,15 +40,14 @@ class Setting extends StatefulHookConsumerWidget {
 }
 
 class _SettingState extends ConsumerState<Setting> {
-  late final isExpired = ref.read(isUserExpired);
-
   @override
   Widget build(BuildContext context) {
+    final isExpired = ref.read(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-    final isExpired = ref.watch(isUserExpired);
+
     final user = ref.watch(homeProvider).value;
     String email = '';
     if (user != null) {
@@ -64,7 +63,9 @@ class _SettingState extends ConsumerState<Setting> {
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
-                label: isExpired?'renew_pro_subscription'.i18n:'upgrade_to_pro'.i18n,
+                label: isExpired
+                    ? 'renew_pro_subscription'.i18n
+                    : 'upgrade_to_pro'.i18n,
                 onPressed: () {
                   appRouter.push(const Plans());
                 },
@@ -262,7 +263,7 @@ class _SettingState extends ConsumerState<Setting> {
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         if (localUser.legacyUserData.isPro() && !userSignedIn) {
-         /// this mean user has pro account but not signed in
+          /// this means user has pro account but not signed in
           updateProAccountFlow();
           return;
         }
@@ -294,8 +295,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   void logoutDialog() {
     final theme = Theme.of(context).textTheme;
-
-
+    final isExpired = ref.read(isUserExpiredProvider);
     AppDialog.customDialog(
       context: context,
       action: [
@@ -324,7 +324,7 @@ class _SettingState extends ConsumerState<Setting> {
           ),
           SizedBox(height: defaultSize),
           Text(
-            isExpired?'logout_message_expired'.i18n: 'logout_message'.i18n,
+            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
               color: AppColors.gray8,
             ),
