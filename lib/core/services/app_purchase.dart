@@ -18,7 +18,6 @@ class AppPurchase {
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
 
-  final user = sl<LocalStorageService>().getUser();
 
   void init() {
     if (PlatformUtils.isDesktop) {
@@ -194,6 +193,7 @@ class AppPurchase {
   ///Apple sends purchase updates for previously purchased items when the app starts.
   ///This function checks if the user has already purchased the subscription to avoid duplicate processing.
   bool _checkIfAlreadyPurchased() {
+    final user = sl<LocalStorageService>().getUser();
     if (user?.legacyUserData != null) {
       final legacyData = user!.legacyUserData;
       final subscriptionStatus = legacyData.subscriptionData.status;
