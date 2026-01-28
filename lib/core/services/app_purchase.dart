@@ -97,12 +97,6 @@ class AppPurchase {
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
     final String? purchaseId = purchaseDetails.purchaseID;
-    // //EXIT EARLY if we are already handling this ID right now
-    // if (purchaseId != null && _inflightOrCompletedIds.contains(purchaseId)) {
-    //   appLogger.info(
-    //       'Already processing or finished transaction: $purchaseId. Skipping.');
-    //   return;
-    // }
     appLogger.info(
         'Handling purchase: ${purchaseDetails.productID} with status: ${purchaseDetails.status}');
     try {
