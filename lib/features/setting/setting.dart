@@ -42,7 +42,7 @@ class Setting extends StatefulHookConsumerWidget {
 class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
-    final isExpired = ref.read(isUserExpiredProvider);
+    final isExpired = ref.watch(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
 
     final localUser = sl<LocalStorageService>().getUser();
@@ -273,16 +273,25 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.checkForUpdates:
         await checkForUpdates();
         break;
+
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
-        if (localUser.legacyUserData.isPro() && !userSignedIn) {
-          final email = localUser.legacyUserData.email;
 
-          /// this means user has pro account but not signed in
-          updateProAccountFlow(email.isNotEmpty);
+        final email = localUser.legacyUserData.email;
+        final isPro = localUser.legacyUserData.isPro();
+
+        if (isPro && !userSignedIn) {
+          if (email.isNotEmpty) {
+            appRouter.push(SignInPassword(email: email));
+            return;
+          }
+
+          // this means user has pro account but not signed in
+          updateProAccountFlow(false);
           return;
         }
+
         appRouter.push(Account());
         break;
       case _SettingType.vpnSetting:
