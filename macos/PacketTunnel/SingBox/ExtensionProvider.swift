@@ -25,8 +25,6 @@ import OSLog
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
-  //    let appLogger = Logger(
-  //      subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
@@ -103,11 +101,38 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
+    appLogger.log("(lantern-tunnel) tunnel closed")
     platformInterface.reset()
+    #if os(macOS)
+      // HACK: There is a bug in the NetworkExtension code so it doesn't reliably teardown
+      // and terminate the extension process on return -- causing the tunnel to remain in
+      // memory or stuck in an inconsistent state.
+      // see https://github.com/WireGuard/wireguard-apple/blob/master/Sources/WireGuardNetworkExtension/PacketTunnelProvider.swift#L83-L88
+      exit(0)
+    #endif
   }
 
   private func stopService() {
     appLogger.info("ExtensionProvider stopService")
+    var error: NSError?
+    MobileStopVPN(&error)
+    if error != nil {
+      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+    }
+    postServiceClose()
+  }
+
+  func restartService() {
+    appLogger.log("(lantern-tunnel) restarting service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startVPN()
+  }
+
+  func postServiceClose() {
     platformInterface.reset()
   }
 
@@ -121,31 +146,4 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.info("logging to \(opts.logDir)")
     return opts
   }
-
-  override open func sleep() async {
-    // if let boxService {
-    //     boxService.pause()
-    // }
-  }
-
-  override open func wake() {
-    // if let boxService {
-    //     boxService.wake()
-    // }
-  }
-
-  func reloadService() {
-    appLogger.log("(lantern-tunnel) reloading service")
-    reasserting = true
-    defer {
-      reasserting = false
-    }
-    stopService()
-    startVPN()
-  }
-
-  func postServiceClose() {
-    platformInterface.reset()
-  }
-
 }

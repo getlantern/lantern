@@ -84,16 +84,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) connected to server successfully")
   }
 
-  private func stopService() {
-    var error: NSError?
-    MobileStopVPN(&error)
-    if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
-    }
-    platformInterface.reset()
-  }
-
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     let startTime = Date()
 
@@ -111,6 +101,31 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     return opts
+  }
+
+  //Helper method to for platfrom interface to stop service
+  private func stopService() {
+    var error: NSError?
+    MobileStopVPN(&error)
+    if error != nil {
+      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      return
+    }
+    postServiceClose()
+  }
+
+  func restartService() {
+    appLogger.log("(lantern-tunnel) restarting service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startVPN()
+  }
+
+  func postServiceClose() {
+    platformInterface.reset()
   }
 
 }

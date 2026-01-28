@@ -21,10 +21,7 @@ import UserNotifications
   import CoreWLAN
 #endif
 
-public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol,
-  LibboxCommandServerHandlerProtocol
-{
-
+public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol {
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -89,17 +86,26 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
           let ipv4RoutePrefix = inet4RouteAddressIterator.next()!
           ipv4Routes.append(
             NEIPv4Route(
-              destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
+              destinationAddress: ipv4RoutePrefix.address(),
+              subnetMask: ipv4RoutePrefix.mask()))
         }
       } else if autoRouteUseSubRangesByDefault {
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "1.0.0.0", subnetMask: "255.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "2.0.0.0", subnetMask: "254.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "4.0.0.0", subnetMask: "252.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "8.0.0.0", subnetMask: "248.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "16.0.0.0", subnetMask: "240.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "32.0.0.0", subnetMask: "224.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "64.0.0.0", subnetMask: "192.0.0.0"))
-        ipv4Routes.append(NEIPv4Route(destinationAddress: "128.0.0.0", subnetMask: "128.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "1.0.0.0", subnetMask: "255.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "2.0.0.0", subnetMask: "254.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "4.0.0.0", subnetMask: "252.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "8.0.0.0", subnetMask: "248.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "16.0.0.0", subnetMask: "240.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "32.0.0.0", subnetMask: "224.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "64.0.0.0", subnetMask: "192.0.0.0"))
+        ipv4Routes.append(
+          NEIPv4Route(destinationAddress: "128.0.0.0", subnetMask: "128.0.0.0"))
       } else {
         ipv4Routes.append(NEIPv4Route.default())
       }
@@ -110,12 +116,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         let ipv4RoutePrefix = inet4RouteExcludeAddressIterator.next()!
         ipv4ExcludeRoutes.append(
           NEIPv4Route(
-            destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
+            destinationAddress: ipv4RoutePrefix.address(),
+            subnetMask: ipv4RoutePrefix.mask()))
       }
       if /*await SharedPreferences.excludeDefaultRoute.get(),*/
       !ipv4Routes.isEmpty {
         if !ipv4ExcludeRoutes.contains(where: { it in
-          it.destinationAddress == "0.0.0.0" && it.destinationSubnetMask == "255.255.255.254"
+          it.destinationAddress == "0.0.0.0"
+            && it.destinationSubnetMask == "255.255.255.254"
         }) {
           ipv4ExcludeRoutes.append(
             NEIPv4Route(destinationAddress: "0.0.0.0", subnetMask: "255.255.255.254"))
@@ -142,7 +150,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         ipv6Address.append(ipv6Prefix.address())
         ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
       }
-      let ipv6Settings = NEIPv6Settings(addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
+      let ipv6Settings = NEIPv6Settings(
+        addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
       var ipv6Routes: [NEIPv6Route] = []
       var ipv6ExcludeRoutes: [NEIPv6Route] = []
 
@@ -223,7 +232,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     networkSettings = settings
     appLogger.info("Setting tunnel network settings to \(settings)...")
-    try await tunnel.setTunnelNetworkSettings(settings)
+    try self.setTunnelNetworkSettings(settings)
 
     appLogger.info("Accessing the socket file descriptor...")
     if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
@@ -450,15 +459,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     networkSettings = nil
   }
 
-  public func serviceReload() throws {
+  public func restartService() throws {
     runBlocking { [self] in
-      tunnel.reloadService()
+      tunnel.restartService()
     }
   }
 
   public func postServiceClose() {
     reset()
-    tunnel.postServiceClose()
   }
 
   public func send(_ notification: LibboxNotification?) throws {
@@ -492,5 +500,25 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
   public func systemCertificates() -> (any LibboxStringIteratorProtocol)? {
     nil
+  }
+
+  public func setTunnelNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings?) throws {
+    let sem = DispatchSemaphore(value: 0)
+    var systemErr: Error?
+
+    self.tunnel.setTunnelNetworkSettings(networkSettings) { error in
+      systemErr = error
+      sem.signal()
+    }
+
+    let result = sem.wait(timeout: .now() + 5)
+    if result == .timedOut {
+      appLogger.error("(lantern-tunnel) setTunnelNetworkSettings timed out after 5s")
+      throw NSError(
+        domain: "lantern-tunnel",
+        code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "setTunnelNetworkSettings timed out"]
+      )
+    }
   }
 }

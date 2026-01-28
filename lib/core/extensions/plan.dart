@@ -5,6 +5,7 @@ import 'package:lantern/core/utils/currency_utils.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 final _ddmmyyFormatter = DateFormat('dd/MM/yy');
+final _mmddyyFormatter = DateFormat('MM/dd/yy');
 
 extension PlanExtension on Plan {
   String get formattedYearlyPrice {
@@ -35,7 +36,7 @@ extension IsoDateFormatter on UserResponse_UserData {
     try {
       final autoRenew = subscriptionData.autoRenew;
       final endAt = subscriptionData.endAt.toString();
-      if (PlatformUtils.isIOS) {
+      if (PlatformUtils.isIOS && autoRenew) {
         final dateTime =
             DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
                 .toLocal();
@@ -48,7 +49,7 @@ extension IsoDateFormatter on UserResponse_UserData {
         // User is on non subscription plan
         final newDate =
             DateTime.fromMillisecondsSinceEpoch(expiration.toInt() * 1000);
-        return _ddmmyyFormatter.format(newDate);
+        return _mmddyyFormatter.format(newDate);
       }
       final dateTime =
           DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
