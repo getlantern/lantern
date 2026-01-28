@@ -17,6 +17,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
         throw Exception('Failed to fetch data cap info: $failure');
       },
       (dataCapInfo) {
+        checkAndNotify(dataCapInfo);
         return dataCapInfo;
       },
     );
