@@ -44,6 +44,15 @@ class _SettingState extends ConsumerState<Setting> {
   Widget build(BuildContext context) {
     final isExpired = ref.read(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
+
+    final localUser = sl<LocalStorageService>().getUser();
+    final localIsPro = localUser?.legacyUserData.isPro() ?? false;
+
+    final hasProSession =
+        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
+
+    final isAuthenticated = appSetting.userLoggedIn || hasProSession;
+
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
@@ -72,7 +81,9 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (isUserPro || (isExpired && appSetting.userLoggedIn))
+          if (isUserPro ||
+              hasProSession ||
+              (isExpired && appSetting.userLoggedIn))
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -101,7 +112,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (!appSetting.userLoggedIn)
+          if (!isAuthenticated)
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
@@ -174,7 +185,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (appSetting.userLoggedIn) ...{
+          if (appSetting.userLoggedIn) ...[
             const SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
@@ -184,7 +195,7 @@ class _SettingState extends ConsumerState<Setting> {
                 onPressed: () => settingMenuTap(_SettingType.logout),
               ),
             ),
-          },
+          ],
           const SizedBox(height: defaultSize),
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             AppCard(
@@ -245,6 +256,7 @@ class _SettingState extends ConsumerState<Setting> {
         throw UnimplementedError();
       case _SettingType.support:
         appRouter.push(Support());
+        break;
       case _SettingType.followUs:
         if (PlatformUtils.isDesktop) {
           appRouter.push(FollowUs());
@@ -299,7 +311,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   void logoutDialog() {
     final theme = Theme.of(context).textTheme;
-    final isExpired = ref.read(isUserExpiredProvider);
+    final isExpired = ref.watch(isUserExpiredProvider);
     AppDialog.customDialog(
       context: context,
       action: [
