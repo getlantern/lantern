@@ -64,7 +64,7 @@ class _SettingState extends ConsumerState<Setting> {
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
-                label: isExpired?'renew_pro_subscription'.i18n:'get_pro_unlimited_data'.i18n,
+                label: isExpired?'renew_pro_subscription'.i18n:'upgrade_to_pro'.i18n,
                 onPressed: () {
                   appRouter.push(const Plans());
                 },

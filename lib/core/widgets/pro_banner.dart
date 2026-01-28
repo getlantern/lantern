@@ -18,6 +18,7 @@ class ProBanner extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isExpired = ref.watch(isUserExpired);
+    appLogger.info('Rendering ProBanner, isExpired: $isExpired');
     final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: EdgeInsets.only(top: topMargin),
@@ -43,7 +44,9 @@ class ProBanner extends HookConsumerWidget {
           ),
           SizedBox(height: 8),
           ProButton(
-            label: 'renew_pro_subscription'.i18n,
+            label: isExpired
+                ? 'renew_pro_subscription'.i18n
+                : 'upgrade_to_pro'.i18n,
             onPressed: () {
               appRouter.push(Plans());
             },

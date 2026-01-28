@@ -22,10 +22,10 @@ PODS:
   - mobile_scanner (7.0.0):
     - Flutter
     - FlutterMacOS
-  - ObjectBox (5.0.0)
+  - ObjectBox (5.1.1)
   - objectbox_flutter_libs (0.0.1):
     - FlutterMacOS
-    - ObjectBox (= 5.0.0)
+    - ObjectBox (= 5.1.1)
   - objective_c (0.0.1):
     - FlutterMacOS
   - OrderedSet (6.0.3)
@@ -46,7 +46,7 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Sparkle (2.7.1)
+  - Sparkle (2.8.1)
   - store_checker (0.0.1):
     - FlutterMacOS
   - tray_manager (0.0.1):
@@ -145,8 +145,8 @@ SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
-  objectbox_flutter_libs: fdba3af52a244037417fe170952a3dd819fee1af
+  ObjectBox: 26871f7cce80a8bd2e610bf944aeaded730f6925
+  objectbox_flutter_libs: 440aef6e9b0bca0a27bea53f61142f974b26eb97
   objective_c: e5f8194456e8fc943e034d1af00510a1bc29c067
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
@@ -156,12 +156,12 @@ SPEC CHECKSUMS:
   sentry_flutter: f074f75557daea0e1dd9607381a05cc0e3e456fe
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  Sparkle: 5f93557176b762f712e8cd80680778bf23c7348c
+  Sparkle: a346a4341537c625955751ed3ae4b340b68551fa
   store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
-PODFILE CHECKSUM: b1a5a5e815560a377d8b3e64b4f3f97e2bd372ba
+PODFILE CHECKSUM: 19d3d6d46f20c42959c94a4809f339c97c12d17d
 
 COCOAPODS: 1.16.2
