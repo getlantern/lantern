@@ -44,7 +44,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^11.1.0
+  auto_route: ^10.2.1
   #UI Utils
   animated_toggle_switch: ^0.8.7
   animated_text_kit: ^4.3.0
@@ -65,7 +65,7 @@ dependencies:
   intl: ^0.20.2
 
   #Images
-  flutter_svg: ^2.2.3
+  flutter_svg: ^2.2.2
   # Logs
   flutter_loggy: ^2.0.3+1
   loggy: ^2.0.3
@@ -128,7 +128,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  auto_route_generator: ^10.4.0
+  auto_route_generator: ^10.2.6
   build_runner: ^2.7.1
   objectbox_generator: ^5.0.0
   riverpod_generator: ^3.0.3

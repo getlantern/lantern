@@ -22,10 +22,10 @@ PODS:
   - mobile_scanner (7.0.0):
     - Flutter
     - FlutterMacOS
-  - ObjectBox (5.1.1)
+  - ObjectBox (5.0.0)
   - objectbox_flutter_libs (0.0.1):
     - FlutterMacOS
-    - ObjectBox (= 5.1.1)
+    - ObjectBox (= 5.0.0)
   - objective_c (0.0.1):
     - FlutterMacOS
   - OrderedSet (6.0.3)
@@ -145,8 +145,8 @@ SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  ObjectBox: 26871f7cce80a8bd2e610bf944aeaded730f6925
-  objectbox_flutter_libs: 440aef6e9b0bca0a27bea53f61142f974b26eb97
+  ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
+  objectbox_flutter_libs: fdba3af52a244037417fe170952a3dd819fee1af
   objective_c: e5f8194456e8fc943e034d1af00510a1bc29c067
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
@@ -162,6 +162,6 @@ SPEC CHECKSUMS:
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
-PODFILE CHECKSUM: 19d3d6d46f20c42959c94a4809f339c97c12d17d
+PODFILE CHECKSUM: b1a5a5e815560a377d8b3e64b4f3f97e2bd372ba
 
 COCOAPODS: 1.16.2
