@@ -133,7 +133,7 @@ func listenToServerEvents(ps provisionSession) {
 				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
 				return
 			case pcommon.EventTypeOAuthError:
-				slog.Error("OAuth failed: %v", e.Error)
+				slog.Error("OAuth failed", slog.Any("error", e.Error))
 				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
 				return
 			// Validation events
@@ -145,14 +145,14 @@ func listenToServerEvents(ps provisionSession) {
 			case pcommon.EventTypeValidationStarted:
 				slog.Debug("Validation started")
 			case pcommon.EventTypeValidationError:
-				slog.Error("Validation failed: %v %v", e.Error.Error(), e.Message)
+				slog.Error("Validation failed", slog.Any("error", e.Error), slog.String("message", e.Message))
 				storeSession(&ps)
 				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
 				continue
 			case pcommon.EventTypeValidationCompleted:
 				// at this point we have a list of projects and billing accounts
 				// present them to the user
-				slog.Debug("Provisioning completed successfully: %s", e.Message)
+				slog.Debug("Provisioning completed successfully", slog.String("message", e.Message))
 				compartments := provisioner.Compartments()
 				if len(compartments) == 0 {
 					slog.Error("No valid projects found, please check your billing account and permissions")
@@ -172,7 +172,7 @@ func listenToServerEvents(ps provisionSession) {
 					projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
 					if len(projectList) == 0 {
 						err := errors.New("no projects found in the selected compartment")
-						slog.Error("No projects found in the selected compartment", err)
+						slog.Error("No projects found in the selected compartment", slog.Any("error", err))
 						events.OnPrivateServerEvent(convertStatusToJSON("EventTypeNoProjects", "No projects found in the selected compartment"))
 						return
 					}
@@ -196,7 +196,7 @@ func listenToServerEvents(ps provisionSession) {
 					// Accounts
 					// send account to the client
 					accountNames := pcommon.CompartmentNames(compartments)
-					slog.Debug("Available accounts: %v", strings.Join(accountNames, ", "))
+					slog.Debug("Available accounts", slog.Any("accountNames", accountNames))
 					events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
 				}
 				continue
@@ -204,7 +204,7 @@ func listenToServerEvents(ps provisionSession) {
 				slog.Debug("Provisioning started")
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
 			case pcommon.EventTypeProvisioningCompleted:
-				slog.Debug("Provisioning completed successfully %s", e.Message)
+				slog.Debug("Provisioning completed successfully", slog.String("message", e.Message))
 				// get session
 				provisioner, perr := getSession()
 				if perr != nil {
@@ -214,7 +214,7 @@ func listenToServerEvents(ps provisionSession) {
 				resp := provisionerResponse{}
 				err := json.Unmarshal([]byte(e.Message), &resp)
 				if err != nil {
-					slog.Error("Error unmarshalling provisioner response: %v", err)
+					slog.Error("Error unmarshalling provisioner response", slog.Any("error", err))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
 					return
 				}
@@ -222,11 +222,11 @@ func listenToServerEvents(ps provisionSession) {
 				resp.Location = provisioner.serverLocation
 				mangerErr := AddServerManagerInstance(resp, provisioner)
 				if mangerErr != nil {
-					slog.Error("Error adding server manager instance: %v", mangerErr)
+					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
 					return
 				}
-				slog.Debug("Server manager instance added successfully: %s", resp.Tag)
+				slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 				serverInfo, found := ps.manager.GetServerByTag(resp.Tag)
 				// add protocol info if found
 				if found {
@@ -234,14 +234,14 @@ func listenToServerEvents(ps provisionSession) {
 				}
 				server, err := json.Marshal(resp)
 				if err != nil {
-					slog.Error("Error marshalling server response: %v", err)
+					slog.Error("Error marshalling server response", slog.Any("error", err))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
 				}
 
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 				return
 			case pcommon.EventTypeProvisioningError:
-				slog.Error("Provisioning failed", e.Error)
+				slog.Error("Provisioning failed", slog.Any("error", e.Error))
 				events.OnError(convertErrorToJSON("EventTypeProvisioningError", e.Error))
 				return
 			}
@@ -303,7 +303,7 @@ func StartDepolyment(selectedLocation, serverName string) error {
 	if err != nil {
 		return err
 	}
-	slog.Debug("Starting deployment in location: %s name %s", selectedLocation, serverName)
+	slog.Debug("Starting deployment", slog.String("location", selectedLocation), slog.String("serverName", serverName))
 	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
 	ps.serverName = serverName
 	ps.serverLocation = selectedLocation
@@ -331,17 +331,17 @@ func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSe
 	slog.Debug("Adding server manager instance")
 	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
-		slog.Error("Error adding server manager instance: %v", err)
+		slog.Error("Error adding server manager instance", slog.Any("error", err))
 		return err
 	}
-	slog.Debug("Server manager instance added successfully: %s", resp.Tag)
+	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 	return nil
 }
 
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
 func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Manager, events utils.PrivateServerEventListener) error {
-	slog.Debug("Adding server manually: %s:%s with tag %s", ip, port, tag)
+	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
 	portInt, _ := strconv.Atoi(port)
 	resp := provisionerResponse{
 		ExternalIP:  ip,
@@ -358,13 +358,13 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 	if err != nil {
 		return err
 	}
-	slog.Debug("Server manager instance added successfully: %s", resp.Tag)
+	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 	resp.Tag = tag
 	location := getGeoInfo(ip)
 	resp.Location = location
 	server, jerr := json.Marshal(resp)
 	if jerr != nil {
-		slog.Error("Error marshalling server response: %v", err)
+		slog.Error("Error marshalling server response", slog.Any("error", err))
 		return jerr
 	}
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
@@ -372,12 +372,12 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 }
 
 func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) (string, error) {
-	slog.Debug("Inviting to server manager instance %s:%d with invite name %s", ip, port, inviteName)
+	slog.Debug("Inviting to server manager instance", slog.String("ip", ip), slog.Int("port", port), slog.String("inviteName", inviteName))
 	return vpnClient.InviteToPrivateServer(ip, port, accessToken, inviteName)
 }
 
 func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) error {
-	slog.Debug("Revoking invite %s for server %s:%d", inviteName, ip, port)
+	slog.Debug("Revoking invite", slog.String("inviteName", inviteName), slog.String("ip", ip), slog.Int("port", port))
 	return vpnClient.RevokePrivateServerInvite(ip, port, accessToken, inviteName)
 }
 
@@ -390,20 +390,20 @@ type geoInfo struct {
 
 // getGeoInfo fetches geographical information for a given IP address using the ip-api.com service.
 func getGeoInfo(ip string) string {
-	slog.Debug("Fetching geo info for IP: %s", ip)
+	slog.Debug("Fetching geo info for IP", slog.String("ip", ip))
 	resp, err := http.Get("http://ip-api.com/json/" + ip)
 	if err != nil {
-		slog.Error("Error fetching geo info: %v", err)
+		slog.Error("Error fetching geo info", slog.Any("error", err))
 		return ""
 	}
 	defer resp.Body.Close()
 
 	var info geoInfo
 	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		slog.Error("Error decoding geo info response: %v", err)
+		slog.Error("Error decoding geo info response", slog.Any("error", err))
 		return ""
 	}
-	slog.Debug("Geo info for IP %s: %+v", ip, info)
+	slog.Debug("Geo info for IP", slog.String("ip", ip), slog.Any("info", info))
 	return fmt.Sprintf("%s - %s [%s]", info.Region, info.Country, info.CountryCode)
 }
 
