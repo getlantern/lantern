@@ -59,6 +59,7 @@ class UserDataEntity {
   final subscriptionData = ToOne<SubscriptionDataEntity>();
   final String deviceID;
   final bool unpassRegistered;
+  int lastExpiredOn ;
 
   UserDataEntity({
     this.id = 0,
@@ -82,6 +83,7 @@ class UserDataEntity {
     required this.purchases,
     required this.deviceID,
     required this.unpassRegistered,
+    required this.lastExpiredOn,
   });
 }
 

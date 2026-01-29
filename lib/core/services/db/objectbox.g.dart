@@ -493,7 +493,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(11, 4557824412096950738),
     name: 'UserDataEntity',
-    lastPropertyId: const obx_int.IdUid(22, 3794833187885345640),
+    lastPropertyId: const obx_int.IdUid(23, 5829217254102946918),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -628,6 +628,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(22, 3794833187885345640),
         name: 'unpassRegistered',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 5829217254102946918),
+        name: 'lastExpiredOn',
+        type: 6,
         flags: 0,
       ),
     ],
@@ -1508,7 +1514,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final inviteesOffset = fbb.writeString(object.invitees);
         final purchasesOffset = fbb.writeString(object.purchases);
         final deviceIDOffset = fbb.writeString(object.deviceID);
-        fbb.startTable(23);
+        fbb.startTable(24);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.userId);
         fbb.addOffset(2, codeOffset);
@@ -1531,6 +1537,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(19, object.subscriptionData.targetId);
         fbb.addOffset(20, deviceIDOffset);
         fbb.addBool(21, object.unpassRegistered);
+        fbb.addInt64(22, object.lastExpiredOn);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1615,6 +1622,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           46,
           false,
         );
+        final lastExpiredOnParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          48,
+          0,
+        );
         final object = UserDataEntity(
           id: idParam,
           userId: userIdParam,
@@ -1637,6 +1650,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           purchases: purchasesParam,
           deviceID: deviceIDParam,
           unpassRegistered: unpassRegisteredParam,
+          lastExpiredOn: lastExpiredOnParam,
         );
         object.subscriptionData.targetId = const fb.Int64Reader().vTableGet(
           buffer,
@@ -2326,6 +2340,11 @@ class UserDataEntity_ {
   /// See [UserDataEntity.unpassRegistered].
   static final unpassRegistered = obx.QueryBooleanProperty<UserDataEntity>(
     _entities[9].properties[21],
+  );
+
+  /// See [UserDataEntity.lastExpiredOn].
+  static final lastExpiredOn = obx.QueryIntegerProperty<UserDataEntity>(
+    _entities[9].properties[22],
   );
 
   /// see [UserDataEntity.devices]

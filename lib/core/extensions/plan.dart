@@ -34,6 +34,20 @@ extension PlanExtension on Plan {
 extension IsoDateFormatter on UserResponse_UserData {
   String toDate() {
     try {
+
+      if(userLevel=='expired'){
+        final lastExpiredOn = this.lastExpiredOn.toInt();
+        if (lastExpiredOn <= 0) {
+          return "N/A";
+        }
+        final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+          lastExpiredOn * 1000,
+          isUtc: true,
+        ).toLocal();
+        final formattedDate = _formatDate(expirationDate);
+        return "$formattedDate  ${'expired'.i18n}";
+      }
+
       final autoRenew = subscriptionData.autoRenew;
       final endAt = subscriptionData.endAt.toString() ?? "";
       // Validate expiration exists
@@ -64,10 +78,6 @@ extension IsoDateFormatter on UserResponse_UserData {
       }
       return formattedDate;
     } catch (e) {
-      assert(() {
-        print('Error formatting date: $e');
-        return true;
-      }());
       return "N/A";
     }
   }
