@@ -43,6 +43,9 @@ extension IsoDateFormatter on UserResponse_UserData {
         final mm = dateTime.month.toString().padLeft(2, '0');
         final dd = dateTime.day.toString().padLeft(2, '0');
         final yy = (dateTime.year % 100).toString().padLeft(2, '0');
+        if (dateTime.isBefore(DateTime.now())) {
+          return "$mm/$dd/$yy  ${'expired'.i18n}";
+        }
         return "$mm/$dd/$yy";
       }
       if (endAt == "" || autoRenew == false) {

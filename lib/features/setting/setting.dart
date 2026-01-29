@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
@@ -19,8 +20,6 @@ enum _SettingType {
   account,
   signIn,
   vpnSetting,
-  splitTunneling,
-  serverLocations,
   language,
   appearance,
   support,
@@ -43,10 +42,17 @@ class Setting extends StatefulHookConsumerWidget {
 class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
+    final isExpired = ref.read(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
+
+    final user = ref.watch(homeProvider).value;
+    String email = '';
+    if (user != null) {
+      email = user.legacyUserData.email;
+    }
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
@@ -57,19 +63,40 @@ class _SettingState extends ConsumerState<Setting> {
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
+                label: isExpired
+                    ? 'renew_pro_subscription'.i18n
+                    : 'upgrade_to_pro'.i18n,
                 onPressed: () {
                   appRouter.push(const Plans());
                 },
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (isUserPro)
+          if (isUserPro || (isExpired && appSetting.userLoggedIn))
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
               child: AppTile(
                 label: 'account'.i18n,
+                labelWidget: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('account'.i18n),
+                    SubscriptionTags(
+                        type: isUserPro
+                            ? SubscriptionTagType.pro
+                            : SubscriptionTagType.expired)
+                  ],
+                ),
                 icon: AppImagePaths.accountSetting,
+                subtitle: email.isEmpty
+                    ? null
+                    : Text(
+                        email,
+                        style: textTheme.labelMedium!.copyWith(
+                          color: AppColors.blue7,
+                        ),
+                      ),
                 onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),
@@ -210,12 +237,6 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.signIn:
         appRouter.push(const SignInEmail());
         break;
-      case _SettingType.splitTunneling:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case _SettingType.serverLocations:
-        // TODO: Handle this case.
-        throw UnimplementedError();
       case _SettingType.language:
         appRouter.push(Language());
         return;
@@ -244,8 +265,10 @@ class _SettingState extends ConsumerState<Setting> {
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         if (localUser.legacyUserData.isPro() && !userSignedIn) {
-          // this mean user has pro account but not signed in
-          updateProAccountFlow();
+          final email = localUser.legacyUserData.email;
+
+          /// this means user has pro account but not signed in
+          updateProAccountFlow(email.isNotEmpty);
           return;
         }
         appRouter.push(Account());
@@ -276,6 +299,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   void logoutDialog() {
     final theme = Theme.of(context).textTheme;
+    final isExpired = ref.read(isUserExpiredProvider);
     AppDialog.customDialog(
       context: context,
       action: [
@@ -304,7 +328,7 @@ class _SettingState extends ConsumerState<Setting> {
           ),
           SizedBox(height: defaultSize),
           Text(
-            'logout_message'.i18n,
+            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
               color: AppColors.gray8,
             ),
@@ -314,7 +338,7 @@ class _SettingState extends ConsumerState<Setting> {
     );
   }
 
-  void updateProAccountFlow() {
+  void updateProAccountFlow(bool hasEmail) {
     AppDialog.customDialog(
       context: context,
       content: Column(
@@ -324,12 +348,14 @@ class _SettingState extends ConsumerState<Setting> {
           AppImage(path: AppImagePaths.personAdd),
           SizedBox(height: 16.0),
           Text(
-            'update_pro_account'.i18n,
+            hasEmail ? 'set_account_password'.i18n : 'update_pro_account'.i18n,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           SizedBox(height: defaultSize),
           Text(
-            'update_pro_account_message'.i18n,
+            hasEmail
+                ? 'set_account_password_message'.i18n
+                : 'update_pro_account_message'.i18n,
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: AppColors.gray8,
                 ),
@@ -345,7 +371,7 @@ class _SettingState extends ConsumerState<Setting> {
           },
         ),
         AppTextButton(
-          label: 'add_email'.i18n,
+          label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
           onPressed: () {
             appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
           },

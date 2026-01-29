@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+import 'package:lantern/core/common/common.dart';
+
+enum SubscriptionTagType {
+  expired,
+  pro,
+}
+
+class SubscriptionTags extends StatelessWidget {
+  final SubscriptionTagType type;
+
+  const SubscriptionTags({
+    super.key,
+    required this.type,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final isExpired = type == SubscriptionTagType.expired;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+          color: isExpired ? AppColors.red2 : AppColors.green2,
+          border: Border.all(
+            color: isExpired ? AppColors.red4 : AppColors.green4,
+          ),
+          borderRadius: BorderRadius.circular(8)),
+      child: Text(
+        isExpired ? 'subscription_expired'.i18n : 'pro'.i18n,
+        style: textTheme.labelMedium!.copyWith(
+          color: isExpired ? AppColors.red8 : AppColors.green8,
+        ),
+      ),
+    );
+  }
+}

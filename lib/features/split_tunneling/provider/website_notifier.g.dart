@@ -42,7 +42,7 @@ final class SplitTunnelingWebsitesProvider
 }
 
 String _$splitTunnelingWebsitesHash() =>
-    r'c967ebaa75990e601725dd71e915674934baeafb';
+    r'685370d24001266fd3661375ae7be3aa2054a7d8';
 
 abstract class _$SplitTunnelingWebsites extends $Notifier<Set<Website>> {
   Set<Website> build();

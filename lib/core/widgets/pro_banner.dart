@@ -1,9 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../common/common.dart';
 
-class ProBanner extends StatelessWidget {
+class ProBanner extends HookConsumerWidget {
   final String? title;
 
   final double topMargin;
@@ -15,7 +16,8 @@ class ProBanner extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isExpired = ref.watch(isUserExpiredProvider);
     final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: EdgeInsets.only(top: topMargin),
@@ -27,7 +29,9 @@ class ProBanner extends StatelessWidget {
       child: Column(
         children: [
           AutoSizeText(
-            title ?? "get_unlimited_data".i18n,
+            isExpired
+                ? 'pro_subscription_expired'.i18n
+                : title ?? "get_unlimited_data".i18n,
             maxLines: 1,
             minFontSize: 14,
             maxFontSize: 16,
@@ -39,6 +43,9 @@ class ProBanner extends StatelessWidget {
           ),
           SizedBox(height: 8),
           ProButton(
+            label: isExpired
+                ? 'renew_pro_subscription'.i18n
+                : 'upgrade_to_pro'.i18n,
             onPressed: () {
               appRouter.push(Plans());
             },
