@@ -277,18 +277,12 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
-
         final email = localUser.legacyUserData.email;
         final isPro = localUser.legacyUserData.isPro();
 
         if (isPro && !userSignedIn) {
-          if (email.isNotEmpty) {
-            appRouter.push(SignInPassword(email: email));
-            return;
-          }
-
           // this means user has pro account but not signed in
-          updateProAccountFlow(false);
+          updateProAccountFlow(email.isNotEmpty);
           return;
         }
 
