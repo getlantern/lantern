@@ -47,7 +47,8 @@ class _SettingState extends ConsumerState<Setting> {
     final appSetting = ref.watch(appSettingProvider);
     final localUser = sl<LocalStorageService>().getUser();
     final localIsPro = localUser?.legacyUserData.isPro() ?? false;
-    final hasProSession = localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
+    final hasProSession =
+        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
@@ -270,23 +271,18 @@ class _SettingState extends ConsumerState<Setting> {
         break;
 
       case _SettingType.account:
-        final localUser = sl<LocalStorageService>().getUser()!;
+        final localUser = sl<LocalStorageService>().getUser();
+        if (localUser == null) {
+          appRouter.push(const SignInEmail());
+          return;
+        }
+
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         final email = localUser.legacyUserData.email;
         final isPro = localUser.legacyUserData.isPro();
         if (isPro && !userSignedIn) {
-<<<<<<< HEAD
-          // this means user has pro account but not signed in
-          updateProAccountFlow(email.isNotEmpty);
-=======
-          if (email.isNotEmpty) {
-            appRouter.push(SignInPassword(email: email));
-            return;
-          }
-
           await showProAccountFlowDialog(
               context: context, hasEmail: email.isNotEmpty);
->>>>>>> bf70da738 (code review updates)
           return;
         }
 
