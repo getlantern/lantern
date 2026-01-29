@@ -135,6 +135,7 @@ extension UserData on UserDataEntity {
           ? null
           : subscriptionData.target!.toSubscriptionData(),
       deviceID: deviceID,
+      unpassRegistered: unpassRegistered
     );
   }
 }

@@ -279,7 +279,6 @@ class _SettingState extends ConsumerState<Setting> {
         final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         final email = localUser.legacyUserData.email;
         final isPro = localUser.legacyUserData.isPro();
-
         if (isPro && !userSignedIn) {
           // this means user has pro account but not signed in
           updateProAccountFlow(email.isNotEmpty);
