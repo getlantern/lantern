@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -274,8 +275,18 @@ class _SettingState extends ConsumerState<Setting> {
         final email = localUser.legacyUserData.email;
         final isPro = localUser.legacyUserData.isPro();
         if (isPro && !userSignedIn) {
+<<<<<<< HEAD
           // this means user has pro account but not signed in
           updateProAccountFlow(email.isNotEmpty);
+=======
+          if (email.isNotEmpty) {
+            appRouter.push(SignInPassword(email: email));
+            return;
+          }
+
+          await showProAccountFlowDialog(
+              context: context, hasEmail: email.isNotEmpty);
+>>>>>>> bf70da738 (code review updates)
           return;
         }
 
@@ -343,48 +354,6 @@ class _SettingState extends ConsumerState<Setting> {
           ),
         ],
       ),
-    );
-  }
-
-  void updateProAccountFlow(bool hasEmail) {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24.0),
-          AppImage(path: AppImagePaths.personAdd),
-          SizedBox(height: 16.0),
-          Text(
-            hasEmail ? 'set_account_password'.i18n : 'update_pro_account'.i18n,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            hasEmail
-                ? 'set_account_password_message'.i18n
-                : 'update_pro_account_message'.i18n,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: AppColors.gray8,
-                ),
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'cancel'.i18n,
-          textColor: AppColors.gray6,
-          onPressed: () {
-            appRouter.maybePop();
-          },
-        ),
-        AppTextButton(
-          label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
-          onPressed: () {
-            appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
-          },
-        ),
-      ],
     );
   }
 

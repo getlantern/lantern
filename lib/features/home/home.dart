@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
@@ -158,7 +159,7 @@ class _HomeState extends ConsumerState<Home>
           if (isUserPro)
             AppIconButton(
               path: AppImagePaths.accountCircle,
-              onPressed: () {
+              onPressed: () async {
                 final localUser = sl<LocalStorageService>().getUser()!;
                 final userSignedIn = ref.watch(
                     appSettingProvider.select((value) => value.userLoggedIn));
@@ -166,7 +167,8 @@ class _HomeState extends ConsumerState<Home>
                 final isPro = localUser.legacyUserData.isPro();
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
-                  updateProAccountFlow(email.isNotEmpty);
+                  await showProAccountFlowDialog(
+                      context: context, hasEmail: email.isNotEmpty);
                   return;
                 }
                 appRouter.push(Account());
@@ -352,48 +354,6 @@ class _HomeState extends ConsumerState<Home>
             ref
                 .read(appSettingProvider.notifier)
                 .updateAnonymousDataConsent(true);
-          },
-        ),
-      ],
-    );
-  }
-
-  void updateProAccountFlow(bool hasEmail) {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24.0),
-          AppImage(path: AppImagePaths.personAdd),
-          SizedBox(height: 16.0),
-          Text(
-            hasEmail ? 'set_account_password'.i18n : 'update_pro_account'.i18n,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            hasEmail
-                ? 'set_account_password_message'.i18n
-                : 'update_pro_account_message'.i18n,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: AppColors.gray8,
-                ),
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'cancel'.i18n,
-          textColor: AppColors.gray6,
-          onPressed: () {
-            appRouter.maybePop();
-          },
-        ),
-        AppTextButton(
-          label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
-          onPressed: () {
-            appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
           },
         ),
       ],
