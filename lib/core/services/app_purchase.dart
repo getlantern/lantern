@@ -18,7 +18,6 @@ class AppPurchase {
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
 
-
   void init() {
     if (PlatformUtils.isDesktop) {
       return;
@@ -34,6 +33,7 @@ class AppPurchase {
 
   Future<void> fetchSubscriptions({int attempt = 0}) async {
     try {
+      appLogger.info('Fetching subscriptions, attempt: $attempt');
       final response =
           await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
       if (response.error != null) {
@@ -48,6 +48,7 @@ class AppPurchase {
       }
       _subscriptionSku.clear();
       _subscriptionSku.addAll(response.productDetails);
+      appLogger.info('Fetched subscriptions: ${_subscriptionSku.length} items');
     } catch (e) {
       appLogger.error('Error fetching subscriptions: $e');
       if (attempt < 2) {
@@ -95,7 +96,6 @@ class AppPurchase {
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
-    final String? purchaseId = purchaseDetails.purchaseID;
     appLogger.info(
         'Handling purchase: ${purchaseDetails.productID} with status: ${purchaseDetails.status}');
     try {
@@ -181,12 +181,15 @@ class AppPurchase {
 
   ProductDetails? _normalizePlan(String planId) {
     final plan = planId.split('-').first;
+    appLogger.info('Normalizing planId: $planId to plan: $plan');
     for (final sku in _subscriptionSku) {
       final subId = sku.id.split('_').first;
       if (subId == plan) {
         return sku;
       }
     }
+    appLogger.error(
+        'No matching product found for planId: $planId _subscriptionSku length: ${_subscriptionSku.length}');
     return null;
   }
 
