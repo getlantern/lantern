@@ -44,19 +44,13 @@ class _SettingState extends ConsumerState<Setting> {
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
-
     final localUser = sl<LocalStorageService>().getUser();
     final localIsPro = localUser?.legacyUserData.isPro() ?? false;
-
-    final hasProSession =
-        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
-
+    final hasProSession = localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
-
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-
     final user = ref.watch(homeProvider).value;
     String email = '';
     if (user != null) {
