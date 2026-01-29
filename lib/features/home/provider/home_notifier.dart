@@ -21,20 +21,18 @@ class HomeNotifier extends _$HomeNotifier {
     final cachedUser = sl<LocalStorageService>().getUser();
     if (cachedUser != null) {
       appLogger.debug('Loaded user data from local storage: $cachedUser');
-      checkIfUserProAndDeviceIsAdded();
       state = AsyncValue.data(cachedUser);
     }
     final result = await ref.read(lanternServiceProvider).getUserData();
     return result.fold(
-      (failure) {
+          (failure) {
         appLogger
             .error('Error getting user data: ${failure.localizedErrorMessage}');
         throw Exception('Failed to get user data');
       },
-      (userData) {
+          (userData) {
         appLogger.debug('Got the userdata: $userData');
         updateUserData(userData);
-        checkIfUserProAndDeviceIsAdded();
         return userData;
       },
     );
@@ -44,11 +42,11 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> fetchUserData() async {
     final result = await ref.read(lanternServiceProvider).fetchUserData();
     result.fold(
-      (failure) {
+          (failure) {
         appLogger.error(
             'Error fetching user data: ${failure.localizedErrorMessage}');
       },
-      (userData) {
+          (userData) {
         appLogger.debug('Fetched user data form server: $userData');
         updateUserData(userData);
       },
@@ -66,6 +64,7 @@ class HomeNotifier extends _$HomeNotifier {
         .read(appSettingProvider.notifier)
         .setEmail(userData.legacyUserData.email);
     sl<LocalStorageService>().saveUser(userData.toEntity());
+    checkIfUserProAndDeviceIsAdded();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {
@@ -102,9 +101,13 @@ class HomeNotifier extends _$HomeNotifier {
   /// means user has logged in from this device before an did not logout.
   /// Updates the app settings accordingly and make user logged in automatically.
   void checkIfUserProAndDeviceIsAdded() {
-    final user = state.value;
+    final user = sl<LocalStorageService>().getUser();
     if (user == null) {
       appLogger.error("User data is not available to check devices.");
+      return;
+    }
+    if (!user.legacyUserData.isPro()) {
+      appLogger.info("User is not Pro. Skipping device check.");
       return;
     }
     final appSetting = ref.read(appSettingProvider);
@@ -114,10 +117,11 @@ class HomeNotifier extends _$HomeNotifier {
     }
     final userDeviceId = user.legacyUserData.deviceID;
     final isDeviceAdded =
-        user.legacyUserData.devices.any((device) => device.id == userDeviceId);
+    user.legacyUserData.devices.any((device) => device.id == userDeviceId);
     appLogger.info(
-        "current device added for user ${user.legacyUserData.email}: $isDeviceAdded");
-    if (isDeviceAdded && user.legacyUserData.isPro()) {
+        "current device added for user ${user.legacyUserData
+            .email}: $isDeviceAdded");
+    if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier)
         ..setUserLoggedIn(true)
         ..setEmail(user.legacyUserData.email);

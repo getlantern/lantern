@@ -172,7 +172,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (widget.authFlow == AuthFlow.lanternProLicense) {
       return 'lantern_pro_license_applied'.i18n;
     } else {
-      return 'your_purchase_will_be_applied_to_your_existing_account'.i18n;
+      return '';
     }
   }
 
