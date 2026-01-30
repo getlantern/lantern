@@ -162,7 +162,7 @@ class LocalStorageService {
   }
 
   // User methods
-  void saveUser(UserResponseEntity user) async {
+  void saveUser(UserResponseEntity user) {
     try {
       _userBox.removeAll();
       _userBox.put(user);

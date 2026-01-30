@@ -85,10 +85,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   },
                 ),
                 SizedBox(height: 4),
-                if (isUserRegistered) ...{
+                if (isUserRegistered &&
+                    widget.authFlow == AuthFlow.lanternProLicense) ...{
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text(userRegisterMessageTip(),
+                    child: Text('lantern_pro_license_applied'.i18n,
                         style: textTheme!.bodyMedium!
                             .copyWith(color: AppColors.gray6, fontSize: 12)),
                   ),
@@ -166,14 +167,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     ];
 
     return problematicDomains.any(email.endsWith);
-  }
-
-  String userRegisterMessageTip() {
-    if (widget.authFlow == AuthFlow.lanternProLicense) {
-      return 'lantern_pro_license_applied'.i18n;
-    } else {
-      return '';
-    }
   }
 
   void onContinuePressed(

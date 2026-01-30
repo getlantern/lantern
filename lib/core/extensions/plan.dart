@@ -34,8 +34,7 @@ extension PlanExtension on Plan {
 extension IsoDateFormatter on UserResponse_UserData {
   String toDate() {
     try {
-
-      if(userLevel=='expired'){
+      if (userLevel == 'expired') {
         final lastExpiredOn = this.lastExpiredOn.toInt();
         if (lastExpiredOn <= 0) {
           return "N/A";
@@ -49,15 +48,15 @@ extension IsoDateFormatter on UserResponse_UserData {
       }
 
       final autoRenew = subscriptionData.autoRenew;
-      final endAt = subscriptionData.endAt.toString() ?? "";
+      final endAt = subscriptionData.endAt.toInt();
       // Validate expiration exists
       if (expiration <= 0) {
         return "N/A";
       }
-      if (autoRenew && endAt.isNotEmpty) {
+      if (autoRenew && endAt != 0) {
         // Active subscription case
-        final endAtTimestamp = int.tryParse(endAt);
-        if (endAtTimestamp == null || endAtTimestamp <= 0) {
+        final endAtTimestamp = subscriptionData.endAt.toInt();
+        if (endAtTimestamp <= 0) {
           return "N/A";
         }
         final dateTime = DateTime.fromMillisecondsSinceEpoch(

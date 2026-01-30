@@ -273,11 +273,12 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser();
         if (localUser == null) {
+          /// This should not happen, but just in case.
+          /// If user is not account screen it mean user should have some data
           appRouter.push(const SignInEmail());
           return;
         }
-
-        final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
+        final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
         final email = localUser.legacyUserData.email;
         final isPro = localUser.legacyUserData.isPro();
         if (isPro && !userSignedIn) {
