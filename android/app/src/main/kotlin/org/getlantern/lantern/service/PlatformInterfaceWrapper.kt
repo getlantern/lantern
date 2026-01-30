@@ -11,9 +11,9 @@ import lantern.io.libbox.InterfaceUpdateListener
 import lantern.io.libbox.Libbox
 import lantern.io.libbox.LocalDNSTransport
 import lantern.io.libbox.NetworkInterfaceIterator
-import lantern.io.libbox.PlatformInterface
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.WIFIState
+import lantern.io.utils.PlatformInterface
 import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.LocalResolver
@@ -21,31 +21,8 @@ import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
-import kotlin.collections.Iterator
-import kotlin.collections.find
-import kotlin.collections.get
-import kotlin.collections.isNullOrEmpty
-import kotlin.collections.iterator
-import kotlin.collections.mapNotNull
-import kotlin.collections.mapTo
-import kotlin.collections.minus
-import kotlin.collections.mutableListOf
-import kotlin.collections.toList
-import kotlin.io.endsWith
-import kotlin.io.iterator
-import kotlin.io.startsWith
-import kotlin.sequences.iterator
-import kotlin.sequences.mapNotNull
-import kotlin.sequences.minus
-import kotlin.text.endsWith
-import kotlin.text.isNullOrEmpty
-import kotlin.text.iterator
-import kotlin.text.mapNotNull
-import kotlin.text.startsWith
-import kotlin.text.substring
 
 interface PlatformInterfaceWrapper : PlatformInterface {
-
 
     override fun localDNSTransport(): LocalDNSTransport? {
         return LocalResolver

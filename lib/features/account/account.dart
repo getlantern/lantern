@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -29,11 +30,31 @@ class Account extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
+    final isExpired = ref.watch(isUserExpiredProvider);
     final appSettings = ref.read(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        if (isExpired) ...{
+          InfoRow(
+            minTileHeight: 40,
+            backgroundColor: AppColors.red1,
+            borderColor: AppColors.red2,
+            textStyle: theme.labelLarge!.copyWith(
+              color: AppColors.red9,
+            ),
+            text: 'pro_subscription_expired_message'.i18n,
+          ),
+          SizedBox(height: defaultSize),
+          ProButton(
+            label: 'renew_pro_subscription'.i18n,
+            onPressed: () {
+              appRouter.push(const Plans());
+            },
+          ),
+        },
         SizedBox(height: defaultSize),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -65,29 +86,41 @@ class Account extends HookConsumerWidget {
           ),
         ),
         SizedBox(height: defaultSize),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            user!.legacyUserData.subscriptionData.autoRenew
-                ? 'subscription_renewal_date'.i18n
-                : 'pro_account_expiration'.i18n,
-            style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+        if (isExpired)
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'last_subscription_renewal_date'.i18n,
+              style: theme.labelLarge!.copyWith(
+                color: AppColors.gray8,
+              ),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              user!.legacyUserData.subscriptionData.autoRenew
+                  ? 'subscription_renewal_date'.i18n
+                  : 'pro_account_expiration'.i18n,
+              style: theme.labelLarge!.copyWith(
+                color: AppColors.gray8,
+              ),
             ),
           ),
-        ),
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            label: user.legacyUserData.toDate(),
+            label: user!.legacyUserData.toDate(),
             contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.autoRenew,
-            trailing: !user.legacyUserData.subscriptionData.autoRenew
-                ? null
-                : AppTextButton(
+            trailing: user.legacyUserData.subscriptionData.autoRenew &&
+                    !isExpired
+                ? AppTextButton(
                     label: 'manage_subscription'.i18n,
                     onPressed: () => onManageSubscriptionTap(ref, buildContext),
-                  ),
+                  )
+                : null,
           ),
         ),
         SizedBox(height: defaultSize),
@@ -159,8 +192,6 @@ class Account extends HookConsumerWidget {
   Future<void> openGooglePlaySubscriptions() async {
     UrlUtils.openUrl("https://play.google.com/store/account/subscriptions");
   }
-
-  void openAppleSubscriptions(WidgetRef ref) async {}
 
   Future<void> stripeBillingPortal(
       WidgetRef ref, BuildContext buildContext) async {
