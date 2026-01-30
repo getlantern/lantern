@@ -231,7 +231,6 @@ func (lc *LanternCore) listeningServerLocationChanges() {
 }
 func (lc *LanternCore) listeningDataCapChanges() {
 	events.Subscribe(func(evt api.DataCapChangeEvent) {
-		slog.Debug("Recevied data cap event received", "event", evt)
 		dataCapResponse := evt.DataCapUsageResponse
 		jsonBytes, err := json.Marshal(dataCapResponse)
 		if err != nil {
