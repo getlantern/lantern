@@ -34,10 +34,16 @@ class NotificationService {
         defaultActionName: 'open_notification'.i18n,
         defaultIcon: AssetsLinuxIcon(AppImagePaths.appIcon),
       );
+      var iconPath =
+          File.fromUri(WindowsImage.getAssetUri(AppImagePaths.appIcon))
+              .absolute
+              .path;
+
       final windowsSettings = WindowsInitializationSettings(
-        appName: 'app_name'.i18n,
+        appName: 'Lantern',
         appUserModelId: AppSecrets.windowsAppUserModelId,
         guid: AppSecrets.windowsGuid,
+        iconPath: iconPath,
       );
       final settings = InitializationSettings(
         android: androidSettings,
@@ -111,19 +117,29 @@ class NotificationService {
     String? payload,
     NotificationDetails? notificationDetails,
   }) async {
-    final scheduleTime =
-        tz.TZDateTime.now(tz.local).add(delay ?? Duration.zero);
-    final nd =
-        notificationDetails ?? _getNotificationDetails(NotificationType.main);
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduleTime,
-      nd,
-      payload: payload,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+    try {
+      appLogger.debug("scheduleNotification notification");
+      final scheduleTime =
+          tz.TZDateTime.now(tz.local).add(delay ?? Duration.zero);
+
+      if (scheduleTime.isBefore(tz.TZDateTime.now(tz.local))) {
+        throw ArgumentError('scheduleTime must be in the future');
+      }
+
+      final nd =
+          notificationDetails ?? _getNotificationDetails(NotificationType.main);
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduleTime,
+        nd,
+        payload: payload,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e, st) {
+      appLogger.error("Error scheduling notification: $e", st);
+    }
   }
 
   /// shows a notification immediately
@@ -176,7 +192,8 @@ class NotificationService {
       windows: WindowsNotificationDetails(
         duration: WindowsNotificationDuration.short,
         audio: WindowsNotificationAudio.preset(
-            sound: WindowsNotificationSound.defaultSound),
+          sound: WindowsNotificationSound.defaultSound,
+        ),
       ),
     );
   }

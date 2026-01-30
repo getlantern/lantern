@@ -318,7 +318,7 @@ func startAutoLocationListener() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	c.StartAutoLocationListener()
+	c.StartBackgroundListeners()
 	return C.CString("ok")
 }
 
@@ -330,7 +330,7 @@ func stopAutoLocationListener() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	c.StopAutoLocationListener()
+	c.StopBackgroundListeners()
 	return C.CString("ok")
 }
 

@@ -33,7 +33,7 @@ class VpnNotifier extends _$VpnNotifier {
               NotificationEvent.vpnDisconnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_disconnected'.i18n,
-              delay: Duration(seconds: 1),
+              delay: Duration(seconds: 2),
             );
           } else if (nextStatus == VPNStatus.connected) {
             if (PlatformUtils.isMobile) {
@@ -54,7 +54,7 @@ class VpnNotifier extends _$VpnNotifier {
               NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
-              delay: Duration(seconds: 1),
+              delay: Duration(seconds: 2),
             );
           }
         }
