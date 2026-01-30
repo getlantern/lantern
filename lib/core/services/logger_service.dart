@@ -96,11 +96,11 @@ class FileLogPrinter extends LoggyPrinter {
 
     if (record.error != null) buffer.writeln("Error: ${record.error}");
     if (record.stackTrace != null) {
-      buffer.writeln("Stack: ${record.stackTrace}");
+      buffer.write("Stack: ${record.stackTrace}");
     }
 
     try {
-      _controller.add(buffer.toString());
+      _controller.add('${buffer.toString()}\n');
     } catch (_) {
       // If add throws (controller closed between check and add), ignore silently.
     }

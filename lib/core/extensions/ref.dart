@@ -8,3 +8,12 @@ final isUserProProvider = Provider<bool>((ref) {
     ),
   );
 });
+
+final isUserExpiredProvider = Provider<bool>((ref) {
+  return ref.watch(
+    homeProvider.select(
+          (value) => value.value?.legacyUserData.userLevel == 'expired',
+    ),
+  );
+});
+

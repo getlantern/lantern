@@ -6,8 +6,7 @@ import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
 
-typedef PaymentSuccessCallback = void Function(
-    PurchaseDetails purchase);
+typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
@@ -18,7 +17,6 @@ class AppPurchase {
 
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
-
 
   void init() {
     if (PlatformUtils.isDesktop) {
@@ -35,6 +33,7 @@ class AppPurchase {
 
   Future<void> fetchSubscriptions({int attempt = 0}) async {
     try {
+      appLogger.info('Fetching subscriptions, attempt: $attempt');
       final response =
           await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
       if (response.error != null) {
@@ -49,6 +48,7 @@ class AppPurchase {
       }
       _subscriptionSku.clear();
       _subscriptionSku.addAll(response.productDetails);
+      appLogger.info('Fetched subscriptions: ${_subscriptionSku.length} items');
     } catch (e) {
       appLogger.error('Error fetching subscriptions: $e');
       if (attempt < 2) {
@@ -103,10 +103,6 @@ class AppPurchase {
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
-        if (PlatformUtils.isIOS) {
-          /// iOS specific handling
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
         final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
 
         /// Invoke error callback
@@ -124,10 +120,19 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
+        ///Apple sends purchase updates for previously purchased items when the app starts.
+        ///This check prevents processing the same subscription multiple times.
+        if (_checkIfAlreadyPurchased()) {
+          appLogger.info(
+              'User has already purchased the subscription. Finalizing purchase without processing.');
+          await _finalize(purchaseDetails);
+          _onError?.call('You have already purchased this subscription.');
+          return;
+        }
+
         try {
           appLogger.info('Purchase successful: ${purchaseDetails.productID}');
           final lanternService = sl<LanternPlatformService>();
-
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = '${purchaseDetails.productID.split('_').first}-usd-10';
@@ -137,13 +142,12 @@ class AppPurchase {
           ack.fold(
             (error) {
               appLogger.error('Acknowledgment failed: $error');
+              _finalize(purchaseDetails);
               _onError?.call('Purchase acknowledgment failed: $error');
             },
             (success) async {
               appLogger.info('Acknowledgment successful');
-              if (purchaseDetails.pendingCompletePurchase) {
-                await _inAppPurchase.completePurchase(purchaseDetails);
-              }
+              _finalize(purchaseDetails);
               _onSuccess?.call(purchaseDetails);
             },
           );
@@ -155,6 +159,13 @@ class AppPurchase {
     } catch (e) {
       appLogger.error('Error handling purchase: $e');
       _onError?.call(e.toString());
+    }
+  }
+
+  // Separate helper to ensure the Store is cleared
+  Future<void> _finalize(PurchaseDetails purchaseDetails) async {
+    if (purchaseDetails.pendingCompletePurchase) {
+      await _inAppPurchase.completePurchase(purchaseDetails);
     }
   }
 
@@ -170,13 +181,32 @@ class AppPurchase {
 
   ProductDetails? _normalizePlan(String planId) {
     final plan = planId.split('-').first;
+    appLogger.info('Normalizing planId: $planId to plan: $plan');
     for (final sku in _subscriptionSku) {
       final subId = sku.id.split('_').first;
       if (subId == plan) {
         return sku;
       }
     }
+    appLogger.error(
+        'No matching product found for planId: $planId _subscriptionSku length: ${_subscriptionSku.length}');
     return null;
+  }
+
+  ///Apple sends purchase updates for previously purchased items when the app starts.
+  ///This function checks if the user has already purchased the subscription to avoid duplicate processing.
+  bool _checkIfAlreadyPurchased() {
+    final user = sl<LocalStorageService>().getUser();
+    if (user?.legacyUserData != null) {
+      final legacyData = user!.legacyUserData;
+      final subscriptionStatus = legacyData.subscriptionData.status;
+      if (subscriptionStatus == 'active') {
+        return true;
+      }
+      return false;
+    }
+
+    return false;
   }
 
   void clearCallbacks() {

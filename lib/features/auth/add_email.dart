@@ -85,10 +85,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   },
                 ),
                 SizedBox(height: 4),
-                if (isUserRegistered) ...{
+                if (isUserRegistered &&
+                    widget.authFlow == AuthFlow.lanternProLicense) ...{
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text(userRegisterMessageTip(),
+                    child: Text('lantern_pro_license_applied'.i18n,
                         style: textTheme!.bodyMedium!
                             .copyWith(color: AppColors.gray6, fontSize: 12)),
                   ),
@@ -121,32 +122,34 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     isUserRegistered,
                   ),
                 ),
-                SizedBox(height: defaultSize),
-                DividerSpace(),
-                SizedBox(height: defaultSize),
-                OAuthLogin(
-                  methodType: SignUpMethodType.google,
-                  onResult: (token) =>
-                      onOAuthResult(token, SignUpMethodType.google),
-                ),
-                SizedBox(height: defaultSize),
-                OAuthLogin(
-                  methodType: SignUpMethodType.apple,
-                  onResult: (token) =>
-                      onOAuthResult(token, SignUpMethodType.apple),
-                ),
-                SizedBox(height: defaultSize),
-                DividerSpace(),
-                SizedBox(height: defaultSize),
-                if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
-                  Center(
-                    child: AppTextButton(
-                      label: 'continue_without_email'.i18n,
-                      textColor: AppColors.gray9,
-                      onPressed: () =>
-                          navigateRoute(SignUpMethodType.withoutEmail, ""),
-                    ),
+                if (!isUserRegistered) ...{
+                  SizedBox(height: defaultSize),
+                  DividerSpace(),
+                  SizedBox(height: defaultSize),
+                  OAuthLogin(
+                    methodType: SignUpMethodType.google,
+                    onResult: (token) =>
+                        onOAuthResult(token, SignUpMethodType.google),
                   ),
+                  SizedBox(height: defaultSize),
+                  OAuthLogin(
+                    methodType: SignUpMethodType.apple,
+                    onResult: (token) =>
+                        onOAuthResult(token, SignUpMethodType.apple),
+                  ),
+                  SizedBox(height: defaultSize),
+                  DividerSpace(),
+                  SizedBox(height: defaultSize),
+                  if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
+                    Center(
+                      child: AppTextButton(
+                        label: 'continue_without_email'.i18n,
+                        textColor: AppColors.gray9,
+                        onPressed: () =>
+                            navigateRoute(SignUpMethodType.withoutEmail, ""),
+                      ),
+                    ),
+                },
               ],
             ),
           ),
@@ -166,19 +169,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     return problematicDomains.any(email.endsWith);
   }
 
-  String userRegisterMessageTip() {
-    if (widget.authFlow == AuthFlow.lanternProLicense) {
-      return 'lantern_pro_license_applied'.i18n;
-    } else {
-      return 'your_purchase_will_be_applied_to_your_existing_account'.i18n;
-    }
-  }
-
   void onContinuePressed(
       SignUpMethodType type, String email, bool isUserRegistered) {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_isProblematicEmail(email)) {
+    if (_isProblematicEmail(email) && !isUserRegistered) {
       _showEmailDeliverabilityNotice(
           () => _handleContinue(type, email, isUserRegistered));
       return;

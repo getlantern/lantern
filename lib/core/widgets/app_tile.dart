@@ -6,6 +6,7 @@ typedef LinkOpener = Future<void> Function(String url);
 
 class AppTile extends StatelessWidget {
   final String label;
+  final Widget? labelWidget;
   final Widget? subtitle;
 
   final Object? icon;
@@ -35,6 +36,7 @@ class AppTile extends StatelessWidget {
   const AppTile({
     super.key,
     required this.label,
+    this.labelWidget,
     this.onPressed,
     this.onLongPress,
     this.icon,
@@ -132,13 +134,14 @@ class AppTile extends StatelessWidget {
       ),
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(
-        label,
-        textAlign: TextAlign.start,
-        style: textStyle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: labelWidget ??
+          Text(
+            label,
+            textAlign: TextAlign.start,
+            style: textStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       subtitle: subtitle,
       dense: dense,
       leading: computedLeading,

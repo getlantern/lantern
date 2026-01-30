@@ -39,15 +39,30 @@ export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
 
-///this service should communicate with library using ffi
-///also this should be called from only [LanternService]
+/// Communicates with the native library via FFI.
+///
+/// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
 
-  late final Stream<LanternStatus> _status;
-  late Stream<PrivateServerStatus> _privateServerStatus;
-  late Stream<AppEvent> _appEvents;
-  late final LanternServiceWindows _windowsService;
+  /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
+  /// we keep going and fall back to the non-IPC paths.
+  LanternServiceWindows? _windowsService;
+
+  Stream<LanternStatus> _status = _defaultStatusStream();
+
+  Stream<PrivateServerStatus> _privateServerStatus =
+      const Stream<PrivateServerStatus>.empty();
+  Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
+
+  static Stream<LanternStatus> _defaultStatusStream() {
+    // Keep a predictable default (matches the Windows status mapping behavior).
+    return Stream<LanternStatus>.value(
+      LanternStatus.fromJson({'status': 'disconnected', 'error': null}),
+    );
+  }
+
+  bool get _hasWindowsService => _windowsService != null;
 
   static SendPort? _commandSendPort;
   static final Completer<void> _isolateInitialized = Completer<void>();
@@ -61,8 +76,9 @@ class LanternFFIService implements LanternCoreService {
   static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
-    String basePath = p.dirname(Platform.resolvedExecutable);
+    final String basePath = p.dirname(Platform.resolvedExecutable);
     String fullPath = "";
+
     if (Platform.isWindows) {
       fullPath = p.join(basePath, "$_libName.dll");
       if (!File(fullPath).existsSync()) {
@@ -74,43 +90,67 @@ class LanternFFIService implements LanternCoreService {
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
+
     appLogger.debug('singbox native libs path: "$fullPath"');
     final lib = DynamicLibrary.open(fullPath);
     return LanternBindings(lib);
   }
 
   Future<void> init() async {
+    // Set safe defaults up front so callers always have something to listen to.
+    _status = _defaultStatusStream();
+    _privateServerStatus = const Stream<PrivateServerStatus>.empty();
+    _appEvents = const Stream<AppEvent>.empty();
+
     try {
       await _setupRadiance();
+
       if (Platform.isWindows) {
-        /// Start windows IPC service
-        /// keep it alive but we wil use only for VPN calls
-        await _initializeWindowsService();
-        _status = _windowsService.watchVPNStatus();
-        await _initializeCommandIsolate();
+        /// Start windows IPC service.
+        /// Keep it alive, but we only use it for VPN-related calls.
+        try {
+          await _initializeWindowsService();
+          if (_hasWindowsService) {
+            _status = _windowsService!.watchVPNStatus();
+          }
+        } catch (e, st) {
+          appLogger.error(
+            'Windows IPC init failed; continuing without Windows service',
+            e,
+            st,
+          );
+          _windowsService = null;
+        }
+
+        if (!_isolateInitialized.isCompleted) {
+          await _initializeCommandIsolate();
+        }
       } else {
         _status = statusReceivePort.map((event) {
-          Map<String, dynamic> result = jsonDecode(event);
+          final Map<String, dynamic> result = jsonDecode(event);
           return LanternStatus.fromJson(result);
         });
       }
 
+      // These streams exist even if Windows IPC doesn't.
       _privateServerStatus = privateServerReceivePort.map((event) {
-        Map<String, dynamic> result = jsonDecode(event);
+        final Map<String, dynamic> result = jsonDecode(event);
         return PrivateServerStatus.fromJson(result);
       });
+
       _appEvents = flutterEventReceivePort.map((event) {
-        Map<String, dynamic> result = jsonDecode(event);
+        final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
       });
-    } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
+    } catch (e, st) {
+      appLogger.error('Error while setting up radiance', e, st);
     }
   }
 
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
+
       int consent = 0;
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
@@ -128,12 +168,13 @@ class LanternFFIService implements LanternCoreService {
       appLogger.info(
         'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent',
       );
+
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
 
-      /// ⚠️ IMPORTANT: Call setup() ONLY on the main isolate.
-      /// This function initializes the Dart → Go bridge (Dart DL API) using NativeApi.initializeApiDLData.
-      /// If executed from a background isolate, the Dart DL bridge will break,
+      // setup() must run on the main isolate.
+      // It wires up the Dart <-> Go bridge using NativeApi.initializeApiDLData.
+      // Running it from a background isolate will break the Dart DL bridge.
       final result = _ffiService
           .setup(
             logDirPtr,
@@ -148,6 +189,7 @@ class LanternFFIService implements LanternCoreService {
             NativeApi.initializeApiDLData,
           )
           .toDartString();
+
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -164,14 +206,20 @@ class LanternFFIService implements LanternCoreService {
         'ipc-token',
       ),
     );
+
     final token = (await tokenFile.readAsString()).trim();
     final pipe = PipeClient(token: token);
-    _windowsService = LanternServiceWindows(pipe);
+
+    // Create locally first; only assign to the field after init succeeds.
+    final ws = LanternServiceWindows(pipe);
+
     try {
-      await _windowsService.init();
+      await ws.init();
+      _windowsService = ws;
     } catch (e, st) {
       appLogger.error('LanternServiceWindows.init() threw', e, st);
-      rethrow;
+      _windowsService = null;
+      rethrow; // init() will catch and keep going; this keeps the original stack.
     }
   }
 
@@ -223,11 +271,13 @@ class LanternFFIService implements LanternCoreService {
           malloc.free(ptr);
         }
       });
+
       if (json.isEmpty) {
         appLogger.debug("No installed apps found");
         yield [];
         return;
       }
+
       appLogger.debug("Loaded installed apps");
       final decoded = jsonDecode(json) as List<dynamic>;
       final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
@@ -265,6 +315,7 @@ class LanternFFIService implements LanternCoreService {
   static void _commandIsolateEntry(SendPort sendPort) {
     final commandPort = ReceivePort();
     sendPort.send(commandPort.sendPort);
+
     commandPort.listen((message) async {
       final msg = message as SplitTunnelMessage;
       try {
@@ -273,6 +324,7 @@ class LanternFFIService implements LanternCoreService {
           msg.value,
           msg.action,
         );
+
         if (result.isLeft()) {
           final failure = result.fold((f) => f, (_) => null)!;
           msg.replyPort.send({
@@ -306,9 +358,11 @@ class LanternFFIService implements LanternCoreService {
     SplitTunnelActionType action,
   ) async {
     final responsePort = ReceivePort();
+
     if (_commandSendPort == null) {
       throw StateError('Command isolate not initialized');
     }
+
     _commandSendPort!.send(
       SplitTunnelMessage(type, value, action, responsePort.sendPort),
     );
@@ -320,13 +374,13 @@ class LanternFFIService implements LanternCoreService {
       return left(
         Failure(
           error: result['error'] ?? 'Unknown error',
-          localizedErrorMessage:
-              result['localizedErrorMessage'] ??
+          localizedErrorMessage: result['localizedErrorMessage'] ??
               result['error'] ??
               'Unknown error',
         ),
       );
     }
+
     return right(unit);
   }
 
@@ -402,6 +456,7 @@ class LanternFFIService implements LanternCoreService {
       final fn = action == SplitTunnelActionType.add
           ? _ffiService.addSplitTunnelItem
           : _ffiService.removeSplitTunnelItem;
+
       final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
       if (result != nullptr) {
         final error = result.cast<Utf8>().toDartString();
@@ -409,14 +464,14 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error('$action split tunnel error: $error');
         return left(Failure(error: error, localizedErrorMessage: error));
       }
+
       return right(unit);
     } catch (e) {
       return left(
         Failure(
           error: e.toString(),
-          localizedErrorMessage: (e is Exception)
-              ? e.localizedDescription
-              : e.toString(),
+          localizedErrorMessage:
+              (e is Exception) ? e.localizedDescription : e.toString(),
         ),
       );
     } finally {
@@ -459,6 +514,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
       appLogger.debug('Starting VPN on Windows via IPC');
+
       try {
         final result = runInBackground(() async {
           return _ffiService.startAutoLocationListener().toDartString();
@@ -470,8 +526,20 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error starting auto location listener: $e");
       }
 
-      return _windowsService.connect();
+      final ws = _windowsService;
+      if (ws == null) {
+        return left(
+          Failure(
+            error: 'Windows service unavailable',
+            localizedErrorMessage:
+                'The Windows VPN service did not initialize (IPC unavailable).',
+          ),
+        );
+      }
+
+      return ws.connect();
     }
+
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       appLogger.debug('Starting VPN');
@@ -506,7 +574,7 @@ class LanternFFIService implements LanternCoreService {
   ) async {
     if (Platform.isWindows) {
       try {
-        ///Do not await here to avoid blocking
+        // Do not await here to avoid blocking
         final result = runInBackground(() async {
           return _ffiService.stopAutoLocationListener().toDartString();
         });
@@ -517,8 +585,20 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error stopping auto location listener: $e");
       }
 
-      return _windowsService.connectToServer(location, tag);
+      final ws = _windowsService;
+      if (ws == null) {
+        return left(
+          Failure(
+            error: 'Windows service unavailable',
+            localizedErrorMessage:
+                'Cannot connect to a server because Windows IPC is unavailable.',
+          ),
+        );
+      }
+
+      return ws.connectToServer(location, tag);
     }
+
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       final result = await runInBackground<String>(() async {
@@ -546,9 +626,10 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
+
       if (Platform.isWindows) {
+        // Best-effort: stop the listener without blocking the UI.
         try {
-          ///Do not await here to avoid blocking
           final result = runInBackground(() async {
             return _ffiService.stopAutoLocationListener().toDartString();
           });
@@ -558,8 +639,19 @@ class LanternFFIService implements LanternCoreService {
         } catch (e) {
           appLogger.error("error stopping auto location listener: $e");
         }
-        return _windowsService.disconnect();
+
+        final ws = _windowsService;
+        if (ws == null) {
+          // If IPC never came up, treat this as already stopped.
+          appLogger.warning(
+            'stopVPN(): Windows service not initialized; treating as already stopped',
+          );
+          return right('ok');
+        }
+
+        return ws.disconnect();
       }
+
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
         return left(Failure(error: result, localizedErrorMessage: ''));
@@ -576,7 +668,11 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
       if (Platform.isWindows) {
-        return _windowsService.isVPNConnected();
+        final ws = _windowsService;
+        if (ws == null) {
+          return right(false);
+        }
+        return ws.isVPNConnected();
       }
       final connectedInt = _ffiService.isVPNConnected();
       final connected = connectedInt != 0;
@@ -589,7 +685,11 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<List<String>> watchLogs(String path) {
     if (PlatformUtils.isWindows) {
-      return _windowsService.watchLogs();
+      final ws = _windowsService;
+      if (ws == null) {
+        return const Stream<List<String>>.empty();
+      }
+      return ws.watchLogs();
     }
     throw UnimplementedError();
   }
@@ -659,7 +759,8 @@ class LanternFFIService implements LanternCoreService {
       });
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
-      //Sort plans
+
+      // Sort plans
       plans.plans.sort((a, b) {
         if (a.bestValue != b.bestValue) {
           return a.bestValue ? -1 : 1;
@@ -672,6 +773,7 @@ class LanternFFIService implements LanternCoreService {
         return (b.providers.supportSubscription ? 1 : 0) -
             (a.providers.supportSubscription ? 1 : 0);
       });
+
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
@@ -1160,14 +1262,15 @@ class LanternFFIService implements LanternCoreService {
           value.protocol = protoValue;
         } else {
           try {
-            //if not found, try to extract from tag
+            // If not found, try to extract from tag.
             value.protocol = value.tag.split('-').first;
-          } catch (e) {
-            //if any error, set to empty
+          } catch (_) {
+            // If anything goes wrong, just leave it blank.
             value.protocol = '';
           }
         }
       });
+
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error('Error getting available servers', e, stackTrace);

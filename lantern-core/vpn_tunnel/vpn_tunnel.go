@@ -5,10 +5,9 @@ import (
 
 	"log/slog"
 
-	radianceCommon "github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/sagernet/sing-box/experimental/libbox"
+	"github.com/getlantern/radiance/vpn/rvpn"
 
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
@@ -23,11 +22,11 @@ const (
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // It passes the empty string so it will connect to best server available.
-func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
 	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
-	if err := initCommon(opts, platform); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+	if err := initIPC(opts, platform); err != nil {
+		return fmt.Errorf("failed to initialize IPC server: %w", err)
 	}
 	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
@@ -46,10 +45,10 @@ func StopVPN() error {
 // ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
-func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
+func ConnectToServer(group, tag string, platIfce rvpn.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
-	if err := initCommon(opts, platIfce); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+	if err := initIPC(opts, platIfce); err != nil {
+		return fmt.Errorf("failed to initialize IPC server: %w", err)
 	}
 	switch group {
 	case string(InternalTagAutoAll), "auto":
@@ -81,22 +80,11 @@ func GetSelectedServer() string {
 	return status.SelectedServer
 }
 
-func initCommon(opts *utils.Opts, platIfce libbox.PlatformInterface) error {
-	// Since this will start as a new process, we need to ask for path and logger.
-	// This ensures options are correctly set for the new process.
-	platIfceFn := func() libbox.PlatformInterface { return platIfce }
-	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() || radianceCommon.IsAndroid() {
-		slog.Debug("Initializing common for Apple platforms", "dataDir", opts.DataDir, "logDir:",
-			opts.LogDir, "logLevel:", opts.LogLevel)
-		if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfceFn); err != nil {
-			return fmt.Errorf("failed to initialize common: %w", err)
-		}
-	} else if radianceCommon.IsWindows() {
-		if _, err := vpn.InitIPC("", "", opts.LogLevel, platIfceFn); err != nil {
-			return fmt.Errorf("failed to initialize common: %w", err)
-		}
+func initIPC(opts *utils.Opts, platIfce rvpn.PlatformInterface) error {
+	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir", opts.LogDir, "logLevel", opts.LogLevel)
+	if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce); err != nil {
+		return err
 	}
-
 	return nil
 }
 

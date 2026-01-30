@@ -16,11 +16,7 @@ import Liblantern
 import NetworkExtension
 import UserNotifications
 
-#if os(macOS)
-  import CoreWLAN
-#endif
-
-public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
+public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol {
 
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
@@ -365,40 +361,24 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   }
 
   public func readWIFIState() -> LibboxWIFIState? {
-    #if os(iOS)
-      let network = runBlocking {
-        await NEHotspotNetwork.fetchCurrent()
-      }
-      guard let network else {
-        return nil
-      }
-      return LibboxWIFIState(network.ssid, wifiBSSID: network.bssid)!
-    #elseif os(macOS)
-      guard let interface = CWWiFiClient.shared().interface() else {
-        return nil
-      }
-      guard let ssid = interface.ssid() else {
-        return nil
-      }
-      guard let bssid = interface.bssid() else {
-        return nil
-      }
-      return LibboxWIFIState(ssid, wifiBSSID: bssid)!
-    #else
+    let network = runBlocking {
+      await NEHotspotNetwork.fetchCurrent()
+    }
+    guard let network else {
       return nil
-    #endif
+    }
+    return LibboxWIFIState(network.ssid, wifiBSSID: network.bssid)!
   }
 
-  //  public func serviceReload() throws {
-  //    runBlocking { [self] in
-  //      await tunnel.reloadService()
-  //    }
-  //  }
+  public func restartService() throws {
+    runBlocking { [self] in
+      tunnel.restartService()
+    }
+  }
 
-  //  public func postServiceClose() {
-  //    reset()
-  //    tunnel.postServiceClose()
-  //  }
+  public func postServiceClose() {
+    reset()
+  }
 
   public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
     let status = LibboxSystemProxyStatus()

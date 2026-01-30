@@ -309,6 +309,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     UserResponse_UserData_SubscriptionData? subscriptionData,
     $core.String? deviceID,
     $core.bool? unpassRegistered,
+    $fixnum.Int64? lastExpiredOn,
   }) {
     final $result = create();
     if (userId != null) {
@@ -378,6 +379,9 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     if (unpassRegistered != null) {
       $result.unpassRegistered = unpassRegistered;
     }
+    if (lastExpiredOn != null) {
+      $result.lastExpiredOn = lastExpiredOn;
+    }
     return $result;
   }
   UserResponse_UserData._() : super();
@@ -407,6 +411,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     ..aOM<UserResponse_UserData_SubscriptionData>(20, _omitFieldNames ? '' : 'subscriptionData', protoName: 'subscriptionData', subBuilder: UserResponse_UserData_SubscriptionData.create)
     ..aOS(21, _omitFieldNames ? '' : 'deviceID', protoName: 'deviceID')
     ..aOB(22, _omitFieldNames ? '' : 'unpassRegistered', protoName: 'unpassRegistered')
+    ..aInt64(23, _omitFieldNames ? '' : 'lastExpiredOn', protoName: 'lastExpiredOn')
     ..hasRequiredFields = false
   ;
 
@@ -605,6 +610,15 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
   $core.bool hasUnpassRegistered() => $_has(21);
   @$pb.TagNumber(22)
   void clearUnpassRegistered() => $_clearField(22);
+
+  @$pb.TagNumber(23)
+  $fixnum.Int64 get lastExpiredOn => $_getI64(22);
+  @$pb.TagNumber(23)
+  set lastExpiredOn($fixnum.Int64 v) { $_setInt64(22, v); }
+  @$pb.TagNumber(23)
+  $core.bool hasLastExpiredOn() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearLastExpiredOn() => $_clearField(23);
 }
 
 class UserResponse extends $pb.GeneratedMessage {

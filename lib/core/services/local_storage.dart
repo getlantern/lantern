@@ -165,7 +165,7 @@ class LocalStorageService {
   void saveUser(UserResponseEntity user) {
     try {
       _userBox.removeAll();
-      _userBox.putAsync(user);
+      _userBox.put(user);
     } catch (e) {
       appLogger.error("Error saving user to local storage", e);
     }

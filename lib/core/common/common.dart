@@ -113,7 +113,7 @@ Future<String> pasteFromClipboard() async {
 
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [Duration(seconds: 1), Duration(seconds: 2)];
+  final delays = [Duration(seconds: 1), Duration(seconds: 2),Duration(seconds: 3)];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
