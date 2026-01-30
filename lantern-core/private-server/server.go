@@ -80,7 +80,7 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 	session := provisioner.Session()
 	if session == nil {
 		slog.Error("Failed to start DigitalOcean provisioner")
-		return fmt.Errorf("Failed to start DigitalOcean provisioner")
+		return fmt.Errorf("failed to start DigitalOcean provisioner")
 	}
 	ps := &provisionSession{
 		provisioner: provisioner,
@@ -101,7 +101,7 @@ func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, 
 	session := provisioner.Session()
 	if session == nil {
 		slog.Error("Failed to start Google Cloud provisioner")
-		return fmt.Errorf("Failed to start Google Cloud provisioner")
+		return fmt.Errorf("failed to start Google Cloud provisioner")
 	}
 	ps := &provisionSession{
 		provisioner: provisioner,
@@ -364,7 +364,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 	resp.Location = location
 	server, jerr := json.Marshal(resp)
 	if jerr != nil {
-		slog.Error("Error marshalling server response", slog.Any("error", err))
+		slog.Error("Error marshalling server response", slog.Any("error", jerr))
 		return jerr
 	}
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
