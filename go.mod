@@ -242,6 +242,7 @@ require (
 	github.com/pion/webrtc/v3 v3.1.42 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus-community/pro-bing v0.4.0 // indirect
+	github.com/r3labs/sse/v2 v2.10.0 // indirect
 	github.com/refraction-networking/utls v1.7.1 // indirect
 	github.com/refraction-networking/water v0.7.1-alpha // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -289,6 +290,7 @@ require (
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251124214823-79d6a2a48846 // indirect
+	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.4 // indirect

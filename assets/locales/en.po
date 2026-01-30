@@ -1343,7 +1343,15 @@ msgstr "Main Channel"
 msgid "data_cap_channel_"
 msgstr "Data Usage Alerts"
 
+msgid "mb_free_data_remaining"
+msgstr "%d MB free data remaining"
 
+msgid "daily_data_cap_reached"
+msgstr "Daily data cap reached"
+
+
+msgid "daily_data_cap_reached_message"
+msgstr "Your data will reset at %s. Upgrade to Pro for unlimited high-speed data."
 
 
 

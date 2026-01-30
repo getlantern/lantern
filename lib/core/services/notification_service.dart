@@ -133,10 +133,17 @@ class NotificationService {
     required String title,
     required String body,
     NotificationDetails? notificationDetails,
+    String? payload,
   }) {
     final notificationDetails0 =
         notificationDetails ?? _getNotificationDetails(NotificationType.main);
-   return _plugin.show(id, title, body, notificationDetails0);
+    return _plugin.show(
+      id,
+      title,
+      body,
+      notificationDetails0,
+      payload: payload,
+    );
   }
 
   /// notification details based on type
