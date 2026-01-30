@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/common"
@@ -138,7 +137,7 @@ func IsRadianceConnected() bool {
 	return ok
 }
 
-func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("Starting VPN")
 	err := vpn_tunnel.StartVPN(platform, opts)
 	if err != nil {
@@ -177,7 +176,7 @@ func StopVPN() error {
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
 	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 	if err != nil {
 		return err

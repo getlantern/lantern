@@ -152,6 +152,22 @@ class _HomeState extends ConsumerState<Home>
           },
           icon: const AppImage(path: AppImagePaths.menu),
         ),
+        actions: [
+          if (isUserPro)
+            AppIconButton(
+              path: AppImagePaths.accountCircle,
+              onPressed: () {
+                appRouter.push(const Account());
+              },
+            )
+          else if (!appSetting.userLoggedIn)
+            AppTextButton(
+              label: 'sign_in'.i18n,
+              onPressed: () {
+                appRouter.push(const SignInEmail());
+              },
+            )
+        ],
       ),
       body: SafeArea(child: _buildBody(ref, isUserPro)),
     );

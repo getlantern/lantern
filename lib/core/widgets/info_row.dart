@@ -8,6 +8,7 @@ class InfoRow extends StatelessWidget {
   final String text;
   final TextStyle? textStyle;
   final Color? backgroundColor;
+  final Color? borderColor;
   final Widget? child;
   final double borderRadius;
   final String? imagePath;
@@ -22,6 +23,7 @@ class InfoRow extends StatelessWidget {
     required this.text,
     this.textStyle,
     this.backgroundColor,
+    this.borderColor,
     this.imagePath,
     this.borderRadius = 8,
     this.padding,
@@ -42,7 +44,7 @@ class InfoRow extends StatelessWidget {
             padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(color: AppColors.gray2),
+          side: BorderSide(color: borderColor ?? AppColors.gray2),
         ),
         leading: showLeadingIcon
             ? AppImage(
@@ -52,9 +54,10 @@ class InfoRow extends StatelessWidget {
         title: child ??
             Text(
               text,
-              style: (textStyle ?? textTheme.bodyMedium)!.copyWith(
-                color: AppColors.gray8,
-              ),
+              style: textStyle ??
+                  (textTheme.bodyMedium)!.copyWith(
+                    color: AppColors.gray8,
+                  ),
             ));
   }
 }
