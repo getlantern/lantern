@@ -23,7 +23,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     );
   }
 
-  void updateDateCapInfo(DataCapUsageResponse newInfo) {
+  void updateDataCapInfo(DataCapUsageResponse newInfo) {
     state = AsyncValue.data(newInfo);
     checkAndNotify(newInfo);
   }
@@ -46,7 +46,10 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     if (!dataCapUsage.enabled) {
       return 0.0;
     }
-    final dataCapInfo = dataCapUsage.usage!;
+    final dataCapInfo = dataCapUsage.usage;
+    if (dataCapInfo == null) {
+      return 0.0;
+    }
     return (dataCapInfo.bytesUsed / dataCapInfo.bytesAllotted) * 100;
   }
 
@@ -79,6 +82,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
           id: threshold.value,
           title: notification.$1,
           body: notification.$2,
+          notificationType: NotificationType.dataCapWarning,
         );
   }
 
@@ -135,7 +139,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   }
 
   void _saveNotifiedThreshold(
-      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo) async {
+      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo)  {
     final usage = dataCapInfo.usage!;
     final thresholdValue = '${usage.allotmentEndTime}_${threshold.value}';
     final appSettingNotifier = ref.read(appSettingProvider.notifier);

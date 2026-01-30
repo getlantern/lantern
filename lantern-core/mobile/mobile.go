@@ -482,6 +482,6 @@ func GetSmartRoutingEnabled() bool {
 		slog.Error("mobile: GetSmartRoutingEnableds error", "error", err)
 		return false
 	}
-	slog.Debug("mobile: GetSmartRoutingMode result", "mode", ok)
+	slog.Debug("mobile: GetSmartRoutingEnabled result", "mode", ok)
 	return ok
 }

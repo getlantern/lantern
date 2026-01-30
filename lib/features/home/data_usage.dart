@@ -14,6 +14,7 @@ class DataUsage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final dataCapAsync = ref.watch(dataCapInfoProvider);
+    final dataCapNotifier = ref.read(dataCapInfoProvider.notifier);
     return dataCapAsync.when(
       data: (dataCapResponse) {
         /// If data cap is not enabled, don't show the widget
@@ -29,7 +30,7 @@ class DataUsage extends ConsumerWidget {
         final isDataCapReached = usedBytes >= totalBytes;
         appLogger.debug(
             "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
-        final dataCapResetTime = formatDailyResetTime(dataCap.allotmentEndTime);
+        final dataCapResetTime = dataCapNotifier.formatDailyResetTime(dataCap.allotmentEndTime);
         String dataCapMessage =
             "daily_data_cap_reached_message".i18n.fill([dataCapResetTime]);
 
@@ -150,28 +151,5 @@ class DataUsage extends ConsumerWidget {
     );
   }
 
-  /// Formats the daily reset time based on whether it's today or another day.
-  String formatDailyResetTime(String serverTime) {
-    try {
-      if (serverTime.isEmpty) {
-        return "";
-      }
-      final DateTime endTime = DateTime.parse(
-        serverTime,
-      ).toLocal();
-      final DateTime now = DateTime.now();
-      final DateTime today = DateTime(now.year, now.month, now.day);
-      final DateTime endDate =
-          DateTime(endTime.year, endTime.month, endTime.day);
-      if (endDate == today) {
-        return AppDateFormats.time.format(endTime);
-      }
 
-      return '${AppDateFormats.weekday.format(endTime)}, '
-          '${AppDateFormats.time.format(endTime)}';
-    } catch (e) {
-      appLogger.error('Error formatting daily reset time: $e');
-      return "";
-    }
-  }
 }

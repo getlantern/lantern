@@ -34,10 +34,13 @@ class NotificationService {
         defaultActionName: 'open_notification'.i18n,
         defaultIcon: AssetsLinuxIcon(AppImagePaths.appIcon),
       );
-      var iconPath =
-          File.fromUri(WindowsImage.getAssetUri(AppImagePaths.appIcon))
-              .absolute
-              .path;
+
+      var iconPath;
+      if (PlatformUtils.isWindows) {
+        iconPath = File.fromUri(WindowsImage.getAssetUri(AppImagePaths.appIcon))
+            .absolute
+            .path;
+      }
 
       final windowsSettings = WindowsInitializationSettings(
         appName: 'Lantern',
@@ -115,19 +118,35 @@ class NotificationService {
     required String body,
     Duration? delay,
     String? payload,
-    NotificationDetails? notificationDetails,
+    NotificationType notificationType = NotificationType.main,
   }) async {
     try {
-      appLogger.debug("scheduleNotification notification");
-      final scheduleTime =
-          tz.TZDateTime.now(tz.local).add(delay ?? Duration.zero);
+      if (!_notificationsEnabled) {
+        appLogger.warning(
+            "Notifications are not enabled. Skipping notification with id: $id");
+        return;
+      }
+      appLogger.debug(
+          "Scheduling notification (id: $id) with delay: ${delay?.inSeconds ?? 0} seconds");
 
+      /// If dealy is null no need to use zonedSchedule
+      /// just show immediately
+      if (delay == null) {
+        showNotification(
+          id: id,
+          title: title,
+          body: body,
+          payload: payload,
+          notificationType: notificationType,
+        );
+        return;
+      }
+      final scheduleTime = tz.TZDateTime.now(tz.local).add(delay);
       if (scheduleTime.isBefore(tz.TZDateTime.now(tz.local))) {
         throw ArgumentError('scheduleTime must be in the future');
       }
 
-      final nd =
-          notificationDetails ?? _getNotificationDetails(NotificationType.main);
+      final nd = _getNotificationDetails(NotificationType.main);
       await _plugin.zonedSchedule(
         id,
         title,
@@ -148,18 +167,26 @@ class NotificationService {
     required int id,
     required String title,
     required String body,
-    NotificationDetails? notificationDetails,
+    NotificationType notificationType = NotificationType.main,
     String? payload,
-  }) {
-    final notificationDetails0 =
-        notificationDetails ?? _getNotificationDetails(NotificationType.main);
-    return _plugin.show(
-      id,
-      title,
-      body,
-      notificationDetails0,
-      payload: payload,
-    );
+  }) async {
+    try {
+      if (!_notificationsEnabled) {
+        appLogger.warning(
+            "Notifications are not enabled. Skipping notification with id: $id");
+        return;
+      }
+      final notificationDetails0 = _getNotificationDetails(notificationType);
+      await _plugin.show(
+        id,
+        title,
+        body,
+        notificationDetails0,
+        payload: payload,
+      );
+    } catch (e, st) {
+      appLogger.error("Error showing notification: $e", st);
+    }
   }
 
   /// notification details based on type

@@ -82,7 +82,7 @@ class AppEventNotifier extends _$AppEventNotifier {
             final dataCapInfo = DataCapUsageResponse.fromJson(jsonDecode(data));
             ref
                 .read(dataCapInfoProvider.notifier)
-                .updateDateCapInfo(dataCapInfo);
+                .updateDataCapInfo(dataCapInfo);
           } catch (e) {
             appLogger.error('Error parsing data-cap-event: $e');
           }
