@@ -400,7 +400,7 @@
     },
     {
       "id": "11:4557824412096950738",
-      "lastPropertyId": "22:3794833187885345640",
+      "lastPropertyId": "23:5829217254102946918",
       "name": "UserDataEntity",
       "properties": [
         {
@@ -516,6 +516,11 @@
           "id": "22:3794833187885345640",
           "name": "unpassRegistered",
           "type": 1
+        },
+        {
+          "id": "23:5829217254102946918",
+          "name": "lastExpiredOn",
+          "type": 6
         }
       ],
       "relations": [

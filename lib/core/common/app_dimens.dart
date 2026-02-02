@@ -12,5 +12,6 @@ const double size24 = 24.0;
 const gap16 = SizedBox(height: 16);
 
 // Window settings
+const desktopWindowMinSize = Size(390, 750);
 const desktopWindowSize = Size(390, 800);
 const mobileSize = Size(360, 690);

@@ -144,6 +144,20 @@ class LanternVpnService :
         return pfd.fd
     }
 
+    override fun postServiceClose() {
+        AppLogger.i(TAG, "postServiceClose called")
+        mInterface = null
+
+    }
+
+    override fun restartService() {
+        AppLogger.i(TAG, "restartService called")
+        serviceScope.launch {
+            doStopVPN()
+            startVPN()
+        }
+    }
+
     override fun sendNotification(notification: Notification?) {
         notificationHelper.sendNotification(notification)
     }
