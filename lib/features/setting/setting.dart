@@ -303,13 +303,18 @@ class _SettingState extends ConsumerState<Setting> {
 
   Future<void> checkForUpdates() async {
     try {
-      autoUpdater.checkForUpdates();
-    } catch (e) {
-      appLogger.error('Error checking for updates: $e');
+      if (Platform.isMacOS || Platform.isWindows) {
+        // Make manual checks always work.
+        await autoUpdater.setFeedURL(AppUrls.appcastURL);
+      }
+      await autoUpdater.checkForUpdates();
+    } catch (e, st) {
+      appLogger.error('Error checking for updates: $e', st);
       AppDialog.errorDialog(
-          context: context,
-          title: 'error'.i18n,
-          content: e.localizedDescription);
+        context: context,
+        title: 'error'.i18n,
+        content: e.localizedDescription,
+      );
     }
   }
 

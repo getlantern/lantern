@@ -52,5 +52,7 @@
             </array>
         </dict>
     </array>
+	<key>SUFeedURL</key>
+	<string>https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml</string>
 </dict>
 </plist>
