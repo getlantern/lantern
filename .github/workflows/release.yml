@@ -72,14 +72,14 @@ jobs:
         run: |
           NEW_VERSION="${VERSION}"
           echo "Updating version number to: $NEW_VERSION (incrementing build number)"
-          
+
           # Extract current build number from pubspec.yaml
           CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
-          
+
           # Increment build number by 1
           NEW_BUILD=$((CURRENT_BUILD + 1))
           FULL_VERSION="${NEW_VERSION}+${NEW_BUILD}"
-          
+
           echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
           sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
           echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
@@ -141,7 +141,7 @@ jobs:
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-google-play:
-    needs: [ set-release-metadata, build-android ]
+    needs: [set-release-metadata, build-android]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
@@ -187,13 +187,7 @@ jobs:
 
   publish:
     needs:
-      [
-        set-release-metadata,
-        build-macos,
-        build-linux,
-        build-android,
-        build-ios,
-      ]
+      [set-release-metadata, build-macos, build-linux, build-android, build-ios]
     if: always()
     runs-on: ubuntu-latest
     env:
@@ -292,7 +286,7 @@ jobs:
           token: ${{ github.token }}
           tag_name: ${{ github.ref_name }}
           name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
-          prerelease: true
+          prerelease: ${{ needs.set-release-metadata.outputs.build_type != 'production' }}
           generate_release_notes: false
           files: |
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
@@ -350,7 +344,7 @@ jobs:
           elif [[ "$platform" == "ios" ]]; then
           text="${text}\n• Build uploaded to TestFlight (iOS)"
           fi
-          
+
           # Expose as output
           echo "text<<EOF" >> "$GITHUB_OUTPUT"
           echo "$text"   >> "$GITHUB_OUTPUT"
@@ -369,7 +363,7 @@ jobs:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [ build-ios, set-release-metadata ]
+    needs: [build-ios, set-release-metadata]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
       && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
