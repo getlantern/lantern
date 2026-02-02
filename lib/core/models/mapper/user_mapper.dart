@@ -24,27 +24,29 @@ extension UserMapper on UserResponse {
 extension UserDataMapper on UserResponse_UserData {
   UserDataEntity toEntity() {
     final user = UserDataEntity(
-        id: 0,
-        userId: userId.toInt(),
-        code: code,
-        token: token,
-        referral: referral,
-        phone: phone,
-        email: email,
-        userStatus: userStatus,
-        userLevel: userLevel,
-        locale: locale,
-        expiration: expiration.toInt(),
-        subscription: subscription,
-        bonusDays: bonusDays,
-        bonusMonths: bonusMonths,
-        yinbiEnabled: yinbiEnabled,
-        servers: servers.toList().join(','),
-        inviters: inviters.toList().join(','),
-        invitees: invitees.toList().join(','),
-        purchases: purchases.toList().join(','),
-        deviceID: deviceID,
-        unpassRegistered: unpassRegistered);
+      id: 0,
+      userId: userId.toInt(),
+      code: code,
+      token: token,
+      referral: referral,
+      phone: phone,
+      email: email,
+      userStatus: userStatus,
+      userLevel: userLevel,
+      locale: locale,
+      expiration: expiration.toInt(),
+      subscription: subscription,
+      bonusDays: bonusDays,
+      bonusMonths: bonusMonths,
+      yinbiEnabled: yinbiEnabled,
+      servers: servers.toList().join(','),
+      inviters: inviters.toList().join(','),
+      invitees: invitees.toList().join(','),
+      purchases: purchases.toList().join(','),
+      deviceID: deviceID,
+      unpassRegistered: unpassRegistered,
+      lastExpiredOn: lastExpiredOn.toInt(),
+    );
     user.devices.addAll(devices.map((e) => e.toEntity()));
 
     user.subscriptionData.target =
@@ -135,6 +137,8 @@ extension UserData on UserDataEntity {
           ? null
           : subscriptionData.target!.toSubscriptionData(),
       deviceID: deviceID,
+      unpassRegistered: unpassRegistered,
+      lastExpiredOn: Int64(lastExpiredOn),
     );
   }
 }

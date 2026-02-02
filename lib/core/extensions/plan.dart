@@ -34,36 +34,57 @@ extension PlanExtension on Plan {
 extension IsoDateFormatter on UserResponse_UserData {
   String toDate() {
     try {
-      final autoRenew = subscriptionData.autoRenew;
-      final endAt = subscriptionData.endAt.toString();
-      if (PlatformUtils.isIOS && autoRenew) {
-        final dateTime =
-            DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
-                .toLocal();
-        final mm = dateTime.month.toString().padLeft(2, '0');
-        final dd = dateTime.day.toString().padLeft(2, '0');
-        final yy = (dateTime.year % 100).toString().padLeft(2, '0');
-        if (dateTime.isBefore(DateTime.now())) {
-          return "$mm/$dd/$yy  ${'expired'.i18n}";
+      if (userLevel == 'expired') {
+        final lastExpiredOn = this.lastExpiredOn.toInt();
+        if (lastExpiredOn <= 0) {
+          return "N/A";
         }
-        return "$mm/$dd/$yy";
+        final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+          lastExpiredOn * 1000,
+          isUtc: true,
+        ).toLocal();
+        final formattedDate = _formatDate(expirationDate);
+        return "$formattedDate  ${'expired'.i18n}";
       }
-      if (endAt == "" || autoRenew == false) {
-        // User is on non subscription plan
-        final newDate =
-            DateTime.fromMillisecondsSinceEpoch(expiration.toInt() * 1000);
-        return _mmddyyFormatter.format(newDate);
-      }
-      final dateTime =
-          DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
-              .toLocal();
 
-      final mm = dateTime.month.toString().padLeft(2, '0');
-      final dd = dateTime.day.toString().padLeft(2, '0');
-      final yy = (dateTime.year % 100).toString().padLeft(2, '0');
-      return "$mm/$dd/$yy";
-    } catch (_) {
-      return "N/A"; // return original string if parsing fails
+      final autoRenew = subscriptionData.autoRenew;
+      final endAt = subscriptionData.endAt.toInt();
+      // Validate expiration exists
+      if (expiration <= 0) {
+        return "N/A";
+      }
+      if (autoRenew && endAt != 0) {
+        // Active subscription case
+        final endAtTimestamp = subscriptionData.endAt.toInt();
+        if (endAtTimestamp <= 0) {
+          return "N/A";
+        }
+        final dateTime = DateTime.fromMillisecondsSinceEpoch(
+          endAtTimestamp * 1000,
+          isUtc: true,
+        ).toLocal();
+
+        return _formatDate(dateTime);
+      }
+      // Non-subscription plan case
+      final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+        expiration.toInt() * 1000,
+        isUtc: true,
+      ).toLocal();
+      final formattedDate = _formatDate(expirationDate);
+      if (expirationDate.isBefore(DateTime.now())) {
+        return "$formattedDate  ${'expired'.i18n}";
+      }
+      return formattedDate;
+    } catch (e) {
+      return "N/A";
     }
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final mm = dateTime.month.toString().padLeft(2, '0');
+    final dd = dateTime.day.toString().padLeft(2, '0');
+    final yy = (dateTime.year % 100).toString().padLeft(2, '0');
+    return "$mm/$dd/$yy";
   }
 }

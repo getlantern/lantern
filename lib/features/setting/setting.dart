@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -42,12 +43,16 @@ class Setting extends StatefulHookConsumerWidget {
 class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
-    final isExpired = ref.read(isUserExpiredProvider);
+    final isExpired = ref.watch(isUserExpiredProvider);
     final appSetting = ref.watch(appSettingProvider);
+    final localUser = sl<LocalStorageService>().getUser();
+    final localIsPro = localUser?.legacyUserData.isPro() ?? false;
+    final hasProSession =
+        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
+    final isAuthenticated = appSetting.userLoggedIn || hasProSession;
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-
     final user = ref.watch(homeProvider).value;
     String email = '';
     if (user != null) {
@@ -72,7 +77,9 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (isUserPro || (isExpired && appSetting.userLoggedIn))
+          if (isUserPro ||
+              hasProSession ||
+              (isExpired && appSetting.userLoggedIn))
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -101,7 +108,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (!appSetting.userLoggedIn)
+          if (!isAuthenticated)
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
@@ -174,7 +181,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (appSetting.userLoggedIn) ...{
+          if (appSetting.userLoggedIn) ...[
             const SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
@@ -184,7 +191,7 @@ class _SettingState extends ConsumerState<Setting> {
                 onPressed: () => settingMenuTap(_SettingType.logout),
               ),
             ),
-          },
+          ],
           const SizedBox(height: defaultSize),
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             AppCard(
@@ -245,6 +252,7 @@ class _SettingState extends ConsumerState<Setting> {
         throw UnimplementedError();
       case _SettingType.support:
         appRouter.push(Support());
+        break;
       case _SettingType.followUs:
         if (PlatformUtils.isDesktop) {
           appRouter.push(FollowUs());
@@ -261,16 +269,24 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.checkForUpdates:
         await checkForUpdates();
         break;
-      case _SettingType.account:
-        final localUser = sl<LocalStorageService>().getUser()!;
-        final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
-        if (localUser.legacyUserData.isPro() && !userSignedIn) {
-          final email = localUser.legacyUserData.email;
 
-          /// this means user has pro account but not signed in
-          updateProAccountFlow(email.isNotEmpty);
+      case _SettingType.account:
+        final localUser = sl<LocalStorageService>().getUser();
+        if (localUser == null) {
+          /// This should not happen, but just in case.
+          /// If user is not account screen it mean user should have some data
+          appRouter.push(const SignInEmail());
           return;
         }
+        final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
+        final email = localUser.legacyUserData.email;
+        final isPro = localUser.legacyUserData.isPro();
+        if (isPro && !userSignedIn) {
+          await showProAccountFlowDialog(
+              context: context, hasEmail: email.isNotEmpty);
+          return;
+        }
+
         appRouter.push(Account());
         break;
       case _SettingType.vpnSetting:
@@ -299,7 +315,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   void logoutDialog() {
     final theme = Theme.of(context).textTheme;
-    final isExpired = ref.read(isUserExpiredProvider);
+    final isExpired = ref.watch(isUserExpiredProvider);
     AppDialog.customDialog(
       context: context,
       action: [
@@ -335,48 +351,6 @@ class _SettingState extends ConsumerState<Setting> {
           ),
         ],
       ),
-    );
-  }
-
-  void updateProAccountFlow(bool hasEmail) {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24.0),
-          AppImage(path: AppImagePaths.personAdd),
-          SizedBox(height: 16.0),
-          Text(
-            hasEmail ? 'set_account_password'.i18n : 'update_pro_account'.i18n,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            hasEmail
-                ? 'set_account_password_message'.i18n
-                : 'update_pro_account_message'.i18n,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: AppColors.gray8,
-                ),
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'cancel'.i18n,
-          textColor: AppColors.gray6,
-          onPressed: () {
-            appRouter.maybePop();
-          },
-        ),
-        AppTextButton(
-          label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
-          onPressed: () {
-            appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
-          },
-        ),
-      ],
     );
   }
 

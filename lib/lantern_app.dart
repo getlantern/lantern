@@ -135,6 +135,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
       child: WindowWrapper(
         child: SystemTrayWrapper(
           child: ScreenUtilInit(
+            ensureScreenSize:true,
+
             designSize:
                 PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
             minTextAdapt: true,
