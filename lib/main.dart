@@ -24,6 +24,8 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  appLogger.debug('Loading translations...');
+  await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();
   try {
     if (PlatformUtils.isMobile) {
@@ -41,8 +43,7 @@ Future<void> main() async {
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
     await injectServices();
-    appLogger.debug('Loading translations...');
-    await Future.microtask(Localization.loadTranslations);
+
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
@@ -119,9 +120,9 @@ Future<void> _configureLocalTimeZone() async {
     return;
   }
   tz.initializeTimeZones();
-  if (Platform.isWindows) {
-    return;
-  }
+  // if (Platform.isWindows) {
+  //   return;
+  // }
   final timeZoneName = await FlutterTimezone.getLocalTimezone();
   tz.setLocalLocation(tz.getLocation(timeZoneName.identifier));
 }
