@@ -42,7 +42,10 @@ class MethodHandler {
         self.isVPNConnected(result: result)
 
       case "plans":
-        self.plans(result: result)
+          guard let channel: String = self.decodeValue(from: call.arguments, result: result) else {
+            return
+          }
+        self.plans(result: result,channel: channel)
 
       case "oauthLoginUrl":
         guard let provider: String = self.decodeValue(from: call.arguments, result: result) else {
@@ -365,10 +368,10 @@ class MethodHandler {
 
   // MARK: - Plans / OAuth / User data
 
-  private func plans(result: @escaping FlutterResult) {
+  private func plans(result: @escaping FlutterResult, channel: String) {
     Task {
       var error: NSError?
-      let data = MobilePlans("non-store", &error)
+      let data = MobilePlans(channel, &error)
 
       if let error {
         await self.handleFlutterError(error, result: result, code: "PLANS_ERROR")
