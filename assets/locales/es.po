@@ -1,10 +1,10 @@
 # 
 # Translators:
-# e2f <projects@e2f.com>, 2025
 # Aimara pena, 2025
-# strel, 2025
-# e2f_es r2 <tx_e2f_es_r2@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# strel, 2026
+# e2f_es r2 <tx_e2f_es_r2@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -374,13 +374,13 @@ msgid "create_password"
 msgstr "Crear Contraseña"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Iniciar Sesión en Lantern Pro"
+msgstr "Iniciar sesión en Lantern"
 
 msgid "sign_in_with_email"
 msgstr "Iniciar sesión con Email"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Ingresa los detalles de tu cuenta Lantern Pro."
+msgstr "Ingresa los datos de tu cuenta de Lantern."
 
 msgid "email"
 msgstr "Email"
@@ -395,7 +395,7 @@ msgid "reset_your_password"
 msgstr "Restablecer tu Contraseña"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Ingresa el email de tu cuenta Lantern Pro."
+msgstr "Ingresa el correo de tu cuenta de Lantern."
 
 msgid "reset_password"
 msgstr "Restablecer Contraseña"
@@ -480,6 +480,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "¡Bienvenido a Lantern Pro!"
 
+msgid "welcome_to_lantern"
+msgstr "¡Bienvenido a Lantern!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Tus funciones Pro están desbloqueadas—disfruta de datos ilimitados, "
@@ -535,6 +538,9 @@ msgid "logout_message"
 msgstr ""
 "Cerrar sesión cambiará Lantern a la versión gratuita. Para acceder a tu "
 "cuenta nuevamente, deberás volver a iniciar sesión."
+
+msgid "logout_message_expired"
+msgstr "¿Estás seguro de que quieres cerrar sesión de tu cuenta?"
 
 msgid "not_now"
 msgstr "Ahora no"
@@ -919,9 +925,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"Si no estás seguro de quién opera el servidor o cómo está configurado, te "
-"recomendamos usar uno de los servidores Lantern predeterminados disponibles "
-"en tu lista de servidores"
+"Si no estás seguro de quién administra el servidor o cómo está configurado, "
+"te recomendamos usar uno de los servidores predeterminados de Lantern "
+"disponibles en tu lista de servidores."
 
 msgid "invalid_server_details"
 msgstr ""
@@ -1341,7 +1347,7 @@ msgid "could_not_open_url"
 msgstr "No se pudo abrir la URL"
 
 msgid "new_to_lantern_pro"
-msgstr "¿Nuevo en Lantern Pro?"
+msgstr "¿Nuevo en Lantern?"
 
 msgid "an_error_occurred"
 msgstr "Ocurrió un error. Por favor intenta de nuevo más tarde."
@@ -1412,3 +1418,97 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Continuar de todos modos"
+
+msgid "routing_mode"
+msgstr "Modo de Enrutamiento"
+
+msgid "smart_routing"
+msgstr "Enrutamiento Inteligente"
+
+msgid "full_tunnel"
+msgstr "Túnel Completo"
+
+msgid "region_optimized_routing"
+msgstr "Enrutamiento basado en reglas optimizado para tu región"
+
+msgid "all_traffic_through_vpn"
+msgstr "Todo el tráfico a través de VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"El Enrutamiento Inteligente usa reglas específicas por región para enviar "
+"automáticamente el tráfico que necesita la VPN a través de Lantern. Todo el "
+"demás tráfico va directo para mayor velocidad y confiabilidad."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Agrega apps y sitios web para omitir la VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "Tu licencia de Lantern Pro se aplicará a tu cuenta existente"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Tu compra se aplicará a tu cuenta existente"
+
+msgid "daily_data_cap_reached"
+msgstr "Límite de datos diario alcanzado"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Velocidad reducida a 128 kb/s - Se reinicia a las %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"El pago se carga a tu Apple ID en el momento de la compra. Las suscripciones"
+" se renuevan automáticamente a menos que se cancelen al menos 24 horas antes"
+" del final del período actual. Administra o cancela en la Configuración de "
+"App Store."
+
+msgid "failed_to_update_routing_mode"
+msgstr ""
+"No se pudo actualizar el modo de enrutamiento. Por favor, inténtalo de "
+"nuevo."
+
+msgid "apps"
+msgstr "Aplicaciones"
+
+msgid "websites"
+msgstr "Sitios Web"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Si no has establecido una contraseña de Lantern Pro anteriormente, "
+"selecciona la opción '¿olvidaste tu contraseña?' a continuación."
+
+msgid "pro_subscription_expired"
+msgstr "Tu suscripción Pro ha caducado"
+
+msgid "renew_pro_subscription"
+msgstr "Renovar Suscripción Pro"
+
+msgid "subscription_expired"
+msgstr "Suscripción Caducada"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"La suscripción de Lantern Pro ha caducado. Renueva para restaurar datos "
+"ilimitados y funciones Pro."
+
+msgid "last_subscription_renewal_date"
+msgstr "Fecha de Última Renovación de Suscripción"
+
+msgid "set_account_password"
+msgstr "Establecer Contraseña de Cuenta"
+
+msgid "set_password"
+msgstr "Establecer Contraseña"
+
+msgid "set_account_password_message"
+msgstr ""
+"Para administrar tu cuenta o iniciar sesión en otros dispositivos, ahora necesitas establecer una contraseña para tu cuenta de Lantern Pro.\n"
+"\n"
+"Te enviaremos un código de verificación por correo para crear tu contraseña."
+
+msgid "expired"
+msgstr "Caducado"
