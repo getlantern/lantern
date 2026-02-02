@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
@@ -304,7 +306,6 @@ class _SettingState extends ConsumerState<Setting> {
   Future<void> checkForUpdates() async {
     try {
       if (Platform.isMacOS || Platform.isWindows) {
-        // Make manual checks always work.
         await autoUpdater.setFeedURL(AppUrls.appcastURL);
       }
       await autoUpdater.checkForUpdates();
