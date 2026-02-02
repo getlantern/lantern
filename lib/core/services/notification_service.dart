@@ -1,15 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-/// Provider for the notification service
-final notificationServiceProvider = Provider<NotificationService>((ref) {
-  return NotificationService();
-});
 
 enum NotificationType {
   dataCapWarning,
@@ -20,6 +14,7 @@ class NotificationService {
   bool _notificationsEnabled = false;
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+
 
   Future<void> init() async {
     try {
@@ -62,6 +57,7 @@ class NotificationService {
       appLogger.info('Notification plugin initialized: $success');
 
       _notificationsEnabled = await _permissionsGranted() ?? false;
+      appLogger.info('Notifications enabled: $_notificationsEnabled');
     } catch (e) {
       appLogger.error('Error initializing notifications: $e');
       _notificationsEnabled = false;
@@ -70,7 +66,7 @@ class NotificationService {
 
   Future<bool?> _permissionsGranted() async {
     if (Platform.isIOS) {
-      return await _plugin
+      return _plugin
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
@@ -79,7 +75,7 @@ class NotificationService {
             sound: true,
           );
     } else if (Platform.isMacOS) {
-      return await _plugin
+      return _plugin
           .resolvePlatformSpecificImplementation<
               MacOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
@@ -91,8 +87,7 @@ class NotificationService {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
           _plugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
-      return await androidImplementation?.requestNotificationsPermission() ??
-          false;
+      return androidImplementation?.requestNotificationsPermission() ?? false;
     }
     return true;
   }
@@ -132,7 +127,7 @@ class NotificationService {
       /// If dealy is null no need to use zonedSchedule
       /// just show immediately
       if (delay == null) {
-        showNotification(
+        await showNotification(
           id: id,
           title: title,
           body: body,
@@ -146,7 +141,7 @@ class NotificationService {
         throw ArgumentError('scheduleTime must be in the future');
       }
 
-      final nd = _getNotificationDetails(NotificationType.main);
+      final nd = _getNotificationDetails(notificationType);
       await _plugin.zonedSchedule(
         id,
         title,

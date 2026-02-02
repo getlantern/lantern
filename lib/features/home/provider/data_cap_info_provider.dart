@@ -5,6 +5,8 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/injection_container.dart' show sl;
+
 part 'data_cap_info_provider.g.dart';
 
 @Riverpod(keepAlive: true)
@@ -35,8 +37,8 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     appLogger.debug(
         'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, threshold: $threshold');
     if (threshold == null) return;
-    final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
-    if (!shouldNotify) return;
+    // final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
+    // if (!shouldNotify) return;
 
     _sendNotification(threshold, dataCapInfo);
     _saveNotifiedThreshold(threshold, dataCapInfo);
@@ -48,6 +50,9 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     }
     final dataCapInfo = dataCapUsage.usage;
     if (dataCapInfo == null) {
+      return 0.0;
+    }
+    if (dataCapInfo.bytesAllotted <= 0) {
       return 0.0;
     }
     return (dataCapInfo.bytesUsed / dataCapInfo.bytesAllotted) * 100;
@@ -69,7 +74,12 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     // New day - reset cycle
     if (savedResetTime != usage!.allotmentEndTime) return true;
     // Same day - only notify if crossing higher threshold
-    return threshold.value > savedThresholdValue;
+    final showNotification = threshold.value > savedThresholdValue;
+    appLogger.debug('_shouldSendNotification '
+        'for threshold ${threshold.value}, '
+        'saved threshold: $savedThresholdValue, '
+        'showNotification: $showNotification');
+    return showNotification;
   }
 
   /// Sends the notification using the NotificationService
@@ -78,12 +88,12 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     final dataCapInfo = dataUsageResponse.usage!;
     final notification = _buildNotificationContent(threshold, dataCapInfo);
 
-    await ref.read(notificationServiceProvider).showNotification(
-          id: threshold.value,
-          title: notification.$1,
-          body: notification.$2,
-          notificationType: NotificationType.dataCapWarning,
-        );
+    await sl<NotificationService>().showNotification(
+      id: threshold.value,
+      title: notification.$1,
+      body: notification.$2,
+      notificationType: NotificationType.dataCapWarning,
+    );
   }
 
   (String, String) _buildNotificationContent(
@@ -96,13 +106,13 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     switch (threshold) {
       case DataCapThreshold.half:
         return (
-          'mb_free_data_remaining'.i18n.fill([remainingMB.toString()]),
+          'mb_free_data_remaining'.i18n.fill([remainingMB]),
           'daily_data_cap_reached_message'.i18n.fill([resetTime]),
         );
 
       case DataCapThreshold.high:
         return (
-          'mb_free_data_remaining'.i18n.fill([remainingMB.toString()]),
+          'mb_free_data_remaining'.i18n.fill([remainingMB]),
           'daily_data_cap_reached_message'.i18n.fill([resetTime]),
         );
 
@@ -139,7 +149,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   }
 
   void _saveNotifiedThreshold(
-      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo)  {
+      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo) {
     final usage = dataCapInfo.usage!;
     final thresholdValue = '${usage.allotmentEndTime}_${threshold.value}';
     final appSettingNotifier = ref.read(appSettingProvider.notifier);
