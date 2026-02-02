@@ -1355,7 +1355,7 @@ msgid "daily_data_cap_reached"
 msgstr "Daily data cap reached"
 
 
-msgid "daily_data_cap_reached_message"
+msgid "daily_data_cap_reached_notification_message"
 msgstr "Your data will reset at %s. Upgrade to Pro for unlimited high-speed data."
 
 msgid "if_you_have_not_set_password"

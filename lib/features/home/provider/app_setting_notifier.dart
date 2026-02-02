@@ -104,6 +104,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(dataCapThreshold: threshold));
   }
 
+
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
   }

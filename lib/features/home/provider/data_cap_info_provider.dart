@@ -37,9 +37,8 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     appLogger.debug(
         'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, threshold: $threshold');
     if (threshold == null) return;
-    // final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
-    // if (!shouldNotify) return;
-
+    final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
+    if (!shouldNotify) return;
     _sendNotification(threshold, dataCapInfo);
     _saveNotifiedThreshold(threshold, dataCapInfo);
   }
@@ -107,19 +106,19 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
       case DataCapThreshold.half:
         return (
           'mb_free_data_remaining'.i18n.fill([remainingMB]),
-          'daily_data_cap_reached_message'.i18n.fill([resetTime]),
+          'daily_data_cap_reached_notification_message'.i18n.fill([resetTime]),
         );
 
       case DataCapThreshold.high:
         return (
           'mb_free_data_remaining'.i18n.fill([remainingMB]),
-          'daily_data_cap_reached_message'.i18n.fill([resetTime]),
+          'daily_data_cap_reached_notification_message'.i18n.fill([resetTime]),
         );
 
       case DataCapThreshold.full:
         return (
           'daily_data_cap_reached'.i18n,
-          'daily_data_cap_reached_message'.i18n.fill([resetTime]),
+          'daily_data_cap_reached_notification_message'.i18n.fill([resetTime]),
         );
     }
   }

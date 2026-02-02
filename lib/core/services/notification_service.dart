@@ -1,9 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:timezone/timezone.dart' as tz;
-
 
 enum NotificationType {
   dataCapWarning,
@@ -14,7 +14,6 @@ class NotificationService {
   bool _notificationsEnabled = false;
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
-
 
   Future<void> init() async {
     try {
@@ -142,6 +141,8 @@ class NotificationService {
       }
 
       final nd = _getNotificationDetails(notificationType);
+      appLogger
+          .info("Notification scheduled (id: $id) for time: $scheduleTime");
       await _plugin.zonedSchedule(
         id,
         title,
@@ -172,6 +173,7 @@ class NotificationService {
         return;
       }
       final notificationDetails0 = _getNotificationDetails(notificationType);
+      appLogger.debug("Showing notification (id: $id)");
       await _plugin.show(
         id,
         title,
@@ -179,6 +181,7 @@ class NotificationService {
         notificationDetails0,
         payload: payload,
       );
+      appLogger.info("Notification shown (id: $id)");
     } catch (e, st) {
       appLogger.error("Error showing notification: $e", st);
     }
