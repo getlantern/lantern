@@ -89,6 +89,7 @@ enum class Methods(val method: String) {
     AddServerManually("addServerManually"),
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
+    AddServerBasedOnURLs("addServerBasedOnURLs"),
 
 
     //custom/lantern servers
@@ -891,6 +892,33 @@ class MethodHandler : FlutterPlugin,
                             port,
                             accessToken,
                             inviteName
+                        )
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AddServerBasedOnURLs.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val urls = map["urls"] as String? ?: error("Missing urls")
+                        val skipValidation =
+                            map["skipValidation"] as Boolean? ?: error("Missing skipValidation")
+                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
+
+                        Mobile.addServerBasedOnURLs(
+                            urls,
+                            skipValidation,
+                            serverName,
                         )
                         withContext(Dispatchers.Main) {
                             success("ok")
