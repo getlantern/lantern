@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(18, 1036551397142037630),
+    lastPropertyId: const obx_int.IdUid(20, 4262300231135451242),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -175,7 +175,13 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(18, 1036551397142037630),
+        id: const obx_int.IdUid(19, 1521778634983396518),
+        name: 'introShown',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 4262300231135451242),
         name: 'dataCapThreshold',
         type: 9,
         flags: 0,
@@ -882,6 +888,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8153428725932858000,
       6825758662513353714,
       4485043618273916447,
+      1036551397142037630,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -992,7 +999,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final emailOffset = fbb.writeString(object.email);
         final routingModeRawOffset = fbb.writeString(object.routingModeRaw);
         final dataCapThresholdOffset = fbb.writeString(object.dataCapThreshold);
-        fbb.startTable(19);
+        fbb.startTable(21);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -1006,7 +1013,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(13, object.telemetryDialogDismissed);
         fbb.addBool(14, object.successfulConnection);
         fbb.addOffset(16, routingModeRawOffset);
-        fbb.addOffset(17, dataCapThresholdOffset);
+        fbb.addBool(18, object.introShown);
+        fbb.addOffset(19, dataCapThresholdOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1081,7 +1089,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 36, '');
         final dataCapThresholdParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
+        ).vTableGet(buffer, rootOffset, 42, '');
+        final introShownParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          40,
+          false,
+        );
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -1097,6 +1111,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           successfulConnection: successfulConnectionParam,
           routingModeRaw: routingModeRawParam,
           dataCapThreshold: dataCapThresholdParam,
+          introShown: introShownParam,
         );
 
         return object;
@@ -2018,9 +2033,14 @@ class AppSetting_ {
     _entities[1].properties[12],
   );
 
+  /// See [AppSetting.introShown].
+  static final introShown = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[13],
+  );
+
   /// See [AppSetting.dataCapThreshold].
   static final dataCapThreshold = obx.QueryStringProperty<AppSetting>(
-    _entities[1].properties[13],
+    _entities[1].properties[14],
   );
 }
 

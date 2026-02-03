@@ -13,7 +13,7 @@ class AppRouter extends RootStackRouter {
   final List<AutoRoute> routes = [
     AutoRoute(
       path: '/',
-      page: Home.page,
+      page: Intro.page,
     ),
     CustomRoute(
       path: '/setting',
@@ -180,5 +180,9 @@ class AppRouter extends RootStackRouter {
       path: '/smart-routing',
       page: SmartRouting.page,
     ),
+    // AutoRoute(
+    //   path: '/intro',
+    //   page: Intro.page,
+    // ),
   ];
 }
