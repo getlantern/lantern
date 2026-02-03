@@ -1,11 +1,11 @@
 # 
 # Translators:
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
-# e2f <projects@e2f.com>, 2025
 # e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2025
 # Alyssa Chung <lisiachung7@gmail.com>, 2025
-# tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -374,13 +374,13 @@ msgid "create_password"
 msgstr "Cipta Kata Laluan"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Log Masuk ke Lantern Pro"
+msgstr "Log Masuk ke Lantern"
 
 msgid "sign_in_with_email"
 msgstr "Log masuk dengan E-mel"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Masukkan butiran Akaun Lantern Pro anda."
+msgstr "Masukkan butiran akaun Lantern anda."
 
 msgid "email"
 msgstr "E-mel"
@@ -395,7 +395,7 @@ msgid "reset_your_password"
 msgstr "Set Semula Kata Laluan Anda"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Masukkan E-mel Akaun Lantern Pro anda."
+msgstr "Masukkan e-mel akaun Lantern anda."
 
 msgid "reset_password"
 msgstr "Set Semula Kata Laluan"
@@ -484,6 +484,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Selamat Datang ke Lantern Pro!"
 
+msgid "welcome_to_lantern"
+msgstr "Selamat datang ke Lantern!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Ciri Pro anda dibuka kunci—nikmati data tanpa had, kelajuan lebih pantas, "
@@ -539,6 +542,9 @@ msgid "logout_message"
 msgstr ""
 "Log keluar akan menukar Lantern kepada versi percuma. Untuk mengakses akaun "
 "anda semula, anda perlu log masuk kembali."
+
+msgid "logout_message_expired"
+msgstr "Adakah anda pasti mahu log keluar dari akaun anda?"
 
 msgid "not_now"
 msgstr "Tidak sekarang"
@@ -919,8 +925,8 @@ msgstr ""
 msgid "trust_server_operator_message_three"
 msgstr ""
 "Jika anda tidak pasti siapa yang mengendalikan pelayan atau bagaimana ia "
-"dikonfigurasi, kami mengesyorkan menggunakan salah satu pelayan Lantern "
-"lalai yang tersedia dalam senarai pelayan anda"
+"dikonfigurasikan, kami cadangkan menggunakan salah satu pelayan Lantern "
+"lalai yang tersedia dalam senarai pelayan anda."
 
 msgid "invalid_server_details"
 msgstr "Butiran pelayan tidak sah. Sila semak kunci akses dan cuba lagi."
@@ -1337,7 +1343,7 @@ msgid "could_not_open_url"
 msgstr "Tidak dapat membuka URL"
 
 msgid "new_to_lantern_pro"
-msgstr "Baharu kepada Lantern Pro?"
+msgstr "Baru ke Lantern?"
 
 msgid "an_error_occurred"
 msgstr "Ralat berlaku. Sila cuba lagi kemudian."
@@ -1405,3 +1411,94 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Teruskan Juga"
+
+msgid "routing_mode"
+msgstr "Mod Penghalaan"
+
+msgid "smart_routing"
+msgstr "Penghalaan Pintar"
+
+msgid "full_tunnel"
+msgstr "Terowong Penuh"
+
+msgid "region_optimized_routing"
+msgstr "Penghalaan berasaskan peraturan yang dioptimumkan untuk wilayah anda"
+
+msgid "all_traffic_through_vpn"
+msgstr "Semua trafik melalui VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"Penghalaan Pintar menggunakan peraturan khusus wilayah untuk menghantar "
+"trafik yang memerlukan VPN melalui Lantern secara automatik. Semua trafik "
+"lain pergi terus untuk kelajuan dan kebolehpercayaan."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Tambah apl & laman web untuk memintas VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "Lesen Lantern Pro anda akan digunakan pada akaun sedia ada anda"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Pembelian anda akan digunakan pada akaun sedia ada anda"
+
+msgid "daily_data_cap_reached"
+msgstr "Had data harian dicapai"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Kelajuan dikurangkan kepada 128 kb/s - Set semula pada %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Pembayaran akan dicaj ke Apple ID anda semasa pembelian. Langganan akan "
+"diperbaharui secara automatik melainkan dibatalkan sekurang-kurangnya 24 jam"
+" sebelum tamat tempoh semasa. Urus atau batalkan di Tetapan App Store."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Gagal mengemas kini mod penghalaan. Sila cuba lagi."
+
+msgid "apps"
+msgstr "Aplikasi"
+
+msgid "websites"
+msgstr "Laman Web"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Jika anda tidak pernah menetapkan kata laluan Lantern Pro sebelum ini, pilih"
+" pilihan 'terlupa kata laluan?' di bawah."
+
+msgid "pro_subscription_expired"
+msgstr "Langganan Pro anda telah tamat tempoh"
+
+msgid "renew_pro_subscription"
+msgstr "Perbaharui Langganan Pro"
+
+msgid "subscription_expired"
+msgstr "Langganan Tamat Tempoh"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Langganan Lantern Pro telah tamat tempoh. Perbaharui untuk memulihkan data "
+"tanpa had dan ciri Pro."
+
+msgid "last_subscription_renewal_date"
+msgstr "Tarikh Pembaharuan Langganan Terakhir"
+
+msgid "set_account_password"
+msgstr "Tetapkan Kata Laluan Akaun"
+
+msgid "set_password"
+msgstr "Tetapkan Kata Laluan"
+
+msgid "set_account_password_message"
+msgstr ""
+"Untuk mengurus akaun anda atau log masuk pada peranti lain, anda kini perlu menetapkan kata laluan untuk akaun Lantern Pro anda.\n"
+"\n"
+"Kami akan menghantar kod pengesahan melalui e-mel untuk mencipta kata laluan anda."
+
+msgid "expired"
+msgstr "Tamat Tempoh"

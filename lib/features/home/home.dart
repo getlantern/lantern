@@ -12,13 +12,11 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
-import 'package:lantern/lantern_app.dart';
 
 import '../../core/common/common.dart';
 
@@ -32,15 +30,12 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home>
-    with WidgetsBindingObserver, RouteAware {
+class _HomeState extends ConsumerState<Home> {
   TextTheme? textTheme;
-  bool _isRouteObserverSubscribed = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
@@ -59,60 +54,6 @@ class _HomeState extends ConsumerState<Home>
         }
       }
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isRouteObserverSubscribed) {
-      return;
-    }
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      routeObserver.subscribe(this, route);
-      _isRouteObserverSubscribed = true;
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    /// Refresh when app comes back to foreground
-    if (state == AppLifecycleState.resumed) {
-      appLogger.info("App resumed, refreshing data cap info");
-      _refreshDataCapIfNeeded();
-    }
-  }
-
-  @override
-  void didPopNext() {
-    appLogger.info("Returned to Home screen, refreshing data cap info");
-    _refreshDataCapIfNeeded();
-  }
-
-  @override
-  void dispose() {
-    if (_isRouteObserverSubscribed) {
-      routeObserver.unsubscribe(this);
-      _isRouteObserverSubscribed = false;
-    }
-
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _refreshDataCapIfNeeded() {
-    if (PlatformUtils.isIOS) {
-      return;
-    }
-    final isPro = ref.read(isUserProProvider);
-    if (!isPro) {
-      appLogger.info("User is not Pro, refreshing data cap info");
-      ref.invalidate(dataCapInfoProvider);
-    } else {
-      appLogger.info("User is Pro, skipping data cap refresh");
-    }
   }
 
   @override
@@ -204,7 +145,7 @@ class _HomeState extends ConsumerState<Home>
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(text: 'private_server_usage_message'.i18n)
                 else
-                  PlatformUtils.isIOS ? SizedBox() : DataUsage(),
+                  DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),

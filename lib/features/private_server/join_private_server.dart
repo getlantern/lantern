@@ -220,42 +220,11 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         ]);
   }
 
-  Future<void> onJoinServer(String uri, String name) async {
-    final Uri url;
-    try {
-      url = Uri.parse(uri);
-    } catch (_) {
-      context.showSnackBar('invalid_server_details'.i18n);
-      return;
-    }
-    appLogger.info("Verifying server with URL: $url");
-    final data = url.queryParameters;
-    final ip = data['ip'] ?? '';
-    final port = data['port'] ?? '';
-    final accessToken = data['token'] ?? '';
-    final expStr = data['exp'];
-    final expiration = int.tryParse(expStr ?? '');
-
-    if (ip.isEmpty ||
-        port.isEmpty ||
-        accessToken.isEmpty ||
-        expiration == null) {
-      context.showSnackBar('invalid_server_details'.i18n);
-      return;
-    }
-    final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
-    // check if date is expired
-    if (expired.isBefore(DateTime.now())) {
-      appLogger.debug("DeepLink expired: $expired");
-      context.showSnackBar('deep_link_expired'.i18n);
-      return;
-    }
-
+  Future<void> onJoinServer(String urls, String serverName) async {
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerProvider.notifier)
-        .addServerManually(ip, port, accessToken, name);
-
+        .addServerBasedOnURLs(urls, true, serverName);
     result.fold(
       (error) {
         appLogger.error("Failed to join private server: $error");

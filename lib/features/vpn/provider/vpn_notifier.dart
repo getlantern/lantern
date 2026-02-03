@@ -29,11 +29,11 @@ class VpnNotifier extends _$VpnNotifier {
             previousStatus != nextStatus) {
           if (previousStatus != VPNStatus.connecting &&
               nextStatus == VPNStatus.disconnected) {
-            sl<NotificationService>().showNotification(
+            sl<NotificationService>().scheduleNotification(
               NotificationEvent.vpnDisconnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_disconnected'.i18n,
-              delay: Duration(seconds: 1),
+              delay: Duration(seconds: 2),
             );
           } else if (nextStatus == VPNStatus.connected) {
             if (PlatformUtils.isMobile) {
@@ -50,11 +50,11 @@ class VpnNotifier extends _$VpnNotifier {
                   .ifNeededGetAutoServerLocation();
             });
 
-            sl<NotificationService>().showNotification(
+            sl<NotificationService>().scheduleNotification(
               NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
-              delay: Duration(seconds: 1),
+              delay: Duration(seconds: 2),
             );
           }
         }

@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(17, 557133969672494375),
+    lastPropertyId: const obx_int.IdUid(18, 1036551397142037630),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -171,6 +171,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(17, 557133969672494375),
         name: 'routingModeRaw',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 1036551397142037630),
+        name: 'dataCapThreshold',
         type: 9,
         flags: 0,
       ),
@@ -985,7 +991,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
         final routingModeRawOffset = fbb.writeString(object.routingModeRaw);
-        fbb.startTable(18);
+        final dataCapThresholdOffset = fbb.writeString(object.dataCapThreshold);
+        fbb.startTable(19);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -999,6 +1006,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(13, object.telemetryDialogDismissed);
         fbb.addBool(14, object.successfulConnection);
         fbb.addOffset(16, routingModeRawOffset);
+        fbb.addOffset(17, dataCapThresholdOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1071,6 +1079,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final routingModeRawParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 36, '');
+        final dataCapThresholdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -1085,6 +1096,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           telemetryConsent: telemetryConsentParam,
           successfulConnection: successfulConnectionParam,
           routingModeRaw: routingModeRawParam,
+          dataCapThreshold: dataCapThresholdParam,
         );
 
         return object;
@@ -2004,6 +2016,11 @@ class AppSetting_ {
   /// See [AppSetting.routingModeRaw].
   static final routingModeRaw = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[12],
+  );
+
+  /// See [AppSetting.dataCapThreshold].
+  static final dataCapThreshold = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[13],
   );
 }
 

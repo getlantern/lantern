@@ -100,6 +100,11 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     updateTelemetryConsent(value);
   }
 
+  void updateDataCapThreshold(String threshold) {
+    update(state.copyWith(dataCapThreshold: threshold));
+  }
+
+
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
   }

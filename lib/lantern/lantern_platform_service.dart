@@ -1050,6 +1050,24 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+      required String urls,
+      required bool skipCertVerification,
+      required String serverName}) async {
+    try {
+      await _methodChannel.invokeMethod('addServerBasedOnURLs', {
+        'urls': urls,
+        'skipCertVerification': skipCertVerification,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server based on URLs', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {
