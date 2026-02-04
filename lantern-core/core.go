@@ -60,17 +60,15 @@ type App interface {
 	GetServerByTag(tag string) (servers.Server, bool)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
-	StartAutoLocationListener()
-	StopAutoLocationListener()
+	StartBackgroundListeners()
+	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
-	// Tunnel related methods
-	SetSmartRoutingMode(mode bool) error
-	GetSmartRoutingMode() bool
 }
 
 type User interface {
 	UserData() ([]byte, error)
 	DataCapInfo() (string, error)
+	DataCapStream(ctx context.Context) error
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -201,6 +199,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	})
 
 	lc.listeningServerLocationChanges()
+	lc.listeningDataCapChanges()
 	slog.Debug("LanternCore initialized successfully")
 
 	// If we have a legacy user ID, fetch user data
@@ -228,6 +227,19 @@ func (lc *LanternCore) listeningServerLocationChanges() {
 		stringBody := string(jsonBytes)
 		slog.Debug("Auto location server:", "server", stringBody)
 		lc.notifyFlutter(EventTypeServerLocation, stringBody)
+	})
+}
+func (lc *LanternCore) listeningDataCapChanges() {
+	events.Subscribe(func(evt api.DataCapChangeEvent) {
+		dataCapResponse := evt.DataCapUsageResponse
+		jsonBytes, err := json.Marshal(dataCapResponse)
+		if err != nil {
+			slog.Error("Error marshalling DataCap event", "error", err)
+			return
+		}
+		stringBody := string(jsonBytes)
+		slog.Debug("DataCap event:", "event", stringBody)
+		lc.notifyFlutter("data-cap-event", stringBody)
 	})
 }
 
@@ -267,48 +279,57 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
-//Server Location change methods
-
-type autoLocationManager struct {
+type backgroundListenerManager struct {
 	cancel    context.CancelFunc
 	isRunning bool
 	mu        sync.Mutex
 }
 
-var locationManager = &autoLocationManager{
-	// Just avoid a nil cancel function.
+var listenerManager = &backgroundListenerManager{
+	// avoid nil cancel
 	cancel: func() {},
 }
 
-func (lc *LanternCore) StartAutoLocationListener() {
-	slog.Info("Starting auto location listener...")
-	locationManager.mu.Lock()
-	defer locationManager.mu.Unlock()
-	if locationManager.isRunning {
-		slog.Info("Auto location listener is already running")
+func (lc *LanternCore) StartBackgroundListeners() {
+	slog.Info("Starting background listeners...")
+	listenerManager.mu.Lock()
+	defer listenerManager.mu.Unlock()
+
+	if listenerManager.isRunning {
+		slog.Info("Background listeners already running")
 		return
 	}
+
 	ctx, cancel := context.WithCancel(context.Background())
-	locationManager.cancel = cancel
-	locationManager.isRunning = true
-	vpn.AutoSelectionsChangeListener(ctx)
-	slog.Info("Auto location listener started")
+	listenerManager.cancel = cancel
+	listenerManager.isRunning = true
+
+	// Auto location listener
+	go vpn.AutoSelectionsChangeListener(ctx)
+
+	// DataCap SSE stream
+	go func() {
+		if err := lc.apiClient.DataCapStream(ctx); err != nil {
+			slog.Error("datacap stopped", "error", err)
+		}
+	}()
+
+	slog.Info("Background listeners started")
 }
 
 // stopAutoLocationListener stops the location listener
 
-func (lc *LanternCore) StopAutoLocationListener() {
-	slog.Info("Stopping auto location listener...")
-	locationManager.mu.Lock()
-	defer locationManager.mu.Unlock()
-
-	if !locationManager.isRunning {
-		slog.Info("Auto location listener is not running, nothing to stop")
+func (lc *LanternCore) StopBackgroundListeners() {
+	slog.Info("Stopping background listeners...")
+	listenerManager.mu.Lock()
+	defer listenerManager.mu.Unlock()
+	if !listenerManager.isRunning {
+		slog.Info("Background listeners not running")
 		return
 	}
-	locationManager.cancel()
-	locationManager.isRunning = false
-	slog.Info("Auto location listener stopped")
+	listenerManager.cancel()
+	listenerManager.isRunning = false
+	slog.Info("Background listeners stopped")
 }
 
 func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
@@ -529,6 +550,11 @@ func (lc *LanternCore) ReportIssue(
 // DataCapInfo returns information about this user's data cap. Only valid for free accounts
 func (lc *LanternCore) DataCapInfo() (string, error) {
 	return lc.apiClient.DataCapInfo(context.Background())
+}
+
+// DataCapStream starts a stream to receive data cap updates
+func (lc *LanternCore) DataCapStream(ctx context.Context) error {
+	return lc.apiClient.DataCapStream(ctx)
 }
 
 // User Methods

@@ -42,7 +42,7 @@ final class AppEventNotifierProvider
   AppEventNotifier create() => AppEventNotifier();
 }
 
-String _$appEventNotifierHash() => r'98b83f63e5aed85a4610f69a09764ad8ec7b2a75';
+String _$appEventNotifierHash() => r'836d8ae705eb943827db277d28cb55fc1c4ac19d';
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them

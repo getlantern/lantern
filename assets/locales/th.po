@@ -1,11 +1,11 @@
 # 
 # Translators:
 # Acclaro Thailand <bkk-project@acclaro.com>, 2025
-# e2f <projects@e2f.com>, 2025
 # Amazing Nev <nev@nevagency.com>, 2025
 # Thai Localization, 2025
-# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -366,13 +366,13 @@ msgid "create_password"
 msgstr "สร้างรหัสผ่าน"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "ลงชื่อเข้าใช้ Lantern Pro"
+msgstr "เข้าสู่ระบบ Lantern"
 
 msgid "sign_in_with_email"
 msgstr "ลงชื่อเข้าใช้ด้วยอีเมล"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "กรอกรายละเอียดบัญชี Lantern Pro ของคุณ"
+msgstr "ป้อนรายละเอียดบัญชี Lantern ของคุณ"
 
 msgid "email"
 msgstr "อีเมล"
@@ -387,7 +387,7 @@ msgid "reset_your_password"
 msgstr "รีเซ็ตรหัสผ่านของคุณ"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "กรอกอีเมลบัญชี Lantern Pro ของคุณ"
+msgstr "ป้อนอีเมลบัญชี Lantern ของคุณ"
 
 msgid "reset_password"
 msgstr "รีเซ็ตรหัสผ่าน"
@@ -469,6 +469,9 @@ msgstr "เปิดการแยกอุโมงค์เพื่อปร
 msgid "welcome_to_lantern_pro"
 msgstr "ยินดีต้อนรับสู่ Lantern Pro!"
 
+msgid "welcome_to_lantern"
+msgstr "ยินดีต้อนรับสู่ Lantern!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "ฟีเจอร์ Pro ของคุณปลดล็อกแล้ว—เพลิดเพลินกับข้อมูลไม่จำกัด, "
@@ -522,6 +525,9 @@ msgid "logout_message"
 msgstr ""
 "การออกจากระบบจะเปลี่ยน Lantern เป็นเวอร์ชันฟรี "
 "ในการเข้าถึงบัญชีของคุณอีกครั้ง คุณจะต้องลงชื่อเข้าใช้ใหม่"
+
+msgid "logout_message_expired"
+msgstr "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบบัญชีของคุณ?"
 
 msgid "not_now"
 msgstr "ไม่ใช่ตอนนี้"
@@ -1305,7 +1311,7 @@ msgid "could_not_open_url"
 msgstr "ไม่สามารถเปิด URL ได้"
 
 msgid "new_to_lantern_pro"
-msgstr "ใหม่กับ Lantern Pro?"
+msgstr "ใหม่กับ Lantern?"
 
 msgid "an_error_occurred"
 msgstr "เกิดข้อผิดพลาด โปรดลองอีกครั้งในภายหลัง"
@@ -1370,3 +1376,94 @@ msgstr "หากคุณไม่ได้รับรหัสยืนยั
 
 msgid "continue_anyway"
 msgstr "ดำเนินการต่อต่อไป"
+
+msgid "routing_mode"
+msgstr "โหมดการกำหนดเส้นทาง"
+
+msgid "smart_routing"
+msgstr "การกำหนดเส้นทางอัจฉริยะ"
+
+msgid "full_tunnel"
+msgstr "อุโมงค์เต็มรูปแบบ"
+
+msgid "region_optimized_routing"
+msgstr "การกำหนดเส้นทางตามกฎที่ปรับให้เหมาะสมสำหรับภูมิภาคของคุณ"
+
+msgid "all_traffic_through_vpn"
+msgstr "ทราฟฟิกทั้งหมดผ่าน VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"การกำหนดเส้นทางอัจฉริยะใช้กฎเฉพาะภูมิภาคเพื่อส่งทราฟฟิกที่ต้องการ VPN ผ่าน "
+"Lantern โดยอัตโนมัติ ทราฟฟิกอื่นๆ "
+"จะเชื่อมต่อโดยตรงเพื่อความเร็วและความน่าเชื่อถือ"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "เพิ่มแอปและเว็บไซต์เพื่อข้าม VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "ใบอนุญาต Lantern Pro ของคุณจะถูกนำไปใช้กับบัญชีที่มีอยู่ของคุณ"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "การซื้อของคุณจะถูกนำไปใช้กับบัญชีที่มีอยู่ของคุณ"
+
+msgid "daily_data_cap_reached"
+msgstr "ถึงขอบเขตข้อมูลรายวันแล้ว"
+
+msgid "daily_data_cap_reached_message"
+msgstr "ความเร็วลดลงเหลือ 128 kb/s - รีเซ็ตที่ %s"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"การชำระเงินจะถูกเรียกเก็บจาก Apple ID ของคุณเมื่อซื้อ "
+"การสมัครสมาชิกต่ออายุโดยอัตโนมัติเว้นแต่จะยกเลิกอย่างน้อย 24 "
+"ชั่วโมงก่อนสิ้นสุดระยะเวลาปัจจุบัน จัดการหรือยกเลิกได้ในการตั้งค่า App Store"
+
+msgid "failed_to_update_routing_mode"
+msgstr "อัปเดตโหมดการกำหนดเส้นทางไม่สำเร็จ โปรดลองอีกครั้ง"
+
+msgid "apps"
+msgstr "แอป"
+
+msgid "websites"
+msgstr "เว็บไซต์"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"หากคุณไม่เคยตั้งรหัสผ่าน Lantern Pro มาก่อน ให้เลือกตัวเลือก 'ลืมรหัสผ่าน?' "
+"ด้านล่าง"
+
+msgid "pro_subscription_expired"
+msgstr "การสมัครสมาชิก Pro ของคุณหมดอายุแล้ว"
+
+msgid "renew_pro_subscription"
+msgstr "ต่ออายุการสมัครสมาชิก Pro"
+
+msgid "subscription_expired"
+msgstr "การสมัครสมาชิกหมดอายุ"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"การสมัครสมาชิก Lantern Pro หมดอายุแล้ว "
+"ต่ออายุเพื่อคืนค่าข้อมูลไม่จำกัดและฟีเจอร์ Pro"
+
+msgid "last_subscription_renewal_date"
+msgstr "วันที่ต่ออายุการสมัครสมาชิกล่าสุด"
+
+msgid "set_account_password"
+msgstr "ตั้งรหัสผ่านบัญชี"
+
+msgid "set_password"
+msgstr "ตั้งรหัสผ่าน"
+
+msgid "set_account_password_message"
+msgstr ""
+"เพื่อจัดการบัญชีของคุณหรือเข้าสู่ระบบบนอุปกรณ์อื่น คุณจำเป็นต้องตั้งรหัสผ่านสำหรับบัญชี Lantern Pro ของคุณ\n"
+"\n"
+"เราจะส่งรหัสยืนยันทางอีเมลเพื่อให้คุณสร้างรหัสผ่าน"
+
+msgid "expired"
+msgstr "หมดอายุ"

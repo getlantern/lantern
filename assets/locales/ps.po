@@ -1,11 +1,11 @@
 # 
 # Translators:
-# Derek F <derek@getlantern.org>, 2025
 # Lantern, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Pashto (https://app.transifex.com/lantern-1/teams/94371/ps/)\n"
 "Language: ps\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -373,13 +373,13 @@ msgid "create_password"
 msgstr "پټنوم جوړ کړئ"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Lantern Pro ته ننوځئ"
+msgstr ""
 
 msgid "sign_in_with_email"
 msgstr "د بریښنالیک سره ننوځئ"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "د خپل Lantern Pro حساب جزئیات دننه کړئ."
+msgstr ""
 
 msgid "email"
 msgstr "بریښنالیک"
@@ -394,7 +394,7 @@ msgid "reset_your_password"
 msgstr "خپل پټنوم بیا تنظیم کړئ"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "د خپل Lantern Pro حساب بریښنالیک دننه کړئ."
+msgstr ""
 
 msgid "reset_password"
 msgstr "پټنوم بیا تنظیم کړئ"
@@ -480,6 +480,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro ته ښه راغلاست!"
 
+msgid "welcome_to_lantern"
+msgstr ""
+
 msgid "lantern_pro_description"
 msgstr ""
 "ستاسو Pro ځانګړتیاوې خلاص شوي—د نامحدود ډیټا، ګړندي سرعت، او پریمیم سرورونو "
@@ -539,6 +542,9 @@ msgstr ""
 "وتل به Lantern د وړیا نسخې ته واړوي. ستاسو حساب ته بیا د لاسرسي لپاره، تاسو "
 "به اړتیا ولرئ چې بیرته ننوځئ.وتل به Lantern وړیا نسخې ته بدل کړي. د خپل حساب"
 " بیا لاسرسي لپاره، تاسو ته به اړتیا وي چې بیا ننوځئ."
+
+msgid "logout_message_expired"
+msgstr ""
 
 msgid "not_now"
 msgstr "اوس نه"
@@ -937,10 +943,6 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"که تاسو ډاډه نه یاست چې سرور څوک چلوي یا څنګه تنظیم شوی، موږ وړاندیز کوو چې "
-"ستاسو په سرور لیست کې شته د منل شوي Lantern سرورونو څخه یو وکاروئکه تاسو "
-"ډاډه نه یاست چې څوک سرور چلوي یا څنګه یې تنظیم شوی، موږ وړاندیز کوو چې د "
-"Lantern تلواله سرورونه وکاروئ چې ستاسو د سرور په لیست کې شته دي"
 
 msgid "invalid_server_details"
 msgstr "ناسم د سرور جزئیات. مهرباني وکړئ د لاسرسي کلید وګورئ او بیا هڅه وکړئ."
@@ -1371,7 +1373,7 @@ msgid "could_not_open_url"
 msgstr "URL نه شو خلاصیدی"
 
 msgid "new_to_lantern_pro"
-msgstr "Lantern Pro ته نوی یاست؟"
+msgstr "Lantern ته نوی یاست؟"
 
 msgid "an_error_occurred"
 msgstr "یوه تېروتنه رامنځته شوه. مهرباني وکړئ وروسته بیا هڅه وکړئ."
@@ -1440,3 +1442,81 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "په هره توګه دوام ورکړئ"
+
+msgid "routing_mode"
+msgstr ""
+
+msgid "smart_routing"
+msgstr ""
+
+msgid "full_tunnel"
+msgstr ""
+
+msgid "region_optimized_routing"
+msgstr ""
+
+msgid "all_traffic_through_vpn"
+msgstr ""
+
+msgid "smart_routing_description"
+msgstr ""
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr ""
+
+msgid "lantern_pro_license_applied"
+msgstr ""
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr ""
+
+msgid "daily_data_cap_reached"
+msgstr ""
+
+msgid "daily_data_cap_reached_message"
+msgstr ""
+
+msgid "subscription_renewal_info"
+msgstr ""
+
+msgid "failed_to_update_routing_mode"
+msgstr ""
+
+msgid "apps"
+msgstr ""
+
+msgid "websites"
+msgstr ""
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+
+msgid "pro_subscription_expired"
+msgstr ""
+
+msgid "renew_pro_subscription"
+msgstr ""
+
+msgid "subscription_expired"
+msgstr ""
+
+msgid "pro"
+msgstr ""
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+
+msgid "last_subscription_renewal_date"
+msgstr ""
+
+msgid "set_account_password"
+msgstr ""
+
+msgid "set_password"
+msgstr ""
+
+msgid "set_account_password_message"
+msgstr ""
+
+msgid "expired"
+msgstr ""

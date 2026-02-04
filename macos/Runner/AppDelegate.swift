@@ -98,7 +98,7 @@ class AppDelegate: FlutterAppDelegate {
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = ""
-    opts.logLevel = "trace"
+    opts.logLevel = "debug"
     opts.telemetryConsent = FilePath.isTelemetryEnabled()
     opts.locale = Locale.current.identifier
     appLogger.info(

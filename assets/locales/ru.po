@@ -7,9 +7,10 @@
 # krivtsovvasily <krivtsov.vasily@gmail.com>, 2025
 # e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2025
 # Lowrider <pams@imail.ru>, 2025
-# sayanvd <sayanvd@yandex.ru>, 2025
-# e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# sayanvd <sayanvd@yandex.ru>, 2026
+# e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -375,13 +376,13 @@ msgid "create_password"
 msgstr "Создать пароль"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Войти в Lantern Про"
+msgstr "Войти в Lantern "
 
 msgid "sign_in_with_email"
 msgstr "Войти через email"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Введите данные вашего Lantern Про аккаунта"
+msgstr "Введите данные вашего аккаунта Lantern."
 
 msgid "email"
 msgstr "Email"
@@ -396,7 +397,7 @@ msgid "reset_your_password"
 msgstr "Сбросить пароль"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Введите email вашего Lantern Про аккаунта"
+msgstr "Введите email вашего аккаунта Lantern."
 
 msgid "reset_password"
 msgstr "Сбросить пароль"
@@ -484,6 +485,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Добро пожаловать в Lantern Про!"
 
+msgid "welcome_to_lantern"
+msgstr "1. Добро пожаловать в сеть Lantern!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Ваши Про функции разблокированы — пользуйтесь безлимитным трафиком, высокой "
@@ -539,6 +543,9 @@ msgid "logout_message"
 msgstr ""
 "Выход переключит Lantern на бесплатную версию. Для доступа к вашему аккаунту"
 " снова потребуется повторный вход."
+
+msgid "logout_message_expired"
+msgstr "Вы уверены, что хотите выйти из аккаунта?"
 
 msgid "not_now"
 msgstr "Не сейчас"
@@ -920,7 +927,7 @@ msgid "trust_server_operator_message_three"
 msgstr ""
 "Если вы не уверены, кто управляет сервером или как он настроен, мы "
 "рекомендуем использовать один из стандартных серверов Lantern, доступных в "
-"вашем списке серверов"
+"вашем списке серверов."
 
 msgid "invalid_server_details"
 msgstr "Неверные данные сервера. Проверьте ключ доступа и попробуйте снова."
@@ -1340,7 +1347,7 @@ msgid "could_not_open_url"
 msgstr "Не удалось открыть URL"
 
 msgid "new_to_lantern_pro"
-msgstr "Впервые пользуетесь Lantern Pro?"
+msgstr "Впервые в Lantern?"
 
 msgid "an_error_occurred"
 msgstr "Произошла ошибка. Пожалуйста, попробуйте позже."
@@ -1411,3 +1418,96 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Все равно продолжить"
+
+msgid "routing_mode"
+msgstr "Режим маршрутизации"
+
+msgid "smart_routing"
+msgstr "Умная маршрутизация"
+
+msgid "full_tunnel"
+msgstr "Полный туннель"
+
+msgid "region_optimized_routing"
+msgstr "Маршрутизация на основе правил, оптимизированная для вашего региона"
+
+msgid "all_traffic_through_vpn"
+msgstr "Весь трафик через VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"Умная маршрутизация использует правила для конкретных регионов, чтобы "
+"автоматически направлять трафик, требующий VPN, через Lantern. Весь "
+"остальной трафик идёт напрямую для обеспечения скорости и надёжности."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Добавить приложения и сайты для обхода VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr ""
+"Ваша лицензия Lantern Pro будет применена к вашему существующему аккаунту"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Ваша покупка будет применена к вашему существующему аккаунту"
+
+msgid "daily_data_cap_reached"
+msgstr "Достигнут дневной лимит данных"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Скорость снижена до 128 кб/сек - Сброс в %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Оплата списывается с вашего Apple ID при покупке. Подписки продлеваются "
+"автоматически, если не отменены как минимум за 24 часа до окончания текущего"
+" периода. Управляйте подписками или отменяйте их в настройках App Store."
+
+msgid "failed_to_update_routing_mode"
+msgstr ""
+"Не удалось обновить режим маршрутизации. Пожалуйста, попробуйте снова. "
+
+msgid "apps"
+msgstr "Приложения"
+
+msgid "websites"
+msgstr "Сайты"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Если вы ранее не устанавливали пароль для Lantern Pro, выберите опцию "
+"«Забыли пароль?» ниже."
+
+msgid "pro_subscription_expired"
+msgstr "Срок действия вашей подписки Pro истёк "
+
+msgid "renew_pro_subscription"
+msgstr "Продлить подписку Pro"
+
+msgid "subscription_expired"
+msgstr "Подписка истекла"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Подписка Lantern Pro истекла. Продлите, чтобы восстановить безлимитный "
+"трафик и премиум-функции."
+
+msgid "last_subscription_renewal_date"
+msgstr "Дата последнего продления подписки"
+
+msgid "set_account_password"
+msgstr "Установить пароль аккаунта"
+
+msgid "set_password"
+msgstr "Установить пароль"
+
+msgid "set_account_password_message"
+msgstr ""
+"Для управления аккаунтом или входа с других устройств необходимо установить "
+"пароль для вашего аккаунта Lantern Pro. Мы отправим вам код подтверждения на"
+" email для создания пароля."
+
+msgid "expired"
+msgstr "Истёк срок"

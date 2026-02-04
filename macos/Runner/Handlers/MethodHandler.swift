@@ -180,6 +180,10 @@ class MethodHandler {
       case "validateSession":
         self.validateSession(result: result)
 
+      case "addServerBasedOnURLs":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.addServerBasedOnURLs(result: result, data: data)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -820,6 +824,22 @@ class MethodHandler {
       MobileValidateSession(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "VALIDATE_SESSION_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let urls = data["urls"] as? String ?? ""
+      let skipVerification = data["skipVerification"] as? Bool ?? false
+      let serverName = data["serverName"] as? String ?? ""
+      var error: NSError?
+
+      MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
         return
       }
       await self.replyOK(result)

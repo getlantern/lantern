@@ -7,6 +7,8 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>NSUserNotificationUsageDescription</key>
+    <string>We need to show alerts for connection status updates.</string>
 	<key>NSRequiresAquaSystemAppearance</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

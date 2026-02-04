@@ -1342,6 +1342,22 @@ msgstr "Apps"
 msgid "websites"
 msgstr "Websites"
 
+msgid "main_channel"
+msgstr "Main Channel"
+
+msgid "data_cap_channel"
+msgstr "Data Usage Alerts"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB free data remaining"
+
+msgid "daily_data_cap_reached"
+msgstr "Daily data cap reached"
+
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr "Your data will reset at %s. Upgrade to Pro for unlimited high-speed data."
+
 msgid "if_you_have_not_set_password"
 msgstr "If you have not set a Lantern pro password in the past, select the ‘forgot your password?’ option below."
 

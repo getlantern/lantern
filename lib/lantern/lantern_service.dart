@@ -460,6 +460,25 @@ class LanternService implements LanternCoreService {
         ip: ip, port: port, accessToken: accessToken, serverName: serverName);
   }
 
+  @override
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
+      required bool skipCertVerification,
+      required String serverName}) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.addServerBasedOnURLs(
+          urls: urls,
+          skipCertVerification: skipCertVerification,
+          serverName: serverName,
+          );
+    }
+    return _platformService.addServerBasedOnURLs(
+        urls: urls,
+        skipCertVerification: skipCertVerification,
+        serverName: serverName,
+        );
+  }
+
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
   /// requires location and tag

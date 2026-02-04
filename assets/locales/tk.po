@@ -1,6 +1,6 @@
 # 
 # Translators:
-# Derek F <derek@getlantern.org>, 2025
+# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -364,13 +364,13 @@ msgid "create_password"
 msgstr "Parol dörediň"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Lantern Pro içeri gir"
+msgstr "Lantern-a giriň"
 
 msgid "sign_in_with_email"
 msgstr "E-poçta bilen giriň"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Lantern Pro hasap maglumatlaryňyzy giriziň."
+msgstr "Lantern hasabyňyzyň maglumatlaryny giriziň."
 
 msgid "email"
 msgstr "E-poçta"
@@ -385,7 +385,7 @@ msgid "reset_your_password"
 msgstr "Parolyňyzy täzeden dikleň"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Lantern Pro hasap e-poçtaňyzy giriziň."
+msgstr "Lantern hasabyňyzyň e-poçtasyny giriziň."
 
 msgid "reset_password"
 msgstr "Paroly täzele"
@@ -469,6 +469,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro hoş geldiňiz!"
 
+msgid "welcome_to_lantern"
+msgstr "Lantern-a hoş geldiňiz!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Pro aýratynlyklarňyz açyldy - çäksiz maglumatlardan, has çalt tizlikden we "
@@ -523,6 +526,9 @@ msgid "logout_message"
 msgstr ""
 "Çykmak Lantern-i mugt wersiýasyna geçirer. Hasabyňyza täzeden girmek üçin "
 "täzeden girmeliňiz bolar."
+
+msgid "logout_message_expired"
+msgstr "Hasabyňyzdan çykmak isleýärsiňizmi?"
 
 msgid "not_now"
 msgstr "Häzir däl"
@@ -898,9 +904,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"Serwer kim dolandyrýandygyny ýa-da nädip düzülendigini bilmeýän bolsaňyz, "
-"serwer sanawyňyzda elýeterli deslapky Lantern serwerlerini ulanmagyňyzy "
-"maslahat berýäris"
+"Serweri kimiň dolandyrýandygyny ýa-da onuň nähili sazlanandygyny bilmeseňiz,"
+" serwer sanawyňyzda elýeterli deslapky Lantern serwerleriniň birini ulanmagy"
+" maslahat berýäris."
 
 msgid "invalid_server_details"
 msgstr "Nädogry serwer maglumatlary. Giriş açary barlaň we täzeden synanyň."
@@ -1313,7 +1319,7 @@ msgid "could_not_open_url"
 msgstr "URL açyp bolmady"
 
 msgid "new_to_lantern_pro"
-msgstr "Lantern Pro täze ulanýarsyňyzmy?"
+msgstr "Lantern-da täzemi?"
 
 msgid "an_error_occurred"
 msgstr "Säwlik ýüze çykdy. Soňra täzeden synanyşyň."
@@ -1381,3 +1387,94 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Ýene-de dowam et"
+
+msgid "routing_mode"
+msgstr "Marşrutlaşdyryş tertibi"
+
+msgid "smart_routing"
+msgstr "Akylly marşrutlaşdyryş"
+
+msgid "full_tunnel"
+msgstr "Doly tunel"
+
+msgid "region_optimized_routing"
+msgstr "Sebitiňiz üçin optimizasiýa edilen düzgün esasly marşrutlaşdyryş"
+
+msgid "all_traffic_through_vpn"
+msgstr "Trafigiň hemmesi VPN arkaly"
+
+msgid "smart_routing_description"
+msgstr ""
+"Akylly marşrutlaşdyryş sebite mahsus düzgünleri ulanyp, VPN talap edýän "
+"trafigi Lantern arkaly awtomatiki ugradýar. Beýleki trafikleriň hemmesi "
+"tizlik we ygtybarlylyk üçin göni gidýär."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN-dan aýlanyp geçmek üçin programmalar we web sahypalar goşuň"
+
+msgid "lantern_pro_license_applied"
+msgstr "Lantern Pro ygtyýarnamaňyz bar bolan hasabyňyza ulanylar"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Satyn alyşyňyz bar bolan hasabyňyza ulanylar"
+
+msgid "daily_data_cap_reached"
+msgstr "Gündelik maglumat çägine ýetildi"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Tizlik 128 kb/s çenli peseldildi - %s-da täzeden dikeldiler."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Satyn alanda töleg Apple ID-dan alynýar. Häzirki döwrüň gutarmagyndan "
+"azyndan 24 sagat öň ýatyrylmasa, abunalar awtomatiki täzelenýär. App Store "
+"sazlamalarynda dolandyryň ýa-da ýatyryň."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Marşrutlaşdyryş tertibini täzelemek başa barmady. Täzeden synanyşyň."
+
+msgid "apps"
+msgstr "Programmalar"
+
+msgid "websites"
+msgstr "Web sahypalar"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Öňki wagtda Lantern Pro parolyny sazlamadyk bolsaňyz, aşakdaky 'parolyňyzy "
+"ýatdan çykardyňyzmy?' wariantyny saýlaň."
+
+msgid "pro_subscription_expired"
+msgstr "Pro abunaňyzyň möhleti gutardy"
+
+msgid "renew_pro_subscription"
+msgstr "Pro abunany täzele"
+
+msgid "subscription_expired"
+msgstr "Abunaňyň möhleti gutardy"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Lantern Pro abunaňyzyň möhleti gutardy. Çäksiz maglumat we Pro "
+"aýratynlyklaryny dikeltmek üçin täzeleň."
+
+msgid "last_subscription_renewal_date"
+msgstr "Soňky abuna täzelenen senesi"
+
+msgid "set_account_password"
+msgstr "Hasap parolyny sazla"
+
+msgid "set_password"
+msgstr "Parol sazla"
+
+msgid "set_account_password_message"
+msgstr ""
+"Hasabyňyzy dolandyrmak ýa-da beýleki enjamlarda girmek üçin Lantern Pro hasabyňyz üçin parol sazlamaly.\n"
+"\n"
+"Parolyňyzy döretmek üçin size tassyklama kodyny e-poçta ibereris."
+
+msgid "expired"
+msgstr "Möhleti gutardy"

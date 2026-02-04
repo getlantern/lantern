@@ -1,14 +1,14 @@
 # 
 # Translators:
 # Vaseto Nora <n.nouri67@gmail.com>, 2025
-# Evan <alireza.firoozi68@gmail.com>, 2025
 # Amir Moezzi <amirreza.mz@yahoo.com>, 2025
 # Chip Stehr <chip@getlantern.org>, 2025
 # NoProfile, 2025
-# e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2025
 # Mokah <unfilternet@getlantern.org>, 2025
 # Mersen M, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Evan <alireza.firoozi68@gmail.com>, 2026
+# e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -373,13 +373,13 @@ msgid "create_password"
 msgstr "ایجاد رمز عبور"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "ورود به Lantern پرو"
+msgstr "ورود به Lantern"
 
 msgid "sign_in_with_email"
 msgstr "ورود با ایمیل"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "جزئیات حساب Lantern پرو خود را وارد کنید."
+msgstr "جزئیات حساب Lantern خود را وارد کنید."
 
 msgid "email"
 msgstr "ایمیل"
@@ -394,7 +394,7 @@ msgid "reset_your_password"
 msgstr "بازنشانی رمز عبور"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "ایمیل حساب Lantern پرو خود را وارد کنید."
+msgstr "ایمیل حساب Lantern خود را وارد کنید."
 
 msgid "reset_password"
 msgstr "بازنشانی رمز عبور"
@@ -478,6 +478,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "به Lantern پرو خوش آمدید!"
 
+msgid "welcome_to_lantern"
+msgstr "به لنترن خوش آمدید!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "امکانات پرو شما فعال شد. از داده نامحدود، سرعت بیشتر و سرورهای برتر لذت "
@@ -533,6 +536,9 @@ msgid "logout_message"
 msgstr ""
 "با خروج، Lantern به نسخه رایگان تغییر می‌کند. برای دسترسی دوباره به حساب "
 "خود، باید مجدداً وارد شوید."
+
+msgid "logout_message_expired"
+msgstr "آیا مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟"
 
 msgid "not_now"
 msgstr "الان نه"
@@ -910,8 +916,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"اگر مطمئن نیستید چه کسی سرور را اداره می‌کند یا چگونه پیکربندی شده است، "
-"توصیه می‌کنیم از یکی از سرورهای پیش‌فرض Lantern موجود در فهرست استفاده کنید"
+"اگر مطمئن نیستید که چه کسی سرور را اداره می‌کند یا چگونه پیکربندی شده است، "
+"توصیه می‌کنیم از یکی از سرورهای پیش‌فرض Lantern موجود در فهرست سرور خود "
+"استفاده کنید."
 
 msgid "invalid_server_details"
 msgstr ""
@@ -1325,7 +1332,7 @@ msgid "could_not_open_url"
 msgstr "نتوانست URL را باز کند"
 
 msgid "new_to_lantern_pro"
-msgstr "تازه وارد Lantern Pro شده‌اید؟"
+msgstr "تازه وارد Lantern هستید؟"
 
 msgid "an_error_occurred"
 msgstr "خطایی رخ داد. لطفاً بعداً دوباره امتحان کنید."
@@ -1394,3 +1401,94 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "به هر حال ادامه دهید"
+
+msgid "routing_mode"
+msgstr "حالت مسیریابی"
+
+msgid "smart_routing"
+msgstr "مسیریابی هوشمند"
+
+msgid "full_tunnel"
+msgstr "تونل کامل"
+
+msgid "region_optimized_routing"
+msgstr "مسیریابی مبتنی بر قانون بهینه‌شده برای منطقه شما"
+
+msgid "all_traffic_through_vpn"
+msgstr "تمام ترافیک از طریق VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"مسیریابی هوشمند از قوانین خاص منطقه استفاده می‌کند تا به‌طور خودکار ترافیکی "
+"که نیاز به VPN دارد را از طریق Lantern ارسال کند. سایر ترافیک برای سرعت و "
+"قابلیت اطمینان مستقیماً منتقل می‌شود."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "برنامه‌ها و وب‌سایت‌ها را برای دور زدن VPN اضافه کنید"
+
+msgid "lantern_pro_license_applied"
+msgstr "مجوز Lantern Pro شما به حساب موجود شما اعمال خواهد شد"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "خرید شما به حساب موجود شما اعمال خواهد شد"
+
+msgid "daily_data_cap_reached"
+msgstr "به سقف داده روزانه رسیدید"
+
+msgid "daily_data_cap_reached_message"
+msgstr "سرعت به 128 kb/s کاهش یافت - بازنشانی در %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"هنگام خرید، پرداخت از Apple ID شما کسر می‌شود. اشتراک‌ها به‌طور خودکار تمدید"
+" می‌شوند مگر اینکه حداقل 24 ساعت قبل از پایان دوره فعلی لغو شوند. در تنظیمات"
+" App Store مدیریت یا لغو کنید."
+
+msgid "failed_to_update_routing_mode"
+msgstr "به‌روزرسانی حالت مسیریابی ناموفق بود. لطفاً دوباره تلاش کنید."
+
+msgid "apps"
+msgstr "برنامه‌ها"
+
+msgid "websites"
+msgstr "وب‌سایت‌ها"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"اگر قبلاً رمز عبور Lantern Pro تنظیم نکرده‌اید، گزینه «رمز عبور خود را "
+"فراموش کرده‌اید؟» را در زیر انتخاب کنید."
+
+msgid "pro_subscription_expired"
+msgstr "اشتراک Pro شما منقضی شده است"
+
+msgid "renew_pro_subscription"
+msgstr "تمدید اشتراک Pro"
+
+msgid "subscription_expired"
+msgstr "اشتراک منقضی شده"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"اشتراک Lantern Pro منقضی شده است. برای بازیابی داده نامحدود و ویژگی‌های Pro "
+"تمدید کنید."
+
+msgid "last_subscription_renewal_date"
+msgstr "تاریخ آخرین تمدید اشتراک"
+
+msgid "set_account_password"
+msgstr "تنظیم رمز عبور حساب"
+
+msgid "set_password"
+msgstr "تنظیم رمز عبور"
+
+msgid "set_account_password_message"
+msgstr ""
+"برای مدیریت حساب خود یا ورود به دستگاه‌های دیگر، اکنون باید برای حساب Lantern Pro خود رمز عبور تنظیم کنید.\n"
+"\n"
+"ما یک کد تأیید را از طریق ایمیل برای شما ارسال می‌کنیم تا رمز عبور خود را ایجاد کنید."
+
+msgid "expired"
+msgstr "منقضی شده"

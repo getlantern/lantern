@@ -2,6 +2,8 @@
 # Translators:
 # Aki, 2025
 # Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# e2f_cn c3 <tx_e2f_cn_c3@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -354,13 +356,13 @@ msgid "create_password"
 msgstr "创建密码"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "登录蓝灯专业版"
+msgstr "登录蓝灯"
 
 msgid "sign_in_with_email"
 msgstr "使用电子邮箱登录"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "输入您的蓝灯专业版账户详情。"
+msgstr "输入您的蓝灯账户详情。"
 
 msgid "email"
 msgstr "电子邮箱"
@@ -375,7 +377,7 @@ msgid "reset_your_password"
 msgstr "重置您的密码"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "输入您的蓝灯专业版账户电子邮箱。"
+msgstr "输入您的蓝灯账户邮箱。"
 
 msgid "reset_password"
 msgstr "重置密码"
@@ -449,6 +451,9 @@ msgstr "开启分流以自定义哪些网站使用 VPN。"
 msgid "welcome_to_lantern_pro"
 msgstr "欢迎使用蓝灯专业版!"
 
+msgid "welcome_to_lantern"
+msgstr "欢迎使用蓝灯！"
+
 msgid "lantern_pro_description"
 msgstr "您的专业版功能已解锁——享受无限数据、更快速度和高级服务器。"
 
@@ -496,6 +501,9 @@ msgstr "退出登录"
 
 msgid "logout_message"
 msgstr "退出登录将使蓝灯切换到免费版本。要再次访问您的账户,您需要重新登录。"
+
+msgid "logout_message_expired"
+msgstr "您确定要退出您的账户吗？"
 
 msgid "not_now"
 msgstr "暂不"
@@ -837,7 +845,7 @@ msgid "trust_server_operator_message_two"
 msgstr "蓝灯不管理或监控私有服务器。在加入之前,请确保您了解并信任服务器运营者。"
 
 msgid "trust_server_operator_message_three"
-msgstr "如果您不确定谁在运行服务器或服务器是如何配置的,我们建议使用服务器列表中的默认蓝灯服务器"
+msgstr "如果您不确定谁在运营服务器或服务器如何配置，我们建议您使用服务器列表中的默认蓝灯服务器。"
 
 msgid "invalid_server_details"
 msgstr "无效的服务器详情。请检查访问密钥并重试。"
@@ -1227,7 +1235,7 @@ msgid "could_not_open_url"
 msgstr "无法打开 URL"
 
 msgid "new_to_lantern_pro"
-msgstr "初次使用蓝灯 Pro?"
+msgstr "初次使用蓝灯？"
 
 msgid "an_error_occurred"
 msgstr "发生错误。请稍后重试。"
@@ -1285,3 +1293,85 @@ msgstr "如果您没有收到确认码,请考虑使用其他邮箱服务商。"
 
 msgid "continue_anyway"
 msgstr "仍然继续"
+
+msgid "routing_mode"
+msgstr "路由模式"
+
+msgid "smart_routing"
+msgstr "智能路由"
+
+msgid "full_tunnel"
+msgstr "全局代理"
+
+msgid "region_optimized_routing"
+msgstr "根据您所在地区优化的基于规则的路由"
+
+msgid "all_traffic_through_vpn"
+msgstr "所有流量通过 VPN"
+
+msgid "smart_routing_description"
+msgstr "智能路由使用特定地区的规则，自动将需要 VPN 的流量通过蓝灯发送。所有其他流量直连以提高速度和可靠性。"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "添加应用和网站以绕过 VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "您的蓝灯 Pro 许可证将应用于您的现有账户"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "您的购买将应用于您的现有账户"
+
+msgid "daily_data_cap_reached"
+msgstr "已达到每日数据上限"
+
+msgid "daily_data_cap_reached_message"
+msgstr "速度已降至 128 kb/s - 将在 %s 重置。"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"购买时将从您的 Apple ID 扣款。订阅将自动续订，除非在当前周期结束前至少 24 小时取消。在 App Store 设置中管理或取消。"
+
+msgid "failed_to_update_routing_mode"
+msgstr "更新路由模式失败。请重试。"
+
+msgid "apps"
+msgstr "应用"
+
+msgid "websites"
+msgstr "网站"
+
+msgid "if_you_have_not_set_password"
+msgstr "如果您之前没有设置蓝灯 Pro 密码，请选择下方的\"忘记密码？\"选项。"
+
+msgid "pro_subscription_expired"
+msgstr "您的 Pro 订阅已过期"
+
+msgid "renew_pro_subscription"
+msgstr "续订 Pro 订阅"
+
+msgid "subscription_expired"
+msgstr "订阅已过期"
+
+msgid "pro"
+msgstr "专业版"
+
+msgid "pro_subscription_expired_message"
+msgstr "蓝灯 Pro 订阅已过期。续订以恢复无限流量和 Pro 功能。"
+
+msgid "last_subscription_renewal_date"
+msgstr "上次订阅续订日期"
+
+msgid "set_account_password"
+msgstr "设置账户密码"
+
+msgid "set_password"
+msgstr "设置密码"
+
+msgid "set_account_password_message"
+msgstr ""
+"要管理您的账户或在其他设备上登录，您现在需要为蓝灯 Pro 账户设置密码。\n"
+"\n"
+"我们将通过邮件向您发送验证码以创建密码。"
+
+msgid "expired"
+msgstr "已过期"

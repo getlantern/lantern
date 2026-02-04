@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "17:557133969672494375",
+      "lastPropertyId": "18:1036551397142037630",
       "name": "AppSetting",
       "properties": [
         {
@@ -126,6 +126,11 @@
         {
           "id": "17:557133969672494375",
           "name": "routingModeRaw",
+          "type": 9
+        },
+        {
+          "id": "18:1036551397142037630",
+          "name": "dataCapThreshold",
           "type": 9
         }
       ],
