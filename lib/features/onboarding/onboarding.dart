@@ -30,20 +30,19 @@ class _OnboardingState extends ConsumerState<Onboarding> {
       if (appSetting.showSplashScreen && PlatformUtils.isMacOS) {
         appLogger.info("Showing System Extension Dialog");
         appRouter.push(const MacOSExtensionDialog());
-        //User has seen dialog, do not show again
+        // User has seen dialog, do not show again
         appLogger.info("Setting showSplashScreen to false");
 
         ref.read(appSettingProvider.notifier).setSplashScreen(false);
         return;
       }
-      return;
     }
 
     return Scaffold(
       appBar: AppBar(
-        leading: SizedBox.shrink(),
+        leading: const SizedBox.shrink(),
         backgroundColor: AppColors.white,
-        title: LanternLogo(),
+        title: const LanternLogo(),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -111,6 +110,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               onPressed: () {
                 if (pageIndex.value == 2) {
                   onboardingCompleted();
+                  return;
                 }
                 controller.value.nextPage();
               },
@@ -176,7 +176,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode),
+            child: AppImage(path: AppImagePaths.advanceProtocol),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -197,7 +197,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode),
+            child: AppImage(path: AppImagePaths.privateServerIntro),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -218,7 +218,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode),
+            child: AppImage(path: AppImagePaths.nonProfit),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
