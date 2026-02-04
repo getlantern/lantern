@@ -302,7 +302,7 @@ class RouteModeContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
+      duration: Duration(milliseconds: 400),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: isSelected ? AppColors.blue1 : AppColors.gray2,
