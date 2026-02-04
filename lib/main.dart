@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern_app.dart';
@@ -43,13 +43,12 @@ Future<void> main() async {
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
     await injectServices();
-
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
   final flags = await _loadFeatureFlags();
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
-  await _configureAutoUpdate(flags: flags);
+  await sl<Updater>().init(flags: flags);
 
   FutureOr<void> runner() {
     runApp(
@@ -74,26 +73,6 @@ Future<Map<String, dynamic>> _loadFeatureFlags() async {
   } catch (_) {
     return <String, dynamic>{};
   }
-}
-
-Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
-  if (kDebugMode) return;
-  if (!Platform.isMacOS && !Platform.isWindows) return;
-  final enabled = flags.getBool(FeatureFlag.autoUpdateEnabled);
-  if (!enabled) return;
-
-  await autoUpdater.setFeedURL(AppUrls.appcastURL);
-  await autoUpdater.setScheduledCheckInterval(3600);
-
-  // Add delay to avoid showing modal immediately on startup
-  const firstPromptDelay = Duration(seconds: 45);
-  unawaited(Future<void>.delayed(firstPromptDelay, () async {
-    try {
-      await autoUpdater.checkForUpdates(inBackground: true);
-    } catch (e, st) {
-      appLogger.error('Failed to check for auto-updates: $e', st);
-    }
-  }));
 }
 
 Future<void> _setupSentry({required AppRunner runner}) async {

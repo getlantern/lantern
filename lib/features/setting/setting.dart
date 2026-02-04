@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
@@ -7,6 +9,7 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -303,13 +306,14 @@ class _SettingState extends ConsumerState<Setting> {
 
   Future<void> checkForUpdates() async {
     try {
-      autoUpdater.checkForUpdates();
-    } catch (e) {
-      appLogger.error('Error checking for updates: $e');
+      await sl<Updater>().checkNow();
+    } catch (e, st) {
+      appLogger.error('Error checking for updates: $e', st);
       AppDialog.errorDialog(
-          context: context,
-          title: 'error'.i18n,
-          content: e.localizedDescription);
+        context: context,
+        title: 'error'.i18n,
+        content: e.localizedDescription,
+      );
     }
   }
 
