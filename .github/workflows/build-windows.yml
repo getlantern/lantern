@@ -167,6 +167,23 @@ jobs:
                 -OutFile "./signed/${{ inputs.installer_name }}.exe"
 
               Write-Host "Downloaded signed artifact"
+
+              # Verify signature
+              $sig = Get-AuthenticodeSignature -FilePath "./signed/${{ inputs.installer_name }}.exe"
+              Write-Host "=== Signature Verification ==="
+              Write-Host "Status: $($sig.Status)"
+              Write-Host "Status Message: $($sig.StatusMessage)"
+              Write-Host "Signer Certificate Subject: $($sig.SignerCertificate.Subject)"
+              Write-Host "Timestamp: $($sig.TimeStamperCertificate.NotBefore)"
+              Write-Host "Certificate Thumbprint: $($sig.SignerCertificate.Thumbprint)"
+              Write-Host "=============================="
+
+              if ($sig.Status -ne "Valid") {
+                Write-Error "Signature verification failed! Status: $($sig.Status)"
+                exit 1
+              }
+
+              Write-Host "✓ Signature verified successfully!"
               exit 0
             } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
               Write-Error "Signing failed with status: $($status.Status)"
