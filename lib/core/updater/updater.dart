@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_build_info.dart';
@@ -7,14 +8,16 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 
 class Updater {
-  Updater._();
+  Updater({AutoUpdater? updater}) : _updater = updater ?? autoUpdater;
 
-  static bool _initialized = false;
+  final AutoUpdater _updater;
 
-  static bool get _isSupportedPlatform =>
+  bool _initialized = false;
+
+  bool get _isSupportedPlatform =>
       !kIsWeb && (Platform.isMacOS || Platform.isWindows);
 
-  static Future<void> init({required Map<String, dynamic> flags}) async {
+  Future<void> init({required Map<String, dynamic> flags}) async {
     if (_initialized) return;
     _initialized = true;
 
@@ -28,14 +31,14 @@ class Updater {
     final feedUrl = AppUrls.appcastFor(buildType);
 
     try {
-      await autoUpdater.setFeedURL(feedUrl);
-      await autoUpdater.setScheduledCheckInterval(3600);
+      await _updater.setFeedURL(feedUrl);
+      await _updater.setScheduledCheckInterval(3600);
 
-      // background check after startup
+      // Background check after startup (avoid modal immediately on launch)
       const firstPromptDelay = Duration(seconds: 45);
       unawaited(Future<void>.delayed(firstPromptDelay, () async {
         try {
-          await autoUpdater.checkForUpdates(inBackground: true);
+          await _updater.checkForUpdates(inBackground: true);
         } catch (e, st) {
           appLogger.error('Failed to check for auto-updates: $e', st);
         }
@@ -48,8 +51,8 @@ class Updater {
     }
   }
 
-  static Future<void> checkNow() async {
+  Future<void> checkNow() async {
     if (!_isSupportedPlatform) return;
-    await autoUpdater.checkForUpdates();
+    await _updater.checkForUpdates();
   }
 }

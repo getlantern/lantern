@@ -306,7 +306,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   Future<void> checkForUpdates() async {
     try {
-      await Updater.checkNow();
+      await sl<Updater>().checkNow();
     } catch (e, st) {
       appLogger.error('Error checking for updates: $e', st);
       AppDialog.errorDialog(

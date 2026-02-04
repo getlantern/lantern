@@ -43,13 +43,12 @@ Future<void> main() async {
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
     await injectServices();
-
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
   final flags = await _loadFeatureFlags();
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
-  await Updater.init(flags: flags);
+  await sl<Updater>().init(flags: flags);
 
   FutureOr<void> runner() {
     runApp(
