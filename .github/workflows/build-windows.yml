@@ -100,20 +100,16 @@ jobs:
             --flutter-build-args=verbose
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "${{ inputs.installer_name }}.exe"
 
-      - name: Sign EXE with Azure Code Signing
-        uses: getlantern/trusted-signing-action@main
+      - name: Sign EXE with SignPath
+        uses: signpath/github-action-submit-signing-request@v1
         with:
-          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-          endpoint: https://wus2.codesigning.azure.net/
-          code-signing-account-name: code-signing
-          certificate-profile-name: Lantern
-          files-folder: ${{ github.workspace }}/
-          files-folder-filter: exe,dll,msix
-          file-digest: SHA256
-          timestamp-rfc3161: http://timestamp.acs.microsoft.com
-          timestamp-digest: SHA256
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORG_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          input-artifact-path: ${{ inputs.installer_name }}.exe
+          output-artifact-path: ${{ inputs.installer_name }}.exe
+          wait-for-completion: true
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
