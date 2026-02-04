@@ -100,20 +100,29 @@ jobs:
             --flutter-build-args=verbose
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "${{ inputs.installer_name }}.exe"
 
+      - name: Upload unsigned artifact for SignPath
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installer
+          path: ${{ inputs.installer_name }}.exe
+          retention-days: 1
+
       - name: Sign EXE with SignPath
+        id: sign
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORG_ID }}
           project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
           signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
-          input-artifact-path: ${{ inputs.installer_name }}.exe
-          output-artifact-path: ${{ inputs.installer_name }}.exe
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
+          output-artifact-directory: signed
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe
-          path: ${{ inputs.installer_name }}.exe
+          path: signed/${{ inputs.installer_name }}.exe
           retention-days: 2
