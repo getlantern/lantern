@@ -305,10 +305,7 @@ linux-release: clean linux pubget gen stage-linux-service
 	flutter build linux --release $(DART_DEFINES)
 
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
-<<<<<<< HEAD
 	patchelf --set-rpath '$$ORIGIN' build/linux/x64/release/bundle/lantern || true
-=======
->>>>>>> origin/main
 
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
   	--build-dart-define=VERSION=$(VERSION) --platform linux --targets "deb,rpm" --skip-clean
