@@ -108,19 +108,74 @@ jobs:
           path: ${{ inputs.installer_name }}.exe
           retention-days: 1
 
-      - name: Sign EXE with SignPath
-        id: sign
-        uses: signpath/github-action-submit-signing-request@v1
+      - name: Download unsigned artifact
+        uses: actions/download-artifact@v4
         with:
-          connector-url: https://githubactions.connectors.signpath.io
-          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ vars.SIGNPATH_ORG_ID }}
-          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
-          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-for-completion: true
-          output-artifact-directory: signed
+          name: unsigned-installer
+          path: ./unsigned
+
+      - name: Sign EXE with SignPath (REST API)
+        id: sign
+        shell: pwsh
+        run: |
+          $response = Invoke-WebRequest -Method POST `
+            -Uri "https://app.signpath.io/API/v1/${{ vars.SIGNPATH_ORG_ID }}/SigningRequests" `
+            -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" } `
+            -Form @{
+              "ProjectSlug" = "${{ vars.SIGNPATH_PROJECT_SLUG }}"
+              "SigningPolicySlug" = "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}"
+              "Artifact" = Get-Item "./unsigned/${{ inputs.installer_name }}.exe"
+              "Description" = "GitHub Actions build - ${{ inputs.version }}"
+            }
+
+          if ($response.StatusCode -eq 201) {
+            $signRequestUrl = $response.Headers.Location
+            Write-Host "Signing request submitted: $signRequestUrl"
+            echo "signing_request_url=$signRequestUrl" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "Failed to submit signing request"
+            exit 1
+          }
+
+      - name: Wait for signing completion and download
+        shell: pwsh
+        run: |
+          $signRequestUrl = "${{ steps.sign.outputs.signing_request_url }}"
+          $maxAttempts = 60
+          $attempt = 0
+
+          Write-Host "Waiting for signing to complete..."
+
+          while ($attempt -lt $maxAttempts) {
+            Start-Sleep -Seconds 10
+            $attempt++
+
+            $status = Invoke-RestMethod -Method GET `
+              -Uri $signRequestUrl `
+              -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" }
+
+            Write-Host "Status: $($status.Status) (attempt $attempt/$maxAttempts)"
+
+            if ($status.Status -eq "Completed") {
+              Write-Host "Signing completed successfully!"
+
+              # Download signed artifact
+              New-Item -ItemType Directory -Force -Path "./signed"
+              Invoke-WebRequest -Method GET `
+                -Uri "$signRequestUrl/SignedArtifact" `
+                -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" } `
+                -OutFile "./signed/${{ inputs.installer_name }}.exe"
+
+              Write-Host "Downloaded signed artifact"
+              exit 0
+            } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
+              Write-Error "Signing failed with status: $($status.Status)"
+              exit 1
+            }
+          }
+
+          Write-Error "Timeout waiting for signing to complete"
+          exit 1
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
