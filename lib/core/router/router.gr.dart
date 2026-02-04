@@ -21,25 +21,25 @@ import 'package:lantern/features/auth/choose_payment_method.dart' as _i5;
 import 'package:lantern/features/auth/confirm_email.dart' as _i6;
 import 'package:lantern/features/auth/create_password.dart' as _i7;
 import 'package:lantern/features/auth/device_limit_reached.dart' as _i10;
-import 'package:lantern/features/auth/lantern_pro_license.dart' as _i18;
+import 'package:lantern/features/auth/lantern_pro_license.dart' as _i17;
 import 'package:lantern/features/auth/reset_password.dart' as _i31;
 import 'package:lantern/features/auth/reset_password_email.dart' as _i32;
 import 'package:lantern/features/auth/sign_in_email.dart' as _i35;
 import 'package:lantern/features/auth/sign_in_password.dart' as _i36;
 import 'package:lantern/features/developer/developer_mode.dart' as _i9;
 import 'package:lantern/features/home/home.dart' as _i13;
-import 'package:lantern/features/intro/intro.dart' as _i14;
-import 'package:lantern/features/language/language.dart' as _i17;
-import 'package:lantern/features/logs/logs.dart' as _i19;
+import 'package:lantern/features/language/language.dart' as _i16;
+import 'package:lantern/features/logs/logs.dart' as _i18;
 import 'package:lantern/features/macos_extension/macos_extension_dialog.dart'
-    as _i20;
+    as _i19;
+import 'package:lantern/features/onboarding/onboarding.dart' as _i22;
 import 'package:lantern/features/plans/plans.dart' as _i23;
 import 'package:lantern/features/private_server/join_private_server.dart'
-    as _i16;
+    as _i15;
 import 'package:lantern/features/private_server/manage_private_server.dart'
-    as _i21;
+    as _i20;
 import 'package:lantern/features/private_server/manually_server_setup.dart'
-    as _i22;
+    as _i21;
 import 'package:lantern/features/private_server/private_server_add_billing.dart'
     as _i24;
 import 'package:lantern/features/private_server/private_server_deploy.dart'
@@ -54,7 +54,7 @@ import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i29;
 import 'package:lantern/features/report_Issue/report_issue.dart' as _i30;
 import 'package:lantern/features/setting/download_links.dart' as _i11;
 import 'package:lantern/features/setting/follow_us.dart' as _i12;
-import 'package:lantern/features/setting/invite_friends.dart' as _i15;
+import 'package:lantern/features/setting/invite_friends.dart' as _i14;
 import 'package:lantern/features/setting/setting.dart' as _i34;
 import 'package:lantern/features/setting/smart_routing.dart' as _i37;
 import 'package:lantern/features/setting/vpn_setting.dart' as _i41;
@@ -563,23 +563,7 @@ class Home extends _i43.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i14.Intro]
-class Intro extends _i43.PageRouteInfo<void> {
-  const Intro({List<_i43.PageRouteInfo>? children})
-      : super(Intro.name, initialChildren: children);
-
-  static const String name = 'Intro';
-
-  static _i43.PageInfo page = _i43.PageInfo(
-    name,
-    builder: (data) {
-      return const _i14.Intro();
-    },
-  );
-}
-
-/// generated route for
-/// [_i15.InviteFriends]
+/// [_i14.InviteFriends]
 class InviteFriends extends _i43.PageRouteInfo<void> {
   const InviteFriends({List<_i43.PageRouteInfo>? children})
       : super(InviteFriends.name, initialChildren: children);
@@ -589,13 +573,13 @@ class InviteFriends extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i15.InviteFriends();
+      return const _i14.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i16.JoinPrivateServer]
+/// [_i15.JoinPrivateServer]
 class JoinPrivateServer extends _i43.PageRouteInfo<JoinPrivateServerArgs> {
   JoinPrivateServer({
     _i44.Key? key,
@@ -615,7 +599,7 @@ class JoinPrivateServer extends _i43.PageRouteInfo<JoinPrivateServerArgs> {
       final args = data.argsAs<JoinPrivateServerArgs>(
         orElse: () => const JoinPrivateServerArgs(),
       );
-      return _i16.JoinPrivateServer(
+      return _i15.JoinPrivateServer(
         key: args.key,
         deepLinkData: args.deepLinkData,
       );
@@ -653,7 +637,7 @@ class JoinPrivateServerArgs {
 }
 
 /// generated route for
-/// [_i17.Language]
+/// [_i16.Language]
 class Language extends _i43.PageRouteInfo<void> {
   const Language({List<_i43.PageRouteInfo>? children})
       : super(Language.name, initialChildren: children);
@@ -663,13 +647,13 @@ class Language extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i17.Language();
+      return const _i16.Language();
     },
   );
 }
 
 /// generated route for
-/// [_i18.LanternProLicense]
+/// [_i17.LanternProLicense]
 class LanternProLicense extends _i43.PageRouteInfo<LanternProLicenseArgs> {
   LanternProLicense({
     _i44.Key? key,
@@ -688,7 +672,7 @@ class LanternProLicense extends _i43.PageRouteInfo<LanternProLicenseArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<LanternProLicenseArgs>();
-      return _i18.LanternProLicense(
+      return _i17.LanternProLicense(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -727,7 +711,7 @@ class LanternProLicenseArgs {
 }
 
 /// generated route for
-/// [_i19.Logs]
+/// [_i18.Logs]
 class Logs extends _i43.PageRouteInfo<void> {
   const Logs({List<_i43.PageRouteInfo>? children})
       : super(Logs.name, initialChildren: children);
@@ -737,13 +721,13 @@ class Logs extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i19.Logs();
+      return const _i18.Logs();
     },
   );
 }
 
 /// generated route for
-/// [_i20.MacOSExtensionDialog]
+/// [_i19.MacOSExtensionDialog]
 class MacOSExtensionDialog extends _i43.PageRouteInfo<void> {
   const MacOSExtensionDialog({List<_i43.PageRouteInfo>? children})
       : super(MacOSExtensionDialog.name, initialChildren: children);
@@ -753,13 +737,13 @@ class MacOSExtensionDialog extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i20.MacOSExtensionDialog();
+      return const _i19.MacOSExtensionDialog();
     },
   );
 }
 
 /// generated route for
-/// [_i21.ManagePrivateServer]
+/// [_i20.ManagePrivateServer]
 class ManagePrivateServer extends _i43.PageRouteInfo<void> {
   const ManagePrivateServer({List<_i43.PageRouteInfo>? children})
       : super(ManagePrivateServer.name, initialChildren: children);
@@ -769,13 +753,13 @@ class ManagePrivateServer extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i21.ManagePrivateServer();
+      return const _i20.ManagePrivateServer();
     },
   );
 }
 
 /// generated route for
-/// [_i22.ManuallyServerSetup]
+/// [_i21.ManuallyServerSetup]
 class ManuallyServerSetup extends _i43.PageRouteInfo<void> {
   const ManuallyServerSetup({List<_i43.PageRouteInfo>? children})
       : super(ManuallyServerSetup.name, initialChildren: children);
@@ -785,9 +769,53 @@ class ManuallyServerSetup extends _i43.PageRouteInfo<void> {
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      return const _i22.ManuallyServerSetup();
+      return const _i21.ManuallyServerSetup();
     },
   );
+}
+
+/// generated route for
+/// [_i22.Onboarding]
+class Onboarding extends _i43.PageRouteInfo<OnboardingArgs> {
+  Onboarding({_i44.Key? key, List<_i43.PageRouteInfo>? children})
+      : super(
+          Onboarding.name,
+          args: OnboardingArgs(key: key),
+          initialChildren: children,
+        );
+
+  static const String name = 'Onboarding';
+
+  static _i43.PageInfo page = _i43.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<OnboardingArgs>(
+        orElse: () => const OnboardingArgs(),
+      );
+      return _i22.Onboarding(key: args.key);
+    },
+  );
+}
+
+class OnboardingArgs {
+  const OnboardingArgs({this.key});
+
+  final _i44.Key? key;
+
+  @override
+  String toString() {
+    return 'OnboardingArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! OnboardingArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for

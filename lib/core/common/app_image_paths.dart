@@ -103,4 +103,9 @@ class AppImagePaths {
   static const assessment = 'assets/images/assessment.svg';
   static const route = 'assets/images/route.svg';
   static const world = 'assets/images/world.svg';
+  static const advanceProtocol = 'assets/images/advance_protocol.svg';
+  static const nonProfit = 'assets/images/non_profit.svg';
+  static const privateServerIntro = 'assets/images/private_server_intro.svg';
+  static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+
 }
