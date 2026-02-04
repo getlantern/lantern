@@ -113,6 +113,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(showTelemetryDialog: value));
   }
 
+  void setOnboardingCompleted(bool value) {
+    update(state.copyWith(onboardingCompleted: value));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'

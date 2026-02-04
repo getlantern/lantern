@@ -1433,6 +1433,15 @@ msgstr "Traditional VPN Mode"
 msgid "traditional_vpn_mode_description"
 msgstr "Routes all traffic through Lantern, whether it needs it or not."
 
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Change anytime in Routing Mode Settings"
+
+msgid "get_started"
+msgstr "Get Started"
+
+msgid "skip_connect_now"
+msgstr "Skip- Connect Now"
+
 
 
 

@@ -776,46 +776,18 @@ class ManuallyServerSetup extends _i43.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i22.Onboarding]
-class Onboarding extends _i43.PageRouteInfo<OnboardingArgs> {
-  Onboarding({_i44.Key? key, List<_i43.PageRouteInfo>? children})
-      : super(
-          Onboarding.name,
-          args: OnboardingArgs(key: key),
-          initialChildren: children,
-        );
+class Onboarding extends _i43.PageRouteInfo<void> {
+  const Onboarding({List<_i43.PageRouteInfo>? children})
+      : super(Onboarding.name, initialChildren: children);
 
   static const String name = 'Onboarding';
 
   static _i43.PageInfo page = _i43.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<OnboardingArgs>(
-        orElse: () => const OnboardingArgs(),
-      );
-      return _i22.Onboarding(key: args.key);
+      return const _i22.Onboarding();
     },
   );
-}
-
-class OnboardingArgs {
-  const OnboardingArgs({this.key});
-
-  final _i44.Key? key;
-
-  @override
-  String toString() {
-    return 'OnboardingArgs{key: $key}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! OnboardingArgs) return false;
-    return key == other.key;
-  }
-
-  @override
-  int get hashCode => key.hashCode;
 }
 
 /// generated route for

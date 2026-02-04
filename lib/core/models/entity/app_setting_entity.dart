@@ -19,7 +19,7 @@ class AppSetting {
   bool successfulConnection;
   String routingModeRaw;
   String dataCapThreshold;
-  bool introShown;
+  bool onboardingCompleted;
 
   AppSetting({
     this.id = 0,
@@ -36,7 +36,7 @@ class AppSetting {
     this.successfulConnection = false,
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
-    this.introShown = false,
+    this.onboardingCompleted = false,
   });
 
   AppSetting copyWith({
@@ -53,7 +53,7 @@ class AppSetting {
     bool? successfulConnection,
     String? routingModeRaw,
     String? dataCapThreshold,
-    bool? introShown,
+    bool? onboardingCompleted,
   }) {
     return AppSetting(
       id: id,
@@ -70,7 +70,7 @@ class AppSetting {
       successfulConnection: successfulConnection ?? this.successfulConnection,
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
-      introShown: introShown ?? this.introShown,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
