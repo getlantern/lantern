@@ -1257,7 +1257,7 @@ class LanternPlatformService implements LanternCoreService {
 
   EnabledAppsSnapshot get enabledAppsSnapshot => _enabledApps;
 
-  /// Pull enabled apps from native/Go (single source of truth)
+  /// Pull enabled apps from native/Go
   Future<void> _refreshEnabledAppsSnapshot() async {
     try {
       final res = await _methodChannel.invokeMethod('getEnabledAppsSnapshot');
