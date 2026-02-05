@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -73,7 +74,7 @@ class HomeNotifier extends _$HomeNotifier {
   void _applyUserData(UserResponse userData) {
     state = AsyncValue.data(userData);
 
-    if (!userData.legacyUserData.isPro()) {
+    if (!userData.legacyUserData.isPro) {
       resetServerLocation();
     }
 
@@ -130,7 +131,7 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   void _checkIfUserProAndDeviceIsAdded(UserResponse user) {
-    if (!user.legacyUserData.isPro()) {
+    if (!user.legacyUserData.isPro) {
       appLogger.info("User is not Pro. Skipping device check.");
       return;
     }

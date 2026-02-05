@@ -24,7 +24,7 @@ Future<void> injectServices() async {
     });
 
     sl.registerLazySingleton(() => AppRouter());
-    sl.registerLazySingleton(() => AppPurchase(ref: ref));
+    sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
     sl.registerLazySingleton<DeepLinkCallbackManager>(
         () => DeepLinkCallbackManager());

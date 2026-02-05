@@ -10,7 +10,6 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
