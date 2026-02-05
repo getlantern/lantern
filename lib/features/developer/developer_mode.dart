@@ -6,8 +6,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
-
-import '../../core/services/injection_container.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -20,10 +19,15 @@ class DeveloperMode extends StatefulHookConsumerWidget {
 class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
-    final user = sl<LocalStorageService>().getUser();
+    final user = ref.watch(currentUserProvider);
     appLogger.info('User info: $user');
+
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.watch(developerModeProvider.notifier);
+
+    final userId = user?.legacyUserData.userId.toString() ?? 'N/A';
+    final userLevel = user?.legacyUserData.userLevel ?? 'N/A';
+
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -43,16 +47,12 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                 DividerSpace(),
                 AppTile(
                   label: 'UserId',
-                  trailing: AppTextButton(
-                    label: user?.legacyUserData.userId?.toString() ?? 'N/A',
-                  ),
+                  trailing: AppTextButton(label: userId),
                 ),
                 DividerSpace(),
                 AppTile(
                   label: 'Status',
-                  trailing: AppTextButton(
-                    label: user?.legacyUserData.userLevel ?? 'N/A',
-                  ),
+                  trailing: AppTextButton(label: userLevel),
                 ),
                 DividerSpace(),
                 if (PlatformUtils.isAndroid)
@@ -61,7 +61,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                     trailing: SwitchButton(
                       value: developerMode.testPlayPurchaseEnabled,
                       onChanged: (bool? value) {
-                        appLogger.info('Test Play Purchase toggled: $value');
                         devNotifier.updateDeveloperSettings(
                           developerMode.copyWith(
                             testPlayPurchaseEnabled: value ?? false,
@@ -82,8 +81,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     final appDir = await AppStorageUtils.getAppDirectory();
     appDir.delete(recursive: true);
     AppDialog.errorDialog(
-        context: context,
-        title: 'Reset',
-        content: 'Restart app to see changes.');
+      context: context,
+      title: 'Reset',
+      content: 'Restart app to see changes.',
+    );
   }
 }

@@ -1001,3 +1001,147 @@ func isSmartRoutingEnabled() C.int {
 	}
 	return 0
 }
+
+//export getSplitTunnelState
+func getSplitTunnelState() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.GetSplitTunnelStateJSON()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export getSplitTunnelItems
+func getSplitTunnelItems(filterTypeC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	filterType := C.GoString(filterTypeC)
+	s, err := c.GetSplitTunnelItems(filterType)
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export getCachedPlans
+func getCachedPlans() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.GetCachedPlans()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export setCachedPlans
+func setCachedPlans(plansJSON *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SetCachedPlans(C.GoString(plansJSON)); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export getPrivateServers
+func getPrivateServers() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.(*lanterncore.LanternCore).GetPrivateServersJSON()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export savePrivateServer
+func savePrivateServer(_json *C.char, _joined C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	js := C.GoString(_json)
+	joined := _joined != 0
+	if err := c.(*lanterncore.LanternCore).SavePrivateServerJSON(js, joined); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export deletePrivateServerByName
+func deletePrivateServerByName(_name *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	name := C.GoString(_name)
+	if err := c.(*lanterncore.LanternCore).DeletePrivateServerByName(name); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export updatePrivateServerName
+func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	oldName := C.GoString(_oldName)
+	newName := C.GoString(_newName)
+	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export getSelectedServerLocation
+func getSelectedServerLocation() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.(*lanterncore.LanternCore).GetSelectedServerLocationJSON()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export getDeveloperMode
+func getDeveloperMode() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.(*lanterncore.LanternCore).GetDeveloperModeJSON()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export setDeveloperMode
+func setDeveloperMode(jsonC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.(*lanterncore.LanternCore).SetDeveloperModeJSON(C.GoString(jsonC)); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}

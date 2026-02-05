@@ -7,6 +7,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -467,16 +468,16 @@ class LanternService implements LanternCoreService {
       required String serverName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerBasedOnURLs(
-          urls: urls,
-          skipCertVerification: skipCertVerification,
-          serverName: serverName,
-          );
-    }
-    return _platformService.addServerBasedOnURLs(
         urls: urls,
         skipCertVerification: skipCertVerification,
         serverName: serverName,
-        );
+      );
+    }
+    return _platformService.addServerBasedOnURLs(
+      urls: urls,
+      skipCertVerification: skipCertVerification,
+      serverName: serverName,
+    );
   }
 
   /// connectToServer is used to connect to a server
@@ -644,5 +645,34 @@ class LanternService implements LanternCoreService {
       return _ffiService.attachReferralCode(code);
     }
     return _platformService.attachReferralCode(code);
+  }
+
+  @override
+  Future<Either<Failure, PlansData?>> getCachedPlans() {
+    if (PlatformUtils.isFFISupported) return _ffiService.getCachedPlans();
+    return _platformService.getCachedPlans();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
+    if (PlatformUtils.isFFISupported) return _ffiService.setCachedPlans(plans);
+    return _platformService.setCachedPlans(plans);
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSelectedServerLocation();
+    }
+    return _platformService.getSelectedServerLocation();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSelectedServerLocation(
+      ServerLocation location) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setSelectedServerLocation(location);
+    }
+    return _platformService.setSelectedServerLocation(location);
   }
 }

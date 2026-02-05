@@ -7,7 +7,9 @@ import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -76,8 +78,6 @@ abstract class LanternCoreService {
   });
 
   Future<Either<Failure, Unit>> showManageSubscriptions();
-
-  Future<Either<Failure, PlansData>> plans();
 
   /// Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
@@ -217,4 +217,25 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> isSystemExtensionInstalled();
 
   Stream<MacOSExtensionState> watchSystemExtensionStatus();
+
+  /// Plans (remote)
+  Future<Either<Failure, PlansData>> plans();
+
+  /// Plans cache
+  Future<Either<Failure, PlansData?>> getCachedPlans();
+  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans);
+
+  Future<Either<Failure, List<PrivateServer>>> getPrivateServers();
+  Future<Either<Failure, Unit>> savePrivateServer(PrivateServer server,
+      {required bool joined});
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName);
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+      String oldName, String newName);
+
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation();
+  Future<Either<Failure, Unit>> setSelectedServerLocation(
+      ServerLocation location);
+
+  Future<Either<Failure, DeveloperMode>> getDeveloperMode();
+  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev);
 }

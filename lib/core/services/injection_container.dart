@@ -1,6 +1,5 @@
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
-import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -24,10 +23,8 @@ Future<void> injectServices() async {
       return storeUtils;
     });
 
-    sl.registerLazySingleton(() => LocalStorageService());
-    await sl<LocalStorageService>().init();
     sl.registerLazySingleton(() => AppRouter());
-    sl.registerLazySingleton(() => AppPurchase());
+    sl.registerLazySingleton(() => AppPurchase(ref: ref));
     sl<AppPurchase>().init();
     sl.registerLazySingleton<DeepLinkCallbackManager>(
         () => DeepLinkCallbackManager());

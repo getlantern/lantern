@@ -75,6 +75,8 @@ class LanternPlatformService implements LanternCoreService {
           .map((event) =>
               MacOSExtensionState.fromString(event['status'].toString()));
     }
+
+    await _refreshEnabledAppsSnapshot();
   }
 
   @override
@@ -290,7 +292,9 @@ class LanternPlatformService implements LanternCoreService {
         }
         final decoded = jsonDecode(json) as List<dynamic>;
         final rawApps = decoded.cast<Map<String, dynamic>>();
-        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
+
         for (final a in _mapToAppData(rawApps, enabled: enabled)) {
           _androidAppCache[a.bundleId] = a;
         }
@@ -306,7 +310,8 @@ class LanternPlatformService implements LanternCoreService {
       await for (final ev in nativeStream) {
         if (ev is! Map) continue;
         final e = AppDataEvent.fromMap(ev);
-        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
         _applyAppDataEvent(
           type: e.type,
           items: e.items.map((a) {
@@ -383,7 +388,8 @@ class LanternPlatformService implements LanternCoreService {
         await for (final ev in nativeStream) {
           if (ev is! Map) continue;
           final e = AppDataEvent.fromMap(ev);
-          final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+          await _refreshEnabledAppsSnapshot();
+          final enabled = enabledAppsSnapshot;
 
           for (final id in e.removed) {
             cache.remove(id);
@@ -419,7 +425,8 @@ class LanternPlatformService implements LanternCoreService {
         return;
       }
       final decoded = jsonDecode(json) as List<dynamic>;
-      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+      await _refreshEnabledAppsSnapshot();
+      final enabled = enabledAppsSnapshot;
       final rawApps = decoded.cast<Map<String, dynamic>>();
       yield _mapToAppData(rawApps, enabled: enabled);
     } catch (e, st) {
@@ -437,6 +444,7 @@ class LanternPlatformService implements LanternCoreService {
         'filterType': type.value,
         'value': value,
       });
+      await _refreshEnabledAppsSnapshot();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -451,6 +459,7 @@ class LanternPlatformService implements LanternCoreService {
         'filterType': type.value,
         'value': value,
       });
+      await _refreshEnabledAppsSnapshot();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -1050,8 +1059,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
-      required String urls,
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
       required bool skipCertVerification,
       required String serverName}) async {
     try {
@@ -1242,4 +1251,36 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  EnabledAppsSnapshot _enabledApps = const EnabledAppsSnapshot.empty();
+
+  EnabledAppsSnapshot get enabledAppsSnapshot => _enabledApps;
+
+  /// Pull enabled apps from native/Go (single source of truth)
+  Future<void> _refreshEnabledAppsSnapshot() async {
+    try {
+      final res = await _methodChannel.invokeMethod('getEnabledAppsSnapshot');
+
+      if (res is Map) {
+        final keys = (res['keys'] as List?)
+                ?.whereType<String>()
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toSet() ??
+            <String>{};
+        final names = (res['names'] as List?)
+                ?.whereType<String>()
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toSet() ??
+            <String>{};
+
+        _enabledApps = EnabledAppsSnapshot(keys: keys, names: names);
+      } else {
+        _enabledApps = const EnabledAppsSnapshot.empty();
+      }
+    } catch (_) {
+      // On old builds / missing plugin method, fail closed
+      _enabledApps = const EnabledAppsSnapshot.empty();
+    }
+  }
 }

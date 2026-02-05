@@ -1,7 +1,7 @@
+import 'dart:async';
+
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,77 +13,75 @@ class PlansNotifier extends _$PlansNotifier {
 
   @override
   Future<PlansData> build() async {
-    state = AsyncLoading();
-    final local = _getPlansFromLocalStorage();
-    // If local exists, return it immediately and refresh in background
-    if (local != null) {
-      _refreshInBackground();
-      state = AsyncData(local);
-      return local;
+    state = const AsyncLoading();
+
+    final cached = await _getPlansFromGoCache();
+    if (cached != null) {
+      unawaited(_refreshInBackground());
+      state = AsyncData(cached);
+      return cached;
     }
-    // No local — fetch from API
+
     final plans = await fetchPlans();
     state = AsyncData(plans);
-    await _storePlansLocally(plans);
+    await _storePlansInGoCache(plans);
     return plans;
   }
 
-  PlansData? _getPlansFromLocalStorage() {
+  Future<PlansData?> _getPlansFromGoCache() async {
     try {
-      final localPlans = sl<LocalStorageService>().getPlans();
-      if (localPlans != null) {
-        return localPlans.toPlanData();
-      }
-      return null;
+      final result = await ref.read(lanternServiceProvider).getCachedPlans();
+      return result.fold(
+        (err) {
+          appLogger.warning('Error getting cached plans from Go: $err');
+          return null;
+        },
+        (plans) => plans,
+      );
     } catch (e, s) {
-      appLogger.error('Error getting local plans: $e', e, s);
+      appLogger.error('Error getting cached plans from Go: $e', e, s);
       return null;
     }
   }
 
   Future<PlansData> fetchPlans({bool fromBackground = false}) async {
-    state = AsyncLoading();
+    if (!fromBackground) {
+      state = const AsyncLoading();
+    }
+
     final result = await ref.read(lanternServiceProvider).plans();
     return await result.fold(
-      (error) {
+      (error) async {
         if (fromBackground) {
           appLogger.error('Error fetching plans in background: $error');
-          // Since we already have plans in local storage, we can return them
-          return _getPlansFromLocalStorage()!;
+          final cached = await _getPlansFromGoCache();
+          if (cached != null) return cached;
         }
         state = AsyncError(error, StackTrace.current);
-        appLogger.error('Error fetching plans: $error');
         throw Exception('Plans fetch failed');
       },
-      (remote) async {
-        appLogger
-            .info('Successfully fetched plans from API ${remote.toJson()}');
-        return remote;
-      },
+      (remote) async => remote,
     );
   }
 
-  Future<void> _storePlansLocally(PlansData plans) async {
-    sl<LocalStorageService>().savePlans(plans.toEntity());
+  Future<void> _storePlansInGoCache(PlansData plans) async {
+    final res = await ref.read(lanternServiceProvider).setCachedPlans(plans);
+    res.fold(
+      (e) => appLogger.warning('Failed to persist plans in Go cache: $e'),
+      (_) {},
+    );
   }
 
   Future<void> _refreshInBackground() async {
     appLogger.info('Refreshing plans in background');
     final remotePlans = await fetchPlans(fromBackground: true);
-    await _storePlansLocally(remotePlans);
+    await _storePlansInGoCache(remotePlans);
     state = AsyncData(remotePlans);
   }
 
-  void setSelectedPlan(Plan plan) {
-    userSelectedPlan = plan;
-  }
+  void setSelectedPlan(Plan plan) => userSelectedPlan = plan;
 
-  Plan getSelectedPlan() {
-    return userSelectedPlan!;
-  }
+  Plan getSelectedPlan() => userSelectedPlan!;
 
-  PlansData getPlanData() {
-    final plansData = _getPlansFromLocalStorage()!;
-    return plansData;
-  }
+  Future<PlansData?> getPlanData() => _getPlansFromGoCache();
 }

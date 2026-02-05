@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
@@ -94,8 +95,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
-    final String email =
-        sl<LocalStorageService>().getUser()!.legacyUserData.email;
+    final email = ref.read(userEmailFromCoreProvider);
+
     final result =
         await ref.read(authProvider.notifier).deleteAccount(email, password);
 

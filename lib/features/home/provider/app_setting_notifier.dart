@@ -4,9 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/app_setting_entity.dart';
-import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/core/models/entity/app_setting_entity.dart'; // replace with plain model import
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,40 +13,29 @@ part 'app_setting_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
-  late final LocalStorageService _db;
-
   @override
   AppSetting build() {
-    _db = sl<LocalStorageService>();
-    final setting = _db.getAppSetting();
-
-    if (setting != null && setting.locale.isNotEmpty) {
-      return setting;
-    }
-    // First-time user → use device locale
+    // First-time: use device locale, no disk writes.
     final fallback = _detectDeviceLocale();
-    final initial = AppSetting(locale: fallback.toString());
-
-    _db.updateAppSetting(initial);
-    return initial;
+    return AppSetting(locale: fallback.toString());
   }
 
   Future<void> update(AppSetting updated) async {
     state = updated;
-    _db.updateAppSetting(updated);
   }
 
-  void togglePro(bool value) {
-    update(state.copyWith(newPro: value));
-  }
+  void togglePro(bool value) => update(state.copyWith(newPro: value));
 
   void setLocale(String locale) {
     update(state.copyWith(newLocale: locale));
+
+    // If locale needs to affect backend behavior, call Go
+    final svc = ref.read(lanternServiceProvider);
+    //svc.updateLocale(locale);
   }
 
-  void toggleSplitTunneling(bool value) {
-    update(state.copyWith(newIsSpiltTunnelingOn: value));
-  }
+  void toggleSplitTunneling(bool value) =>
+      update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
     final prev = state.routingModeRaw;
@@ -66,21 +53,12 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return res;
   }
 
-  void setUserLoggedIn(bool value) {
-    update(state.copyWith(userLoggedIn: value));
-  }
-
-  void setOAuthToken(String token) {
-    update(state.copyWith(oAuthToken: token));
-  }
-
-  void setEmail(String email) {
-    update(state.copyWith(email: email));
-  }
-
-  void setSuccessfulConnection(bool value) {
-    update(state.copyWith(successfulConnection: value));
-  }
+  void setUserLoggedIn(bool value) =>
+      update(state.copyWith(userLoggedIn: value));
+  void setOAuthToken(String token) => update(state.copyWith(oAuthToken: token));
+  void setEmail(String email) => update(state.copyWith(email: email));
+  void setSuccessfulConnection(bool value) =>
+      update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
     final prev = state.blockAds;
@@ -100,18 +78,14 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     updateTelemetryConsent(value);
   }
 
-  void updateDataCapThreshold(String threshold) {
-    update(state.copyWith(dataCapThreshold: threshold));
-  }
+  void updateDataCapThreshold(String threshold) =>
+      update(state.copyWith(dataCapThreshold: threshold));
 
+  void setSplashScreen(bool value) =>
+      update(state.copyWith(showSplashScreen: value));
 
-  void setSplashScreen(bool value) {
-    update(state.copyWith(showSplashScreen: value));
-  }
-
-  void setShowTelemetryDialog(bool value) {
-    update(state.copyWith(showTelemetryDialog: value));
-  }
+  void setShowTelemetryDialog(bool value) =>
+      update(state.copyWith(showTelemetryDialog: value));
 
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
@@ -119,7 +93,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
         ? const Locale('en', 'US')
         : deviceLocale;
   }
-
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
     final LanternService svc = ref.read(lanternServiceProvider);
@@ -140,40 +113,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     result.fold(
       (err) {
-        ///if fail revert the state
-        update(state.copyWith(telemetryConsent: consent ? false : true));
+        update(state.copyWith(telemetryConsent: !consent));
         appLogger.error('updateTelemetryEvents failed: ${err.error}');
       },
       (_) {
         appLogger.info('Telemetry consent updated: $consent');
-        if (Platform.isWindows) {
-          appLogger.info("No need to create telemetry file on Windows");
-          return;
-        }
-        if (consent) {
-          enableTelemetry();
-        } else {
-          disableTelemetry();
-        }
+        // ✅ Remove the file marker logic entirely.
       },
     );
-  }
-
-  ///Internal method to create a file that indicates telemetry is enabled
-  Future<void> enableTelemetry() async {
-    final dir = await AppStorageUtils.getAppDirectory();
-    final file = File('${dir.path}/.telemetry_enabled');
-    if (!file.existsSync()) {
-      await file.create(recursive: true);
-    }
-  }
-
-  ///Internal method to delete the file that indicates telemetry is disabled
-  Future<void> disableTelemetry() async {
-    final dir = await AppStorageUtils.getAppDirectory();
-    final file = File('${dir.path}/.telemetry_enabled');
-    if (file.existsSync()) {
-      await file.delete();
-    }
   }
 }

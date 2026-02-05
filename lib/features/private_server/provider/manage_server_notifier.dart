@@ -1,29 +1,42 @@
-import 'package:lantern/core/common/app_eum.dart' show ServerLocationType;
-import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
-import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-import '../../../core/services/injection_container.dart';
-import '../../../core/services/local_storage.dart';
 
 part 'manage_server_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class ManageServerNotifier extends _$ManageServerNotifier {
   @override
-  List<PrivateServerEntity> build() {
-    return sl<LocalStorageService>().getPrivateServer();
+  Future<List<PrivateServer>> build() async {
+    final res = await ref.read(lanternServiceProvider).getPrivateServers();
+    return res.fold((f) => <PrivateServer>[], (list) => list);
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final res = await ref.read(lanternServiceProvider).getPrivateServers();
+      return res.fold((_) => <PrivateServer>[], (l) => l);
+    });
   }
 
   Future<void> deleteServer(String serverName) async {
-    await sl<LocalStorageService>().deletePrivateServer(serverName);
-    state = sl<LocalStorageService>().getPrivateServer();
-    if (state.isEmpty) {
-      ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(initialServerLocation());
-    }
+    final res = await ref
+        .read(lanternServiceProvider)
+        .deletePrivateServerByName(serverName);
+    await res.fold(
+      (_) async {},
+      (_) async => refresh(),
+    );
+  }
+
+  Future<void> renameServer(String oldName, String newName) async {
+    final res = await ref
+        .read(lanternServiceProvider)
+        .updatePrivateServerName(oldName, newName);
+    await res.fold(
+      (_) async {},
+      (_) async => refresh(),
+    );
   }
 }

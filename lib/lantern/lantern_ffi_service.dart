@@ -14,6 +14,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
@@ -262,8 +263,10 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<List<AppData>> appsDataStream() async* {
     try {
-      final String dataDir = (await AppStorageUtils.getAppDirectory()).path;
-      final String json = await runInBackground<String>(() async {
+      // Installed apps still loaded from Go (already is)
+      final String dataDir = (_ffiService.getAppDataDir().toDartString());
+
+      final String jsonApps = await runInBackground<String>(() async {
         final ptr = dataDir.toNativeUtf8();
         try {
           return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
@@ -272,17 +275,37 @@ class LanternFFIService implements LanternCoreService {
         }
       });
 
-      if (json.isEmpty) {
-        appLogger.debug("No installed apps found");
+      if (jsonApps.isEmpty) {
         yield [];
         return;
       }
 
-      appLogger.debug("Loaded installed apps");
-      final decoded = jsonDecode(json) as List<dynamic>;
-      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+      // Enabled apps from Go (NOT LocalStorage)
+      final enabledJson = await runInBackground<String>(() async {
+        return _ffiService.getEnabledApps().toDartString();
+      });
+      checkAPIError(enabledJson);
+
+      final enabledKeys =
+          (jsonDecode(enabledJson) as List).cast<String>().toSet();
+
+      final decoded = jsonDecode(jsonApps) as List<dynamic>;
       final rawApps = decoded.cast<Map<String, dynamic>>();
-      yield _mapToAppData(rawApps, enabled);
+
+      yield rawApps.map((raw) {
+        final name = (raw["name"] as String? ?? "").trim();
+        final bundleId = (raw["bundleId"] as String? ?? "").trim();
+        final key = bundleId.isNotEmpty ? bundleId : name;
+
+        return AppData(
+          name: name,
+          bundleId: bundleId,
+          appPath: raw["appPath"] as String? ?? '',
+          iconPath: raw["iconPath"] as String? ?? '',
+          iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+          isEnabled: enabledKeys.contains(key),
+        );
+      }).toList();
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];
@@ -679,6 +702,31 @@ class LanternFFIService implements LanternCoreService {
       return right(connected);
     } catch (e) {
       return Left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> _okOrFailureFromString(String result) async {
+    try {
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('FFI call returned error', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  /// Runs an FFI call that returns a JSON string on a background isolate,
+  /// then checks for API error payloads before returning the raw string.
+  Future<Either<Failure, String>> _ffiJsonString(
+    Future<String> Function() call,
+  ) async {
+    try {
+      final jsonStr = await runInBackground<String>(() async => call());
+      checkAPIError(jsonStr);
+      return right(jsonStr);
+    } catch (e, st) {
+      appLogger.error('FFI JSON call failed', e, st);
+      return left(e.toFailure());
     }
   }
 
@@ -1182,10 +1230,8 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .addServerBasedOnURLs(
-                  urls.toCharPtr,
-                  skipCertVerification ? 1 : 0,
-                  serverName.toCharPtr)
+              .addServerBasedOnURLs(urls.toCharPtr,
+                  skipCertVerification ? 1 : 0, serverName.toCharPtr)
               .toDartString();
         },
       );
@@ -1414,6 +1460,119 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  // --- Private servers (FFI) ---
+
+  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() async {
+    final res = await _ffiJsonString(() async {
+      // getPrivateServers() returns a CString / char*
+      return _ffiService.getPrivateServers().toDartString();
+    });
+
+    return res.match(
+      (failure) => left(failure),
+      (jsonStr) {
+        try {
+          if (jsonStr.trim().isEmpty) {
+            return right(<PrivateServer>[]);
+          }
+
+          final decoded = jsonDecode(jsonStr);
+          if (decoded is! List) {
+            // defensive: if Go returns `{error:...}` checkAPIError would have thrown already.
+            return left(
+              Failure(
+                error: 'Invalid private servers payload',
+                localizedErrorMessage: 'Invalid private servers payload',
+              ),
+            );
+          }
+
+          final raw = decoded.cast<Map<String, dynamic>>();
+          final servers = raw.map(PrivateServer.fromJson).toList();
+          return right(servers);
+        } catch (e, st) {
+          appLogger.error('Failed parsing private servers JSON', e, st);
+          return left(e.toFailure());
+        }
+      },
+    );
+  }
+
+  Future<Either<Failure, Unit>> savePrivateServer(
+    PrivateServer server, {
+    required bool joined,
+  }) async {
+    try {
+      final jsonStr = jsonEncode(server.toJson());
+      final jsonPtr = jsonStr.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          // If your generated bindings signature is:
+          //   Pointer<Utf8> savePrivateServer(Pointer<Char> json, Int32 joined)
+          // then this matches your other patterns: `.toDartString()`.
+          return _ffiService
+              .savePrivateServer(jsonPtr.cast<Char>(), joined ? 1 : 0)
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(jsonPtr);
+      }
+    } catch (e, st) {
+      appLogger.error('savePrivateServer failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
+    try {
+      final namePtr = name.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .deletePrivateServerByName(namePtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(namePtr);
+      }
+    } catch (e, st) {
+      appLogger.error('deletePrivateServerByName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) async {
+    try {
+      final oldPtr = oldName.toNativeUtf8();
+      final newPtr = newName.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .updatePrivateServerName(oldPtr.cast<Char>(), newPtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(oldPtr);
+        malloc.free(newPtr);
+      }
+    } catch (e, st) {
+      appLogger.error('updatePrivateServerName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
   @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
@@ -1453,6 +1612,91 @@ class LanternFFIService implements LanternCoreService {
   ) {
     // TODO: implement removeAllItems
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, PlansData?>> getCachedPlans() async {
+    try {
+      final jsonStr = await runInBackground<String>(() async {
+        return _ffiService.getCachedPlans().toDartString();
+      });
+
+      checkAPIError(jsonStr);
+
+      if (jsonStr.trim().isEmpty) {
+        return right(null);
+      }
+
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final plans = PlansData.fromJson(map);
+
+      // keep your existing sort normalization if desired
+      plans.plans.sort((a, b) {
+        if (a.bestValue != b.bestValue) return a.bestValue ? -1 : 1;
+        return b.usdPrice.compareTo(a.usdPrice);
+      });
+
+      plans.providers.desktop.sort((a, b) {
+        return (b.providers.supportSubscription ? 1 : 0) -
+            (a.providers.supportSubscription ? 1 : 0);
+      });
+
+      return right(plans);
+    } catch (e, st) {
+      appLogger.error('Error getting cached plans via FFI', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSelectedServerLocation(
+      ServerLocation location) async {
+    try {
+      final jsonStr = jsonEncode(location.toJson());
+
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setSelectedServerLocation(jsonStr.toCharPtr)
+            .toDartString();
+      });
+
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error setting selected server location via FFI', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    final res = await _ffiJsonString(() async {
+      return _ffiService.getSelectedServerLocation().toDartString();
+    });
+
+    return res.match(
+      left,
+      (jsonStr) {
+        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        return right(ServerLocation.fromJson(map));
+      },
+    );
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) async {
+    try {
+      final jsonStr = jsonEncode(plans.toJson());
+
+      final result = await runInBackground<String>(() async {
+        return _ffiService.setCachedPlans(jsonStr.toCharPtr).toDartString();
+      });
+
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error setting cached plans via FFI', e, st);
+      return left(e.toFailure());
+    }
   }
 
   @override

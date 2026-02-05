@@ -3276,6 +3276,116 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('isSmartRoutingEnabled');
   late final _isSmartRoutingEnabled =
       _isSmartRoutingEnabledPtr.asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> getSplitTunnelState() {
+    return _getSplitTunnelState();
+  }
+
+  late final _getSplitTunnelStatePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getSplitTunnelState');
+  late final _getSplitTunnelState =
+      _getSplitTunnelStatePtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> getSplitTunnelItems(
+    ffi.Pointer<ffi.Char> filterTypeC,
+  ) {
+    return _getSplitTunnelItems(
+      filterTypeC,
+    );
+  }
+
+  late final _getSplitTunnelItemsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('getSplitTunnelItems');
+  late final _getSplitTunnelItems = _getSplitTunnelItemsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getCachedPlans() {
+    return _getCachedPlans();
+  }
+
+  late final _getCachedPlansPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getCachedPlans');
+  late final _getCachedPlans =
+      _getCachedPlansPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> setCachedPlans(
+    ffi.Pointer<ffi.Char> plansJSON,
+  ) {
+    return _setCachedPlans(
+      plansJSON,
+    );
+  }
+
+  late final _setCachedPlansPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('setCachedPlans');
+  late final _setCachedPlans = _setCachedPlansPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getPrivateServers() {
+    return _getPrivateServers();
+  }
+
+  late final _getPrivateServersPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getPrivateServers');
+  late final _getPrivateServers =
+      _getPrivateServersPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> savePrivateServer(
+    ffi.Pointer<ffi.Char> _json,
+    int _joined,
+  ) {
+    return _savePrivateServer(
+      _json,
+      _joined,
+    );
+  }
+
+  late final _savePrivateServerPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Int)>>('savePrivateServer');
+  late final _savePrivateServer = _savePrivateServerPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, int)>();
+
+  ffi.Pointer<ffi.Char> deletePrivateServerByName(
+    ffi.Pointer<ffi.Char> _name,
+  ) {
+    return _deletePrivateServerByName(
+      _name,
+    );
+  }
+
+  late final _deletePrivateServerByNamePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('deletePrivateServerByName');
+  late final _deletePrivateServerByName = _deletePrivateServerByNamePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> updatePrivateServerName(
+    ffi.Pointer<ffi.Char> _oldName,
+    ffi.Pointer<ffi.Char> _newName,
+  ) {
+    return _updatePrivateServerName(
+      _oldName,
+      _newName,
+    );
+  }
+
+  late final _updatePrivateServerNamePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('updatePrivateServerName');
+  late final _updatePrivateServerName = _updatePrivateServerNamePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 }
 
 typedef __int8_t = ffi.SignedChar;
@@ -5617,7 +5727,7 @@ const String __AVAILABILITY_VERSIONS_VERSION_STRING = 'Local';
 
 const String __AVAILABILITY_FILE = 'AvailabilityVersions.h';
 
-const int __MAC_OS_X_VERSION_MIN_REQUIRED = 260000;
+const int __MAC_OS_X_VERSION_MIN_REQUIRED = 150000;
 
 const int __MAC_OS_X_VERSION_MAX_ALLOWED = 260200;
 

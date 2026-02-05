@@ -196,15 +196,15 @@ class AppPurchase {
   ///Apple sends purchase updates for previously purchased items when the app starts.
   ///This function checks if the user has already purchased the subscription to avoid duplicate processing.
   bool _checkIfAlreadyPurchased() {
-    final user = sl<LocalStorageService>().getUser();
-    if (user?.legacyUserData != null) {
-      final legacyData = user!.legacyUserData;
-      final subscriptionStatus = legacyData.subscriptionData.status;
-      if (subscriptionStatus == 'active') {
-        return true;
-      }
-      return false;
-    }
+    // final user = sl<LocalStorageService>().getUser();
+    // if (user?.legacyUserData != null) {
+    //   final legacyData = user!.legacyUserData;
+    //   final subscriptionStatus = legacyData.subscriptionData.status;
+    //   if (subscriptionStatus == 'active') {
+    //     return true;
+    //   }
+    //   return false;
+    // }
 
     return false;
   }

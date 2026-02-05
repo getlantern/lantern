@@ -13,7 +13,7 @@ part of 'manage_server_notifier.dart';
 const manageServerProvider = ManageServerNotifierProvider._();
 
 final class ManageServerNotifierProvider
-    extends $NotifierProvider<ManageServerNotifier, List<PrivateServerEntity>> {
+    extends $AsyncNotifierProvider<ManageServerNotifier, List<PrivateServer>> {
   const ManageServerNotifierProvider._()
       : super(
           from: null,
@@ -31,31 +31,23 @@ final class ManageServerNotifierProvider
   @$internal
   @override
   ManageServerNotifier create() => ManageServerNotifier();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<PrivateServerEntity> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<PrivateServerEntity>>(value),
-    );
-  }
 }
 
 String _$manageServerNotifierHash() =>
-    r'a4b0fe3e2559218f0d47fb66bcb7ecb11bc95845';
+    r'848b1e3c8c1847075d102f0287c4adfd4c545a30';
 
 abstract class _$ManageServerNotifier
-    extends $Notifier<List<PrivateServerEntity>> {
-  List<PrivateServerEntity> build();
+    extends $AsyncNotifier<List<PrivateServer>> {
+  FutureOr<List<PrivateServer>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
     final ref =
-        this.ref as $Ref<List<PrivateServerEntity>, List<PrivateServerEntity>>;
+        this.ref as $Ref<AsyncValue<List<PrivateServer>>, List<PrivateServer>>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<List<PrivateServerEntity>, List<PrivateServerEntity>>,
-        List<PrivateServerEntity>,
+        AnyNotifier<AsyncValue<List<PrivateServer>>, List<PrivateServer>>,
+        AsyncValue<List<PrivateServer>>,
         Object?,
         Object?>;
     element.handleValue(ref, created);

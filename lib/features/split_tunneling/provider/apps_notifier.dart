@@ -2,7 +2,6 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/lantern/lantern_service.dart';
@@ -15,12 +14,42 @@ part 'apps_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SplitTunnelingApps extends _$SplitTunnelingApps {
-  final LocalStorageService _db = sl<LocalStorageService>();
   late final LanternService _lanternService = ref.read(lanternServiceProvider);
 
   @override
-  Set<AppData> build() {
-    return _db.getEnabledApps();
+  FutureOr<Set<AppData>> build() async {
+    // Rebuild when installed apps list changes
+    final appsAsync = ref.watch(appsDataProvider);
+
+    final installed = appsAsync.maybeWhen(
+      data: (v) => v,
+      orElse: () => const <AppData>[],
+    );
+
+    final filtered = installed
+        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    if (filtered.isEmpty) return <AppData>{};
+
+    final type = getFilterType();
+
+    final enabledItemsEither = await _lanternService.getSplitTunnelItems(type);
+    return enabledItemsEither.match(
+      (f) {
+        appLogger
+            .error('Failed to load enabled split-tunnel items: ${f.error}');
+        return <AppData>{};
+      },
+      (items) {
+        final enabled = items.toSet();
+        return filtered
+            .where((a) => enabled.contains(appPath(a)))
+            .map((a) => a.copyWith(isEnabled: true))
+            .toSet();
+      },
+    );
   }
 
   // Stable identity per platform

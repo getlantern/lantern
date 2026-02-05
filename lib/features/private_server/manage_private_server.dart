@@ -5,12 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ManagePrivateServer')
 class ManagePrivateServer extends StatefulHookConsumerWidget {
@@ -22,64 +22,74 @@ class ManagePrivateServer extends StatefulHookConsumerWidget {
 }
 
 class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
-  final _localStorage = sl<LocalStorageService>();
   TextTheme? textTheme;
   String shareAccessKey = "";
 
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    final servers = ref.watch(manageServerProvider);
-    appLogger.debug("Servers: $servers");
-    final myServer = servers.where((element) => !element.isJoined).toList();
-    final joinedServer = servers.where((element) => element.isJoined).toList();
+    final serversAsync = ref.watch(manageServerProvider);
 
-    return BaseScreen(
-      title: 'manage_private_servers'.i18n,
-      body: DefaultTabController(
-        length: 2,
-        child: Column(
-          children: [
-            SizedBox(
-              height: 35.h,
-              child: TabBar(
-                indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
-                splashBorderRadius: BorderRadius.circular(40),
-                labelColor: Colors.teal.shade900,
-                indicatorColor: Colors.transparent,
-                dividerHeight: 0,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: textTheme!.titleSmall,
-                indicator: BoxDecoration(
-                  color: AppColors.blue2,
-                  borderRadius: BorderRadius.circular(40),
-                  shape: BoxShape.rectangle,
-                  border: Border.all(color: AppColors.blue3, width: 1),
-                ),
-                tabs: [
-                  Tab(child: Text('my_servers'.i18n)),
-                  Tab(child: Text('joined_servers'.i18n))
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            DividerSpace(padding: EdgeInsets.zero),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  buildMyServer(myServer),
-                  _buildListView(joinedServer),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return serversAsync.when(
+      loading: () => BaseScreen(
+        title: 'manage_private_servers'.i18n,
+        body: const Center(child: CircularProgressIndicator()),
       ),
+      error: (err, st) => BaseScreen(
+        title: 'manage_private_servers'.i18n,
+        body: Center(child: Text(err.toString())),
+      ),
+      data: (servers) {
+        final myServers = servers.where((s) => !s.isJoined).toList();
+        final joinedServers = servers.where((s) => s.isJoined).toList();
+
+        return BaseScreen(
+          title: 'manage_private_servers'.i18n,
+          body: DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 35.h,
+                  child: TabBar(
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
+                    splashBorderRadius: BorderRadius.circular(40),
+                    labelColor: Colors.teal.shade900,
+                    indicatorColor: Colors.transparent,
+                    dividerHeight: 0,
+                    unselectedLabelColor: Colors.grey,
+                    labelStyle: textTheme!.titleSmall,
+                    indicator: BoxDecoration(
+                      color: AppColors.blue2,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: AppColors.blue3, width: 1),
+                    ),
+                    tabs: [
+                      Tab(child: Text('my_servers'.i18n)),
+                      Tab(child: Text('joined_servers'.i18n)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DividerSpace(padding: EdgeInsets.zero),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      buildMyServer(myServers),
+                      _buildListView(joinedServers),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget buildMyServer(List<PrivateServerEntity> privateServers) {
+  Widget buildMyServer(List<PrivateServer> privateServers) {
     return Column(
       children: <Widget>[
         const SizedBox(height: defaultSize),
@@ -91,7 +101,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  Widget _buildListView(List<PrivateServerEntity> privateServers) {
+  Widget _buildListView(List<PrivateServer> privateServers) {
     return ListView.builder(
       padding: const EdgeInsets.all(0),
       itemCount: privateServers.length,
@@ -136,7 +146,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  void onTapShareAccessKey(PrivateServerEntity server) {
+  void onTapShareAccessKey(PrivateServer server) {
     if (shareAccessKey.isNotEmpty && shareAccessKey != "") {
       try {
         // If the shareAccessKey is already generated, we don't need to generate it again.
@@ -151,7 +161,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     }
   }
 
-  void showShareAccessKeyDialog(PrivateServerEntity server) {
+  void showShareAccessKeyDialog(PrivateServer server) {
     final inviteNameController = TextEditingController();
     AppDialog.customDialog(
         context: context,
@@ -197,7 +207,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   Future<void> generateAccessKey(
-      PrivateServerEntity server, String inviteName) async {
+      PrivateServer server, String inviteName) async {
     if (inviteName.isEmpty) {
       context.showSnackBar('server_alias_cannot_be_empty'.i18n);
 
@@ -309,12 +319,28 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  void onRename(String serverName, String newName) {
-    _localStorage.updatePrivateServerName(serverName, newName);
-    setState(() {});
+  void onRename(String serverName, String newName) async {
+    if (newName.isEmpty) return;
+
+    context.showLoadingDialog();
+    final lantern = ref.read(lanternServiceProvider);
+
+    final res = await lantern.updatePrivateServerName(serverName, newName);
+    context.hideLoadingDialog();
+
+    res.fold(
+      (failure) {
+        context.showSnackBarError(failure.localizedErrorMessage);
+      },
+      (_) {
+        ref.invalidate(manageServerProvider);
+      },
+    );
   }
 
-  void onDelete(String serverName) {
-    ref.read(manageServerProvider.notifier).deleteServer(serverName);
+  Future<void> onDelete(String serverName) async {
+    context.showLoadingDialog();
+    await ref.read(manageServerProvider.notifier).deleteServer(serverName);
+    context.hideLoadingDialog();
   }
 }

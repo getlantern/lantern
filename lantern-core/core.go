@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -33,6 +34,8 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
+
+	plansCacheFile = "plans-cache.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -110,6 +113,8 @@ type Payment interface {
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
+	GetCachedPlans() (string, error)
+	SetCachedPlans(plansJSON string) error
 }
 
 type SplitTunnel interface {
@@ -120,6 +125,8 @@ type SplitTunnel interface {
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
+	GetSplitTunnelStateJSON() (string, error)
+	GetSplitTunnelItems(filterType string) (string, error)
 }
 
 type Ads interface {
@@ -818,4 +825,391 @@ func splitCSVClean(s string) []string {
 		out = append(out, it)
 	}
 	return out
+}
+
+func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return `{}`, nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return `{}`, nil
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
+	stateJSON, err := lc.GetSplitTunnelStateJSON()
+	if err != nil {
+		return "", err
+	}
+
+	// split-tunnel.json format depends on vpn.SplitTunnel implementation.
+	// We’ll parse generically into map[string]any and pull arrays.
+	var m map[string]any
+	if err := json.Unmarshal([]byte(stateJSON), &m); err != nil {
+		// if file isn't JSON yet, fail loud
+		return "", err
+	}
+
+	// Expected keys commonly match filterType strings; if they don’t,
+	// map them here.
+	// Example mapping candidates:
+	// - "processPathRegex"
+	// - "processPath"
+	// - "packageName"
+	// - "domainSuffix"
+	key := filterType
+
+	raw, ok := m[key]
+	if !ok || raw == nil {
+		return "[]", nil
+	}
+
+	// Normalize to []string
+	arr, ok := raw.([]any)
+	if !ok {
+		return "[]", nil
+	}
+	out := make([]string, 0, len(arr))
+	for _, v := range arr {
+		if s, ok := v.(string); ok && s != "" {
+			out = append(out, s)
+		}
+	}
+	b, _ := json.Marshal(out)
+	return string(b), nil
+}
+
+func (lc *LanternCore) GetCachedPlans() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), plansCacheFile)
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return "", nil
+	}
+
+	var tmp any
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		return "", nil
+	}
+
+	return string(b), nil
+}
+
+func (lc *LanternCore) SetCachedPlans(plansJSON string) error {
+	var tmp any
+	if err := json.Unmarshal([]byte(plansJSON), &tmp); err != nil {
+		return err
+	}
+
+	dir := settings.GetString(settings.DataPathKey)
+	path := filepath.Join(dir, plansCacheFile)
+
+	tmpPath := path + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(plansJSON), 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, path)
+}
+
+// Keep the struct flexible: we store JSON blobs but still need some keys.
+type privateServerRecord map[string]any
+
+type privateServersStore struct {
+	mu sync.Mutex
+}
+
+func (s *privateServersStore) path() string {
+	return filepath.Join(settings.GetString(settings.DataPathKey), "private-servers.json")
+}
+
+func (s *privateServersStore) loadUnlocked() ([]privateServerRecord, error) {
+	p := s.path()
+	b, err := os.ReadFile(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []privateServerRecord{}, nil
+		}
+		return nil, err
+	}
+	if len(b) == 0 {
+		return []privateServerRecord{}, nil
+	}
+
+	var out []privateServerRecord
+	if err := json.Unmarshal(b, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *privateServersStore) saveUnlocked(recs []privateServerRecord) error {
+	p := s.path()
+	tmp := p + ".tmp"
+
+	b, err := json.MarshalIndent(recs, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(tmp, b, 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, p)
+}
+
+// Helpers for identifying a server.
+// Prefer stable keys if present (tag, externalIp+port). Fall back to serverName.
+func recordKey(r privateServerRecord) string {
+	if v, ok := r["tag"].(string); ok && v != "" {
+		return "tag:" + v
+	}
+	ip, _ := r["externalIp"].(string)
+	portAny := r["port"]
+	portStr := ""
+	switch t := portAny.(type) {
+	case string:
+		portStr = t
+	case float64:
+		portStr = jsonNumberToIntString(t)
+	}
+	if ip != "" && portStr != "" {
+		return "addr:" + ip + ":" + portStr
+	}
+	if v, ok := r["serverName"].(string); ok && v != "" {
+		return "name:" + v
+	}
+	return ""
+}
+
+func jsonNumberToIntString(f float64) string {
+	// ports are integral; safe enough here
+	return string([]byte((func() string {
+		n := int(f)
+		return itoa(n)
+	})()))
+}
+
+// tiny local itoa to avoid importing strconv in this file (optional)
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	neg := n < 0
+	if neg {
+		n = -n
+	}
+	buf := make([]byte, 0, 12)
+	for n > 0 {
+		d := n % 10
+		buf = append(buf, byte('0'+d))
+		n /= 10
+	}
+	if neg {
+		buf = append(buf, '-')
+	}
+	// reverse
+	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+	return string(buf)
+}
+
+var psStore = &privateServersStore{}
+
+// ---- LanternCore methods (these are what Flutter will call via FFI/bridge) ----
+
+func (lc *LanternCore) GetPrivateServersJSON() (string, error) {
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return "", err
+	}
+	b, _ := json.Marshal(recs)
+	return string(b), nil
+}
+
+// serverJSON is the JSON emitted by your provisioning/join flows.
+// joined indicates whether this is a joined server or “my server”.
+func (lc *LanternCore) SavePrivateServerJSON(serverJSON string, joined bool) error {
+	if serverJSON == "" {
+		return errors.New("empty server json")
+	}
+	var rec privateServerRecord
+	if err := json.Unmarshal([]byte(serverJSON), &rec); err != nil {
+		return err
+	}
+	rec["isJoined"] = joined
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+
+	key := recordKey(rec)
+	if key == "" {
+		// still allow save; but it becomes “append-only”
+		recs = append(recs, rec)
+		return psStore.saveUnlocked(recs)
+	}
+
+	// upsert by key
+	out := make([]privateServerRecord, 0, len(recs)+1)
+	replaced := false
+	for _, r := range recs {
+		if recordKey(r) == key {
+			out = append(out, rec)
+			replaced = true
+		} else {
+			out = append(out, r)
+		}
+	}
+	if !replaced {
+		out = append(out, rec)
+	}
+	return psStore.saveUnlocked(out)
+}
+
+// Delete by serverName for drop-in parity with existing UI.
+// (If you have tag/address available, you can add additional delete funcs.)
+func (lc *LanternCore) DeletePrivateServerByName(serverName string) error {
+	if serverName == "" {
+		return errors.New("empty serverName")
+	}
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+	out := make([]privateServerRecord, 0, len(recs))
+	for _, r := range recs {
+		if n, _ := r["serverName"].(string); n == serverName {
+			continue
+		}
+		out = append(out, r)
+	}
+	return psStore.saveUnlocked(out)
+}
+
+func (lc *LanternCore) UpdatePrivateServerName(oldName, newName string) error {
+	if oldName == "" || newName == "" {
+		return errors.New("oldName/newName required")
+	}
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+
+	updated := false
+	for _, r := range recs {
+		if n, _ := r["serverName"].(string); n == oldName {
+			r["serverName"] = newName
+			updated = true
+			break
+		}
+	}
+	if !updated {
+		return errors.New("server not found")
+	}
+	return psStore.saveUnlocked(recs)
+}
+
+func (lc *LanternCore) GetSelectedServerLocationJSON() (string, error) {
+
+	type selectionPayload struct {
+		ServerType string `json:"serverType"`
+		ServerName string `json:"serverName,omitempty"`
+		Tag        string `json:"tag,omitempty"`
+		Country    string `json:"country,omitempty"`
+		City       string `json:"city,omitempty"`
+		Group      string `json:"group,omitempty"`
+		Type       string `json:"type,omitempty"`
+	}
+
+	// Default: Smart Location
+	payload := selectionPayload{
+		ServerType: "auto",
+		ServerName: "Smart Location",
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+const developerModeFile = "developer-mode.json"
+
+type developerMode struct {
+	TestPlayPurchaseEnabled   bool `json:"testPlayPurchaseEnabled"`
+	TestStripePurchaseEnabled bool `json:"testStripePurchaseEnabled"`
+}
+
+func (lc *LanternCore) developerModePath() string {
+	return filepath.Join(settings.GetString(settings.DataPathKey), developerModeFile)
+}
+
+func (lc *LanternCore) GetDeveloperModeJSON() (string, error) {
+	path := lc.developerModePath()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// default (matches DeveloperModeEntity.initial())
+			d := developerMode{}
+			out, _ := json.Marshal(d)
+			return string(out), nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return `{}`, nil
+	}
+
+	// validate it's JSON
+	var tmp any
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		// if corrupted, reset to defaults
+		d := developerMode{}
+		out, _ := json.Marshal(d)
+		return string(out), nil
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
+	var tmp developerMode
+	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+		return err
+	}
+
+	path := lc.developerModePath()
+	tmpPath := path + ".tmp"
+
+	b, _ := json.Marshal(tmp)
+	if err := os.WriteFile(tmpPath, b, 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, path)
 }
