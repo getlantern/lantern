@@ -1,11 +1,14 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
+
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -14,7 +17,7 @@ import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
-import '../core/common/common.dart';
+import '../core/common/common.dart' hide DeveloperMode;
 import '../core/models/available_servers.dart';
 
 ///LanternService is wrapper around native and ffi services
@@ -684,5 +687,59 @@ class LanternService implements LanternCoreService {
       return _ffiService.getSplitTunnelItems(type);
     }
     return _platformService.getSplitTunnelItems(type);
+  }
+
+  @override
+  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getPrivateServers();
+    }
+    return _platformService.getPrivateServers();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> savePrivateServer(
+    PrivateServer server, {
+    required bool joined,
+  }) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.savePrivateServer(server, joined: joined);
+    }
+    return _platformService.savePrivateServer(server, joined: joined);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.deletePrivateServerByName(serverName);
+    }
+    return _platformService.deletePrivateServerByName(serverName);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updatePrivateServerName(oldName, newName);
+    }
+    return _platformService.updatePrivateServerName(oldName, newName);
+  }
+
+  @override
+  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getDeveloperMode();
+    }
+    return _platformService.getDeveloperMode();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setDeveloperMode(dev);
+    }
+    return _platformService.setDeveloperMode(dev);
   }
 }

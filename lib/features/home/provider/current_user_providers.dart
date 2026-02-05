@@ -1,4 +1,4 @@
-import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
@@ -13,7 +13,7 @@ UserResponse? currentUser(Ref ref) {
 @Riverpod(keepAlive: true)
 bool isUserProFromCore(Ref ref) {
   final user = ref.watch(currentUserProvider);
-  return user?.legacyUserData.isPro() ?? false;
+  return user?.legacyUserData.isPro ?? false;
 }
 
 @Riverpod(keepAlive: true)

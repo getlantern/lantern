@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/models/feature_flags.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
@@ -114,7 +114,7 @@ class _HomeState extends ConsumerState<Home> {
                 );
 
                 final email = user.legacyUserData.email;
-                final isPro = user.legacyUserData.isPro();
+                final isPro = user.legacyUserData.isPro;
 
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
@@ -142,8 +142,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocation = ref.watch(serverLocationProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
+    final serverLocationAsync = ref.watch(serverLocationProvider);
+
+    // Choose a safe default while loading/error
+    final serverLocation = serverLocationAsync.value;
+    final serverType = (serverLocation?.serverType ?? '').toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(

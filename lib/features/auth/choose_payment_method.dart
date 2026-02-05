@@ -29,15 +29,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keep your existing selection logic
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
-    final planData = ref.watch(plansProvider.notifier).getPlanData();
+
+    // IMPORTANT: plansProvider is an AsyncNotifier<PlansData>, so watch the state,
+    // not a Future returned by getPlanData().
+    final plansAsync = ref.watch(plansProvider);
+
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
         title: Text('choose_payment_method'.i18n),
         actions: [
           IconButton(
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onPressed: () => onMoreOptionsPressed(context),
           ),
         ],
@@ -52,14 +57,23 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           ),
           SizedBox(height: defaultSize),
           Expanded(
-            child: PaymentCheckoutMethods(
-              providers: PlatformUtils.isAndroid
-                  ? planData.providers.android
-                  : planData.providers.desktop,
-              userPlan: userPlan,
-              onSubscribe: (provider) => onSubscribe(provider, ref, context),
+            child: plansAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text(e.toString())),
+              data: (planData) {
+                final providers = PlatformUtils.isAndroid
+                    ? planData.providers.android
+                    : planData.providers.desktop;
+
+                return PaymentCheckoutMethods(
+                  providers: providers,
+                  userPlan: userPlan,
+                  onSubscribe: (provider) =>
+                      onSubscribe(provider, ref, context),
+                );
+              },
             ),
-          )
+          ),
         ],
       ),
     );
