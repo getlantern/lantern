@@ -13,7 +13,8 @@ class ServerLocation {
   final String displayName;
   final String protocol;
 
-  /// Plain nested model (no JSON field inside the model)
+  /// Optional metadata for auto-selected locations.
+  /// Kept as a nested model rather than flattening into this one
   final AutoLocation? autoLocation;
 
   ServerLocation({
@@ -54,7 +55,7 @@ class ServerLocation {
     );
   }
 
-  /// Replaces `privateServer(...)` instance method
+  /// Build from a user private server (formerly `privateServer(...)`)
   factory ServerLocation.fromPrivateServer({
     required PrivateServer privateServer,
     AutoLocation? autoLocation,

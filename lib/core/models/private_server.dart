@@ -48,9 +48,7 @@ class PrivateServer {
     );
   }
 
-  /// JSON you send *to Go*.
-  ///
-  /// Note: I included `protocol` since your fromJson expects it.
+  /// Serialized form used by the backend/FFI layer
   Map<String, dynamic> toJson() => {
         'tag': serverName,
         'external_ip': externalIp,

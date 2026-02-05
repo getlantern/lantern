@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------------
-// App stream event models (plain Dart)
-// -----------------------------------------------------------------------------
-
 import 'package:lantern/core/models/app_data.dart';
 
 enum AppDataEventType { snapshot, delta, iconReady, unknown }
@@ -30,7 +26,7 @@ class AppDataEvent {
   final AppDataEventType type;
   final List<AppData> items;
 
-  /// Bundle IDs (or keys) that should be removed from cache.
+  /// Bundle IDs to remove from the cache
   final List<String> removed;
 
   const AppDataEvent({
@@ -50,7 +46,8 @@ class AppDataEvent {
         .map((m) => AppData.fromMap(m))
         .toList(growable: false);
 
-    // Some producers send top-level removed, some mark items as removed=true.
+    // We may get removals either via a top-level `removed` list,
+    // or by individual items marked as removed
     final removedTop = (e['removed'] as List?)?.whereType<String>().toList() ??
         const <String>[];
     final removedFromItems =
@@ -61,7 +58,7 @@ class AppDataEvent {
         .where((s) => s.isNotEmpty)
         .toList(growable: false);
 
-    // Expose only non-removed items (keeps cache logic simple)
+    // Only keep items that aren't marked removed
     final keptItems = items.where((i) => !i.removed).toList(growable: false);
 
     return AppDataEvent(
