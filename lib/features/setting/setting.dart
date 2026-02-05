@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
@@ -54,7 +54,7 @@ class _SettingState extends ConsumerState<Setting> {
 
     final appSetting = ref.watch(appSettingProvider);
 
-    final hasProSession = (user?.legacyUserData.isPro() ?? false) &&
+    final hasProSession = (user?.legacyUserData.isPro ?? false) &&
         (user?.legacyUserData.unpassRegistered ?? false);
 
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
@@ -283,7 +283,7 @@ class _SettingState extends ConsumerState<Setting> {
 
         final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
         final email = user.legacyUserData.email;
-        final isPro = user.legacyUserData.isPro();
+        final isPro = user.legacyUserData.isPro;
         if (isPro && !userSignedIn) {
           await showProAccountFlowDialog(
               context: context, hasEmail: email.isNotEmpty);

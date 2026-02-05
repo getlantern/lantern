@@ -25,8 +25,12 @@ class AppsSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
-    final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final allApps = (ref.watch(appsDataProvider).value ?? [])
+
+    // Unwrap AsyncValue<Set<AppData>> -> Set<AppData>
+    final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
+    final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
+
+    final allApps = (ref.watch(appsDataProvider).value ?? const <AppData>[])
         // Only filter apps with icons on Android and iOS; Windows support may lack icons.
         .where((a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
@@ -39,9 +43,16 @@ class AppsSplitTunneling extends HookConsumerWidget {
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
+    // If stableAppId is a top-level function (stableAppId(AppData)),
+    // this is correct:
     final enabledIds = enabledApps.map(stableAppId).toSet();
+
+    // If stableAppId is a getter/extension (app.stableAppId),
+    // then use: enabledApps.map((a) => a.stableAppId).toSet();
+
     final filteredEnabled = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.compareTo(b.name));
+
     final filteredDisabled = allApps
         .where((a) => !enabledIds.contains(stableAppId(a)))
         .where(matchesSearch)
