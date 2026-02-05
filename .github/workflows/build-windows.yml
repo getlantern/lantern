@@ -168,6 +168,20 @@ jobs:
 
               Write-Host "Downloaded signed artifact"
 
+              # Import test certificate for validation (TEMPORARY - remove after getting real EV cert)
+              if ("${{ inputs.build_type }}" -eq "nightly" -or "${{ inputs.build_type }}" -eq "test") {
+                $certPem = @"
+${{ vars.SIGNPATH_SELF_SIGN_CERT }}
+"@
+                $certPath = "test-cert.pem"
+                $certPem | Out-File -FilePath $certPath -Encoding ASCII
+
+                Import-Certificate -FilePath $certPath -CertStoreLocation Cert:\LocalMachine\Root
+                Import-Certificate -FilePath $certPath -CertStoreLocation Cert:\LocalMachine\TrustedPublisher
+
+                Write-Host "✓ Test certificate imported to Trusted Root (temporary for testing)"
+              }
+
               # Verify signature
               $sig = Get-AuthenticodeSignature -FilePath "./signed/${{ inputs.installer_name }}.exe"
               Write-Host "=== Signature Verification ==="
