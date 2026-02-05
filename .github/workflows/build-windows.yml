@@ -170,9 +170,7 @@ jobs:
 
               # Import test certificate for validation (TEMPORARY - remove after getting real EV cert)
               if ("${{ inputs.build_type }}" -eq "nightly" -or "${{ inputs.build_type }}" -eq "test") {
-                $certPem = @"
-${{ vars.SIGNPATH_SELF_SIGN_CERT }}
-"@
+                $certPem = "${{ vars.SIGNPATH_SELF_SIGN_CERT }}"
                 $certPath = "test-cert.pem"
                 $certPem | Out-File -FilePath $certPath -Encoding ASCII
 
