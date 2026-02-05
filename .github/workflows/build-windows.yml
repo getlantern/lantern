@@ -168,7 +168,7 @@ jobs:
 
               Write-Host "Downloaded signed artifact"
 
-              # Import test certificate for validation (TEMPORARY - remove after getting real EV cert)
+              # Import test certificate for validation
               if ("${{ inputs.build_type }}" -eq "nightly" -or "${{ inputs.build_type }}" -eq "test") {
                 $certPem = "${{ vars.SIGNPATH_SELF_SIGN_CERT }}"
                 $certPath = "test-cert.pem"
