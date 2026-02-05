@@ -675,4 +675,14 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.setSelectedServerLocation(location);
   }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSplitTunnelItems(type);
+    }
+    return _platformService.getSplitTunnelItems(type);
+  }
 }

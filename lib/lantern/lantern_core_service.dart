@@ -239,4 +239,8 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, DeveloperMode>> getDeveloperMode();
   Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev);
+
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  );
 }

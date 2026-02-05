@@ -12,6 +12,7 @@ import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
@@ -187,8 +188,8 @@ String getReferralMessage(String planId) {
 }
 
 /// Initial server location set to auto (fastest server)
-ServerLocationEntity initialServerLocation() {
-  return ServerLocationEntity(
+ServerLocation initialServerLocation() {
+  return ServerLocation(
     serverName: '',
     serverType: ServerLocationType.auto.name,
     country: '',
@@ -196,7 +197,7 @@ ServerLocationEntity initialServerLocation() {
     displayName: 'Smart Location',
     protocol: '',
     countryCode: '',
-    autoLocationParam: AutoLocationEntity(
+    autoLocation: AutoLocation(
       country: '',
       countryCode: '',
       displayName: ('fastest_server'.i18n),

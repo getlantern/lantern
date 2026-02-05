@@ -5,14 +5,16 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -30,7 +32,6 @@ import 'package:path/path.dart' as p;
 import '../core/models/available_servers.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
-import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -1547,6 +1548,23 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode mode) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // adjust call name/signature to match generated bindings
+        return _ffiService
+            .setDeveloperMode(mode.toString().toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error setting developer mode via FFI', e, st);
+      return left(e.toFailure());
+    }
+  }
+
   Future<Either<Failure, Unit>> updatePrivateServerName(
     String oldName,
     String newName,
@@ -1668,6 +1686,41 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) async {
+    try {
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final file = File('${dataDir.path}/split-tunnel.json');
+
+      if (!await file.exists()) return right(<String>[]);
+
+      final raw = await file.readAsString();
+      if (raw.trim().isEmpty) return right(<String>[]);
+
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return right(<String>[]);
+
+      final key =
+          type.value; // e.g. "processPathRegex" / "processPath" / "packageName"
+      final v = decoded[key];
+
+      if (v is! List) return right(<String>[]);
+
+      final items = v
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+
+      return right(items);
+    } catch (e, st) {
+      appLogger.error('getSplitTunnelItems failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
   Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
     final res = await _ffiJsonString(() async {
       return _ffiService.getSelectedServerLocation().toDartString();
@@ -1711,6 +1764,12 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error while updating local', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
+    // TODO: implement getDeveloperMode
+    throw UnimplementedError();
   }
 }
 

@@ -185,7 +185,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   }
 
   Future<void> deselectAllApps() async {
-    final enabled = state.toList();
+    final enabled = _current().toList();
     if (enabled.isEmpty) return;
     await deselectApps(enabled);
   }

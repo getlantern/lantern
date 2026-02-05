@@ -3441,6 +3441,21 @@ class LanternBindings {
           'getEnabledApps');
   late final _getEnabledApps =
       _getEnabledAppsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> setSelectedServerLocation(
+    ffi.Pointer<ffi.Char> jsonC,
+  ) {
+    return _setSelectedServerLocation(
+      jsonC,
+    );
+  }
+
+  late final _setSelectedServerLocationPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('setSelectedServerLocation');
+  late final _setSelectedServerLocation = _setSelectedServerLocationPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 }
 
 typedef __int8_t = ffi.SignedChar;

@@ -1285,3 +1285,25 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 	encoded, _ := json.Marshal(out)
 	return string(encoded), nil
 }
+
+const selectedServerLocationFile = "selected-server-location.json"
+
+func (lc *LanternCore) selectedServerLocationPath() string {
+	return filepath.Join(settings.GetString(settings.DataPathKey), selectedServerLocationFile)
+}
+
+func (lc *LanternCore) SetSelectedServerLocationJSON(s string) error {
+	// validate it’s JSON
+	var tmp any
+	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+		return err
+	}
+
+	path := lc.selectedServerLocationPath()
+	tmpPath := path + ".tmp"
+
+	if err := os.WriteFile(tmpPath, []byte(s), 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, path)
+}

@@ -1167,3 +1167,17 @@ func getEnabledApps() *C.char {
 	}
 	return C.CString(s)
 }
+
+//export setSelectedServerLocation
+func setSelectedServerLocation(jsonC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+
+	if err := c.(*lanterncore.LanternCore).SetSelectedServerLocationJSON(C.GoString(jsonC)); err != nil {
+		return SendError(err)
+	}
+
+	return C.CString("ok")
+}
