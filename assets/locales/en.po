@@ -1391,6 +1391,57 @@ msgstr "To manage your account or sign in on other devices, you now need to set 
 msgid "expired"
 msgstr "Expired"
 
+msgid "lantern_pro_tagline"
+msgstr "Fast, reliable, and private internet access"
+
+msgid "what_makes_lantern_different"
+msgstr "What makes Lantern different"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Built for privacy, speed, and freedom"
+
+msgid "smart_routing_mode"
+msgstr "Smart Routing Mode"
+
+msgid "region_specific_routing_description"
+msgstr "Region-specific rules route only what needs the VPN, keeping your connection fast."
+
+msgid "advanced_protocols"
+msgstr "Advanced Protocols"
+
+msgid "advanced_protocols_description"
+msgstr "More protocols than other VPNs for maximum reliability. Shadowsocks, VLESS"
+
+msgid "private_servers_description"
+msgstr "Connect your own servers for full control over your connection."
+
+msgid "nonprofit_mission"
+msgstr "Nonprofit Mission"
+
+msgid "built_by_nonprofit"
+msgstr "Built by a nonprofit with 12+ years of experience advancing internet freedom"
+
+msgid "choose_your_routing_mode"
+msgstr "Choose your routing mode"
+
+msgid "fastest"
+msgstr "Fastest"
+
+msgid "traditional_vpn_mode"
+msgstr "Traditional VPN Mode"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Routes all traffic through Lantern, whether it needs it or not."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Change anytime in Routing Mode Settings"
+
+msgid "get_started"
+msgstr "Get Started"
+
+msgid "skip_connect_now"
+msgstr "Skip - Connect Now"
+
 
 
 
