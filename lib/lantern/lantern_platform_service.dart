@@ -4,16 +4,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart'
-    show AppDataEventType, AppDataEvent;
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
@@ -1282,5 +1284,75 @@ class LanternPlatformService implements LanternCoreService {
       // On old builds / missing plugin method, fail closed
       _enabledApps = const EnabledAppsSnapshot.empty();
     }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
+    // TODO: implement deletePrivateServerByName
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, PlansData?>> getCachedPlans() {
+    // TODO: implement getCachedPlans
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
+    // TODO: implement getDeveloperMode
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() {
+    // TODO: implement getPrivateServers
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
+    // TODO: implement getSelectedServerLocation
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+      SplitTunnelFilterType type) {
+    // TODO: implement getSplitTunnelItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> savePrivateServer(PrivateServer server,
+      {required bool joined}) {
+    // TODO: implement savePrivateServer
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
+    // TODO: implement setCachedPlans
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev) {
+    // TODO: implement setDeveloperMode
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSelectedServerLocation(
+      ServerLocation location) {
+    // TODO: implement setSelectedServerLocation
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+      String oldName, String newName) {
+    // TODO: implement updatePrivateServerName
+    throw UnimplementedError();
   }
 }
