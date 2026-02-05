@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -35,8 +35,11 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
           final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServerEntity.fromJson(data);
-          sl<LocalStorageService>().savePrivateServer(serverData);
+          final serverData = PrivateServer.fromJson(data);
+          ref.read(lanternServiceProvider).savePrivateServer(
+                serverData,
+                joined: false,
+              );
           showSuccessDialog();
         });
       }
@@ -196,7 +199,6 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
       },
     );
   }
-
 
   void showSuccessDialog() {
     final textTheme = Theme.of(context).textTheme;

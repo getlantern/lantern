@@ -5,13 +5,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/models/feature_flags.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -39,12 +39,6 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
-      if(!appSetting.onboardingCompleted){
-        appLogger.info("User has not completed onboarding, navigating to Onboarding Screen");
-        appRouter.push(const Onboarding());
-        return;
-      }
-
       if (PlatformUtils.isMacOS) {
         /// Show macOS system extension dialog if needed
         appLogger.info(
@@ -64,9 +58,10 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final isUserPro = ref.watch(isUserProProvider);
+    final isUserPro = ref.watch(isUserProFromCoreProvider);
     final featureFlag = ref.watch(featureFlagProvider);
     final appSetting = ref.read(appSettingProvider);
+
     useEffect(() {
       if (appSetting.successfulConnection) {
         appLogger.info(
@@ -107,17 +102,29 @@ class _HomeState extends ConsumerState<Home> {
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
-                final localUser = sl<LocalStorageService>().getUser()!;
+                final user = ref.read(currentUserProvider);
+
+                if (user == null) {
+                  appRouter.push(const SignInEmail());
+                  return;
+                }
+
                 final userSignedIn = ref.watch(
-                    appSettingProvider.select((value) => value.userLoggedIn));
-                final email = localUser.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro();
+                  appSettingProvider.select((value) => value.userLoggedIn),
+                );
+
+                final email = user.legacyUserData.email;
+                final isPro = user.legacyUserData.isPro;
+
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
                   await showProAccountFlowDialog(
-                      context: context, hasEmail: email.isNotEmpty);
+                    context: context,
+                    hasEmail: email.isNotEmpty,
+                  );
                   return;
                 }
+
                 appRouter.push(Account());
               },
             )
@@ -135,8 +142,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocation = ref.watch(serverLocationProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
+    final serverLocationAsync = ref.watch(serverLocationProvider);
+
+    // Choose a safe default while loading/error
+    final serverLocation = serverLocationAsync.value;
+    final serverType = (serverLocation?.serverType ?? '').toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(

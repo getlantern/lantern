@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'server_location_notifier.dart';
+part of 'selected_server_location_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,34 @@ part of 'server_location_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(ServerLocationNotifier)
-const serverLocationProvider = ServerLocationNotifierProvider._();
+@ProviderFor(SelectedServerLocation)
+const selectedServerLocationProvider = SelectedServerLocationProvider._();
 
-final class ServerLocationNotifierProvider
-    extends $AsyncNotifierProvider<ServerLocationNotifier, ServerLocation> {
-  const ServerLocationNotifierProvider._()
+final class SelectedServerLocationProvider
+    extends $AsyncNotifierProvider<SelectedServerLocation, ServerLocation> {
+  const SelectedServerLocationProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'serverLocationProvider',
-          isAutoDispose: true,
+          name: r'selectedServerLocationProvider',
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$serverLocationNotifierHash();
+  String debugGetCreateSourceHash() => _$selectedServerLocationHash();
 
   @$internal
   @override
-  ServerLocationNotifier create() => ServerLocationNotifier();
+  SelectedServerLocation create() => SelectedServerLocation();
 }
 
-String _$serverLocationNotifierHash() =>
-    r'085d1720563f05989fdb0513c9e70dcb94f86416';
+String _$selectedServerLocationHash() =>
+    r'8ab1b8b79e6dfc3b85bec00018bbdc796d2cb148';
 
-abstract class _$ServerLocationNotifier extends $AsyncNotifier<ServerLocation> {
+abstract class _$SelectedServerLocation extends $AsyncNotifier<ServerLocation> {
   FutureOr<ServerLocation> build();
   @$mustCallSuper
   @override

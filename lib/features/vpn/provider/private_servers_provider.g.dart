@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'manage_server_notifier.dart';
+part of 'private_servers_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,35 +9,33 @@ part of 'manage_server_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(ManageServerNotifier)
-const manageServerProvider = ManageServerNotifierProvider._();
+@ProviderFor(PrivateServers)
+const privateServersProvider = PrivateServersProvider._();
 
-final class ManageServerNotifierProvider
-    extends $AsyncNotifierProvider<ManageServerNotifier, List<PrivateServer>> {
-  const ManageServerNotifierProvider._()
+final class PrivateServersProvider
+    extends $AsyncNotifierProvider<PrivateServers, List<PrivateServer>> {
+  const PrivateServersProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'manageServerProvider',
+          name: r'privateServersProvider',
           isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$manageServerNotifierHash();
+  String debugGetCreateSourceHash() => _$privateServersHash();
 
   @$internal
   @override
-  ManageServerNotifier create() => ManageServerNotifier();
+  PrivateServers create() => PrivateServers();
 }
 
-String _$manageServerNotifierHash() =>
-    r'848b1e3c8c1847075d102f0287c4adfd4c545a30';
+String _$privateServersHash() => r'3d0440980435f7fdc6d5b405fc85dbb514a71084';
 
-abstract class _$ManageServerNotifier
-    extends $AsyncNotifier<List<PrivateServer>> {
+abstract class _$PrivateServers extends $AsyncNotifier<List<PrivateServer>> {
   FutureOr<List<PrivateServer>> build();
   @$mustCallSuper
   @override

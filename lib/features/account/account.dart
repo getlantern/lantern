@@ -11,6 +11,7 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -29,9 +30,9 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user = sl<LocalStorageService>().getUser();
+    final user = ref.watch(currentUserProvider);
+    final email = ref.watch(userEmailFromCoreProvider);
     final isExpired = ref.watch(isUserExpiredProvider);
-    final appSettings = ref.read(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
 
     return Column(
@@ -68,19 +69,19 @@ class Account extends HookConsumerWidget {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            label: appSettings.email.toLowerCase(),
+            label: email.toLowerCase(),
             icon: AppImagePaths.email,
             contentPadding: EdgeInsets.only(left: 16),
             onPressed: kDebugMode
                 ? () {
-                    copyToClipboard(appSettings.email);
+                    copyToClipboard(email);
                   }
                 : null,
             trailing: AppTextButton(
               label: 'change_email'.i18n,
               onPressed: () {
-                appRouter.push(SignInPassword(
-                    email: appSettings.email, fromChangeEmail: true));
+                appRouter
+                    .push(SignInPassword(email: email, fromChangeEmail: true));
               },
             ),
           ),
@@ -225,7 +226,7 @@ class Account extends HookConsumerWidget {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
-      final oldUser = sl<LocalStorageService>().getUser()!;
+      final oldUser = ref.read(currentUserProvider)!;
       final lanternService = ref.read(lanternServiceProvider);
       final notifier = ref.read(homeProvider.notifier);
 

@@ -5,13 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-
-import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'JoinPrivateServer')
 class JoinPrivateServer extends StatefulHookConsumerWidget {
@@ -41,9 +39,11 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
           final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServerEntity.fromJson(data);
-          sl<LocalStorageService>()
-              .savePrivateServer(serverData.copyWith(isJoined: true));
+          final serverData = PrivateServer.fromJson(data);
+          ref.read(lanternServiceProvider).savePrivateServer(
+                serverData.copyWith(isJoined: true),
+                joined: true,
+              );
           showSuccessDialog(nameController.text);
         });
       }
@@ -240,7 +240,6 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
       },
     );
   }
-
 
   void showSuccessDialog(String name) {
     final textTheme = Theme.of(context).textTheme;

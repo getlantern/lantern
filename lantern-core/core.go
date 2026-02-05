@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -33,6 +34,8 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
+
+	plansCacheFile = "plans-cache.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -63,6 +66,8 @@ type App interface {
 	StartBackgroundListeners()
 	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
+	GetAppDataDir() string
+	GetEnabledApps() (string, error)
 }
 
 type User interface {
@@ -110,6 +115,8 @@ type Payment interface {
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
+	GetCachedPlans() (string, error)
+	SetCachedPlans(plansJSON string) error
 }
 
 type SplitTunnel interface {
@@ -120,6 +127,8 @@ type SplitTunnel interface {
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
+	GetSplitTunnelStateJSON() (string, error)
+	GetSplitTunnelItems(filterType string) (string, error)
 }
 
 type Ads interface {
@@ -269,8 +278,7 @@ func (lc *LanternCore) GetSmartRoutingMode() bool {
 
 // Internal methods
 // notifyFlutter sends an event to the Flutter frontend via the event emitter.
-// For mobile it will use EventChannel to send events.
-// For desktop it will use FFI
+// On mobile we use EventChannel; on desktop this goes over the FFI event port
 func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	slog.Debug("Notifying Flutter")
 	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
@@ -818,4 +826,477 @@ func splitCSVClean(s string) []string {
 		out = append(out, it)
 	}
 	return out
+}
+
+func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return `{}`, nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return `{}`, nil
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) splitTunnelHandler() (*vpn.SplitTunnel, error) {
+	if lc.splitTunnel != nil {
+		return lc.splitTunnel, nil
+	}
+	st, err := vpn.NewSplitTunnelHandler()
+	if err != nil {
+		return nil, err
+	}
+	lc.splitTunnel = st
+	return st, nil
+}
+
+func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
+	st, err := lc.splitTunnelHandler()
+	if err != nil {
+		return "", err
+	}
+
+	f := st.Filters()
+
+	var items []string
+	switch filterType {
+	case vpn.TypeDomain:
+		items = f.Domain
+	case vpn.TypeDomainSuffix:
+		items = f.DomainSuffix
+	case vpn.TypeDomainKeyword:
+		items = f.DomainKeyword
+	case vpn.TypeDomainRegex:
+		items = f.DomainRegex
+	case vpn.TypeProcessName:
+		items = f.ProcessName
+	case vpn.TypeProcessPath:
+		items = f.ProcessPath
+	case vpn.TypeProcessPathRegex:
+		items = f.ProcessPathRegex
+	case vpn.TypePackageName:
+		items = f.PackageName
+	default:
+		return "", fmt.Errorf("unsupported filter type: %s", filterType)
+	}
+
+	b, err := json.Marshal(items)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) GetCachedPlans() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), plansCacheFile)
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return "", nil
+	}
+
+	var tmp any
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		return "", nil
+	}
+
+	return string(b), nil
+}
+
+func (lc *LanternCore) SetCachedPlans(plansJSON string) error {
+	var tmp any
+	if err := json.Unmarshal([]byte(plansJSON), &tmp); err != nil {
+		return err
+	}
+
+	dir := settings.GetString(settings.DataPathKey)
+	path := filepath.Join(dir, plansCacheFile)
+
+	tmpPath := path + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(plansJSON), 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, path)
+}
+
+// Keep the struct flexible: we store JSON blobs but still need some keys.
+type privateServerRecord map[string]any
+
+type privateServersStore struct {
+	mu sync.Mutex
+}
+
+func (s *privateServersStore) path() string {
+	return filepath.Join(settings.GetString(settings.DataPathKey), "private-servers.json")
+}
+
+func (s *privateServersStore) loadUnlocked() ([]privateServerRecord, error) {
+	p := s.path()
+	b, err := os.ReadFile(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []privateServerRecord{}, nil
+		}
+		return nil, err
+	}
+	if len(b) == 0 {
+		return []privateServerRecord{}, nil
+	}
+
+	var out []privateServerRecord
+	if err := json.Unmarshal(b, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *privateServersStore) saveUnlocked(recs []privateServerRecord) error {
+	p := s.path()
+	tmp := p + ".tmp"
+
+	b, err := json.MarshalIndent(recs, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(tmp, b, 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, p)
+}
+
+// Helpers for identifying a server.
+// Prefer stable keys if present (tag, externalIp+port). Fall back to serverName.
+func recordKey(r privateServerRecord) string {
+	if v, ok := r["tag"].(string); ok && v != "" {
+		return "tag:" + v
+	}
+	ip, _ := r["externalIp"].(string)
+	portAny := r["port"]
+	portStr := ""
+	switch t := portAny.(type) {
+	case string:
+		portStr = t
+	case float64:
+		portStr = jsonNumberToIntString(t)
+	}
+	if ip != "" && portStr != "" {
+		return "addr:" + ip + ":" + portStr
+	}
+	if v, ok := r["serverName"].(string); ok && v != "" {
+		return "name:" + v
+	}
+	return ""
+}
+
+func jsonNumberToIntString(f float64) string {
+	// ports are integral; safe enough here
+	return string([]byte((func() string {
+		n := int(f)
+		return itoa(n)
+	})()))
+}
+
+// tiny local itoa to avoid importing strconv in this file (optional)
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	neg := n < 0
+	if neg {
+		n = -n
+	}
+	buf := make([]byte, 0, 12)
+	for n > 0 {
+		d := n % 10
+		buf = append(buf, byte('0'+d))
+		n /= 10
+	}
+	if neg {
+		buf = append(buf, '-')
+	}
+	// reverse
+	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+	return string(buf)
+}
+
+var psStore = &privateServersStore{}
+
+func (lc *LanternCore) GetPrivateServersJSON() (string, error) {
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return "", err
+	}
+	b, _ := json.Marshal(recs)
+	return string(b), nil
+}
+
+// serverJSON is the JSON emitted by your provisioning/join flows.
+// joined indicates whether this is a joined server or “my server”.
+func (lc *LanternCore) SavePrivateServerJSON(serverJSON string, joined bool) error {
+	if serverJSON == "" {
+		return errors.New("empty server json")
+	}
+	var rec privateServerRecord
+	if err := json.Unmarshal([]byte(serverJSON), &rec); err != nil {
+		return err
+	}
+	rec["isJoined"] = joined
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+
+	key := recordKey(rec)
+	if key == "" {
+		// still allow save; but it becomes “append-only”
+		recs = append(recs, rec)
+		return psStore.saveUnlocked(recs)
+	}
+
+	// upsert by key
+	out := make([]privateServerRecord, 0, len(recs)+1)
+	replaced := false
+	for _, r := range recs {
+		if recordKey(r) == key {
+			out = append(out, rec)
+			replaced = true
+		} else {
+			out = append(out, r)
+		}
+	}
+	if !replaced {
+		out = append(out, rec)
+	}
+	return psStore.saveUnlocked(out)
+}
+
+// Delete by serverName for drop-in parity with existing UI.
+// (If you have tag/address available, you can add additional delete funcs.)
+func (lc *LanternCore) DeletePrivateServerByName(serverName string) error {
+	if serverName == "" {
+		return errors.New("empty serverName")
+	}
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+	out := make([]privateServerRecord, 0, len(recs))
+	for _, r := range recs {
+		if n, _ := r["serverName"].(string); n == serverName {
+			continue
+		}
+		out = append(out, r)
+	}
+	return psStore.saveUnlocked(out)
+}
+
+func (lc *LanternCore) UpdatePrivateServerName(oldName, newName string) error {
+	if oldName == "" || newName == "" {
+		return errors.New("oldName/newName required")
+	}
+
+	psStore.mu.Lock()
+	defer psStore.mu.Unlock()
+
+	recs, err := psStore.loadUnlocked()
+	if err != nil {
+		return err
+	}
+
+	updated := false
+	for _, r := range recs {
+		if n, _ := r["serverName"].(string); n == oldName {
+			r["serverName"] = newName
+			updated = true
+			break
+		}
+	}
+	if !updated {
+		return errors.New("server not found")
+	}
+	return psStore.saveUnlocked(recs)
+}
+
+func (lc *LanternCore) GetSelectedServerLocationJSON() (string, error) {
+	cfg, err := loadAppSettings()
+	if err != nil {
+		return "", err
+	}
+
+	// If user set something, return it.
+	if len(cfg.SelectedServerLocation) > 0 {
+		// validate it's JSON
+		var tmp any
+		if err := json.Unmarshal(cfg.SelectedServerLocation, &tmp); err == nil {
+			return string(cfg.SelectedServerLocation), nil
+		}
+		// corrupted -> fall through to default
+	}
+
+	// Default: Smart Location
+	type selectionPayload struct {
+		ServerType string `json:"serverType"`
+		ServerName string `json:"serverName,omitempty"`
+		Tag        string `json:"tag,omitempty"`
+		Country    string `json:"country,omitempty"`
+		City       string `json:"city,omitempty"`
+		Group      string `json:"group,omitempty"`
+		Type       string `json:"type,omitempty"`
+	}
+
+	payload := selectionPayload{
+		ServerType: "auto",
+		ServerName: "Smart Location",
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) SetSelectedServerLocationJSON(s string) error {
+	var tmp any
+	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+		return err
+	}
+
+	_, err := updateAppSettings(func(cfg *AppSettings) error {
+		cfg.SelectedServerLocation = json.RawMessage([]byte(s))
+		return nil
+	})
+	return err
+}
+
+type developerMode struct {
+	TestPlayPurchaseEnabled   bool `json:"testPlayPurchaseEnabled"`
+	TestStripePurchaseEnabled bool `json:"testStripePurchaseEnabled"`
+}
+
+func (lc *LanternCore) GetDeveloperModeJSON() (string, error) {
+	cfg, err := loadAppSettings()
+	if err != nil {
+		return "", err
+	}
+
+	if cfg.DeveloperMode == nil {
+		d := developerMode{}
+		out, _ := json.Marshal(d)
+		return string(out), nil
+	}
+
+	out, err := json.Marshal(cfg.DeveloperMode)
+	if err != nil {
+		d := developerMode{}
+		out2, _ := json.Marshal(d)
+		return string(out2), nil
+	}
+	return string(out), nil
+}
+
+func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
+	var dm developerMode
+	if err := json.Unmarshal([]byte(s), &dm); err != nil {
+		return err
+	}
+
+	_, err := updateAppSettings(func(cfg *AppSettings) error {
+		cfg.DeveloperMode = &dm
+		return nil
+	})
+	return err
+}
+
+func (lc *LanternCore) GetAppDataDir() string {
+	return settings.GetString(settings.DataPathKey)
+}
+
+func (lc *LanternCore) GetEnabledApps() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "[]", nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return "[]", nil
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal(b, &m); err != nil {
+		return "", err
+	}
+
+	candidateKeys := []string{
+		"processPathRegex",
+		"processPath",
+		"packageName",
+		"bundleId",
+		"bundleID",
+		"enabledApps",
+		"apps",
+	}
+
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 16)
+
+	addList := func(v any) {
+		arr, ok := v.([]any)
+		if !ok {
+			return
+		}
+		for _, it := range arr {
+			s, ok := it.(string)
+			if !ok {
+				continue
+			}
+			s = strings.TrimSpace(s)
+			if s == "" {
+				continue
+			}
+			if common.IsWindows() {
+				s = strings.ToLower(s)
+			}
+			if _, exists := seen[s]; exists {
+				continue
+			}
+			seen[s] = struct{}{}
+			out = append(out, s)
+		}
+	}
+
+	for _, k := range candidateKeys {
+		if v, ok := m[k]; ok {
+			addList(v)
+		}
+	}
+
+	encoded, _ := json.Marshal(out)
+	return string(encoded), nil
 }

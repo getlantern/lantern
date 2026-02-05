@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -28,8 +28,6 @@ class PrivateServerDeploy extends StatefulHookConsumerWidget {
 
 class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
   TextTheme? textTheme;
-  final localStorage = sl<LocalStorageService>();
-
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
@@ -40,8 +38,11 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
           final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServerEntity.fromJson(data);
-          localStorage.savePrivateServer(serverData);
+          final serverData = PrivateServer.fromJson(data);
+          ref.read(lanternServiceProvider).savePrivateServer(
+                serverData,
+                joined: false,
+              );
           showSuccessDialog();
         });
       }
@@ -172,7 +173,6 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
       ],
     );
   }
-
 
   Future<void> cancelDeployment() async {
     context.showLoadingDialog();

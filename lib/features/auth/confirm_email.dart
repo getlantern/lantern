@@ -4,12 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide BackButton;
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -201,12 +200,12 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(code);
+        navigateRoute(ref, code);
       },
     );
   }
 
-  void navigateRoute(String code) {
+  void navigateRoute(WidgetRef ref, String code) {
     switch (authFlow) {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
@@ -221,7 +220,7 @@ class ConfirmEmail extends HookConsumerWidget {
         }
 
         /// Check if user is pro or not
-        final isPro = sl<LocalStorageService>().getUser()?.isPro() ?? false;
+        final isPro = ref.read(isUserProFromCoreProvider);
         if (isPro) {
           appRouter.push(
               CreatePassword(email: email, authFlow: authFlow, code: code));

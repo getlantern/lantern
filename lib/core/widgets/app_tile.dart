@@ -32,7 +32,6 @@ class AppTile extends StatelessWidget {
   final Color? selectedTileColor;
   final BorderRadius? borderRadius;
   final VisualDensity? visualDensity;
-  final ListTileTitleAlignment? titleAlignment;
 
   const AppTile({
     super.key,
@@ -58,7 +57,6 @@ class AppTile extends StatelessWidget {
     this.selectedTileColor,
     this.borderRadius,
     this.visualDensity,
-    this.titleAlignment,
   });
 
   factory AppTile.link({
@@ -126,8 +124,7 @@ class AppTile extends StatelessWidget {
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,
-      titleAlignment: titleAlignment??ListTileTitleAlignment.center,
-      enableFeedback: true,
+      titleAlignment: ListTileTitleAlignment.center,
       hoverColor: hoverColor ?? AppColors.blue1,
       selectedTileColor: selectedTileColor ?? AppColors.blue1,
       tileColor: tileColor,
