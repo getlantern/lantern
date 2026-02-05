@@ -3386,6 +3386,61 @@ class LanternBindings {
   late final _updatePrivateServerName = _updatePrivateServerNamePtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getSelectedServerLocation() {
+    return _getSelectedServerLocation();
+  }
+
+  late final _getSelectedServerLocationPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getSelectedServerLocation');
+  late final _getSelectedServerLocation = _getSelectedServerLocationPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> getDeveloperMode() {
+    return _getDeveloperMode();
+  }
+
+  late final _getDeveloperModePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getDeveloperMode');
+  late final _getDeveloperMode =
+      _getDeveloperModePtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> setDeveloperMode(
+    ffi.Pointer<ffi.Char> jsonC,
+  ) {
+    return _setDeveloperMode(
+      jsonC,
+    );
+  }
+
+  late final _setDeveloperModePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('setDeveloperMode');
+  late final _setDeveloperMode = _setDeveloperModePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getAppDataDir() {
+    return _getAppDataDir();
+  }
+
+  late final _getAppDataDirPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getAppDataDir');
+  late final _getAppDataDir =
+      _getAppDataDirPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> getEnabledApps() {
+    return _getEnabledApps();
+  }
+
+  late final _getEnabledAppsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getEnabledApps');
+  late final _getEnabledApps =
+      _getEnabledAppsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 }
 
 typedef __int8_t = ffi.SignedChar;

@@ -8,8 +8,6 @@ part 'developer_mode_notifier.g.dart';
 class DeveloperModeNotifier extends _$DeveloperModeNotifier {
   @override
   DeveloperMode build() {
-    // Start with defaults immediately (sync build),
-    // then hydrate from Go.
     _hydrate();
     return DeveloperMode.initial();
   }

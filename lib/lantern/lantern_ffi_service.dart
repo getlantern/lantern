@@ -154,10 +154,10 @@ class LanternFFIService implements LanternCoreService {
 
       int consent = 0;
       try {
-        final appSetting = sl<LocalStorageService>().getAppSetting();
-        if (appSetting != null) {
-          consent = appSetting.telemetryConsent ? 1 : 0;
-        }
+        // final appSetting = sl<LocalStorageService>().getAppSetting();
+        // if (appSetting != null) {
+        //   consent = appSetting.telemetryConsent ? 1 : 0;
+        // }
       } catch (_) {
         appLogger.warning(
           'No app setting found, defaulting telemetry consent to false',

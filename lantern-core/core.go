@@ -66,6 +66,8 @@ type App interface {
 	StartBackgroundListeners()
 	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
+	GetAppDataDir() string
+	GetEnabledApps() (string, error)
 }
 
 type User interface {
@@ -1212,4 +1214,74 @@ func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
 		return err
 	}
 	return os.Rename(tmpPath, path)
+}
+
+func (lc *LanternCore) GetAppDataDir() string {
+	return settings.GetString(settings.DataPathKey)
+}
+
+func (lc *LanternCore) GetEnabledApps() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "[]", nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return "[]", nil
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal(b, &m); err != nil {
+		return "", err
+	}
+
+	candidateKeys := []string{
+		"processPathRegex",
+		"processPath",
+		"packageName",
+		"bundleId",
+		"bundleID",
+		"enabledApps",
+		"apps",
+	}
+
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 16)
+
+	addList := func(v any) {
+		arr, ok := v.([]any)
+		if !ok {
+			return
+		}
+		for _, it := range arr {
+			s, ok := it.(string)
+			if !ok {
+				continue
+			}
+			s = strings.TrimSpace(s)
+			if s == "" {
+				continue
+			}
+			if common.IsWindows() {
+				s = strings.ToLower(s)
+			}
+			if _, exists := seen[s]; exists {
+				continue
+			}
+			seen[s] = struct{}{}
+			out = append(out, s)
+		}
+	}
+
+	for _, k := range candidateKeys {
+		if v, ok := m[k]; ok {
+			addList(v)
+		}
+	}
+
+	encoded, _ := json.Marshal(out)
+	return string(encoded), nil
 }
