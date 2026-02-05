@@ -180,9 +180,5 @@ class AppRouter extends RootStackRouter {
       path: '/smart-routing',
       page: SmartRouting.page,
     ),
-    AutoRoute(
-      path: '/intro',
-      page: Onboarding.page,
-    ),
   ];
 }

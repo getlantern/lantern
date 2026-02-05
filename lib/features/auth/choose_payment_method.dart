@@ -8,7 +8,6 @@ import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -30,36 +29,40 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
-    final planData = ref.watch(plansProvider.notifier).getPlanData();
+    final plansAsync = ref.watch(plansProvider);
+
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
         title: Text('choose_payment_method'.i18n),
         actions: [
           IconButton(
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onPressed: () => onMoreOptionsPressed(context),
           ),
         ],
       ),
       body: Column(
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          InfoRow(
-            minTileHeight: 40,
-            imagePath: AppImagePaths.security,
-            text: 'payment_information_encrypted'.i18n,
-          ),
+        children: [
           SizedBox(height: defaultSize),
           Expanded(
-            child: PaymentCheckoutMethods(
-              providers: PlatformUtils.isAndroid
-                  ? planData.providers.android
-                  : planData.providers.desktop,
-              userPlan: userPlan,
-              onSubscribe: (provider) => onSubscribe(provider, ref, context),
+            child: plansAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text(e.toString())),
+              data: (planData) {
+                final providers = PlatformUtils.isAndroid
+                    ? planData.providers.android
+                    : planData.providers.desktop;
+
+                return PaymentCheckoutMethods(
+                  providers: providers,
+                  userPlan: userPlan,
+                  onSubscribe: (provider) =>
+                      onSubscribe(provider, ref, context),
+                );
+              },
             ),
-          )
+          ),
         ],
       ),
     );

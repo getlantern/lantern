@@ -8,11 +8,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
@@ -47,20 +48,20 @@ class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
+    final user = ref.watch(currentUserProvider);
+    final isUserPro = ref.watch(isUserProFromCoreProvider);
+    final email = ref.watch(userEmailFromCoreProvider);
+
     final appSetting = ref.watch(appSettingProvider);
-    final localUser = sl<LocalStorageService>().getUser();
-    final localIsPro = localUser?.legacyUserData.isPro() ?? false;
-    final hasProSession =
-        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
+
+    final hasProSession = (user?.legacyUserData.isPro ?? false) &&
+        (user?.legacyUserData.unpassRegistered ?? false);
+
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
+
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
-    final isUserPro = ref.watch(isUserProProvider);
-    final user = ref.watch(homeProvider).value;
-    String email = '';
-    if (user != null) {
-      email = user.legacyUserData.email;
-    }
+
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
@@ -274,16 +275,15 @@ class _SettingState extends ConsumerState<Setting> {
         break;
 
       case _SettingType.account:
-        final localUser = sl<LocalStorageService>().getUser();
-        if (localUser == null) {
-          /// This should not happen, but just in case.
-          /// If user is not account screen it mean user should have some data
+        final user = ref.read(currentUserProvider);
+        if (user == null) {
           appRouter.push(const SignInEmail());
           return;
         }
+
         final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-        final email = localUser.legacyUserData.email;
-        final isPro = localUser.legacyUserData.isPro();
+        final email = user.legacyUserData.email;
+        final isPro = user.legacyUserData.isPro;
         if (isPro && !userSignedIn) {
           await showProAccountFlowDialog(
               context: context, hasEmail: email.isNotEmpty);

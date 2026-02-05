@@ -10,10 +10,9 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
+import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -48,8 +47,6 @@ export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/localization/i18n.dart';
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
-// DB
-export 'package:lantern/core/services/local_storage.dart';
 //Logger
 export 'package:lantern/core/services/logger_service.dart';
 export 'package:lantern/core/utils/failure.dart';
@@ -88,10 +85,10 @@ bool isStoreVersion() {
     return true;
   }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    final setting = sl<LocalStorageService>().getDeveloperSetting();
-    if (setting != null) {
-      return setting.testPlayPurchaseEnabled;
-    }
+    // final setting = sl<LocalStorageService>().getDeveloperSetting();
+    // if (setting != null) {
+    //   return setting.testPlayPurchaseEnabled;
+    // }
     return !sl<StoreUtils>().isSideLoaded();
   }
   return !sl<StoreUtils>().isSideLoaded();
@@ -113,7 +110,11 @@ Future<String> pasteFromClipboard() async {
 
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [Duration(seconds: 1), Duration(seconds: 2),Duration(seconds: 3)];
+  final delays = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 3)
+  ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
@@ -146,7 +147,7 @@ void hideKeyboard() {
 }
 
 void sharePrivateAccessKey(
-    PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
+    PrivateServer server, Map<String, dynamic> tokenPayload) {
   final expirationDate = tokenPayload['exp'].toString();
   final aliasName = tokenPayload['sub'];
   final uri = Uri(
@@ -186,8 +187,8 @@ String getReferralMessage(String planId) {
 }
 
 /// Initial server location set to auto (fastest server)
-ServerLocationEntity initialServerLocation() {
-  return ServerLocationEntity(
+ServerLocation initialServerLocation() {
+  return ServerLocation(
     serverName: '',
     serverType: ServerLocationType.auto.name,
     country: '',
@@ -195,11 +196,10 @@ ServerLocationEntity initialServerLocation() {
     displayName: 'Smart Location',
     protocol: '',
     countryCode: '',
-    autoLocationParam: AutoLocationEntity(
+    autoLocation: AutoLocation(
       country: '',
       countryCode: '',
       displayName: ('fastest_server'.i18n),
     ),
   );
 }
-
