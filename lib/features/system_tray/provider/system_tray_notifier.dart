@@ -12,6 +12,7 @@ part 'system_tray_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   late VPNStatus _currentStatus;
+  bool _isUserPro = false;
 
   @override
   Future<void> build() async {
@@ -22,6 +23,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       (previous, next) async {
         _currentStatus = next;
         // Refresh menu on change
+        await updateTrayMenu();
+      },
+    );
+
+    _isUserPro = ref.read(isUserProProvider);
+    ref.listen<bool>(
+      isUserProProvider,
+      (previous, next) async {
+        _isUserPro = next;
         await updateTrayMenu();
       },
     );
@@ -64,6 +74,16 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
               _currentStatus == VPNStatus.disconnecting,
           onClick: (_) => toggleVPN(),
         ),
+        MenuItem.separator(),
+        if (!_isUserPro)
+          MenuItem(
+            key: 'upgrade_to_pro',
+            label: 'upgrade_to_pro'.i18n,
+            onClick: (_) {
+              ref.read(windowProvider.notifier).open(focus: true);
+              appRouter.push(Plans());
+            },
+          ),
         MenuItem.separator(),
         MenuItem(
           key: 'join_server',
