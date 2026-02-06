@@ -22,6 +22,12 @@
 
 /* Begin PBXBuildFile section */
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
+		AA0000062F0000000000FFI6 /* LanternFFI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000012F0000000000FFI1 /* LanternFFI.swift */; };
+		AA0000072F0000000000FFI7 /* FFIPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000032F0000000000FFI3 /* FFIPlatformInterface.swift */; };
+		AA0000082F0000000000FFI8 /* liblantern.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000052F0000000000FFI5 /* liblantern.dylib */; };
+		AA0000092F0000000000FFI9 /* liblantern.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000052F0000000000FFI5 /* liblantern.dylib */; };
+		AA00000A2F0000000000FFIA /* liblantern.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000052F0000000000FFI5 /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AA00000B2F0000000000FFIB /* liblantern.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000052F0000000000FFI5 /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		038636162EE69F7D004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
 		0386361F2EE6A026004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
@@ -43,8 +49,6 @@
 		5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */; };
 		5F53D01D2E440BBC00740586 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4252DF0AA4700429FE9 /* main.swift */; };
 		5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
-		5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		5F53D02B2E440E9400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5F53D0322E4410F100740586 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */; };
 		5F53D0332E4410F100740586 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */; };
 		5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0392E44112E00740586 /* SystemExtensionManager.swift */; };
@@ -52,8 +56,6 @@
 		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0512E44EBB700740586 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
-		5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		5F53D06A2E45078400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7422202E7C1FB000FC72BE /* LogsEventHandler.swift */; };
 		5F7B9A5A2F0C13AC0019E3E0 /* AppStreamHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7B9A592F0C13AC0019E3E0 /* AppStreamHandler.swift */; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
@@ -105,7 +107,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5F53D02B2E440E9400740586 /* Liblantern.xcframework in Embed Frameworks */,
+				AA00000A2F0000000000FFIA /* liblantern.dylib in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -127,7 +129,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5F53D06A2E45078400740586 /* Liblantern.xcframework in Embed Frameworks */,
+				AA00000B2F0000000000FFIB /* liblantern.dylib in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -137,9 +139,13 @@
 /* Begin PBXFileReference section */
 		038636152EE69F5D004A11CF /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
+		AA0000012F0000000000FFI1 /* LanternFFI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanternFFI.swift; sourceTree = "<group>"; };
+		AA0000022F0000000000FFI2 /* Lantern-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lantern-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA0000032F0000000000FFI3 /* FFIPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFIPlatformInterface.swift; sourceTree = "<group>"; };
+		AA0000042F0000000000FFI4 /* PacketTunnel-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PacketTunnel-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA0000052F0000000000FFI5 /* liblantern.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblantern.dylib; path = Frameworks/liblantern.dylib; sourceTree = "<group>"; };
 		03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		293C305B2DEF67EB00691115 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
 		293C305C2DEF67EB00691115 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
@@ -185,6 +191,7 @@
 		C880C8AAD01AAC936ECE1814 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -218,7 +225,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */,
+				AA0000092F0000000000FFI9 /* liblantern.dylib in Frameworks */,
 				5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */,
 				038636162EE69F7D004A11CF /* libresolv.tbd in Frameworks */,
 			);
@@ -238,7 +245,7 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
-				5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */,
+				AA0000082F0000000000FFI8 /* liblantern.dylib in Frameworks */,
 				0386361F2EE6A026004A11CF /* libresolv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,13 +300,23 @@
 		2995B4282DF0AA4700429FE9 /* PacketTunnel */ = {
 			isa = PBXGroup;
 			children = (
+				AA00000D2F0000000000FFID /* FFI */,
 				2995B4232DF0AA4700429FE9 /* SingBox */,
 				2995B4242DF0AA4700429FE9 /* Info.plist */,
 				2995B4252DF0AA4700429FE9 /* main.swift */,
 				2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */,
 				2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */,
+				AA0000042F0000000000FFI4 /* PacketTunnel-Bridging-Header.h */,
 			);
 			path = PacketTunnel;
+			sourceTree = "<group>";
+		};
+		AA00000D2F0000000000FFID /* FFI */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000032F0000000000FFI3 /* FFIPlatformInterface.swift */,
+			);
+			path = FFI;
 			sourceTree = "<group>";
 		};
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
@@ -359,6 +376,7 @@
 		33CEB47122A05771004F2AC0 /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
+				78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */,
 				335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */,
 				33CEB47222A05771004F2AC0 /* Flutter-Debug.xcconfig */,
 				33CEB47422A05771004F2AC0 /* Flutter-Release.xcconfig */,
@@ -370,17 +388,27 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				AA00000C2F0000000000FFIC /* FFI */,
 				03D236712E3A06E20004EC53 /* Utils */,
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
+				AA0000022F0000000000FFI2 /* Lantern-Bridging-Header.h */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
 				5F53D0132E42440F00740586 /* Utils */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		AA00000C2F0000000000FFIC /* FFI */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000012F0000000000FFI1 /* LanternFFI.swift */,
+			);
+			path = FFI;
 			sourceTree = "<group>";
 		};
 		5F53D0132E42440F00740586 /* Utils */ = {
@@ -395,7 +423,7 @@
 			isa = PBXGroup;
 			children = (
 				038636152EE69F5D004A11CF /* libresolv.tbd */,
-				293C302F2DEF247F00691115 /* Liblantern.xcframework */,
+				AA0000052F0000000000FFI5 /* liblantern.dylib */,
 				3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */,
 				831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */,
 				29952B052DE79CB200640E7F /* NetworkExtension.framework */,
@@ -677,11 +705,11 @@
 			files = (
 				5F53D0452E4414D000740586 /* FilePath.swift in Sources */,
 				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
-				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
 				5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */,
 				03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */,
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
+				AA0000072F0000000000FFI7 /* FFIPlatformInterface.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -713,6 +741,7 @@
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				5F53D0402E4414A100740586 /* FilePath.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
+				AA0000062F0000000000FFI6 /* LanternFFI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -794,6 +823,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
@@ -808,6 +838,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/PacketTunnel-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -847,6 +878,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
@@ -859,6 +891,7 @@
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/PacketTunnel-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -897,6 +930,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
@@ -909,6 +943,7 @@
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/PacketTunnel-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Profile;
@@ -1038,6 +1073,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Lantern-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Profile;
@@ -1185,6 +1221,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Lantern-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -1219,6 +1256,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Lantern-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

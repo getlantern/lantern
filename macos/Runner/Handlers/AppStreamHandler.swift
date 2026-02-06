@@ -1,6 +1,5 @@
 import FlutterMacOS
 import Foundation
-import Liblantern
 
 final class AppStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
@@ -44,30 +43,28 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
 
       guard self.eventSink != nil else { return }
 
-      var error: NSError?
-      let jsonString = MobileLoadInstalledApps(dataDir, &error)
+      do {
+        let jsonString = try LanternFFI.shared.loadInstalledApps(dataDir: dataDir)
 
-      if let error {
+        if let data = jsonString.data(using: .utf8),
+          let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        {
+          await MainActor.run {
+            self.emit([
+              "type": "snapshot",
+              "items": arr,
+              "removed": [],
+              "source": "scan",
+            ])
+          }
+        }
+      } catch {
         await MainActor.run {
           self.emit([
             "type": "error",
             "items": [],
             "removed": [],
             "message": error.localizedDescription,
-          ])
-        }
-        return
-      }
-
-      if let data = jsonString.data(using: .utf8),
-        let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-      {
-        await MainActor.run {
-          self.emit([
-            "type": "snapshot",
-            "items": arr,
-            "removed": [],
-            "source": "scan",
           ])
         }
       }

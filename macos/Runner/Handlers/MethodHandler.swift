@@ -6,7 +6,6 @@
 import Cocoa
 import FlutterMacOS
 import Foundation
-import Liblantern
 import NetworkExtension
 import StoreKit
 
@@ -241,7 +240,7 @@ class MethodHandler {
 
       case "isSplitTunnelingEnabled":
         Task.detached {
-          let enabled = MobileIsSplitTunnelingEnabled()
+          let enabled = LanternFFI.shared.isSplitTunnelingEnabled()
           await MainActor.run { result(enabled) }
         }
 
@@ -285,9 +284,9 @@ class MethodHandler {
     Task {
       do {
         try await vpnManager.startTunnel()
-        var error: NSError?
-        MobileStartAutoLocationListener(&error)
-        if let error {
+        do {
+          try LanternFFI.shared.startAutoLocationListener()
+        } catch {
           appLogger.error("Error getting auto location: \(error.localizedDescription)")
         }
         await MainActor.run {
@@ -310,9 +309,9 @@ class MethodHandler {
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       do {
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
+        do {
+          try LanternFFI.shared.stopAutoLocationListener()
+        } catch {
           appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
         }
         let location = data["location"] as? String ?? ""
@@ -338,9 +337,9 @@ class MethodHandler {
   private func stopVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
+        do {
+          try LanternFFI.shared.stopAutoLocationListener()
+        } catch {
           appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
         }
         try await vpnManager.stopTunnel()
@@ -371,16 +370,13 @@ class MethodHandler {
 
   private func plans(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let data = MobilePlans("non-store", &error)
-
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "PLANS_ERROR")
-        return
-      }
-
-      await MainActor.run {
-        result(data)
+      do {
+        let data = try LanternFFI.shared.plans()
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "PLANS_ERROR")
       }
     }
   }
@@ -415,83 +411,79 @@ class MethodHandler {
 
   private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
     Task {
-      var error: NSError?
-      let data = MobileOAuthLoginUrl(provider, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN")
-        return
-      }
-      await MainActor.run {
-        result(data)
+      do {
+        let data = try LanternFFI.shared.oauthLoginUrl(provider: provider)
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "OAUTH_LOGIN")
       }
     }
   }
 
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
-      var error: NSError?
-      let data = MobileOAuthLoginCallback(token, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
-        return
-      }
-      await MainActor.run {
-        result(data)
+      do {
+        let data = try LanternFFI.shared.oauthLoginCallback(token: token)
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
       }
     }
   }
 
   private func getUserData(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let data = MobileUserData(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(data)
+      do {
+        let data = try LanternFFI.shared.getUserData()
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "USER_DATA_ERROR")
       }
     }
   }
 
   private func getDataCapInfo(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let data = MobileGetDataCapInfo(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
-        return
-      }
-      await MainActor.run {
-        result(data)
+      do {
+        let data = try LanternFFI.shared.getDataCapInfo()
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
       }
     }
   }
 
   private func fetchUserData(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let bytes = MobileFetchUserData(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "FETCH_USER_DATA_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(bytes)
+      do {
+        let bytes = try LanternFFI.shared.fetchUserData()
+        await MainActor.run {
+          result(bytes)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "FETCH_USER_DATA_ERROR")
       }
     }
   }
 
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+    // TODO: Apple in-app purchase acknowledgment not yet implemented in FFI
     Task {
-      var error: NSError?
-      MobileAcknowledgeApplePurchase(token, planId, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
-        return
+      await MainActor.run {
+        result(
+          FlutterError(
+            code: "NOT_IMPLEMENTED",
+            message: "acknowledgeApplePurchase not yet implemented in FFI",
+            details: nil))
       }
-      await self.replyOK(result)
     }
   }
 
@@ -499,14 +491,13 @@ class MethodHandler {
 
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
-      var error: NSError?
-      MobileStartRecoveryByEmail(email, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "RECOVERY_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("Recovery email sent successfully.")
+      do {
+        try LanternFFI.shared.startRecoveryByEmail(email: email)
+        await MainActor.run {
+          result("Recovery email sent successfully.")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "RECOVERY_FAILED")
       }
     }
   }
@@ -515,14 +506,13 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
-      var error: NSError?
-      MobileValidateChangeEmailCode(email, code, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "VALIDATE_RECOVERY_CODE_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("Recovery code validated successfully.")
+      do {
+        try LanternFFI.shared.validateRecoveryCode(email: email, code: code)
+        await MainActor.run {
+          result("Recovery code validated successfully.")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "VALIDATE_RECOVERY_CODE_FAILED")
       }
     }
   }
@@ -532,14 +522,14 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
-      var error: NSError?
-      MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "COMPLETE_RECOVERY_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("Change email completed successfully.")
+      do {
+        try LanternFFI.shared.completeRecoveryByEmail(
+          email: email, newPassword: newPassword, code: code)
+        await MainActor.run {
+          result("Change email completed successfully.")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "COMPLETE_RECOVERY_FAILED")
       }
     }
   }
@@ -548,14 +538,13 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      var error: NSError?
-      let payload = MobileLogin(email, password, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
-        return
-      }
-      await MainActor.run {
-        result(payload)
+      do {
+        let payload = try LanternFFI.shared.login(email: email, password: password)
+        await MainActor.run {
+          result(payload)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "LOGIN_FAILED")
       }
     }
   }
@@ -564,26 +553,24 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      var error: NSError?
-      MobileSignUp(email, password, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SIGNUP_FAILED")
-        return
+      do {
+        try LanternFFI.shared.signup(email: email, password: password)
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SIGNUP_FAILED")
       }
-      await self.replyOK(result)
     }
   }
 
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
-      var error: NSError?
-      let payload = MobileLogout(email, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "LOGOUT_FAILED")
-        return
-      }
-      await MainActor.run {
-        result(payload)
+      do {
+        let payload = try LanternFFI.shared.logout(email: email)
+        await MainActor.run {
+          result(payload)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "LOGOUT_FAILED")
       }
     }
   }
@@ -592,14 +579,13 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      var error: NSError?
-      let payload = MobileDeleteAccount(email, password, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
-        return
-      }
-      await MainActor.run {
-        result(payload)
+      do {
+        let payload = try LanternFFI.shared.deleteAccount(email: email, password: password)
+        await MainActor.run {
+          result(payload)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
       }
     }
   }
@@ -608,14 +594,13 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
-      var error: NSError?
-      MobileActivationCode(email, resellerCode, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "ACTIVATION_CODE_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.activationCode(email: email, resellerCode: resellerCode)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "ACTIVATION_CODE_FAILED")
       }
     }
   }
@@ -624,14 +609,13 @@ class MethodHandler {
     Task {
       let email = data["newEmail"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      var error: NSError?
-      MobileStartChangeEmail(email, password, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "START_CHANGE_EMAIL_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.startChangeEmail(newEmail: email, password: password)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "START_CHANGE_EMAIL_FAILED")
       }
     }
   }
@@ -642,45 +626,41 @@ class MethodHandler {
       let password = data["password"] as? String ?? ""
       let code = data["code"] as? String ?? ""
 
-      var error: NSError?
-      MobileCompleteChangeEmail(newEmail, password, code, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "COMPLETE_CHANGE_EMAIL_FAILED")
-        return
+      do {
+        try LanternFFI.shared.completeChangeEmail(newEmail: newEmail, password: password, code: code)
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(error, result: result, code: "COMPLETE_CHANGE_EMAIL_FAILED")
       }
-
-      await self.replyOK(result)
     }
   }
 
   func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
     Task {
-      var error: NSError?
-      MobileRemoveDevice(deviceId, &error)
-      if let error {
+      do {
+        try LanternFFI.shared.removeDevice(deviceId: deviceId)
+        await MainActor.run {
+          appLogger.info("Device removed successfully.")
+          result("ok")
+        }
+      } catch {
         appLogger.error("Failed to remove device: \(error.localizedDescription)")
-        await self.handleFlutterError(error, result: result, code: "REMOVE_DEVICE_FAILED")
-        return
-      }
-      await MainActor.run {
-        appLogger.info("Device removed successfully.")
-        result("ok")
+        await self.handleFFIError(error, result: result, code: "REMOVE_DEVICE_FAILED")
       }
     }
   }
 
   func referralAttach(result: @escaping FlutterResult, code: String) {
     Task {
-      var error: NSError?
-      MobileReferralAttachment(code, &error)
-      if let error {
+      do {
+        try LanternFFI.shared.referralAttachment(code: code)
+        await MainActor.run {
+          appLogger.info("Referral code attached successfully.")
+          result("ok")
+        }
+      } catch {
         appLogger.error("Failed to attach referral code: \(error.localizedDescription)")
-        await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_FAILED")
-        return
-      }
-      await MainActor.run {
-        appLogger.info("Referral code attached successfully.")
-        result("ok")
+        await self.handleFFIError(error, result: result, code: "ATTACH_REFERRAL_CODE_FAILED")
       }
     }
   }
@@ -689,42 +669,39 @@ class MethodHandler {
 
   func digitalOcean(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      MobileDigitalOceanPrivateServer(PrivateServerListener.shared, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "DIGITAL_OCEAN_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.digitalOceanPrivateServer()
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "DIGITAL_OCEAN_ERROR")
       }
     }
   }
 
   func selectAccount(result: @escaping FlutterResult, account: String) {
     Task {
-      var error: NSError?
-      MobileSelectAccount(account, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SELECT_ACCOUNT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.selectAccount(account: account)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SELECT_ACCOUNT_ERROR")
       }
     }
   }
 
   func selectProject(result: @escaping FlutterResult, project: String) {
     Task {
-      var error: NSError?
-      MobileSelectProject(project, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SELECT_PROJECT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.selectProject(project: project)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SELECT_PROJECT_ERROR")
       }
     }
   }
@@ -734,49 +711,44 @@ class MethodHandler {
       let location = data["location"] as? String ?? ""
       let serverName = data["serverName"] as? String ?? ""
 
-      var error: NSError?
-      let success = MobileStartDeployment(location, serverName, &error)
-
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "START_DEPLOYMENT_ERROR")
-        return
-      }
-
-      await MainActor.run {
-        result(success ? "ok" : "failed")
+      do {
+        try LanternFFI.shared.startDeployment(location: location, serverName: serverName)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "START_DEPLOYMENT_ERROR")
       }
     }
   }
 
   func cancelDeployment(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let success = MobileCancelDeployment(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(success ? "ok" : "failed")
+      do {
+        try LanternFFI.shared.cancelDeployment()
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
       }
     }
   }
 
   func addServerManually(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let ip = data["ip"] as? String
-      let port = data["port"] as? String
-      let accessToken = data["accessToken"] as? String
-      let serverName = data["serverName"] as? String
-      var error: NSError?
-      MobileAddServerManagerInstance(
-        ip, port, accessToken, serverName, PrivateServerListener.shared, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let serverName = data["serverName"] as? String ?? ""
+      do {
+        try LanternFFI.shared.addServerManually(
+          ip: ip, port: port, accessToken: accessToken, serverName: serverName)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
       }
     }
   }
@@ -787,16 +759,15 @@ class MethodHandler {
       let port = data["port"] as? String ?? ""
       let accessToken = data["accessToken"] as? String ?? ""
       let inviteName = data["inviteName"] as? String ?? ""
-      var error: NSError?
-      let successKey = MobileInviteToServerManagerInstance(
-        ip, port, accessToken, inviteName, &error)
-      if let error {
-        await self.handleFlutterError(
+      do {
+        let successKey = try LanternFFI.shared.inviteToServerManagerInstance(
+          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName)
+        await MainActor.run {
+          result(successKey)
+        }
+      } catch {
+        await self.handleFFIError(
           error, result: result, code: "INVITE_TO_SERVER_MANAGER_INSTANCE_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(successKey)
       }
     }
   }
@@ -807,26 +778,25 @@ class MethodHandler {
       let port = data["port"] as? String ?? ""
       let accessToken = data["accessToken"] as? String ?? ""
       let inviteName = data["inviteName"] as? String ?? ""
-      var error: NSError?
-      _ = MobileRevokeServerManagerInvite(ip, port, accessToken, inviteName, &error)
-      if let error {
-        await self.handleFlutterError(
+      do {
+        try LanternFFI.shared.revokeServerManagerInvite(
+          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName)
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(
           error, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
-        return
       }
-      await self.replyOK(result)
     }
   }
 
   func validateSession(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      MobileValidateSession(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "VALIDATE_SESSION_ERROR")
-        return
+      do {
+        try LanternFFI.shared.validateSession()
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(error, result: result, code: "VALIDATE_SESSION_ERROR")
       }
-      await self.replyOK(result)
     }
   }
 
@@ -835,14 +805,14 @@ class MethodHandler {
       let urls = data["urls"] as? String ?? ""
       let skipVerification = data["skipVerification"] as? Bool ?? false
       let serverName = data["serverName"] as? String ?? ""
-      var error: NSError?
 
-      MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
-        return
+      do {
+        try LanternFFI.shared.addServerBasedOnURLs(
+          urls: urls, skipCertVerification: skipVerification, serverName: serverName)
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
       }
-      await self.replyOK(result)
     }
   }
 
@@ -850,59 +820,50 @@ class MethodHandler {
 
   func featureFlags(result: @escaping FlutterResult) {
     Task {
-      let flags = MobileAvailableFeatures()
-      guard let flags else {
-        await MainActor.run {
-          result("{}")
-        }
-        return
-      }
+      let flags = LanternFFI.shared.availableFeatures()
       await MainActor.run {
-        result(String(data: flags, encoding: .utf8))
+        if flags.isEmpty {
+          result("{}")
+        } else {
+          result(flags)
+        }
       }
     }
   }
 
   func updateLocale(result: @escaping FlutterResult, locale: String) {
     Task {
-      var error: NSError?
-      MobileUpdateLocale(locale, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
-        return
+      do {
+        try LanternFFI.shared.updateLocale(locale: locale)
+        await self.replyOK(result)
+      } catch {
+        await self.handleFFIError(error, result: result, code: "UPDATE_LOCALE_ERROR")
       }
-      await self.replyOK(result)
     }
   }
 
   func getLanternAvailableServers(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let servers = MobileGetAvailableServers(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "GET_LANTERN_SERVERS_ERROR")
-        return
-      }
-      guard let servers else {
-        await MainActor.run { result("[]") }
-        return
-      }
-      await MainActor.run {
-        result(String(data: servers, encoding: .utf8))
+      do {
+        let servers = try LanternFFI.shared.getAvailableServers()
+        await MainActor.run {
+          result(String(data: servers, encoding: .utf8) ?? "[]")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "GET_LANTERN_SERVERS_ERROR")
       }
     }
   }
 
   func getAutoServerLocation(result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      let location = MobileGetAutoLocation(&error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "GET_AUTO_LOCATION_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(location)
+      do {
+        let location = try LanternFFI.shared.getAutoLocation()
+        await MainActor.run {
+          result(location)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "GET_AUTO_LOCATION_ERROR")
       }
     }
   }
@@ -916,42 +877,41 @@ class MethodHandler {
       let model = data["model"] as? String ?? ""
       let logFilePath = data["logFilePath"] as? String ?? ""
 
-      var error: NSError?
-      MobileReportIssue(email, issueType, description, device, model, logFilePath, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "REPORT_ISSUE_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.reportIssue(
+          email: email, issueType: issueType, description: description,
+          device: device, model: model, logPath: logFilePath)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "REPORT_ISSUE_ERROR")
       }
     }
   }
 
   func setBlockAdsEnabled(result: @escaping FlutterResult, enabled: Bool) {
     Task {
-      var error: NSError?
-      MobileSetBlockAdsEnabled(enabled, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.setBlockAdsEnabled(enabled: enabled)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
       }
     }
   }
 
   func updateTelemetryEvents(consent: Bool, result: @escaping FlutterResult) {
     Task {
-      var error: NSError?
-      MobileUpdateTelemetryConsent(consent, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.updateTelemetryConsent(consent: consent)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
       }
     }
   }
@@ -962,14 +922,14 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let type = data["type"] as? String ?? ""
-      var error: NSError?
-      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(url)
+      do {
+        let url = try LanternFFI.shared.stripeSubscriptionPaymentRedirect(
+          type: type, planId: planId, email: email)
+        await MainActor.run {
+          result(url)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
       }
     }
   }
@@ -979,28 +939,27 @@ class MethodHandler {
       let provider = data["provider"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let email = data["email"] as? String ?? ""
-      var error: NSError?
-      let url = MobilePaymentRedirect(provider, planId, email, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(url)
+      do {
+        let url = try LanternFFI.shared.paymentRedirect(
+          provider: provider, planId: planId, email: email)
+        await MainActor.run {
+          result(url)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "PAYMENT_REDIRECT_ERROR")
       }
     }
   }
 
   func stripeBillingPortal(result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      let url = MobileStripeBillingPortalUrl(&error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
-        return
-      }
-      await MainActor.run {
-        result(url)
+      do {
+        let url = try LanternFFI.shared.stripeBillingPortalUrl()
+        await MainActor.run {
+          result(url)
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
       }
     }
   }
@@ -1034,20 +993,16 @@ class MethodHandler {
 
   private func installedApps(result: @escaping FlutterResult) {
     Task {
-      let dataDir = FilePath.dataDirectory
-
-      var error: NSError?
-      let json = MobileLoadInstalledApps(dataDir.path, &error)
-
-      if let err = error {
+      do {
+        let json = try LanternFFI.shared.loadInstalledApps()
+        result(json)
+      } catch {
         result(
           FlutterError(
             code: "INSTALLED_APPS_ERROR",
-            message: err.localizedDescription,
-            details: err.debugDescription))
-        return
+            message: error.localizedDescription,
+            details: nil))
       }
-      result(json)
     }
   }
 
@@ -1057,14 +1012,13 @@ class MethodHandler {
     value: String
   ) {
     Task {
-      var error: NSError?
-      MobileAddSplitTunnelItem(filterType, value, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.addSplitTunnelItem(filterType: filterType, item: value)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
       }
     }
   }
@@ -1075,74 +1029,102 @@ class MethodHandler {
     value: String
   ) {
     Task {
-      var error: NSError?
-      MobileRemoveSplitTunnelItem(filterType, value, &error)
-      if let err = error {
+      do {
+        try LanternFFI.shared.removeSplitTunnelItem(filterType: filterType, item: value)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
         await MainActor.run {
           result(
             FlutterError(
               code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED",
-              message: err.localizedDescription,
-              details: err.debugDescription))
+              message: error.localizedDescription,
+              details: nil))
         }
-        return
-      }
-      await MainActor.run {
-        result("ok")
       }
     }
   }
 
   func addAllItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    // TODO: Batch split tunnel operations not yet implemented in FFI
+    // Fall back to adding items one by one
     Task.detached {
-      var error: NSError?
-      MobileAddSplitTunnelItems(value, &error)
-      if let err = error {
-        await self.handleFlutterError(
-          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
-        return
+      do {
+        if let data = value.data(using: .utf8),
+          let items = try? JSONSerialization.jsonObject(with: data) as? [[String: String]]
+        {
+          for item in items {
+            if let filterType = item["filterType"], let itemValue = item["item"] {
+              try LanternFFI.shared.addSplitTunnelItem(filterType: filterType, item: itemValue)
+            }
+          }
+          await MainActor.run { result("ok") }
+        } else {
+          await MainActor.run {
+            result(
+              FlutterError(
+                code: "INVALID_FORMAT", message: "Invalid JSON format for split tunnel items",
+                details: nil))
+          }
+        }
+      } catch {
+        await self.handleFFIError(
+          error, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
       }
-      await MainActor.run { result("ok") }
-
     }
   }
 
   func removeItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    // TODO: Batch split tunnel operations not yet implemented in FFI
+    // Fall back to removing items one by one
     Task.detached {
-      var error: NSError?
-      MobileRemoveSplitTunnelItems(value, &error)
-      if let err = error {
-        await self.handleFlutterError(
-          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
-        return
+      do {
+        if let data = value.data(using: .utf8),
+          let items = try? JSONSerialization.jsonObject(with: data) as? [[String: String]]
+        {
+          for item in items {
+            if let filterType = item["filterType"], let itemValue = item["item"] {
+              try LanternFFI.shared.removeSplitTunnelItem(filterType: filterType, item: itemValue)
+            }
+          }
+          await MainActor.run { result("ok") }
+        } else {
+          await MainActor.run {
+            result(
+              FlutterError(
+                code: "INVALID_FORMAT", message: "Invalid JSON format for split tunnel items",
+                details: nil))
+          }
+        }
+      } catch {
+        await self.handleFFIError(
+          error, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
       }
-      await MainActor.run { result("ok") }
     }
   }
 
   func disableSplitTunneling(result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      MobileSetSplitTunnelingEnabled(false, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        try LanternFFI.shared.setSplitTunnelingEnabled(enabled: false)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "REPORT_ISSUE_ERROR")
       }
     }
   }
 
   private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      MobileSetSplitTunnelingEnabled(enabled, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
-        return
+      do {
+        try LanternFFI.shared.setSplitTunnelingEnabled(enabled: enabled)
+        await MainActor.run { result("ok") }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
       }
-      await MainActor.run { result("ok") }
     }
   }
 
@@ -1150,32 +1132,29 @@ class MethodHandler {
 
   private func setRoutingMode(result: @escaping FlutterResult, enable: Bool) {
     Task.detached {
-      var error: NSError?
-      MobileSetSmartRoutingEnabled(enable, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SET_SMART_ROUTING_MODE_FAILED")
-        return
+      do {
+        try LanternFFI.shared.setSmartRoutingEnabled(enabled: enable)
+        await MainActor.run { result("ok") }
+      } catch {
+        await self.handleFFIError(error, result: result, code: "SET_SMART_ROUTING_MODE_FAILED")
       }
-      await MainActor.run { result("ok") }
     }
   }
 
   // MARK: - Utils
 
-  /// Helper for handling Flutter errors
-  private func handleFlutterError(
-    _ error: Error?,
+  /// Helper for handling FFI errors
+  private func handleFFIError(
+    _ error: Error,
     result: @escaping FlutterResult,
     code: String = "UNKNOWN_ERROR"
   ) async {
-    guard let error = error else { return }
-    let nsError = error as NSError
     await MainActor.run {
       result(
         FlutterError(
           code: code,
-          message: nsError.localizedDescription,
-          details: nsError.debugDescription
+          message: error.localizedDescription,
+          details: nil
         )
       )
     }

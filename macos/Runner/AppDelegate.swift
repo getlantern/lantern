@@ -1,5 +1,4 @@
 import FlutterMacOS
-import Liblantern
 import OSLog
 import app_links
 
@@ -28,6 +27,11 @@ class AppDelegate: FlutterAppDelegate {
 
     // Initialize directories and working paths
     FilePath.setupFileSystem()
+
+    // Load the liblantern.dylib
+    if !LanternFFI.shared.loadLibrary() {
+      appLogger.error("Failed to load liblantern.dylib")
+    }
 
     setupRadiance()
 
@@ -91,26 +95,28 @@ class AppDelegate: FlutterAppDelegate {
     methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
   }
 
-  /// Calls API handler setup
+  /// Calls API handler setup using FFI
   private func setupRadiance() {
     let startupTime = Date()
-    let opts = UtilsOpts()
-    opts.dataDir = FilePath.dataDirectory.relativePath
-    opts.logDir = FilePath.logsDirectory.relativePath
-    opts.deviceid = ""
-    opts.logLevel = "debug"
-    opts.telemetryConsent = FilePath.isTelemetryEnabled()
-    opts.locale = Locale.current.identifier
+    let logDir = FilePath.logsDirectory.relativePath
+    let dataDir = FilePath.dataDirectory.relativePath
+    let locale = Locale.current.identifier
+    let telemetryConsent = FilePath.isTelemetryEnabled()
+
     appLogger.info(
-      "logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel) telemetryConsent: \(opts.telemetryConsent) locale: \(opts.locale)"
+      "logging to \(logDir) dataDir: \(dataDir) telemetryConsent: \(telemetryConsent) locale: \(locale)"
     )
-    var error: NSError?
-    MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
-    // Handle any error returned by the setup
-    if let error {
-      appLogger.error("Error while setting up radiance: \(error)")
-    } else {
+
+    do {
+      try LanternFFI.shared.setupRadiance(
+        logDir: logDir,
+        dataDir: dataDir,
+        locale: locale,
+        telemetryConsent: telemetryConsent
+      )
       appLogger.info("Radiance setup took \(Date().timeIntervalSince(startupTime)) seconds")
+    } catch {
+      appLogger.error("Error while setting up radiance: \(error.localizedDescription)")
     }
   }
 

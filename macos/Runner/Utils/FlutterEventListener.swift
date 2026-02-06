@@ -1,26 +1,32 @@
-import FlutterMacOS
 //
 //  FlutterEventListener.swift
 //  Runner
 //
 //  Created by jigar fumakiya on 06/10/25.
 //
-import Liblantern
 
-class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
+import FlutterMacOS
+import Foundation
+
+/// Simple event structure for FFI events
+struct FlutterEvent {
+  let type: String
+  let message: String
+}
+
+/// Listens for events from the Go FFI layer and forwards them to Flutter.
+class FlutterEventListener: NSObject {
   static let shared = FlutterEventListener()
 
   private var eventSink: FlutterEventSink?
   private var pendingEvents: [[String: Any?]] = []
   private let lock = NSLock()
 
-  func send(_ event: UtilsFlutterEvent?) {
-    guard let event = event else { return }
-
-    appLogger.log("FlutterEventListener sending event: \(event.type) - \(event.message)")
+  func send(type: String, message: String) {
+    appLogger.log("FlutterEventListener sending event: \(type) - \(message)")
     let map: [String: Any] = [
-      "type": event.type,
-      "message": event.message,
+      "type": type,
+      "message": message,
     ]
 
     lock.lock()
