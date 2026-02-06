@@ -84,8 +84,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AppImage(
-                        path: AppImagePaths.appIcon,
-                        type: AssetType.png,
+                        path: AppImagePaths.appIconSVG,
                       ),
                       SizedBox(height: 48),
                       Text(
@@ -243,6 +242,18 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final textTheme = TextTheme.of(context);
     final routeMode =
         ref.watch(appSettingProvider.select((value) => value.routingMode));
+    useEffect(() {
+      final routeMode =
+      ref.read(appSettingProvider.select((v) => v.routingMode));
+
+      if (routeMode == RoutingMode.full) {
+        ref
+            .read(appSettingProvider.notifier)
+            .setRoutingMode(RoutingMode.smart);
+      }
+
+      return null;
+    }, const []);
 
     Future<void> onRouteChange(RoutingMode mode) async {
       final result =
@@ -302,13 +313,14 @@ class RouteModeContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     return AnimatedContainer(
-      duration: Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 250),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.blue1 : AppColors.gray2,
+        color: isSelected ? AppColors.blue1 : AppColors.gray1,
         borderRadius: BorderRadius.circular(16.0),
-        border:
-            isSelected ? Border.all(color: AppColors.blue7, width: 3.0) : null,
+        border: isSelected
+            ? Border.all(color: AppColors.blue7, width: 3.0)
+            : Border.all(color: AppColors.gray2, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,8 +338,10 @@ class RouteModeContainer extends StatelessWidget {
                   padding:
                       EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: AppColors.blue4)),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: AppColors.blue4),
+                    color: AppColors.blue2,
+                  ),
                   child: Text(
                     tags(),
                     style:
