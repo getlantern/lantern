@@ -881,6 +881,9 @@ msgstr "Connected"
 msgid "status_off"
 msgstr "Disconnected"
 
+msgid "select_location"
+msgstr "Select Location"
+
 msgid "select_your_server_location"
 msgstr "Select your server location"
 

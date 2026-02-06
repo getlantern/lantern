@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,6 +16,8 @@ part 'system_tray_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   late VPNStatus _currentStatus;
+  bool _isUserPro = false;
+  List<Location_> _locations = [];
 
   @override
   Future<void> build() async {
@@ -25,6 +31,26 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         await updateTrayMenu();
       },
     );
+
+    _isUserPro = ref.read(isUserProProvider);
+    ref.listen<bool>(
+      isUserProProvider,
+      (previous, next) async {
+        _isUserPro = next;
+        await updateTrayMenu();
+      },
+    );
+
+    ref.listen<AsyncValue<AvailableServers>>(
+      availableServersProvider,
+      (previous, next) async {
+        final data = next.value;
+        _locations = data?.lantern.locations.values.toList() ?? [];
+        await updateTrayMenu();
+      },
+    );
+    final serversData = ref.read(availableServersProvider).value;
+    _locations = serversData?.lantern.locations.values.toList() ?? [];
 
     ref.onDispose(() {
       trayManager.removeListener(this);
@@ -43,6 +69,28 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     } else if (_currentStatus == VPNStatus.disconnected) {
       await notifier.startVPN();
     }
+  }
+
+  Future<void> _onLocationSelected(Location_ location) async {
+    final result = await ref.read(vpnProvider.notifier).connectToServer(
+          ServerLocationType.lanternLocation,
+          location.tag,
+        );
+    result.fold(
+      (failure) => appLogger
+          .error('Failed to connect: ${failure.localizedErrorMessage}'),
+      (success) async {
+        final savedServerLocation =
+            sl<LocalStorageService>().getSavedServerLocations();
+        final serverLocation = savedServerLocation.lanternLocation(
+          server: location,
+          autoSelect: false,
+        );
+        await ref
+            .read(serverLocationProvider.notifier)
+            .updateServerLocation(serverLocation);
+      },
+    );
   }
 
   Future<void> updateTrayMenu() async {
@@ -65,6 +113,29 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           onClick: (_) => toggleVPN(),
         ),
         MenuItem.separator(),
+        if (_isUserPro && _locations.isNotEmpty)
+          MenuItem.submenu(
+            key: 'select_location',
+            label: 'select_location'.i18n,
+            submenu: Menu(
+              items: (_locations.toList()
+                    ..sort((a, b) {
+                      final cmp = a.country.compareTo(b.country);
+                      if (cmp != 0) return cmp;
+                      return a.city.compareTo(b.city);
+                    }))
+                  .map((location) {
+                final displayName = location.city.isNotEmpty
+                    ? '${location.country} - ${location.city}'
+                    : location.country;
+                return MenuItem(
+                  key: 'location_${location.tag}',
+                  label: displayName,
+                  onClick: (_) => _onLocationSelected(location),
+                );
+              }).toList(),
+            ),
+          ),
         MenuItem(
           key: 'join_server',
           label: 'join_server'.i18n,
