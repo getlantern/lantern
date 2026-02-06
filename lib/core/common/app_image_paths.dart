@@ -44,6 +44,7 @@ class AppImagePaths {
   static const x = 'assets/images/x.svg';
   static const close = 'assets/images/close.svg';
   static const appIcon = 'assets/images/lantern_app_icon.png';
+  static const appIconSVG = 'assets/images/app_icon.svg';
 
   // split tunneling
   static const plus = 'assets/images/plus.svg';
@@ -103,4 +104,10 @@ class AppImagePaths {
   static const assessment = 'assets/images/assessment.svg';
   static const route = 'assets/images/route.svg';
   static const world = 'assets/images/world.svg';
+  static const advanceProtocol = 'assets/images/advance_protocol.svg';
+  static const nonProfit = 'assets/images/non_profit.svg';
+  static const privateServerIntro = 'assets/images/private_server_intro.svg';
+  static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+
+
 }
