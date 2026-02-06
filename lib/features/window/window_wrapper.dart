@@ -57,15 +57,14 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
 
   @override
   void onWindowClose() async {
-    if (!context.mounted || !PlatformUtils.isDesktop) {
-      return;
-    }
-    bool isPreventClose = await windowManager.isPreventClose();
+    if (!context.mounted || !PlatformUtils.isDesktop) return;
+
+    final isPreventClose = await windowManager.isPreventClose();
     if (isPreventClose) {
       // minimize-to-tray/dock
-      windowManager.hide();
+      await ref.read(windowProvider.notifier).closeToTray();
     } else {
-      windowManager.destroy();
+      await windowManager.destroy();
     }
   }
 

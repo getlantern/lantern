@@ -79,7 +79,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           onClick: (_) async {
             await ref.read(vpnProvider.notifier).stopVPN();
             await trayManager.destroy();
-            await ref.read(windowProvider.notifier).close();
+            await ref.read(windowProvider.notifier).quit();
           },
         ),
       ],
@@ -96,6 +96,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           ? AppImagePaths.lanternConnectedIco
           : AppImagePaths.lanternDisconnectedIco;
     } else if (Platform.isMacOS) {
+      return connected
+          ? AppImagePaths.lanternDarkConnected
+          : AppImagePaths.lanternDarkDisconnected;
+    } else if (Platform.isLinux) {
       return connected
           ? AppImagePaths.lanternDarkConnected
           : AppImagePaths.lanternDarkDisconnected;

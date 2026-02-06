@@ -18,12 +18,21 @@ class WindowNotifier extends _$WindowNotifier {
     }
   }
 
-  Future<void> close() async {
+  Future<void> closeToTray() async {
     await windowManager.hide();
     if (Platform.isMacOS) {
       await windowManager.setSkipTaskbar(true);
     }
-    await windowManager.destroy();
-    await Future.microtask(() => exit(0));
+  }
+
+  /// Real app quit (terminate process)
+  Future<void> quit() async {
+    // disable preventClose so window manager doesn't convert this into "hide"
+    await windowManager.setPreventClose(false);
+
+    try {
+      await windowManager.destroy();
+    } catch (_) {}
+    exit(0);
   }
 }
