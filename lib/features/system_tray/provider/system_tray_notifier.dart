@@ -66,6 +66,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         ),
         MenuItem.separator(),
         MenuItem(
+          key: 'join_server',
+          label: 'join_server'.i18n,
+          onClick: (_) {
+            // Open Lantern and navigate to the join server page
+            ref.read(windowProvider.notifier).open(focus: true);
+            appRouter.push(JoinPrivateServer());
+          },
+        ),
+        MenuItem(
           key: 'show_window',
           label: 'show'.i18n,
           onClick: (_) {
@@ -88,6 +97,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     await trayManager.setContextMenu(menu);
     trayManager.setIcon(_trayIconPath(isConnected),
         isTemplate: Platform.isMacOS);
+    trayManager.setToolTip('app_name'.i18n);
   }
 
   String _trayIconPath(bool connected) {
