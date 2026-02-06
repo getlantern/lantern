@@ -90,18 +90,15 @@ class AppStorageUtils {
   static Future<Directory> getWindowsAppDataDirectory() async {
     if (!Platform.isWindows) throw UnsupportedError("Not running on Windows");
 
-    final appData =
-        Platform.environment['APPDATA'] ?? Platform.environment['LOCALAPPDATA'];
-
-    if (appData == null || appData.isEmpty) {
-      final fallback = await getApplicationSupportDirectory();
-      final dir = Directory(fallback.path);
-      if (!await dir.exists()) await dir.create(recursive: true);
-      return dir;
+    // On Windows, we want to store app data in C:\Users\Public\Lantern to
+    // ensure that the Windows service can access it without needing to know
+    //the specific user profile. The Windows service will create a subdirectory
+    // called "data" within this directory to store its own data.
+    final appDataPath = Platform.environment['PUBLIC'];
+    final appDir = Directory("$appDataPath/Lantern");
+    if (!appDir.existsSync()) {
+      await appDir.create(recursive: true);
     }
-
-    final appDir = Directory(p.join(appData, "Lantern"));
-    if (!await appDir.exists()) await appDir.create(recursive: true);
     return appDir;
   }
 }
