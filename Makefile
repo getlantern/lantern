@@ -170,10 +170,14 @@ install-macos-deps: install-gomobile
 	dart pub global activate flutter_distributor
 
 .PHONY: macos
-macos: $(MACOS_FRAMEWORK_BUILD)
+macos: macos-ffi
+
+# Legacy gomobile framework target (deprecated, use macos-ffi instead)
+.PHONY: macos-framework-gomobile
+macos-framework-gomobile: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	@echo "Building macOS Framework.."
+	@echo "Building macOS Framework (gomobile - deprecated).."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo  -trimpath \
@@ -185,9 +189,45 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
+# macOS FFI dylib targets
+.PHONY: macos-dylib-arm64 macos-dylib-amd64 macos-dylib-universal macos-ffi
+
+macos-dylib-arm64: $(DARWIN_LIB_ARM64)
+
+$(DARWIN_LIB_ARM64): $(GO_SOURCES)
+	@echo "Building macOS dylib (arm64)..."
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_ARM64)))
+	GOOS=darwin GOARCH=arm64 LIB_NAME=$(DARWIN_LIB_ARM64) $(MAKE) desktop-lib
+	@echo "Built macOS dylib (arm64): $(DARWIN_LIB_ARM64)"
+
+macos-dylib-amd64: $(DARWIN_LIB_AMD64)
+
+$(DARWIN_LIB_AMD64): $(GO_SOURCES)
+	@echo "Building macOS dylib (amd64)..."
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_AMD64)))
+	GOOS=darwin GOARCH=amd64 LIB_NAME=$(DARWIN_LIB_AMD64) $(MAKE) desktop-lib
+	@echo "Built macOS dylib (amd64): $(DARWIN_LIB_AMD64)"
+
+macos-dylib-universal: macos-dylib-arm64 macos-dylib-amd64
+	@echo "Creating universal macOS dylib..."
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_BUILD)))
+	lipo -create -output $(DARWIN_LIB_BUILD) $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64)
+	@echo "Built universal macOS dylib: $(DARWIN_LIB_BUILD)"
+
+# Main macOS FFI target - builds dylib and copies to Frameworks folder
+macos-ffi: macos-dylib-universal
+	@echo "Installing macOS FFI dylib to Frameworks folder..."
+	$(call MKDIR_P,$(MACOS_FRAMEWORK_DIR))
+	$(call COPY_FILE,$(DARWIN_LIB_BUILD),$(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB))
+	@echo "Fixing dylib install name for @rpath..."
+	install_name_tool -id "@rpath/$(DARWIN_LIB)" $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)
+	$(call COPY_FILE,$(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h,macos/Runner/$(LANTERN_LIB_NAME).h)
+	@echo "macOS FFI setup complete"
+	@echo "  - dylib: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+	@echo "  - header: macos/Runner/$(LANTERN_LIB_NAME).h"
 
 .PHONY: macos-framework
-macos-framework: $(MACOS_FRAMEWORK_BUILD)
+macos-framework: macos-ffi
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)

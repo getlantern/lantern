@@ -1,4 +1,4 @@
-//go:build !android && !ios && !macos
+//go:build !android && !ios
 
 package main
 

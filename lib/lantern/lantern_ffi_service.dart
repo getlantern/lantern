@@ -87,6 +87,10 @@ class LanternFFIService implements LanternCoreService {
       if (!File(fullPath).existsSync()) {
         fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
       }
+    } else if (Platform.isMacOS) {
+      // On macOS, the dylib is in the Frameworks folder inside the app bundle
+      // basePath is .../Lantern.app/Contents/MacOS
+      fullPath = p.join(basePath, "..", "Frameworks", "$_libName.dylib");
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
