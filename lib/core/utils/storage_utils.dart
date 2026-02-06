@@ -92,7 +92,7 @@ class AppStorageUtils {
 
     // On Windows, we want to store app data in C:\Users\Public\Lantern to
     // ensure that the Windows service can access it without needing to know
-    //the specific user profile. The Windows service will create a subdirectory
+    // the specific user profile. The Windows service will create a subdirectory
     // called "data" within this directory to store its own data.
     final appDataPath = Platform.environment['PUBLIC'];
     final appDir = Directory("$appDataPath/Lantern");
