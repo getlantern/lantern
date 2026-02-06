@@ -86,6 +86,7 @@ ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
 
+IOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
@@ -492,8 +493,8 @@ ios-release: clean pubget ios
 	    ls -la "$$IPA_DIR" || true; \
 	    exit 1; \
 	  fi; \
-	  cp -f "$$IPA_SRC" "$(INSTALLER_NAME).ipa"; \
-	  echo "iOS IPA generated under: $$IPA_SRC"
+	  cp -f "$$IPA_SRC" "$(IOS_INSTALLER)"; \
+	  echo "iOS IPA generated: $(IOS_INSTALLER)"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
