@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
+import 'package:lantern/core/common/cap_scaling.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -137,9 +138,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
         child: SystemTrayWrapper(
           child: ScreenUtilInit(
             ensureScreenSize: true,
-            designSize:
-                PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
-            minTextAdapt: true,
+            designSize: designSizeFor(context),
+            minTextAdapt: !isTablet(context),
             child: I18n(
               initialLocale: locale.toLocale,
               localizationsDelegates: [
