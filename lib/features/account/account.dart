@@ -313,7 +313,7 @@ class Account extends HookConsumerWidget {
 
   void logoutDialog(BuildContext context, WidgetRef ref) {
     final theme = TextTheme.of(context);
-    final isExpired = ref.watch(isUserExpiredProvider);
+    final isExpired = ref.read(isUserExpiredProvider);
     AppDialog.customDialog(
       context: context,
       action: [
