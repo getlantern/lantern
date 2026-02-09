@@ -37,9 +37,11 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       }
       if (systemExtensionStatus.status == SystemExtensionStatus.installed ||
           systemExtensionStatus.status == SystemExtensionStatus.activated) {
-        appLogger.info(
-            "System Extension is installed and activated. Closing dialog.");
-        appRouter.pop();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info(
+              "System Extension is installed and activated. Closing dialog.");
+          appRouter.pop();
+        });
       }
       return null;
     }, [systemExtensionStatus.status]);
