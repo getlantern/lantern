@@ -58,6 +58,22 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         await updateTrayMenu();
       },
     );
+
+    _isUserPro = ref.read(isUserProProvider);
+    ref.listen<bool>(
+      isUserProProvider,
+      (previous, next) async {
+        _isUserPro = next;
+        await updateTrayMenu();
+      },
+    );
+
+    ref.onDispose(() {
+      trayManager.removeListener(this);
+    });
+
+    trayManager.addListener(this);
+    await updateTrayMenu();
   }
 
   void _listenToProStatus() {
@@ -172,6 +188,16 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
               }).toList(),
             ),
           ),
+        if (!_isUserPro)
+          MenuItem(
+            key: 'upgrade_to_pro',
+            label: 'upgrade_to_pro'.i18n,
+            onClick: (_) {
+              ref.read(windowProvider.notifier).open(focus: true);
+              appRouter.push(Plans());
+            },
+          ),
+        MenuItem.separator(),
         MenuItem(
           key: 'join_server',
           label: 'join_server'.i18n,
