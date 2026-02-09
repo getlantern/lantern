@@ -18,7 +18,7 @@ part 'system_tray_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
-  late VPNStatus _currentStatus;
+  VPNStatus _currentStatus = VPNStatus.disconnected;
   bool _isUserPro = false;
   List<Location_> _locations = [];
 
@@ -58,22 +58,6 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         await updateTrayMenu();
       },
     );
-
-    _isUserPro = ref.read(isUserProProvider);
-    ref.listen<bool>(
-      isUserProProvider,
-      (previous, next) async {
-        _isUserPro = next;
-        await updateTrayMenu();
-      },
-    );
-
-    ref.onDispose(() {
-      trayManager.removeListener(this);
-    });
-
-    trayManager.addListener(this);
-    await updateTrayMenu();
   }
 
   void _listenToProStatus() {
