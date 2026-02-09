@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lantern/core/common/app_button_theme.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 import 'app_colors.dart';
@@ -78,17 +77,20 @@ class AppTheme {
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         splashRadius: 10.0,
       ),
-      extensions: const <ThemeExtension<dynamic>>[
-        AppButtonTheme(),
-      ],
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ButtonStyle(
-          elevation: WidgetStatePropertyAll(0),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(32.0)),
-              side: BorderSide.none,
-            ),
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AppColors.blue10,
+          enableFeedback: true,
+          foregroundColor: AppColors.gray1,
+          textStyle: AppTextStyles.primaryButtonTextStyle
+              .copyWith(fontSize: 18.0, color: AppColors.gray1),
+          overlayColor: AppColors.blue6,
+          minimumSize: const Size(double.infinity, 52),
+          tapTargetSize: MaterialTapTargetSize.padded,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            side: BorderSide.none,
           ),
         ),
       ),
