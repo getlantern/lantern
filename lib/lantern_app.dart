@@ -139,7 +139,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
           child: ScreenUtilInit(
             ensureScreenSize: true,
             designSize: designSizeFor(context),
-            minTextAdapt: !isTablet(context),
+            minTextAdapt: true,
             child: I18n(
               initialLocale: locale.toLocale,
               localizationsDelegates: [
