@@ -10,6 +10,10 @@ Censorship circumvention tool available for free download on any operating syste
 
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
+## Developers
+
+If you are a developer looking for build instructions or to get involved, please see the [developer README](README-dev.md).
+
 ## Downloads
 <table>
     <tr>

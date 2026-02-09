@@ -26,13 +26,17 @@ class _OnboardingState extends ConsumerState<Onboarding> {
 
     void onboardingCompleted() {
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
+      final shouldShowExtensionDialog =
+          appSetting.showSplashScreen && PlatformUtils.isMacOS;
       appRouter.pop();
-      if (appSetting.showSplashScreen && PlatformUtils.isMacOS) {
+      if (shouldShowExtensionDialog) {
         appLogger.info("Showing System Extension Dialog");
-        appRouter.push(const MacOSExtensionDialog());
+        // Defer the push to the next frame to avoid calling setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appRouter.push(const MacOSExtensionDialog());
+        });
         // User has seen dialog, do not show again
         appLogger.info("Setting showSplashScreen to false");
-
         ref.read(appSettingProvider.notifier).setSplashScreen(false);
         return;
       }
@@ -48,7 +52,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
           child: DividerSpace(padding: EdgeInsets.zero),
         ),
       ),
-      body: Padding(
+      body: Container(
+        color: AppColors.white,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
@@ -84,8 +89,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AppImage(
-                        path: AppImagePaths.appIcon,
-                        type: AssetType.png,
+                        path: AppImagePaths.appIconSVG,
                       ),
                       SizedBox(height: 48),
                       Text(
@@ -121,7 +125,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 label: 'skip_connect_now'.i18n,
                 textColor: AppColors.gray9,
                 onPressed: () {
-                  appRouter.pop();
                   onboardingCompleted();
                 },
               )
@@ -243,6 +246,20 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final textTheme = TextTheme.of(context);
     final routeMode =
         ref.watch(appSettingProvider.select((value) => value.routingMode));
+    useEffect(() {
+      Future(() {
+        final routeMode =
+            ref.read(appSettingProvider.select((v) => v.routingMode));
+
+        if (routeMode == RoutingMode.full) {
+          ref
+              .read(appSettingProvider.notifier)
+              .setRoutingMode(RoutingMode.smart);
+        }
+      });
+
+      return null;
+    }, const []);
 
     Future<void> onRouteChange(RoutingMode mode) async {
       final result =
@@ -302,13 +319,14 @@ class RouteModeContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     return AnimatedContainer(
-      duration: Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 250),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.blue1 : AppColors.gray2,
+        color: isSelected ? AppColors.blue1 : AppColors.gray1,
         borderRadius: BorderRadius.circular(16.0),
-        border:
-            isSelected ? Border.all(color: AppColors.blue7, width: 3.0) : null,
+        border: isSelected
+            ? Border.all(color: AppColors.blue7, width: 3.0)
+            : Border.all(color: AppColors.gray2, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,14 +338,21 @@ class RouteModeContainer extends StatelessWidget {
                 value: true,
               ),
               SizedBox(width: 16.0),
-              Text(title()),
+              Text(
+                title(),
+                style: textTheme.titleMedium!.copyWith(
+                  color: AppColors.black,
+                ),
+              ),
               SizedBox(width: 8.0),
               Container(
                   padding:
                       EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: AppColors.blue4)),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: AppColors.blue4),
+                    color: AppColors.blue2,
+                  ),
                   child: Text(
                     tags(),
                     style:
@@ -338,10 +363,8 @@ class RouteModeContainer extends StatelessWidget {
           SizedBox(height: 4.0),
           Padding(
             padding: const EdgeInsets.only(left: 38),
-            child: Text(
-              description(),
-              style: textTheme.bodyMedium!.copyWith(color: AppColors.gray8),
-            ),
+            child: Text(description(),
+                style: textTheme.bodyMedium!.copyWith(color: AppColors.gray8)),
           )
         ],
       ),

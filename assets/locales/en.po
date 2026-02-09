@@ -881,6 +881,9 @@ msgstr "Connected"
 msgid "status_off"
 msgstr "Disconnected"
 
+msgid "select_location"
+msgstr "Select Location"
+
 msgid "select_your_server_location"
 msgstr "Select your server location"
 
@@ -1410,7 +1413,7 @@ msgid "advanced_protocols"
 msgstr "Advanced Protocols"
 
 msgid "advanced_protocols_description"
-msgstr "More protocols than other VPNs for maximum reliability. Shadowsocks, VLESS"
+msgstr "More protocols than other VPNs for maximum reliability. AnyTLS, Hysteria2, VLESS, Kindling, WATER, and more."
 
 msgid "private_servers_description"
 msgstr "Connect your own servers for full control over your connection."
