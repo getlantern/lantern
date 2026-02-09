@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lantern/core/common/cap_scaling.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 
 const double iconSize = 24;
@@ -17,10 +18,8 @@ const desktopWindowMinSize = Size(390, 750);
 const desktopWindowSize = Size(390, 800);
 const mobileSize = Size(360, 690);
 
-bool isTabletSize(Size s) => s.shortestSide >= 600;
-
 Size designSizeFor(BuildContext context) {
-  final s = MediaQuery.of(context).size;
+  final s = MediaQuery.sizeOf(context);
 
   if (PlatformUtils.isDesktop) return desktopWindowSize;
 
