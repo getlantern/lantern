@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -172,7 +170,7 @@ class Account extends HookConsumerWidget {
     if (!isUserExpired && autoRenew) {
       return AppTextButton(
         label: 'manage_subscription'.i18n,
-        onPressed: () => onManageSubscriptionTap(ref, buildContext),
+        onPressed: () => onManageSubscriptionTap(ref, buildContext, user),
       );
     }
     return SizedBox.shrink();
@@ -183,24 +181,36 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onManageSubscriptionTap(
-      WidgetRef ref, BuildContext buildContext) async {
-    switch (Platform.operatingSystem) {
-      case "android":
-        if (isStoreVersion()) {
-          /// user is using play store version
+      WidgetRef ref, BuildContext buildContext, UserResponse user) async {
+    final provider = user.legacyUserData.subscriptionData.provider;
+    switch (provider) {
+      case 'apple':
+        if (PlatformUtils.isIOS) {
+          ref.read(accountProvider.notifier).openAppleSubscriptions();
+          return;
+        }
+        AppDialog.dialog(
+          context: buildContext,
+          title: 'manage_subscription'.i18n,
+          content: 'manage_subscription_apple_app_store'.i18n,
+        );
+
+        return;
+      case 'googleplay':
+        if (PlatformUtils.isAndroid) {
           openGooglePlaySubscriptions();
           return;
         }
-        stripeBillingPortal(ref, buildContext);
-        break;
-      case "ios":
-        ref.read(accountProvider.notifier).openAppleSubscriptions();
-        break;
-      case "macos":
-      case "linux":
-      case "windows":
+        AppDialog.dialog(
+          context: buildContext,
+          title: 'manage_subscription'.i18n,
+          content: 'manage_subscription_google_play'.i18n,
 
-        /// user is using desktop version
+        );
+
+        break;
+      case 'stripe':
+        /// No matter user is using desktop or mobile, if the provider is stripe, open billing portal
         stripeBillingPortal(ref, buildContext);
         break;
     }
