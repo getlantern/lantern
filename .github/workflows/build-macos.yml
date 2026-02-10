@@ -134,7 +134,7 @@ jobs:
       - name: Build macOS release
         run: make macos-release
         env:
-          BUILD_TYPE: ${{ inputs.build_type != 'production' && inputs.build_type || '' }}
+          BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}

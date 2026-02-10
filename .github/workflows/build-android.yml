@@ -153,7 +153,7 @@ jobs:
       - name: Build Android (APK + AAB)
         run: make android-release-ci
         env:
-          BUILD_TYPE: ${{ inputs.build_type != 'production' && inputs.build_type || '' }}
+          BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
