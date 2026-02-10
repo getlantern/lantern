@@ -26,13 +26,17 @@ class _OnboardingState extends ConsumerState<Onboarding> {
 
     void onboardingCompleted() {
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
+      final shouldShowExtensionDialog =
+          appSetting.showSplashScreen && PlatformUtils.isMacOS;
       appRouter.pop();
-      if (appSetting.showSplashScreen && PlatformUtils.isMacOS) {
+      if (shouldShowExtensionDialog) {
         appLogger.info("Showing System Extension Dialog");
-        appRouter.push(const MacOSExtensionDialog());
+        // Defer the push to the next frame to avoid calling setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appRouter.push(const MacOSExtensionDialog());
+        });
         // User has seen dialog, do not show again
         appLogger.info("Setting showSplashScreen to false");
-
         ref.read(appSettingProvider.notifier).setSplashScreen(false);
         return;
       }
@@ -48,7 +52,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
           child: DividerSpace(padding: EdgeInsets.zero),
         ),
       ),
-      body: Padding(
+      body: Container(
+        color: AppColors.white,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
@@ -120,7 +125,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 label: 'skip_connect_now'.i18n,
                 textColor: AppColors.gray9,
                 onPressed: () {
-                  appRouter.pop();
                   onboardingCompleted();
                 },
               )
@@ -243,14 +247,16 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final routeMode =
         ref.watch(appSettingProvider.select((value) => value.routingMode));
     useEffect(() {
-      final routeMode =
-      ref.read(appSettingProvider.select((v) => v.routingMode));
+      Future(() {
+        final routeMode =
+            ref.read(appSettingProvider.select((v) => v.routingMode));
 
-      if (routeMode == RoutingMode.full) {
-        ref
-            .read(appSettingProvider.notifier)
-            .setRoutingMode(RoutingMode.smart);
-      }
+        if (routeMode == RoutingMode.full) {
+          ref
+              .read(appSettingProvider.notifier)
+              .setRoutingMode(RoutingMode.smart);
+        }
+      });
 
       return null;
     }, const []);
@@ -332,7 +338,12 @@ class RouteModeContainer extends StatelessWidget {
                 value: true,
               ),
               SizedBox(width: 16.0),
-              Text(title()),
+              Text(
+                title(),
+                style: textTheme.titleMedium!.copyWith(
+                  color: AppColors.black,
+                ),
+              ),
               SizedBox(width: 8.0),
               Container(
                   padding:
@@ -352,10 +363,8 @@ class RouteModeContainer extends StatelessWidget {
           SizedBox(height: 4.0),
           Padding(
             padding: const EdgeInsets.only(left: 38),
-            child: Text(
-              description(),
-              style: textTheme.bodyMedium!.copyWith(color: AppColors.gray8),
-            ),
+            child: Text(description(),
+                style: textTheme.bodyMedium!.copyWith(color: AppColors.gray8)),
           )
         ],
       ),

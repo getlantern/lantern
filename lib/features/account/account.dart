@@ -31,7 +31,7 @@ class Account extends HookConsumerWidget {
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
     final isExpired = ref.watch(isUserExpiredProvider);
-    final appSettings = ref.read(appSettingProvider);
+    final appSettings = ref.watch(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
 
     return Column(
@@ -134,6 +134,15 @@ class Account extends HookConsumerWidget {
           ),
         ),
         UserDevices(),
+        SizedBox(height: defaultSize),
+        if (appSettings.userLoggedIn)
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+                label: 'logout'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => logoutDialog(buildContext, ref)),
+          ),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -300,5 +309,67 @@ class Account extends HookConsumerWidget {
         break;
       }
     }
+  }
+
+  void logoutDialog(BuildContext context, WidgetRef ref) {
+    final theme = TextTheme.of(context);
+    final isExpired = ref.read(isUserExpiredProvider);
+    AppDialog.customDialog(
+      context: context,
+      action: [
+        AppTextButton(
+          label: 'not_now'.i18n,
+          textColor: AppColors.gray8,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'logout'.i18n,
+          onPressed: () {
+            onLogout(context, ref);
+            appRouter.pop();
+          },
+        ),
+      ],
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          Text(
+            'logout'.i18n,
+            style: theme.headlineSmall,
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
+            style: theme.bodyMedium!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> onLogout(BuildContext context, WidgetRef ref) async {
+    context.showLoadingDialog();
+    final appSetting = ref.read(appSettingProvider);
+    final result =
+        await ref.read(lanternServiceProvider).logout(appSetting.email);
+    result.fold(
+      (l) {
+        context.hideLoadingDialog();
+        appLogger.error('Logout error: ${l.localizedErrorMessage}');
+      },
+      (user) {
+        context.hideLoadingDialog();
+        appRouter.popUntilRoot();
+        ref.read(homeProvider.notifier).clearLogoutData();
+        ref.read(homeProvider.notifier).updateUserData(user);
+
+        appLogger.info('Logout success: $user');
+      },
+    );
   }
 }

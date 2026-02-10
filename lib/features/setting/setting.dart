@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
-import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,7 +13,6 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -31,7 +27,6 @@ enum _SettingType {
   getPro,
   downloadLinks,
   checkForUpdates,
-  logout,
   browserUnbounded,
 }
 
@@ -184,19 +179,8 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (appSetting.userLoggedIn) ...[
-            const SizedBox(height: defaultSize),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                label: 'logout'.i18n,
-                icon: AppImagePaths.signIn,
-                onPressed: () => settingMenuTap(_SettingType.logout),
-              ),
-            ),
-          ],
-          const SizedBox(height: defaultSize),
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
+            SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
@@ -295,9 +279,6 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());
         break;
-      case _SettingType.logout:
-        logoutDialog();
-        break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
@@ -315,67 +296,5 @@ class _SettingState extends ConsumerState<Setting> {
         content: e.localizedDescription,
       );
     }
-  }
-
-  void logoutDialog() {
-    final theme = Theme.of(context).textTheme;
-    final isExpired = ref.watch(isUserExpiredProvider);
-    AppDialog.customDialog(
-      context: context,
-      action: [
-        AppTextButton(
-          label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
-          onPressed: () {
-            context.maybePop();
-          },
-        ),
-        AppTextButton(
-          label: 'logout'.i18n,
-          onPressed: () {
-            onLogout();
-            context.maybePop();
-          },
-        ),
-      ],
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          Text(
-            'logout'.i18n,
-            style: theme.headlineSmall,
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
-            style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> onLogout() async {
-    context.showLoadingDialog();
-    final appSetting = ref.read(appSettingProvider);
-    final result =
-        await ref.read(lanternServiceProvider).logout(appSetting.email);
-    result.fold(
-      (l) {
-        context.hideLoadingDialog();
-        appLogger.error('Logout error: ${l.localizedErrorMessage}');
-      },
-      (user) {
-        context.hideLoadingDialog();
-        appRouter.popUntilRoot();
-        ref.read(homeProvider.notifier).clearLogoutData();
-        ref.read(homeProvider.notifier).updateUserData(user);
-
-        appLogger.info('Logout success: $user');
-      },
-    );
   }
 }
