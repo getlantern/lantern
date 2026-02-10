@@ -41,19 +41,16 @@ get_latest_version() {
 
   case "$type" in
   production)
-    pattern='v[0-9]*\.[0-9]*\.[0-9]*'
-    # Exclude prerelease tags (beta/internal/nightly with timestamps)
-    local tag=$(git tag -l "$pattern" | grep -v -E -- '-(beta|internal)|T.*Z' | sort -V | tail -1)
+    # Match v9.0.11, v9.0.11-macos, etc. (but not v9.0.11-beta or v9.0.11-internal)
+    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' | grep -v -E -- '-(beta|internal)|T.*Z' | sort -V | tail -1)
     ;;
   internal)
-    pattern='v[0-9]*\.[0-9]*\.[0-9]*-internal'
-    # Exclude nightly tags with timestamps
-    local tag=$(git tag -l "$pattern" | grep -v -E -- 'T.*Z' | sort -V | tail -1)
+    # Match v9.0.11-internal, v9.0.11-internal-linux, etc. (but not nightly with timestamps)
+    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-internal' 'v[0-9]*\.[0-9]*\.[0-9]*-internal-*' | grep -v -E -- 'T.*Z' | sort -V | tail -1)
     ;;
   beta)
-    pattern='v[0-9]*\.[0-9]*\.[0-9]*-beta'
-    # Exclude nightly tags with timestamps
-    local tag=$(git tag -l "$pattern" | grep -v -E -- 'T.*Z' | sort -V | tail -1)
+    # Match v9.0.11-beta, v9.0.11-beta-macos, etc. (but not nightly with timestamps)
+    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-beta' 'v[0-9]*\.[0-9]*\.[0-9]*-beta-*' | grep -v -E -- 'T.*Z' | sort -V | tail -1)
     ;;
   *)
     echo "Error: Unknown type '$type'" >&2
