@@ -158,7 +158,6 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           MenuItem.submenu(
             key: 'select_location',
             label: 'select_location'.i18n,
-            icon: AppImagePaths.nonProfit,
             submenu: Menu(
               items: _locations.map((location) {
                 final displayName = location.city.isNotEmpty
@@ -167,6 +166,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                 return MenuItem(
                   key: 'location_${location.tag}',
                   label: displayName,
+                  icon: location.countryCode.isNotEmpty
+                      ? AppImagePaths.flagPath(location.countryCode)
+                      : null,
                   onClick: (_) => _onLocationSelected(location),
                 );
               }).toList(),
