@@ -171,7 +171,15 @@ jobs:
         build-android,
         build-ios,
       ]
-    if: ${{ always() }}
+    # Only publish if all upstream jobs succeeded or were skipped
+    if: |
+      !cancelled() &&
+      needs.set-nightly-metadata.result == 'success' &&
+      (needs.build-macos.result   == 'success' || needs.build-macos.result   == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
+      (needs.build-linux.result   == 'success' || needs.build-linux.result   == 'skipped') &&
+      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+      (needs.build-ios.result     == 'success' || needs.build-ios.result     == 'skipped')
     runs-on: ubuntu-latest
     env:
       INSTALLER_NAME: ${{ needs.set-nightly-metadata.outputs.installer_name }}
@@ -258,22 +266,6 @@ jobs:
         run: |
           # Publish the draft release (only if artifact upload succeeded)
           gh release edit "$VERSION" --draft=false
-
-      # Don't keep releases where artifact creation or upload has failed.
-      - name: Cleanup Failed GitHub Pre-Release
-        if: |
-          (failure() ||
-           needs.build-macos.result == 'failure' ||
-           needs.build-windows.result == 'failure' ||
-           needs.build-linux.result == 'failure' ||
-           needs.build-android.result == 'failure' ||
-           needs.build-ios.result == 'failure') &&
-          github.event.inputs.dry_run != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
-        run: |
-          gh release delete "$VERSION" --cleanup-tag
 
       - name: Upload to S3 (nightly + latest)
         if: github.event.inputs.dry_run != 'true'
@@ -378,3 +370,38 @@ jobs:
             {
               "text": "${{ steps.slack_msg.outputs.text }}"
             }
+  # Don't keep releases where artifact creation or upload has failed.
+  cleanup:
+    needs:
+      [
+        set-nightly-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+        build-ios,
+        publish,
+      ]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event.inputs.dry_run != 'true' &&
+      (
+        needs.build-macos.result   == 'failure' ||
+        needs.build-windows.result == 'failure' ||
+        needs.build-linux.result   == 'failure' ||
+        needs.build-android.result == 'failure' ||
+        needs.build-ios.result     == 'failure' ||
+        needs.publish.result       == 'failure'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cleanup Failed GitHub Pre-Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.set-nightly-metadata.outputs.version }}
+        run: |
+          set -euxo pipefail
+          # Delete if it exists
+          gh release delete "$VERSION" --cleanup-tag || true

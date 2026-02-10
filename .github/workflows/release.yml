@@ -140,55 +140,16 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  upload-google-play:
-    needs: [set-release-metadata, build-android]
-    if:
-      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
-      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download AAB artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: lantern-installer-aab
-          path: aab
-
-      - name: Download mapping.txt
-        uses: actions/download-artifact@v4
-        with:
-          name: play-mapping
-          path: play
-
-      - name: Download native debug symbols
-        uses: actions/download-artifact@v4
-        with:
-          name: play-debug-symbols
-          path: play
-
-      - name: Pick Play track
-        id: track
-        run: |
-          if [ "${{ needs.set-release-metadata.outputs.build_type }}" = "beta" ]; then
-            echo "track=beta" >> "$GITHUB_OUTPUT"
-          else
-            echo "track=production" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Upload to Google Play
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: org.getlantern.lantern
-          releaseFiles: aab/*.aab
-          track: ${{ steps.track.outputs.track }}
-          status: completed
-          mappingFile: play/mapping.txt
-          debugSymbols: play/debug-symbols.zip
-
   publish:
     needs:
       [set-release-metadata, build-macos, build-linux, build-android, build-ios]
-    if: always()
+    if: |
+      !cancelled() &&
+      needs.set-release-metadata.result == 'success' &&
+      (needs.build-macos.result   == 'success' || needs.build-macos.result   == 'skipped') &&
+      (needs.build-linux.result   == 'success' || needs.build-linux.result   == 'skipped') &&
+      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+      (needs.build-ios.result     == 'success' || needs.build-ios.result     == 'skipped')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -362,11 +323,60 @@ jobs:
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
+  upload-google-play:
+    needs: [set-release-metadata, build-android, publish]
+    if: |
+      !cancelled() &&
+      needs.publish.result == 'success' &&
+      (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android') &&
+      (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-aab
+          path: aab
+
+      - name: Download mapping.txt
+        uses: actions/download-artifact@v4
+        with:
+          name: play-mapping
+          path: play
+
+      - name: Download native debug symbols
+        uses: actions/download-artifact@v4
+        with:
+          name: play-debug-symbols
+          path: play
+
+      - name: Pick Play track
+        id: track
+        run: |
+          if [ "${{ needs.set-release-metadata.outputs.build_type }}" = "beta" ]; then
+            echo "track=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "track=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: org.getlantern.lantern
+          releaseFiles: aab/*.aab
+          track: ${{ steps.track.outputs.track }}
+          status: completed
+          mappingFile: play/mapping.txt
+          debugSymbols: play/debug-symbols.zip
+
   upload-testflight:
-    needs: [build-ios, set-release-metadata]
-    if:
-      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
-      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+    needs: [set-release-metadata, build-ios, publish]
+    if: |
+      !cancelled() &&
+      needs.publish.result == 'success' &&
+      (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios') &&
+      (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production')
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact
