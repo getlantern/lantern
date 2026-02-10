@@ -1,15 +1,18 @@
 name: Build and Release
 
 on:
+  # production
   push:
-    tags: # production
+    tags:
       - "v*.*.*"
     tags-ignore:
       - "v*.*.*-beta*"
       - "v*.*.*-internal*"
       - "v*.*.*-*T*Z"
-  schedule: # nightly
+  # nightly
+  schedule:
     - cron: "0 4 * * *"
+  # anything
   workflow_dispatch:
     inputs:
       build_type:
