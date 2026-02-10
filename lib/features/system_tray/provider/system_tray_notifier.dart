@@ -166,9 +166,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                 return MenuItem(
                   key: 'location_${location.tag}',
                   label: displayName,
-                  icon: location.countryCode.isNotEmpty
-                      ? AppImagePaths.flagPath(location.countryCode)
-                      : null,
+                  icon: AppImagePaths.safeFlagPath(location.countryCode),
                   onClick: (_) => _onLocationSelected(location),
                 );
               }).toList(),
