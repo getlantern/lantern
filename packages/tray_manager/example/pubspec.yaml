@@ -1,0 +1,23 @@
+name: tray_manager_example
+description: Demonstrates how to use the tray_manager plugin.
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  bot_toast: ^4.0.1
+  flutter:
+    sdk: flutter
+  tray_manager:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mostly_reasonable_lints: ^0.1.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - images/

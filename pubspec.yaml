@@ -94,7 +94,8 @@ dependencies:
   app_links: ^6.4.1
   # Desktop
   window_manager: ^0.5.1
-  tray_manager: ^0.5.2
+  tray_manager:
+    path: packages/tray_manager
   win32_registry: ^2.1.0
   # Utils
   fpdart: ^1.2.0
@@ -150,6 +151,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/images/flags/
     - assets/locales/
     - app.env
 

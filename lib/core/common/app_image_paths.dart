@@ -109,5 +109,6 @@ class AppImagePaths {
   static const privateServerIntro = 'assets/images/private_server_intro.svg';
   static const smartRouteMode = 'assets/images/smart_route_mode.svg';
 
-
+  static String flagPath(String countryCode) =>
+      'assets/images/flags/${countryCode.toLowerCase()}.png';
 }
