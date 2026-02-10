@@ -19,7 +19,7 @@ jobs:
       contents: "read"
       id-token: "write"
     env:
-      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
