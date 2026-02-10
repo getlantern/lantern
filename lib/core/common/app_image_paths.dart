@@ -132,6 +132,10 @@ class AppImagePaths {
 
     // List of available flag assets (2-letter ISO 3166-1 alpha-2 codes)
     // This list should match the flags available in assets/images/flags/
+    // NOTE: This is a hardcoded list for validation purposes. While it creates
+    // a maintenance burden, it's preferable to runtime asset scanning (not easily
+    // supported in Flutter) for this security-critical validation. A future
+    // improvement could use build-time code generation to auto-generate this list.
     const availableFlags = {
       'ad', 'ae', 'af', 'ag', 'al', 'am', 'ao', 'ar', 'at', 'au', 'az',
       'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 'bj', 'bn', 'bo',
