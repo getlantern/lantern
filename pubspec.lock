@@ -1693,7 +1693,7 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/tray_manager"
-      ref: HEAD
+      ref: "7987b6f3aea4fc6e512e91de150c8a6ce87df98d"
       resolved-ref: "7987b6f3aea4fc6e512e91de150c8a6ce87df98d"
       url: "https://github.com/getlantern/tray_manager.git"
     source: git
