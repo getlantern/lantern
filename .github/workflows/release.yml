@@ -2,9 +2,13 @@ name: Build and Release
 
 on:
   push:
-    tags:
+    tags: # production
       - "v*.*.*"
-  schedule:
+    tags-ignore:
+      - "v*.*.*-beta*"
+      - "v*.*.*-internal*"
+      - "v*.*.*-*T*Z"
+  schedule: # nightly
     - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
