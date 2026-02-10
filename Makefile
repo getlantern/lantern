@@ -48,7 +48,7 @@ LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
 LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/lib/lantern
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(LANTERN_CORE)/linux/packaging/systemd/lantern.service
+LINUX_SYSTEMD_UNIT_SRC := linux/packaging/systemd/lantern.service
 LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lantern.service
 
 ifeq ($(OS),Windows_NT)
