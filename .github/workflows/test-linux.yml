@@ -23,20 +23,52 @@ jobs:
               run: |
                   set -euxo pipefail
                   ls -la ./artifacts
-                  sudo apt-get update
-                  sudo apt-get install -y ./artifacts/${{ inputs.installer_name }}.deb
 
-            - name: Start systemd unit + verify socket
+                  sudo apt-get update
+
+                  expected="./artifacts/${{ inputs.installer_name }}.deb"
+                  if [[ -f "$expected" ]]; then
+                    deb="$expected"
+                  else
+                    shopt -s nullglob
+                    debs=(./artifacts/*.deb)
+                    shopt -u nullglob
+
+                    if [[ "${#debs[@]}" -eq 0 ]]; then
+                      echo "No .deb found in ./artifacts"
+                      exit 1
+                    fi
+
+                    deb="${debs[0]}"
+                  fi
+
+                  echo "Installing deb: $deb"
+                  sudo apt-get install -y "$deb"
+
+            - name: Start systemd unit and verify socket
               shell: bash
               run: |
                   set -euxo pipefail
+
+                  # On failure, dump useful diagnostics
+                  trap '
+                    echo "=== lantern.service status ==="
+                    sudo systemctl --no-pager status lantern.service || true
+                    echo
+                    echo "=== journalctl (lantern.service, last 200 lines) ==="
+                    sudo journalctl -u lantern.service --no-pager --no-hostname -n 200 || true
+                    echo
+                    echo "=== /run/lantern listing ==="
+                    sudo ls -la /run/lantern || true
+                  ' ERR
+
                   sudo systemctl daemon-reload
                   sudo systemctl enable --now lantern.service
 
-                  # check status
+                  # quick status
                   sudo systemctl --no-pager status lantern.service || true
 
-                  # wait for the service to come up
+                  # wait for the service to be active
                   for i in $(seq 1 30); do
                     if systemctl is-active --quiet lantern.service; then
                       break
@@ -45,22 +77,66 @@ jobs:
                   done
                   systemctl is-active --quiet lantern.service
 
-                  # verify socket exists
-                  test -S /run/lantern/lantern.sock
+                  # wait for the socket to appear
+                  sock="/run/lantern/lanternsvc.sock"
+                  for i in $(seq 1 30); do
+                    if [[ -S "$sock" ]]; then
+                      break
+                    fi
+                    sleep 1
+                  done
 
-            - name: Non-root IPC check
+                  test -S "$sock"
+                  sudo ls -la "$sock"
+
+            - name: Non-root IPC connectivity
               shell: bash
               run: |
                   set -euxo pipefail
 
+                  trap '
+                    echo "=== lantern.service status ==="
+                    sudo systemctl --no-pager status lantern.service || true
+                    echo
+                    echo "=== journalctl (lantern.service, last 200 lines) ==="
+                    sudo journalctl -u lantern.service --no-pager --no-hostname -n 200 || true
+                    echo
+                    echo "=== /run/lantern listing ==="
+                    sudo ls -la /run/lantern || true
+                  ' ERR
+
+                  sock="/run/lantern/lanternsvc.sock"
+
                   # create non-root user
                   sudo useradd -m -s /bin/bash lantern || true
 
-                  # sudo usermod -aG lantern lantern
+                  if getent group lantern >/dev/null 2>&1; then
+                    sudo usermod -aG lantern lantern
+                  fi
 
-                  # replace this with your actual IPC client / CLI check
-                  sudo -u lantern bash -lc '
+                  # Verify the socket is present and show ownership/mode
+                  sudo ls -la "$sock"
+                  test -S "$sock"
+
+                  sudo apt-get install -y socat
+
+                  # Try to connect as non-root
+                  sudo -u lantern bash -lc "
                     set -euxo pipefail
-                    test -S /run/lantern/lantern.sock
-                    lanternctl ping --socket /run/lantern/lantern.sock
-                  '
+                    test -S '$sock'
+                    timeout 2s socat -u OPEN:/dev/null UNIX-CONNECT:'$sock' >/dev/null
+                  "
+
+            - name: Diagnostics on failure
+              if: failure()
+              shell: bash
+              run: |
+                  set -euxo pipefail
+                  echo "=== lantern.service status ==="
+                  sudo systemctl --no-pager status lantern.service || true
+                  echo
+                  echo "=== journalctl (lantern.service, last 400 lines) ==="
+                  sudo journalctl -u lantern.service --no-pager --no-hostname -n 400 || true
+                  echo
+                  echo "=== /run/lantern listing ==="
+                  sudo ls -la /run/lantern || true

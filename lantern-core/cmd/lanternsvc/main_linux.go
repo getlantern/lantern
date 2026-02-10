@@ -11,16 +11,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sagernet/sing-box/experimental/libbox"
-
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/vpn"
+	"github.com/getlantern/radiance/vpn/ipc"
 )
 
 var (
-	dataPath = flag.String("data-path", "$HOME/.lantern", "Path to store data")
-	logPath  = flag.String("log-path", "$HOME/.lantern", "Path to store logs")
-	logLevel = flag.String("log-level", "info", "Logging level (trace, debug, info, warn, error)")
+	dataPath   = flag.String("data-path", "$HOME/.lantern", "Path to store data")
+	logPath    = flag.String("log-path", "$HOME/.lantern", "Path to store logs")
+	logLevel   = flag.String("log-level", "info", "Logging level (trace, debug, info, warn, error)")
+	socketPath = flag.String("socket-path", "", "Full path for the IPC unix socket (overrides default)")
 )
 
 func main() {
@@ -29,10 +29,15 @@ func main() {
 	dp := os.ExpandEnv(*dataPath)
 	lp := os.ExpandEnv(*logPath)
 
+	if *socketPath != "" {
+		sp := os.ExpandEnv(*socketPath)
+		ipc.SetSocketPath(sp)
+		slog.Info("Overriding IPC socket path", "socketPath", sp)
+	}
+
 	slog.Info("Starting lanternsvc (radiance daemon)", "version", common.Version, "dataPath", dp, "logPath", lp)
 
-	platIfceProvider := func() libbox.PlatformInterface { return nil }
-	ipcServer, err := vpn.InitIPC(dp, lp, *logLevel, platIfceProvider)
+	ipcServer, err := vpn.InitIPC(dp, lp, *logLevel, nil)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPC: %v\n", err)
 	}
