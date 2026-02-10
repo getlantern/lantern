@@ -488,11 +488,6 @@ jobs:
           VERSION="${RELEASE_TAG#v}"
 
           python3 scripts/generate_appcast.py
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add appcast.xml
-          git commit -m "Update appcast.xml" || echo "No changes to commit"
-          git push
 
           # appcast, like installers, always upload a versioned copy alongside "latest"
           aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/appcast.xml" --acl public-read
@@ -500,6 +495,10 @@ jobs:
           if [[ "$BUILD_TYPE" == "production" ]]; then
             aws s3 cp appcast.xml "s3://${BUCKET}/releases/appcast.xml" --acl public-read
           fi
+
+          # Upload appcast.xml to GitHub release, but
+          # not git because we may be in detached HEAD
+          gh release upload "$RELEASE_TAG" appcast.xml --clobber
 
   release-finalize:
     needs:
@@ -537,8 +536,7 @@ jobs:
           (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
            needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
            needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled' ||
-           needs.update-appcast.result == 'failure' || needs.update-appcast.result == 'cancelled')
+           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -551,8 +549,7 @@ jobs:
           (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
            needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
            needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled' ||
-           needs.update-appcast.result == 'failure' || needs.update-appcast.result == 'cancelled')
+           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
         run: |
           echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
