@@ -364,7 +364,7 @@ jobs:
             local file="$1"
             if [[ -f "$file" ]]; then
               echo "Uploading $file to GitHub release..."
-              gh release upload "$RELEASE_TAG" "$file" --clobber || true
+              gh release upload "$RELEASE_TAG" "$file" --clobber
             fi
           }
 
