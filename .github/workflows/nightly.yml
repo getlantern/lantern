@@ -161,6 +161,13 @@ jobs:
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
+  test-linux:
+    needs: [set-nightly-metadata, build-linux]
+    if: ${{ needs.set-nightly-metadata.outputs.run_linux == 'true' }}
+    uses: ./.github/workflows/test-linux.yml
+    with:
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
   publish:
     needs:
       [
@@ -170,6 +177,7 @@ jobs:
         build-linux,
         build-android,
         build-ios,
+        test-linux,
       ]
     if: ${{ always() }}
     runs-on: ubuntu-latest

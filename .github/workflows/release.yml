@@ -140,6 +140,13 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
+  test-linux:
+    needs: [set-release-metadata, build-linux]
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'linux' }}
+    uses: ./.github/workflows/test-linux.yml
+    with:
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+
   upload-google-play:
     needs: [set-release-metadata, build-android]
     if:
@@ -187,7 +194,14 @@ jobs:
 
   publish:
     needs:
-      [set-release-metadata, build-macos, build-linux, build-android, build-ios]
+      [
+        set-release-metadata,
+        build-macos,
+        build-linux,
+        build-android,
+        build-ios,
+        test-linux,
+      ]
     if: always()
     runs-on: ubuntu-latest
     env:
