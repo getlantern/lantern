@@ -1,0 +1,66 @@
+name: Linux install + systemd + IPC test
+
+on:
+    workflow_call:
+        inputs:
+            installer_name:
+                required: true
+                type: string
+
+jobs:
+    install-systemd-ipc:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Download Linux .deb artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: lantern-installer-deb
+                  path: ./artifacts
+
+            - name: Install .deb
+              shell: bash
+              run: |
+                  set -euxo pipefail
+                  ls -la ./artifacts
+                  sudo apt-get update
+                  sudo apt-get install -y ./artifacts/${{ inputs.installer_name }}.deb
+
+            - name: Start systemd unit + verify socket
+              shell: bash
+              run: |
+                  set -euxo pipefail
+                  sudo systemctl daemon-reload
+                  sudo systemctl enable --now lantern.service
+
+                  # check status
+                  sudo systemctl --no-pager status lantern.service || true
+
+                  # wait for the service to come up
+                  for i in $(seq 1 30); do
+                    if systemctl is-active --quiet lantern.service; then
+                      break
+                    fi
+                    sleep 1
+                  done
+                  systemctl is-active --quiet lantern.service
+
+                  # verify socket exists
+                  test -S /run/lantern/lantern.sock
+
+            - name: Non-root IPC check
+              shell: bash
+              run: |
+                  set -euxo pipefail
+
+                  # create non-root user
+                  sudo useradd -m -s /bin/bash lantern || true
+
+                  # sudo usermod -aG lantern lantern
+
+                  # replace this with your actual IPC client / CLI check
+                  sudo -u lantern bash -lc '
+                    set -euxo pipefail
+                    test -S /run/lantern/lantern.sock
+                    lanternctl ping --socket /run/lantern/lantern.sock
+                  '
