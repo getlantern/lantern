@@ -1445,6 +1445,17 @@ msgstr "Get Started"
 msgid "skip_connect_now"
 msgstr "Skip - Connect Now"
 
+msgid "renew_pro"
+msgstr "Renew Pro"
+
+msgid "payment"
+msgstr "Payment"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr "It looks like something went wrong, If you have made payment but don't see your subscription active, please wait for few hours and check back in."
+
+
+
 
 
 

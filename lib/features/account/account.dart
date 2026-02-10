@@ -111,17 +111,10 @@ class Account extends HookConsumerWidget {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            label: user!.legacyUserData.toDate(),
-            contentPadding: EdgeInsets.only(left: 16),
-            icon: AppImagePaths.autoRenew,
-            trailing: user.legacyUserData.subscriptionData.autoRenew &&
-                    !isExpired
-                ? AppTextButton(
-                    label: 'manage_subscription'.i18n,
-                    onPressed: () => onManageSubscriptionTap(ref, buildContext),
-                  )
-                : null,
-          ),
+              label: user!.legacyUserData.toDate(),
+              contentPadding: EdgeInsets.only(left: 16),
+              icon: AppImagePaths.autoRenew,
+              trailing: planTrailingWidget(user, buildContext, ref)),
         ),
         SizedBox(height: defaultSize),
         Padding(
@@ -168,6 +161,21 @@ class Account extends HookConsumerWidget {
         SizedBox(height: defaultSize),
       ],
     );
+  }
+
+  Widget planTrailingWidget(
+      UserResponse user, BuildContext buildContext, WidgetRef ref) {
+    final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
+    final isUserExpired = user.legacyUserData.userLevel == 'expired';
+
+    ///User has purchased a one time plan without auto-renew
+    if (!isUserExpired && autoRenew) {
+      return AppTextButton(
+        label: 'manage_subscription'.i18n,
+        onPressed: () => onManageSubscriptionTap(ref, buildContext),
+      );
+    }
+    return SizedBox.shrink();
   }
 
   void _onDeleteTap() {

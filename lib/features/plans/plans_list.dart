@@ -10,12 +10,10 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 class PlansListView extends HookConsumerWidget {
   final PlansData data;
-  final Function(Plan plans) onPlanSelected;
 
   const PlansListView({
     super.key,
     required this.data,
-    required this.onPlanSelected,
   });
 
   @override
