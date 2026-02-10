@@ -39,6 +39,7 @@ jobs:
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
       release_tag: ${{ steps.meta.outputs.release_tag }}
+      version: ${{ steps.meta.outputs.version }}
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
     steps:
@@ -86,6 +87,8 @@ jobs:
               RELEASE_TAG=${GITHUB_REF#refs/tags/}
               # Validate the tag (version.sh strips 'v' for validation)
               ./scripts/ci/version.sh validate "$RELEASE_TAG" > /dev/null
+              # Strip 'v' for VERSION (used by build workflows)
+              VERSION="${RELEASE_TAG#v}"
 
               case "$RELEASE_TAG" in
                 *-internal*)
@@ -119,11 +122,13 @@ jobs:
           echo "  Event:         $EVENT"
           echo "  Build Type:    $BUILD_TYPE"
           echo "  Release Tag:   $RELEASE_TAG"
+          echo "  Version:       $VERSION"
           echo "  Platform:      $PLATFORM"
           echo "  Installer:     $INSTALLER_BASE_NAME"
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
 
@@ -161,7 +166,7 @@ jobs:
     secrets: inherit
     if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
     with:
-      version: ${{ needs.set-metadata.outputs.release_tag }}
+      version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
@@ -171,7 +176,7 @@ jobs:
     secrets: inherit
     if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
     with:
-      version: ${{ needs.set-metadata.outputs.release_tag }}
+      version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
@@ -181,7 +186,7 @@ jobs:
     secrets: inherit
     if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios') }}
     with:
-      version: ${{ needs.set-metadata.outputs.release_tag }}
+      version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
@@ -191,7 +196,7 @@ jobs:
     secrets: inherit
     if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android') }}
     with:
-      version: ${{ needs.set-metadata.outputs.release_tag }}
+      version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
