@@ -2,11 +2,13 @@ package vpn_tunnel
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	"log/slog"
 
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
+	"github.com/getlantern/radiance/vpn/ipc"
 	"github.com/getlantern/radiance/vpn/rvpn"
 
 	"github.com/getlantern/lantern/lantern-core/utils"
@@ -19,6 +21,8 @@ const (
 	InternalTagUser    InternalTag = InternalTag(servers.SGUser)
 	InternalTagLantern InternalTag = InternalTag(servers.SGLantern)
 )
+
+var ipcServer atomic.Pointer[ipc.Server]
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // It passes the empty string so it will connect to best server available.
@@ -80,11 +84,23 @@ func GetSelectedServer() string {
 	return status.SelectedServer
 }
 
+func CloseIPC() error {
+	if svr := ipcServer.Swap(nil); svr != nil {
+		return svr.Close()
+	}
+	return nil
+}
+
 func initIPC(opts *utils.Opts, platIfce rvpn.PlatformInterface) error {
+	if ipcServer.Load() != nil {
+		return nil
+	}
 	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir", opts.LogDir, "logLevel", opts.LogLevel)
-	if _, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce); err != nil {
+	svr, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce)
+	if err != nil {
 		return err
 	}
+	ipcServer.Store(svr)
 	return nil
 }
 
