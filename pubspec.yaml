@@ -95,7 +95,9 @@ dependencies:
   # Desktop
   window_manager: ^0.5.1
   tray_manager:
-    path: packages/tray_manager
+    git:
+      url: https://github.com/getlantern/tray_manager.git
+      path: packages/tray_manager
   win32_registry: ^2.1.0
   # Utils
   fpdart: ^1.2.0
