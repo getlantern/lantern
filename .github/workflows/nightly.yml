@@ -384,15 +384,15 @@ jobs:
       ]
     if: |
       always() &&
-      !cancelled() &&
       github.event.inputs.dry_run != 'true' &&
+      needs.set-nightly-metadata.result == 'success' &&
       (
-        needs.build-macos.result   == 'failure' ||
-        needs.build-windows.result == 'failure' ||
-        needs.build-linux.result   == 'failure' ||
-        needs.build-android.result == 'failure' ||
-        needs.build-ios.result     == 'failure' ||
-        needs.publish.result       == 'failure'
+        needs.build-macos.result   == 'failure'   || needs.build-macos.result   == 'cancelled' ||
+        needs.build-windows.result == 'failure'   || needs.build-windows.result == 'cancelled' ||
+        needs.build-linux.result   == 'failure'   || needs.build-linux.result   == 'cancelled' ||
+        needs.build-android.result == 'failure'   || needs.build-android.result == 'cancelled' ||
+        needs.build-ios.result     == 'failure'   || needs.build-ios.result     == 'cancelled' ||
+        needs.publish.result       == 'failure'   || needs.publish.result       == 'cancelled'
       )
     runs-on: ubuntu-latest
     steps:
