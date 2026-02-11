@@ -166,7 +166,7 @@ class Account extends HookConsumerWidget {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
     final isUserExpired = user.legacyUserData.userLevel == 'expired';
 
-    ///User has purchased a one time plan without auto-renew
+    ///User has an active subscription with auto-renew enabled
     if (!isUserExpired && autoRenew) {
       return AppTextButton(
         label: 'manage_subscription'.i18n,

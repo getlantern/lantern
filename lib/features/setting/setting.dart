@@ -48,7 +48,6 @@ class _SettingState extends ConsumerState<Setting> {
     final hasProSession =
         localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
-    appLogger.info("isAuthenticated $isAuthenticated");
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);

@@ -360,7 +360,7 @@ class _PlansState extends ConsumerState<Plans> {
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();
-    signUpFlow();
+    await signUpFlow();
   }
 
   Future<void> signUpFlow() async {
@@ -369,7 +369,7 @@ class _PlansState extends ConsumerState<Plans> {
       /// Check if user is expired or not, if expired send to pro flow if not send to home screen
       final isUserExpired = ref.read(isUserExpiredProvider);
       if (isUserExpired) {
-        userExpiredFlow();
+        await userExpiredFlow();
         return;
       }
       appLogger.info('User already logged in, checking account status');
