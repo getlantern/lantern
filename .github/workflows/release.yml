@@ -3,10 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*.*.*"
-      - "!v*.*.*-beta*"
-      - "!v*.*.*-internal*"
-      - "!v*.*.*-*T*Z"
+      - "v*.*.*" # validated by set-metadata
   schedule:
     - cron: "0 4 * * *"
   workflow_dispatch:
@@ -35,6 +32,10 @@ on:
 permissions:
   contents: write
   id-token: "write"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   set-metadata:
@@ -102,7 +103,17 @@ jobs:
                   BUILD_TYPE="beta"
                   ;;
                 *)
-                  BUILD_TYPE="production"
+                  # Production builds require bare version tags
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    BUILD_TYPE="production"
+                  else
+                    echo "Error: Invalid tag format for build" >&2
+                    echo "  Use 'v1.0.0' for production" >&2
+                    echo "  Use 'v1.0.0-beta' for beta" >&2
+                    echo "  Use 'v1.0.0-internal' for internal" >&2
+                    echo "Got: $RELEASE_TAG" >&2
+                    exit 1
+                  fi
                   ;;
               esac
 
@@ -214,7 +225,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Create GitHub Release
         env:
@@ -270,7 +281,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -345,7 +356,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -476,7 +487,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
@@ -530,7 +541,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Publish release on success
         if: |
