@@ -170,7 +170,7 @@ jobs:
         run: |
           bt="${{ needs.set-release-metadata.outputs.build_type }}"
           if [ "$bt" = "internal" ]; then
-            echo "track=qa" >> "$GITHUB_OUTPUT"
+            echo "track=internal" >> "$GITHUB_OUTPUT"
           elif [ "$bt" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
