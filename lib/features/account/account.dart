@@ -161,7 +161,7 @@ class Account extends HookConsumerWidget {
     );
   }
 
-  Widget planTrailingWidget(
+  Widget? planTrailingWidget(
       UserResponse user, BuildContext buildContext, WidgetRef ref) {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
     final isUserExpired = user.legacyUserData.userLevel == 'expired';
@@ -173,7 +173,7 @@ class Account extends HookConsumerWidget {
         onPressed: () => onManageSubscriptionTap(ref, buildContext, user),
       );
     }
-    return SizedBox.shrink();
+    return null;
   }
 
   void _onDeleteTap() {
