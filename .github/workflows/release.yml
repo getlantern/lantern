@@ -215,6 +215,16 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
+  build-windows:
+    needs: [set-metadata, release-create]
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows') }}
+    with:
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+
   release-create:
     needs: set-metadata
     runs-on: ubuntu-latest
@@ -262,13 +272,14 @@ jobs:
             --notes "Build [in progress](${WORKFLOW_URL})..."
 
   upload-s3:
-    needs: [set-metadata, build-macos, build-linux, build-android, build-ios]
+    needs: [set-metadata, build-macos, build-linux, build-android, build-ios, build-windows]
     if: |
       !cancelled() &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -336,6 +347,7 @@ jobs:
         build-linux,
         build-android,
         build-ios,
+        build-windows,
       ]
     if: |
       !cancelled() &&
@@ -343,7 +355,8 @@ jobs:
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -394,6 +407,7 @@ jobs:
           upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
           upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
           upload_if_exists "lantern-installer-ipa/${FULL_NAME}.ipa"
+          upload_if_exists "lantern-installer-exe/${FULL_NAME}.exe"
 
   # Post-publish steps (only for non-nightly production/beta builds)
   upload-google-play:
