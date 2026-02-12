@@ -144,7 +144,7 @@ jobs:
     needs: [set-release-metadata, build-android]
     if:
       ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
-      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+      && (needs.set-release-metadata.outputs.build_type == 'internal' || needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -168,7 +168,10 @@ jobs:
       - name: Pick Play track
         id: track
         run: |
-          if [ "${{ needs.set-release-metadata.outputs.build_type }}" = "beta" ]; then
+          bt="${{ needs.set-release-metadata.outputs.build_type }}"
+          if [ "$bt" = "internal" ]; then
+            echo "track=internal" >> "$GITHUB_OUTPUT"
+          elif [ "$bt" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
             echo "track=production" >> "$GITHUB_OUTPUT"
