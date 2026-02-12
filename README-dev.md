@@ -46,7 +46,13 @@ make windows-service-build
 .\bin\windows-amd64\lanternsvc.exe --console
 ```
 
-3. Run the Flutter desktop app
+3. Build the windows shared library
+
+```
+make windows
+```
+
+4. Run the Flutter desktop app
 
 ```
 flutter run -d windows

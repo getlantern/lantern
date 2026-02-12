@@ -2,8 +2,8 @@
 # Translators:
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
 # tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2025
-# e2f <projects@e2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -376,13 +376,13 @@ msgid "create_password"
 msgstr "စကားဝှက် ဖန်တီးပါ"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Lantern Pro သို့ ဝင်ရောက်ပါ"
+msgstr "Lantern သို့ လော့ဂ်အင်ဝင်ရန်"
 
 msgid "sign_in_with_email"
 msgstr "အီးမေးလ် ဖြင့် ဝင်ရောက်ပါ"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "သင့် Lantern Pro အကောင့် အသေးစိတ်များကို ထည့်ပါ။"
+msgstr "သင်၏ Lantern အကောင့် အသေးစိတ်အချက်အလက်များကို ရိုက်ထည့်ပါ။"
 
 msgid "email"
 msgstr "အီးမေးလ်"
@@ -397,7 +397,7 @@ msgid "reset_your_password"
 msgstr "သင့်စကားဝှက်ကို ပြန်လည်သတ်မှတ်ပါ"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "သင့် Lantern Pro အကောင့် အီးမေးလ်ကို ထည့်ပါ။"
+msgstr "သင်၏ Lantern အကောင့် အီးမေးလ်ကို ရိုက်ထည့်ပါ။"
 
 msgid "reset_password"
 msgstr "စကားဝှက် ပြန်လည်သတ်မှတ်ပါ"
@@ -488,6 +488,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro သို့ ကြိုဆိုပါသည်!"
 
+msgid "welcome_to_lantern"
+msgstr "Lantern သို့ ကြိုဆိုပါတယ်!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "သင့် Pro အင်္ဂါရပ်များကို သော့ဖွင့်ပြီးပါပြီ—ကန့်သတ်မရှိသော ဒေတာ၊ ပိုမြန်သော"
@@ -543,6 +546,9 @@ msgid "logout_message"
 msgstr ""
 "ထွက်ခြင်းသည် Lantern ကို အခမဲ့ ဗားရှင်းသို့ ပြောင်းပါမည်။ သင့်အကောင့်ကို "
 "ထပ်မံဝင်ရောက်ရန်၊ သင် ပြန်ဝင်ရောက်ရန် လိုအပ်ပါမည်။"
+
+msgid "logout_message_expired"
+msgstr "သင့်အကောင့်မှ လော့ဂ်အောက်လုပ်မှာ သေချာပါသလား။"
 
 msgid "not_now"
 msgstr "ယခုမဟုတ်ပါ"
@@ -928,9 +934,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"ဆာဗာကို မည်သူလည်ပတ်သည် သို့မဟုတ် ဘယ်လို စီစဉ်ထားသည်ကို မသေချာလျှင်၊ "
-"သင့်ဆာဗာစာရင်းတွင် ရနိုင်သော မူလ Lantern ဆာဗာများကို အသုံးပြုရန် "
-"ကျွန်ုပ်တို့ အကြံပြုပါသည်"
+"ဆာဗာကို မည်သူက လည်ပတ်နေသည် သို့မဟုတ် မည်သို့ ဖွဲ့စည်းထားသည်ကို မသေချာပါက၊ "
+"သင်၏ ဆာဗာစာရင်းတွင် ရရှိနိုင်သော ပုံသေ Lantern ဆာဗာများထဲမှ တစ်ခုကို "
+"အသုံးပြုရန် အကြံပြုပါသည်။"
 
 msgid "invalid_server_details"
 msgstr ""
@@ -1353,7 +1359,7 @@ msgid "could_not_open_url"
 msgstr "URL ကို ဖွင့်၍ မရပါ"
 
 msgid "new_to_lantern_pro"
-msgstr "Lantern Pro အသစ်လား?"
+msgstr "Lantern အသစ်လား။"
 
 msgid "an_error_occurred"
 msgstr "အမှားအယွင်း တစ်ခု ဖြစ်ပွားခဲ့သည်။ နောက်မှ ထပ်စမ်းကြည့်ပါ။"
@@ -1423,3 +1429,101 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "ဘာပဲဖြစ်ဖြစ် ဆက်လုပ်ပါ"
+
+msgid "routing_mode"
+msgstr "လမ်းကြောင်းချိန်ညှိမှု မုဒ်"
+
+msgid "smart_routing"
+msgstr "စမတ် လမ်းကြောင်းချိန်ညှိမှု"
+
+msgid "full_tunnel"
+msgstr "အပြည့်အစုံ တောင်နယ်"
+
+msgid "region_optimized_routing"
+msgstr ""
+"သင့်ဒေသအတွက် အကောင်းဆုံးဖြစ်အောင် ပြုလုပ်ထားသော စည်းမျဉ်းအခြေခံ "
+"လမ်းကြောင်းချိန်ညှိမှု"
+
+msgid "all_traffic_through_vpn"
+msgstr "ဒေတာအားလုံးကို VPN မှတစ်ဆင့်"
+
+msgid "smart_routing_description"
+msgstr ""
+"စမတ် လမ်းကြောင်းချိန်ညှိမှုသည် ဒေသအလိုက် စည်းမျဉ်းများကို အသုံးပြု၍ VPN "
+"လိုအပ်သော ဒေတာအား Lantern မှတစ်ဆင့် အလိုအလျောက် ပို့ပေးပါသည်။ အခြား "
+"ဒေတာများမှာ မြန်ဆန်မှုနှင့် ယုံကြည်စိတ်ချရမှုအတွက် တိုက်ရိုက် "
+"ချိတ်ဆက်သွားပါသည်။"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN ကို ကျော်သွားရန် အက်ပ်များနှင့် ဝဘ်ဆိုဒ်များကို ထည့်ပါ"
+
+msgid "lantern_pro_license_applied"
+msgstr "သင်၏ Lantern Pro လိုင်စင်ကို သင်၏ လက်ရှိအကောင့်သို့ သက်ရောက်စေမည်"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "သင်၏ ဝယ်ယူမှုကို သင်၏ လက်ရှိအကောင့်သို့ သက်ရောက်စေမည်"
+
+msgid "daily_data_cap_reached"
+msgstr "နေ့စဉ် ဒေတာကန့်သတ်ချက်သို့ ရောက်ရှိပြီ"
+
+msgid "daily_data_cap_reached_message"
+msgstr ""
+"အမြန်နှုန်းကို 128 kb/s သို့ လျှော့ချလိုက်ပြီ - %s တွင် ပြန်လည်သတ်မှတ်မည်။"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"ဝယ်ယူသည့်အခါ သင်၏ Apple ID မှ ငွေကောက်ခံပါမည်။ လက်ရှိကာလ "
+"ပြီးဆုံးခြင်းမတိုင်မီ အနည်းဆုံး ၂၄ နာရီ ကြိုတင်ပယ်ဖျက်ခြင်းမရှိလျှင် "
+"စာရင်းသွင်းမှုများ အလိုအလျောက် သက်တမ်းတိုးမည်။ App Store ဆက်တင်များတွင် "
+"စီမံခန့်ခွဲ သို့မဟုတ် ပယ်ဖျက်ပါ။"
+
+msgid "failed_to_update_routing_mode"
+msgstr ""
+"လမ်းကြောင်းချိန်ညှိမှု မုဒ် အပ်ဒိတ်လုပ်ခြင်း မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ "
+"ထပ်မံကြိုးစားပါ။"
+
+msgid "apps"
+msgstr "အက်ပလီကေးရှင်းများ"
+
+msgid "websites"
+msgstr "ဝဘ်ဆိုဒ်များ"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"အကယ်၍ သင်သည် ယခင်က Lantern Pro စကားဝှက် သတ်မှတ်ထားခြင်း မရှိပါက၊ အောက်ပါ "
+"'သင့်စကားဝှက်ကို မေ့နေပါသလား' ရွေးချယ်မှုကို ရွေးပါ။"
+
+msgid "pro_subscription_expired"
+msgstr "သင်၏ Pro စာရင်းသွင်းမှု သက်တမ်းကုန်သွားပါပြီ"
+
+msgid "renew_pro_subscription"
+msgstr "Pro စာရင်းသွင်းမှု သက်တမ်းတိုးရန်"
+
+msgid "subscription_expired"
+msgstr "စာရင်းသွင်းမှု သက်တမ်းကုန်ပြီ"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Lantern Pro စာရင်းသွင်းမှု သက်တမ်းကုန်ပြီ။ အကန့်အသတ်မရှိ ဒေတာနှင့် Pro "
+"အင်္ဂါရပ်များ ပြန်လည်ရရှိရန် သက်တမ်းတိုးပါ။"
+
+msgid "last_subscription_renewal_date"
+msgstr "နောက်ဆုံး စာရင်းသွင်းမှု သက်တမ်းတိုးသည့် ရက်စွဲ"
+
+msgid "set_account_password"
+msgstr "အကောင့် စကားဝှက်ကို သတ်မှတ်ပါ"
+
+msgid "set_password"
+msgstr "စကားဝှက် သတ်မှတ်ပါ"
+
+msgid "set_account_password_message"
+msgstr ""
+"သင့်အကောင့်ကို စီမံခန့်ခွဲရန် သို့မဟုတ် အခြားစက်များတွင် လော့ဂ်အင်ဝင်ရန်အတွက် သင့် Lantern Pro အကောင့်အတွက် စကားဝှက်တစ်ခု သတ်မှတ်ရန် လိုအပ်ပါသည်။\n"
+"\n"
+"သင့်စကားဝှက် ဖန်တီးရန်အတွက် အတည်ပြုကုဒ်ကို အီးမေးလ်ပို့ပေးပါမည်။"
+
+msgid "expired"
+msgstr "သက်တမ်းကုန်ပြီ"

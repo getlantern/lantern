@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -12,6 +13,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/models/available_servers.dart';
+import 'data_cap_info_provider.dart' show dataCapInfoProvider;
 
 part 'app_event_notifier.g.dart';
 
@@ -39,9 +41,9 @@ class AppEventNotifier extends _$AppEventNotifier {
     _appEventSub =
         ref.read(lanternServiceProvider).watchAppEvents().listen((event) {
       final eventType = event.eventType;
+      appLogger.debug('Received app event of type: $eventType');
       switch (eventType) {
         case 'config':
-          appLogger.debug('Received new config event.');
           ref
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
@@ -51,8 +53,6 @@ class AppEventNotifier extends _$AppEventNotifier {
           break;
         case 'server-location':
           try {
-            appLogger
-                .debug('Received server-location event, updating location.');
             final autoLocation = Server.fromJson(jsonDecode(event.message));
             final countryName = autoLocation.location!.country;
             final cityName = autoLocation.location!.city;
@@ -74,6 +74,17 @@ class AppEventNotifier extends _$AppEventNotifier {
                 .updateServerLocation(autoServer);
           } catch (e) {
             appLogger.error('Error parsing server-location event: $e');
+          }
+          break;
+        case 'data-cap-event':
+          try {
+            final data = event.message;
+            final dataCapInfo = DataCapUsageResponse.fromJson(jsonDecode(data));
+            ref
+                .read(dataCapInfoProvider.notifier)
+                .updateDataCapInfo(dataCapInfo);
+          } catch (e) {
+            appLogger.error('Error parsing data-cap-event: $e');
           }
           break;
         default:

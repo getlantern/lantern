@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ReportIssue')
@@ -43,6 +44,10 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     final emailController = useTextEditingController();
     final descriptionController =
         useTextEditingController(text: widget.description);
+    final user = ref.read(homeProvider).value;
+    if (user != null) {
+      emailController.text = user.legacyUserData.email ?? '';
+    }
     String type = '';
     try {
       if (widget.type != null) {

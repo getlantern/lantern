@@ -100,12 +100,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     updateTelemetryConsent(value);
   }
 
+  void updateDataCapThreshold(String threshold) {
+    update(state.copyWith(dataCapThreshold: threshold));
+  }
+
+
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
   }
 
   void setShowTelemetryDialog(bool value) {
     update(state.copyWith(showTelemetryDialog: value));
+  }
+
+  void setOnboardingCompleted(bool value) {
+    update(state.copyWith(onboardingCompleted: value));
   }
 
   Locale _detectDeviceLocale() {

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +29,7 @@ class Account extends HookConsumerWidget {
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
     final isExpired = ref.watch(isUserExpiredProvider);
-    final appSettings = ref.read(appSettingProvider);
+    final appSettings = ref.watch(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
 
     return Column(
@@ -111,17 +109,10 @@ class Account extends HookConsumerWidget {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            label: user!.legacyUserData.toDate(),
-            contentPadding: EdgeInsets.only(left: 16),
-            icon: AppImagePaths.autoRenew,
-            trailing: user.legacyUserData.subscriptionData.autoRenew &&
-                    !isExpired
-                ? AppTextButton(
-                    label: 'manage_subscription'.i18n,
-                    onPressed: () => onManageSubscriptionTap(ref, buildContext),
-                  )
-                : null,
-          ),
+              label: user!.legacyUserData.toDate(),
+              contentPadding: EdgeInsets.only(left: 16),
+              icon: AppImagePaths.autoRenew,
+              trailing: planTrailingWidget(user, buildContext, ref)),
         ),
         SizedBox(height: defaultSize),
         Padding(
@@ -134,6 +125,15 @@ class Account extends HookConsumerWidget {
           ),
         ),
         UserDevices(),
+        SizedBox(height: defaultSize),
+        if (appSettings.userLoggedIn)
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+                label: 'logout'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => logoutDialog(buildContext, ref)),
+          ),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -161,29 +161,56 @@ class Account extends HookConsumerWidget {
     );
   }
 
+  Widget? planTrailingWidget(
+      UserResponse user, BuildContext buildContext, WidgetRef ref) {
+    final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
+    final isUserExpired = user.legacyUserData.userLevel == 'expired';
+
+    ///User has an active subscription with auto-renew enabled
+    if (!isUserExpired && autoRenew) {
+      return AppTextButton(
+        label: 'manage_subscription'.i18n,
+        onPressed: () => onManageSubscriptionTap(ref, buildContext, user),
+      );
+    }
+    return null;
+  }
+
   void _onDeleteTap() {
     appRouter.push(const DeleteAccount());
   }
 
   Future<void> onManageSubscriptionTap(
-      WidgetRef ref, BuildContext buildContext) async {
-    switch (Platform.operatingSystem) {
-      case "android":
-        if (isStoreVersion()) {
-          /// user is using play store version
+      WidgetRef ref, BuildContext buildContext, UserResponse user) async {
+    final provider = user.legacyUserData.subscriptionData.provider;
+    switch (provider) {
+      case 'apple':
+        if (PlatformUtils.isIOS) {
+          ref.read(accountProvider.notifier).openAppleSubscriptions();
+          return;
+        }
+        AppDialog.dialog(
+          context: buildContext,
+          title: 'manage_subscription'.i18n,
+          content: 'manage_subscription_apple_app_store'.i18n,
+        );
+
+        return;
+      case 'googleplay':
+        if (PlatformUtils.isAndroid) {
           openGooglePlaySubscriptions();
           return;
         }
-        stripeBillingPortal(ref, buildContext);
-        break;
-      case "ios":
-        ref.read(accountProvider.notifier).openAppleSubscriptions();
-        break;
-      case "macos":
-      case "linux":
-      case "windows":
+        AppDialog.dialog(
+          context: buildContext,
+          title: 'manage_subscription'.i18n,
+          content: 'manage_subscription_google_play'.i18n,
 
-        /// user is using desktop version
+        );
+
+        break;
+      case 'stripe':
+        /// No matter user is using desktop or mobile, if the provider is stripe, open billing portal
         stripeBillingPortal(ref, buildContext);
         break;
     }
@@ -300,5 +327,67 @@ class Account extends HookConsumerWidget {
         break;
       }
     }
+  }
+
+  void logoutDialog(BuildContext context, WidgetRef ref) {
+    final theme = TextTheme.of(context);
+    final isExpired = ref.read(isUserExpiredProvider);
+    AppDialog.customDialog(
+      context: context,
+      action: [
+        AppTextButton(
+          label: 'not_now'.i18n,
+          textColor: AppColors.gray8,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'logout'.i18n,
+          onPressed: () {
+            onLogout(context, ref);
+            appRouter.pop();
+          },
+        ),
+      ],
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          Text(
+            'logout'.i18n,
+            style: theme.headlineSmall,
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
+            style: theme.bodyMedium!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> onLogout(BuildContext context, WidgetRef ref) async {
+    context.showLoadingDialog();
+    final appSetting = ref.read(appSettingProvider);
+    final result =
+        await ref.read(lanternServiceProvider).logout(appSetting.email);
+    result.fold(
+      (l) {
+        context.hideLoadingDialog();
+        appLogger.error('Logout error: ${l.localizedErrorMessage}');
+      },
+      (user) {
+        context.hideLoadingDialog();
+        appRouter.popUntilRoot();
+        ref.read(homeProvider.notifier).clearLogoutData();
+        ref.read(homeProvider.notifier).updateUserData(user);
+
+        appLogger.info('Logout success: $user');
+      },
+    );
   }
 }

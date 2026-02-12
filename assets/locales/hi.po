@@ -3,9 +3,9 @@
 # Kalyan Dikshit <dikshitrocks93@gmail.com>, 2025
 # tx_e2f_hi c3 <tx_e2f_hi_c3@ate2f.com>, 2025
 # tx_e2f_hi_r3 tx_e2f_hi_r3 <tx_e2f_hi_r3@ate2f.com>, 2025
-# e2f <projects@e2f.com>, 2025
-# E2F_HI T1 <tx_e2f_hi_t1@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# E2F_HI T1 <tx_e2f_hi_t1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -370,13 +370,13 @@ msgid "create_password"
 msgstr "पासवर्ड बनाएं"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Lantern प्रो में साइन इन करें"
+msgstr "Lantern में साइन इन करें"
 
 msgid "sign_in_with_email"
 msgstr "ईमेल के साथ साइन इन करें"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "अपने Lantern प्रो अकाउंट विवरण दर्ज करें।"
+msgstr "अपने Lantern खाते का विवरण दर्ज करें।"
 
 msgid "email"
 msgstr "ईमेल"
@@ -391,7 +391,7 @@ msgid "reset_your_password"
 msgstr "अपना पासवर्ड रीसेट करें"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "अपना Lantern प्रो अकाउंट ईमेल दर्ज करें।"
+msgstr "अपने Lantern खाते का ईमेल दर्ज करें।"
 
 msgid "reset_password"
 msgstr "पासवर्ड रीसेट करें"
@@ -479,6 +479,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern प्रो में आपका स्वागत है!"
 
+msgid "welcome_to_lantern"
+msgstr "Lantern में आपका स्वागत है!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "आपकी प्रो सुविधाएं अनलॉक हो गई हैं—असीमित डेटा, तेज़ गति और प्रीमियम सर्वर "
@@ -534,6 +537,9 @@ msgid "logout_message"
 msgstr ""
 "लॉगआउट करने से Lantern मुफ्त संस्करण में बदल जाएगा। अपने अकाउंट को फिर से "
 "एक्सेस करने के लिए, आपको फिर से साइन इन करना होगा।"
+
+msgid "logout_message_expired"
+msgstr "क्या आप वाकई अपने खाते से लॉग आउट करना चाहते हैं?"
 
 msgid "not_now"
 msgstr "अभी नहीं"
@@ -911,9 +917,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"यदि आप अनिश्चित हैं कि सर्वर कौन चलाता है या यह कैसे कॉन्फ़िगर किया गया है, "
-"तो हम अनुशंसा करते हैं कि आप अपनी सर्वर सूची में उपलब्ध डिफ़ॉल्ट Lantern "
-"सर्वर में से किसी एक का उपयोग करें"
+"यदि आप निश्चित नहीं हैं कि सर्वर को कौन चला रहा है या यह कैसे कॉन्फ़िगर किया"
+" गया है, तो हम आपकी सर्वर सूची में उपलब्ध डिफ़ॉल्ट Lantern सर्वर में से किसी"
+" एक का उपयोग करने की सलाह देते हैं।"
 
 msgid "invalid_server_details"
 msgstr "अमान्य सर्वर विवरण। कृपया एक्सेस की जांचें और फिर से प्रयास करें।"
@@ -1331,7 +1337,7 @@ msgid "could_not_open_url"
 msgstr "URL नहीं खोला जा सका"
 
 msgid "new_to_lantern_pro"
-msgstr "Lantern Pro पर नए हैं?"
+msgstr "Lantern पर नए हैं?"
 
 msgid "an_error_occurred"
 msgstr "एक त्रुटि हुई। कृपया बाद में पुनः प्रयास करें।"
@@ -1398,3 +1404,94 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "फिर भी जारी रखें"
+
+msgid "routing_mode"
+msgstr "रूटिंग मोड"
+
+msgid "smart_routing"
+msgstr "स्मार्ट रूटिंग"
+
+msgid "full_tunnel"
+msgstr "पूर्ण टनल"
+
+msgid "region_optimized_routing"
+msgstr "आपके क्षेत्र के लिए अनुकूलित नियम-आधारित रूटिंग"
+
+msgid "all_traffic_through_vpn"
+msgstr "सभी ट्रैफ़िक VPN के माध्यम से"
+
+msgid "smart_routing_description"
+msgstr ""
+"स्मार्ट रूटिंग क्षेत्र-विशिष्ट नियमों का उपयोग करके स्वचालित रूप से VPN की "
+"आवश्यकता वाले ट्रैफ़िक को Lantern के माध्यम से भेजती है। अन्य सभी ट्रैफ़िक "
+"गति और विश्वसनीयता के लिए सीधे जाते हैं।"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN बायपास करने के लिए ऐप्स और वेबसाइट जोड़ें"
+
+msgid "lantern_pro_license_applied"
+msgstr "आपका Lantern Pro लाइसेंस आपके मौजूदा खाते पर लागू किया जाएगा"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "आपकी खरीदारी आपके मौजूदा खाते पर लागू की जाएगी"
+
+msgid "daily_data_cap_reached"
+msgstr "दैनिक डेटा सीमा पहुंच गई"
+
+msgid "daily_data_cap_reached_message"
+msgstr "गति 128 kb/s तक कम हो गई - %s पर रीसेट होगी।"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"खरीदारी पर भुगतान आपके Apple ID से लिया जाता है। वर्तमान अवधि समाप्त होने से"
+" कम से कम 24 घंटे पहले रद्द न किए जाने पर सदस्यता स्वचालित रूप से नवीनीकृत "
+"हो जाती है। App Store सेटिंग्स में प्रबंधित या रद्द करें।"
+
+msgid "failed_to_update_routing_mode"
+msgstr "रूटिंग मोड अपडेट करने में विफल। कृपया पुनः प्रयास करें।"
+
+msgid "apps"
+msgstr "ऐप्स"
+
+msgid "websites"
+msgstr "वेबसाइट"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"यदि आपने पहले Lantern Pro पासवर्ड सेट नहीं किया है, तो नीचे 'अपना पासवर्ड "
+"भूल गए?' विकल्प चुनें।"
+
+msgid "pro_subscription_expired"
+msgstr "आपकी Pro सदस्यता समाप्त हो गई है"
+
+msgid "renew_pro_subscription"
+msgstr "Pro सदस्यता नवीनीकृत करें"
+
+msgid "subscription_expired"
+msgstr "सदस्यता समाप्त"
+
+msgid "pro"
+msgstr "प्रो"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Lantern Pro सदस्यता समाप्त हो गई है। असीमित डेटा और Pro सुविधाओं को बहाल "
+"करने के लिए नवीनीकृत करें।"
+
+msgid "last_subscription_renewal_date"
+msgstr "अंतिम सदस्यता नवीनीकरण तिथि"
+
+msgid "set_account_password"
+msgstr "खाता पासवर्ड सेट करें"
+
+msgid "set_password"
+msgstr "पासवर्ड सेट करें"
+
+msgid "set_account_password_message"
+msgstr ""
+"अपने खाते को प्रबंधित करने या अन्य डिवाइस पर साइन इन करने के लिए, अब आपको अपने Lantern Pro खाते के लिए एक पासवर्ड सेट करना होगा।\n"
+"\n"
+"हम आपको अपना पासवर्ड बनाने के लिए एक सत्यापन कोड ईमेल करेंगे।"
+
+msgid "expired"
+msgstr "समाप्त"

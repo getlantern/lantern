@@ -18,6 +18,8 @@ class AppSetting {
   bool telemetryConsent;
   bool successfulConnection;
   String routingModeRaw;
+  String dataCapThreshold;
+  bool onboardingCompleted;
 
   AppSetting({
     this.id = 0,
@@ -33,6 +35,8 @@ class AppSetting {
     this.telemetryConsent = false,
     this.successfulConnection = false,
     this.routingModeRaw = 'full_tunnel',
+    this.dataCapThreshold = '',
+    this.onboardingCompleted = false,
   });
 
   AppSetting copyWith({
@@ -48,6 +52,8 @@ class AppSetting {
     bool? telemetryConsent,
     bool? successfulConnection,
     String? routingModeRaw,
+    String? dataCapThreshold,
+    bool? onboardingCompleted,
   }) {
     return AppSetting(
       id: id,
@@ -63,6 +69,8 @@ class AppSetting {
       telemetryConsent: telemetryConsent ?? this.telemetryConsent,
       successfulConnection: successfulConnection ?? this.successfulConnection,
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
+      dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 

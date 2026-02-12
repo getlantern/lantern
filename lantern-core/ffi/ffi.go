@@ -318,7 +318,7 @@ func startAutoLocationListener() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	c.StartAutoLocationListener()
+	c.StartBackgroundListeners()
 	return C.CString("ok")
 }
 
@@ -330,7 +330,7 @@ func stopAutoLocationListener() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	c.StopAutoLocationListener()
+	c.StopBackgroundListeners()
 	return C.CString("ok")
 }
 
@@ -937,6 +937,26 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 		return SendError(fmt.Errorf("Error revoking server manager invite: %v", err))
 	}
 	slog.Debug("Invite revoked successfully:", "inviteName", inviteName, "ip", ip, "port", port)
+	return C.CString("ok")
+}
+
+// addServerBasedOnURLs adds a server based on the provided URLs.
+//
+//export addServerBasedOnURLs
+func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	urls := C.GoString(_urls)
+	skipCertVerification := _skipCertVerification != 0
+	serverName := C.GoString(_serverName)
+	slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
+	err := c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	if err != nil {
+		return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
+	}
+	slog.Debug("Server added successfully based on URLs:", "urls", urls)
 	return C.CString("ok")
 }
 

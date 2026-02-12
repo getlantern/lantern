@@ -6,8 +6,9 @@
 # Volkan Gezer <volkangezer@gmail.com>, 2025
 # Teo Westbrook, 2025
 # Emre Deniz, 2025
-# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# Derek F <derek@getlantern.org>, 2026
+# Zeynel Cebeci <cebeciz@gmail.com>, 2026
+# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -370,13 +371,13 @@ msgid "create_password"
 msgstr "Şifre Oluştur"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Lantern Pro'ya Giriş Yap"
+msgstr "Lantern'e Giriş Yap"
 
 msgid "sign_in_with_email"
 msgstr "E-posta ile Giriş Yap"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Lantern Pro Hesap bilgilerinizi girin."
+msgstr "Lantern hesap bilgilerinizi girin."
 
 msgid "email"
 msgstr "E-posta"
@@ -391,7 +392,7 @@ msgid "reset_your_password"
 msgstr "Şifrenizi Sıfırlayın"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Lantern Pro Hesap E-postanızı girin."
+msgstr "Lantern hesap e-postanızı girin."
 
 msgid "reset_password"
 msgstr "Şifreyi Sıfırla"
@@ -476,6 +477,9 @@ msgstr ""
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro'ya Hoş Geldin!"
 
+msgid "welcome_to_lantern"
+msgstr "Lantern'e Hoş Geldin!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Pro özellikleriniz açıldı—sınırsız veri, daha hızlı hız ve premium "
@@ -531,6 +535,9 @@ msgid "logout_message"
 msgstr ""
 "Çıkış yapmak Lantern'i ücretsiz sürüme geçirecektir. Hesabınıza tekrar "
 "erişmek için yeniden giriş yapmanız gerekecektir."
+
+msgid "logout_message_expired"
+msgstr "Hesabınızdan çıkış yapmak istediğinizden emin misiniz?"
 
 msgid "not_now"
 msgstr "Şimdi Değil"
@@ -906,9 +913,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"Sunucuyu kimin çalıştırdığından veya nasıl yapılandırıldığından emin "
+"Sunucuyu kimin yönettiğinden veya nasıl yapılandırıldığından emin "
 "değilseniz, sunucu listenizde bulunan varsayılan Lantern sunucularından "
-"birini kullanmanızı öneririz"
+"birini kullanmanızı öneririz."
 
 msgid "invalid_server_details"
 msgstr ""
@@ -1325,7 +1332,7 @@ msgid "could_not_open_url"
 msgstr "URL açılamadı"
 
 msgid "new_to_lantern_pro"
-msgstr "Lantern Pro'da yeni misiniz?"
+msgstr " Lantern'de yeni misiniz?"
 
 msgid "an_error_occurred"
 msgstr "Bir hata oluştu. Lütfen daha sonra tekrar deneyin."
@@ -1393,3 +1400,94 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Yine de Devam Et"
+
+msgid "routing_mode"
+msgstr "Yönlendirme Modu"
+
+msgid "smart_routing"
+msgstr "Akıllı Yönlendirme"
+
+msgid "full_tunnel"
+msgstr "Tam Tünel"
+
+msgid "region_optimized_routing"
+msgstr "Bölgeniz için optimize edilmiş kural tabanlı yönlendirme"
+
+msgid "all_traffic_through_vpn"
+msgstr "Tüm trafik VPN üzerinden"
+
+msgid "smart_routing_description"
+msgstr ""
+"Akıllı Yönlendirme, VPN'e ihtiyaç duyan trafiği otomatik olarak Lantern "
+"üzerinden göndermek için bölgeye özel kurallar kullanır. Diğer tüm trafik "
+"hız ve güvenilirlik için doğrudan gider."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN'i atlamak için uygulama ve web siteleri ekle"
+
+msgid "lantern_pro_license_applied"
+msgstr "Lantern Pro Lisansınız mevcut hesabınıza uygulanacak"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "Satın alımınız mevcut hesabınıza uygulanacak"
+
+msgid "daily_data_cap_reached"
+msgstr "Günlük veri limitine ulaşıldı"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Hız 128 kb/sn'ye düşürüldü - %s'de sıfırlanacak."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Ödeme, satın alma sırasında Apple ID'nizden alınır. Abonelikler, mevcut "
+"dönemin bitiminden en az 24 saat önce iptal edilmedikçe otomatik olarak "
+"yenilenir. App Store Ayarları'ndan yönetin veya iptal edin."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Yönlendirme modu güncellenemedi. Lütfen tekrar deneyin."
+
+msgid "apps"
+msgstr "Uygulamalar"
+
+msgid "websites"
+msgstr "Web Siteleri"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Daha önce Lantern Pro şifresi belirlemediyseniz, aşağıdaki 'şifrenizi mi "
+"unuttunuz?' seçeneğini seçin."
+
+msgid "pro_subscription_expired"
+msgstr "Pro aboneliğinizin süresi doldu"
+
+msgid "renew_pro_subscription"
+msgstr "Pro Aboneliğini Yenile"
+
+msgid "subscription_expired"
+msgstr "Abonelik Süresi Doldu"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Lantern Pro aboneliğinizin süresi doldu. Sınırsız veri ve Pro özelliklerini "
+"geri yüklemek için yenileyin."
+
+msgid "last_subscription_renewal_date"
+msgstr "Son Abonelik Yenileme Tarihi"
+
+msgid "set_account_password"
+msgstr "Hesap Şifresi Belirle"
+
+msgid "set_password"
+msgstr "Şifre Belirle"
+
+msgid "set_account_password_message"
+msgstr ""
+"Hesabınızı yönetmek veya diğer cihazlarda oturum açmak için Lantern Pro hesabınız için bir şifre belirlemeniz gerekiyor.\n"
+"\n"
+"Şifrenizi oluşturmanız için size e-posta ile bir doğrulama kodu göndereceğiz."
+
+msgid "expired"
+msgstr "Süresi Doldu"

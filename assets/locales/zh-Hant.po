@@ -1,10 +1,11 @@
 # 
 # Translators:
 # Chi-Hsun Tsai, 2025
-# e2f <projects@e2f.com>, 2025
 # YFdyh000 <yfdyh000@gmail.com>, 2025
 # Aki, 2025
 # Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -357,13 +358,13 @@ msgid "create_password"
 msgstr "建立密碼"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "登入 Lantern 專業版"
+msgstr "登入 Lantern"
 
 msgid "sign_in_with_email"
 msgstr "使用電子郵件登入"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "輸入你的 Lantern 專業版帳號資訊。"
+msgstr "輸入您的 Lantern 帳戶詳情。"
 
 msgid "email"
 msgstr "電子郵件"
@@ -378,7 +379,7 @@ msgid "reset_your_password"
 msgstr "重設你的密碼"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "輸入你的 Lantern 專業版帳號電子郵件。"
+msgstr "輸入您的 Lantern 帳戶電子郵件。"
 
 msgid "reset_password"
 msgstr "重設密碼"
@@ -452,6 +453,9 @@ msgstr "開啟分流以自訂哪些網站使用 VPN。"
 msgid "welcome_to_lantern_pro"
 msgstr "歡迎使用 Lantern 專業版"
 
+msgid "welcome_to_lantern"
+msgstr "歡迎使用 Lantern！"
+
 msgid "lantern_pro_description"
 msgstr "你的專業版功能已解鎖—盡情享受無限數據、更快速度和高級伺服器。"
 
@@ -499,6 +503,9 @@ msgstr "登出"
 
 msgid "logout_message"
 msgstr "登出後 Lantern 將切換至免費版本。若要再次存取你的帳號,你需要重新登入。"
+
+msgid "logout_message_expired"
+msgstr "您確定要登出您的帳戶嗎？"
 
 msgid "not_now"
 msgstr "暫時不要"
@@ -840,7 +847,7 @@ msgid "trust_server_operator_message_two"
 msgstr "Lantern 不管理或監控私人伺服器。在加入之前,請確保你認識並信任伺服器營運者。"
 
 msgid "trust_server_operator_message_three"
-msgstr "如果你不確定是誰在營運伺服器或伺服器的配置方式,我們建議使用伺服器清單中的預設 Lantern 伺服器"
+msgstr "如果您不確定誰在運營伺服器或伺服器如何設定，我們建議您使用伺服器清單中的預設 Lantern 伺服器。"
 
 msgid "invalid_server_details"
 msgstr "無效的伺服器資訊。請檢查存取金鑰後重試。"
@@ -1230,7 +1237,7 @@ msgid "could_not_open_url"
 msgstr "无法打开 URL"
 
 msgid "new_to_lantern_pro"
-msgstr "初次使用蓝灯 Pro?"
+msgstr "初次使用 Lantern？"
 
 msgid "an_error_occurred"
 msgstr "发生错误。请稍后重试。"
@@ -1288,3 +1295,85 @@ msgstr "如果您没有收到确认码,请考虑使用其他邮箱服务商。"
 
 msgid "continue_anyway"
 msgstr "仍然继续"
+
+msgid "routing_mode"
+msgstr "路由模式"
+
+msgid "smart_routing"
+msgstr "智慧路由"
+
+msgid "full_tunnel"
+msgstr "全域代理"
+
+msgid "region_optimized_routing"
+msgstr "根據您所在地區最佳化的規則路由"
+
+msgid "all_traffic_through_vpn"
+msgstr "所有流量透過 VPN"
+
+msgid "smart_routing_description"
+msgstr "智慧路由使用特定地區的規則，自動將需要 VPN 的流量透過 Lantern 傳送。所有其他流量直連以提高速度和可靠性。"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "新增應用程式和網站以繞過 VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "您的 Lantern Pro 授權將套用於您的現有帳戶"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "您的購買將套用於您的現有帳戶"
+
+msgid "daily_data_cap_reached"
+msgstr "已達到每日資料上限"
+
+msgid "daily_data_cap_reached_message"
+msgstr "速度已降至 128 kb/s - 將在 %s 重設。"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"購買時將從您的 Apple ID 扣款。訂閱將自動續訂，除非在當前週期結束前至少 24 小時取消。在 App Store 設定中管理或取消。"
+
+msgid "failed_to_update_routing_mode"
+msgstr "更新路由模式失敗。請重試。"
+
+msgid "apps"
+msgstr "應用程式"
+
+msgid "websites"
+msgstr "網站"
+
+msgid "if_you_have_not_set_password"
+msgstr "如果您之前沒有設定 Lantern Pro 密碼，請選擇下方的「忘記密碼？」選項。"
+
+msgid "pro_subscription_expired"
+msgstr "您的 Pro 訂閱已過期"
+
+msgid "renew_pro_subscription"
+msgstr "續訂 Pro 訂閱"
+
+msgid "subscription_expired"
+msgstr "訂閱已過期"
+
+msgid "pro"
+msgstr "專業版"
+
+msgid "pro_subscription_expired_message"
+msgstr "Lantern Pro 訂閱已過期。續訂以恢復無限流量和 Pro 功能。"
+
+msgid "last_subscription_renewal_date"
+msgstr "上次訂閱續訂日期"
+
+msgid "set_account_password"
+msgstr "設定帳戶密碼"
+
+msgid "set_password"
+msgstr "設定密碼"
+
+msgid "set_account_password_message"
+msgstr ""
+"要管理您的帳戶或在其他裝置上登入，您現在需要為 Lantern Pro 帳戶設定密碼。\n"
+"\n"
+"我們將透過電子郵件向您傳送驗證碼以建立密碼。"
+
+msgid "expired"
+msgstr "已過期"

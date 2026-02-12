@@ -329,6 +329,7 @@ func CancelDeployment() error {
 // this call radiance and store connect last part
 func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSession) error {
 	slog.Debug("Adding server manager instance")
+	time.Sleep(1 * time.Second)
 	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		slog.Error("Error adding server manager instance", slog.Any("error", err))

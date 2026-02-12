@@ -69,6 +69,15 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         );
   }
 
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      String urls, bool skipCertVerification, String serverName) async {
+    return ref.read(lanternServiceProvider).addServerBasedOnURLs(
+          urls: urls,
+          skipCertVerification: skipCertVerification,
+          serverName: serverName,
+        );
+  }
+
   void watchPrivateServerLogs() {
     _privateServerStatusSub = ref
         .read(lanternServiceProvider)

@@ -2,11 +2,11 @@
 # Translators:
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
-# e2f <projects@e2f.com>, 2025
 # Yen Le Van <yenlevanbk@gmail.com>, 2025
 # Anh Phan <vietnamesel10n@gmail.com>, 2025
-# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
@@ -375,13 +375,13 @@ msgid "create_password"
 msgstr "Tạo mật khẩu"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Đăng nhập vào Lantern Pro"
+msgstr "Đăng nhập vào Lantern"
 
 msgid "sign_in_with_email"
 msgstr "Đăng nhập bằng email"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Nhập thông tin tài khoản Lantern Pro của bạn."
+msgstr "Nhập thông tin tài khoản Lantern của bạn."
 
 msgid "email"
 msgstr "Email"
@@ -396,7 +396,7 @@ msgid "reset_your_password"
 msgstr "Đặt lại mật khẩu"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Nhập email tài khoản Lantern Pro của bạn."
+msgstr "Nhập email tài khoản Lantern của bạn."
 
 msgid "reset_password"
 msgstr "Đặt lại mật khẩu"
@@ -481,6 +481,9 @@ msgstr "Bật định tuyến phân tách để tùy chỉnh các trang web sử
 msgid "welcome_to_lantern_pro"
 msgstr "Chào mừng đến với Lantern Pro!"
 
+msgid "welcome_to_lantern"
+msgstr "Chào mừng đến với Lantern!"
+
 msgid "lantern_pro_description"
 msgstr ""
 "Các tính năng Pro của bạn đã được mở khóa—tận hưởng dữ liệu không giới hạn, "
@@ -536,6 +539,9 @@ msgid "logout_message"
 msgstr ""
 "Đăng xuất sẽ chuyển Lantern về phiên bản miễn phí. Để truy cập tài khoản của"
 " bạn lại, bạn sẽ cần đăng nhập lại."
+
+msgid "logout_message_expired"
+msgstr "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không?"
 
 msgid "not_now"
 msgstr "Để sau"
@@ -915,9 +921,9 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
-"Nếu bạn không chắc chắn ai vận hành máy chủ hoặc nó được cấu hình như thế "
+"Nếu bạn không chắc ai đang vận hành máy chủ hoặc nó được cấu hình như thế "
 "nào, chúng tôi khuyên bạn nên sử dụng một trong các máy chủ Lantern mặc định"
-" có sẵn trong danh sách máy chủ của bạn"
+" có sẵn trong danh sách máy chủ của bạn."
 
 msgid "invalid_server_details"
 msgstr ""
@@ -1331,7 +1337,7 @@ msgid "could_not_open_url"
 msgstr "Không thể mở URL"
 
 msgid "new_to_lantern_pro"
-msgstr "Mới sử dụng Lantern Pro?"
+msgstr "Mới với Lantern?"
 
 msgid "an_error_occurred"
 msgstr "Đã xảy ra lỗi. Vui lòng thử lại sau."
@@ -1398,3 +1404,96 @@ msgstr ""
 
 msgid "continue_anyway"
 msgstr "Vẫn tiếp tục"
+
+msgid "routing_mode"
+msgstr "Chế độ Định tuyến"
+
+msgid "smart_routing"
+msgstr "Định tuyến Thông minh"
+
+msgid "full_tunnel"
+msgstr "Đường hầm Đầy đủ"
+
+msgid "region_optimized_routing"
+msgstr "Định tuyến dựa trên quy tắc được tối ưu hóa cho khu vực của bạn"
+
+msgid "all_traffic_through_vpn"
+msgstr "Toàn bộ lưu lượng qua VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"Định tuyến Thông minh sử dụng các quy tắc cụ thể theo khu vực để tự động gửi"
+" lưu lượng cần VPN qua Lantern. Tất cả lưu lượng khác sẽ kết nối trực tiếp "
+"để có tốc độ và độ tin cậy cao hơn."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Thêm ứng dụng và trang web để bỏ qua VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr ""
+"Giấy phép Lantern Pro của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr ""
+"Giao dịch mua hàng của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
+
+msgid "daily_data_cap_reached"
+msgstr "Đã đạt giới hạn dữ liệu hàng ngày"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Tốc độ giảm xuống 128 kb/s - Đặt lại vào lúc %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Thanh toán được tính vào Apple ID của bạn khi mua. Gói đăng ký sẽ tự động "
+"gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kết thúc thời hạn hiện tại. "
+"Quản lý hoặc hủy trong Cài đặt App Store."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Không thể cập nhật chế độ định tuyến. Vui lòng thử lại."
+
+msgid "apps"
+msgstr "Ứng dụng"
+
+msgid "websites"
+msgstr "Trang web"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Nếu bạn chưa từng đặt mật khẩu Lantern Pro trước đây, hãy chọn tùy chọn "
+"'quên mật khẩu?' bên dưới."
+
+msgid "pro_subscription_expired"
+msgstr "Gói đăng ký Pro của bạn đã hết hạn"
+
+msgid "renew_pro_subscription"
+msgstr "Gia hạn Gói đăng ký Pro"
+
+msgid "subscription_expired"
+msgstr "Gói đăng ký Đã hết hạn"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Gói đăng ký Lantern Pro đã hết hạn. Gia hạn để khôi phục dữ liệu không giới "
+"hạn và các tính năng Pro."
+
+msgid "last_subscription_renewal_date"
+msgstr "Ngày Gia hạn Gói đăng ký Gần nhất"
+
+msgid "set_account_password"
+msgstr "Đặt Mật khẩu Tài khoản"
+
+msgid "set_password"
+msgstr "Đặt Mật khẩu"
+
+msgid "set_account_password_message"
+msgstr ""
+"Để quản lý tài khoản của bạn hoặc đăng nhập trên các thiết bị khác, bây giờ bạn cần đặt mật khẩu cho tài khoản Lantern Pro của mình.\n"
+"\n"
+"Chúng tôi sẽ gửi mã xác minh qua email để bạn tạo mật khẩu."
+
+msgid "expired"
+msgstr "Đã hết hạn"
