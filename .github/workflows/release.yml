@@ -1,150 +1,406 @@
-name: Build and Release All Platforms
+name: Build and Release
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*" # validated by set-metadata
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build type"
+        required: false
+        type: choice
+        options:
+          - nightly
+          - production
+          - beta
+          - internal
+        default: nightly
+      platforms:
+        description: "Platforms to build ('all', or 'macos,linux,android,ios,windows')"
+        required: false
+        type: string
+        default: "linux"
+      cleanup_on_failure:
+        description: "Delete draft release on failure"
+        required: false
+        type: boolean
+        default: true
+
 permissions:
   contents: write
   id-token: "write"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  set-release-metadata:
+  set-metadata:
     runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
       version: ${{ steps.meta.outputs.version }}
-      installer_name: ${{ steps.meta.outputs.installer_name }}
+      installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
     steps:
-      - id: meta
-        run: |
-          tag=${GITHUB_REF#refs/tags/}
-          base_version=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
-          echo "version=$base_version" >> $GITHUB_OUTPUT
-          echo "tag_base=v${base_version}" >> $GITHUB_OUTPUT
-
-          # Extract platform suffix (if any, after final hyphen)
-          platform_suffix="${tag##*-}"
-
-          if [[ "$tag" == *"-internal"* ]]; then
-            echo "build_type=internal" >> $GITHUB_OUTPUT
-          elif [[ "$tag" == *"-beta"* ]]; then
-            echo "build_type=beta" >> $GITHUB_OUTPUT
-          else
-            echo "build_type=production" >> $GITHUB_OUTPUT
-          fi
-
-          if [[ "$tag" == *"-internal"* ]]; then
-            echo "installer_name=lantern-installer-internal" >> $GITHUB_OUTPUT
-          elif [[ "$tag" == *"-beta"* ]]; then
-            echo "installer_name=lantern-installer-beta" >> $GITHUB_OUTPUT
-          else
-            echo "installer_name=lantern-installer" >> $GITHUB_OUTPUT
-          fi
-
-          case "$platform_suffix" in
-            windows)
-              echo "platform=windows" >> $GITHUB_OUTPUT
-              ;;
-            macos)
-              echo "platform=macos" >> $GITHUB_OUTPUT
-              ;;
-            linux)
-              echo "platform=linux" >> $GITHUB_OUTPUT
-              ;;
-            android)
-              echo "platform=android" >> $GITHUB_OUTPUT
-              ;;
-            ios)
-              echo "platform=ios" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "platform=all" >> $GITHUB_OUTPUT
-              ;;
-          esac
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
 
-      - name: Update app version in pubspec.yaml
+      - id: meta
         shell: bash
         env:
-          VERSION: ${{ steps.meta.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          NEW_VERSION="${VERSION}"
-          echo "Updating version number to: $NEW_VERSION (incrementing build number)"
+          EVENT="${{ github.event_name }}"
 
-          # Extract current build number from pubspec.yaml
+          case "$EVENT" in
+            schedule)
+              # Scheduled nightly build
+              BUILD_TYPE="nightly"
+              VERSION=$(./scripts/ci/version.sh generate nightly)
+              RELEASE_TAG="v${VERSION}"
+              PLATFORM="all"
+              ;;
+
+            workflow_dispatch)
+              # Manual trigger
+              BUILD_TYPE="${{ github.event.inputs.build_type }}"
+              PLATFORM="${{ github.event.inputs.platforms }}"
+
+              case "$BUILD_TYPE" in
+                nightly|internal|beta)
+                  VERSION=$(./scripts/ci/version.sh generate "$BUILD_TYPE")
+                  RELEASE_TAG="v${VERSION}"
+                  ;;
+                production)
+                  echo "Error: Production builds must use git tags, not manual dispatch" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+
+            push)
+              # Tag push (release build) - preserve original tag with 'v' prefix
+              RELEASE_TAG=${GITHUB_REF#refs/tags/}
+              # Validate the tag (version.sh strips 'v' for validation)
+              ./scripts/ci/version.sh validate "$RELEASE_TAG" > /dev/null
+              # Strip 'v' for VERSION (used by build workflows)
+              VERSION="${RELEASE_TAG#v}"
+
+              case "$RELEASE_TAG" in
+                *-internal*)
+                  BUILD_TYPE="internal"
+                  ;;
+                *-beta*)
+                  BUILD_TYPE="beta"
+                  ;;
+                *)
+                  # Production builds require bare version tags
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    BUILD_TYPE="production"
+                  else
+                    echo "Error: Invalid tag format for build" >&2
+                    echo "  Use 'v1.0.0' for production" >&2
+                    echo "  Use 'v1.0.0-beta' for beta" >&2
+                    echo "  Use 'v1.0.0-internal' for internal" >&2
+                    echo "Got: $RELEASE_TAG" >&2
+                    exit 1
+                  fi
+                  ;;
+              esac
+
+              # Extract platform suffix (if any)
+              platform_suffix="${RELEASE_TAG##*-}"
+              case "$platform_suffix" in
+                windows) PLATFORM="windows" ;;
+                macos) PLATFORM="macos" ;;
+                linux) PLATFORM="linux" ;;
+                android) PLATFORM="android" ;;
+                ios) PLATFORM="ios" ;;
+                *) PLATFORM="all" ;;
+              esac
+              ;;
+          esac
+
+          # Installer base name - Makefile will append build type
+          INSTALLER_BASE_NAME="lantern-installer"
+
+          echo "Build Configuration:"
+          echo "  Event:         $EVENT"
+          echo "  Build Type:    $BUILD_TYPE"
+          echo "  Release Tag:   $RELEASE_TAG"
+          echo "  Version:       $VERSION"
+          echo "  Platform:      $PLATFORM"
+          echo "  Installer:     $INSTALLER_BASE_NAME"
+
+          echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
+          echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Update pubspec.yaml version
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
+        run: |
+          # Strip 'v' prefix if present
+          VERSION="${RELEASE_TAG#v}"
+
+          # Extract base semver (strip suffixes like -beta, -internal, -nightly-...)
+          BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
+
           CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          BUILD_NUMBER=$((CURRENT_BUILD + 1))
+          FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
 
-          # Increment build number by 1
-          NEW_BUILD=$((CURRENT_BUILD + 1))
-          FULL_VERSION="${NEW_VERSION}+${NEW_BUILD}"
+          echo "Setting pubspec version: $FULL_VERSION"
+          echo "  Base version: $BASE_VERSION"
+          echo "  Build number: $BUILD_NUMBER"
 
-          echo "Full version will be: $FULL_VERSION (build number: $CURRENT_BUILD -> $NEW_BUILD)"
-          sed -i.bak -E "s/^version: .*/version: $FULL_VERSION/" pubspec.yaml
-          echo "app_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+          sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
 
-      - name: Upload pubspec.yaml as artifact
+      - name: Upload pubspec.yaml
         uses: actions/upload-artifact@v4
         with:
           name: pubspec
           path: pubspec.yaml
 
   build-macos:
-    needs: set-release-metadata
+    needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'macos' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
-
-  #  build-windows:
-  #    needs: set-release-metadata
-  #    uses: ./.github/workflows/build-windows.yml
-  #    secrets: inherit
-  #    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
-  #    with:
-  #      version: ${{ needs.set-release-metadata.outputs.version }}
-  #      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-linux:
-    needs: set-release-metadata
+    needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'linux' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-ios:
-    needs: set-release-metadata
+    needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios') }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: set-release-metadata
+    needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android') }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
+  release-create:
+    needs: set-metadata
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Strip 'v' prefix for display
+          VERSION="${RELEASE_TAG#v}"
+
+          case "$BUILD_TYPE" in
+            production)
+              PRERELEASE_FLAG=""
+              TITLE="Lantern $VERSION"
+              ;;
+            beta)
+              PRERELEASE_FLAG="--prerelease"
+              TITLE="Beta $VERSION"
+              ;;
+            internal)
+              PRERELEASE_FLAG="--prerelease"
+              TITLE="Internal $VERSION"
+              ;;
+            nightly)
+              PRERELEASE_FLAG="--prerelease"
+              TITLE="Nightly $VERSION"
+              ;;
+          esac
+
+          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          gh release create "$RELEASE_TAG" \
+            --draft \
+            $PRERELEASE_FLAG \
+            --title "$TITLE" \
+            --notes "Build [in progress](${WORKFLOW_URL})..."
+
+  upload-s3:
+    needs: [set-metadata, build-macos, build-linux, build-android, build-ios]
+    if: |
+      !cancelled() &&
+      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
+      PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload to S3
+        shell: bash
+        run: |
+          # Strip 'v' prefix for S3 paths
+          VERSION="${RELEASE_TAG#v}"
+
+          ./scripts/ci/publish-to-s3.sh \
+            "$BUILD_TYPE" \
+            "$VERSION" \
+            "$INSTALLER_BASE_NAME" \
+            "$PLATFORM"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Format GitHub job summary
+        shell: bash
+        run: ./scripts/ci/format.sh job-summary >> "$GITHUB_STEP_SUMMARY"
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+
+      - name: Format Slack message
+        id: slack_msg
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          text=$(./scripts/ci/format.sh slack)
+          echo "text<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$text" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "${{ steps.slack_msg.outputs.text }}"
+            }
+
+  upload-release-artifacts:
+    needs:
+      [
+        set-metadata,
+        release-create,
+        build-macos,
+        build-linux,
+        build-android,
+        build-ios,
+      ]
+    if: |
+      !cancelled() &&
+      needs.release-create.result == 'success' &&
+      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
+      PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Update release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.sha }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          # Generate release notes
+          ./scripts/ci/format.sh release-notes > release_notes.md
+
+          # Update the draft release with proper notes
+          gh release edit "$RELEASE_TAG" --notes-file release_notes.md
+
+      - name: Upload artifacts to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Construct full filename with build type (Makefile appends it)
+          FULL_NAME="${INSTALLER_BASE_NAME}"
+          [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_NAME="${FULL_NAME}-${BUILD_TYPE}"
+
+          upload_if_exists() {
+            local file="$1"
+            if [[ -f "$file" ]]; then
+              echo "Uploading $file to GitHub release..."
+              gh release upload "$RELEASE_TAG" "$file" --clobber
+            fi
+          }
+
+          upload_if_exists "lantern-installer-dmg/${FULL_NAME}.dmg"
+          upload_if_exists "lantern-installer-apk/${FULL_NAME}.apk"
+          upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
+          upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
+          upload_if_exists "lantern-installer-ipa/${FULL_NAME}.ipa"
+
+  # Post-publish steps (only for non-nightly production/beta builds)
   upload-google-play:
-    needs: [set-release-metadata, build-android]
-    if:
-      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
-      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+    needs: [set-metadata, build-android]
+    if: |
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
+      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -168,7 +424,7 @@ jobs:
       - name: Pick Play track
         id: track
         run: |
-          if [ "${{ needs.set-release-metadata.outputs.build_type }}" = "beta" ]; then
+          if [ "${{ needs.set-metadata.outputs.build_type }}" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
             echo "track=production" >> "$GITHUB_OUTPUT"
@@ -185,188 +441,11 @@ jobs:
           mappingFile: play/mapping.txt
           debugSymbols: play/debug-symbols.zip
 
-  publish:
-    needs:
-      [set-release-metadata, build-macos, build-linux, build-android, build-ios]
-    if: always()
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
-      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
-      RELEASE_TAG: ${{ github.ref_name }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
-        with:
-          channel: stable
-          flutter-version-file: pubspec.yaml
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Upload to S3 (tag + latest)
-        shell: bash
-        run: |
-          set -euxo pipefail
-
-          prefix="releases/${BUILD_TYPE}"
-          tag="${RELEASE_TAG}"
-          platform="${{ needs.set-release-metadata.outputs.platform }}"
-
-          upload_if_exists () {
-            local src="$1"
-            local dst="$2"
-            if [[ -f "$src" ]]; then
-              aws s3 cp "$src" "$dst" --acl public-read
-              return 0
-            fi
-            return 1
-          }
-
-          IPA="lantern-installer-ipa/${INSTALLER_NAME}.ipa"
-          if [[ "$platform" == "ios" ]]; then
-            if ! upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.ipa"; then
-              echo "ERROR: Missing IPA: $IPA"
-              ls -la lantern-installer-ipa || true
-              exit 1
-            fi
-            aws s3 cp "$IPA" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.ipa" --acl public-read
-          else
-            upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.ipa" || true
-            upload_if_exists "$IPA" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.ipa" || true
-          fi
-
-          upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.dmg" || true
-          upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.apk" || true
-          upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.deb" || true
-          upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/${tag}/${INSTALLER_NAME}.rpm" || true
-
-          # Latest aliases
-          upload_if_exists "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.dmg" || true
-          upload_if_exists "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.apk" || true
-          upload_if_exists "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.deb" || true
-          upload_if_exists "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/${prefix}/latest/${INSTALLER_NAME}.rpm" || true
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Write links to job summary
-        if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
-        shell: bash
-        run: |
-          set -euxo pipefail
-
-          prefix="releases/${BUILD_TYPE}"
-          tag="${RELEASE_TAG}"
-
-          {
-            echo "## Release links (${BUILD_TYPE})"
-            echo ""
-            echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg"
-            echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk"
-            echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb"
-            echo "- Linux (.rpm): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm"
-            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.ipa"
-            echo ""
-            echo "**Latest aliases**"
-            echo "- macOS:   https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.dmg"
-            echo "- Android: https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.apk"
-            echo "- Linux (.deb): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.deb"
-            echo "- iOS (.ipa): https://${BUCKET}.s3.amazonaws.com/${prefix}/latest/${INSTALLER_NAME}.ipa"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Create GitHub Release
-        if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ github.token }}
-          tag_name: ${{ github.ref_name }}
-          name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
-          prerelease: ${{ needs.set-release-metadata.outputs.build_type != 'production' }}
-          generate_release_notes: false
-          files: |
-            lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
-            lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
-            lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
-            lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
-            lantern-installer-ipa/${{ env.INSTALLER_NAME }}.ipa
-
-      - name: Install Python dependencies
-        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
-        run: python3 -m pip install -r scripts/requirements.txt
-
-      - name: Update appcast.xml
-        if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
-        run: |
-          python3 scripts/generate_appcast.py
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add appcast.xml
-          git commit -m "Update appcast.xml" || echo "No changes to commit"
-          git push
-          bucket="${{ vars.S3_RELEASES_BUCKET }}"
-
-          aws s3 cp appcast.xml "s3://${bucket}/releases/${{ env.BUILD_TYPE }}/latest/appcast.xml" --acl public-read
-
-          if [[ "${{ env.BUILD_TYPE }}" == "production" ]]; then
-            aws s3 cp appcast.xml "s3://${bucket}/releases/appcast.xml" --acl public-read
-          fi
-
-      - name: Build Slack message
-        id: slack_msg
-        run: |
-          platform="${{ needs.set-release-metadata.outputs.platform }}"
-          prefix="releases/${BUILD_TYPE}"
-          tag="${RELEASE_TAG}"
-          text="Lantern ${BUILD_TYPE} <https://github.com/getlantern/lantern/releases/tag/$tag|$tag> is released!\n*Branch:* '${{ github.ref_name }}'\n*Downloads:*"
-
-          # Add platform-specific download links based on the platform
-          if [[ "$platform" == "all" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
-          elif [[ "$platform" == "macos" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.dmg|macOS>"
-          elif [[ "$platform" == "android" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.apk|Android>"
-          elif [[ "$platform" == "linux" ]]; then
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.deb|Linux (.deb)>"
-          text="${text}\n• <https://${BUCKET}.s3.amazonaws.com/${prefix}/${tag}/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
-          elif [[ "$platform" == "ios" ]]; then
-          text="${text}\n• Build uploaded to TestFlight (iOS)"
-          fi
-
-          # Expose as output
-          echo "text<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$text"   >> "$GITHUB_OUTPUT"
-          echo "EOF"     >> "$GITHUB_OUTPUT"
-
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: webhook-trigger
-          payload: |
-            {
-              "text": "${{ steps.slack_msg.outputs.text }}"
-            }
-        env:
-          INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-
   upload-testflight:
-    needs: [build-ios, set-release-metadata]
-    if:
-      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios')
-      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+    needs: [set-metadata, build-ios]
+    if: |
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
+      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact
@@ -375,10 +454,128 @@ jobs:
           name: lantern-installer-ipa
           path: .
 
+      - name: Construct IPA filename
+        id: filename
+        shell: bash
+        run: |
+          FULL_NAME="${{ needs.set-metadata.outputs.installer_base_name }}"
+          BUILD_TYPE="${{ needs.set-metadata.outputs.build_type }}"
+          [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_NAME="${FULL_NAME}-${BUILD_TYPE}"
+          echo "ipa=${FULL_NAME}.ipa" >> "$GITHUB_OUTPUT"
+
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3.0.1
         with:
-          app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
+          app-path: ${{ steps.filename.outputs.ipa }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
+  update-appcast:
+    needs: [set-metadata, release-finalize]
+    if: |
+      !cancelled() &&
+      needs.release-finalize.result == 'success' &&
+      (needs.set-metadata.outputs.platform == 'all' ||
+       contains(needs.set-metadata.outputs.platform, 'macos') ||
+       contains(needs.set-metadata.outputs.platform, 'windows') ||
+       contains(needs.set-metadata.outputs.platform, 'linux')) &&
+      needs.set-metadata.outputs.build_type != 'internal' &&
+      needs.set-metadata.outputs.build_type != 'nightly'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
+      - name: Update appcast.xml
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+        run: |
+          # Strip 'v' prefix for S3 paths
+          VERSION="${RELEASE_TAG#v}"
+
+          python3 scripts/generate_appcast.py
+
+          # appcast, like installers, always upload a versioned copy alongside "latest"
+          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/appcast.xml" --acl public-read
+          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/appcast.xml" --acl public-read
+          if [[ "$BUILD_TYPE" == "production" ]]; then
+            aws s3 cp appcast.xml "s3://${BUCKET}/releases/appcast.xml" --acl public-read
+          fi
+
+          # Upload appcast.xml to GitHub release, but
+          # not git because we may be in detached HEAD
+          gh release upload "$RELEASE_TAG" appcast.xml --clobber
+
+  release-finalize:
+    needs:
+      [
+        set-metadata,
+        upload-s3,
+        upload-release-artifacts,
+        upload-google-play,
+        upload-testflight,
+      ]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Publish release on success
+        if: |
+          needs.upload-s3.result == 'success' &&
+          needs.upload-release-artifacts.result == 'success' &&
+          (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+          (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "All steps succeeded - publishing draft release"
+          gh release edit "$RELEASE_TAG" --draft=false
+
+      - name: Delete draft on failure (cleanup enabled)
+        if: |
+          env.CLEANUP_ON_FAILURE == 'true' &&
+          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
+           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
+           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
+           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Build failed or cancelled - cleaning up draft release"
+          gh release delete "$RELEASE_TAG" --cleanup-tag --yes || true
+
+      - name: Report failure (cleanup disabled)
+        if: |
+          env.CLEANUP_ON_FAILURE != 'true' &&
+          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
+           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
+           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
+           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+        run: |
+          echo "Build failed or cancelled - draft release preserved for inspection"
+          echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
+          exit 1
