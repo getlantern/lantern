@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.25.4
 
-replace github.com/getlantern/radiance => ../radiance
+// replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -22,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260212132524-d62e9c0fe895
+	github.com/getlantern/radiance v0.0.0-20260213110101-47485f94f62d
 	github.com/sagernet/sing-box v1.12.13
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.40.0
@@ -123,6 +123,7 @@ require (
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa // indirect
+	github.com/alitto/pond v1.9.2 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/anacrolix/chansync v0.3.0 // indirect
 	github.com/anacrolix/dht/v2 v2.19.2-0.20221121215055-066ad8494444 // indirect
