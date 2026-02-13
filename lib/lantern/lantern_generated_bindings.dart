@@ -2380,6 +2380,7 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _logDir,
     ffi.Pointer<ffi.Char> _dataDir,
     ffi.Pointer<ffi.Char> _locale,
+    ffi.Pointer<ffi.Char> _env,
     int logP,
     int appsP,
     int statusP,
@@ -2392,6 +2393,7 @@ class LanternBindings {
       _logDir,
       _dataDir,
       _locale,
+      _env,
       logP,
       appsP,
       statusP,
@@ -2408,6 +2410,7 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
               ffi.Int64,
               ffi.Int64,
               ffi.Int64,
@@ -2417,6 +2420,7 @@ class LanternBindings {
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,

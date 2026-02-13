@@ -6,6 +6,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -24,6 +25,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     appLogger.info('User info: $user');
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.watch(developerModeProvider.notifier);
+    final appSetting = ref.watch(appSettingProvider);
+    final appSettingNotifier = ref.watch(appSettingProvider.notifier);
+    final isStaging = appSetting.environment == 'staging';
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -37,11 +41,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             child: Column(
               children: <Widget>[
                 AppTile(
-                  label: 'Reset App',
-                  onPressed: () => resetAppData(context),
-                ),
-                DividerSpace(),
-                AppTile(
                   label: 'UserId',
                   trailing: AppTextButton(
                     label: user?.legacyUserData.userId?.toString() ?? 'N/A',
@@ -53,6 +52,27 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   trailing: AppTextButton(
                     label: user?.legacyUserData.userLevel ?? 'N/A',
                   ),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'Stage Environment',
+                  trailing: SwitchButton(
+                    value: isStaging,
+                    onChanged: (value) {
+                      appSettingNotifier.setEnvironment(value);
+                      AppDialog.errorDialog(
+                        context: context,
+                        title: 'Restart Required',
+                        content:
+                            'Please restart the app for the environment change to take effect.',
+                      );
+                    },
+                  ),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'Reset App',
+                  onPressed: () => resetAppData(context),
                 ),
                 DividerSpace(),
                 if (PlatformUtils.isAndroid)

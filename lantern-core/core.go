@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/config"
 	"github.com/getlantern/radiance/events"
@@ -171,6 +172,13 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Debug("Starting LanternCore initialization")
+	// Set the environment before initializing Radiance so that common.Stage()/Prod()/Dev()
+	// pick up the correct value during initialization.
+	if opts.Env != "" {
+		slog.Info("Setting RADIANCE_ENV from opts", "env", opts.Env)
+		env.Set(env.ENV, opts.Env)
+		env.Set(env.PrintCurl, "true")
+	}
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
 		LogDir:           opts.LogDir,

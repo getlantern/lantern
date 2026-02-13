@@ -87,6 +87,22 @@ class AppStorageUtils {
     return logFile;
   }
 
+  /// Writes the `.radiance_env` file so native code (iOS/Android) can read
+  /// the environment at startup before Flutter is ready.
+  /// On iOS, this writes to Documents/.lantern which is read by FilePath.getRadianceEnv().
+  /// On Android, this writes to dataDir/.lantern which is read by getRadianceEnv() in utils.kt.
+  static Future<void> writeRadianceEnvFile(String env) async {
+    final appDir = await getAppDirectory();
+    final envFile = File(p.join(appDir.path, '.radiance_env'));
+    if (env.isEmpty) {
+      if (await envFile.exists()) {
+        await envFile.delete();
+      }
+    } else {
+      await envFile.writeAsString(env);
+    }
+  }
+
   static Future<Directory> getWindowsAppDataDirectory() async {
     if (!Platform.isWindows) throw UnsupportedError("Not running on Windows");
 

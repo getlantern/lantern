@@ -152,10 +152,12 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
 
       int consent = 0;
+      String env = '';
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
         if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
+          env = appSetting.environment;
         }
       } catch (_) {
         appLogger.warning(
@@ -166,7 +168,7 @@ class LanternFFIService implements LanternCoreService {
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
       appLogger.info(
-        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent',
+        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent Env: $env',
       );
 
       final dataDirPtr = dataDir.path.toCharPtr;
@@ -180,6 +182,7 @@ class LanternFFIService implements LanternCoreService {
             logDirPtr,
             dataDirPtr,
             Localization.defaultLocale.toCharPtr,
+            env.toCharPtr,
             loggingReceivePort.sendPort.nativePort,
             appsReceivePort.sendPort.nativePort,
             statusReceivePort.sendPort.nativePort,

@@ -45,14 +45,16 @@ public enum FilePath {
 
   }
 
-  private static func appSupportDir() -> URL {
-    let base = FileManager.default
-      .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-
-    let bundleId = FilePath.bundleId
-    let dir = base.appendingPathComponent(bundleId, isDirectory: true)
-    return dir
-  }
+    private static func appSupportDir() -> URL {
+        let dir = URL(fileURLWithPath: "/Users/Shared/Lantern", isDirectory: true)
+        
+        // Create directory if it doesn't exist
+        try? FileManager.default.createDirectory(at: dir,
+                                                 withIntermediateDirectories: true,
+                                                 attributes: nil)
+        
+        return dir
+    }
 
   public static func isTelemetryEnabled() -> Bool {
     let marker = appSupportDir()
@@ -60,6 +62,18 @@ public enum FilePath {
 
     return FileManager.default.fileExists(atPath: marker.path)
   }
+    
+    public static func isRadianceEnv() -> String {
+      let marker = appSupportDir()
+        .appendingPathComponent(".radiance_env")
+
+        if FileManager.default.fileExists(atPath: marker.path) {
+            return "stage"
+        }
+        return "prod"
+    }
+    
+    
 }
 
 extension FilePath {

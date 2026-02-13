@@ -104,7 +104,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(dataCapThreshold: threshold));
   }
 
-
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
   }
@@ -117,13 +116,46 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(onboardingCompleted: value));
   }
 
+  Future<void> setEnvironment(bool isStaging) async {
+    update(state.copyWith(environment: isStaging ? 'staging' : 'production'));
+
+
+    if (isStaging) {
+      final dir = await AppStorageUtils.getAppDirectory();
+      // Delete everything inside the directory
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
+
+      // Recreate the directory
+      await dir.create(recursive: true);
+      final file = File('${dir.path}/.radiance_env');
+      if (!file.existsSync()) {
+        await file.create(recursive: true);
+      }
+    } else {
+      final dir = await AppStorageUtils.getAppDirectory();
+
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
+
+      // Recreate the directory
+      await dir.create(recursive: true);
+
+      final file = File('${dir.path}/.radiance_env');
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
   }
-
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
     final LanternService svc = ref.read(lanternServiceProvider);
