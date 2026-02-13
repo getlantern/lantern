@@ -39,8 +39,9 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
-      if(!appSetting.onboardingCompleted){
-        appLogger.info("User has not completed onboarding, navigating to Onboarding Screen");
+      if (!appSetting.onboardingCompleted) {
+        appLogger.info(
+            "User has not completed onboarding, navigating to Onboarding Screen");
         appRouter.push(const Onboarding());
         return;
       }

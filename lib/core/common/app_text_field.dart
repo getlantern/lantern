@@ -56,14 +56,14 @@ class AppTextField extends StatelessWidget {
     this.onEditingComplete,
     this.counter,
     this.autofillHints,
-    this. autofocus,
+    this.autofocus,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
-        autofocus: autofocus ??false,
+        autofocus: autofocus ?? false,
         textAlign: TextAlign.start,
         textAlignVertical: TextAlignVertical.top,
         keyboardType: keyboardType,

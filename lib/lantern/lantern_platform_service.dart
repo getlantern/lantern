@@ -1050,8 +1050,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
-      required String urls,
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
       required bool skipCertVerification,
       required String serverName}) async {
     try {
@@ -1241,5 +1241,4 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
 }

@@ -467,16 +467,16 @@ class LanternService implements LanternCoreService {
       required String serverName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerBasedOnURLs(
-          urls: urls,
-          skipCertVerification: skipCertVerification,
-          serverName: serverName,
-          );
-    }
-    return _platformService.addServerBasedOnURLs(
         urls: urls,
         skipCertVerification: skipCertVerification,
         serverName: serverName,
-        );
+      );
+    }
+    return _platformService.addServerBasedOnURLs(
+      urls: urls,
+      skipCertVerification: skipCertVerification,
+      serverName: serverName,
+    );
   }
 
   /// connectToServer is used to connect to a server

@@ -42,10 +42,10 @@ class MethodHandler {
         self.isVPNConnected(result: result)
 
       case "plans":
-          guard let channel: String = self.decodeValue(from: call.arguments, result: result) else {
-            return
-          }
-        self.plans(result: result,channel: channel)
+        guard let channel: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.plans(result: result, channel: channel)
 
       case "oauthLoginUrl":
         guard let provider: String = self.decodeValue(from: call.arguments, result: result) else {

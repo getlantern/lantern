@@ -47,17 +47,15 @@ extension FilePath {
     return FileManager.default.fileExists(atPath: marker.path)
   }
 
-    public static func isRadianceEnv() -> String {
-      let marker = appSupportDir()
-        .appendingPathComponent(".radiance_env")
+  public static func isRadianceEnv() -> String {
+    let marker = appSupportDir()
+      .appendingPathComponent(".radiance_env")
 
-        if FileManager.default.fileExists(atPath: marker.path) {
-            return "stage"
-        }
-        return "prod"
+    if FileManager.default.fileExists(atPath: marker.path) {
+      return "stage"
     }
-    
-    
+    return "prod"
+  }
 
 }
 

@@ -13,7 +13,7 @@ class AppBuildInfo {
 }
 
 Future<String> resolveAppVersionLabel() async {
-  if(AppBuildInfo.buildType=='production'){
+  if (AppBuildInfo.buildType == 'production') {
     /// always use value from pubspec for production builds
     final info = await PackageInfo.fromPlatform();
     return '${info.version} (${info.buildNumber})';

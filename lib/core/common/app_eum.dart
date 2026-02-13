@@ -78,7 +78,6 @@ enum SplitTunnelActionType {
   }
 }
 
-
 enum BypassListOption {
   global,
   russia,
@@ -148,9 +147,9 @@ enum RoutingMode { smart, full }
 
 extension RoutingModeX on RoutingMode {
   String get key => switch (this) {
-    RoutingMode.smart => 'smart_routing',
-    RoutingMode.full => 'full_tunnel',
-  };
+        RoutingMode.smart => 'smart_routing',
+        RoutingMode.full => 'full_tunnel',
+      };
 
   String label() => key.i18n;
 
