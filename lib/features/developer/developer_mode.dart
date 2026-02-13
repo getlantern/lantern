@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -54,27 +56,14 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   ),
                 ),
                 DividerSpace(),
-                AppTile(
-                  label: 'Stage Environment',
-                  trailing: SwitchButton(
-                    value: isStaging,
-                    onChanged: (value) {
-                      appSettingNotifier.setEnvironment(value);
-                      AppDialog.errorDialog(
-                        context: context,
-                        title: 'Restart Required',
-                        content:
-                            'Please restart the app for the environment change to take effect.',
-                      );
-                    },
-                  ),
-                ),
-                DividerSpace(),
-                AppTile(
-                  label: 'Reset App',
-                  onPressed: () => resetAppData(context),
-                ),
-                DividerSpace(),
+              ],
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
                 if (PlatformUtils.isAndroid)
                   AppTile(
                     label: 'Test Play Purchase',
@@ -90,9 +79,37 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       },
                     ),
                   ),
+                DividerSpace(),
+                if (!PlatformUtils.isIOS)
+                  AppTile(
+                    label: 'Stage Environment',
+                    trailing: SwitchButton(
+                      value: isStaging,
+                      onChanged: (value) {
+                        appSettingNotifier.setEnvironment(value);
+                        AppDialog.dialog(
+                          context: context,
+                          title: 'Restart Required',
+                          content:
+                              'Please restart the app for the environment change to take effect.',
+                          onPressed: () {
+                            exit(0);
+                          },
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
-          )
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'Reset App',
+              onPressed: () => resetAppData(context),
+            ),
+          ),
         ],
       ),
     );

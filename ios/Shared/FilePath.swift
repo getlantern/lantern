@@ -47,15 +47,18 @@ extension FilePath {
     return FileManager.default.fileExists(atPath: marker.path)
   }
 
-  public static func getRadianceEnv() -> String {
-    // Read from appSupportDir() (Documents/.lantern) which is the same directory
-    // that Flutter's getAppDirectory() resolves to on iOS.
-    let envFile = appSupportDir().appendingPathComponent(".radiance_env")
-    guard let data = try? String(contentsOf: envFile, encoding: .utf8) else {
-      return ""
+    public static func isRadianceEnv() -> String {
+      let marker = appSupportDir()
+        .appendingPathComponent(".radiance_env")
+
+        if FileManager.default.fileExists(atPath: marker.path) {
+            return "stage"
+        }
+        return "prod"
     }
-    return data.trimmingCharacters(in: .whitespacesAndNewlines)
-  }
+    
+    
+
 }
 
 extension URL {
