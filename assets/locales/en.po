@@ -1445,6 +1445,23 @@ msgstr "Get Started"
 msgid "skip_connect_now"
 msgstr "Skip - Connect Now"
 
+msgid "renew_pro"
+msgstr "Renew Pro"
+
+msgid "payment"
+msgstr "Payment"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr "It looks like something went wrong. If you have made a payment but don't see your subscription active, please wait a few hours and check back."
+
+msgid "manage_subscription_google_play"
+msgstr "Your Pro plan was purchased through Google Play. Please manage your subscription from your google play account settings."
+
+msgid "manage_subscription_apple_app_store"
+msgstr "Your Pro plan was purchased through the Apple App Store. Please manage your subscription from your Apple ID account settings."
+
+
+
 
 
 
