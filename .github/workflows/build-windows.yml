@@ -125,7 +125,6 @@ jobs:
             --build-dart-define=BUILD_TYPE=${{ env.BUILD_TYPE }} `
             --build-dart-define=VERSION=${{ inputs.version }} `
             --flutter-build-args=verbose
-          Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
           Write-Host ""
           Write-Host "=== Contents of dist/$env:APP_VERSION/ after flutter_distributor ==="
@@ -261,8 +260,6 @@ jobs:
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
-        env:
-          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         with:
           name: lantern-installer-exe
           path: signed/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
