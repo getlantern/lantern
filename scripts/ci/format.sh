@@ -40,7 +40,7 @@ should_include() {
 case "$FORMAT" in
 release-notes)
   GITHUB_SHA="${GITHUB_SHA:?GITHUB_SHA required for release-notes}"
-  COMMIT_SHORT="${GITHUB_SHA:0:9}"
+  COMMIT_SHORT="${GITHUB_SHA:0:7}"
 
   case "$BUILD_TYPE" in
   nightly)
