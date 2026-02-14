@@ -65,6 +65,10 @@ release-notes)
     echo "- [macOS (.dmg)](${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg))"
   fi
 
+  if should_include "windows"; then
+    echo "- [Windows (.exe)](${LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
+  fi
+
   if should_include "android"; then
     echo "- [Android (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk))"
   fi
@@ -92,6 +96,10 @@ slack)
 
   if should_include "macos"; then
     text="${text}\n• macOS <${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg|${FULL_INSTALLER_NAME}.dmg> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg|permalink>)"
+  fi
+
+  if should_include "windows"; then
+    text="${text}\n• Windows <${LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
   fi
 
   if should_include "android"; then
