@@ -174,6 +174,10 @@ func StopVPN() error {
 	return nil
 }
 
+func CloseIPC() error {
+	return vpn_tunnel.CloseIPC()
+}
+
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {

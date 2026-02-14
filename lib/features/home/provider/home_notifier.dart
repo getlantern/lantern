@@ -25,12 +25,12 @@ class HomeNotifier extends _$HomeNotifier {
     }
     final result = await ref.read(lanternServiceProvider).getUserData();
     return result.fold(
-          (failure) {
+      (failure) {
         appLogger
             .error('Error getting user data: ${failure.localizedErrorMessage}');
         throw Exception('Failed to get user data');
       },
-          (userData) {
+      (userData) {
         appLogger.debug('Got the userdata: $userData');
         updateUserData(userData);
         return userData;
@@ -42,11 +42,11 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> fetchUserData() async {
     final result = await ref.read(lanternServiceProvider).fetchUserData();
     result.fold(
-          (failure) {
+      (failure) {
         appLogger.error(
             'Error fetching user data: ${failure.localizedErrorMessage}');
       },
-          (userData) {
+      (userData) {
         appLogger.debug('Fetched user data form server: $userData');
         updateUserData(userData);
       },
@@ -107,6 +107,12 @@ class HomeNotifier extends _$HomeNotifier {
       return;
     }
     if (!user.legacyUserData.isPro()) {
+      final level = user.legacyUserData.userLevel;
+      if (level.isEmpty) {
+        appLogger.info("User is new, reset state");
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
+        return;
+      }
       appLogger.info("User is not Pro. Skipping device check.");
       return;
     }
@@ -117,10 +123,9 @@ class HomeNotifier extends _$HomeNotifier {
     }
     final userDeviceId = user.legacyUserData.deviceID;
     final isDeviceAdded =
-    user.legacyUserData.devices.any((device) => device.id == userDeviceId);
+        user.legacyUserData.devices.any((device) => device.id == userDeviceId);
     appLogger.info(
-        "current device added for user ${user.legacyUserData
-            .email}: $isDeviceAdded");
+        "current device added for user ${user.legacyUserData.email}: $isDeviceAdded");
     if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier)
         ..setUserLoggedIn(true)

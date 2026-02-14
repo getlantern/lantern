@@ -29,6 +29,7 @@ class AppTextField extends StatelessWidget {
   final bool? autocorrect;
   final Widget? counter;
   final List<String>? autofillHints;
+  final bool? autofocus;
 
   const AppTextField({
     super.key,
@@ -55,12 +56,14 @@ class AppTextField extends StatelessWidget {
     this.onEditingComplete,
     this.counter,
     this.autofillHints,
+    this. autofocus,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
+        autofocus: autofocus ??false,
         textAlign: TextAlign.start,
         textAlignVertical: TextAlignVertical.top,
         keyboardType: keyboardType,

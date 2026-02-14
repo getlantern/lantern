@@ -13,10 +13,23 @@ class AppUrls {
   static String lanternGithub = 'https://github.com/getlantern/lantern';
   static String telegramBot = 'https://t.me/lantern_official_bot';
   static String unbounded = 'https://unbounded.lantern.io';
-  static String appcastURL =
-      'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
+  static const appcastProd =
+      'https://lantern-vpn.s3.amazonaws.com/releases/production/latest/appcast.xml';
+  static const appcastBeta =
+      'https://lantern-vpn.s3.amazonaws.com/releases/beta/latest/appcast.xml';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
       'https://cloud.digitalocean.com/account/billing';
+
+  static String appcastFor(String buildType) {
+    switch (buildType) {
+      case 'production':
+        return appcastProd;
+      case 'beta':
+        return appcastBeta;
+      default:
+        return appcastProd;
+    }
+  }
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
@@ -27,6 +27,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final allApps = (ref.watch(appsDataProvider).value ?? [])
+
         // Only filter apps with icons on Android and iOS; Windows support may lack icons.
         .where((a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
@@ -114,39 +115,44 @@ class AppsSplitTunneling extends HookConsumerWidget {
           SliverToBoxAdapter(child: SizedBox(height: 20)),
           SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
           SliverToBoxAdapter(
-            child: AppCard(
-              child: filteredDisabled.isEmpty
-                  ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filteredDisabled.length + 1,
-                      separatorBuilder: (_, __) =>
-                          DividerSpace(padding: EdgeInsets.zero),
-                      itemBuilder: (ctx, i) {
-                        if (i == 0) {
-                          return AppTile(
-                            minHeight: 40,
-                            contentPadding: EdgeInsets.zero,
-                            label: '',
-                            trailing: AppTextButton(
-                              label: 'select_all'.i18n,
-                              fontSize: 14,
-                              onPressed: () {
-                                notifier.selectAllApps();
-                              },
-                            ),
-                          );
-                        }
-                        final app = filteredDisabled[i - 1];
-                        return AppRow(
-                          app: app,
-                          enabled: false,
-                          onToggle: () => notifier.toggleApp(app),
-                        );
-                      },
-                    ),
-            ),
+            child: allApps.isEmpty
+                ? AppCard(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                    child: Center(child: LoadingIndicator()),
+                  )
+                : AppCard(
+                    child: filteredDisabled.isEmpty
+                        ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
+                        : ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: filteredDisabled.length + 1,
+                            separatorBuilder: (_, __) =>
+                                DividerSpace(padding: EdgeInsets.zero),
+                            itemBuilder: (ctx, i) {
+                              if (i == 0) {
+                                return AppTile(
+                                  minHeight: 40,
+                                  contentPadding: EdgeInsets.zero,
+                                  label: '',
+                                  trailing: AppTextButton(
+                                    label: 'select_all'.i18n,
+                                    fontSize: 14,
+                                    onPressed: () {
+                                      notifier.selectAllApps();
+                                    },
+                                  ),
+                                );
+                              }
+                              final app = filteredDisabled[i - 1];
+                              return AppRow(
+                                app: app,
+                                enabled: false,
+                                onToggle: () => notifier.toggleApp(app),
+                              );
+                            },
+                          ),
+                  ),
           ),
         ],
       ),

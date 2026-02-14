@@ -3,6 +3,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
+import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
@@ -26,7 +27,6 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => LocalStorageService());
     await sl<LocalStorageService>().init();
     sl.registerLazySingleton(() => AppRouter());
-
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
     sl.registerLazySingleton<DeepLinkCallbackManager>(
@@ -38,6 +38,7 @@ Future<void> injectServices() async {
     await ps.init();
     sl.registerSingleton<LanternPlatformService>(ps);
 
+    sl.registerLazySingleton<Updater>(() => Updater());
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());
       await sl<LanternFFIService>().init();
