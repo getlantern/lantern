@@ -181,18 +181,19 @@ jobs:
     secrets: inherit
     if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-metadata.outputs.installer_name }}
 
   build-windows:
-    needs: set-release-metadata
+    needs: set-metadata
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || needs.set-metadata.outputs.platform == 'windows' }}
     with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-metadata.outputs.installer_name }}
 
   build-linux:
     needs: [set-metadata, release-create]
