@@ -272,7 +272,15 @@ jobs:
             --notes "Build [in progress](${WORKFLOW_URL})..."
 
   upload-s3:
-    needs: [set-metadata, build-macos, build-windows, build-linux, build-android, build-ios]
+    needs:
+      [
+        set-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+        build-ios,
+      ]
     if: |
       !cancelled() &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
