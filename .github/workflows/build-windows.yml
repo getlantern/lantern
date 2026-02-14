@@ -12,7 +12,7 @@ on:
       installer_base_name:
         required: true
         type: string
-      self-sign-cert:
+      use-self-signed-cert:
         description: "Use self-signed code signing certificate"
         required: false
         type: boolean
@@ -151,14 +151,24 @@ jobs:
         id: sign
         shell: pwsh
         run: |
-          # Use test signing policy if self-sign cert is enabled, otherwise use production policy
-          $signingPolicy = if ("${{ inputs.self-sign-cert }}" -eq "true") {
-            "${{ vars.SIGNPATH_TEST_SIGNING_POLICY_SLUG }}"
+          # Use test signing policy if self-signed cert is enabled, otherwise use production policy
+          $signingPolicy = if ("${{ inputs.use-self-signed-cert }}" -eq "true") {
+            "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST }}"
           } else {
             "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}"
           }
 
-          Write-Host "Using signing policy: $signingPolicy"
+          Write-Host "=== SignPath Configuration ==="
+          Write-Host "use-self-signed-cert input: ${{ inputs.use-self-signed-cert }}"
+          Write-Host "Organization ID/Slug: ${{ vars.SIGNPATH_ORG_ID }}"
+          Write-Host "Project Slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}"
+          Write-Host "Selected Signing Policy Slug: $signingPolicy"
+          Write-Host "=============================="
+
+          if ([string]::IsNullOrWhiteSpace($signingPolicy)) {
+            Write-Error "Signing policy slug is empty! Check your GitHub variables configuration."
+            exit 1
+          }
 
           $response = Invoke-WebRequest -Method POST `
             -Uri "https://app.signpath.io/API/v1/${{ vars.SIGNPATH_ORG_ID }}/SigningRequests" `
@@ -211,7 +221,7 @@ jobs:
               Write-Host "Downloaded signed artifact"
 
               # Import test certificate for validation if using self-signed cert
-              if ("${{ inputs.self-sign-cert }}" -eq "true") {
+              if ("${{ inputs.use-self-signed-cert }}" -eq "true") {
                 $certPem = "${{ vars.SIGNPATH_SELF_SIGN_CERT }}"
                 $certPath = "test-cert.pem"
                 $certPem | Out-File -FilePath $certPath -Encoding ASCII
