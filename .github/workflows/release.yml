@@ -183,17 +183,17 @@ jobs:
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-metadata.outputs.installer_name }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-windows:
-    needs: set-metadata
+    needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || needs.set-metadata.outputs.platform == 'windows' }}
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows') }}
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-metadata.outputs.installer_name }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-linux:
     needs: [set-metadata, release-create]
@@ -272,10 +272,11 @@ jobs:
             --notes "Build [in progress](${WORKFLOW_URL})..."
 
   upload-s3:
-    needs: [set-metadata, build-macos, build-linux, build-android, build-ios]
+    needs: [set-metadata, build-macos, build-windows, build-linux, build-android, build-ios]
     if: |
       !cancelled() &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
       (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
@@ -343,6 +344,7 @@ jobs:
         set-metadata,
         release-create,
         build-macos,
+        build-windows,
         build-linux,
         build-android,
         build-ios,
@@ -351,6 +353,7 @@ jobs:
       !cancelled() &&
       needs.release-create.result == 'success' &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
       (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
@@ -400,6 +403,7 @@ jobs:
           }
 
           upload_if_exists "lantern-installer-dmg/${FULL_NAME}.dmg"
+          upload_if_exists "lantern-installer-exe/${FULL_NAME}.exe"
           upload_if_exists "lantern-installer-apk/${FULL_NAME}.apk"
           upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
           upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
