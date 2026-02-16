@@ -110,4 +110,56 @@ class AppImagePaths {
   static const smartRouteMode = 'assets/images/smart_route_mode.svg';
 
 
+  /// Validates and returns a safe flag path for the given country code.
+  /// Returns null if the country code is invalid or the flag asset doesn't exist.
+  ///
+  /// Valid country codes:
+  /// - Must be exactly 2 characters long (ISO 3166-1 alpha-2 format)
+  /// - Must contain only letters (a-z, A-Z)
+  /// - Must have a corresponding flag asset
+  static String? safeFlagPath(String? countryCode) {
+    if (countryCode == null || countryCode.isEmpty) {
+      return null;
+    }
+
+    // Validate country code format (2-letter ISO code)
+    final normalized = countryCode.trim().toLowerCase();
+    if (normalized.length != 2 || !RegExp(r'^[a-z]{2}$').hasMatch(normalized)) {
+      return null;
+    }
+
+    // List of available flag assets (2-letter ISO 3166-1 alpha-2 codes)
+    // This list should match the flags available in assets/images/flags/
+    // NOTE: This is a hardcoded list for validation purposes. While it creates
+    // a maintenance burden, it's preferable to runtime asset scanning (not easily
+    // supported in Flutter) for this security-critical validation. A future
+    // improvement could use build-time code generation to auto-generate this list.
+    const availableFlags = {
+      'ad', 'ae', 'af', 'ag', 'al', 'am', 'ao', 'ar', 'at', 'au', 'az',
+      'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 'bj', 'bn', 'bo',
+      'br', 'bs', 'bt', 'bw', 'by', 'bz', 'ca', 'cd', 'cf', 'cg', 'ch',
+      'ci', 'cl', 'cm', 'cn', 'co', 'cr', 'cu', 'cv', 'cy', 'cz', 'de',
+      'dj', 'dk', 'dm', 'do', 'dz', 'ec', 'ee', 'eg', 'er', 'es', 'et',
+      'fi', 'fj', 'fm', 'fr', 'ga', 'gb', 'gd', 'ge', 'gh', 'gm', 'gn',
+      'gq', 'gr', 'gt', 'gw', 'gy', 'hk', 'hn', 'hr', 'ht', 'hu', 'id',
+      'ie', 'il', 'in', 'iq', 'ir', 'is', 'it', 'jm', 'jo', 'jp', 'ke',
+      'kg', 'kh', 'ki', 'km', 'kn', 'kp', 'kr', 'kw', 'kz', 'la', 'lb',
+      'lc', 'li', 'lk', 'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc',
+      'md', 'me', 'mg', 'mh', 'mk', 'ml', 'mm', 'mn', 'mo', 'mr', 'mt',
+      'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'ne', 'ng', 'ni', 'nl',
+      'no', 'np', 'nr', 'nz', 'om', 'pa', 'pe', 'pg', 'ph', 'pk', 'pl',
+      'pt', 'pw', 'py', 'qa', 'ro', 'rs', 'ru', 'rw', 'sa', 'sb', 'sc',
+      'sd', 'se', 'sg', 'si', 'sk', 'sl', 'sm', 'sn', 'so', 'sr', 'ss',
+      'st', 'sv', 'sy', 'sz', 'td', 'tg', 'th', 'tj', 'tl', 'tm', 'tn',
+      'to', 'tr', 'tt', 'tv', 'tw', 'tz', 'ua', 'ug', 'us', 'uy', 'uz',
+      'va', 'vc', 've', 'vn', 'vu', 'ws', 'ye', 'za', 'zm', 'zw',
+    };
+
+    // Check if flag asset exists
+    if (!availableFlags.contains(normalized)) {
+      return null;
+    }
+
+    return 'assets/images/flags/$normalized.png';
+  }
 }

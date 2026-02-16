@@ -153,7 +153,7 @@ class AppDialog {
     required BuildContext context,
     required String title,
     required String content,
-    String action = 'ok',
+    String? action,
     OnPressed? onPressed,
   }) {
     showDialog(
@@ -186,7 +186,7 @@ class AppDialog {
           ),
           actions: [
             AppTextButton(
-              label: action,
+              label: action ?? 'ok'.i18n,
               onPressed: onPressed ??
                   () {
                     appRouter.maybePop();

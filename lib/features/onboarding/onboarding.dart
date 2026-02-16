@@ -103,7 +103,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     ],
                   ),
                   slide2(context),
-                  slide3(context),
+                  if (!PlatformUtils.isIOS) slide3(context),
                 ],
               ),
             ),
@@ -112,6 +112,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                   pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
               isTaller: true,
               onPressed: () {
+                if (PlatformUtils.isIOS && pageIndex.value == 1) {
+                  onboardingCompleted();
+                  return;
+                }
                 if (pageIndex.value == 2) {
                   onboardingCompleted();
                   return;

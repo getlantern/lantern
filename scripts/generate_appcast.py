@@ -7,6 +7,7 @@ It downloads each platform asset via the asset ID endpoint, parses the associate
 
 Usage:
   export GITHUB_TOKEN=<token>
+  export BUILD_TYPE=<production|beta> (optional, defaults to production)
   python3 scripts/generate_appcast.py
 """
 import os
@@ -48,6 +49,8 @@ def main():
     if not token:
         sys.exit("Error: GITHUB_TOKEN variable is not set.")
 
+    build_type = os.environ.get('BUILD_TYPE', 'production')
+
     api_url = f"https://api.github.com/repos/{REPO}/releases"
     api_headers = {
         "Authorization": f"Bearer {token}",
@@ -71,8 +74,13 @@ def main():
     signature_re = re.compile(r'sparkle:edSignature="([^"]+)"')
 
     for release in releases:
-        # skip drafts and prereleases
-        if release.get('draft') or release.get('prerelease'):
+        # Always skip drafts
+        if release.get('draft'):
+            continue
+
+        # For production appcast, skip prereleases
+        # For beta appcast, include prereleases (beta releases are marked as prerelease)
+        if release.get('prerelease') and build_type != 'beta':
             continue
 
         name = release.get('name') or release.get('tag_name')

@@ -9,7 +9,7 @@ on:
       build_type:
         required: true
         type: string
-      installer_name:
+      installer_base_name:
         required: true
         type: string
 
@@ -21,7 +21,7 @@ jobs:
     env:
       AC_USERNAME: ${{ secrets.AC_USERNAME }}
       AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
@@ -37,6 +37,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
+          cache: true
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
@@ -109,15 +110,38 @@ jobs:
       - name: Enable Flutter Desktop Support
         run: flutter config --enable-macos-desktop
 
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
+
+      - name: Cache gomobile
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: ~/.cache/gomobile
+          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomobile-
+
       - name: Install dependencies
         run: make install-macos-deps
+        env:
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Build macOS release
         run: make macos-release
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-dmg
-          path: ${{ inputs.installer_name }}.dmg
+          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
           retention-days: 2
