@@ -221,6 +221,40 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
+        if (failure.localizedErrorMessage == 'signup_error_user_exists'.i18n) {
+          AppDialog.customDialog(
+              context: context,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  SizedBox(height: 24),
+                  Text('create_account_error'.i18n,
+                      style: textTheme!.headlineMedium),
+                  SizedBox(height: defaultSize),
+                  Text(
+                    failure.localizedErrorMessage,
+                    style: textTheme!.bodyMedium,
+                  ),
+                ],
+              ),
+              action: [
+                AppTextButton(
+                  label: 'sign_in'.i18n,
+                  onPressed: () {
+                    appRouter.maybePop();
+                    appRouter.push(SignInEmail());
+                  },
+                ),
+                AppTextButton(
+                  label: 'ok'.i18n,
+                  textColor: AppColors.gray6,
+                  onPressed: () {
+                    appRouter.maybePop();
+                  },
+                ),
+              ]);
+          return;
+        }
         AppDialog.errorDialog(
             context: context,
             title: 'error'.i18n,
