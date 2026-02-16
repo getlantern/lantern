@@ -49,13 +49,11 @@
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="lantern.io"
-                    android:scheme="https" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/report-issue" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/auth" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/private-server" />
             </intent-filter>
 
         </activity>

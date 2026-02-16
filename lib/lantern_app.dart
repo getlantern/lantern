@@ -61,48 +61,61 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   Future<void> initDeepLinks() async {
     final appLinks = AppLinks();
-    // Handle link when app is in warm state (front or background)
-    appLinks.uriLinkStream.listen((Uri uri) {
-      if (context.mounted) {
-        if (uri.path.startsWith('/report-issue')) {
-          final pathUrl = uri.toString();
-          final queryParams = uri.queryParameters;
-          final segment = pathUrl.split('#');
-          if (segment.length >= 2) {
-            globalRouter.push(ReportIssue(
-                description: '#${segment[1]}', type: queryParams['type']));
-          } else if (queryParams.isNotEmpty) {
-            globalRouter.push(ReportIssue(type: queryParams['type']));
-          } else {
-            globalRouter.push(ReportIssue());
-          }
-        }
-        if (uri.path.startsWith('/auth')) {
-          final pathUrl = uri;
-          if (pathUrl.query.startsWith('token=')) {
-            // user has completed the sign up process using oAuth and comming back
-            sl<DeepLinkCallbackManager>()
-                .handleDeepLink(pathUrl.queryParameters);
-          }
-        }
-        if (uri.path.startsWith('/private-server')) {
-          final data = Map.of(uri.queryParameters);
-          data['accessKey'] =
-              uri.toString().replaceAll('https://lantern.io/', 'lantern//');
-          final expiration = int.parse(data['exp'].toString());
-          final expired =
-              DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
-          // check if date is expired
-          if (expired.isBefore(DateTime.now())) {
-            appLogger.debug("DeepLink expired: $expired");
-            context.showSnackBar('deep_link_expired'.i18n);
-            return;
-          }
 
-          appRouter.push(JoinPrivateServer(deepLinkData: data));
-        }
+    // Cold start: handle the link that launched the app from a killed state
+    try {
+      final initialUri = await appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLinkUri(initialUri);
       }
+    } catch (e) {
+      appLogger.error("Error getting initial deep link: $e");
+    }
+
+    // Warm state: handle links when app is already running
+    appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLinkUri(uri);
     });
+  }
+
+  void _handleDeepLinkUri(Uri uri) {
+    if (!context.mounted) return;
+    appLogger.debug("DeepLink received: $uri");
+
+    // Normalize: custom scheme lantern://open/path → treat as /path
+    final path = uri.path;
+
+    if (path.startsWith('/report-issue')) {
+      final pathUrl = uri.toString();
+      final queryParams = uri.queryParameters;
+      final segment = pathUrl.split('#');
+      if (segment.length >= 2) {
+        globalRouter.push(ReportIssue(
+            description: '#${segment[1]}', type: queryParams['type']));
+      } else if (queryParams.isNotEmpty) {
+        globalRouter.push(ReportIssue(type: queryParams['type']));
+      } else {
+        globalRouter.push(ReportIssue());
+      }
+    } else if (path.startsWith('/auth')) {
+      if (uri.query.startsWith('token=')) {
+        sl<DeepLinkCallbackManager>()
+            .handleDeepLink(uri.queryParameters);
+      }
+    } else if (path.startsWith('/private-server')) {
+      final data = Map.of(uri.queryParameters);
+      data['accessKey'] =
+          uri.toString().replaceAll('https://lantern.io/', 'lantern//');
+      final expiration = int.tryParse(data['exp'] ?? '') ?? 0;
+      final expired =
+          DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+      if (expired.isBefore(DateTime.now())) {
+        appLogger.debug("DeepLink expired: $expired");
+        context.showSnackBar('deep_link_expired'.i18n);
+        return;
+      }
+      appRouter.push(JoinPrivateServer(deepLinkData: data));
+    }
   }
 
   DeepLink navigateToDeepLink(PlatformDeepLink deepLink) {
