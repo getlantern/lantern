@@ -54,6 +54,22 @@ class LanternVpnService :
 
     private var mInterface: ParcelFileDescriptor? = null
 
+    /**
+     * Safely close the TUN interface file descriptor.
+     * Synchronized to prevent double-close from concurrent callers
+     * (onDestroy, postServiceClose, doStopVPN can all race).
+     */
+    @Synchronized
+    private fun closeTunInterface() {
+        try {
+            mInterface?.close()
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error closing TUN interface", e)
+        } finally {
+            mInterface = null
+        }
+    }
+
     // Create a CoroutineScope tied to the service's lifecycle.
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -124,6 +140,11 @@ class LanternVpnService :
 
     override fun onDestroy() {
         try {
+            // Close TUN fd synchronously BEFORE cancelling scope to prevent orphaned TUN.
+            // Without this, destroy() -> doStopVPN() launches a coroutine that gets
+            // immediately cancelled by serviceScope.cancel(), leaving the TUN open and
+            // routing all traffic into a black hole.
+            closeTunInterface()
             destroy()
         } finally {
             serviceScope.cancel()
@@ -146,8 +167,7 @@ class LanternVpnService :
 
     override fun postServiceClose() {
         AppLogger.i(TAG, "postServiceClose called")
-        mInterface = null
-
+        closeTunInterface()
     }
 
     override fun restartService() {
@@ -263,8 +283,7 @@ class LanternVpnService :
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
         serviceScope.launch {
             try {
-                mInterface?.close()
-                mInterface = null
+                closeTunInterface()
                 runCatching { Mobile.stopVPN() }
                     .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
