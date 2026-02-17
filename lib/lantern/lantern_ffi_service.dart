@@ -147,17 +147,30 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  String _normalizeRadianceEnv(String? value) {
+    switch (value) {
+      case 'stage':
+      case 'staging':
+        return 'stage';
+      case 'prod':
+      case 'production':
+        return 'prod';
+      default:
+        return 'prod';
+    }
+  }
+
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
 
       int consent = 0;
-      String env = '';
+      String env = 'prod';
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
         if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
-          env = appSetting.environment;
+          env = _normalizeRadianceEnv(appSetting.environment);
         }
       } catch (_) {
         appLogger.warning(

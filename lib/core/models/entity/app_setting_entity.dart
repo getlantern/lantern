@@ -38,7 +38,7 @@ class AppSetting {
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
-    this.environment = '',
+    this.environment = 'prod',
   });
 
   AppSetting copyWith({

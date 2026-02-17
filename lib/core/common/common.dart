@@ -81,8 +81,6 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  //todo remove this as soon macos testing done.
-  return true;
   if (!PlatformUtils.isMobile) {
     return false;
   }

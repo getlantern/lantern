@@ -29,7 +29,8 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     final devNotifier = ref.watch(developerModeProvider.notifier);
     final appSetting = ref.watch(appSettingProvider);
     final appSettingNotifier = ref.watch(appSettingProvider.notifier);
-    final isStaging = appSetting.environment == 'staging';
+    final isStaging = appSetting.environment == 'stage' ||
+        appSetting.environment == 'staging';
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -45,7 +46,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                 AppTile(
                   label: 'UserId',
                   trailing: AppTextButton(
-                    label: user?.legacyUserData.userId?.toString() ?? 'N/A',
+                    label: user?.legacyUserData.userId.toString() ?? 'N/A',
                   ),
                 ),
                 DividerSpace(),
@@ -85,8 +86,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                     label: 'Stage Environment',
                     trailing: SwitchButton(
                       value: isStaging,
-                      onChanged: (value) {
-                        appSettingNotifier.setEnvironment(value);
+                      onChanged: (value) async {
+                        await appSettingNotifier.setEnvironment(value);
+                        if (!context.mounted) return;
                         AppDialog.dialog(
                           context: context,
                           title: 'Restart Required',
@@ -118,6 +120,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   Future<void> resetAppData(BuildContext context) async {
     final appDir = await AppStorageUtils.getAppDirectory();
     appDir.delete(recursive: true);
+    if (!context.mounted) return;
     AppDialog.errorDialog(
         context: context,
         title: 'Reset',
