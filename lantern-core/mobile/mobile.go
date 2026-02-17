@@ -343,7 +343,6 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 			/// This means the purchase was made on a different account and we need to switch to that account
 			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserId)
 			//reset all data
-			settings.Reset()
 			settings.Set(settings.UserIDKey, fmt.Sprintf("%d", resp.ActualUserId))
 			settings.Set(settings.TokenKey, resp.ActualUserToken)
 			userData, err := FetchUserData()
