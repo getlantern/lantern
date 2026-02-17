@@ -24,7 +24,7 @@ import (
 	"github.com/getlantern/radiance/vpn/ipc"
 )
 
-const linuxDefaultSock = "/run/lantern/lanternsvc.sock"
+const linuxDefaultSock = "/var/run/lantern/lantern.sock"
 
 var (
 	linuxStatusOnce   sync.Once
@@ -32,26 +32,20 @@ var (
 	linuxLastStatus   string
 )
 
-func linuxConfigureIPC() {
-	ipc.SetSocketPath(linuxDefaultSock)
-}
-
-// systemd owns the daemon. We only check that IPC is reachable.
+// systemd manages the daemon; just verify IPC availability.
 func requireLanternSvcAvailable() error {
-	linuxConfigureIPC()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 
 	st, err := ipc.GetStatus(ctx)
-	if err == nil && st != "" && st != ipc.StatusClosed {
+	if err == nil && st != "" {
 		return nil
 	}
 
-	if diag := systemdDiag("lanternsvc"); diag != "" {
-		return fmt.Errorf("lanternsvc not reachable (%s): %s", linuxDefaultSock, diag)
+	if diag := systemdDiag("lantern"); diag != "" {
+		return fmt.Errorf("lanternd not reachable (%s): %s", linuxDefaultSock, diag)
 	}
-	return fmt.Errorf("lanternsvc not reachable (%s)", linuxDefaultSock)
+	return fmt.Errorf("lanternd not reachable (%s)", linuxDefaultSock)
 }
 
 func systemdDiag(unit string) string {
@@ -84,11 +78,9 @@ func systemdDiag(unit string) string {
 	}
 }
 
-// Poll IPC status and push changes to Dart via statusPort
+// Poll IPC status and forward changes to Dart.
 func startLinuxStatusPoller(_dataDir string) {
 	linuxStatusOnce.Do(func() {
-		linuxConfigureIPC()
-
 		go func() {
 			t := time.NewTicker(500 * time.Millisecond)
 			defer t.Stop()
@@ -121,7 +113,7 @@ func startLinuxStatusPoller(_dataDir string) {
 
 func mapIPCStateToUIStatus(state string, err error) string {
 	if err != nil {
-		return string(Error)
+		return string(Disconnected)
 	}
 	switch state {
 	case ipc.StatusRunning:
@@ -137,7 +129,7 @@ func mapIPCStateToUIStatus(state string, err error) string {
 	}
 }
 
-// ---- Linux overrides of VPN functions ----
+// Linux VPN function overrides.
 
 //export startVPN
 func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
@@ -169,8 +161,6 @@ func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 func stopVPN() *C.char {
 	sendStatusToPort(Disconnecting)
 
-	linuxConfigureIPC()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -198,7 +188,9 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 
-	_ = ipc.StartService(ctx, "", "")
+	if err := ipc.StartService(ctx, "", ""); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+		return SendError(fmt.Errorf("start service failed: %w", err))
+	}
 
 	if locationType == "auto" || tag == "" {
 		return C.CString("ok")
@@ -218,8 +210,6 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 
 //export isVPNConnected
 func isVPNConnected() C.int {
-	linuxConfigureIPC()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
 	defer cancel()
 

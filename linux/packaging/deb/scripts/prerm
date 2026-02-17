@@ -5,8 +5,9 @@ UNIT="lantern.service"
 
 case "$1" in
   remove|deconfigure)
-    # Stop service on uninstall / remove
-    systemctl stop "$UNIT" >/dev/null 2>&1 || true
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl stop "$UNIT" >/dev/null 2>&1 || true
+    fi
     ;;
 esac
 

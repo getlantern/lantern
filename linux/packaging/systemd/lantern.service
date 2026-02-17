@@ -5,10 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/lib/lantern/lanternsvc --data-path=/var/lib/lantern --log-path=/var/log/lantern --log-level=info --socket-path=/run/lantern/lanternsvc.sock
-
-User=lantern
-Group=lantern
+ExecStart=/usr/lib/lantern/lanternd --data-path=/var/lib/lantern --log-path=/var/log/lantern --log-level=info
+UMask=007
 
 Restart=on-failure
 RestartSec=2
@@ -25,7 +23,7 @@ AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
 
 RuntimeDirectory=lantern
-RuntimeDirectoryMode=0755
+RuntimeDirectoryMode=0750
 StateDirectory=lantern
 CacheDirectory=lantern
 LogsDirectory=lantern

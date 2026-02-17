@@ -5,12 +5,11 @@ UNIT="lantern.service"
 
 case "$1" in
   remove|purge)
-    # Disable on uninstall
-    systemctl disable "$UNIT" >/dev/null 2>&1 || true
-
-    # Clean up any lingering state
-    systemctl daemon-reload >/dev/null 2>&1 || true
-    systemctl reset-failed "$UNIT" >/dev/null 2>&1 || true
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl disable "$UNIT" >/dev/null 2>&1 || true
+      systemctl daemon-reload >/dev/null 2>&1 || true
+      systemctl reset-failed "$UNIT" >/dev/null 2>&1 || true
+    fi
     ;;
 esac
 

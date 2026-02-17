@@ -2,13 +2,22 @@
 set -e
 
 UNIT="lantern.service"
+GROUP="lantern"
 
 case "$1" in
   configure)
-    systemctl daemon-reload >/dev/null 2>&1 || true
+    if ! getent group "$GROUP" >/dev/null 2>&1; then
+      groupadd --system "$GROUP" >/dev/null 2>&1 || true
+    fi
 
-    # Enable on install (and start immediately)
-    systemctl enable --now "$UNIT" >/dev/null 2>&1 || true
+    if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ] && id "$SUDO_USER" >/dev/null 2>&1; then
+      usermod -a -G "$GROUP" "$SUDO_USER" >/dev/null 2>&1 || true
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl daemon-reload >/dev/null 2>&1 || true
+      systemctl enable --now "$UNIT" >/dev/null 2>&1 || true
+    fi
     ;;
 esac
 
