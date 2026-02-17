@@ -317,6 +317,8 @@ class _PlansState extends ConsumerState<Plans> {
         appLogger.info('Starting sign up flow for android');
         signUpFlow();
         break;
+      //todo remove this as soon macos testing done.
+      case 'macos':
       case 'ios':
         appLogger.info('Starting in app purchase flow IOS');
         startInAppPurchaseFlow(userSelectedPlan);
