@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_dimens.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/common/cap_scaling.dart';
 
 typedef OnPressed = VoidCallback;
 
@@ -40,25 +40,40 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = Theme.of(context).elevatedButtonTheme.style;
+
+    final iconHeight = hCap(context, 22);
+    final iconSz = spCap(context, 24);
+
     return icon == null
         ? ElevatedButton(
             onPressed: enabled ? onPressed : null,
-            style: _buildButtonStyle(button!),
+            style: _buildButtonStyle(context, button!, iconSz),
             child: Text(label),
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
             icon: AppImage(
               path: icon!,
-              height: 22,
+              height: iconHeight,
               color: iconColor,
             ),
             label: Text(label),
-            style: _buildButtonStyle(button!),
+            style: _buildButtonStyle(context, button!, iconSz),
           );
   }
 
-  ButtonStyle _buildButtonStyle(ButtonStyle style) {
+  ButtonStyle _buildButtonStyle(
+    BuildContext context,
+    ButtonStyle style,
+    double iconSz,
+  ) {
+    final verticalPad = hCap(context, 12);
+    final fontSz = spCap(context, 16);
+
+    // Heights
+    final minHeight = isTaller == true ? hCap(context, 56) : hCap(context, 48);
+    final nonExpandedHeight = hCap(context, 52);
+
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
@@ -87,20 +102,27 @@ class PrimaryButton extends StatelessWidget {
         },
       ),
       // backgroundColor: WidgetStatePropertyAll<Color>(bgColor ?? AppColors.blue7),
-      iconSize: WidgetStatePropertyAll<double>(24.0),
+      iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-          EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
+        EdgeInsets.symmetric(
+          vertical: verticalPad,
+          horizontal: 40.0,
+        ),
+      ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
-            fontSize: expanded ? 16.0.sp : 16.0, fontWeight: FontWeight.w500),
+          fontSize: expanded ? fontSz : 16.0,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-
       foregroundColor: WidgetStatePropertyAll<Color>(
         enabled == false ? AppColors.gray5 : textColor ?? AppColors.gray1,
       ),
-      minimumSize: WidgetStatePropertyAll<Size>(expanded
-          ? Size(double.infinity, isTaller == true ? 56.0 : 48.0)
-          : const Size(0, 52.0)),
+      minimumSize: WidgetStatePropertyAll<Size>(
+        expanded
+            ? Size(double.infinity, minHeight)
+            : Size(0, nonExpandedHeight),
+      ),
     );
   }
 }
@@ -117,37 +139,52 @@ class SecondaryButton extends StatelessWidget {
   final Color? bgColor;
   final bool? isTaller;
 
-  const SecondaryButton(
-      {super.key,
-      required this.label,
-      this.enabled = true,
-      this.expanded = true,
-      this.isTaller = false,
-      required this.onPressed,
-      this.icon,
-      this.bgColor});
+  const SecondaryButton({
+    super.key,
+    required this.label,
+    this.enabled = true,
+    this.expanded = true,
+    this.isTaller = false,
+    required this.onPressed,
+    this.icon,
+    this.bgColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     final button = Theme.of(context).elevatedButtonTheme.style;
+
+    final iconHeight = hCap(context, 22);
+    final iconSz = spCap(context, 24);
+
     return icon == null
         ? ElevatedButton(
             onPressed: enabled ? onPressed : null,
-            style: _buildButtonStyle(button!),
+            style: _buildButtonStyle(context, button!, iconSz),
             child: Text(label),
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
             icon: AppImage(
               path: icon!,
-              height: 22,
+              height: iconHeight,
             ),
             label: Text(label),
-            style: _buildButtonStyle(button!),
+            style: _buildButtonStyle(context, button!, iconSz),
           );
   }
 
-  ButtonStyle _buildButtonStyle(ButtonStyle style) {
+  ButtonStyle _buildButtonStyle(
+    BuildContext context,
+    ButtonStyle style,
+    double iconSz,
+  ) {
+    final verticalPad = hCap(context, 12);
+    final fontSz = spCap(context, 16);
+
+    // Heights
+    final height = isTaller == true ? hCap(context, 56) : hCap(context, 50);
+
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
@@ -167,18 +204,22 @@ class SecondaryButton extends StatelessWidget {
       ),
       overlayColor: WidgetStatePropertyAll<Color>(AppColors.gray2),
       foregroundColor: WidgetStatePropertyAll<Color>(AppColors.gray9),
-      iconSize: WidgetStatePropertyAll<double>(24.0),
+      iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-          EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
+        EdgeInsets.symmetric(
+          vertical: verticalPad,
+          horizontal: 40.0,
+        ),
+      ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-          AppTextStyles.primaryButtonTextStyle.copyWith(
-              fontSize: expanded ? 16.0.sp : 16.0,
-              color: AppColors.gray9,
-              fontWeight: FontWeight.w600)),
-      maximumSize: WidgetStatePropertyAll<Size>(
-          Size(double.infinity, isTaller == true ? 56.0 : 50.0)),
-      minimumSize: WidgetStatePropertyAll<Size>(
-          Size(double.infinity, isTaller == true ? 56.0 : 50.0)),
+        AppTextStyles.primaryButtonTextStyle.copyWith(
+          fontSize: expanded ? fontSz : 16.0,
+          color: AppColors.gray9,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      maximumSize: WidgetStatePropertyAll<Size>(Size(double.infinity, height)),
+      minimumSize: WidgetStatePropertyAll<Size>(Size(double.infinity, height)),
     );
   }
 }
@@ -205,16 +246,19 @@ class AppTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cappedFontSize = fontSize == null ? null : spCap(context, fontSize!);
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
         padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
         visualDensity: VisualDensity.compact,
         textStyle: AppTextStyles.titleMedium.copyWith(
-            overflow: TextOverflow.ellipsis,
-            decoration:
-                underLine ? TextDecoration.underline : TextDecoration.none,
-            fontSize: fontSize),
+          overflow: TextOverflow.ellipsis,
+          decoration:
+              underLine ? TextDecoration.underline : TextDecoration.none,
+          fontSize: cappedFontSize,
+        ),
         foregroundColor: textColor ?? AppColors.blue7,
       ),
       child: Text(label),
@@ -234,12 +278,14 @@ class AppIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconHeight = hCap(context, 24);
+
     return IconButton(
       onPressed: onPressed,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       icon: AppImage(
         path: path,
-        height: 24,
+        height: iconHeight,
       ),
     );
   }
@@ -259,9 +305,11 @@ class AppRadioButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sz = hCap(context, 24);
+
     return SizedBox(
-      width: 24,
-      height: 24,
+      width: sz,
+      height: sz,
       child: Radio<T>(
         value: value,
         groupValue: groupValue,

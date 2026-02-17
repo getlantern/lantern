@@ -39,8 +39,9 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
-      if(!appSetting.onboardingCompleted){
-        appLogger.info("User has not completed onboarding, navigating to Onboarding Screen");
+      if (!appSetting.onboardingCompleted) {
+        appLogger.info(
+            "User has not completed onboarding, navigating to Onboarding Screen");
         appRouter.push(const Onboarding());
         return;
       }
@@ -150,8 +151,10 @@ class _HomeState extends ConsumerState<Home> {
               if (!isUserPro) ...{
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(text: 'private_server_usage_message'.i18n)
+                else if (PlatformUtils.isIOS)
+                 const SizedBox.shrink()
                 else
-                  DataUsage(),
+                 const DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),

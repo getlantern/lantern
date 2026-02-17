@@ -9,7 +9,7 @@ on:
       build_type:
         required: true
         type: string
-      installer_name:
+      installer_base_name:
         required: true
         type: string
 
@@ -19,7 +19,7 @@ jobs:
       contents: "read"
       id-token: "write"
     env:
-      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
@@ -35,6 +35,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
+          cache: true
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
@@ -118,18 +119,38 @@ jobs:
           # Create ExportOptions.plist
           echo "$EXPORT_OPTIONS" | base64 --decode > "$EXPORT_OPTIONS_PATH"
 
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
+
+      - name: Cache gomobile
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: ~/.cache/gomobile
+          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomobile-
+
       - name: Install dependencies
         run: make install-ios-deps
+        env:
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Build iOS release
         run: make ios-release
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
+          INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Upload application
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-ipa
-          path: ${{ inputs.installer_name }}.ipa
+          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.ipa
           retention-days: 2
