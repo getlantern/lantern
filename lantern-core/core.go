@@ -757,7 +757,7 @@ func (lc *LanternCore) SelectProject(project string) error {
 }
 
 func (lc *LanternCore) StartDeployment(location, serverName string) error {
-	return privateserver.StartDepolyment(location, serverName)
+	return privateserver.StartDeployment(location, serverName)
 }
 
 func (lc *LanternCore) CancelDeployment() error {
@@ -768,8 +768,11 @@ func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag strin
 	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.serverManager, events)
 }
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
-	portInt, _ := strconv.Atoi(port)
-	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, lc.serverManager)
+	portInt, err := parsePort(port)
+	if err != nil {
+		return "", err
+	}
+	accessToken, err = lc.serverManager.InviteToPrivateServer(ip, portInt, accessToken, inviteName)
 	if err != nil {
 		return "", fmt.Errorf("error inviting to server manager instance: %w", err)
 	}
@@ -778,9 +781,23 @@ func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, invi
 }
 
 func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteName string) error {
-	portInt, _ := strconv.Atoi(port)
+	portInt, err := parsePort(port)
+	if err != nil {
+		return err
+	}
 	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
-	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, lc.serverManager)
+	return lc.serverManager.RevokePrivateServerInvite(ip, portInt, accessToken, inviteName)
+}
+
+func parsePort(port string) (int, error) {
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return 0, fmt.Errorf("invalid port %q: %w", port, err)
+	}
+	if portInt <= 0 || portInt > 65535 {
+		return 0, fmt.Errorf("invalid port %d: must be between 1 and 65535", portInt)
+	}
+	return portInt, nil
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {

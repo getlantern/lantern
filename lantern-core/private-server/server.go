@@ -220,7 +220,7 @@ func listenToServerEvents(ps provisionSession) {
 				}
 				resp.Tag = provisioner.serverName
 				resp.Location = provisioner.serverLocation
-				mangerErr := AddServerManagerInstance(resp, provisioner)
+				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -297,8 +297,8 @@ func SelectProject(selectedProject string) error {
 	return nil
 }
 
-// StartDepolyment starts the deployment process for the selected project and location.
-func StartDepolyment(selectedLocation, serverName string) error {
+// StartDeployment starts the deployment process for the selected project and location.
+func StartDeployment(selectedLocation, serverName string) error {
 	ps, err := getSession()
 	if err != nil {
 		return err
@@ -313,6 +313,11 @@ func StartDepolyment(selectedLocation, serverName string) error {
 	return nil
 }
 
+// StartDepolyment is kept as a compatibility alias for existing callers.
+func StartDepolyment(selectedLocation, serverName string) error {
+	return StartDeployment(selectedLocation, serverName)
+}
+
 // CancelDeployment cancels the current provisioning session.
 func CancelDeployment() error {
 	ps, err := getSession()
@@ -325,25 +330,14 @@ func CancelDeployment() error {
 	return nil
 }
 
-// AddServerManagerInstance adds a server manager instance to the VPN client
-// this call radiance and store connect last part
-func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSession) error {
-	slog.Debug("Adding server manager instance")
-	time.Sleep(1 * time.Second)
-	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
-	if err != nil {
-		slog.Error("Error adding server manager instance", slog.Any("error", err))
-		return err
-	}
-	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
-	return nil
-}
-
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
 func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Manager, events utils.PrivateServerEventListener) error {
 	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
-	portInt, _ := strconv.Atoi(port)
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("invalid port %q: %w", port, err)
+	}
 	resp := provisionerResponse{
 		ExternalIP:  ip,
 		Port:        portInt,
@@ -355,7 +349,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 		eventSink: events,
 	}
 	storeSession(provisionSession)
-	err := AddServerManagerInstance(resp, provisionSession)
+	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		return err
 	}
@@ -370,16 +364,6 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 	}
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 	return nil
-}
-
-func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) (string, error) {
-	slog.Debug("Inviting to server manager instance", slog.String("ip", ip), slog.Int("port", port), slog.String("inviteName", inviteName))
-	return vpnClient.InviteToPrivateServer(ip, port, accessToken, inviteName)
-}
-
-func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) error {
-	slog.Debug("Revoking invite", slog.String("inviteName", inviteName), slog.String("ip", ip), slog.Int("port", port))
-	return vpnClient.RevokePrivateServerInvite(ip, port, accessToken, inviteName)
 }
 
 type geoInfo struct {
