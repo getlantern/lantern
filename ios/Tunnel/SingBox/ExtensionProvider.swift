@@ -109,7 +109,10 @@ class ExtensionProvider: NEPacketTunnelProvider {
     MobileStopVPN(&error)
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
+    }
+    MobileCloseIPC(&error)
+    if error != nil {
+      appLogger.log("error closing IPC \(error?.localizedDescription ?? "")")
     }
     postServiceClose()
   }
