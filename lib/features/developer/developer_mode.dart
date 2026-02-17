@@ -46,7 +46,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                 AppTile(
                   label: 'UserId',
                   trailing: AppTextButton(
-                    label: user?.legacyUserData.userId.toString() ?? 'N/A',
+                    label: user?.legacyUserData.userId?.toString() ?? 'N/A',
                   ),
                 ),
                 DividerSpace(),
@@ -120,7 +120,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   Future<void> resetAppData(BuildContext context) async {
     final appDir = await AppStorageUtils.getAppDirectory();
     appDir.delete(recursive: true);
-    if (!context.mounted) return;
     AppDialog.errorDialog(
         context: context,
         title: 'Reset',
