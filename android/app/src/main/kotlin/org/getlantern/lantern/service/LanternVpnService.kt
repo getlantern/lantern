@@ -113,7 +113,7 @@ class LanternVpnService :
             ACTION_STOP_VPN -> {
                 AppLogger.d(TAG, "Received ACTION_STOP_VPN")
                 serviceScope.launch {
-                    doStopVPN()
+                    performStopVPN()
                 }
                 START_NOT_STICKY
             }
@@ -153,7 +153,7 @@ class LanternVpnService :
     override fun restartService() {
         AppLogger.i(TAG, "restartService called")
         serviceScope.launch {
-            doStopVPN()
+            stopVPNTunnel()
             startVPN()
         }
     }
@@ -260,30 +260,52 @@ class LanternVpnService :
 
     fun doStopVPN() {
         AppLogger.d(TAG, "doStopVPN")
-        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
         serviceScope.launch {
-            try {
-                mInterface?.close()
-                mInterface = null
-                runCatching { Mobile.stopVPN() }
-                    .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
+            performStopVPN()
+        }
+    }
 
-                runCatching { DefaultNetworkMonitor.stop() }
-                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
-                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
-                }
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                serviceCleanUp()
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "Error stopping VPN service", e)
-                VpnStatusManager.postVPNError(
-                    error = e,
-                    errorCode = "stop_vpn",
-                    errorMessage = "Error stopping VPN service",
-                )
+    /**
+     * Tears down only the VPN tunnel without touching the broadcast receiver
+     * or service lifecycle. Used by [restartService] so the receiver stays
+     * registered and the service can still receive stop commands after restart.
+     */
+    private suspend fun stopVPNTunnel() {
+        try {
+            mInterface?.close()
+            mInterface = null
+            runCatching { Mobile.stopVPN() }
+                .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
+
+            runCatching { DefaultNetworkMonitor.stop() }
+                .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error tearing down VPN tunnel", e)
+        }
+    }
+
+    /**
+     * Full VPN stop: tears down the tunnel, updates UI/notifications/tile,
+     * posts disconnected status, and cleans up the service (unregisters receiver).
+     * Used by [doStopVPN] and [ACTION_STOP_VPN].
+     */
+    private suspend fun performStopVPN() {
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
+        try {
+            stopVPNTunnel()
+            notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
             }
+            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+            serviceCleanUp()
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error stopping VPN service", e)
+            VpnStatusManager.postVPNError(
+                error = e,
+                errorCode = "stop_vpn",
+                errorMessage = "Error stopping VPN service",
+            )
         }
     }
 
