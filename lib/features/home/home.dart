@@ -45,6 +45,7 @@ class _HomeState extends ConsumerState<Home> {
         appRouter.push(const Onboarding());
         return;
       }
+
       if (PlatformUtils.isMacOS) {
         /// Show macOS system extension dialog if needed
         appLogger.info(

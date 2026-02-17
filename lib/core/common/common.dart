@@ -85,10 +85,6 @@ bool isStoreVersion() {
     return true;
   }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    // final setting = sl<LocalStorageService>().getDeveloperSetting();
-    // if (setting != null) {
-    //   return setting.testPlayPurchaseEnabled;
-    // }
     return !sl<StoreUtils>().isSideLoaded();
   }
   return !sl<StoreUtils>().isSideLoaded();

@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,30 +9,33 @@ import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'app_setting_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
+  static const _settingsPrefsKey = 'app_settings_json';
+  bool _didAttemptLoad = false;
+
   @override
   AppSetting build() {
-    // First-time: use device locale, no disk writes.
+    // First-time fallback, then asynchronously hydrate from prefs.
     final fallback = _detectDeviceLocale();
-    return AppSetting(locale: fallback.toString());
+    final initial = AppSetting(locale: fallback.toString());
+    unawaited(_loadFromPrefs(initial));
+    return initial;
   }
 
   Future<void> update(AppSetting updated) async {
     state = updated;
+    await _saveToPrefs(updated);
   }
 
   void togglePro(bool value) => update(state.copyWith(newPro: value));
 
   void setLocale(String locale) {
     update(state.copyWith(newLocale: locale));
-
-    final svc = ref.read(lanternServiceProvider);
-    // TODO: Fix this
-    // svc.updateLocale(locale);
   }
 
   void toggleSplitTunneling(bool value) =>
@@ -87,11 +91,44 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void setShowTelemetryDialog(bool value) =>
       update(state.copyWith(showTelemetryDialog: value));
 
+  void setOnboardingCompleted(bool value) =>
+      update(state.copyWith(onboardingCompleted: value));
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
+  }
+
+  Future<void> _loadFromPrefs(AppSetting fallback) async {
+    if (_didAttemptLoad) return;
+    _didAttemptLoad = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_settingsPrefsKey);
+      if (raw == null || raw.isEmpty) {
+        await prefs.setString(_settingsPrefsKey, jsonEncode(fallback.toJson()));
+        return;
+      }
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
+      }
+    } catch (e, st) {
+      appLogger.error(
+          'Failed to load app settings from SharedPreferences', e, st);
+    }
+  }
+
+  Future<void> _saveToPrefs(AppSetting value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_settingsPrefsKey, jsonEncode(value.toJson()));
+    } catch (e, st) {
+      appLogger.error(
+          'Failed to persist app settings to SharedPreferences', e, st);
+    }
   }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {

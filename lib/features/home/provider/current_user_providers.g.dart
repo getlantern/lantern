@@ -88,7 +88,7 @@ final class IsUserProFromCoreProvider
   }
 }
 
-String _$isUserProFromCoreHash() => r'7424471563dc9dcb9113966d5a604001f4ece1d8';
+String _$isUserProFromCoreHash() => r'9f84babf8a85f3d1df327e94d3a53fd1b5561159';
 
 @ProviderFor(userEmailFromCore)
 const userEmailFromCoreProvider = UserEmailFromCoreProvider._();

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
@@ -10,7 +11,6 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';
-import '../../../core/services/injection_container.dart';
 import '../../macos_extension/provider/macos_extension_notifier.dart';
 import '../../vpn/provider/server_location_notifier.dart';
 
@@ -123,11 +123,8 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   Future<void> _saveServerLocation(Location_ location) async {
-    final savedServerLocation =
-        sl<LocalStorageService>().getSavedServerLocations();
-    final serverLocation = savedServerLocation.lanternLocation(
+    final serverLocation = ServerLocation.fromLanternLocation(
       server: location,
-      autoSelect: false,
     );
     await ref
         .read(serverLocationProvider.notifier)

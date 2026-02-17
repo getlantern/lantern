@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
-import '../models/plan_data.dart';
 import 'injection_container.dart' show sl;
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
@@ -60,7 +58,8 @@ class AppPurchase {
             await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
 
         if (response.error != null) {
-          appLogger.error('[AppPurchase] Error fetching subscriptions: ${response.error}');
+          appLogger.error(
+              '[AppPurchase] Error fetching subscriptions: ${response.error}');
         } else if (response.productDetails.isEmpty) {
           appLogger.error(
             '[AppPurchase] Fetched 0 subscriptions. notFoundIDs=${response.notFoundIDs}',
@@ -74,8 +73,8 @@ class AppPurchase {
           if (!(_productsLoadedCompleter?.isCompleted ?? true)) {
             _productsLoadedCompleter?.complete();
           }
-          appLogger
-              .info('[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
+          appLogger.info(
+              '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
           return;
         }
       } catch (e, st) {
@@ -156,7 +155,8 @@ class AppPurchase {
   }
 
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
-    appLogger.info('[AppPurchase] Received purchase updates: ${purchases.length}');
+    appLogger
+        .info('[AppPurchase] Received purchase updates: ${purchases.length}');
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
@@ -200,13 +200,15 @@ class AppPurchase {
         }
 
         try {
-          appLogger.info('[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
+          appLogger.info(
+              '[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
           final lanternService = sl<LanternPlatformService>();
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = _resolvePlanId(purchaseDetails);
 
-          appLogger.info('[AppPurchase] Acknowledging purchase with planId: $planId');
+          appLogger.info(
+              '[AppPurchase] Acknowledging purchase with planId: $planId');
           final ack = await lanternService.acknowledgeInAppPurchase(
             purchaseToken: purchaseToken,
             planId: planId,
@@ -274,47 +276,21 @@ class AppPurchase {
   /// app starts. This function checks if the user has already purchased the
   /// subscription to avoid duplicate processing
   bool _checkIfAlreadyPurchased() {
-    // final user = sl<LocalStorageService>().getUser();
-    // if (user?.legacyUserData != null) {
-    //   final legacyData = user!.legacyUserData;
-    //   final subscriptionStatus = legacyData.subscriptionData.status;
-    //   if (subscriptionStatus == 'active') {
-    //     return true;
-    //   }
-    //   return false;
-    // }
-
+    // No durable purchase cache in app state yet.
     return false;
   }
 
   /// Determines the plan id to send to the backend for acknowledgment.
   ///
-  /// Prefers the exact plan the user selected. Falls back to cached plans,
-  /// then to a sensible default.
+  /// Prefers the exact plan the user selected, then falls back to a default.
   String _resolvePlanId(PurchaseDetails purchase) {
     if (_pendingPlanId != null && _pendingPlanId!.isNotEmpty) {
       return _pendingPlanId!;
     }
 
-    // Fallback: try to find a matching cached plan.
     final prefix = purchase.productID.split('_').first; // "1y" or "1m"
-    final localPlans = sl<LocalStorageService>().getPlans()?.toPlanData();
-
-    if (localPlans != null) {
-      final match = localPlans.plans.cast<Plan?>().firstWhere(
-            (p) => (p?.id)?.startsWith('$prefix-') ?? false,
-            orElse: () => null,
-          );
-      if (match != null) {
-        appLogger.info(
-          '[AppPurchase] Resolved plan from cache: ${match.id}',
-        );
-        return match.id;
-      }
-    }
-    // Last resort fallback.
     appLogger.debug(
-      '[AppPurchase] No cached plan for prefix=$prefix, using default',
+      '[AppPurchase] Using default planId for prefix=$prefix',
     );
     return '$prefix-usd-10';
   }

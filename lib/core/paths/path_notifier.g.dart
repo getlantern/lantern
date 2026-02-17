@@ -33,7 +33,7 @@ final class PathNotifierProvider
   PathNotifier create() => PathNotifier();
 }
 
-String _$pathNotifierHash() => r'9d420644aca408a07326addad0bf856e1eada31c';
+String _$pathNotifierHash() => r'3d43afa1c79843ed2e254b440feeec016a956763';
 
 abstract class _$PathNotifier extends $AsyncNotifier<PathManager> {
   FutureOr<PathManager> build();

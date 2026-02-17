@@ -14,6 +14,7 @@ class AppSetting {
   final bool successfulConnection;
   final String routingModeRaw;
   final String dataCapThreshold;
+  final bool onboardingCompleted;
 
   const AppSetting({
     this.isPro = false,
@@ -29,6 +30,7 @@ class AppSetting {
     this.successfulConnection = false,
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
+    this.onboardingCompleted = false,
   });
 
   AppSetting copyWith({
@@ -45,6 +47,7 @@ class AppSetting {
     bool? successfulConnection,
     String? routingModeRaw,
     String? dataCapThreshold,
+    bool? onboardingCompleted,
   }) {
     return AppSetting(
       isPro: newPro ?? isPro,
@@ -60,6 +63,7 @@ class AppSetting {
       successfulConnection: successfulConnection ?? this.successfulConnection,
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
@@ -79,6 +83,7 @@ class AppSetting {
         'successfulConnection': successfulConnection,
         'routingModeRaw': routingModeRaw,
         'dataCapThreshold': dataCapThreshold,
+        'onboardingCompleted': onboardingCompleted,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -95,5 +100,6 @@ class AppSetting {
         successfulConnection: json['successfulConnection'] == true,
         routingModeRaw: (json['routingModeRaw'] ?? 'full_tunnel').toString(),
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
+        onboardingCompleted: json['onboardingCompleted'] == true,
       );
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 class FakePrivateServerNotifier extends PrivateServerNotifier {
@@ -36,8 +36,6 @@ class FakePrivateServerNotifier extends PrivateServerNotifier {
           error: null,
         );
         break;
-      default:
-        break;
     }
     return right(unit);
   }
@@ -49,7 +47,7 @@ class FakePrivateServerNotifier extends PrivateServerNotifier {
 
     await Future.delayed(const Duration(milliseconds: 50));
 
-    final fakeEntity = PrivateServerEntity(
+    final fakeEntity = PrivateServer(
       serverName: serverName,
       externalIp: '203.0.113.10',
       port: '443',
