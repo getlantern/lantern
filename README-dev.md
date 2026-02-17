@@ -29,6 +29,55 @@ make macos
 flutter run -d macos
 ```
 
+# Build and run the app on Linux (systemd daemon, no sudo for connect/disconnect)
+
+1. Build Linux artifacts
+
+```bash
+make linux-release
+```
+
+2. Install the `.deb` (requires root only for install)
+
+```bash
+sudo apt install ./lantern-installer-*.deb
+```
+
+3. Ensure your desktop user is in the `lantern` group
+
+```bash
+id -nG "$USER" | grep -qw lantern || sudo usermod -aG lantern "$USER"
+```
+
+Log out and back in after adding group membership.
+
+4. Check daemon status
+
+```bash
+systemctl status lantern.service
+```
+
+5. Run Lantern app as your normal user
+
+```bash
+flutter run -d linux
+```
+
+Troubleshooting:
+
+```bash
+journalctl -u lantern.service -n 200 --no-pager
+```
+
+Uninstall / cleanup:
+
+```bash
+sudo systemctl disable --now lantern.service
+sudo apt remove lantern
+sudo rm -f /usr/lib/systemd/system/lantern.service /usr/lib/lantern/lanternd
+sudo systemctl daemon-reload
+```
+
 # Build and run the app on Windows
 
 Quick dev loop (run backend in a console)

@@ -21,9 +21,11 @@ categories:
 startup_notify: true
 
 postinstall_scripts:
+  - getent group lantern >/dev/null 2>&1 || groupadd --system lantern
+  - if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ] && id "$SUDO_USER" >/dev/null 2>&1; then usermod -a -G lantern "$SUDO_USER" || true; fi
   - systemctl daemon-reload
-  - systemctl enable lantern.service || true
+  - systemctl enable --now lantern.service || true
 
 postuninstall_scripts:
-  - systemctl disable --now lantern.service || true
+  - systemctl disable lantern.service || true
   - systemctl daemon-reload

@@ -41,14 +41,14 @@ LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
 LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).rpm
-LINUX_SERVICE_NAME := lanternsvc
-LINUX_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
+LINUX_SERVICE_NAME := lanternd
+LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
 LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
 LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
 LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/lib/lantern
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(LANTERN_CORE)/linux/packaging/systemd/lantern.service
+LINUX_SYSTEMD_UNIT_SRC := $(LINUX_PKG_ROOT)/systemd/lantern.service
 LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lantern.service
 
 ifeq ($(OS),Windows_NT)
@@ -300,7 +300,6 @@ linux-debug:
 	flutter build linux --debug
 
 .PHONY: linux-release
-.PHONY: linux-release
 linux-release: clean linux pubget gen stage-linux-service
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
@@ -313,6 +312,10 @@ linux-release: clean linux pubget gen stage-linux-service
 
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
+
+.PHONY: verify-linux-package
+verify-linux-package:
+	./scripts/ci/verify_linux_package.sh $(LINUX_INSTALLER_DEB)
 
 # Windows Build
 .PHONY: build-lanternsvc-windows windows-service-build \
