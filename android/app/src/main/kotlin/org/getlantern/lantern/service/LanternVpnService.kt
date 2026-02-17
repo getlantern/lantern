@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.StringIterator
@@ -292,8 +293,7 @@ class LanternVpnService :
      */
     private suspend fun stopVPNTunnel() {
         try {
-            mInterface?.close()
-            mInterface = null
+            closeTunInterface()
             runCatching { Mobile.stopVPN() }
                 .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
@@ -329,11 +329,24 @@ class LanternVpnService :
         }
     }
 
+    /**
+     * Synchronous cleanup called from [onDestroy].
+     * We must NOT use [doStopVPN] here because it launches a coroutine that
+     * gets immediately cancelled by [serviceScope.cancel] in onDestroy's finally block.
+     * The TUN fd is already closed by [closeTunInterface] in onDestroy before this is called.
+     */
     private fun destroy() {
         AppLogger.d(TAG, "destroying LanternVpnService")
-        doStopVPN()
+        runCatching { Mobile.stopVPN() }
+            .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+        runCatching {
+            runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
+        }.onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during destroy", e) }
+        notificationHelper.stopVPNConnectedNotification(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            QuickTileService.triggerUpdateTileState(this, false)
+        }
         serviceCleanUp()
-        stopSelf()
     }
 
     private fun serviceCleanUp() {
