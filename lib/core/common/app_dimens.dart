@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lantern/core/common/cap_scaling.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 
 const double iconSize = 24;
 double font16 = 16.sp;
@@ -15,3 +17,14 @@ const gap16 = SizedBox(height: 16);
 const desktopWindowMinSize = Size(390, 750);
 const desktopWindowSize = Size(390, 800);
 const mobileSize = Size(360, 690);
+
+Size designSizeFor(BuildContext context) {
+  final s = MediaQuery.sizeOf(context);
+
+  if (PlatformUtils.isDesktop) return desktopWindowSize;
+
+  // tablets: don't scale up (use 1:1)
+  if (isTabletSize(s)) return s;
+
+  return mobileSize;
+}

@@ -23,6 +23,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final setting = _db.getAppSetting();
 
     if (setting != null && setting.locale.isNotEmpty) {
+      if (setting.environment.isEmpty ||
+          setting.environment == 'production' ||
+          setting.environment == 'staging') {
+        final normalized = setting.copyWith(
+          environment: setting.environment == 'staging' ? 'stage' : 'prod',
+        );
+        _db.updateAppSetting(normalized);
+        return normalized;
+      }
       return setting;
     }
     // First-time user → use device locale
@@ -117,20 +126,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> setEnvironment(bool isStaging) async {
-    update(state.copyWith(environment: isStaging ? 'staging' : 'production'));
+    final env = isStaging ? 'stage' : 'prod';
+    update(state.copyWith(environment: env));
 
     final dir = await AppStorageUtils.getAppDirectory();
+    final markerFile = File('${dir.path}/.radiance_env');
 
-    // Delete and recreate the directory
-    if (dir.existsSync()) {
-      await dir.delete(recursive: true);
-    }
-    await dir.create(recursive: true);
-
-    // Create .radiance_env file only in staging
     if (isStaging) {
-      final file = File('${dir.path}/.radiance_env');
-      await file.create();
+      if (!await markerFile.exists()) {
+        await markerFile.create(recursive: true);
+      }
+      return;
+    }
+
+    if (await markerFile.exists()) {
+      await markerFile.delete();
     }
   }
 
