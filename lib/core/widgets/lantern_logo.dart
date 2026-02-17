@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:math' as math;
 
-import '../common/common.dart';
+import 'package:flutter/material.dart';
+import 'package:lantern/core/common/common.dart';
 
 class LanternLogo extends StatelessWidget {
   final bool isPro;
@@ -20,8 +20,12 @@ class LanternLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final aspectRatio = 105.64 / 20;
-    final screenWidth = 1.sw;
-    final width = (widthFraction ?? (105.64 / 390)) * screenWidth;
+    // Cap usable width to avoid tablets blowing up the logo
+    final usableWidth = math.min(MediaQuery.sizeOf(context).width, 430.0);
+
+    final rawWidth = (widthFraction ?? 0.27) * usableWidth;
+
+    final width = math.min(rawWidth, 140.0);
     final height = width / aspectRatio;
 
     return AppImage(
