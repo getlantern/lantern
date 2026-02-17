@@ -9,7 +9,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
@@ -137,8 +136,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
         child: SystemTrayWrapper(
           child: ScreenUtilInit(
             ensureScreenSize: true,
-            designSize:
-                PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
+            designSize: designSizeFor(context),
             minTextAdapt: true,
             child: I18n(
               initialLocale: locale.toLocale,

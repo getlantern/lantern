@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_dimens.dart';
+import 'package:lantern/core/common/cap_scaling.dart';
 
 class AppTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
@@ -56,16 +57,16 @@ class AppTextField extends StatelessWidget {
     this.onEditingComplete,
     this.counter,
     this.autofillHints,
-    this. autofocus,
+    this.autofocus,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
-        autofocus: autofocus ??false,
+        autofocus: autofocus ?? false,
         textAlign: TextAlign.start,
-        textAlignVertical: TextAlignVertical.top,
+        textAlignVertical: TextAlignVertical.center,
         keyboardType: keyboardType,
         autocorrect: autocorrect ?? !obscureText,
         autofillHints: autofillHints,
@@ -89,7 +90,7 @@ class AppTextField extends StatelessWidget {
         cursorOpacityAnimates: true,
         style: textTheme.bodyMedium!.copyWith(
           color: AppColors.gray9,
-          fontSize: 14.sp,
+          fontSize: spCap(context, 14),
         ),
         textInputAction: textInputAction,
         maxLines: maxLines,
@@ -157,7 +158,7 @@ class AppTextField extends StatelessWidget {
               label!,
               style: textTheme.labelLarge?.copyWith(
                 color: AppColors.gray8,
-                fontSize: 14.sp,
+                fontSize: spCap(context, 14),
               ),
             ),
           ),
