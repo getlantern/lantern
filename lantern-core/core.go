@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,6 +22,7 @@ import (
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
+	"github.com/getlantern/radiance/vpn/ipc"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
@@ -206,6 +208,13 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	if settings.GetInt64(settings.UserIDKey) != 0 {
 		userData, _ := core.FetchUserData()
 		slog.Debug("Fetched user data", "data", string(userData))
+	}
+
+	if runtime.GOOS == "linux" {
+		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
+			slog.Error("Failed to set IPC settings path", "error", err)
+			return fmt.Errorf("failed to set IPC settings path: %w", err)
+		}
 	}
 	return nil
 }
