@@ -151,8 +151,10 @@ class _HomeState extends ConsumerState<Home> {
               if (!isUserPro) ...{
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(text: 'private_server_usage_message'.i18n)
+                else if (PlatformUtils.isIOS)
+                 const SizedBox.shrink()
                 else
-                  DataUsage(),
+                 const DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),
