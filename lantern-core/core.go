@@ -106,7 +106,7 @@ type Payment interface {
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
 	AcknowledgeGooglePurchase(purchaseToken, planId string) error
-	AcknowledgeApplePurchase(receipt, planII string) error
+	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
@@ -176,8 +176,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	// pick up the correct value during initialization.
 	if opts.Env != "" {
 		slog.Info("Setting RADIANCE_ENV from opts", "env", opts.Env)
-		env.Set(env.ENV, opts.Env)
-		env.Set(env.PrintCurl, "true")
+		env.SetStagingEnv(opts.Env == "stage")
 	}
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
@@ -618,7 +617,7 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
-	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
+	status, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
 		return fmt.Errorf("error acknowledging google purchase: %w", err)
 	}
@@ -626,18 +625,18 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 	return nil
 }
 
-func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) error {
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
 	}
-	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
+	data, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
 	if err != nil {
-		return fmt.Errorf("error acknowledging apple purchase: %w", err)
+		return "", fmt.Errorf("error acknowledging apple purchase: %w", err)
 	}
-	slog.Debug("acknowledge apple purchase: ", "status", status)
-	return nil
+	slog.Debug("acknowledge apple purchase: ", "data", data)
+	return data, nil
 }
 
 func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error) {

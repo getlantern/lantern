@@ -852,7 +852,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+  Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
   }) {
