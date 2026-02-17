@@ -29,7 +29,7 @@ make macos
 flutter run -d macos
 ```
 
-# Build and run the app on Linux (systemd daemon, no sudo for connect/disconnect)
+# Build and run the app on Linux (systemd daemon, no sudo)
 
 1. Build Linux artifacts
 
@@ -43,7 +43,7 @@ make linux-release
 sudo apt install ./lantern-installer-*.deb
 ```
 
-3. Ensure your desktop user is in the `lantern` group
+3. Add desktop user to `lantern` group
 
 ```bash
 id -nG "$USER" | grep -qw lantern || sudo usermod -aG lantern "$USER"
