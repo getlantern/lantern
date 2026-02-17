@@ -32,7 +32,7 @@ var (
 	linuxLastStatus   string
 )
 
-// systemd owns the daemon. We only check that IPC is reachable.
+// systemd manages the daemon; just verify IPC availability.
 func requireLanternSvcAvailable() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -78,7 +78,7 @@ func systemdDiag(unit string) string {
 	}
 }
 
-// Poll IPC status and push changes to Dart via statusPort
+// Poll IPC status and forward changes to Dart.
 func startLinuxStatusPoller(_dataDir string) {
 	linuxStatusOnce.Do(func() {
 		go func() {
@@ -129,7 +129,7 @@ func mapIPCStateToUIStatus(state string, err error) string {
 	}
 }
 
-// ---- Linux overrides of VPN functions ----
+// Linux VPN function overrides.
 
 //export startVPN
 func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
