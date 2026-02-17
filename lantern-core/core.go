@@ -191,6 +191,13 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 	}
 
+	if runtime.GOOS == "linux" {
+		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
+			slog.Error("Failed to set IPC settings path", "error", err)
+			return fmt.Errorf("failed to set IPC settings path: %w", err)
+		}
+	}
+
 	lc.serverManager = lc.rad.ServerManager()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
@@ -210,12 +217,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		slog.Debug("Fetched user data", "data", string(userData))
 	}
 
-	if runtime.GOOS == "linux" {
-		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
-			slog.Error("Failed to set IPC settings path", "error", err)
-			return fmt.Errorf("failed to set IPC settings path: %w", err)
-		}
-	}
 	return nil
 }
 
