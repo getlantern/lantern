@@ -143,6 +143,7 @@ func (s *Service) Start(ctx context.Context) error {
 		conn, err := ln.Accept()
 		if err != nil {
 			if ctx.Err() != nil {
+				s.shutdown()
 				return nil
 			}
 			continue
@@ -150,6 +151,18 @@ func (s *Service) Start(ctx context.Context) error {
 		connID := randID("c_", 6)
 		slog.Debug("Service accept", "conn_id", connID)
 		go s.handleConn(ctx, conn, token, connID)
+	}
+}
+
+// shutdown cleanly stops any running VPN tunnel and closes the IPC server
+// during service shutdown.
+func (s *Service) shutdown() {
+	slog.Info("Service shutting down, stopping VPN and IPC")
+	if err := vpn_tunnel.StopVPN(); err != nil {
+		slog.Error("Error stopping VPN during service shutdown", "error", err)
+	}
+	if err := vpn_tunnel.CloseIPC(); err != nil {
+		slog.Error("Error closing IPC during service shutdown", "error", err)
 	}
 }
 
@@ -353,15 +366,13 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
-		go func() {
-			events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnecting})
-			if err := vpn_tunnel.StopVPN(); err != nil {
-				slog.Error("Error stopping service", "error", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
-			} else {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnected})
-			}
-		}()
+		events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnecting})
+		if err := vpn_tunnel.StopVPN(); err != nil {
+			slog.Error("Error stopping service", "error", err)
+			events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
+			return rpcErr(r.ID, "stop_error", err.Error())
+		}
+		events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnected})
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
