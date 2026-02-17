@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 9.0.2+88
+version: 9.0.3+90
 
 environment:
   sdk: ^3.6.0
@@ -91,7 +91,11 @@ dependencies:
   app_links: ^6.4.1
   # Desktop
   window_manager: ^0.5.1
-  tray_manager: ^0.5.2
+  tray_manager:
+    git:
+      url: https://github.com/getlantern/tray_manager.git
+      path: packages/tray_manager
+      ref: 7987b6f3aea4fc6e512e91de150c8a6ce87df98d
   win32_registry: ^2.1.0
   # Utils
   fpdart: ^1.2.0
@@ -146,6 +150,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/images/flags/
     - assets/locales/
     - app.env
 

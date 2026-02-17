@@ -126,11 +126,14 @@ class HomeNotifier extends _$HomeNotifier {
       appLogger.error("User data is not available to check devices.");
       return;
     }
-    _checkIfUserProAndDeviceIsAdded(user);
-  }
-
-  void _checkIfUserProAndDeviceIsAdded(UserResponse user) {
     if (!user.legacyUserData.isPro) {
+      final level = user.legacyUserData.userLevel;
+      if (level.isEmpty) {
+        appLogger.info("User is new, reset state");
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
+        return;
+      }
+
       appLogger.info("User is not Pro. Skipping device check.");
       return;
     }
@@ -142,9 +145,8 @@ class HomeNotifier extends _$HomeNotifier {
     final userDeviceId = user.legacyUserData.deviceID;
     final isDeviceAdded =
         user.legacyUserData.devices.any((device) => device.id == userDeviceId);
-    appLogger
-        .info("current device added for user ${user.legacyUserData.email}: "
-            "$isDeviceAdded");
+    appLogger.info(
+        "current device added for user ${user.legacyUserData.email}: $isDeviceAdded");
     if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier)
         ..setUserLoggedIn(true)

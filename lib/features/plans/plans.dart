@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
@@ -97,10 +95,7 @@ class _PlansState extends ConsumerState<Plans> {
                       EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
                   child: plansState.when(
                     data: (data) {
-                      return PlansListView(
-                        data: data,
-                        onPlanSelected: (plans) {},
-                      );
+                      return PlansListView(data: data);
                     },
                     loading: () {
                       return Center(
@@ -341,6 +336,7 @@ class _PlansState extends ConsumerState<Plans> {
         if (!mounted) {
           return;
         }
+
         ///Error while subscribing
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
@@ -354,28 +350,65 @@ class _PlansState extends ConsumerState<Plans> {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
       },
-      (_) {
-      },
+      (_) {},
     );
   }
 
-  Future<void> processPurchase(
-      PurchaseDetails purchase, Plan plan) async {
+  Future<void> processPurchase(PurchaseDetails purchase, Plan plan) async {
     context.hideLoadingDialog();
     appLogger.info('Subscription successful for plan: ${plan.id}');
+
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();
-    signUpFlow();
+    await signUpFlow();
   }
-  void signUpFlow() {
+
+  Future<void> signUpFlow() async {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
+      /// Check if user is expired or not, if expired send to pro flow if not send to home screen
+      final isUserExpired = ref.read(isUserExpiredProvider);
+      if (isUserExpired) {
+        await userExpiredFlow();
+        return;
+      }
       appLogger.info('User already logged in, checking account status');
       useProFlow();
       return;
     }
     appLogger.debug('Sending user to AddEmail screen for sign up');
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
+  }
+
+  Future<void> userExpiredFlow() async {
+    appLogger.info('User account is expired, sending to Pro flow');
+    context.showLoadingDialog();
+    appLogger.debug("Checking user account status");
+    final isPro = await checkUserAccountStatus(ref, context);
+    context.hideLoadingDialog();
+    if (isPro) {
+      appLogger.debug("User is Pro, showing Lantern Pro dialog");
+      AppDialog.showLanternProDialog(
+        context: context,
+        onPressed: () {
+          appRouter.popUntilRoot();
+        },
+      );
+      return;
+    } else {
+      appLogger.debug(
+          "User has made purchase is not reflected in account status, showing Lantern Pro dialog just to avoid blocking flow");
+      AppDialog.dialog(
+        context: context,
+        title: "payment".i18n,
+        content: 'it_looks_like_something_went_wrong'.i18n,
+        onPressed: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            appRouter.popUntilRoot();
+          });
+        },
+      );
+    }
   }
 
   //This will be used for user has signed and there plan is expired
