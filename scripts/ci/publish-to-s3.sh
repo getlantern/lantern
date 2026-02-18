@@ -84,7 +84,6 @@ upload_artifact() {
 # platform:extension
 declare -a artifacts=(
   "macos:dmg"
-  "windows:exe"
   "android:apk"
   "linux:deb"
   "linux:rpm"
