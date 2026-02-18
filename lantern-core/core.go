@@ -174,9 +174,9 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	slog.Debug("Starting LanternCore initialization")
 	// Set the environment before initializing Radiance so that common.Stage()/Prod()/Dev()
 	// pick up the correct value during initialization.
-	if opts.Env != "" {
-		slog.Info("Setting RADIANCE_ENV from opts", "env", opts.Env)
-		env.SetStagingEnv(opts.Env == "stage")
+	if opts.Env == "stage" || opts.Env == "staging" {
+		slog.Debug("Setting staging environment")
+		env.SetStagingEnv()
 	}
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
