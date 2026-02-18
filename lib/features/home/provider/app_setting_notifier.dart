@@ -128,19 +128,18 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   Future<void> setEnvironment(bool isStaging) async {
     final env = isStaging ? 'stage' : 'prod';
     update(state.copyWith(environment: env));
-
     final dir = await AppStorageUtils.getAppDirectory();
-    final markerFile = File('${dir.path}/.radiance_env');
 
-    if (isStaging) {
-      if (!await markerFile.exists()) {
-        await markerFile.create(recursive: true);
-      }
-      return;
+    /// Delete and recreate the directory
+    if (dir.existsSync()) {
+      await dir.delete(recursive: true);
     }
+    await dir.create(recursive: true);
 
-    if (await markerFile.exists()) {
-      await markerFile.delete();
+    /// Create .radiance_env file only in staging
+    if (isStaging) {
+      final file = File('${dir.path}/.radiance_env');
+      await file.create();
     }
   }
 
