@@ -84,7 +84,7 @@ upload_artifact() {
 # platform:extension
 declare -a artifacts=(
   "macos:dmg"
-  "windows:exe"
+  # "windows:exe" # TODO: re-enable when windows is built
   "android:apk"
   "linux:deb"
   "linux:rpm"
