@@ -192,29 +192,31 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   /// Build the current location display string (flag emoji + city)
   /// shown when connected
   String get _currentLocationDisplay {
-    if (_serverLocation == null) return '';
+    try {
+      if (_serverLocation == null) return '';
 
-    final loc = _serverLocation!;
-    String countryCode = '';
-    String displayName = '';
+      final loc = _serverLocation!;
+      String countryCode = '';
+      String displayName = '';
 
-    if (loc.serverType.toServerLocationType == ServerLocationType.auto) {
-      final auto_ = loc.autoLocation;
-      if (auto_ != null && auto_.countryCode.isNotEmpty) {
+      if (loc.serverType.toServerLocationType == ServerLocationType.auto) {
+        /// For auto location, we use the autoLocation info which contains the actual connected server details
+        final auto_ = loc.autoLocation!;
         countryCode = auto_.countryCode;
         displayName = auto_.displayName;
+      } else {
+        countryCode = loc.countryCode;
+        displayName = loc.displayName;
       }
-    } else {
-      countryCode = loc.countryCode;
-      displayName = loc.city.isNotEmpty
-          ? '${loc.country} - ${loc.city}'
-          : loc.country;
+
+      if (displayName.isEmpty) return '';
+
+      final flag = _countryCodeToFlagEmoji(countryCode);
+      return flag.isNotEmpty ? '$flag $displayName' : displayName;
+    } catch (e) {
+      appLogger.error('Error building location display', e);
+      return '';
     }
-
-    if (displayName.isEmpty) return '';
-
-    final flag = _countryCodeToFlagEmoji(countryCode);
-    return flag.isNotEmpty ? '$flag $displayName' : displayName;
   }
 
   Future<void> updateTrayMenu() async {
@@ -231,7 +233,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
               ? 'status_on'.i18n
               : 'status_off'.i18n,
         ),
-        // Current location line (hidden when disconnected)
+
         if (isConnected && locationDisplay.isNotEmpty)
           MenuItem(
             key: 'current_location',
@@ -239,7 +241,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
             label: locationDisplay,
           ),
         MenuItem.separator(),
-        // Connect / Disconnect toggle wrapped in separators
+
         MenuItem(
           key: 'toggle',
           label: _currentStatus == VPNStatus.connected
@@ -250,11 +252,13 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           onClick: (_) => toggleVPN(),
         ),
         MenuItem.separator(),
-        // Select Location submenu (Pro users only)
+
         if (_isUserPro && _locations.isNotEmpty)
           MenuItem.submenu(
             key: 'select_location',
             label: 'select_location'.i18n,
+            disabled: _currentStatus == VPNStatus.connecting ||
+                _currentStatus == VPNStatus.disconnecting,
             submenu: Menu(
               items: [
                 // Smart Location as first option with checkmark
@@ -280,7 +284,6 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
               ],
             ),
           ),
-        // Routing Mode submenu
         MenuItem.submenu(
           key: 'routing_mode',
           label: 'routing_mode'.i18n,
@@ -381,6 +384,11 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 String _countryCodeToFlagEmoji(String countryCode) {
   final code = countryCode.toUpperCase();
   if (code.length != 2) return '';
+  // Ensure both characters are ASCII letters A–Z before computing the emoji.
+  final isAsciiLetters = code.codeUnits.every(
+    (c) => c >= 0x41 && c <= 0x5A,
+  );
+  if (!isAsciiLetters) return '';
   return String.fromCharCodes(
     code.codeUnits.map((c) => c - 0x41 + 0x1F1E6),
   );

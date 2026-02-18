@@ -13,12 +13,8 @@ class AppBuildInfo {
 }
 
 Future<String> resolveAppVersionLabel() async {
-  if(AppBuildInfo.buildType=='production'){
-    /// always use value from pubspec for production builds
-    final info = await PackageInfo.fromPlatform();
-    return '${info.version} (${info.buildNumber})';
-  }
-  if (AppBuildInfo.version.isNotEmpty) return AppBuildInfo.version;
+  /// Since now we are injecting the version and build number at compile time,
+  /// we can directly use those values instead of fetching them from the platform.
   final info = await PackageInfo.fromPlatform();
   return '${info.version} (${info.buildNumber})';
 }
