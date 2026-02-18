@@ -259,6 +259,12 @@ msgstr "Mode"
 msgid "use_commas"
 msgstr "Use commas to separate multiple URLs"
 
+msgid "deep_link_expired"
+msgstr "This link has expired. Please request a new one."
+
+msgid "invalid_deep_link"
+msgstr "This link is invalid. Please request a new one."
+
 msgid "default_bypass"
 msgstr "Default Bypass Lists"
 
@@ -591,7 +597,7 @@ msgid "error"
 msgstr "Error"
 
 msgid "signup_error_user_exists"
-msgstr "It looks like something went wrong with the sign-up. Please try resetting your password, and if the issue continues, reach out to our support team"
+msgstr "It looks like something went wrong with the sign-up. Please try again or sign in if you already have an account"
 
 msgid "user_not_found"
 msgstr "User not recognized. Please check your credentials and try again. If you continue to experience issues, please reach out to our support team for assistance."
@@ -1460,6 +1466,9 @@ msgstr "Your Pro plan was purchased through Google Play. Please manage your subs
 msgid "manage_subscription_apple_app_store"
 msgstr "Your Pro plan was purchased through the Apple App Store. Please manage your subscription from your Apple ID account settings."
 
+
+msgid "create_account_error"
+msgstr "Create Account Error"
 
 
 

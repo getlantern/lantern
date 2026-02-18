@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.StringIterator
@@ -129,7 +130,7 @@ class LanternVpnService :
             ACTION_STOP_VPN -> {
                 AppLogger.d(TAG, "Received ACTION_STOP_VPN")
                 serviceScope.launch {
-                    doStopVPN()
+                    performStopVPN()
                 }
                 START_NOT_STICKY
             }
@@ -140,12 +141,27 @@ class LanternVpnService :
 
     override fun onDestroy() {
         try {
-            // Close TUN fd synchronously BEFORE cancelling scope to prevent orphaned TUN.
-            // Without this, destroy() -> doStopVPN() launches a coroutine that gets
-            // immediately cancelled by serviceScope.cancel(), leaving the TUN open and
-            // routing all traffic into a black hole.
+            AppLogger.d(TAG, "destroying LanternVpnService")
             closeTunInterface()
-            destroy()
+            // Clean up synchronously — cannot use serviceScope here because
+            // it is cancelled in the finally block below.
+            runCatching { Mobile.stopVPN() }
+                .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+            runCatching {
+                runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
+            }.onFailure { e ->
+                AppLogger.e(
+                    TAG,
+                    "DefaultNetworkMonitor.stop() failed during destroy",
+                    e
+                )
+            }
+            notificationHelper.stopVPNConnectedNotification(this)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                QuickTileService.triggerUpdateTileState(this, false)
+            }
+            serviceCleanUp()
+
         } finally {
             serviceScope.cancel()
             super.onDestroy()
@@ -173,7 +189,7 @@ class LanternVpnService :
     override fun restartService() {
         AppLogger.i(TAG, "restartService called")
         serviceScope.launch {
-            doStopVPN()
+            stopVPNTunnel()
             startVPN()
         }
     }
@@ -210,107 +226,108 @@ class LanternVpnService :
         }
     }
 
-    private suspend fun startVPN() =
-        withContext(Dispatchers.IO) {
-            if (prepare(this@LanternVpnService) != null) {
-                VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
-                return@withContext
-            }
-
-            /** As soon user tries to start VPN, we show a notification that VPN is starting
-             * This is required by OS to have foreground notification as soon as VPN service starts
-             * This notification will be replaced by connected notification once VPN is connected
-             * This is to prevent crashing in case vpn is failed to start
-             */
-            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
-            runCatching {
-                DefaultNetworkMonitor.start()
-                Mobile.startVPN(this@LanternVpnService, opts())
-                AppLogger.d(TAG, "VPN service started")
-                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-                notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
-                }
-            }.onFailure { e ->
-                AppLogger.e(TAG, "Error starting VPN service", e)
-                VpnStatusManager.postVPNError(
-                    errorCode = "start_vpn",
-                    errorMessage = "Error starting VPN service",
-                    error = e,
-                )
-                /// if starting VPN fails, we need to clean up the service
-                serviceCleanUp()
-            }
-        }
+    private suspend fun startVPN() = launchVPN(
+        errorCode = "start_vpn",
+        cleanUpOnFailure = true,
+    ) {
+        Mobile.startVPN(this@LanternVpnService, opts())
+        AppLogger.d(TAG, "VPN service started")
+    }
 
     suspend fun connectToServer(
         location: String,
         tag: String,
+    ) = launchVPN(
+        errorCode = "connect_to_server",
+        cleanUpOnFailure = false,
+    ) {
+        Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
+        AppLogger.d(TAG, "Connected to server")
+    }
+
+    /**
+     * Common flow for starting/connecting VPN: checks permission, shows foreground
+     * notification, starts network monitor, runs [connect], then updates UI on success.
+     */
+    private suspend fun launchVPN(
+        errorCode: String,
+        cleanUpOnFailure: Boolean,
+        connect: suspend () -> Unit,
     ) = withContext(Dispatchers.IO) {
         if (prepare(this@LanternVpnService) != null) {
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
-        /** As soon user tries to start VPN, we show a notification that VPN is starting
-         * This is required by OS to have foreground notification as soon as VPN service starts
-         * This notification will be replaced by connected notification once VPN is connected
-         * This is to prevent crashing in case vpn is failed to start
-         */
+        // Show foreground notification immediately — required by the OS as soon as
+        // VPN service starts, replaced by connected notification on success.
         notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
-
         runCatching {
             DefaultNetworkMonitor.start()
-            Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
-            AppLogger.d(TAG, "Connected to server")
+            connect()
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }
         }.onFailure { e ->
-            AppLogger.e(TAG, "error while connectToServer ", e)
+            AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
             VpnStatusManager.postVPNError(
-                errorCode = "connect_to_server",
-                errorMessage = "Error connecting to server",
+                errorCode = errorCode,
+                errorMessage = "Error in VPN operation",
                 error = e,
             )
+            if (cleanUpOnFailure) serviceCleanUp()
         }
     }
 
     fun doStopVPN() {
         AppLogger.d(TAG, "doStopVPN")
-        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
         serviceScope.launch {
-            try {
-                closeTunInterface()
-                runCatching { Mobile.stopVPN() }
-                    .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
-
-                runCatching { DefaultNetworkMonitor.stop() }
-                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
-                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
-                }
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                serviceCleanUp()
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "Error stopping VPN service", e)
-                VpnStatusManager.postVPNError(
-                    error = e,
-                    errorCode = "stop_vpn",
-                    errorMessage = "Error stopping VPN service",
-                )
-            }
+            performStopVPN()
         }
     }
 
-    private fun destroy() {
-        AppLogger.d(TAG, "destroying LanternVpnService")
-        doStopVPN()
-        serviceCleanUp()
-        stopSelf()
+    /**
+     * Tears down only the VPN tunnel without touching the broadcast receiver
+     * or service lifecycle. Used by [restartService] so the receiver stays
+     * registered and the service can still receive stop commands after restart.
+     */
+    private suspend fun stopVPNTunnel() {
+        try {
+            closeTunInterface()
+            runCatching { Mobile.stopVPN() }
+                .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
+
+            runCatching { DefaultNetworkMonitor.stop() }
+                .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error tearing down VPN tunnel", e)
+        }
+    }
+
+    /**
+     * Full VPN stop: tears down the tunnel, updates UI/notifications/tile,
+     * posts disconnected status, and cleans up the service (unregisters receiver).
+     * Used by [doStopVPN] and [ACTION_STOP_VPN].
+     */
+    private suspend fun performStopVPN() {
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
+        try {
+            stopVPNTunnel()
+            notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+            }
+            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+            serviceCleanUp()
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error stopping VPN service", e)
+            VpnStatusManager.postVPNError(
+                error = e,
+                errorCode = "stop_vpn",
+                errorMessage = "Error stopping VPN service",
+            )
+        }
     }
 
     private fun serviceCleanUp() {
