@@ -20,7 +20,6 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
-import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -165,7 +164,6 @@ class LanternVpnService :
 
         } finally {
             serviceScope.cancel()
-            stopSelf()
             super.onDestroy()
         }
     }

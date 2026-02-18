@@ -259,6 +259,12 @@ msgstr "Mode"
 msgid "use_commas"
 msgstr "Use commas to separate multiple URLs"
 
+msgid "deep_link_expired"
+msgstr "This link has expired. Please request a new one."
+
+msgid "invalid_deep_link"
+msgstr "This link is invalid. Please request a new one."
+
 msgid "default_bypass"
 msgstr "Default Bypass Lists"
 
@@ -1463,7 +1469,6 @@ msgstr "Your Pro plan was purchased through the Apple App Store. Please manage y
 
 msgid "create_account_error"
 msgstr "Create Account Error"
-
 
 
 
