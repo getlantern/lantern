@@ -12,6 +12,10 @@ def hasReleaseKeystore =
         hasRelProp('KEY_ALIAS') &&
         hasRelProp('KEY_PWD')
 
+def start = new Date(2015, 1, 1).getTime()
+def now = System.currentTimeMillis()
+def code = (int)((now - start) / 1000)
+
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = 36
@@ -52,7 +56,7 @@ android {
         applicationId = "org.getlantern.lantern"
         minSdkVersion = 24
         targetSdk = 36
-        versionCode = flutter.versionCode
+        versionCode = code
         versionName = flutter.versionName
 
         ndk {
