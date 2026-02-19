@@ -184,7 +184,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.appTheme(),
                 darkTheme: AppTheme.darkTheme(),
-                themeMode: AppSettingNotifier.resolveThemeMode(appSetting.themeMode),
+                themeMode: resolveThemeMode(appSetting.themeMode),
                 supportedLocales: languages
                     .map((lang) =>
                         Locale(lang.split('_').first, lang.split('_').last))

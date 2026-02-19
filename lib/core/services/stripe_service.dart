@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
+
+import 'injection_container.dart' show sl;
 
 class StripeService {
   Future<void> initialize() async {
@@ -35,6 +36,9 @@ class StripeService {
     required Function(dynamic error) onError,
   }) async {
     try {
+      final theme =
+          sl<LocalStorageService>().getAppSetting()?.themeMode ?? 'system';
+      final themeMode = resolveThemeMode(theme);
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
@@ -62,23 +66,23 @@ class StripeService {
             currencyCode: 'USD',
             testEnv: kDebugMode,
           ),
-          appearance: PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(
-              background: AppColors.gray1,
-              componentBackground: AppColors.white,
-              primary: AppColors.blue10,
-              primaryText: AppColors.gray8,
-              secondaryText: AppColors.black,
-              icon: AppColors.gray9,
-              componentBorder: AppColors.gray3,
-              componentDivider: AppColors.gray2,
-              componentText: AppColors.gray8,
-              error: AppColors.red4,
-              placeholderText: AppColors.gray9,
-            ),
-            shapes: PaymentSheetShape(borderRadius: 16),
-          ),
-          style: ThemeMode.light,
+          // appearance: PaymentSheetAppearance(
+          //   colors: PaymentSheetAppearanceColors(
+          //     background: AppColors.gray1,
+          //     componentBackground: AppColors.white,
+          //     primary: AppColors.blue10,
+          //     primaryText: AppColors.gray8,
+          //     secondaryText: AppColors.black,
+          //     icon: AppColors.gray9,
+          //     componentBorder: AppColors.gray3,
+          //     componentDivider: AppColors.gray2,
+          //     componentText: AppColors.gray8,
+          //     error: AppColors.red4,
+          //     placeholderText: AppColors.gray9,
+          //   ),
+          //   shapes: PaymentSheetShape(borderRadius: 16),
+          // ),
+          style: themeMode,
         ),
       );
 

@@ -24,7 +24,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final setting = _db.getAppSetting();
 
     if (setting != null && setting.locale.isNotEmpty) {
-      updateToolThemeMode();
+      updateToolbarThemeMode();
       return setting;
     }
     // First-time user → use device locale
@@ -32,11 +32,11 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final initial = AppSetting(locale: fallback.toString());
 
     _db.updateAppSetting(initial);
-    updateToolThemeMode();
+    updateToolbarThemeMode();
     return initial;
   }
 
-  void updateToolThemeMode() {
+  void updateToolbarThemeMode() {
     final setting = _db.getAppSetting();
     final mode = setting?.themeMode ?? 'system';
     final modeEnum = resolveThemeMode(mode);
@@ -132,24 +132,17 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setThemeMode(String mode) {
     update(state.copyWith(themeMode: mode));
-    final modeEnum = resolveThemeMode(mode);
-    if (modeEnum == ThemeMode.system || modeEnum == ThemeMode.light) {
-      windowManager.setBrightness(Brightness.light);
-    } else {
-      windowManager.setBrightness(Brightness.dark);
+    if (PlatformUtils.isDesktop) {
+      final modeEnum = resolveThemeMode(mode);
+      if (modeEnum == ThemeMode.system || modeEnum == ThemeMode.light) {
+        windowManager.setBrightness(Brightness.light);
+      } else {
+        windowManager.setBrightness(Brightness.dark);
+      }
     }
   }
 
-  static ThemeMode resolveThemeMode(String raw) {
-    switch (raw) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
-  }
+
 
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
