@@ -21,6 +21,7 @@ class Support extends StatelessWidget {
             Center(
               child: AppImage(
                 path: AppImagePaths.supportIllustration,
+                useThemeColor: false,
                 type: AssetType.svg,
                 height: 180.h,
                 width: 180.w,

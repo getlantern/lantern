@@ -207,6 +207,7 @@ class _SettingState extends ConsumerState<Setting> {
             child: AppTile(
               minHeight: 72,
               icon: AppImagePaths.lanternLogoRounded,
+              iconUseThemeColor: false,
               trailing: AppImage(path: AppImagePaths.outsideBrowser),
               label: 'unbounded'.i18n,
               subtitle: Text(

@@ -29,6 +29,7 @@ class OAuthLogin extends HookConsumerWidget {
         label: 'continue_with_apple'.i18n,
         icon: AppImagePaths.apple,
         isTaller: true,
+        iconColor: context.textPrimary,
         onPressed: () => _handleSignIn(SignUpMethodType.apple, ref, context),
       );
     }
@@ -36,6 +37,7 @@ class OAuthLogin extends HookConsumerWidget {
       label: 'continue_with_google'.i18n,
       icon: AppImagePaths.google,
       isTaller: true,
+      useThemeColor: false,
       onPressed: () => _handleSignIn(SignUpMethodType.google, ref, context),
     );
   }

@@ -148,6 +148,8 @@ class SecondaryButton extends StatelessWidget {
 
   final Color? bgColor;
   final bool? isTaller;
+  final bool? useThemeColor;
+  final Color? iconColor;
 
   const SecondaryButton({
     super.key,
@@ -158,6 +160,8 @@ class SecondaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.bgColor,
+    this.useThemeColor,
+    this.iconColor,
   });
 
   @override
@@ -178,6 +182,8 @@ class SecondaryButton extends StatelessWidget {
             icon: AppImage(
               path: icon!,
               height: iconHeight,
+              color: iconColor,
+              useThemeColor: useThemeColor??false,
             ),
             label: Text(label),
             style: _buildButtonStyle(context, button!, iconSz),

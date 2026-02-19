@@ -34,11 +34,11 @@ class PlanItem extends StatelessWidget {
       badgeStyle: badges.BadgeStyle(
         shape: badges.BadgeShape.square,
         borderSide: BorderSide(
-          color: AppColors.yellow4,
+          color: context.statusWarningText,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(16),
-        badgeColor: AppColors.yellow3,
+        badgeColor: context.statusWarningBgDot,
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
       badgeContent: Text(

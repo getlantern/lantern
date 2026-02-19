@@ -33,6 +33,7 @@ class AppTile extends StatelessWidget {
   final BorderRadius? borderRadius;
   final VisualDensity? visualDensity;
   final ListTileTitleAlignment? titleAlignment;
+  final bool? iconUseThemeColor;
 
   const AppTile({
     super.key,
@@ -59,6 +60,7 @@ class AppTile extends StatelessWidget {
     this.borderRadius,
     this.visualDensity,
     this.titleAlignment,
+    this.iconUseThemeColor,
   });
 
   factory AppTile.link({
@@ -93,8 +95,8 @@ class AppTile extends StatelessWidget {
     final textStyle = tileTextStyle ??
         theme.textTheme.labelLarge!.copyWith(
           color: enabled
-              ? context.textPrimary                             // text.primary
-              : context.textPrimary.withValues(alpha: 0.38),   // text.disabled
+              ? context.textPrimary // text.primary
+              : context.textPrimary.withValues(alpha: 0.38), // text.disabled
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
@@ -105,7 +107,10 @@ class AppTile extends StatelessWidget {
         computedLeading = SizedBox(
           width: 24,
           height: 24,
-          child: AppImage(path: icon as String),
+          child: AppImage(
+            path: icon as String,
+            useThemeColor: iconUseThemeColor ?? true,
+          ),
         );
       } else if (icon is IconData) {
         computedLeading = Icon(
@@ -131,7 +136,7 @@ class AppTile extends StatelessWidget {
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,
-      titleAlignment: titleAlignment??ListTileTitleAlignment.center,
+      titleAlignment: titleAlignment ?? ListTileTitleAlignment.center,
       enableFeedback: true,
       // hoverColor: hoverColor ?? AppColors.blue1,
       hoverColor: hoverColor ?? theme.hoverColor,
