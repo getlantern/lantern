@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -29,9 +30,9 @@ class AppearanceListView extends ConsumerWidget {
     final currentMode = ref.watch(appSettingProvider).themeMode;
 
     final options = [
-      ('system', 'system'.i18n),
-      ('light', 'light'.i18n),
-      ('dark', 'dark'.i18n),
+      ('system', 'system'.i18n,AppImagePaths.automatic),
+      ('light', 'light'.i18n,AppImagePaths.lightMode),
+      ('dark', 'dark'.i18n,AppImagePaths.darkMode),
     ];
 
     return ListView.separated(
@@ -44,16 +45,15 @@ class AppearanceListView extends ConsumerWidget {
         child: DividerSpace(),
       ),
       itemBuilder: (context, index) {
-        final (value, label) = options[index];
+        final (value, label,icon) = options[index];
         return AppTile(
+          icon: icon,
           label: label,
           minHeight: 56,
-          trailing: Radio<String>(
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          trailing: AppRadioButton<String>(
             value: value,
             groupValue: currentMode,
             onChanged: (selected) => _onSelect(selected!, ref, context),
-            activeColor: AppColors.blue7,
           ),
           onPressed: () => _onSelect(value, ref, context),
         );
@@ -71,7 +71,7 @@ void showAppearanceBottomSheet({required BuildContext context}) {
   showAppBottomSheet(
     context: context,
     title: 'appearance'.i18n,
-    scrollControlDisabledMaxHeightRatio: 0.35,
+    scrollControlDisabledMaxHeightRatio: 0.32.h,
     builder: (context, scrollController) {
       return Flexible(
         child: AppearanceListView(scrollController: scrollController),
