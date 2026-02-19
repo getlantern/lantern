@@ -135,32 +135,32 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  app_links: 05a6ec2341985eb05e9f97dc63f5837c39895c3f
-  auto_updater_macos: 3a42f1a06be6981f1a18be37e6e7bf86aa732118
-  desktop_webview_window: 7e37af677d6d19294cb433d9b1d878ef78dffa4d
-  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
-  flutter_local_notifications: 4bf37a31afde695b56091b4ae3e4d9c7a7e6cda0
-  flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
+  app_links: c3185399a5cabc2e610ee5ad52fb7269b84ff869
+  auto_updater_macos: 3e3462c418fe4e731917eacd8d28eef7af84086d
+  desktop_webview_window: d4365e71bcd4e1aa0c14cf0377aa24db0c16a7e2
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
+  flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
+  flutter_timezone: b3bc0c587d8780d395651284a1ff46eb1e5753ac
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
-  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
+  in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
+  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
   ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
-  objectbox_flutter_libs: 013bbc27a57c5120e1408c0b33386c78cd0b5847
-  objective_c: ec13431e45ba099cb734eb2829a5c1cd37986cba
+  objectbox_flutter_libs: fdba3af52a244037417fe170952a3dd819fee1af
+  objective_c: e5f8194456e8fc943e034d1af00510a1bc29c067
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
-  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
+  path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
+  screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
   Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
-  sentry_flutter: 4c33648b7e83310aa1fdb1b10c5491027d9643f0
-  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
-  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  sentry_flutter: f074f75557daea0e1dd9607381a05cc0e3e456fe
+  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
+  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   Sparkle: a346a4341537c625955751ed3ae4b340b68551fa
-  store_checker: 0b5120a0f0a0f36af7b4be01a049e6006151dc16
-  tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
-  url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
-  window_manager: b729e31d38fb04905235df9ea896128991cad99e
+  store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
+  tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
+  url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
+  window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
 PODFILE CHECKSUM: b1a5a5e815560a377d8b3e64b4f3f97e2bd372ba
 

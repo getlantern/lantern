@@ -59,7 +59,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                     signInWithPassword(passwordController.text.trim()),
                 onChanged: (value) {},
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 8),
               if (!widget.fromChangeEmail)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: defaultSize),
@@ -104,7 +104,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
 
   Widget _buildSuffix(ValueNotifier<bool> obscureText) {
     return AppImage(
-      color: context.textPromoIcon,
+      color: context.textPrimary,
       path: obscureText.value ? AppImagePaths.eyeHide : AppImagePaths.eye,
       onPressed: () {
         obscureText.value = !obscureText.value;

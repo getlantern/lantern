@@ -26,6 +26,7 @@ class VpnStatus extends HookConsumerWidget {
       label: 'vpn_status'.i18n,
       value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
+
       onTap: isExtensionNeeded(systemExtensionStatus)
           ? () {
               appRouter.push(const MacOSExtensionDialog());

@@ -53,7 +53,7 @@ class VPNSwitch extends HookConsumerWidget {
               padding: const EdgeInsets.all(8.0),
               child: CircularProgressIndicator(
                 strokeWidth: 8.r,
-                color: context.bgSurface,
+                color: context.actionToggleKnobBg,
               ),
             ),
           );
@@ -109,10 +109,10 @@ class VPNSwitch extends HookConsumerWidget {
   Color _wrapperColor(VPNStatus vpnStatus, BuildContext context) {
     switch (vpnStatus) {
       case VPNStatus.connected:
-        return AppColors.blue4;
+        return context.actionToggleBrandActiveBg;
       case VPNStatus.connecting:
       case VPNStatus.disconnected:
-        return context.textTertiary;
+        return context.actionToggleDisabledBg;
       case VPNStatus.disconnecting:
         return context.textTertiary;
       case VPNStatus.missingPermission:

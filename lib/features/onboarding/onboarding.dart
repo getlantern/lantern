@@ -46,7 +46,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
       appBar: AppBar(
         leading: const SizedBox.shrink(),
         backgroundColor: context.bgElevated,
-        title: const LanternLogo(),
+        title:  LanternLogo(color: context.textPrimary),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -91,6 +91,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                       children: [
                         AppImage(
                           path: AppImagePaths.appIconSVG,
+                          useThemeColor: false,
                         ),
                         SizedBox(height: 48),
                         Text(
@@ -164,7 +165,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode),
+            child: AppImage(path: AppImagePaths.smartRouteMode,useThemeColor: false,),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -185,7 +186,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.advanceProtocol),
+            child: AppImage(path: AppImagePaths.advanceProtocol,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -206,7 +207,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.privateServerIntro),
+            child: AppImage(path: AppImagePaths.privateServerIntro,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -227,7 +228,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.nonProfit),
+            child: AppImage(path: AppImagePaths.nonProfit,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -328,10 +329,10 @@ class RouteModeContainer extends StatelessWidget {
       duration: Duration(milliseconds: 250),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.blue1 : context.bgSurface,
+        color: isSelected ? context.bgHover : context.bgElevated,
         borderRadius: BorderRadius.circular(16.0),
         border: isSelected
-            ? Border.all(color: context.textLink, width: 3.0)
+            ? Border.all(color: context.borderInputFocus, width: 3.0)
             : Border.all(color: context.borderDefault, width: 1.0),
       ),
       child: Column(
@@ -356,13 +357,13 @@ class RouteModeContainer extends StatelessWidget {
                       EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: AppColors.blue4),
-                    color: context.textLink,
+                    border: Border.all(color: context.statusInfoBorder),
+                    color: context.statusInfoBg,
                   ),
                   child: Text(
                     tags(),
                     style:
-                        textTheme.labelMedium!.copyWith(color: context.borderInputFocus),
+                        textTheme.labelMedium!.copyWith(color: context.statusInfoText),
                   ))
             ],
           ),

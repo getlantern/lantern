@@ -14,7 +14,7 @@ class EmailTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Chip(
-      color: WidgetStatePropertyAll(AppColors.blue1),
+      color: WidgetStatePropertyAll(context.bgCallout),
       elevation: 0,
       avatar: AppImage(
         path: AppImagePaths.email,
