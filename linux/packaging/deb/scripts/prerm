@@ -1,14 +1,14 @@
 #!/bin/sh
 set -e
 
-UNIT="lantern.service"
+UNIT="lanternd.service"
 
 case "$1" in
-  remove|deconfigure)
-    if command -v systemctl >/dev/null 2>&1; then
-      systemctl stop "$UNIT" >/dev/null 2>&1 || true
-    fi
-    ;;
+remove | deconfigure)
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl stop "$UNIT" >/dev/null 2>&1 || true
+	fi
+	;;
 esac
 
 exit 0
