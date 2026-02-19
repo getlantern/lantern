@@ -98,7 +98,7 @@ dependencies:
     git:
       url: https://github.com/getlantern/tray_manager.git
       path: packages/tray_manager
-      ref: 7987b6f3aea4fc6e512e91de150c8a6ce87df98d
+      ref: e4f69663ca467c1108c1ccad9f55cf5a2154adc2
   win32_registry: ^2.1.0
   # Utils
   fpdart: ^1.2.0
