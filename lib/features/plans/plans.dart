@@ -361,6 +361,14 @@ class _PlansState extends ConsumerState<Plans> {
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();
+
+    final appSetting = ref.read(appSettingProvider);
+    if (appSetting.userLoggedIn) {
+      /// If user logged in and purchase is successful then check user account status
+      /// to reflect new purchase and send user to pro flow
+      userRenewalFlow();
+      return;
+    }
     await signUpFlow();
   }
 
@@ -376,16 +384,18 @@ class _PlansState extends ConsumerState<Plans> {
       }
       final user = ref.read(homeProvider).value;
       final email = user!.legacyUserData.email;
+
       /// User is logged but not pro, this can be because user has created account but did not complete purchase flow or user has created account and their plan is expired
-        appRouter.push(ChoosePaymentMethod(email: email, authFlow: ))
+      appRouter.push(ChoosePaymentMethod(
+          email: email, authFlow: AuthFlow.renewSubscription));
       return;
     }
     appLogger.debug('Sending user to AddEmail screen for sign up');
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
-  Future<void> userExpiredFlow() async {
-    appLogger.info('User account is expired, sending to Pro flow');
+  Future<void> userRenewalFlow() async {
+    appLogger.info('User account is expired/free, sending to Pro flow');
     context.showLoadingDialog();
     appLogger.debug("Checking user account status");
     final isPro = await checkUserAccountStatus(ref, context);
