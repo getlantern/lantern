@@ -13,6 +13,7 @@ import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -360,28 +361,41 @@ class _PlansState extends ConsumerState<Plans> {
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();
+
+    final appSetting = ref.read(appSettingProvider);
+    if (appSetting.userLoggedIn) {
+      /// If user logged in and purchase is successful then check user account status
+      /// to reflect new purchase and send user to pro flow
+      userRenewalFlow();
+      return;
+    }
     await signUpFlow();
   }
 
   Future<void> signUpFlow() async {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
-      /// Check if user is expired or not, if expired send to pro flow if not send to home screen
-      final isUserExpired = ref.read(isUserExpiredProvider);
-      if (isUserExpired) {
-        await userExpiredFlow();
+      /// Check if user is pro or not
+      final isPro = ref.read(isUserProProvider);
+      if (isPro) {
+        appLogger.info('User is already Pro, sending to Pro flow');
+        useProFlow();
         return;
       }
-      appLogger.info('User already logged in, checking account status');
-      useProFlow();
+      final user = ref.read(homeProvider).value;
+      final email = user!.legacyUserData.email;
+
+      /// User is logged but not pro, this can be because user has created account but did not complete purchase flow or user has created account and their plan is expired
+      appRouter.push(ChoosePaymentMethod(
+          email: email, authFlow: AuthFlow.renewSubscription));
       return;
     }
     appLogger.debug('Sending user to AddEmail screen for sign up');
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
-  Future<void> userExpiredFlow() async {
-    appLogger.info('User account is expired, sending to Pro flow');
+  Future<void> userRenewalFlow() async {
+    appLogger.info('User account is expired/free, sending to Pro flow');
     context.showLoadingDialog();
     appLogger.debug("Checking user account status");
     final isPro = await checkUserAccountStatus(ref, context);
