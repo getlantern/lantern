@@ -43,21 +43,13 @@ make linux-release
 sudo apt install ./lantern-installer-*.deb
 ```
 
-3. Add desktop user to `lantern` group
+3. Check daemon status
 
 ```bash
-id -nG "$USER" | grep -qw lantern || sudo usermod -aG lantern "$USER"
+systemctl status lanternd.service
 ```
 
-Log out and back in after adding group membership.
-
-4. Check daemon status
-
-```bash
-systemctl status lantern.service
-```
-
-5. Run Lantern app as your normal user
+4. Run Lantern app as your normal user
 
 ```bash
 flutter run -d linux
@@ -66,15 +58,15 @@ flutter run -d linux
 Troubleshooting:
 
 ```bash
-journalctl -u lantern.service -n 200 --no-pager
+journalctl -u lanternd.service -n 200 --no-pager
 ```
 
 Uninstall / cleanup:
 
 ```bash
-sudo systemctl disable --now lantern.service
+sudo systemctl disable --now lanternd.service
 sudo apt remove lantern
-sudo rm -f /usr/lib/systemd/system/lantern.service /usr/lib/lantern/lanternd
+sudo rm -f /usr/lib/systemd/system/lanternd.service /usr/lib/lantern/lanternd
 sudo systemctl daemon-reload
 ```
 
