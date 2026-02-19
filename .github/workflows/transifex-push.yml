@@ -3,6 +3,9 @@ name: "Push to transifex"
 on:
   push:
     branches: [main]
+    paths:
+      - "assets/locales/en.po"
+      - ".tx/config"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,5 +21,6 @@ jobs:
       - name: "Push main translations file"
         uses: transifex/cli-action@v2
         with:
-          token: ${{ secrets.TRANSIFEX_TOKEN }}
-          args: push -s
+          # Prefer dedicated write token; fallback keeps backward compatibility.
+          token: ${{ secrets.TRANSIFEX_PUSH_TOKEN != '' && secrets.TRANSIFEX_PUSH_TOKEN || secrets.TRANSIFEX_TOKEN }}
+          args: --verbose push -s

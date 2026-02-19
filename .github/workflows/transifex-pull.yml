@@ -11,6 +11,8 @@ jobs:
   pull-strings-from-transifex:
     name: pull-strings-from-transifex
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Granting private modules access
         run: |
@@ -22,12 +24,21 @@ jobs:
       - name: "Pull translations file"
         uses: transifex/cli-action@v2
         with:
-          token: ${{ secrets.TRANSIFEX_TOKEN }}
-          args: pull
+          # Prefer dedicated read token; fallback keeps backward compatibility.
+          token: ${{ secrets.TRANSIFEX_PULL_TOKEN != '' && secrets.TRANSIFEX_PULL_TOKEN || secrets.TRANSIFEX_TOKEN }}
+          args: --verbose pull
 
       - name: "Update translations"
         run: |
+          set -euo pipefail
           git config user.name git
           git config user.email github-actions@github.com
-          git ls-files --modified assets/locales | xargs git add
-          git diff --cached --exit-code || git commit -m "updated translations..." && git push origin main
+          git add assets/locales/*.po
+
+          if git diff --cached --quiet; then
+            echo "No translation updates to commit."
+            exit 0
+          fi
+
+          git commit -m "updated translations..."
+          git push origin main
