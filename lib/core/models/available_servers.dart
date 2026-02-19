@@ -104,15 +104,23 @@ class Location_ {
         tag: "",
       );
 
-  Location_ copyWith({String? city}) {
+  Location_ copyWith({
+    String? country,
+    String? countryCode,
+    String? city,
+    double? latitude,
+    double? longitude,
+    String? tag,
+    String? protocol,
+  }) {
     return Location_(
-      country: country,
-      countryCode: countryCode,
+      country: country ?? this.country,
+      countryCode: countryCode ?? this.countryCode,
       city: city ?? this.city,
-      latitude: latitude,
-      longitude: longitude,
-      tag: tag,
-    )..protocol = protocol;
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      tag: tag ?? this.tag,
+    )..protocol = protocol ?? this.protocol;
   }
 
   Map<String, dynamic> toJson() => {
