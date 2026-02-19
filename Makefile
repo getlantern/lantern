@@ -48,8 +48,11 @@ LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
 LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/sbin
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
 LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
+
+define LINUX_SYSTEMD_UNIT_SRC
+$(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
+endef
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
@@ -292,7 +295,7 @@ stage-linux-service: linux-service-amd64
 	$(call MKDIR_P,$(LINUX_PKG_USR_LIB_LANTERN))
 	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_PKG_USR_LIB_LANTERN)/$(LINUX_SERVICE_NAME))
 	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+	$(call COPY_FILE,$(call LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
 
 .PHONY: linux-debug
 linux-debug:
