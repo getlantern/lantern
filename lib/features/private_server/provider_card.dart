@@ -40,7 +40,7 @@ class ProviderCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AppImage(path: icon, width: 20, height: 20),
+                AppImage(path: icon, width: 20, height: 20,useThemeColor: false,),
                 const SizedBox(width: defaultSize),
                 Expanded(
                   child: Text(
@@ -107,6 +107,7 @@ class CheckmarkTile extends StatelessWidget {
               path: iconPath ?? AppImagePaths.checkmark,
               width: 24,
               height: 24,
+              useThemeColor: false,
             ),
             const SizedBox(width: 16),
             Expanded(

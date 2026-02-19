@@ -27,7 +27,7 @@ class InviteFriends extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Center(child: AppImage(path: AppImagePaths.startIllustration)),
+          Center(child: AppImage(path: AppImagePaths.startIllustration,useThemeColor: false,)),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),

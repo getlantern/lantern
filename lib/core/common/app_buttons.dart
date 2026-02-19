@@ -22,6 +22,7 @@ class PrimaryButton extends StatelessWidget {
   final Color? bgColor;
   final Color? textColor;
   final bool? isTaller;
+  final bool? useThemeColor;
 
   // Default constructor for button without an icon
   const PrimaryButton({
@@ -34,6 +35,7 @@ class PrimaryButton extends StatelessWidget {
     this.expanded = true,
     this.isTaller = false,
     this.showBorder = false,
+    this.useThemeColor,
     this.icon,
     super.key,
   });
@@ -57,7 +59,7 @@ class PrimaryButton extends StatelessWidget {
               path: icon!,
               height: iconHeight,
               color: iconColor,
-              useThemeColor: false,
+              useThemeColor: useThemeColor ?? true,
             ),
             label: Text(label),
             style: _buildButtonStyle(context, button!, iconSz),
@@ -183,7 +185,7 @@ class SecondaryButton extends StatelessWidget {
               path: icon!,
               height: iconHeight,
               color: iconColor,
-              useThemeColor: useThemeColor??false,
+              useThemeColor: useThemeColor ?? false,
             ),
             label: Text(label),
             style: _buildButtonStyle(context, button!, iconSz),
