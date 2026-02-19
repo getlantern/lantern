@@ -192,6 +192,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	if runtime.GOOS == "linux" {
+		slog.Debug("Setting IPC settings path for Linux", "path", settings.GetString(settings.DataPathKey))
 		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
 			slog.Error("Failed to set IPC settings path", "error", err)
 			return fmt.Errorf("failed to set IPC settings path: %w", err)

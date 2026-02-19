@@ -46,10 +46,10 @@ LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
 LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
 LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
-LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/lib/lantern
+LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/sbin
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(LINUX_PKG_ROOT)/systemd/lantern.service
-LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lantern.service
+LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
+LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
