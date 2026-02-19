@@ -50,10 +50,6 @@ LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/sbin
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
 LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
-define LINUX_SYSTEMD_UNIT_SRC
-$(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
-endef
-
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
   MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
@@ -295,7 +291,7 @@ stage-linux-service: linux-service-amd64
 	$(call MKDIR_P,$(LINUX_PKG_USR_LIB_LANTERN))
 	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_PKG_USR_LIB_LANTERN)/$(LINUX_SERVICE_NAME))
 	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	$(call COPY_FILE,$(call LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+	cp $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service $(LINUX_SYSTEMD_UNIT_DST)
 
 .PHONY: linux-debug
 linux-debug:
