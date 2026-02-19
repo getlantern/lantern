@@ -24,8 +24,7 @@ jobs:
       - name: "Pull translations file"
         uses: transifex/cli-action@v2
         with:
-          # Prefer dedicated read token; fallback keeps backward compatibility.
-          token: ${{ secrets.TRANSIFEX_PULL_TOKEN != '' && secrets.TRANSIFEX_PULL_TOKEN || secrets.TRANSIFEX_TOKEN }}
+          token: ${{ secrets.TRANSIFEX_PULL_TOKEN }}
           args: --verbose pull
 
       - name: "Update translations"

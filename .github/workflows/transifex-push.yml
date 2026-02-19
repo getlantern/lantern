@@ -21,6 +21,5 @@ jobs:
       - name: "Push main translations file"
         uses: transifex/cli-action@v2
         with:
-          # Prefer dedicated write token; fallback keeps backward compatibility.
-          token: ${{ secrets.TRANSIFEX_PUSH_TOKEN != '' && secrets.TRANSIFEX_PUSH_TOKEN || secrets.TRANSIFEX_TOKEN }}
+          token: ${{ secrets.TRANSIFEX_PUSH_TOKEN }}
           args: --verbose push -s
