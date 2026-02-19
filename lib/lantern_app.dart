@@ -158,7 +158,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(appSettingProvider).locale;
+    final appSetting = ref.watch(appSettingProvider);
+    final locale = appSetting.locale;
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
       overlayColor: Colors.black.withOpacity(0.5),
@@ -181,10 +182,9 @@ class _LanternAppState extends ConsumerState<LanternApp> {
               child: MaterialApp.router(
                 locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
-                theme: AppTheme.darkTheme(),
-
-                themeMode: ThemeMode.light,
+                theme: AppTheme.appTheme(),
                 darkTheme: AppTheme.darkTheme(),
+                themeMode: AppSettingNotifier.resolveThemeMode(appSetting.themeMode),
                 supportedLocales: languages
                     .map((lang) =>
                         Locale(lang.split('_').first, lang.split('_').last))

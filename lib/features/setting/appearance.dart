@@ -1,0 +1,92 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+
+@RoutePage(name: 'Appearance')
+class Appearance extends StatelessWidget {
+  const Appearance({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseScreen(
+      title: 'appearance'.i18n,
+      body: Card(
+        child: AppearanceListView(),
+      ),
+    );
+  }
+}
+
+class AppearanceListView extends ConsumerWidget {
+  final ScrollController? scrollController;
+
+  const AppearanceListView({super.key, this.scrollController});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.watch(appSettingProvider).themeMode;
+
+    final options = [
+      ('system', 'system'.i18n),
+      ('light', 'light'.i18n),
+      ('dark', 'dark'.i18n),
+    ];
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      itemCount: options.length,
+      separatorBuilder: (_, __) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: DividerSpace(),
+      ),
+      itemBuilder: (context, index) {
+        final (value, label) = options[index];
+        return AppTile(
+          label: label,
+          minHeight: 56,
+          trailing: Radio<String>(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            value: value,
+            groupValue: currentMode,
+            onChanged: (selected) => _onSelect(selected!, ref, context),
+            activeColor: AppColors.blue7,
+          ),
+          onPressed: () => _onSelect(value, ref, context),
+        );
+      },
+    );
+  }
+
+  void _onSelect(String mode, WidgetRef ref, BuildContext context) {
+    ref.read(appSettingProvider.notifier).setThemeMode(mode);
+    appRouter.maybePop();
+  }
+}
+
+void showAppearanceBottomSheet({required BuildContext context}) {
+  showAppBottomSheet(
+    context: context,
+    title: 'appearance'.i18n,
+    scrollControlDisabledMaxHeightRatio: 0.35,
+    builder: (context, scrollController) {
+      return Flexible(
+        child: AppearanceListView(scrollController: scrollController),
+      );
+    },
+  );
+}
+
+String appearanceModeLabel(String mode) {
+  switch (mode) {
+    case 'light':
+      return 'light'.i18n;
+    case 'dark':
+      return 'dark'.i18n;
+    default:
+      return 'system'.i18n;
+  }
+}

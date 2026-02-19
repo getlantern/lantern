@@ -117,6 +117,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(onboardingCompleted: value));
   }
 
+  void setThemeMode(String mode) {
+    update(state.copyWith(themeMode: mode));
+  }
+
+  static ThemeMode resolveThemeMode(String raw) {
+    switch (raw) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'

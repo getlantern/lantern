@@ -58,90 +58,6 @@
       "relations": []
     },
     {
-      "id": "2:687217704776011576",
-      "lastPropertyId": "21:1946758950007753981",
-      "name": "AppSetting",
-      "properties": [
-        {
-          "id": "1:3510248969077851513",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:9205281046748929972",
-          "name": "isPro",
-          "type": 1
-        },
-        {
-          "id": "3:3039149514872679626",
-          "name": "isSplitTunnelingOn",
-          "type": 1
-        },
-        {
-          "id": "4:8380353672446932820",
-          "name": "locale",
-          "type": 9
-        },
-        {
-          "id": "5:2654649825181931771",
-          "name": "oAuthToken",
-          "type": 9
-        },
-        {
-          "id": "6:6744815296056712828",
-          "name": "userLoggedIn",
-          "type": 1
-        },
-        {
-          "id": "7:7437540425271471596",
-          "name": "blockAds",
-          "type": 1
-        },
-        {
-          "id": "8:2584154697741095523",
-          "name": "email",
-          "type": 9
-        },
-        {
-          "id": "9:4176228116314272090",
-          "name": "showSplashScreen",
-          "type": 1
-        },
-        {
-          "id": "13:8918901309223826671",
-          "name": "telemetryConsent",
-          "type": 1
-        },
-        {
-          "id": "14:2408270352417603228",
-          "name": "telemetryDialogDismissed",
-          "type": 1
-        },
-        {
-          "id": "15:2605651149110192739",
-          "name": "successfulConnection",
-          "type": 1
-        },
-        {
-          "id": "17:557133969672494375",
-          "name": "routingModeRaw",
-          "type": 9
-        },
-        {
-          "id": "20:4262300231135451242",
-          "name": "dataCapThreshold",
-          "type": 9
-        },
-        {
-          "id": "21:1946758950007753981",
-          "name": "onboardingCompleted",
-          "type": 1
-        }
-      ],
-      "relations": []
-    },
-    {
       "id": "3:4249170330039132700",
       "lastPropertyId": "4:4534248771562227303",
       "name": "DeviceEntity",
@@ -685,9 +601,98 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "17:8661061886838292286",
+      "lastPropertyId": "16:8049257509815119733",
+      "name": "AppSetting",
+      "properties": [
+        {
+          "id": "1:8037386487668546069",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1591384077759803365",
+          "name": "isPro",
+          "type": 1
+        },
+        {
+          "id": "3:5292415584449464820",
+          "name": "isSplitTunnelingOn",
+          "type": 1
+        },
+        {
+          "id": "4:3266138521563130663",
+          "name": "locale",
+          "type": 9
+        },
+        {
+          "id": "5:8115799101639218498",
+          "name": "oAuthToken",
+          "type": 9
+        },
+        {
+          "id": "6:8211717273441765679",
+          "name": "userLoggedIn",
+          "type": 1
+        },
+        {
+          "id": "7:8907045160547700789",
+          "name": "blockAds",
+          "type": 1
+        },
+        {
+          "id": "8:567693350846855659",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "9:456902696178716206",
+          "name": "showSplashScreen",
+          "type": 1
+        },
+        {
+          "id": "10:7148545157010430280",
+          "name": "telemetryDialogDismissed",
+          "type": 1
+        },
+        {
+          "id": "11:4439176666553164584",
+          "name": "telemetryConsent",
+          "type": 1
+        },
+        {
+          "id": "12:3699987776229950970",
+          "name": "successfulConnection",
+          "type": 1
+        },
+        {
+          "id": "13:91293558085631614",
+          "name": "routingModeRaw",
+          "type": 9
+        },
+        {
+          "id": "14:6638341417583612329",
+          "name": "dataCapThreshold",
+          "type": 9
+        },
+        {
+          "id": "15:5612718988166415962",
+          "name": "onboardingCompleted",
+          "type": 1
+        },
+        {
+          "id": "16:8049257509815119733",
+          "name": "themeMode",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "16:7100413957344193553",
+  "lastEntityId": "17:8661061886838292286",
   "lastIndexId": "3:1452151582306513699",
   "lastRelationId": "3:5180174885065282242",
   "lastSequenceId": "0:0",
@@ -695,7 +700,8 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
     2570208090016598017,
-    893519286503285129
+    893519286503285129,
+    687217704776011576
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -715,7 +721,22 @@
     6825758662513353714,
     4485043618273916447,
     1036551397142037630,
-    1521778634983396518
+    1521778634983396518,
+    3510248969077851513,
+    9205281046748929972,
+    3039149514872679626,
+    8380353672446932820,
+    2654649825181931771,
+    6744815296056712828,
+    7437540425271471596,
+    2584154697741095523,
+    4176228116314272090,
+    8918901309223826671,
+    2408270352417603228,
+    2605651149110192739,
+    557133969672494375,
+    4262300231135451242,
+    1946758950007753981
   ],
   "retiredRelationUids": [],
   "version": 1

@@ -20,6 +20,7 @@ class AppSetting {
   String routingModeRaw;
   String dataCapThreshold;
   bool onboardingCompleted;
+  String themeMode;
 
   AppSetting({
     this.id = 0,
@@ -37,6 +38,7 @@ class AppSetting {
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
+    this.themeMode = 'system',
   });
 
   AppSetting copyWith({
@@ -54,6 +56,7 @@ class AppSetting {
     String? routingModeRaw,
     String? dataCapThreshold,
     bool? onboardingCompleted,
+    String? themeMode,
   }) {
     return AppSetting(
       id: id,
@@ -71,6 +74,7 @@ class AppSetting {
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 

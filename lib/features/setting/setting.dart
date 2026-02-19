@@ -11,6 +11,8 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/setting/appearance.dart'
+    show appearanceModeLabel, showAppearanceBottomSheet;
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 
@@ -49,6 +51,7 @@ class _SettingState extends ConsumerState<Setting> {
         localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
     final locale = appSetting.locale;
+    final themeMode = appSetting.themeMode;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final user = ref.watch(homeProvider).value;
@@ -136,6 +139,18 @@ class _SettingState extends ConsumerState<Setting> {
                     ),
                   ),
                   onPressed: () => settingMenuTap(_SettingType.language),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'appearance'.i18n,
+                  icon: AppImagePaths.theme,
+                  trailing: Text(
+                    appearanceModeLabel(themeMode),
+                    style: textTheme.titleMedium!.copyWith(
+                      color: context.textLink,
+                    ),
+                  ),
+                  onPressed: () => settingMenuTap(_SettingType.appearance),
                 ),
                 DividerSpace(),
                 if (PlatformUtils.isDesktop)
@@ -236,8 +251,12 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(Language());
         return;
       case _SettingType.appearance:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        if (PlatformUtils.isDesktop) {
+          appRouter.push(const Appearance());
+          return;
+        }
+        showAppearanceBottomSheet(context: context);
+        break;
       case _SettingType.support:
         appRouter.push(Support());
         break;
