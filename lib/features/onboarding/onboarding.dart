@@ -55,86 +55,88 @@ class _OnboardingState extends ConsumerState<Onboarding> {
       body: Container(
         color: AppColors.white,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: FlutterCarousel(
-                options: FlutterCarouselOptions(
-                  onPageChanged: (index, reason) {
-                    pageIndex.value = index;
-                  },
-                  controller: controller.value,
-                  height: double.infinity,
-                  viewportFraction: 1.0,
-                  showIndicator: true,
-                  pageSnapping: true,
-                  floatingIndicator: true,
-                  slideIndicator: CircularSlideIndicator(
-                    slideIndicatorOptions: SlideIndicatorOptions(
-                      indicatorRadius: 5,
-                      itemSpacing: 15,
-                      indicatorBorderWidth: 0.0,
-                      currentIndicatorColor: AppColors.blue3,
-                      indicatorBackgroundColor: AppColors.gray3,
-                      enableAnimation: true,
-                      padding: EdgeInsets.only(bottom: 10.0),
-                      alignment: Alignment.bottomCenter,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: FlutterCarousel(
+                  options: FlutterCarouselOptions(
+                    onPageChanged: (index, reason) {
+                      pageIndex.value = index;
+                    },
+                    controller: controller.value,
+                    height: double.infinity,
+                    viewportFraction: 1.0,
+                    showIndicator: true,
+                    pageSnapping: true,
+                    floatingIndicator: true,
+                    slideIndicator: CircularSlideIndicator(
+                      slideIndicatorOptions: SlideIndicatorOptions(
+                        indicatorRadius: 5,
+                        itemSpacing: 15,
+                        indicatorBorderWidth: 0.0,
+                        currentIndicatorColor: AppColors.blue3,
+                        indicatorBackgroundColor: AppColors.gray3,
+                        enableAnimation: true,
+                        padding: EdgeInsets.only(bottom: 10.0),
+                        alignment: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
+                  items: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppImage(
+                          path: AppImagePaths.appIconSVG,
+                        ),
+                        SizedBox(height: 48),
+                        Text(
+                          'welcome_to_lantern'.i18n,
+                          style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.gray8),
+                        ),
+                        SizedBox(height: 16),
+                        Text('lantern_pro_tagline'.i18n)
+                      ],
+                    ),
+                    slide2(context),
+                    if (!PlatformUtils.isIOS) slide3(context),
+                  ],
                 ),
-                items: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AppImage(
-                        path: AppImagePaths.appIconSVG,
-                      ),
-                      SizedBox(height: 48),
-                      Text(
-                        'welcome_to_lantern'.i18n,
-                        style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.gray8),
-                      ),
-                      SizedBox(height: 16),
-                      Text('lantern_pro_tagline'.i18n)
-                    ],
-                  ),
-                  slide2(context),
-                  if (!PlatformUtils.isIOS) slide3(context),
-                ],
               ),
-            ),
-            PrimaryButton(
-              label:
-                  pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
-              isTaller: true,
-              onPressed: () {
-                if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                  onboardingCompleted();
-                  return;
-                }
-                if (pageIndex.value == 2) {
-                  onboardingCompleted();
-                  return;
-                }
-                controller.value.nextPage();
-              },
-            ),
-            if (pageIndex.value == 0) ...{
-              SizedBox(height: 12.0),
-              AppTextButton(
-                label: 'skip_connect_now'.i18n,
-                textColor: AppColors.gray9,
+              PrimaryButton(
+                label:
+                    pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
+                isTaller: true,
                 onPressed: () {
-                  onboardingCompleted();
+                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
+                    onboardingCompleted();
+                    return;
+                  }
+                  if (pageIndex.value == 2) {
+                    onboardingCompleted();
+                    return;
+                  }
+                  controller.value.nextPage();
                 },
-              )
-            },
-            SizedBox(height: 28.0),
-          ],
+              ),
+              if (pageIndex.value == 0) ...{
+                SizedBox(height: 12.0),
+                AppTextButton(
+                  label: 'skip_connect_now'.i18n,
+                  textColor: AppColors.gray9,
+                  onPressed: () {
+                    onboardingCompleted();
+                  },
+                )
+              },
+              SizedBox(height: 28.0),
+            ],
+          ),
         ),
       ),
     );
