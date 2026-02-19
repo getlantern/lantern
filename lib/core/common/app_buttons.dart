@@ -343,7 +343,6 @@ class AppRadioButton<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sz = hCap(context, 24);
-
     return SizedBox(
       width: sz,
       height: sz,
@@ -351,6 +350,7 @@ class AppRadioButton<T> extends StatelessWidget {
         value: value,
         groupValue: groupValue,
         onChanged: onChanged,
+        activeColor: context.textLink,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
       ),

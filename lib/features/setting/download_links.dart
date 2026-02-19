@@ -38,6 +38,7 @@ class DownloadLinks extends StatelessWidget {
           Card(
             child: AppTile(
               icon: AppImagePaths.lanternLogoRounded,
+              iconUseThemeColor: false,
               trailing: AppImage(path: AppImagePaths.outsideBrowser),
               label: 'lantern_io'.i18n,
               onPressed: () {

@@ -74,14 +74,13 @@ class LanguageListView extends HookConsumerWidget {
         AppTile(
           label: displayLanguage(langCode),
           onPressed: () => onLanguageTap(langCode),
-          trailing: Radio<String>(
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          trailing: AppRadioButton<String>(
             value: langCode,
             groupValue: locale.toString(),
             onChanged: (value) {
               onLanguageTap(value!);
             },
-            activeColor: AppColors.blue7,
+            // activeColor: AppColors.blue7,
           ),
           minHeight: 56,
         ),

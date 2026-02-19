@@ -160,7 +160,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [AppImage(path: AppImagePaths.blot)],
+              children: [AppImage(path: AppImagePaths.blot,color: context.statusWarningBgDot,)],
             ),
           ),
         ),
