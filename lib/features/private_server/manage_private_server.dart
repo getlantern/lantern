@@ -52,7 +52,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 unselectedLabelColor: Colors.grey,
                 labelStyle: textTheme!.titleSmall,
                 indicator: BoxDecoration(
-                  color: AppColors.blue2,
+                  color: context.textLink,
                   borderRadius: BorderRadius.circular(40),
                   shape: BoxShape.rectangle,
                   border: Border.all(color: AppColors.blue3, width: 1),
@@ -110,7 +110,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(Icons.delete_outline, color: AppColors.gray9),
+                      icon: Icon(Icons.delete_outline, color: context.textPrimary),
                       iconSize: 24,
                       onPressed: () => showDeleteDialog(item.serverName),
                     ),
@@ -123,9 +123,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
                     icon: AppImagePaths.shareV2,
-                    iconColor: AppColors.gray9,
+                    iconColor: context.textPrimary,
                     showBorder: true,
-                    textColor: AppColors.gray9,
+                    textColor: context.textPrimary,
                     onPressed: () => onTapShareAccessKey(item)),
                 SizedBox(height: 16),
               }
@@ -181,7 +181,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         action: [
           AppTextButton(
             label: 'cancel'.i18n,
-            textColor: AppColors.gray6,
+            textColor: context.textDisabled,
             onPressed: () {
               appRouter.pop();
             },
@@ -253,7 +253,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       action: [
         AppTextButton(
           label: 'cancel',
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },
@@ -292,7 +292,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       action: [
         AppTextButton(
           label: 'cancel'.i18n,
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },

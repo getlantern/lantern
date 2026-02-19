@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 class HeaderText extends StatelessWidget {
   final String text;
@@ -26,7 +26,9 @@ class HeaderText extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Text(
       text,
-      style: textTheme.labelLarge?.copyWith(color: AppColors.gray8),
+      style: textTheme.labelLarge?.copyWith(
+        color: color ?? context.textSecondary,
+      ),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,

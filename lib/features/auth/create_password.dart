@@ -45,7 +45,7 @@ class CreatePassword extends HookConsumerWidget {
                 hintText: '',
                 prefixIcon: AppImagePaths.lock,
                 label: "create_password".i18n,
-                suffixIcon: _buildSuffix(obscureText),
+                suffixIcon: _buildSuffix(obscureText, context),
                 obscureText: obscureText.value,
                 onSubmitted: (_) {
                   if (passwordTextController.text.isPasswordValid()) {
@@ -74,9 +74,9 @@ class CreatePassword extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSuffix(ValueNotifier<bool> obscureText) {
+  Widget _buildSuffix(ValueNotifier<bool> obscureText, BuildContext context) {
     return AppImage(
-      color: AppColors.yellow9,
+      color: context.textPromoIcon,
       path: obscureText.value ? AppImagePaths.eyeHide : AppImagePaths.eye,
       onPressed: () {
         obscureText.value = !obscureText.value;

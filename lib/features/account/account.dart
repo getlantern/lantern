@@ -41,7 +41,7 @@ class Account extends HookConsumerWidget {
             backgroundColor: AppColors.red1,
             borderColor: AppColors.red2,
             textStyle: theme.labelLarge!.copyWith(
-              color: AppColors.red9,
+              color: buildContext.statusErrorBg,
             ),
             text: 'pro_subscription_expired_message'.i18n,
           ),
@@ -59,7 +59,7 @@ class Account extends HookConsumerWidget {
           child: Text(
             'lantern_pro_email'.i18n,
             style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              color: buildContext.textSecondary,
             ),
           ),
         ),
@@ -90,7 +90,7 @@ class Account extends HookConsumerWidget {
             child: Text(
               'last_subscription_renewal_date'.i18n,
               style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           )
@@ -102,7 +102,7 @@ class Account extends HookConsumerWidget {
                   ? 'subscription_renewal_date'.i18n
                   : 'pro_account_expiration'.i18n,
               style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           ),
@@ -120,7 +120,7 @@ class Account extends HookConsumerWidget {
           child: Text(
             'lantern_pro_devices'.i18n,
             style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              color: buildContext.textSecondary,
             ),
           ),
         ),
@@ -140,7 +140,7 @@ class Account extends HookConsumerWidget {
           child: Text(
             'danger_zone'.i18n,
             style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              color: buildContext.textSecondary,
             ),
           ),
         ),
@@ -151,7 +151,7 @@ class Account extends HookConsumerWidget {
             label: 'delete_account'.i18n,
             trailing: AppTextButton(
               label: 'delete'.i18n,
-              textColor: AppColors.red7,
+              textColor: buildContext.statusErrorBg,
               onPressed: _onDeleteTap,
             ),
           ),
@@ -337,7 +337,7 @@ class Account extends HookConsumerWidget {
       action: [
         AppTextButton(
           label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
+          textColor: context.textSecondary,
           onPressed: () {
             appRouter.pop();
           },
@@ -362,7 +362,7 @@ class Account extends HookConsumerWidget {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ],

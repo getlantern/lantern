@@ -69,7 +69,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
             child: Text(
               'private_server_setup_in_progress'.i18n,
               style: textTheme!.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -106,7 +106,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 16),
           Text(
             'private_server_ready_message'.i18n.fill([widget.serverName]),
-            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
+            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),
@@ -116,7 +116,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
         ),
         AppTextButton(
           label: "go_to_server_locations".i18n,
@@ -149,7 +149,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 16),
           Text(
             'server_setup_failed_message'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
+            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),
@@ -159,7 +159,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
         ),
         AppTextButton(
           label: "retry".i18n,

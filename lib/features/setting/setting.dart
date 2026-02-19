@@ -99,7 +99,7 @@ class _SettingState extends ConsumerState<Setting> {
                     : Text(
                         email,
                         style: textTheme.labelMedium!.copyWith(
-                          color: AppColors.blue7,
+                          color: context.textLink,
                         ),
                       ),
                 onPressed: () => settingMenuTap(_SettingType.account),
@@ -132,7 +132,7 @@ class _SettingState extends ConsumerState<Setting> {
                   trailing: Text(
                     displayLanguage(locale),
                     style: textTheme.titleMedium!.copyWith(
-                      color: AppColors.blue7,
+                      color: context.textLink,
                     ),
                   ),
                   onPressed: () => settingMenuTap(_SettingType.language),
@@ -198,7 +198,7 @@ class _SettingState extends ConsumerState<Setting> {
             child: Text(
               'lantern_projects'.i18n,
               style: textTheme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -212,7 +212,7 @@ class _SettingState extends ConsumerState<Setting> {
               subtitle: Text(
                 'help_fight_global_internet_censorship'.i18n,
                 style: textTheme.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+                  color: context.textTertiary,
                 ),
               ),
               onPressed: () {

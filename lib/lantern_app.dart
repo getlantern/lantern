@@ -181,7 +181,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
               child: MaterialApp.router(
                 locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
-                theme: AppTheme.appTheme(),
+                theme: AppTheme.darkTheme(),
 
                 themeMode: ThemeMode.light,
                 darkTheme: AppTheme.darkTheme(),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 
 class AppSearchBar extends AppBar {
@@ -64,7 +64,7 @@ class _SearchBarContent extends HookConsumerWidget {
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(
-                      color: AppColors.gray7,
+                      color: context.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                     ),
@@ -75,7 +75,7 @@ class _SearchBarContent extends HookConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.gray9,
+                    color: context.textPrimary,
                   ),
                 )
               : Text(
@@ -83,7 +83,7 @@ class _SearchBarContent extends HookConsumerWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.gray9,
+                    color: context.textPrimary,
                   ),
                 ),
         ),

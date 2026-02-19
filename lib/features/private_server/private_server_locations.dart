@@ -57,7 +57,7 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
           child: Text(
             '${widget.provider.displayName} Location Options (${widget.location.length}) ',
             style: textTheme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ),

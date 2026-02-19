@@ -46,7 +46,7 @@ class ProviderCard extends StatelessWidget {
                   child: Text(
                     title,
                     style: t.titleMedium?.copyWith(
-                      color: AppColors.black1,
+                      color: context.textPrimary,
                       fontWeight: FontWeight.w600,
                       // height: 1.50,
                     ),
@@ -115,7 +115,7 @@ class CheckmarkTile extends StatelessWidget {
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: t.bodyMedium?.copyWith(
-                  color: AppColors.black1,
+                  color: context.textPrimary,
                   height: 1.64,
                 ),
               ),
@@ -134,7 +134,7 @@ class CheckmarkTile extends StatelessWidget {
     return Column(
       children: [
         row,
-        Divider(height: 1, color: AppColors.gray2),
+        Divider(height: 1, color: context.borderDefault),
       ],
     );
   }

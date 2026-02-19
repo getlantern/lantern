@@ -17,6 +17,9 @@ class AppImage extends StatelessWidget {
   final AssetType type;
   final OnPressed? onPressed;
   final BoxFit? fit;
+  // Set to false for decorative/multicolor assets (illustrations, logos)
+  // that should not be recolored by the theme.
+  final bool useThemeColor;
 
   const AppImage({
     required this.path,
@@ -26,6 +29,7 @@ class AppImage extends StatelessWidget {
     this.type = AssetType.svg,
     this.onPressed,
     this.fit,
+    this.useThemeColor = true,
     super.key,
   });
 
@@ -33,6 +37,9 @@ class AppImage extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (type) {
       case AssetType.svg:
+        // Use explicit color > theme icon color > no filter (when opted out)
+        final effectiveColor =
+            color ?? (useThemeColor ? Theme.of(context).iconTheme.color : null);
         return GestureDetector(
           onTap: onPressed,
           child: SvgPicture.asset(
@@ -40,8 +47,8 @@ class AppImage extends StatelessWidget {
             height: height,
             width: width,
             fit: fit ?? BoxFit.contain,
-            colorFilter: color != null
-                ? ColorFilter.mode(color!, BlendMode.srcIn)
+            colorFilter: effectiveColor != null
+                ? ColorFilter.mode(effectiveColor, BlendMode.srcIn)
                 : null,
           ),
         );

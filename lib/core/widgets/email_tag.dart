@@ -27,7 +27,7 @@ class EmailTag extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(100),
         side: BorderSide(
-          color: AppColors.gray3,
+          color: context.borderInput,
           width: 1,
         ),
       ),

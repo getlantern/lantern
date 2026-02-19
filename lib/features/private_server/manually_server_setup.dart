@@ -62,7 +62,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 SizedBox(height: 16),
                 PrimaryButton(
                   icon: AppImagePaths.github,
-                  iconColor: AppColors.white,
+                  iconColor: context.textInverse,
                   isTaller: true,
                   label: 'view_instructions_github'.i18n,
                   onPressed: () {
@@ -99,7 +99,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   child: Text(
                     "how_server_appears".i18n,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray6,
+                      color: context.textDisabled,
                     ),
                   ),
                 ),
@@ -226,7 +226,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
         ),
         AppTextButton(
           label: "connect_now".i18n,

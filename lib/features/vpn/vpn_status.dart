@@ -33,7 +33,7 @@ class VpnStatus extends HookConsumerWidget {
           : null,
       actions: [
         if (isExtensionNeeded(systemExtensionStatus))
-          AppImage(path: AppImagePaths.warning, color: AppColors.red6)
+          AppImage(path: AppImagePaths.warning, color: context.borderError)
         else
           VPNStatusIndicator(status: vpnStatus),
       ],
@@ -43,23 +43,23 @@ class VpnStatus extends HookConsumerWidget {
           if (isExtensionNeeded(systemExtensionStatus))
             Text(
               'network_extension_required'.i18n,
-              style: textTheme.titleMedium!.copyWith(color: AppColors.gray9),
+              style: textTheme.titleMedium!.copyWith(color: context.textPrimary),
             )
           else
             Text(vpnStatus.name.capitalize,
                 style: textTheme.titleMedium!
-                    .copyWith(color: getStatusColor(vpnStatus))),
+                    .copyWith(color: getStatusColor(vpnStatus, context))),
           if (vpnStatus == VPNStatus.connecting)
             AnimatedTextKit(
               animatedTexts: [
                 TyperAnimatedText(
                   '... ',
                   textStyle:
-                      textTheme.titleMedium!.copyWith(color: AppColors.gray9),
+                      textTheme.titleMedium!.copyWith(color: context.textPrimary),
                 ),
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9)),
+                        .copyWith(color: context.textPrimary)),
               ],
               repeatForever: true,
             )
@@ -77,10 +77,10 @@ class VpnStatus extends HookConsumerWidget {
         systemExtensionStatus.status != SystemExtensionStatus.activated);
   }
 
-  Color getStatusColor(VPNStatus vpnStatus) {
+  Color getStatusColor(VPNStatus vpnStatus, BuildContext context) {
     if (vpnStatus == VPNStatus.connected) {
-      return AppColors.green6;
+      return context.statusSuccessBorder;
     }
-    return AppColors.gray9;
+    return context.textPrimary;
   }
 }

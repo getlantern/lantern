@@ -51,7 +51,7 @@ class DownloadLinks extends StatelessWidget {
             child: Text(
               'alternative_download_links'.i18n,
               style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           ),
@@ -79,7 +79,7 @@ class DownloadLinks extends StatelessWidget {
             child: Text(
               'if_you_cannot_access_website'.i18n,
               style: theme.bodyMedium!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           ),
@@ -91,7 +91,7 @@ class DownloadLinks extends StatelessWidget {
             child: Text(
               'available_on'.i18n,
               style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           ),

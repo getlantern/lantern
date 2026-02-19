@@ -92,7 +92,9 @@ class AppTile extends StatelessWidget {
 
     final textStyle = tileTextStyle ??
         theme.textTheme.labelLarge!.copyWith(
-          color: enabled ? AppColors.gray9 : AppColors.gray6,
+          color: enabled
+              ? context.textPrimary                             // text.primary
+              : context.textPrimary.withValues(alpha: 0.38),   // text.disabled
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
@@ -106,8 +108,11 @@ class AppTile extends StatelessWidget {
           child: AppImage(path: icon as String),
         );
       } else if (icon is IconData) {
-        computedLeading =
-            Icon(icon as IconData, size: 24, color: AppColors.gray9);
+        computedLeading = Icon(
+          icon as IconData,
+          size: 24,
+          color: context.textPrimary, // text.primary
+        );
       } else if (icon is Image) {
         computedLeading = icon as Image;
       } else if (icon is Widget) {
@@ -128,8 +133,10 @@ class AppTile extends StatelessWidget {
       selected: selected,
       titleAlignment: titleAlignment??ListTileTitleAlignment.center,
       enableFeedback: true,
-      hoverColor: hoverColor ?? AppColors.blue1,
-      selectedTileColor: selectedTileColor ?? AppColors.blue1,
+      // hoverColor: hoverColor ?? AppColors.blue1,
+      hoverColor: hoverColor ?? theme.hoverColor,
+      // selectedTileColor: selectedTileColor ?? AppColors.blue1,
+      selectedTileColor: selectedTileColor ?? theme.hoverColor,
       tileColor: tileColor,
       minTileHeight: minHeight ?? effectiveMinHeight,
       shape: RoundedRectangleBorder(
