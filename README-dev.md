@@ -37,6 +37,10 @@ flutter run -d macos
 make linux-release
 ```
 
+`flutter_distributor` packages the Flutter bundle under `/usr/share/lantern`.
+Our post-install script then installs `lanternd` and `lantern.service` to
+`/usr/lib/lantern` and `/usr/lib/systemd/system` respectively.
+
 2. Install the `.deb` (requires root only for install)
 
 ```bash

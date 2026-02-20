@@ -21,11 +21,16 @@ categories:
 startup_notify: true
 
 postinstall_scripts:
+  - APP_SHARE_DIR="$(dirname "$(readlink -f /usr/bin/lantern 2>/dev/null || true)")"
+  - if [ -z "$APP_SHARE_DIR" ] || [ ! -f "$APP_SHARE_DIR/lanternd" ]; then APP_SHARE_DIR="/usr/share/lantern"; fi
+  - install -Dm755 "$APP_SHARE_DIR/lanternd" /usr/lib/lantern/lanternd
+  - install -Dm644 "$APP_SHARE_DIR/lantern.service" /usr/lib/systemd/system/lantern.service
   - getent group lantern >/dev/null 2>&1 || groupadd --system lantern
   - if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ] && id "$SUDO_USER" >/dev/null 2>&1; then usermod -a -G lantern "$SUDO_USER" || true; fi
   - systemctl daemon-reload
   - systemctl enable --now lantern.service || true
 
 postuninstall_scripts:
-  - systemctl disable lantern.service || true
+  - systemctl disable --now lantern.service || true
+  - rm -f /usr/lib/systemd/system/lantern.service /usr/lib/lantern/lanternd
   - systemctl daemon-reload

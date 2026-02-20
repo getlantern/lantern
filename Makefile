@@ -46,10 +46,10 @@ LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
 LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
 LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
-LINUX_PKG_USR_LIB_LANTERN := $(LINUX_PKG_ROOT)/usr/lib/lantern
-LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
 LINUX_SYSTEMD_UNIT_SRC := $(LINUX_PKG_ROOT)/systemd/lantern.service
-LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lantern.service
+LINUX_BUNDLE_DIR := $(BUILD_DIR)/linux/x64/release/bundle
+LINUX_STAGED_SERVICE_BIN := $(LINUX_BUNDLE_DIR)/$(LINUX_SERVICE_NAME)
+LINUX_STAGED_SERVICE_UNIT := $(LINUX_BUNDLE_DIR)/lantern.service
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
@@ -288,11 +288,10 @@ linux-service-arm64: $(GO_SOURCES)
 	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_ARM64)"
 
 stage-linux-service: linux-service-amd64
-	@echo "Staging systemd unit + service binary $(LINUX_PKG_ROOT)..."
-	$(call MKDIR_P,$(LINUX_PKG_USR_LIB_LANTERN))
-	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_PKG_USR_LIB_LANTERN)/$(LINUX_SERVICE_NAME))
-	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+	@echo "Staging Linux daemon assets into $(LINUX_BUNDLE_DIR)..."
+	$(call MKDIR_P,$(LINUX_BUNDLE_DIR))
+	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_STAGED_SERVICE_BIN))
+	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_STAGED_SERVICE_UNIT))
 
 .PHONY: linux-debug
 linux-debug:
@@ -300,11 +299,12 @@ linux-debug:
 	flutter build linux --debug
 
 .PHONY: linux-release
-linux-release: clean linux pubget gen stage-linux-service
+linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
 
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
+	$(MAKE) stage-linux-service
 	patchelf --set-rpath '$$ORIGIN' build/linux/x64/release/bundle/lantern || true
 
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
