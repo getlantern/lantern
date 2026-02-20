@@ -131,12 +131,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await desktopPurchaseFlow(provider, ref, context);
           return;
         }
-
         if (isAndroidSideload) {
           await androidStripeSubscription(provider, ref, context);
           return;
         }
-
         break;
 
       case 'shepherd':
@@ -295,6 +293,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
+      case AuthFlow.renewSubscription:
+
+        /// User is renewing subscription, pop until payment screen and show success dialog
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
     }
   }
 }

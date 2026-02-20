@@ -26,7 +26,7 @@ extension ServerLocationTypeExtension on String {
   }
 }
 
-enum AuthFlow { resetPassword, oauth, signUp, lanternProLicense, changeEmail }
+enum AuthFlow { resetPassword, oauth, signUp, lanternProLicense, changeEmail,renewSubscription }
 
 enum BillingType { subscription, one_time }
 
