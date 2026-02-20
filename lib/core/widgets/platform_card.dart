@@ -18,6 +18,7 @@ class PlatformCard extends StatelessWidget {
         style: IconButton.styleFrom(
             padding: EdgeInsets.all(15.r),
             backgroundColor: context.bgElevated,
+            hoverColor: context.bgHover,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(color: context.borderInput, width: .5),

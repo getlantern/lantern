@@ -24,7 +24,6 @@ enum _SettingType {
   appearance,
   support,
   getPro,
-  downloadLinks,
   checkForUpdates,
   browserUnbounded,
 }
@@ -249,8 +248,6 @@ class _SettingState extends ConsumerState<Setting> {
 
       case _SettingType.getPro:
         appRouter.push(InviteFriends());
-        break;
-      case _SettingType.downloadLinks:
         break;
       case _SettingType.checkForUpdates:
         await checkForUpdates();
