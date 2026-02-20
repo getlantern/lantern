@@ -95,49 +95,55 @@ interface PlatformInterfaceWrapper : PlatformInterface {
         val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
         val interfaces = mutableListOf<lantern.io.libbox.NetworkInterface>()
         for (network in networks) {
-            val boxInterface = lantern.io.libbox.NetworkInterface()
             val linkProperties = LanternApp.connectivity.getLinkProperties(network) ?: continue
             val networkCapabilities =
                 LanternApp.connectivity.getNetworkCapabilities(network) ?: continue
-            boxInterface.name = linkProperties.interfaceName
+            val interfaceName = linkProperties.interfaceName ?: continue
             val networkInterface =
-                networkInterfaces.find { it.name == boxInterface.name } ?: continue
-            boxInterface.dnsServer =
-                StringArray(linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator())
-            boxInterface.type = when {
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libbox.InterfaceTypeWIFI
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libbox.InterfaceTypeCellular
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> Libbox.InterfaceTypeEthernet
-                else -> Libbox.InterfaceTypeOther
-            }
-            boxInterface.index = networkInterface.index
-            runCatching {
+                networkInterfaces.find { it.name == interfaceName } ?: continue
+            // Wrap all property access in a single try-catch so that if the
+            // interface disappears mid-enumeration (e.g. tun0 during VPN restart)
+            // we skip it instead of reporting a broken interface to sing-box.
+            try {
+                val boxInterface = lantern.io.libbox.NetworkInterface()
+                boxInterface.name = interfaceName
+                boxInterface.dnsServer =
+                    StringArray(linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator())
+                boxInterface.type = when {
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libbox.InterfaceTypeWIFI
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libbox.InterfaceTypeCellular
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> Libbox.InterfaceTypeEthernet
+                    else -> Libbox.InterfaceTypeOther
+                }
+                boxInterface.index = networkInterface.index
                 boxInterface.mtu = networkInterface.mtu
-            }.onFailure {
+                boxInterface.addresses =
+                    StringArray(networkInterface.interfaceAddresses.mapTo(mutableListOf()) { it.toPrefix() }
+                        .iterator())
+                var dumpFlags = 0
+                if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                    dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
+                }
+                if (networkInterface.isLoopback) {
+                    dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
+                }
+                if (networkInterface.isPointToPoint) {
+                    dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
+                }
+                if (networkInterface.supportsMulticast()) {
+                    dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
+                }
+                boxInterface.flags = dumpFlags
+                boxInterface.metered =
+                    !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+                interfaces.add(boxInterface)
+            } catch (e: Exception) {
                 AppLogger.e(
-                    "PlatformInterface", "failed to get mtu for interface ${boxInterface.name}", it
+                    "PlatformInterface",
+                    "Skipping interface $interfaceName: device may no longer exist",
+                    e
                 )
             }
-            boxInterface.addresses =
-                StringArray(networkInterface.interfaceAddresses.mapTo(mutableListOf()) { it.toPrefix() }
-                    .iterator())
-            var dumpFlags = 0
-            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
-                dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
-            }
-            if (networkInterface.isLoopback) {
-                dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
-            }
-            if (networkInterface.isPointToPoint) {
-                dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
-            }
-            if (networkInterface.supportsMulticast()) {
-                dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
-            }
-            boxInterface.flags = dumpFlags
-            boxInterface.metered =
-                !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-            interfaces.add(boxInterface)
         }
         return InterfaceArray(interfaces.iterator())
     }

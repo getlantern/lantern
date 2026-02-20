@@ -197,7 +197,6 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
     );
   }
 
-
   void showSuccessDialog() {
     final textTheme = Theme.of(context).textTheme;
     AppDialog.customDialog(

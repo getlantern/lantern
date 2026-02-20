@@ -86,11 +86,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     let startTime = Date()
-
     appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
+    var error: NSError?
+    MobileCloseIPC(&error)
+    if error != nil {
+      appLogger.log("error closing IPC \(error?.localizedDescription ?? "")")
+    }
     let elapsed = Date().timeIntervalSince(startTime)
-    NSLog("stopTunnel completed in \(elapsed) seconds")
+    appLogger.log("(lantern-tunnel) stopTunnel completed in \(elapsed) seconds")
   }
 
   func opts() -> UtilsOpts {
@@ -109,7 +113,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
     MobileStopVPN(&error)
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
     }
     postServiceClose()
   }

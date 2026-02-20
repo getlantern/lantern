@@ -126,7 +126,7 @@ class AppTile extends StatelessWidget {
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,
-      titleAlignment: titleAlignment??ListTileTitleAlignment.center,
+      titleAlignment: titleAlignment ?? ListTileTitleAlignment.center,
       enableFeedback: true,
       hoverColor: hoverColor ?? AppColors.blue1,
       selectedTileColor: selectedTileColor ?? AppColors.blue1,

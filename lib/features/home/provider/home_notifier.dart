@@ -107,12 +107,6 @@ class HomeNotifier extends _$HomeNotifier {
       return;
     }
     if (!user.legacyUserData.isPro()) {
-      final level = user.legacyUserData.userLevel;
-      if (level.isEmpty) {
-        appLogger.info("User is new, reset state");
-        ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
-        return;
-      }
       appLogger.info("User is not Pro. Skipping device check.");
       return;
     }

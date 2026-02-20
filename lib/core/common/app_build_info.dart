@@ -12,13 +12,8 @@ class AppBuildInfo {
   );
 }
 
+///Always use values from app build info this will ensure that the version and build number are same
 Future<String> resolveAppVersionLabel() async {
-  if(AppBuildInfo.buildType=='production'){
-    /// always use value from pubspec for production builds
-    final info = await PackageInfo.fromPlatform();
-    return '${info.version} (${info.buildNumber})';
-  }
-  if (AppBuildInfo.version.isNotEmpty) return AppBuildInfo.version;
   final info = await PackageInfo.fromPlatform();
   return '${info.version} (${info.buildNumber})';
 }
