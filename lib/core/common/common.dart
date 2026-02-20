@@ -1,4 +1,5 @@
 // Common file to export all common files
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -16,6 +17,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -113,7 +115,11 @@ Future<String> pasteFromClipboard() async {
 
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [Duration(seconds: 1), Duration(seconds: 2),Duration(seconds: 3)];
+  final delays = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 3)
+  ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
@@ -203,3 +209,9 @@ ServerLocationEntity initialServerLocation() {
   );
 }
 
+Future<bool> isStageEnvironment() async {
+  final dir = await AppStorageUtils.getAppDirectory();
+  final envFile = File('${dir.path}/.radiance_env');
+  return envFile.existsSync();
+
+}

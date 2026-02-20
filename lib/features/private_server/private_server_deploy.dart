@@ -173,7 +173,6 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
     );
   }
 
-
   Future<void> cancelDeployment() async {
     context.showLoadingDialog();
     final result =

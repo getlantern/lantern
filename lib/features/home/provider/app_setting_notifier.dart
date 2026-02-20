@@ -20,16 +20,11 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   @override
   AppSetting build() {
     _db = sl<LocalStorageService>();
-    final setting = _db.getAppSetting();
-
-    if (setting != null && setting.locale.isNotEmpty) {
-      return setting;
-    }
-    // First-time user → use device locale
+    // First-time user or DB was wiped after env switch → use device locale
     final fallback = _detectDeviceLocale();
     final initial = AppSetting(locale: fallback.toString());
-
     _db.updateAppSetting(initial);
+    _detectEnvironmentFromFile();
     return initial;
   }
 
@@ -104,7 +99,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(dataCapThreshold: threshold));
   }
 
-
   void setSplashScreen(bool value) {
     update(state.copyWith(showSplashScreen: value));
   }
@@ -117,13 +111,41 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(onboardingCompleted: value));
   }
 
+  Future<void> setEnvironment(bool isStaging) async {
+    final env = isStaging ? 'stage' : 'prod';
+    update(state.copyWith(environment: env));
+    final dir = await AppStorageUtils.getAppDirectory();
+    sl<LocalStorageService>().close();
+    /// Delete and recreate the directory
+    if (dir.existsSync()) {
+      await dir.delete(recursive: true);
+    }
+    await dir.create(recursive: true);
+
+    /// Create .radiance_env file only in staging
+    if (isStaging) {
+      final file = File('${dir.path}/.radiance_env');
+      await file.create();
+    }
+  }
+
+  /// Check if .radiance_env file exists in the app directory.
+  /// This file survives the directory wipe because setEnvironment
+  /// recreates it after deleting the directory.
+  Future<void> _detectEnvironmentFromFile() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final envFile = File('${dir.path}/.radiance_env');
+    final env = envFile.existsSync() ? 'stage' : 'prod';
+    appLogger.info('Detected environment from file: $env');
+    update(state.copyWith(environment: env));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
   }
-
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
     final LanternService svc = ref.read(lanternServiceProvider);

@@ -137,6 +137,7 @@ import flutter_local_notifications
       opts.logLevel = "trace"
       opts.locale = Locale.current.identifier
       opts.telemetryConsent = FilePath.isTelemetryEnabled()
+      opts.env = FilePath.isRadianceEnv()
       var error: NSError?
       MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
       // Handle any error returned by the setup
