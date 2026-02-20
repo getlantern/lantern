@@ -30,12 +30,14 @@ class LanternApp extends StatefulHookConsumerWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _LanternAppState();
 }
 
-class _LanternAppState extends ConsumerState<LanternApp> {
+class _LanternAppState extends ConsumerState<LanternApp>
+    with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     initLifecycleListener();
   }
@@ -55,8 +57,17 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lifecycle.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    ref
+        .read(appSettingProvider.notifier)
+        .syncDesktopBrightnessFromCurrentTheme();
   }
 
   Future<void> initDeepLinks() async {
@@ -162,7 +173,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     final locale = appSetting.locale;
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
-      overlayColor: Colors.black.withOpacity(0.5),
+      overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
       overlayWidgetBuilder: (_) => Center(
         child: LoadingIndicator(),
       ),

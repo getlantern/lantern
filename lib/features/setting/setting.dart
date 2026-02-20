@@ -180,7 +180,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if(appSetting.userLoggedIn && !hasProSession)...{
+          if (appSetting.userLoggedIn && !hasProSession) ...{
             SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
@@ -190,7 +190,6 @@ class _SettingState extends ConsumerState<Setting> {
                   onPressed: () => logoutDialog(context, ref)),
             ),
           },
-
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             SizedBox(height: defaultSize),
             AppCard(
@@ -324,7 +323,7 @@ class _SettingState extends ConsumerState<Setting> {
       action: [
         AppTextButton(
           label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
+          textColor: context.textSecondary,
           onPressed: () {
             appRouter.pop();
           },
@@ -349,7 +348,7 @@ class _SettingState extends ConsumerState<Setting> {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ],

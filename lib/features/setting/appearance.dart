@@ -30,9 +30,9 @@ class AppearanceListView extends ConsumerWidget {
     final currentMode = ref.watch(appSettingProvider).themeMode;
 
     final options = [
-      ('system', 'system'.i18n,AppImagePaths.automatic),
-      ('light', 'light'.i18n,AppImagePaths.lightMode),
-      ('dark', 'dark'.i18n,AppImagePaths.darkMode),
+      ('system', 'system'.i18n, AppImagePaths.automatic),
+      ('light', 'light'.i18n, AppImagePaths.lightMode),
+      ('dark', 'dark'.i18n, AppImagePaths.darkMode),
     ];
 
     return ListView.separated(
@@ -45,7 +45,7 @@ class AppearanceListView extends ConsumerWidget {
         child: DividerSpace(),
       ),
       itemBuilder: (context, index) {
-        final (value, label,icon) = options[index];
+        final (value, label, icon) = options[index];
         return AppTile(
           icon: icon,
           label: label,
@@ -63,7 +63,9 @@ class AppearanceListView extends ConsumerWidget {
 
   void _onSelect(String mode, WidgetRef ref, BuildContext context) {
     ref.read(appSettingProvider.notifier).setThemeMode(mode);
-    appRouter.maybePop();
+    if (!PlatformUtils.isDesktop) {
+      appRouter.maybePop();
+    }
   }
 }
 
