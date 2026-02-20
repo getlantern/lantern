@@ -157,6 +157,9 @@ class ConfirmEmail extends HookConsumerWidget {
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
         completeChangeEmail(context, ref, code);
+      case AuthFlow.renewSubscription:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -240,6 +243,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case AuthFlow.renewSubscription:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -256,6 +262,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         resendChangeEmail(context, ref);
         break;
+      case AuthFlow.renewSubscription:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

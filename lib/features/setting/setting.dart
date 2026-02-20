@@ -205,6 +205,16 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           },
           const SizedBox(height: defaultSize),
+          if (appSetting.userLoggedIn && !hasProSession) ...[
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: AppTile(
+                  label: 'logout'.i18n,
+                  icon: AppImagePaths.signIn,
+                  onPressed: () => logoutDialog(context, ref)),
+            ),
+            const SizedBox(height: defaultSize),
+          ],
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
