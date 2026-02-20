@@ -25,7 +25,7 @@ jobs:
         uses: transifex/cli-action@v2
         with:
           token: ${{ secrets.TRANSIFEX_PULL_TOKEN }}
-          args: --verbose pull
+          args: pull
 
       - name: "Update translations"
         run: |
