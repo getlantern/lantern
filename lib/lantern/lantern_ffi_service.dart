@@ -148,7 +148,8 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Future<String> _normalizeRadianceEnv() async {
+  /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
+  Future<String> _radianceEnv() async {
     if (kReleaseMode) {
       return "prod";
     } else {
@@ -160,9 +161,8 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
-
       int consent = 0;
-      String env = await _normalizeRadianceEnv();
+      String env = await _radianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
          if (appSetting != null) {
@@ -176,9 +176,7 @@ class LanternFFIService implements LanternCoreService {
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.info(
-        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent Env: $env',
-      );
+      appLogger.info("Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
