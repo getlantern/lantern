@@ -12,9 +12,8 @@ class AppBuildInfo {
   );
 }
 
+///Always use values from app build info this will ensure that the version and build number are same
 Future<String> resolveAppVersionLabel() async {
-  /// Since now we are injecting the version and build number at compile time,
-  /// we can directly use those values instead of fetching them from the platform.
   final info = await PackageInfo.fromPlatform();
   return '${info.version} (${info.buildNumber})';
 }
