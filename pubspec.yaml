@@ -22,6 +22,7 @@ environment:
   sdk: ^3.6.0
   flutter: 3.35.6
 
+
 dependency_overrides:
   in_app_purchase_storekit: 0.3.22+1
 

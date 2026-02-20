@@ -283,7 +283,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+  Future<Either<Failure, String>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.acknowledgeInAppPurchase(
@@ -467,16 +467,16 @@ class LanternService implements LanternCoreService {
       required String serverName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerBasedOnURLs(
-          urls: urls,
-          skipCertVerification: skipCertVerification,
-          serverName: serverName,
-          );
-    }
-    return _platformService.addServerBasedOnURLs(
         urls: urls,
         skipCertVerification: skipCertVerification,
         serverName: serverName,
-        );
+      );
+    }
+    return _platformService.addServerBasedOnURLs(
+      urls: urls,
+      skipCertVerification: skipCertVerification,
+      serverName: serverName,
+    );
   }
 
   /// connectToServer is used to connect to a server

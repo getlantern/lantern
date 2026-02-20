@@ -214,20 +214,19 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
-
-        /// If user is from store version no need to check anything
-        /// send them to create password directly
-        if (PlatformUtils.isMobile && isStoreVersion()) {
-          appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
-          return;
-        }
-
-        /// Check if user is pro or not
+        final isStoreUser = PlatformUtils.isMobile && isStoreVersion();
         final isPro = sl<LocalStorageService>().getUser()?.isPro() ?? false;
-        if (isPro) {
+
+        /// For store user already paid so send them to create password screen directly
+        /// if user is already pro no need to show payment method screen just send them to create password screen
+        if (isStoreUser || isPro) {
           appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
+            CreatePassword(
+              email: email,
+              authFlow: authFlow,
+              code: code,
+            ),
+          );
           return;
         }
         appRouter.push(

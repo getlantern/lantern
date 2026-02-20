@@ -30,7 +30,8 @@ class DataUsage extends ConsumerWidget {
         final isDataCapReached = usedBytes >= totalBytes;
         appLogger.debug(
             "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
-        final dataCapResetTime = dataCapNotifier.formatDailyResetTime(dataCap.allotmentEndTime);
+        final dataCapResetTime =
+            dataCapNotifier.formatDailyResetTime(dataCap.allotmentEndTime);
         String dataCapMessage =
             "daily_data_cap_reached_message".i18n.fill([dataCapResetTime]);
 
@@ -150,6 +151,4 @@ class DataUsage extends ConsumerWidget {
       error: (error, stack) => const SizedBox.shrink(),
     );
   }
-
-
 }

@@ -60,7 +60,8 @@ class AppPurchase {
             await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
 
         if (response.error != null) {
-          appLogger.error('[AppPurchase] Error fetching subscriptions: ${response.error}');
+          appLogger.error(
+              '[AppPurchase] Error fetching subscriptions: ${response.error}');
         } else if (response.productDetails.isEmpty) {
           appLogger.error(
             '[AppPurchase] Fetched 0 subscriptions. notFoundIDs=${response.notFoundIDs}',
@@ -74,8 +75,8 @@ class AppPurchase {
           if (!(_productsLoadedCompleter?.isCompleted ?? true)) {
             _productsLoadedCompleter?.complete();
           }
-          appLogger
-              .info('[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
+          appLogger.info(
+              '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
           return;
         }
       } catch (e, st) {
@@ -156,7 +157,8 @@ class AppPurchase {
   }
 
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
-    appLogger.info('[AppPurchase] Received purchase updates: ${purchases.length}');
+    appLogger
+        .info('[AppPurchase] Received purchase updates: ${purchases.length}');
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
@@ -200,13 +202,15 @@ class AppPurchase {
         }
 
         try {
-          appLogger.info('[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
+          appLogger.info(
+              '[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
           final lanternService = sl<LanternPlatformService>();
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = _resolvePlanId(purchaseDetails);
 
-          appLogger.info('[AppPurchase] Acknowledging purchase with planId: $planId');
+          appLogger.info(
+              '[AppPurchase] Acknowledging purchase with planId: $planId');
           final ack = await lanternService.acknowledgeInAppPurchase(
             purchaseToken: purchaseToken,
             planId: planId,

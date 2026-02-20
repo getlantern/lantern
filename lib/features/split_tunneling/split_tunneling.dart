@@ -26,7 +26,6 @@ class SplitTunneling extends HookConsumerWidget {
       notifier.setSplitTunnelingEnabled(!splitTunnelingEnabled);
     }
 
-
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
