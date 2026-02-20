@@ -33,15 +33,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final planData = ref.watch(plansProvider.notifier).getPlanData();
     return BaseScreen(
       title: '',
-      appBar: CustomAppBar(
-        title: Text('choose_payment_method'.i18n),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () => onMoreOptionsPressed(context),
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: Text('choose_payment_method'.i18n)),
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -176,6 +168,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
         /// Start stripe SDK
         sl<StripeService>().startStripeSDK(
+          context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
             onPurchaseResult(true, context, ref);

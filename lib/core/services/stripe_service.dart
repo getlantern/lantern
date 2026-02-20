@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
-
-import 'injection_container.dart' show sl;
 
 class StripeService {
   Future<void> initialize() async {
@@ -31,14 +30,29 @@ class StripeService {
   // It takes the StripeOptions object and a callback function for success and error handling
   // this is only used by android
   Future<void> startStripeSDK({
+    required BuildContext context,
     required StripeOptions options,
     required OnPressed onSuccess,
     required Function(dynamic error) onError,
   }) async {
     try {
-      final theme =
-          sl<LocalStorageService>().getAppSetting()?.themeMode ?? 'system';
-      final themeMode = resolveThemeMode(theme);
+      // Extract all context-dependent values before any async gap
+      final brightness = Theme.of(context).brightness;
+      final style =
+          brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+      final sheetColors = PaymentSheetAppearanceColors(
+        background: context.bgSurface,
+        componentBackground: context.bgElevated,
+        primary: context.actionPrimaryBg,
+        primaryText: context.textPrimary,
+        secondaryText: context.textSecondary,
+        icon: context.textTertiary,
+        componentBorder: context.borderInput,
+        componentDivider: context.borderDefault,
+        componentText: context.textPrimary,
+        error: AppColors.red4,
+        placeholderText: context.textDisabled,
+      );
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
@@ -67,22 +81,10 @@ class StripeService {
             testEnv: kDebugMode,
           ),
           appearance: PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(
-              background: AppColors.gray1,
-              componentBackground: AppColors.white,
-              primary: AppColors.blue10,
-              primaryText: AppColors.gray8,
-              secondaryText: AppColors.black,
-              icon: AppColors.gray9,
-              componentBorder: AppColors.gray3,
-              componentDivider: AppColors.gray2,
-              componentText: AppColors.gray8,
-              error: AppColors.red4,
-              placeholderText: AppColors.gray9,
-            ),
+            colors: sheetColors,
             shapes: PaymentSheetShape(borderRadius: 16),
           ),
-          style: themeMode,
+          style: style,
         ),
       );
 
