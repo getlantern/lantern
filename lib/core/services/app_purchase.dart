@@ -28,9 +28,9 @@ class AppPurchase {
   String? _pendingPlanId;
 
   void init() {
-    // if (PlatformUtils.isDesktop) {
-    //   return;
-    // }
+    if (PlatformUtils.isDesktop) {
+      return;
+    }
 
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(

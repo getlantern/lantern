@@ -115,7 +115,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final env = isStaging ? 'stage' : 'prod';
     update(state.copyWith(environment: env));
     final dir = await AppStorageUtils.getAppDirectory();
-
+    sl<LocalStorageService>().close();
     /// Delete and recreate the directory
     if (dir.existsSync()) {
       await dir.delete(recursive: true);

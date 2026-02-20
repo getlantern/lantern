@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
@@ -147,16 +148,12 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  String _normalizeRadianceEnv(String? value) {
-    switch (value) {
-      case 'stage':
-      case 'staging':
-        return 'stage';
-      case 'prod':
-      case 'production':
-        return 'prod';
-      default:
-        return 'prod';
+  Future<String> _normalizeRadianceEnv() async {
+    if (kReleaseMode) {
+      return "prod";
+    } else {
+      final isStageFound = await isStageEnvironment();
+      return isStageFound ? "stage" : "prod";
     }
   }
 
@@ -165,12 +162,11 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
 
       int consent = 0;
-      String env = 'prod';
+      String env = await _normalizeRadianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
-        if (appSetting != null) {
+         if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
-          env = _normalizeRadianceEnv(appSetting.environment);
         }
       } catch (_) {
         appLogger.warning(
