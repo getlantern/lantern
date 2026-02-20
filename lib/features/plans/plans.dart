@@ -61,7 +61,10 @@ class _PlansState extends ConsumerState<Plans> {
         ],
       ),
       title: "",
-      body: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        bottom: !PlatformUtils.isIOS,
+        child: _buildBody(),
+      ),
     );
   }
 
