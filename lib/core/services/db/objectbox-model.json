@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "22:1798613131332202898",
+      "lastPropertyId": "23:853140105317312758",
       "name": "AppSetting",
       "properties": [
         {
@@ -141,6 +141,11 @@
         {
           "id": "22:1798613131332202898",
           "name": "environment",
+          "type": 9
+        },
+        {
+          "id": "23:853140105317312758",
+          "name": "themeMode",
           "type": 9
         }
       ],

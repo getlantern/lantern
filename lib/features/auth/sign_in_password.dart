@@ -69,7 +69,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                   style: textTheme.labelMedium!.copyWith(
                     color: context.textDisabled,
                   ),
-                ),
+                )),
               SizedBox(height: 16),
               if (widget.fromChangeEmail)
                 Text('confirm_password_to_continue'.i18n,
