@@ -241,7 +241,6 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     );
   }
 
-
   void showSuccessDialog(String name) {
     final textTheme = Theme.of(context).textTheme;
     AppDialog.customDialog(

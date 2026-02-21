@@ -1,4 +1,3 @@
-
 class DataCapUsageResponse {
   /// Whether data cap is enabled for this device/user
   final bool enabled;

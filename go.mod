@@ -22,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260213132022-2d11c1a46a7a
+	github.com/getlantern/radiance v0.0.0-20260218070537-249ee33493ca
 	github.com/sagernet/sing-box v1.12.13
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.40.0

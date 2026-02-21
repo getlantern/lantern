@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -24,6 +27,10 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     appLogger.info('User info: $user');
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.watch(developerModeProvider.notifier);
+    final appSetting = ref.watch(appSettingProvider);
+    final appSettingNotifier = ref.watch(appSettingProvider.notifier);
+    final isStaging = appSetting.environment == 'stage' ||
+        appSetting.environment == 'staging';
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -36,11 +43,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             padding: EdgeInsets.zero,
             child: Column(
               children: <Widget>[
-                AppTile(
-                  label: 'Reset App',
-                  onPressed: () => resetAppData(context),
-                ),
-                DividerSpace(),
                 AppTile(
                   label: 'UserId',
                   trailing: AppTextButton(
@@ -55,6 +57,14 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   ),
                 ),
                 DividerSpace(),
+              ],
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
                 if (PlatformUtils.isAndroid)
                   AppTile(
                     label: 'Test Play Purchase',
@@ -70,9 +80,38 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       },
                     ),
                   ),
+                DividerSpace(),
+                if (!PlatformUtils.isIOS)
+                  AppTile(
+                    label: 'Stage Environment',
+                    trailing: SwitchButton(
+                      value: isStaging,
+                      onChanged: (value) async {
+                        await appSettingNotifier.setEnvironment(value);
+                        if (!context.mounted) return;
+                        AppDialog.dialog(
+                          context: context,
+                          title: 'Restart Required',
+                          content:
+                              'Please restart the app for the environment change to take effect.',
+                          onPressed: () {
+                            exit(0);
+                          },
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
-          )
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'Reset App',
+              onPressed: () => resetAppData(context),
+            ),
+          ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
@@ -147,14 +148,24 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
+  Future<String> _radianceEnv() async {
+    if (kReleaseMode) {
+      return "prod";
+    } else {
+      final isStageFound = await isStageEnvironment();
+      return isStageFound ? "stage" : "prod";
+    }
+  }
+
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
-
       int consent = 0;
+      String env = await _radianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
-        if (appSetting != null) {
+         if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
         }
       } catch (_) {
@@ -165,9 +176,7 @@ class LanternFFIService implements LanternCoreService {
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.info(
-        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent',
-      );
+      appLogger.info("Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
@@ -180,6 +189,7 @@ class LanternFFIService implements LanternCoreService {
             logDirPtr,
             dataDirPtr,
             Localization.defaultLocale.toCharPtr,
+            env.toCharPtr,
             loggingReceivePort.sendPort.nativePort,
             appsReceivePort.sendPort.nativePort,
             statusReceivePort.sendPort.nativePort,
@@ -849,7 +859,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+  Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
   }) {
@@ -1182,10 +1192,8 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .addServerBasedOnURLs(
-                  urls.toCharPtr,
-                  skipCertVerification ? 1 : 0,
-                  serverName.toCharPtr)
+              .addServerBasedOnURLs(urls.toCharPtr,
+                  skipCertVerification ? 1 : 0, serverName.toCharPtr)
               .toDartString();
         },
       );

@@ -205,11 +205,11 @@ class Account extends HookConsumerWidget {
           context: buildContext,
           title: 'manage_subscription'.i18n,
           content: 'manage_subscription_google_play'.i18n,
-
         );
 
         break;
       case 'stripe':
+
         /// No matter user is using desktop or mobile, if the provider is stripe, open billing portal
         stripeBillingPortal(ref, buildContext);
         break;
