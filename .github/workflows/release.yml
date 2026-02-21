@@ -569,7 +569,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Build failed or cancelled - cleaning up draft release"
-          gh release delete "$RELEASE_TAG" --cleanup-tag --yes || true
+          gh release delete "$RELEASE_TAG" --yes || true
 
       - name: Report failure (cleanup disabled)
         if: |
