@@ -561,10 +561,10 @@ jobs:
       - name: Delete draft on failure (cleanup enabled)
         if: |
           env.CLEANUP_ON_FAILURE == 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          !(needs.upload-s3.result == 'success' &&
+            needs.upload-release-artifacts.result == 'success' &&
+            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -574,10 +574,10 @@ jobs:
       - name: Report failure (cleanup disabled)
         if: |
           env.CLEANUP_ON_FAILURE != 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          !(needs.upload-s3.result == 'success' &&
+            needs.upload-release-artifacts.result == 'success' &&
+            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         run: |
           echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
