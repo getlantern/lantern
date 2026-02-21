@@ -18,7 +18,7 @@ class LogsPath extends StatelessWidget {
         ...logoPaths.map<Widget>(
           (p) => Padding(
             padding: const EdgeInsets.only(right: 4),
-            child: SvgPicture.network(p, height: 30),
+            child: SvgPicture.network(p, height: 30,),
           ),
         )
       ],

@@ -768,9 +768,29 @@ class _PrivateServerLocationListViewState
 Map<String, List<Location_>> _groupLocationsByCountry(
   List<Location_> locations,
 ) {
-  final Map<String, List<Location_>> result = {};
+  final grouped = <String, List<Location_>>{};
+  final cityCounts = <String, int>{};
+
+  // Pass 1: group by country and count city occurrences simultaneously
   for (final loc in locations) {
-    result.putIfAbsent(loc.country, () => <Location_>[]).add(loc);
+    grouped.putIfAbsent(loc.country, () => <Location_>[]).add(loc);
+    final key = '${loc.country}/${loc.city}';
+    cityCounts[key] = (cityCounts[key] ?? 0) + 1;
   }
-  return result;
+
+  // Pass 2: number duplicate cities within each country
+  for (final countryLocations in grouped.values) {
+    final cityIndex = <String, int>{};
+    for (var i = 0; i < countryLocations.length; i++) {
+      final loc = countryLocations[i];
+      final key = '${loc.country}/${loc.city}';
+      if (cityCounts[key]! > 1) {
+        cityIndex[loc.city] = (cityIndex[loc.city] ?? 0) + 1;
+        countryLocations[i] =
+            loc.copyWith(city: '${loc.city} - ${cityIndex[loc.city]}');
+      }
+    }
+  }
+
+  return grouped;
 }

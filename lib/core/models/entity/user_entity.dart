@@ -59,7 +59,7 @@ class UserDataEntity {
   final subscriptionData = ToOne<SubscriptionDataEntity>();
   final String deviceID;
   final bool unpassRegistered;
-  int lastExpiredOn ;
+  int lastExpiredOn;
 
   UserDataEntity({
     this.id = 0,

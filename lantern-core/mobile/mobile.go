@@ -9,7 +9,9 @@ import (
 
 	_ "golang.org/x/mobile/bind"
 
+	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/settings"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
@@ -326,8 +328,33 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
 	return withCore(func(c lanterncore.Core) error { return c.AcknowledgeGooglePurchase(purchaseToken, planId) })
 }
 
-func AcknowledgeApplePurchase(receipt, planII string) error {
-	return withCore(func(c lanterncore.Core) error { return c.AcknowledgeApplePurchase(receipt, planII) })
+func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+		if err != nil {
+			return "", err
+		}
+		var resp api.VerifySubscriptionResponse
+		if err := json.Unmarshal([]byte(data), &resp); err != nil {
+			return "", fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
+		}
+
+		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
+			/// This means the purchase was made on a different account and we need to switch to that account
+			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserId)
+			//reset all data
+			settings.Set(settings.UserIDKey, fmt.Sprintf("%d", resp.ActualUserId))
+			settings.Set(settings.TokenKey, resp.ActualUserToken)
+			userData, err := FetchUserData()
+			if err != nil {
+				return "", err
+			}
+			return string(userData), nil
+		}
+		/// Purchase was made on the same account, just return empty string to indicate success
+		return "", nil
+
+	})
 }
 
 func PaymentRedirect(provider, planId, email string) (string, error) {

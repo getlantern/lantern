@@ -71,6 +71,15 @@ fun isTelemetryEnabled(): Boolean {
     return  telemetryConsentFile.exists()
 }
 
+fun getRadianceEnv(): String {
+    val envFile = File(initConfigDir(), ".radiance_env")
+    return try {
+        if (envFile.exists()) "stage" else "prod"
+    } catch (e: Exception) {
+        "prod"
+    }
+}
+
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {
