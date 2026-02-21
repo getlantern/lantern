@@ -35,7 +35,7 @@ require_grep() {
 	fi
 }
 
-require_file "$TMP_DIR/root/usr/sbin/lanternd"
+require_file "$TMP_DIR/root/usr/bin/lanternd"
 require_file "$TMP_DIR/root/usr/lib/systemd/system/lanternd.service"
 require_file "$TMP_DIR/control/postinst"
 
