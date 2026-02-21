@@ -1,13 +1,11 @@
 #!/bin/sh
 set -e
 
-UNIT="lanternd.service"
-
 case "$1" in
 configure)
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl daemon-reload >/dev/null 2>&1 || true
-		systemctl enable --now "$UNIT" >/dev/null 2>&1 || true
+		systemctl enable --now lanternd.service >/dev/null 2>&1 || true
 	fi
 	;;
 esac
