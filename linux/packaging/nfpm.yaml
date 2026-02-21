@@ -27,7 +27,7 @@ contents:
     expand: true
 
   # desktop entry
-  - src: linux/packaging/usr/share/applications/lantern.desktop
+  - src: linux/packaging/desktop/lantern.desktop
     dst: /usr/share/applications/lantern.desktop
 
   # app icon
