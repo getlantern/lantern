@@ -211,6 +211,9 @@ jobs:
           flutter config --enable-linux-desktop
           flutter pub get
           make linux
+          flutter build linux --debug
+          mkdir -p build/linux/x64/debug/bundle
+          cp -f bin/linux/liblantern.so build/linux/x64/debug/bundle/liblantern.so
 
       - name: Install .deb and start daemon service
         shell: bash
