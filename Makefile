@@ -85,6 +85,10 @@ ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+ANDROID_NDK_VERSION          ?= 27.0.12077973
+ANDROID_CMAKE_VERSION        ?= 3.22.1
+ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
+ANDROID_PLATFORM             ?= android-35
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -383,6 +387,16 @@ install-gomobile:
 	fi
 
 # Android Build
+.PHONY: install-android-sdk
+install-android-sdk:
+	sdkmanager \
+		"platform-tools" \
+		"platforms;$(ANDROID_PLATFORM)" \
+		"build-tools;$(ANDROID_BUILD_TOOLS_VERSION)" \
+		"ndk;$(ANDROID_NDK_VERSION)" \
+		"cmake;$(ANDROID_CMAKE_VERSION)"
+	yes | sdkmanager --licenses > /dev/null || true
+
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
 
