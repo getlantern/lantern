@@ -18,7 +18,7 @@ Censorship circumvention tool available for free download on any operating syste
 All platforms require the following tools installed and available on your `PATH`:
 
 - **Flutter 3.35.6** (stable channel) — The required version is pinned in `pubspec.yaml`. Install it from [flutter.dev](https://flutter.dev) or use a version manager such as [fvm](https://fvm.app). After installing Flutter, verify with `flutter doctor`.
-- **Go 1.25.4** — The required version is declared in `go.mod`. Install from [go.dev/dl](https://go.dev/dl) or use a version manager such as [mise](https://mise.jdx.dev) or [asdf](https://asdf-vm.com).
+- **Go 1.25.4** — The required version is declared in `go.mod`. Install from [go.dev/dl](https://go.dev/dl) or use a version manager such as [mise](https://mise.jdx.dev).
 - **Git**
 
 Platform-specific dependencies (Xcode, Android Studio, etc.) are described in each section below.
@@ -79,6 +79,42 @@ flutter run -d macos
 
 ---
 
+## Building for iOS
+
+### Prerequisites
+
+- Xcode (latest stable) with the iOS Simulator or a physical iOS device
+
+### Install build dependencies
+
+```bash
+make install-ios-deps
+```
+
+This installs `gomobile`, initializes it if needed, and activates `flutter_distributor`.
+
+### Build and run
+
+Build the native iOS framework (outputs to `ios/Frameworks/`):
+
+```bash
+make ios
+```
+
+List available devices and simulators:
+
+```bash
+flutter devices
+```
+
+Run on a specific device using its ID from the previous command:
+
+```bash
+flutter run -d <deviceID>
+```
+
+---
+
 ## Building for Windows
 
 The Windows build separates the backend (a Windows Service binary) from the Flutter UI. During development you can run the backend in console mode instead of registering it as a real service, which makes for a faster iteration loop.
@@ -117,42 +153,6 @@ If you prefer to run the backend as a real Windows Service during development, u
 
 ---
 
-## Building for iOS
-
-### Prerequisites
-
-- Xcode (latest stable) with the iOS Simulator or a physical iOS device
-
-### Install build dependencies
-
-```bash
-make install-ios-deps
-```
-
-This installs `gomobile`, initializes it if needed, and activates `flutter_distributor`.
-
-### Build and run
-
-Build the native iOS framework (outputs to `ios/Frameworks/`):
-
-```bash
-make ios
-```
-
-List available devices and simulators:
-
-```bash
-flutter devices
-```
-
-Run on a specific device using its ID from the previous command:
-
-```bash
-flutter run -d <deviceID>
-```
-
----
-
 ## Building for Android
 
 ### Prerequisites
@@ -168,13 +168,18 @@ make install-android-sdk
 
 This installs the Android platform, build tools, NDK, and CMake at the versions defined in the Makefile (currently NDK `27.0.12077973`, CMake `3.22.1`, build tools `35.0.0`, platform `android-35`). It also accepts the SDK licenses automatically.
 
-After the NDK is installed, set the following environment variables so the build tools can locate it. Add these to your shell profile (`~/.zshrc`, `~/.bashrc`, etc.) to make them persistent:
+After the NDK is installed, set the following environment variables so the build tools can locate it:
 
 ```bash
 export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.0.12077973
 export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
 export NDK_HOME=$ANDROID_NDK_HOME
 ```
+
+Rather than adding these to your global shell profile, consider managing them with a repo-local config file so they only apply in this project and are not committed to version control:
+
+- **[direnv](https://direnv.net)**: place the `export` lines above in a `.envrc` file at the repo root, then run `direnv allow`. Add `.envrc` to `.git/info/exclude` (or your global gitignore) to keep it untracked.
+- **mise**: add an `[env]` block to a `.mise.local.toml` file at the repo root. `*.local.toml` files are intended for personal overrides and should not be committed. See the [mise environment variables docs](https://mise.jdx.dev/environments/) for syntax.
 
 ### Install build dependencies (gomobile)
 
