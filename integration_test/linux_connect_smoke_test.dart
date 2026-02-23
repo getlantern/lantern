@@ -84,6 +84,22 @@ Future<void> _waitForAnyFinder(
   fail(reason ?? 'Timed out waiting for any expected widget');
 }
 
+Future<void> _waitForFinderToDisappear(
+  WidgetTester tester,
+  Finder finder, {
+  required Duration timeout,
+  String? reason,
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (finder.evaluate().isEmpty) {
+      return;
+    }
+  }
+  fail(reason ?? 'Timed out waiting for widget to disappear');
+}
+
 class _VpnStateFinders {
   _ObservedVpnState current() {
     for (final state in _ObservedVpnState.values) {
@@ -106,11 +122,10 @@ class _VpnStateFinders {
     return _ObservedVpnState.none;
   }
 
-  Future<_ObservedVpnState> waitFor(
+  Future<_ObservedVpnState> tryWaitFor(
     WidgetTester tester, {
     required List<_ObservedVpnState> expected,
     required Duration timeout,
-    String? reason,
   }) async {
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
@@ -120,6 +135,24 @@ class _VpnStateFinders {
         return state;
       }
     }
+    return _ObservedVpnState.none;
+  }
+
+  Future<_ObservedVpnState> waitFor(
+    WidgetTester tester, {
+    required List<_ObservedVpnState> expected,
+    required Duration timeout,
+    String? reason,
+  }) async {
+    final state = await tryWaitFor(
+      tester,
+      expected: expected,
+      timeout: timeout,
+    );
+    if (state != _ObservedVpnState.none) {
+      return state;
+    }
+
     final debugKeys = tester.allWidgets
         .map((w) => w.key)
         .whereType<Key>()
@@ -198,12 +231,53 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
 
-    var vpnState = await vpnStateFinders.waitFor(
+    await _waitForFinder(
+      tester,
+      homeScreen,
+      timeout: const Duration(seconds: 20),
+      reason: 'Home screen was not visible after onboarding flow',
+    );
+
+    await _waitForFinderToDisappear(
+      tester,
+      onboardingScreen,
+      timeout: const Duration(seconds: 20),
+      reason: 'Onboarding screen remained visible',
+    );
+
+    await _waitForFinder(
+      tester,
+      vpnToggle,
+      timeout: const Duration(seconds: 20),
+      reason: 'VPN toggle was not visible on home screen',
+    );
+
+    var vpnState = await vpnStateFinders.tryWaitFor(
       tester,
       expected: _initialStates,
-      timeout: const Duration(seconds: 45),
-      reason: 'Initial VPN state did not resolve',
+      timeout: const Duration(seconds: 20),
     );
+    if (vpnState == _ObservedVpnState.none) {
+      await _waitForVpnToggleWithOnboardingHandling(
+        tester,
+        vpnToggle: vpnToggle,
+        onboardingScreen: onboardingScreen,
+        onboardingSkip: onboardingSkip,
+        onboardingPrimary: onboardingPrimary,
+        timeout: const Duration(seconds: 15),
+      );
+
+      // Recover from startup race where UI state keys are briefly unavailable.
+      await tester.tap(vpnToggle);
+      await tester.pump(const Duration(milliseconds: 200));
+
+      vpnState = await vpnStateFinders.waitFor(
+        tester,
+        expected: _initialStates,
+        timeout: const Duration(seconds: 45),
+        reason: 'Initial VPN state did not resolve after recovery toggle',
+      );
+    }
 
     if (vpnState == _ObservedVpnState.connecting ||
         vpnState == _ObservedVpnState.disconnecting) {
