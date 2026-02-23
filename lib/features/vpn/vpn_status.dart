@@ -15,6 +15,7 @@ class VpnStatus extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vpnStatus = ref.watch(vpnProvider);
+    final statusValue = vpnStatus.name.capitalize;
     final textTheme = Theme.of(context).textTheme;
     MacOSExtensionState systemExtensionStatus =
         MacOSExtensionState(SystemExtensionStatus.notInstalled);
@@ -25,7 +26,7 @@ class VpnStatus extends HookConsumerWidget {
     return SettingTile(
       key: Key('vpn.status.${vpnStatus.name}'),
       label: 'vpn_status'.i18n,
-      value: vpnStatus.name.capitalize,
+      value: statusValue,
       icon: AppImagePaths.glob,
       onTap: isExtensionNeeded(systemExtensionStatus)
           ? () {
@@ -48,7 +49,8 @@ class VpnStatus extends HookConsumerWidget {
                   textTheme.titleMedium!.copyWith(color: context.textPrimary),
             )
           else
-            Text(vpnStatus.name.capitalize,
+            Text(statusValue,
+                key: Key('vpn.state.${vpnStatus.name}'),
                 style: textTheme.titleMedium!
                     .copyWith(color: getStatusColor(vpnStatus, context))),
           if (vpnStatus == VPNStatus.connecting)

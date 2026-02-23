@@ -126,6 +126,9 @@ jobs:
 
       - name: Linux UI connect/disconnect integration
         shell: bash
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
         run: |
           set -euxo pipefail
           sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true"

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -25,6 +26,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final setting = _db.getAppSetting();
 
     if (setting != null && setting.locale.isNotEmpty) {
+      final normalizedLocale = _normalizeLocaleTag(setting.locale);
+      if (normalizedLocale != setting.locale) {
+        final normalizedSetting = setting.copyWith(newLocale: normalizedLocale);
+        _db.updateAppSetting(normalizedSetting);
+        updateToolbarThemeMode();
+        return normalizedSetting;
+      }
       updateToolbarThemeMode();
       return setting;
     }
@@ -186,9 +194,54 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
-    return deviceLocale.languageCode == 'en'
-        ? const Locale('en', 'US')
-        : deviceLocale;
+    final normalized = _normalizeLocaleTag(deviceLocale.toString());
+    final parts = normalized.split('_');
+    return Locale(parts.first, parts.length > 1 ? parts[1] : '');
+  }
+
+  String _normalizeLocaleTag(String localeTag) {
+    final raw = localeTag.trim();
+    if (raw.isEmpty) {
+      return 'en_US';
+    }
+
+    final withUnderscore = raw.replaceAll('-', '_');
+    final lower = withUnderscore.toLowerCase();
+    if (lower == 'c' || lower == 'posix') {
+      return 'en_US';
+    }
+
+    if (languages.contains(withUnderscore)) {
+      return withUnderscore;
+    }
+
+    final parts = withUnderscore.split('_');
+    final languageCode = parts.first.toLowerCase();
+    if (languageCode.isEmpty) {
+      return 'en_US';
+    }
+    if (languageCode == 'en') {
+      return 'en_US';
+    }
+
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      final secondPart = parts[1];
+      final normalizedSecond = secondPart.length == 2
+          ? secondPart.toUpperCase()
+          : secondPart[0].toUpperCase() + secondPart.substring(1).toLowerCase();
+      final candidate = '${languageCode}_$normalizedSecond';
+      if (languages.contains(candidate)) {
+        return candidate;
+      }
+    }
+
+    for (final supported in languages) {
+      if (supported.startsWith('${languageCode}_')) {
+        return supported;
+      }
+    }
+
+    return 'en_US';
   }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {

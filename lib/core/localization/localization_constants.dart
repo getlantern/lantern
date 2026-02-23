@@ -24,7 +24,7 @@ String checkSupportedLanguages(String language) {
   if (languages.contains(language)) {
     return language;
   }
-  return 'en_Us';
+  return 'en_US';
 }
 
 String displayLanguage(String languageCode) {

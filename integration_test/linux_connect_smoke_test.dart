@@ -50,25 +50,46 @@ Future<void> _waitForAnyFinder(
 class _VpnStateFinders {
   _VpnStateFinders()
       : _byState = {
-          _ObservedVpnState.connected:
-              find.byKey(const Key('vpn.switch.connected')),
-          _ObservedVpnState.disconnected:
-              find.byKey(const Key('vpn.switch.disconnected')),
-          _ObservedVpnState.connecting:
-              find.byKey(const Key('vpn.switch.connecting')),
-          _ObservedVpnState.disconnecting:
-              find.byKey(const Key('vpn.switch.disconnecting')),
-          _ObservedVpnState.missingPermission:
-              find.byKey(const Key('vpn.switch.missingPermission')),
-          _ObservedVpnState.error: find.byKey(const Key('vpn.switch.error')),
+          _ObservedVpnState.connected: const [
+            'vpn.state.connected',
+            'vpn.status.connected',
+            'vpn.switch.connected',
+          ],
+          _ObservedVpnState.disconnected: const [
+            'vpn.state.disconnected',
+            'vpn.status.disconnected',
+            'vpn.switch.disconnected',
+          ],
+          _ObservedVpnState.connecting: const [
+            'vpn.state.connecting',
+            'vpn.status.connecting',
+            'vpn.switch.connecting',
+          ],
+          _ObservedVpnState.disconnecting: const [
+            'vpn.state.disconnecting',
+            'vpn.status.disconnecting',
+            'vpn.switch.disconnecting',
+          ],
+          _ObservedVpnState.missingPermission: const [
+            'vpn.state.missingPermission',
+            'vpn.status.missingPermission',
+            'vpn.switch.missingPermission',
+          ],
+          _ObservedVpnState.error: const [
+            'vpn.state.error',
+            'vpn.status.error',
+            'vpn.switch.error',
+          ],
         };
 
-  final Map<_ObservedVpnState, Finder> _byState;
+  final Map<_ObservedVpnState, List<String>> _byState;
 
   _ObservedVpnState current() {
     for (final entry in _byState.entries) {
-      if (entry.value.evaluate().isNotEmpty) {
-        return entry.key;
+      for (final keyName in entry.value) {
+        if (find.byKey(Key(keyName)).evaluate().isNotEmpty) {
+          return entry.key;
+        }
       }
     }
     return _ObservedVpnState.none;
