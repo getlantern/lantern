@@ -50,7 +50,9 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       title: '',
       appBar: CustomAppBar(
         leading: SizedBox(),
-        title: LanternLogo(),
+        title: LanternLogo(
+          color: context.textPrimary,
+        ),
         actions: [
           CloseButton(),
         ],
@@ -59,10 +61,11 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          AppImage(path: AppImagePaths.sysDialog),
+          AppImage(path: AppImagePaths.sysDialog, useThemeColor: false),
           const SizedBox(height: 48.0),
           Text('enable_network_extension'.i18n,
-              style: textTheme.headlineSmall!.copyWith(color: context.textSecondary),
+              style: textTheme.headlineSmall!
+                  .copyWith(color: context.textSecondary),
               textAlign: TextAlign.center),
           const SizedBox(height: 16.0),
           Padding(
