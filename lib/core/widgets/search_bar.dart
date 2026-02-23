@@ -62,6 +62,8 @@ class _SearchBarContent extends HookConsumerWidget {
                   onChanged: (value) =>
                       ref.read(searchQueryProvider.notifier).setQuery(value),
                   decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     hintText: hintText,
                     hintStyle: TextStyle(
                       color: context.textSecondary,
@@ -69,8 +71,19 @@ class _SearchBarContent extends HookConsumerWidget {
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                   style: TextStyle(
                     fontSize: 16,
