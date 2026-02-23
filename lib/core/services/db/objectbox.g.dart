@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(24, 7256187684976579666),
+    lastPropertyId: const obx_int.IdUid(27, 1490069847328736408),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -201,6 +201,24 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(24, 7256187684976579666),
         name: 'unboundedEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(25, 4271307681061492505),
+        name: 'autoEnableUnbounded',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(26, 6311603266760598594),
+        name: 'unboundedWelcomeSeen',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(27, 1490069847328736408),
+        name: 'hideUnbounded',
         type: 1,
         flags: 0,
       ),
@@ -1020,7 +1038,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final dataCapThresholdOffset = fbb.writeString(object.dataCapThreshold);
         final environmentOffset = fbb.writeString(object.environment);
         final themeModeOffset = fbb.writeString(object.themeMode);
-        fbb.startTable(25);
+        fbb.startTable(28);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -1039,6 +1057,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(21, environmentOffset);
         fbb.addOffset(22, themeModeOffset);
         fbb.addBool(23, object.unboundedEnabled);
+        fbb.addBool(24, object.autoEnableUnbounded);
+        fbb.addBool(25, object.unboundedWelcomeSeen);
+        fbb.addBool(26, object.hideUnbounded);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1132,6 +1153,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
           50,
           false,
         );
+        final autoEnableUnboundedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          52,
+          false,
+        );
+        final unboundedWelcomeSeenParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          54,
+          false,
+        );
+        final hideUnboundedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          56,
+          false,
+        );
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -1151,6 +1190,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           themeMode: themeModeParam,
           environment: environmentParam,
           unboundedEnabled: unboundedEnabledParam,
+          autoEnableUnbounded: autoEnableUnboundedParam,
+          unboundedWelcomeSeen: unboundedWelcomeSeenParam,
+          hideUnbounded: hideUnboundedParam,
         );
 
         return object;
@@ -2095,6 +2137,21 @@ class AppSetting_ {
   /// See [AppSetting.unboundedEnabled].
   static final unboundedEnabled = obx.QueryBooleanProperty<AppSetting>(
     _entities[1].properties[17],
+  );
+
+  /// See [AppSetting.autoEnableUnbounded].
+  static final autoEnableUnbounded = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[18],
+  );
+
+  /// See [AppSetting.unboundedWelcomeSeen].
+  static final unboundedWelcomeSeen = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[19],
+  );
+
+  /// See [AppSetting.hideUnbounded].
+  static final hideUnbounded = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[20],
   );
 }
 

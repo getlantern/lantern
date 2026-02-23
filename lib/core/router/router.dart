@@ -189,6 +189,10 @@ class AppRouter extends RootStackRouter {
       page: UnboundedScreen.page,
     ),
     AutoRoute(
+      path: '/unbounded-settings',
+      page: UnboundedSettingsScreen.page,
+    ),
+    AutoRoute(
       path: '/intro',
       page: Onboarding.page,
     ),

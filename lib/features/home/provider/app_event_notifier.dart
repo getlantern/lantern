@@ -49,6 +49,54 @@ final unboundedConnectionProvider =
   return _unboundedConnectionController.stream;
 });
 
+/// Tracks live and cumulative connection counts for Unbounded.
+class UnboundedStats {
+  final int activeCount;
+  final int totalCount;
+
+  const UnboundedStats({this.activeCount = 0, this.totalCount = 0});
+}
+
+/// Provider that tracks unbounded connection stats (active + total).
+final unboundedStatsProvider = Provider<UnboundedStats>((ref) {
+  ref.watch(unboundedConnectionProvider);
+  return _UnboundedStatsAccumulator.stats;
+});
+
+/// Simple static accumulator for unbounded stats. Updated by the listener
+/// installed below. We use a static because the stats must survive provider
+/// rebuilds.
+class _UnboundedStatsAccumulator {
+  static UnboundedStats stats = const UnboundedStats();
+}
+
+/// A keep-alive provider whose sole job is to listen to connection events and
+/// accumulate stats in [_UnboundedStatsAccumulator].
+@Riverpod(keepAlive: true)
+class UnboundedStatsListener extends _$UnboundedStatsListener {
+  @override
+  void build() {
+    ref.listen(unboundedConnectionProvider, (prev, next) {
+      next.whenData((event) {
+        final s = _UnboundedStatsAccumulator.stats;
+        if (event.state == 1) {
+          _UnboundedStatsAccumulator.stats = UnboundedStats(
+            activeCount: s.activeCount + 1,
+            totalCount: s.totalCount + 1,
+          );
+        } else if (event.state == -1) {
+          _UnboundedStatsAccumulator.stats = UnboundedStats(
+            activeCount: (s.activeCount - 1).clamp(0, s.activeCount),
+            totalCount: s.totalCount,
+          );
+        }
+        // Invalidate the stats provider so watchers rebuild.
+        ref.invalidate(unboundedStatsProvider);
+      });
+    });
+  }
+}
+
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
 /// in one place.

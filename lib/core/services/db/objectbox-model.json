@@ -59,7 +59,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "24:7256187684976579666",
+      "lastPropertyId": "27:1490069847328736408",
       "name": "AppSetting",
       "properties": [
         {
@@ -151,6 +151,21 @@
         {
           "id": "24:7256187684976579666",
           "name": "unboundedEnabled",
+          "type": 1
+        },
+        {
+          "id": "25:4271307681061492505",
+          "name": "autoEnableUnbounded",
+          "type": 1
+        },
+        {
+          "id": "26:6311603266760598594",
+          "name": "unboundedWelcomeSeen",
+          "type": 1
+        },
+        {
+          "id": "27:1490069847328736408",
+          "name": "hideUnbounded",
           "type": 1
         }
       ],

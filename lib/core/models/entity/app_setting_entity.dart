@@ -23,6 +23,9 @@ class AppSetting {
   String themeMode;
   String environment;
   bool unboundedEnabled;
+  bool autoEnableUnbounded;
+  bool unboundedWelcomeSeen;
+  bool hideUnbounded;
 
   AppSetting({
     this.id = 0,
@@ -43,6 +46,9 @@ class AppSetting {
     this.themeMode = 'system',
     this.environment = 'prod',
     this.unboundedEnabled = false,
+    this.autoEnableUnbounded = true,
+    this.unboundedWelcomeSeen = false,
+    this.hideUnbounded = false,
   });
 
   AppSetting copyWith({
@@ -63,6 +69,9 @@ class AppSetting {
     String? themeMode,
     String? environment,
     bool? unboundedEnabled,
+    bool? autoEnableUnbounded,
+    bool? unboundedWelcomeSeen,
+    bool? hideUnbounded,
   }) {
     return AppSetting(
       id: id,
@@ -83,6 +92,9 @@ class AppSetting {
       themeMode: themeMode ?? this.themeMode,
       environment: environment ?? this.environment,
       unboundedEnabled: unboundedEnabled ?? this.unboundedEnabled,
+      autoEnableUnbounded: autoEnableUnbounded ?? this.autoEnableUnbounded,
+      unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
+      hideUnbounded: hideUnbounded ?? this.hideUnbounded,
     );
   }
 

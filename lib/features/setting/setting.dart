@@ -224,24 +224,36 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           ),
           const SizedBox(height: 4),
-          Card(
+          if (!appSetting.hideUnbounded)
+            Card(
+              child: AppTile(
+                minHeight: 72,
+                icon: AppImagePaths.lanternLogoRounded,
+                iconUseThemeColor: false,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
+                label: 'unbounded'.i18n,
+                subtitle: Text(
+                  'help_fight_global_internet_censorship'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.textTertiary,
+                  ),
+                ),
+                onPressed: () {
+                  appRouter.push(const UnboundedScreen());
+                },
+              ),
+            ),
+          AppCard(
+            padding: EdgeInsets.zero,
             child: AppTile(
-              minHeight: 72,
+              label: 'Unbounded Settings',
               icon: AppImagePaths.lanternLogoRounded,
               iconUseThemeColor: false,
-              trailing: AppImage(
-                path: AppImagePaths.arrowForward,
-                height: 20,
-              ),
-              label: 'unbounded'.i18n,
-              subtitle: Text(
-                'help_fight_global_internet_censorship'.i18n,
-                style: textTheme.labelMedium!.copyWith(
-                  color: context.textTertiary,
-                ),
-              ),
               onPressed: () {
-                appRouter.push(const UnboundedScreen());
+                appRouter.push(const UnboundedSettingsScreen());
               },
             ),
           ),

@@ -119,6 +119,18 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     });
   }
 
+  void setAutoEnableUnbounded(bool value) {
+    update(state.copyWith(autoEnableUnbounded: value));
+  }
+
+  void setUnboundedWelcomeSeen(bool value) {
+    update(state.copyWith(unboundedWelcomeSeen: value));
+  }
+
+  void setHideUnbounded(bool value) {
+    update(state.copyWith(hideUnbounded: value));
+  }
+
   void updateAnonymousDataConsent(bool value) {
     update(state.copyWith(telemetryConsent: value));
     updateTelemetryConsent(value);
