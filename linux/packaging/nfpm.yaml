@@ -48,6 +48,7 @@ overrides:
   deb:
     depends:
       - libgtk-3-0
+      - libayatana-appindicator3-1
       - libblkid1
       - liblzma5
       - libwebkit2gtk-4.1-0
