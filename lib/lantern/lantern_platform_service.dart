@@ -245,6 +245,30 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      await _methodChannel
+          .invokeMethod('setUnboundedEnabled', {'enabled': enabled});
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res =
+          await _methodChannel.invokeMethod<bool>('isUnboundedEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
   List<AppData> _mapToAppData(
     Iterable<Map<String, dynamic>> rawApps, {
     required EnabledAppsSnapshot enabled,

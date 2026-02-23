@@ -31,6 +31,12 @@ msgstr "Unbounded"
 msgid "help_fight_global_internet_censorship"
 msgstr "Help Fight Global Internet Censorship"
 
+msgid "share_bandwidth"
+msgstr "Share Bandwidth"
+
+msgid "unbounded_description"
+msgstr "When enabled, Unbounded shares a small amount of your bandwidth to help people in censored countries access the open internet."
+
 msgid "vpn_settings"
 msgstr "VPN Settings"
 

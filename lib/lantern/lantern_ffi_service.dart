@@ -1423,6 +1423,32 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      final result = _ffiService
+          .setUnboundedEnabled(enabled ? 1 : 0)
+          .cast<Utf8>()
+          .toDartString();
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res = _ffiService.isUnboundedEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }

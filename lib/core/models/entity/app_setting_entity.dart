@@ -22,6 +22,7 @@ class AppSetting {
   bool onboardingCompleted;
   String themeMode;
   String environment;
+  bool unboundedEnabled;
 
   AppSetting({
     this.id = 0,
@@ -41,6 +42,7 @@ class AppSetting {
     this.onboardingCompleted = false,
     this.themeMode = 'system',
     this.environment = 'prod',
+    this.unboundedEnabled = false,
   });
 
   AppSetting copyWith({
@@ -60,6 +62,7 @@ class AppSetting {
     bool? onboardingCompleted,
     String? themeMode,
     String? environment,
+    bool? unboundedEnabled,
   }) {
     return AppSetting(
       id: id,
@@ -79,6 +82,7 @@ class AppSetting {
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       themeMode: themeMode ?? this.themeMode,
       environment: environment ?? this.environment,
+      unboundedEnabled: unboundedEnabled ?? this.unboundedEnabled,
     );
   }
 

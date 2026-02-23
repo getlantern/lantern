@@ -106,6 +106,19 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     });
   }
 
+  void setUnboundedEnabled(bool value) {
+    final prev = state.unboundedEnabled;
+    update(state.copyWith(unboundedEnabled: value));
+
+    final svc = ref.read(lanternServiceProvider);
+    svc.setUnboundedEnabled(value).then((res) {
+      res.match((err) {
+        appLogger.error('setUnboundedEnabled failed: ${err.error}');
+        update(state.copyWith(unboundedEnabled: prev));
+      }, (_) {});
+    });
+  }
+
   void updateAnonymousDataConsent(bool value) {
     update(state.copyWith(telemetryConsent: value));
     updateTelemetryConsent(value);

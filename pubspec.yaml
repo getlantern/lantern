@@ -157,6 +157,7 @@ flutter:
     - assets/images/
     - assets/images/flags/
     - assets/locales/
+    - assets/unbounded/
     - app.env
 
 objectbox:

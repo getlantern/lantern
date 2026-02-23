@@ -45,6 +45,10 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isUnboundedEnabled();
+
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,

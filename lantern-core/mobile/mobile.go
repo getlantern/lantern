@@ -493,6 +493,25 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	})
 }
 
+// Unbounded Methods
+
+func SetUnboundedEnabled(enabled bool) error {
+	slog.Info("unbounded: SetUnboundedEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetUnboundedEnabled(enabled)
+	})
+}
+
+func IsUnboundedEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsUnboundedEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 // Smart Routing Methods
 
 // SetSmartRoutingMode sets the smart routing mode.

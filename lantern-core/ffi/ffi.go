@@ -1002,3 +1002,24 @@ func isSmartRoutingEnabled() C.int {
 	}
 	return 0
 }
+
+//export setUnboundedEnabled
+func setUnboundedEnabled(enabled C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SetUnboundedEnabled(enabled != 0); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export isUnboundedEnabled
+func isUnboundedEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsUnboundedEnabled() {
+		return 1
+	}
+	return 0
+}

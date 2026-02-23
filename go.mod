@@ -2,11 +2,19 @@ module github.com/getlantern/lantern
 
 go 1.25.4
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
+
+replace github.com/getlantern/common => ../common
+
+replace github.com/getlantern/broflake => ../unbounded
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
 // replace github.com/sagernet/sing-box => ../sing-box-minimal
+
+replace github.com/enobufs/go-nats => github.com/noahlevenson/go-nats v0.0.0-20230720174341-49df1f749775
+
+replace github.com/quic-go/quic-go => github.com/getlantern/quic-go-unbounded-fork v0.51.3-unbounded
 
 replace github.com/sagernet/sing => github.com/getlantern/sing v0.7.18-lantern
 
@@ -156,6 +164,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
+	github.com/enobufs/go-nats v0.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/flynn/noise v1.0.1-0.20220214164934-d803f5c4b0f4 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
@@ -164,6 +173,7 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260113204224-600f8e8dfe5f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
+	github.com/getlantern/broflake v0.0.0-20260221195823-510790b48bbe // indirect
 	github.com/getlantern/common v1.2.1-0.20260121160752-d8ee5791108f // indirect
 	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
 	github.com/getlantern/fronted v0.0.0-20260219001615-7eabaa834efe // indirect
@@ -185,6 +195,7 @@ require (
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
 	github.com/go-llsqlite/crawshaw v0.4.0 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/goccy/go-yaml v1.19.0 // indirect
@@ -193,6 +204,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
+	github.com/google/pprof v0.0.0-20230821062121-407c9e7a662f // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/csrf v1.7.3-0.20250123201450-9dd6af1f6d30 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
@@ -222,26 +234,37 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.12.0 // indirect
 	github.com/pion/datachannel v1.5.10 // indirect
-	github.com/pion/dtls/v2 v2.2.7 // indirect
+	github.com/pion/dtls/v2 v2.2.12 // indirect
+	github.com/pion/dtls/v3 v3.0.6 // indirect
 	github.com/pion/ice/v2 v2.3.24 // indirect
-	github.com/pion/interceptor v0.1.37 // indirect
-	github.com/pion/logging v0.2.3 // indirect
+	github.com/pion/ice/v4 v4.0.10 // indirect
+	github.com/pion/interceptor v0.1.40 // indirect
+	github.com/pion/logging v0.2.4 // indirect
 	github.com/pion/mdns v0.0.12 // indirect
+	github.com/pion/mdns/v2 v2.0.7 // indirect
 	github.com/pion/randutil v0.1.0 // indirect
 	github.com/pion/rtcp v1.2.15 // indirect
-	github.com/pion/rtp v1.8.12 // indirect
-	github.com/pion/sctp v1.8.37 // indirect
-	github.com/pion/sdp/v3 v3.0.11 // indirect
+	github.com/pion/rtp v1.8.19 // indirect
+	github.com/pion/sctp v1.8.39 // indirect
+	github.com/pion/sdp/v3 v3.0.14 // indirect
 	github.com/pion/srtp/v2 v2.0.18 // indirect
+	github.com/pion/srtp/v3 v3.0.6 // indirect
 	github.com/pion/stun v0.6.1 // indirect
-	github.com/pion/transport/v2 v2.2.4 // indirect
+	github.com/pion/stun/v3 v3.0.0 // indirect
+	github.com/pion/transport v0.14.1 // indirect
+	github.com/pion/transport/v2 v2.2.10 // indirect
 	github.com/pion/transport/v3 v3.0.7 // indirect
+	github.com/pion/turn v1.3.7 // indirect
 	github.com/pion/turn/v2 v2.1.3 // indirect
+	github.com/pion/turn/v4 v4.0.2 // indirect
 	github.com/pion/webrtc/v3 v3.2.40 // indirect
+	github.com/pion/webrtc/v4 v4.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus-community/pro-bing v0.4.0 // indirect
+	github.com/quic-go/quic-go v0.51.0 // indirect
 	github.com/r3labs/sse/v2 v2.10.0 // indirect
 	github.com/refraction-networking/utls v1.8.2 // indirect
 	github.com/refraction-networking/water v0.7.1-alpha // indirect
@@ -269,6 +292,7 @@ require (
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
+	github.com/wlynxg/anet v0.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.20 // indirect

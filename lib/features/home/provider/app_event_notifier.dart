@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
@@ -16,6 +17,37 @@ import '../../../core/models/available_servers.dart';
 import 'data_cap_info_provider.dart' show dataCapInfoProvider;
 
 part 'app_event_notifier.g.dart';
+
+/// Represents a consumer connection change from the broflake widget proxy.
+class UnboundedConnectionEvent {
+  final int state; // 1 = connected, -1 = disconnected
+  final int workerIdx;
+  final String addr; // IP address
+
+  UnboundedConnectionEvent({
+    required this.state,
+    required this.workerIdx,
+    required this.addr,
+  });
+
+  factory UnboundedConnectionEvent.fromJson(Map<String, dynamic> json) {
+    return UnboundedConnectionEvent(
+      state: json['state'] as int,
+      workerIdx: json['workerIdx'] as int,
+      addr: json['addr'] as String? ?? '',
+    );
+  }
+}
+
+/// Global stream controller for unbounded connection events.
+final _unboundedConnectionController =
+    StreamController<UnboundedConnectionEvent>.broadcast();
+
+/// Provider that exposes unbounded connection events as a stream.
+final unboundedConnectionProvider =
+    StreamProvider<UnboundedConnectionEvent>((ref) {
+  return _unboundedConnectionController.stream;
+});
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
@@ -85,6 +117,15 @@ class AppEventNotifier extends _$AppEventNotifier {
                 .updateDataCapInfo(dataCapInfo);
           } catch (e) {
             appLogger.error('Error parsing data-cap-event: $e');
+          }
+          break;
+        case 'unbounded-connection':
+          try {
+            final data = jsonDecode(event.message);
+            final connEvent = UnboundedConnectionEvent.fromJson(data);
+            _unboundedConnectionController.add(connEvent);
+          } catch (e) {
+            appLogger.error('Error parsing unbounded-connection event: $e');
           }
           break;
         default:

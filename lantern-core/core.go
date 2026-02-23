@@ -33,9 +33,10 @@ import (
 type EventType = string
 
 const (
-	EventTypeConfig         EventType = "config"
-	EventTypeServerLocation EventType = "server-location"
-	DefaultLogLevel                   = "trace"
+	EventTypeConfig              EventType = "config"
+	EventTypeServerLocation      EventType = "server-location"
+	EventTypeUnboundedConnection EventType = "unbounded-connection"
+	DefaultLogLevel                        = "trace"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -135,6 +136,11 @@ type SmartRouting interface {
 	IsSmartRoutingEnabled() bool
 }
 
+type Unbounded interface {
+	SetUnboundedEnabled(bool) error
+	IsUnboundedEnabled() bool
+}
+
 type Core interface {
 	App
 	User
@@ -143,6 +149,7 @@ type Core interface {
 	SplitTunnel
 	Ads
 	SmartRouting
+	Unbounded
 }
 
 // Make sure LanternCore implements the Core interface
@@ -216,6 +223,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	lc.listeningServerLocationChanges()
 	lc.listeningDataCapChanges()
+	lc.listeningUnboundedConnectionChanges()
 	slog.Debug("LanternCore initialized successfully")
 
 	// If we have a legacy user ID, fetch user data
@@ -257,6 +265,17 @@ func (lc *LanternCore) listeningDataCapChanges() {
 		stringBody := string(jsonBytes)
 		slog.Debug("DataCap event:", "event", stringBody)
 		lc.notifyFlutter("data-cap-event", stringBody)
+	})
+}
+
+func (lc *LanternCore) listeningUnboundedConnectionChanges() {
+	events.Subscribe(func(evt vpn.UnboundedConnectionEvent) {
+		jsonBytes, err := json.Marshal(evt)
+		if err != nil {
+			slog.Error("Error marshalling unbounded connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypeUnboundedConnection, string(jsonBytes))
 	})
 }
 
@@ -806,6 +825,14 @@ func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
 
 func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 	return vpn.SmartRoutingEnabled()
+}
+
+func (lc *LanternCore) SetUnboundedEnabled(enabled bool) error {
+	return vpn.SetUnbounded(enabled)
+}
+
+func (lc *LanternCore) IsUnboundedEnabled() bool {
+	return vpn.UnboundedEnabled()
 }
 
 func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {

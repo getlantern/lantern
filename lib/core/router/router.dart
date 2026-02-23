@@ -185,6 +185,10 @@ class AppRouter extends RootStackRouter {
       page: SmartRouting.page,
     ),
     AutoRoute(
+      path: '/unbounded',
+      page: UnboundedScreen.page,
+    ),
+    AutoRoute(
       path: '/intro',
       page: Onboarding.page,
     ),

@@ -229,7 +229,10 @@ class _SettingState extends ConsumerState<Setting> {
               minHeight: 72,
               icon: AppImagePaths.lanternLogoRounded,
               iconUseThemeColor: false,
-              trailing: AppImage(path: AppImagePaths.outsideBrowser),
+              trailing: AppImage(
+                path: AppImagePaths.arrowForward,
+                height: 20,
+              ),
               label: 'unbounded'.i18n,
               subtitle: Text(
                 'help_fight_global_internet_censorship'.i18n,
@@ -238,7 +241,7 @@ class _SettingState extends ConsumerState<Setting> {
                 ),
               ),
               onPressed: () {
-                UrlUtils.openUrl(AppUrls.unbounded);
+                appRouter.push(const UnboundedScreen());
               },
             ),
           ),
