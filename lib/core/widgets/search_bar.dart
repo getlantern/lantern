@@ -56,29 +56,39 @@ class _SearchBarContent extends HookConsumerWidget {
         // Search input or title
         Expanded(
           child: isSearching.value
-              ? Theme(
-                  data: ThemeData(),
-                  child: TextField(
-                    controller: controller,
-                    autofocus: true,
-                    onChanged: (value) =>
-                        ref.read(searchQueryProvider.notifier).setQuery(value),
-                    decoration: InputDecoration(
-                      hintText: hintText,
-                      hintStyle: TextStyle(
-                        color: context.textSecondary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    style: TextStyle(
+              ? TextField(
+                  controller: controller,
+                  autofocus: true,
+                  onChanged: (value) =>
+                      ref.read(searchQueryProvider.notifier).setQuery(value),
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: context.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: context.textPrimary,
                     ),
+                    border: InputBorder.none,
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
+                    isDense: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: context.textPrimary,
                   ),
                 )
               : Text(

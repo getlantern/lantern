@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -40,12 +41,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void updateToolbarThemeMode() {
     final setting = _db.getAppSetting();
     final mode = setting?.themeMode ?? 'system';
-    final modeEnum = resolveThemeMode(mode);
-    if (modeEnum == ThemeMode.system || modeEnum == ThemeMode.light) {
-      windowManager.setBrightness(Brightness.light);
-    } else {
-      windowManager.setBrightness(Brightness.dark);
-    }
+    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
   }
 
   Future<void> update(AppSetting updated) async {
@@ -133,22 +129,37 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setThemeMode(String mode) {
     update(state.copyWith(themeMode: mode));
-    if (PlatformUtils.isDesktop) {
-      final modeEnum = resolveThemeMode(mode);
-      if (modeEnum == ThemeMode.system || modeEnum == ThemeMode.light) {
-        windowManager.setBrightness(Brightness.light);
-      } else {
-        windowManager.setBrightness(Brightness.dark);
-      }
-    }
+    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
   }
 
+  void syncDesktopBrightnessFromCurrentTheme() {
+    unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
+  }
+
+  Future<void> _applyDesktopBrightness(ThemeMode mode) async {
+    if (!PlatformUtils.isDesktop) {
+      return;
+    }
+
+    final brightness = switch (mode) {
+      ThemeMode.light => Brightness.light,
+      ThemeMode.dark => Brightness.dark,
+      ThemeMode.system => PlatformDispatcher.instance.platformBrightness,
+    };
+
+    try {
+      await windowManager.setBrightness(brightness);
+    } catch (e, st) {
+      appLogger.error('Failed to set desktop toolbar brightness: $e', st);
+    }
+  }
 
   Future<void> setEnvironment(bool isStaging) async {
     final env = isStaging ? 'stage' : 'prod';
     update(state.copyWith(environment: env));
     final dir = await AppStorageUtils.getAppDirectory();
     sl<LocalStorageService>().close();
+
     /// Delete and recreate the directory
     if (dir.existsSync()) {
       await dir.delete(recursive: true);
