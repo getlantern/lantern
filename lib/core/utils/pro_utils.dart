@@ -23,7 +23,7 @@ Future<void> showProAccountFlowDialog({
               ? 'set_account_password_message'.i18n
               : 'update_pro_account_message'.i18n,
           style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
         ),
       ],
@@ -31,7 +31,7 @@ Future<void> showProAccountFlowDialog({
     action: [
       AppTextButton(
         label: 'cancel'.i18n,
-        textColor: AppColors.gray6,
+        textColor: context.textDisabled,
         onPressed: () => appRouter.maybePop(),
       ),
       AppTextButton(

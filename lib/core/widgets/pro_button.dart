@@ -18,6 +18,7 @@ class ProButton extends StatelessWidget {
       icon: AppImagePaths.crown,
       expanded: true,
       isTaller: true,
+      useThemeColor: false,
       onPressed: onPressed,
     );
   }

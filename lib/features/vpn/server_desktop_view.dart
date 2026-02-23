@@ -32,13 +32,13 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
             turns: isExpanded ? .25 : 0.0,
             child: Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.gray9,
+              color: context.textPrimary,
               size: 20,
             ),
           ),
           title: Text(
             'Korea',
-            style: textTheme.bodyLarge!.copyWith(color: AppColors.gray9),
+            style: textTheme.bodyLarge!.copyWith(color: context.textPrimary),
           ),
           shape: RoundedRectangleBorder(side: BorderSide.none),
           leading: AppImage(path: AppImagePaths.location),
@@ -49,10 +49,10 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
               contentPadding: EdgeInsets.only(left: 46),
               label: 'USA - New Jersey',
               tileTextStyle:
-                  textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
+                  textTheme.bodyMedium!.copyWith(color: context.textPrimary),
               trailing: Radio<bool>(
                 visualDensity: VisualDensity.compact,
-                activeColor: AppColors.gray9,
+                activeColor: context.textPrimary,
                 value: true,
                 groupValue: false,
                 onChanged: (value) {},

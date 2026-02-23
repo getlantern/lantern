@@ -33,8 +33,8 @@ class AppWebView extends HookConsumerWidget {
           title: Text(title),
           centerTitle: true,
           leading: SizedBox(),
-          backgroundColor: AppColors.white,
-          iconTheme: IconThemeData(color: AppColors.black),
+          backgroundColor: context.bgElevated,
+          iconTheme: IconThemeData(color: context.textPrimary),
           actions: [
             IconButton(
               icon: const Icon(Icons.close),

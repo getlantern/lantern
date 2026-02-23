@@ -1466,9 +1466,21 @@ msgstr "Your Pro plan was purchased through Google Play. Please manage your subs
 msgid "manage_subscription_apple_app_store"
 msgstr "Your Pro plan was purchased through the Apple App Store. Please manage your subscription from your Apple ID account settings."
 
-
 msgid "create_account_error"
 msgstr "Create Account Error"
+
+msgid "appearance"
+msgstr "Appearance"
+
+msgid "light"
+msgstr "Light"
+
+msgid "dark"
+msgstr "Dark"
+
+msgid "system"
+msgstr "System"
+
 
 
 

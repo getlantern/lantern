@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(22, 1798613131332202898),
+    lastPropertyId: const obx_int.IdUid(23, 853140105317312758),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -189,6 +189,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(22, 1798613131332202898),
         name: 'environment',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 853140105317312758),
+        name: 'themeMode',
         type: 9,
         flags: 0,
       ),
@@ -1007,7 +1013,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final routingModeRawOffset = fbb.writeString(object.routingModeRaw);
         final dataCapThresholdOffset = fbb.writeString(object.dataCapThreshold);
         final environmentOffset = fbb.writeString(object.environment);
-        fbb.startTable(23);
+        final themeModeOffset = fbb.writeString(object.themeMode);
+        fbb.startTable(24);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -1024,6 +1031,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(19, dataCapThresholdOffset);
         fbb.addBool(20, object.onboardingCompleted);
         fbb.addOffset(21, environmentOffset);
+        fbb.addOffset(22, themeModeOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1105,6 +1113,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           44,
           false,
         );
+        final themeModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 48, '');
         final environmentParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 46, '');
@@ -1124,6 +1135,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           routingModeRaw: routingModeRawParam,
           dataCapThreshold: dataCapThresholdParam,
           onboardingCompleted: onboardingCompletedParam,
+          themeMode: themeModeParam,
           environment: environmentParam,
         );
 
@@ -2059,6 +2071,11 @@ class AppSetting_ {
   /// See [AppSetting.environment].
   static final environment = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[15],
+  );
+
+  /// See [AppSetting.themeMode].
+  static final themeMode = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[16],
   );
 }
 

@@ -38,17 +38,17 @@ class _PlansState extends ConsumerState<Plans> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.bgElevated,
       padded: false,
       appBar: CustomAppBar(
         title: SizedBox(
           height: 20.h,
           child: LanternLogo(
-            color: AppColors.gray9,
+            color: context.textPrimary,
             isPro: true,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: context.bgElevated,
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () {
@@ -63,7 +63,10 @@ class _PlansState extends ConsumerState<Plans> {
         ],
       ),
       title: "",
-      body: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        bottom: !PlatformUtils.isIOS,
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -84,7 +87,7 @@ class _PlansState extends ConsumerState<Plans> {
         DividerSpace(padding: EdgeInsets.zero),
         Expanded(
           child: Container(
-            color: AppColors.gray1,
+            color: context.bgSurface,
             padding: EdgeInsets.symmetric(
                 horizontal: context.isSmallDevice ? 0 : defaultSize),
             child: Column(
@@ -139,7 +142,7 @@ class _PlansState extends ConsumerState<Plans> {
                     child: Text(
                       'subscription_renewal_info'.i18n,
                       style: textTheme.labelMedium!.copyWith(
-                        color: AppColors.gray7,
+                        color: context.textTertiary,
                       ),
                     ),
                   ),
@@ -150,7 +153,7 @@ class _PlansState extends ConsumerState<Plans> {
                         AppTextButton(
                           label: 'privacy_policy'.i18n,
                           fontSize: 12,
-                          textColor: AppColors.gray7,
+                          textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
                                 AppUrls.privacyPolicy);
@@ -163,7 +166,7 @@ class _PlansState extends ConsumerState<Plans> {
                         AppTextButton(
                           label: 'terms_of_service'.i18n,
                           fontSize: 12,
-                          textColor: AppColors.gray7,
+                          textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
                                 AppUrls.termsOfService);
@@ -239,7 +242,7 @@ class _PlansState extends ConsumerState<Plans> {
           SizedBox(height: defaultSize),
           Text('referral_code'.i18n,
               style: textTheme.headlineSmall!.copyWith(
-                color: AppColors.gray9,
+                color: context.textPrimary,
               )),
           SizedBox(height: 24),
           AppTextField(
@@ -257,7 +260,7 @@ class _PlansState extends ConsumerState<Plans> {
         AppTextButton(
           label: 'cancel'.i18n,
           underLine: false,
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },

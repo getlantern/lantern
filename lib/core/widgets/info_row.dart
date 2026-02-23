@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 class InfoRow extends StatelessWidget {
   final Widget? icon;
@@ -38,13 +38,13 @@ class InfoRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
         minTileHeight: minTileHeight,
-        tileColor: backgroundColor,
+        tileColor: backgroundColor?? context.bgElevated,
         onTap: onPressed,
         contentPadding:
             padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(color: borderColor ?? AppColors.gray2),
+          side: BorderSide(color: borderColor ?? context.borderDefault),
         ),
         leading: showLeadingIcon
             ? AppImage(
@@ -56,7 +56,7 @@ class InfoRow extends StatelessWidget {
               text,
               style: textStyle ??
                   (textTheme.bodyMedium)!.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                   ),
             ));
   }

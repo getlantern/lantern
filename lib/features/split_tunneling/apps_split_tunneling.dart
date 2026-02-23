@@ -198,9 +198,9 @@ class AppRow extends HookConsumerWidget {
               fit: BoxFit.cover,
             );
           }
-          return Icon(Icons.apps, size: 24, color: AppColors.gray6);
+          return Icon(Icons.apps, size: 24, color: context.textDisabled);
         },
-        orElse: () => Icon(Icons.apps, size: 24, color: AppColors.gray6),
+        orElse: () => Icon(Icons.apps, size: 24, color: context.textDisabled),
       );
     }
 
@@ -220,7 +220,7 @@ class AppRow extends HookConsumerWidget {
                     style: AppTextStyles.bodyMedium.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.gray9,
+                      color: context.textPrimary,
                     ),
                   ),
                 ),

@@ -48,7 +48,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             child: Text(
               'delete_account_message'.i18n,
               style: textTheme.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -58,7 +58,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             child: Text(
               'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),

@@ -8,10 +8,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 
 class Updater {
-  Updater({AutoUpdater? updater}) : _updater = updater ?? autoUpdater;
-
-  final AutoUpdater _updater;
-
   bool _initialized = false;
 
   bool get _isSupportedPlatform =>
@@ -31,6 +27,7 @@ class Updater {
     final feedUrl = AppUrls.appcastFor(buildType);
 
     try {
+      final _updater = AutoUpdater.instance;
       await _updater.setFeedURL(feedUrl);
       await _updater.setScheduledCheckInterval(3600);
 
@@ -53,6 +50,6 @@ class Updater {
 
   Future<void> checkNow() async {
     if (!_isSupportedPlatform) return;
-    await _updater.checkForUpdates();
+    await AutoUpdater.instance.checkForUpdates();
   }
 }

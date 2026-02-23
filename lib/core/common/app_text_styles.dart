@@ -9,37 +9,37 @@ class AppTextStyles {
   static TextStyle get displayLarge => GoogleFonts.urbanist(
         fontSize: 56,
         fontWeight: FontWeight.w700,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get displayMedium => GoogleFonts.urbanist(
         fontSize: 44,
         fontWeight: FontWeight.w700,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get displaySmall => GoogleFonts.urbanist(
         fontSize: 36,
         fontWeight: FontWeight.w700,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get headingLarge => GoogleFonts.urbanist(
         fontSize: 32,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get headingMedium => GoogleFonts.urbanist(
         fontSize: 28,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get headingSmall => GoogleFonts.urbanist(
         fontSize: 24,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
         letterSpacing: 0,
       );
 
@@ -47,75 +47,75 @@ class AppTextStyles {
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get labelLargeBold => GoogleFonts.urbanist(
         fontSize: 14,
         fontWeight: FontWeight.bold,
         letterSpacing: 0,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get labelMedium => GoogleFonts.urbanist(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: AppColors.black,
+        // color: AppColors.black,
         letterSpacing: 0.0,
       );
 
   static TextStyle get labelSmall => GoogleFonts.urbanist(
         fontSize: 10,
         fontWeight: FontWeight.w500,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get titleLarge => GoogleFonts.urbanist(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get titleMedium => GoogleFonts.urbanist(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get titleSmall => GoogleFonts.urbanist(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get bodyLarge => GoogleFonts.urbanist(
       fontSize: 16,
       fontWeight: FontWeight.w400,
-      color: AppColors.black,
+      // color: AppColors.black,
       letterSpacing: 0);
 
   static TextStyle get bodyLargeBold => GoogleFonts.urbanist(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get bodyMedium => GoogleFonts.urbanist(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get bodyMediumBold => GoogleFonts.urbanist(
         fontSize: 14,
         fontWeight: FontWeight.bold,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   static TextStyle get bodySmall => GoogleFonts.urbanist(
         fontSize: 12,
         fontWeight: FontWeight.w400,
-        color: AppColors.black,
+        // color: AppColors.black,
       );
 
   //Text style for button

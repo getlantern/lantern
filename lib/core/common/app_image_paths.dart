@@ -108,6 +108,9 @@ class AppImagePaths {
   static const nonProfit = 'assets/images/non_profit.svg';
   static const privateServerIntro = 'assets/images/private_server_intro.svg';
   static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+  static const automatic = 'assets/images/automatic.svg';
+  static const lightMode = 'assets/images/light_mode.svg';
+  static const darkMode = 'assets/images/dark_mode.svg';
 
   /// Validates and returns a safe flag path for the given country code.
   /// Returns null if the country code is invalid or the flag asset doesn't exist.

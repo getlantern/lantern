@@ -50,10 +50,10 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.bgElevated,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: AppColors.gray3,
+          color: context.borderInput,
           width: .5,
         ),
       ),
@@ -84,7 +84,7 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
         children: [
           Icon(
             metCriteria ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: metCriteria ? AppColors.green6 : Colors.grey,
+            color: metCriteria ? context.statusSuccessBorder : Colors.grey,
             size: 18,
           ),
           const SizedBox(width: 8),
@@ -92,7 +92,7 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
             criteria,
             style: textTheme!.labelMedium!.copyWith(
               fontSize: 14,
-              color: AppColors.gray9,
+              color: context.textPrimary,
             ),
           ),
         ],

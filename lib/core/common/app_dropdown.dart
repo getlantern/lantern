@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 import 'app_colors.dart' show AppColors;
 
@@ -28,7 +29,7 @@ class AppDropdown<T> extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         border: Border.all(
-          color: AppColors.gray3,
+          color: context.borderInput,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(16),
@@ -41,7 +42,7 @@ class AppDropdown<T> extends StatelessWidget {
               isExpanded: true,
               padding: EdgeInsets.only(left: prefixIconPath != null ? 8 : 0),
               style: textTheme.bodyMedium!.copyWith(
-                color: AppColors.gray9,
+                color: context.textPrimary,
               ),
               value: value,
               borderRadius: BorderRadius.circular(16),
@@ -63,7 +64,7 @@ class AppDropdown<T> extends StatelessWidget {
             child: Text(
               label!,
               style: textTheme.labelLarge?.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
                 fontSize: 14.sp,
               ),
             ),
