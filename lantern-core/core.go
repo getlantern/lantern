@@ -107,7 +107,7 @@ type Payment interface {
 	StripeSubscription(email, planID string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) error
+	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
 	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
@@ -621,7 +621,7 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return lc.apiClient.StripeBillingPortalUrl(context.Background())
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	slog.Debug("Purchase token: ", "token", purchaseToken, "planId", planId)
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
@@ -629,14 +629,13 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 	}
 	status, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
-		return fmt.Errorf("error acknowledging google purchase: %w", err)
+		return "", fmt.Errorf("error acknowledging google purchase: %w", err)
 	}
 	slog.Debug("acknowledge google purchase:", "status", status)
-	return nil
+	return status, nil
 }
 
 func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
-	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,

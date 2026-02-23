@@ -22,7 +22,7 @@ class AppDialog {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SizedBox(height: 24),
-              LanternRoundedLogo(height: 45),
+              LanternRoundedLogo(height: 45,),
               SizedBox(height: 24),
               Center(
                 child: SizedBox(

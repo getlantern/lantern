@@ -412,7 +412,7 @@ class MethodHandler : FlutterPlugin,
                             map["planId"] as String
                         )
                         withContext(Dispatchers.Main) {
-                            success("ok")
+                            success(subscriptionData)
                         }
                     }.onFailure { e ->
                         result.error(
