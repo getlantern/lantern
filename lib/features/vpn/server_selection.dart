@@ -58,7 +58,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   child: Text(
                     'automatically_chooses_fastest_location'.i18n,
                     style: _textTheme?.bodyMedium!.copyWith(
-                      color: AppColors.gray8,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -81,7 +81,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               'automatically_chooses_fastest_location'.i18n,
-              style: _textTheme?.bodyMedium!.copyWith(color: AppColors.gray8),
+              style: _textTheme?.bodyMedium!.copyWith(color: context.textSecondary),
             ),
           ),
           SizedBox(height: size24),
@@ -99,7 +99,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               labelPadding: EdgeInsets.zero,
               indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
               indicator: BoxDecoration(
-                color: AppColors.blue2,
+                color: context.textLink,
                 borderRadius: BorderRadius.circular(40),
                 shape: BoxShape.rectangle,
                 border: Border.all(color: AppColors.blue3, width: 1),
@@ -138,7 +138,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'smart_location'.i18n,
-            style: _textTheme?.labelLarge!.copyWith(color: AppColors.gray8),
+            style: _textTheme?.labelLarge!.copyWith(color: context.textSecondary),
           ),
         ),
         AppCard(
@@ -155,12 +155,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 : Text(
                     protocol.capitalize,
                     style: _textTheme!.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                     ),
                   ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [AppImage(path: AppImagePaths.blot)],
+              children: [AppImage(path: AppImagePaths.blot,color: context.statusWarningBgDot,)],
             ),
           ),
         ),
@@ -189,7 +189,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             : Text(
                 serverLocation.protocol.capitalize,
                 style: _textTheme!.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+                  color: context.textTertiary,
                 ),
               );
       case ServerLocationType.privateServer:
@@ -201,7 +201,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               child: Text(
                 serverLocation.displayName,
                 style: _textTheme!.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+                  color: context.textTertiary,
                 ),
               ),
             ),
@@ -209,7 +209,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               Text(
                 serverLocation.protocol.capitalize,
                 style: _textTheme!.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+                  color: context.textTertiary,
                 ),
               ),
           ],
@@ -383,7 +383,7 @@ class _ServerLocationListViewState
                       if (!widget.userPro)
                         Positioned.fill(
                           child: Container(
-                            color: AppColors.white.withValues(alpha: 0.72),
+                            color: context.bgElevated.withValues(alpha: 0.72),
                             alignment: Alignment.center,
                           ),
                         ),
@@ -496,7 +496,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             country,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge!.copyWith(color: AppColors.gray9),
+            ).textTheme.bodyLarge!.copyWith(color: context.textPrimary),
           ),
           onExpansionChanged: (expanded) {
             setState(() => _isExpanded = expanded);
@@ -516,11 +516,11 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                       maxLines: 1,
                       style: Theme.of(
                         context,
-                      ).textTheme.labelMedium!.copyWith(color: AppColors.gray7),
+                      ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
                     ),
               tileTextStyle: Theme.of(
                 context,
-              ).textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
+              ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
               onPressed: () => _onLocationSelected(context, loc),
             );
           }).toList(),
@@ -533,7 +533,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       trailing: AppImage(
         path: AppImagePaths.arrowForward,
         height: 20.0,
-        color: AppColors.gray9,
+        color: context.textPrimary,
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );
@@ -605,7 +605,7 @@ class _PrivateServerLocationListViewState
           Text(
             'no_private_server_setup_yet'.i18n,
             textAlign: TextAlign.center,
-            style: _textTheme!.titleSmall!.copyWith(color: AppColors.gray8),
+            style: _textTheme!.titleSmall!.copyWith(color: context.textSecondary),
           ),
           SizedBox(height: 16),
           PrimaryButton(
@@ -662,7 +662,7 @@ class _PrivateServerLocationListViewState
                       child: Text(
                         '${server.serverLocationName.locationName} - ${server.externalIp}',
                         style: _textTheme!.labelMedium!.copyWith(
-                          color: AppColors.gray7,
+                          color: context.textTertiary,
                         ),
                       ),
                     ),
@@ -670,7 +670,7 @@ class _PrivateServerLocationListViewState
                       Text(
                         server.protocol.capitalize,
                         style: _textTheme!.labelMedium!.copyWith(
-                          color: AppColors.gray7,
+                          color: context.textTertiary,
                         ),
                       ),
                   ],
@@ -709,7 +709,7 @@ class _PrivateServerLocationListViewState
                         child: Text(
                           '${server.serverLocationName} - ${server.externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
-                            color: AppColors.gray7,
+                            color: context.textTertiary,
                           ),
                         ),
                       ),

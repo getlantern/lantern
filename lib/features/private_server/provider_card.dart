@@ -40,13 +40,13 @@ class ProviderCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AppImage(path: icon, width: 20, height: 20),
+                AppImage(path: icon, width: 20, height: 20,useThemeColor: false,),
                 const SizedBox(width: defaultSize),
                 Expanded(
                   child: Text(
                     title,
                     style: t.titleMedium?.copyWith(
-                      color: AppColors.black1,
+                      color: context.textPrimary,
                       fontWeight: FontWeight.w600,
                       // height: 1.50,
                     ),
@@ -107,6 +107,7 @@ class CheckmarkTile extends StatelessWidget {
               path: iconPath ?? AppImagePaths.checkmark,
               width: 24,
               height: 24,
+              useThemeColor: false,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -115,7 +116,7 @@ class CheckmarkTile extends StatelessWidget {
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: t.bodyMedium?.copyWith(
-                  color: AppColors.black1,
+                  color: context.textPrimary,
                   height: 1.64,
                 ),
               ),
@@ -134,7 +135,7 @@ class CheckmarkTile extends StatelessWidget {
     return Column(
       children: [
         row,
-        Divider(height: 1, color: AppColors.gray2),
+        Divider(height: 1, color: context.borderDefault),
       ],
     );
   }

@@ -28,7 +28,7 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
       decoration: BoxDecoration(
         color: finalizeCardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gray2, width: 1),
+        border: Border.all(color: context.borderDefault, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +46,7 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
             decoration: BoxDecoration(
               border: Border.all(
-                color: AppColors.gray2,
+                color: context.borderDefault,
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(12),
@@ -68,7 +68,7 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
                     Text(
                       countryLabelKey.i18n,
                       style: AppTextStyles.bodyLarge.copyWith(
-                        color: AppColors.black1,
+                        color: context.textPrimary,
                         height: 1.62,
                       ),
                     ),

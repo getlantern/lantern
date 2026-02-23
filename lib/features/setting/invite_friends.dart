@@ -21,19 +21,20 @@ class InviteFriends extends HookConsumerWidget {
 
   Widget _buildBody(String referralCode) {
     final isCopied = useState(false);
-    final textTheme = Theme.of(useContext()).textTheme;
+    final context = useContext();
+    final textTheme = Theme.of(context).textTheme;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Center(child: AppImage(path: AppImagePaths.startIllustration)),
+          Center(child: AppImage(path: AppImagePaths.startIllustration,useThemeColor: false,)),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               'your_referral_code'.i18n,
               style: textTheme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -50,7 +51,7 @@ class InviteFriends extends HookConsumerWidget {
                 firstChild: AppImage(path: AppImagePaths.copy),
                 secondChild: Icon(
                   Icons.check_circle,
-                  color: AppColors.green7,
+                  color: context.statusSuccessBg,
                 ),
               ),
               label: referralCode,
@@ -66,7 +67,7 @@ class InviteFriends extends HookConsumerWidget {
                 Text(
                   'invite_friends_message'.i18n,
                   style: textTheme.bodyMedium!.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                   ),
                 ),
                 SizedBox(height: defaultSize),
@@ -76,19 +77,19 @@ class InviteFriends extends HookConsumerWidget {
                       TextSpan(
                         text: '- ',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: 'monthly_plan'.i18n,
                         style: AppTextStyles.bodyMediumBold.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: ' ${'15_days_each'.i18n}',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],
@@ -101,19 +102,19 @@ class InviteFriends extends HookConsumerWidget {
                       TextSpan(
                         text: '- ',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: 'annual_plan'.i18n,
                         style: AppTextStyles.bodyMediumBold.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: ' ${'1_month_each'.i18n}',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],
@@ -126,19 +127,19 @@ class InviteFriends extends HookConsumerWidget {
                       TextSpan(
                         text: '- ',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: 'two_year_plan'.i18n,
                         style: AppTextStyles.bodyMediumBold.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                       TextSpan(
                         text: ' ${'2_month_each'.i18n}',
                         style: textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],
@@ -148,7 +149,7 @@ class InviteFriends extends HookConsumerWidget {
                 Text(
                   'referral_code_info'.i18n,
                   style: textTheme.bodyMedium!.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                   ),
                 ),
               ],

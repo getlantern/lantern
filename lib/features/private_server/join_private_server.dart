@@ -56,7 +56,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         child: Column(children: <Widget>[
           // SizedBox(height: 16),
           InfoRow(
-            backgroundColor: AppColors.yellow1,
+            backgroundColor: context.bgPromo,
             showLeadingIcon: false,
             text: '',
             child: Row(
@@ -106,7 +106,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                   child: Text(
                     "how_server_appears".i18n,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray6,
+                      color: context.textDisabled,
                     ),
                   ),
                 ),
@@ -185,7 +185,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
             AppImage(
               path: AppImagePaths.security,
               height: 40,
-              color: AppColors.gray9,
+              color: context.textPrimary,
             ),
             SizedBox(height: 16),
             Text(
@@ -273,7 +273,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
         ),
         AppTextButton(
           label: "go_to_server_locations".i18n,

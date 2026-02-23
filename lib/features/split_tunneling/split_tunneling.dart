@@ -41,14 +41,14 @@ class SplitTunneling extends HookConsumerWidget {
                   tileTextStyle: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: AppColors.gray9,
+                    color: context.textPrimary,
                   ),
                   subtitle: Text(
                     'add_apps_websites_bypass_vpn'.i18n,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                       letterSpacing: 0.0,
                     ),
                   ),

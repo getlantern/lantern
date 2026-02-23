@@ -266,7 +266,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                     child: Text(
                       "how_server_appears".i18n,
                       style: textTheme.labelMedium!.copyWith(
-                        color: AppColors.gray6,
+                        color: context.textDisabled,
                       ),
                     ),
                   ),

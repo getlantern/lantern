@@ -56,7 +56,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
                         child: Text(
                           'no_websites_selected'.i18n,
                           style: textTheme.bodyLarge!.copyWith(
-                            color: AppColors.gray9,
+                            color: context.textPrimary,
                           ),
                         ),
                       )
@@ -99,7 +99,7 @@ class WebsiteRow extends StatelessWidget {
       contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
       tileTextStyle: AppTextStyles.labelLarge.copyWith(
-        color: AppColors.gray8,
+        color: context.textSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w500,
       ),

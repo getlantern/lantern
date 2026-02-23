@@ -33,10 +33,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final planData = ref.watch(plansProvider.notifier).getPlanData();
     return BaseScreen(
       title: '',
-      appBar: CustomAppBar(
-        title: Text('choose_payment_method'.i18n),
-
-      ),
+      appBar: CustomAppBar(title: Text('choose_payment_method'.i18n)),
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -109,7 +106,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         action: [
           AppTextButton(
             label: 'cancel'.i18n,
-            textColor: AppColors.gray8,
+            textColor: context.textSecondary,
             underLine: false,
             onPressed: () {
               appRouter.pop();
@@ -169,6 +166,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
         /// Start stripe SDK
         sl<StripeService>().startStripeSDK(
+          context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
             onPurchaseResult(true, context, ref);
@@ -334,19 +332,19 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
             initiallyExpanded: index == 0,
-            backgroundColor: AppColors.white,
-            collapsedBackgroundColor: AppColors.white,
+            backgroundColor: context.bgElevated,
+            collapsedBackgroundColor: context.bgElevated,
             collapsedShape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: AppColors.gray3,
+                color: context.borderInput,
                 width: 1,
               ),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: AppColors.gray3,
+                color: context.borderInput,
                 width: 1,
               ),
             ),
@@ -372,7 +370,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   Text(
                     '${userPlan.formattedMonthlyPrice}/month',
                     style: theme.bodyMedium!.copyWith(
-                      color: AppColors.gray6,
+                      color: context.textDisabled,
                     ),
                   ),
                 ],
@@ -390,7 +388,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     Text(
                       'free'.i18n,
                       style: theme.bodyMedium!.copyWith(
-                        color: AppColors.gray6,
+                        color: context.textDisabled,
                       ),
                     ),
                   ],
@@ -402,12 +400,12 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text('Order Total:',
                       style: theme.titleSmall!.copyWith(
-                        color: AppColors.gray9,
+                        color: context.textPrimary,
                       )),
                   Text(
                     userPlan.formattedYearlyPrice,
                     style: theme.titleSmall!.copyWith(
-                      color: AppColors.blue10,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -419,7 +417,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
                     : 'billed_once'.i18n.capitalize,
                 style: theme.bodySmall!.copyWith(
-                  color: AppColors.gray6,
+                  color: context.textDisabled,
                 ),
               ),
               SizedBox(height: defaultSize),
