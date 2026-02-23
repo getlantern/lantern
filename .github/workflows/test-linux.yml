@@ -252,7 +252,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux"
+          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true"
 
       - name: Diagnostics on failure
         if: failure()
