@@ -28,6 +28,14 @@ const _vpnStateKeyPrefixes = <String>[
   'vpn.status.',
 ];
 
+const _vpnStateLabels = <_ObservedVpnState, String>{
+  _ObservedVpnState.connected: 'Connected',
+  _ObservedVpnState.disconnected: 'Disconnected',
+  _ObservedVpnState.connecting: 'Connecting',
+  _ObservedVpnState.disconnecting: 'Disconnecting',
+  _ObservedVpnState.error: 'Error',
+};
+
 const _initialStates = <_ObservedVpnState>[
   _ObservedVpnState.connected,
   _ObservedVpnState.disconnected,
@@ -88,6 +96,13 @@ class _VpnStateFinders {
         }
       }
     }
+
+    for (final entry in _vpnStateLabels.entries) {
+      if (find.text(entry.value).evaluate().isNotEmpty) {
+        return entry.key;
+      }
+    }
+
     return _ObservedVpnState.none;
   }
 
@@ -105,8 +120,18 @@ class _VpnStateFinders {
         return state;
       }
     }
+    final debugKeys = tester.allWidgets
+        .map((w) => w.key)
+        .whereType<Key>()
+        .map((k) => k.toString())
+        .where((k) => k.contains('vpn.') || k.contains('onboarding.'))
+        .toSet()
+        .toList()
+      ..sort();
     fail(
-        '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()}');
+      '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()}. '
+      'Visible keyed widgets: $debugKeys',
+    );
   }
 }
 
