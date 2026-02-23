@@ -166,7 +166,7 @@ If you prefer to run the backend as a real Windows Service during development, u
 make install-android-sdk
 ```
 
-This installs the Android platform, build tools, NDK, and CMake at the versions defined in the Makefile (currently NDK `27.0.12077973`, CMake `3.22.1`, build tools `35.0.0`, platform `android-35`). It also accepts the SDK licenses automatically.
+This installs the Android platform, build tools, NDK, and CMake at the versions defined by the `ANDROID_*` variables at the top of the `Makefile`. It also accepts the SDK licenses automatically.
 
 After the NDK is installed, set the following environment variables so the build tools can locate it:
 
