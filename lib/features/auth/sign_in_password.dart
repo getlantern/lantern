@@ -59,23 +59,22 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                     signInWithPassword(passwordController.text.trim()),
                 onChanged: (value) {},
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 8),
               if (!widget.fromChangeEmail)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: defaultSize),
-                  child: Text(
-                    'if_you_have_not_set_password'.i18n,
-                    textAlign: TextAlign.start,
-                    style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray6,
-                    ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: defaultSize),
+                child: Text(
+                  'if_you_have_not_set_password'.i18n,
+                  textAlign: TextAlign.start,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.textDisabled,
                   ),
-                ),
+                )),
               SizedBox(height: 16),
               if (widget.fromChangeEmail)
                 Text('confirm_password_to_continue'.i18n,
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: AppColors.gray8,
+                          color: context.textSecondary,
                         )),
               SizedBox(height: 32),
               PrimaryButton(
@@ -90,7 +89,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               SizedBox(height: 32),
               AppTextButton(
                 label: 'forgot_password'.i18n,
-                textColor: AppColors.gray9,
+                textColor: context.textPrimary,
                 onPressed: () {
                   appRouter.push(ResetPasswordEmail(email: widget.email));
                 },
@@ -104,7 +103,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
 
   Widget _buildSuffix(ValueNotifier<bool> obscureText) {
     return AppImage(
-      color: AppColors.yellow9,
+      color: context.textPrimary,
       path: obscureText.value ? AppImagePaths.eyeHide : AppImagePaths.eye,
       onPressed: () {
         obscureText.value = !obscureText.value;

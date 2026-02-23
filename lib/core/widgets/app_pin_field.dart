@@ -21,8 +21,8 @@ class AppPinField extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        border: Border.all(color: AppColors.gray3),
+        color: context.bgElevated,
+        border: Border.all(color: context.borderInput),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -71,14 +71,14 @@ class AppPinField extends StatelessWidget {
                       Container(
                         width: 2,
                         height: 20,
-                        color: AppColors.gray4,
+                        color: context.textDisabled,
                       ),
                     ],
                   ),
                   preFilledWidget: Container(
                     width: 15,
                     height: 1,
-                    color: AppColors.gray4,
+                    color: context.textDisabled,
                   ),
                   defaultPinTheme: PinTheme(
                     width: 20,

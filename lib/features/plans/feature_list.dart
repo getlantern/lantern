@@ -53,7 +53,7 @@ class _FeatureTile extends StatelessWidget {
         children: [
           AppImage(
             path: image,
-            color: AppColors.blue10,
+            color: context.textPrimary,
             height: 24,
           ),
           SizedBox(width: defaultSize),

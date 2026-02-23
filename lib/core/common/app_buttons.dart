@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_dimens.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
 
@@ -21,6 +22,7 @@ class PrimaryButton extends StatelessWidget {
   final Color? bgColor;
   final Color? textColor;
   final bool? isTaller;
+  final bool? useThemeColor;
 
   // Default constructor for button without an icon
   const PrimaryButton({
@@ -33,6 +35,7 @@ class PrimaryButton extends StatelessWidget {
     this.expanded = true,
     this.isTaller = false,
     this.showBorder = false,
+    this.useThemeColor,
     this.icon,
     super.key,
   });
@@ -56,6 +59,7 @@ class PrimaryButton extends StatelessWidget {
               path: icon!,
               height: iconHeight,
               color: iconColor,
+              useThemeColor: useThemeColor ?? true,
             ),
             label: Text(label),
             style: _buildButtonStyle(context, button!, iconSz),
@@ -69,6 +73,7 @@ class PrimaryButton extends StatelessWidget {
   ) {
     final verticalPad = hCap(context, 12);
     final fontSz = spCap(context, 16);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Heights
     final minHeight = isTaller == true ? hCap(context, 56) : hCap(context, 48);
@@ -78,36 +83,42 @@ class PrimaryButton extends StatelessWidget {
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return AppColors.gray2; // Disabled background color
+            // primary-disabled-bg: Gray.200 light / Gray.700 dark
+            return isDark ? AppColors.gray7 : AppColors.gray2;
           }
           if (states.contains(WidgetState.hovered) &&
               bgColor == AppColors.blue1) {
-            return AppColors.blue2; // Pressed background color
+            return AppColors.blue2;
           }
           if (states.contains(WidgetState.hovered)) {
-            return AppColors.blue8; // Hovered background color
+            // primary-bg-hover: Blue.800 light / Blue.500 dark
+            return isDark ? AppColors.blue5 : AppColors.blue8;
           }
-          return bgColor ?? AppColors.blue10; // Default background color
+          // primary-bg: Blue.1000 light / Blue.600 dark
+          return bgColor ?? (isDark ? AppColors.blue6 : AppColors.blue10);
         },
       ),
       side: WidgetStateProperty.resolveWith<BorderSide>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return BorderSide(color: AppColors.gray4, width: 1);
+            // primary-disabled-border: Gray.400 light / Gray.500 dark
+            return BorderSide(
+              color: isDark ? AppColors.gray5 : AppColors.gray4,
+              width: 1,
+            );
           }
           if (showBorder) {
-            return BorderSide(color: AppColors.gray2, width: 1);
+            return BorderSide(
+              color: isDark ? AppColors.gray7 : AppColors.gray2,
+              width: 1,
+            );
           }
           return BorderSide.none;
         },
       ),
-      // backgroundColor: WidgetStatePropertyAll<Color>(bgColor ?? AppColors.blue7),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(
-          vertical: verticalPad,
-          horizontal: 40.0,
-        ),
+        EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
@@ -115,6 +126,7 @@ class PrimaryButton extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
+      // primary-text: Gray.100 both / primary-disabled-text: Gray.500 both
       foregroundColor: WidgetStatePropertyAll<Color>(
         enabled == false ? AppColors.gray5 : textColor ?? AppColors.gray1,
       ),
@@ -138,6 +150,8 @@ class SecondaryButton extends StatelessWidget {
 
   final Color? bgColor;
   final bool? isTaller;
+  final bool? useThemeColor;
+  final Color? iconColor;
 
   const SecondaryButton({
     super.key,
@@ -148,6 +162,8 @@ class SecondaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.bgColor,
+    this.useThemeColor,
+    this.iconColor,
   });
 
   @override
@@ -168,6 +184,8 @@ class SecondaryButton extends StatelessWidget {
             icon: AppImage(
               path: icon!,
               height: iconHeight,
+              color: iconColor,
+              useThemeColor: useThemeColor ?? false,
             ),
             label: Text(label),
             style: _buildButtonStyle(context, button!, iconSz),
@@ -181,40 +199,58 @@ class SecondaryButton extends StatelessWidget {
   ) {
     final verticalPad = hCap(context, 12);
     final fontSz = spCap(context, 16);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Heights
     final height = isTaller == true ? hCap(context, 56) : hCap(context, 50);
+
+    // secondary-text: Gray.900 light / Gray.100 dark
+    final textColor = isDark ? AppColors.gray1 : AppColors.gray9;
 
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return AppColors.gray2; // Disabled background color
+            // secondary-disabled-bg: Gray.200 light / Gray.900 dark
+            return isDark ? AppColors.gray9 : AppColors.gray2;
           }
-          return bgColor ?? AppColors.gray1; // Default background color
+          if (states.contains(WidgetState.hovered)) {
+            // secondary-bg-hover: Gray.200 light / Gray.800 dark
+            return isDark ? AppColors.gray8 : AppColors.gray2;
+          }
+          // secondary-bg: Gray.100 light / Gray.900 dark
+          return bgColor ?? (isDark ? AppColors.gray9 : AppColors.gray1);
         },
       ),
       side: WidgetStateProperty.resolveWith<BorderSide>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return BorderSide(color: AppColors.gray4, width: 1);
+            // secondary-disabled-border: Gray.400 light / Gray.700 dark
+            return BorderSide(
+              color: isDark ? AppColors.gray7 : AppColors.gray4,
+              width: 1,
+            );
           }
-          return BorderSide(color: AppColors.gray4, width: 1);
+          // secondary-border: Gray.500 light / Gray.600 dark
+          return BorderSide(
+            color: isDark ? AppColors.gray6 : AppColors.gray5,
+            width: 1,
+          );
         },
       ),
-      overlayColor: WidgetStatePropertyAll<Color>(AppColors.gray2),
-      foregroundColor: WidgetStatePropertyAll<Color>(AppColors.gray9),
+      // secondary-bg-hover used as overlay
+      overlayColor: WidgetStatePropertyAll<Color>(
+        isDark ? AppColors.gray8 : AppColors.gray2,
+      ),
+      foregroundColor: WidgetStatePropertyAll<Color>(textColor),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(
-          vertical: verticalPad,
-          horizontal: 40.0,
-        ),
+        EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
           fontSize: expanded ? fontSz : 16.0,
-          color: AppColors.gray9,
+          color: textColor,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -259,7 +295,8 @@ class AppTextButton extends StatelessWidget {
               underLine ? TextDecoration.underline : TextDecoration.none,
           fontSize: cappedFontSize,
         ),
-        foregroundColor: textColor ?? AppColors.blue7,
+        // text.link from semantic token
+        foregroundColor: textColor ?? context.textLink,
       ),
       child: Text(label),
     );
@@ -306,7 +343,6 @@ class AppRadioButton<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sz = hCap(context, 24);
-
     return SizedBox(
       width: sz,
       height: sz,
@@ -314,6 +350,7 @@ class AppRadioButton<T> extends StatelessWidget {
         value: value,
         groupValue: groupValue,
         onChanged: onChanged,
+        activeColor: context.textLink,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
       ),

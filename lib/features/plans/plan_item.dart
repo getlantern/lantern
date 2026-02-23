@@ -2,7 +2,6 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/utils/decoration.dart';
 
 import '../../core/common/common.dart';
 
@@ -35,16 +34,16 @@ class PlanItem extends StatelessWidget {
       badgeStyle: badges.BadgeStyle(
         shape: badges.BadgeShape.square,
         borderSide: BorderSide(
-          color: AppColors.yellow4,
+          color: context.statusWarningText,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(16),
-        badgeColor: AppColors.yellow3,
+        badgeColor: context.statusWarningBgDot,
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
       badgeContent: Text(
         'best_value'.i18n,
-        style: textTheme.labelMedium,
+        style: textTheme.labelMedium!,
       ),
       child: GestureDetector(
         onTap: () {
@@ -54,7 +53,7 @@ class PlanItem extends StatelessWidget {
           margin: EdgeInsets.only(top: 16),
           padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
           duration: Duration(milliseconds: 300),
-          decoration: planSelected ? selectedDecoration : unselectedDecoration,
+          decoration: getPlanDecoration(planSelected, context),
           child: Row(
             children: <Widget>[
               Column(
@@ -62,7 +61,9 @@ class PlanItem extends StatelessWidget {
                 children: [
                   Text(
                     plan.description.toTitleCase(),
-                    style: textTheme.titleMedium,
+                    style: textTheme.titleMedium!.copyWith(
+                      color: context.textPrimary,
+                    ),
                   ),
                   if (referralMessage.isNotEmpty)
                     Text(
@@ -78,13 +79,13 @@ class PlanItem extends StatelessWidget {
                   Text(
                     plan.formattedYearlyPrice,
                     style: textTheme.titleMedium!.copyWith(
-                      color: AppColors.blue7,
+                      color: context.textLink,
                     ),
                   ),
                   Text(
                     '${plan.formattedMonthlyPrice}/month',
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                     ),
                   ),
                 ],
@@ -92,7 +93,7 @@ class PlanItem extends StatelessWidget {
               Radio(
                 value: true,
                 groupValue: planSelected,
-                fillColor: WidgetStatePropertyAll(AppColors.gray9),
+                fillColor: WidgetStatePropertyAll(context.textPrimary),
                 onChanged: (value) {
                   onPressed.call(plan);
                 },
@@ -101,6 +102,17 @@ class PlanItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration getPlanDecoration(bool isSelected, BuildContext context) {
+    return BoxDecoration(
+      color: isSelected ? context.bgHover : context.bgElevated,
+      border: Border.all(
+        color: isSelected ? context.textLink : context.borderInput,
+        width: isSelected ? 3 : 1.5,
+      ),
+      borderRadius: BorderRadius.circular(16),
     );
   }
 }

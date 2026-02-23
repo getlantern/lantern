@@ -1,7 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../common/common.dart';
+import '../common/app_asset.dart';
+import '../common/app_semantic_colors.dart';
+import '../extensions/string.dart';
 
 class SettingTile extends StatelessWidget {
   final String label;
@@ -29,7 +31,7 @@ class SettingTile extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      splashColor: AppColors.gray2,
+      splashColor: context.bgCallout,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Column(
@@ -43,9 +45,11 @@ class SettingTile extends StatelessWidget {
                   child: icon is String ? AppImage(path: icon) : icon as Widget,
                 ),
                 SizedBox(width: 8),
-                Text(label,
-                    style:
-                        textTheme.labelLarge!.copyWith(color: AppColors.gray7)),
+                Text(
+                  label,
+                  style: textTheme.labelLarge!
+                      .copyWith(color: context.textSecondary),
+                ),
               ],
             ),
             Row(
@@ -55,12 +59,14 @@ class SettingTile extends StatelessWidget {
                   Expanded(child: child!)
                 else
                   Expanded(
-                    child: AutoSizeText(value,
-                        maxLines: 1,
-                        maxFontSize: 16,
-                        minFontSize: 14,
-                        style: textTheme.titleMedium!
-                            .copyWith(color: AppColors.gray9)),
+                    child: AutoSizeText(
+                      value,
+                      maxLines: 1,
+                      maxFontSize: 16,
+                      minFontSize: 14,
+                      style: textTheme.titleMedium!
+                          .copyWith(color: context.textPrimary),
+                    ),
                   ),
                 ...actions
               ],
@@ -68,9 +74,11 @@ class SettingTile extends StatelessWidget {
             if (subtitle != null && subtitle!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 32.0),
-                child: Text(subtitle!.capitalize,
-                    style:
-                        textTheme.labelLarge!.copyWith(color: AppColors.gray7)),
+                child: Text(
+                  subtitle!.capitalize,
+                  style: textTheme.labelLarge!
+                      .copyWith(color: context.textSecondary),
+                ),
               ),
           ],
         ),

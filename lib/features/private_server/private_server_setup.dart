@@ -134,6 +134,7 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
                 path: AppImagePaths.serverRack,
                 type: AssetType.svg,
                 height: PlatformUtils.isDesktop ? 190.h : 160.h,
+                useThemeColor: false,
               ),
               const SizedBox(height: defaultSize),
               ProviderCarousel(

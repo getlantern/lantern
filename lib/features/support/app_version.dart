@@ -16,11 +16,11 @@ class AppVersion extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.gray1,
+            color: context.bgSurface,
             borderRadius: BorderRadius.circular(8),
             border: Border(
-              top: BorderSide(color: AppColors.gray2, width: 1),
-              bottom: BorderSide(color: AppColors.gray2, width: 1),
+              top: BorderSide(color: context.borderDefault, width: 1),
+              bottom: BorderSide(color: context.borderDefault, width: 1),
             ),
           ),
           child: Row(
@@ -28,7 +28,7 @@ class AppVersion extends StatelessWidget {
             children: [
               Text('lantern_version'.i18n, style: theme.bodyMedium),
               Text(label,
-                  style: theme.titleSmall!.copyWith(color: AppColors.blue7)),
+                  style: theme.titleSmall!.copyWith(color: context.textLink)),
             ],
           ),
         );

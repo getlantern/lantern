@@ -23,9 +23,9 @@ class ProBanner extends HookConsumerWidget {
       margin: EdgeInsets.only(top: topMargin),
       padding: EdgeInsets.all(defaultSize),
       decoration: BoxDecoration(
-          color: AppColors.yellow1,
+          color: context.bgPromo,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.yellow4, width: 1)),
+          border: Border.all(color: context.borderPromo, width: 1)),
       child: Column(
         children: [
           AutoSizeText(
@@ -37,7 +37,7 @@ class ProBanner extends HookConsumerWidget {
             maxFontSize: 16,
             overflow: TextOverflow.ellipsis,
             style: textTheme.bodyMedium!.copyWith(
-              color: AppColors.gray9,
+              color: context.textPrimary,
               fontSize: 16,
             ),
           ),

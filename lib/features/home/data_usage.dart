@@ -85,8 +85,8 @@ class DataUsage extends ConsumerWidget {
                             : 'daily_data_usage'.i18n,
                         style: textTheme.labelLarge!.copyWith(
                           color: isDataCapReached
-                              ? AppColors.red8
-                              : AppColors.gray7,
+                              ? context.statusErrorBg
+                              : context.textTertiary,
                         ),
                       ),
                       Spacer(),
@@ -94,7 +94,7 @@ class DataUsage extends ConsumerWidget {
                         Text(
                           '$usageString${'mb'.i18n}',
                           style: textTheme.titleSmall!.copyWith(
-                            color: AppColors.gray9,
+                            color: context.textPrimary,
                           ),
                         ),
                     ],
@@ -108,7 +108,7 @@ class DataUsage extends ConsumerWidget {
                         maxFontSize: 12,
                         maxLines: 1,
                         style: textTheme.bodySmall!.copyWith(
-                          color: AppColors.red8,
+                          color: context.statusErrorBg,
                         ),
                       ),
                     ),
@@ -118,7 +118,7 @@ class DataUsage extends ConsumerWidget {
                       shape: RoundedRectangleBorder(
                         side: isDataCapReached
                             ? BorderSide.none
-                            : BorderSide(width: 1, color: AppColors.gray3),
+                            : BorderSide(width: 1, color: context.borderInput),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -134,9 +134,9 @@ class DataUsage extends ConsumerWidget {
                           Radius.circular(defaultSize),
                         ),
                         trackGap: 10,
-                        backgroundColor: AppColors.gray1,
+                        backgroundColor: context.bgSurface,
                         valueColor: AlwaysStoppedAnimation(
-                          isDataCapReached ? AppColors.red6 : AppColors.yellow3,
+                          isDataCapReached ? context.borderError : AppColors.yellow3,
                         ),
                       ),
                     ),

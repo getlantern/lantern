@@ -50,7 +50,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'split_tunneling_description'.i18n,
                     style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.625,
-                      color: AppColors.gray9,
+                      color: context.textPrimary,
                     ),
                   ),
                 ),
@@ -62,7 +62,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'location_based_rules'.i18n,
                     style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.625,
-                      color: AppColors.gray9,
+                      color: context.textPrimary,
                     ),
                   ),
                 ),
@@ -73,10 +73,10 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'unblocked_sites_bypass'.i18n,
                   ],
                   textStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                     height: 1.5,
                   ),
-                  bulletColor: AppColors.gray7,
+                  bulletColor: context.textTertiary,
                 ),
 
                 SubsectionTitle(icon: "✅", text: 'uncensored_regions'.i18n),
@@ -86,10 +86,10 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'examples_of_bypassed_sites'.i18n,
                   ],
                   textStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                     height: 1.5,
                   ),
-                  bulletColor: AppColors.gray7,
+                  bulletColor: context.textTertiary,
                 ),
                 SizedBox(height: 16.0),
                 LinkText(
@@ -139,7 +139,7 @@ class SubsectionTitle extends StatelessWidget {
         ? Theme.of(context).textTheme.titleLarge!
         : AppTextStyles.labelMedium.copyWith(
             fontSize: 16,
-            color: AppColors.gray9,
+            color: context.textPrimary,
             fontWeight: FontWeight.w600,
           );
 

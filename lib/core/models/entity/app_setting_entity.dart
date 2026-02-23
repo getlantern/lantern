@@ -20,6 +20,7 @@ class AppSetting {
   String routingModeRaw;
   String dataCapThreshold;
   bool onboardingCompleted;
+  String themeMode;
   String environment;
 
   AppSetting({
@@ -38,6 +39,7 @@ class AppSetting {
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
+    this.themeMode = 'system',
     this.environment = 'prod',
   });
 
@@ -56,6 +58,7 @@ class AppSetting {
     String? routingModeRaw,
     String? dataCapThreshold,
     bool? onboardingCompleted,
+    String? themeMode,
     String? environment,
   }) {
     return AppSetting(
@@ -74,6 +77,7 @@ class AppSetting {
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      themeMode: themeMode ?? this.themeMode,
       environment: environment ?? this.environment,
     );
   }

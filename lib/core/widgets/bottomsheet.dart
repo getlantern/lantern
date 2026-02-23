@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
 typedef BottomSheetBuilder = Function(
@@ -10,13 +10,12 @@ void showAppBottomSheet(
     required BottomSheetBuilder builder,
     required String title,
     double scrollControlDisabledMaxHeightRatio = .75}) {
-  final textTheme = Theme.of(context).textTheme.headlineSmall;
+  // backgroundColor and shape come from bottomSheetTheme in app_theme.dart
   showModalBottomSheet(
     context: context,
     isDismissible: true,
     enableDrag: true,
     showDragHandle: true,
-    backgroundColor: AppColors.white,
     scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
       return DraggableScrollableSheet(
@@ -32,14 +31,12 @@ void showAppBottomSheet(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   title,
-                  style: textTheme!.copyWith(
-                    color: AppColors.blue10,
+                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: context.textPrimary,
                   ),
                 ),
               ),
-              DividerSpace(
-                padding: EdgeInsets.only(top: 16),
-              ),
+              DividerSpace(padding: EdgeInsets.only(top: 16)),
               builder(context, scrollController),
             ],
           );

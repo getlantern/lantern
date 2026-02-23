@@ -6,7 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 import '../../core/services/injection_container.dart';
@@ -62,7 +61,6 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 SizedBox(height: 16),
                 PrimaryButton(
                   icon: AppImagePaths.github,
-                  iconColor: AppColors.white,
                   isTaller: true,
                   label: 'view_instructions_github'.i18n,
                   onPressed: () {
@@ -99,7 +97,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   child: Text(
                     "how_server_appears".i18n,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray6,
+                      color: context.textDisabled,
                     ),
                   ),
                 ),
@@ -225,7 +223,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
         ),
         AppTextButton(
           label: "connect_now".i18n,

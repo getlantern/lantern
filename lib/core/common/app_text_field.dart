@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_dimens.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
 
 class AppTextField extends StatelessWidget {
@@ -82,14 +82,14 @@ class AppTextField extends StatelessWidget {
         onEditingComplete: onEditingComplete,
         readOnly: onTap != null,
         onTap: onTap,
-        cursorColor: AppColors.blue10,
+        // cursorColor from textSelectionTheme
         autovalidateMode: autovalidateMode,
         validator: validator,
         cursorRadius: Radius.circular(16),
         cursorHeight: defaultSize,
         cursorOpacityAnimates: true,
         style: textTheme.bodyMedium!.copyWith(
-          color: AppColors.gray9,
+          // text color from colorScheme.onSurface via theme
           fontSize: spCap(context, 14),
         ),
         textInputAction: textInputAction,
@@ -100,50 +100,18 @@ class AppTextField extends StatelessWidget {
                 required maxLength}) =>
             counter,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          // borders, hintStyle, contentPadding come from inputDecorationTheme
           filled: true,
-          fillColor: enable ? AppColors.white : AppColors.gray3,
+          fillColor: enable
+              ? context.bgElevated   // bg.input = bg.elevated
+              : context.bgCallout,   // bg.callout for disabled
           hintText: hintText,
-          hintStyle: textTheme.bodyMedium!.copyWith(
-            color: AppColors.gray4,
-          ),
-          prefixIcon: prefixIcon != null ? _buildFix(prefixIcon!) : null,
-          suffixIcon: suffixIcon != null ? _buildFix(suffixIcon!) : null,
-          border: OutlineInputBorder(
-            borderRadius: defaultBorderRadius,
-            borderSide: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: defaultBorderRadius,
-            borderSide: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: defaultBorderRadius,
-            borderSide: BorderSide(
-              color: AppColors.blue8,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: defaultBorderRadius,
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1,
-            ),
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: defaultBorderRadius,
-            borderSide: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
+          prefixIcon: prefixIcon != null
+              ? _buildFix(prefixIcon!, iconColor: context.textPrimary)
+              : null,
+          suffixIcon: suffixIcon != null
+              ? _buildFix(suffixIcon!, iconColor: context.textPrimary)
+              : null,
         ));
 
     // If a label is provided, wrap the input field in a Column with a Text widget above.
@@ -157,7 +125,7 @@ class AppTextField extends StatelessWidget {
             child: Text(
               label!,
               style: textTheme.labelLarge?.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary, // text.secondary
                 fontSize: spCap(context, 14),
               ),
             ),
@@ -171,14 +139,14 @@ class AppTextField extends StatelessWidget {
     return inputField;
   }
 
-  Widget _buildFix(Object iconPath) {
+  Widget _buildFix(Object iconPath, {Color? iconColor}) {
     Widget? appAsset;
     if (iconPath is IconData) {
-      appAsset = Icon(iconPath, color: AppColors.yellow9);
+      appAsset = Icon(iconPath, color: iconColor);
     } else if (iconPath is String) {
       appAsset = AppImage(
         path: iconPath,
-        color: AppColors.yellow9,
+        color: iconColor,
       );
     } else if (iconPath is Widget) {
       appAsset = iconPath;

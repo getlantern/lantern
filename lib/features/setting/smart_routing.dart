@@ -50,7 +50,7 @@ class SmartRouting extends HookConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                       letterSpacing: 0.0,
                     ),
                   ),
@@ -68,7 +68,7 @@ class SmartRouting extends HookConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                       letterSpacing: 0.0,
                     ),
                   ),

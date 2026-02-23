@@ -4,9 +4,9 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
@@ -32,11 +32,12 @@ export 'package:lantern/core/common/app_dialog.dart';
 export 'package:lantern/core/common/app_dimens.dart';
 export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_image_paths.dart';
+export 'package:lantern/core/common/app_semantic_colors.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
-export 'package:lantern/core/common/date_formatters.dart';
 // Utils
 export 'package:lantern/core/common/app_urls.dart';
+export 'package:lantern/core/common/date_formatters.dart';
 //Desktop export
 export 'package:lantern/core/desktop/app_intent.dart';
 export 'package:lantern/core/desktop/app_shortcuts.dart';
@@ -207,6 +208,17 @@ ServerLocationEntity initialServerLocation() {
       displayName: ('fastest_server'.i18n),
     ),
   );
+}
+
+ThemeMode resolveThemeMode(String raw) {
+  switch (raw) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
 }
 
 Future<bool> isStageEnvironment() async {
