@@ -10,7 +10,7 @@ enum _ObservedVpnState {
   disconnecting,
   missingPermission,
   error,
-  unknown,
+  none,
 }
 
 Future<void> _waitForFinder(
@@ -47,73 +47,50 @@ Future<void> _waitForAnyFinder(
   fail(reason ?? 'Timed out waiting for any expected widget');
 }
 
-_ObservedVpnState _currentVpnState({
-  required Finder switchConnected,
-  required Finder switchDisconnected,
-  required Finder switchConnecting,
-  required Finder switchDisconnecting,
-  required Finder switchMissingPermission,
-  required Finder switchError,
-}) {
-  if (switchConnected.evaluate().isNotEmpty) {
-    return _ObservedVpnState.connected;
-  }
-  if (switchDisconnected.evaluate().isNotEmpty) {
-    return _ObservedVpnState.disconnected;
-  }
-  if (switchConnecting.evaluate().isNotEmpty) {
-    return _ObservedVpnState.connecting;
-  }
-  if (switchDisconnecting.evaluate().isNotEmpty) {
-    return _ObservedVpnState.disconnecting;
-  }
-  if (switchMissingPermission.evaluate().isNotEmpty) {
-    return _ObservedVpnState.missingPermission;
-  }
-  if (switchError.evaluate().isNotEmpty) {
-    return _ObservedVpnState.error;
-  }
-  return _ObservedVpnState.unknown;
-}
+class _VpnStateFinders {
+  _VpnStateFinders()
+      : _byState = {
+          _ObservedVpnState.connected:
+              find.byKey(const Key('vpn.switch.connected')),
+          _ObservedVpnState.disconnected:
+              find.byKey(const Key('vpn.switch.disconnected')),
+          _ObservedVpnState.connecting:
+              find.byKey(const Key('vpn.switch.connecting')),
+          _ObservedVpnState.disconnecting:
+              find.byKey(const Key('vpn.switch.disconnecting')),
+          _ObservedVpnState.missingPermission:
+              find.byKey(const Key('vpn.switch.missingPermission')),
+          _ObservedVpnState.error: find.byKey(const Key('vpn.switch.error')),
+        };
 
-Future<_ObservedVpnState> _waitForVpnState(
-  WidgetTester tester, {
-  required Finder switchConnected,
-  required Finder switchDisconnected,
-  required Finder switchConnecting,
-  required Finder switchDisconnecting,
-  required Finder switchMissingPermission,
-  required Finder switchError,
-  required List<_ObservedVpnState> expectedStates,
-  required Duration timeout,
-  String? reason,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    final state = _currentVpnState(
-      switchConnected: switchConnected,
-      switchDisconnected: switchDisconnected,
-      switchConnecting: switchConnecting,
-      switchDisconnecting: switchDisconnecting,
-      switchMissingPermission: switchMissingPermission,
-      switchError: switchError,
-    );
-    if (expectedStates.contains(state)) {
-      return state;
+  final Map<_ObservedVpnState, Finder> _byState;
+
+  _ObservedVpnState current() {
+    for (final entry in _byState.entries) {
+      if (entry.value.evaluate().isNotEmpty) {
+        return entry.key;
+      }
     }
+    return _ObservedVpnState.none;
   }
 
-  final lastState = _currentVpnState(
-    switchConnected: switchConnected,
-    switchDisconnected: switchDisconnected,
-    switchConnecting: switchConnecting,
-    switchDisconnecting: switchDisconnecting,
-    switchMissingPermission: switchMissingPermission,
-    switchError: switchError,
-  );
-  fail(
-      '${reason ?? 'Timed out waiting for VPN state'}. Last observed: $lastState');
+  Future<_ObservedVpnState> waitFor(
+    WidgetTester tester, {
+    required List<_ObservedVpnState> expected,
+    required Duration timeout,
+    String? reason,
+  }) async {
+    final end = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(end)) {
+      await tester.pump(const Duration(milliseconds: 200));
+      final state = current();
+      if (expected.contains(state)) {
+        return state;
+      }
+    }
+    fail(
+        '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()}');
+  }
 }
 
 Future<void> _waitForVpnToggleWithOnboardingHandling(
@@ -154,15 +131,7 @@ void main() {
     final onboardingSkip = find.byKey(const Key('onboarding.skip'));
     final onboardingPrimary = find.byKey(const Key('onboarding.primary'));
     final vpnToggle = find.byKey(const Key('vpn.toggle'));
-
-    final switchConnected = find.byKey(const Key('vpn.switch.connected'));
-    final switchDisconnected = find.byKey(const Key('vpn.switch.disconnected'));
-    final switchConnecting = find.byKey(const Key('vpn.switch.connecting'));
-    final switchDisconnecting =
-        find.byKey(const Key('vpn.switch.disconnecting'));
-    final switchMissingPermission =
-        find.byKey(const Key('vpn.switch.missingPermission'));
-    final switchError = find.byKey(const Key('vpn.switch.error'));
+    final vpnStateFinders = _VpnStateFinders();
 
     await _waitForAnyFinder(
       tester,
@@ -187,15 +156,9 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
 
-    var vpnState = await _waitForVpnState(
+    var vpnState = await vpnStateFinders.waitFor(
       tester,
-      switchConnected: switchConnected,
-      switchDisconnected: switchDisconnected,
-      switchConnecting: switchConnecting,
-      switchDisconnecting: switchDisconnecting,
-      switchMissingPermission: switchMissingPermission,
-      switchError: switchError,
-      expectedStates: const [
+      expected: const [
         _ObservedVpnState.connected,
         _ObservedVpnState.disconnected,
         _ObservedVpnState.connecting,
@@ -209,15 +172,9 @@ void main() {
 
     if (vpnState == _ObservedVpnState.connecting ||
         vpnState == _ObservedVpnState.disconnecting) {
-      vpnState = await _waitForVpnState(
+      vpnState = await vpnStateFinders.waitFor(
         tester,
-        switchConnected: switchConnected,
-        switchDisconnected: switchDisconnected,
-        switchConnecting: switchConnecting,
-        switchDisconnecting: switchDisconnecting,
-        switchMissingPermission: switchMissingPermission,
-        switchError: switchError,
-        expectedStates: const [
+        expected: const [
           _ObservedVpnState.connected,
           _ObservedVpnState.disconnected,
           _ObservedVpnState.missingPermission,
@@ -239,15 +196,9 @@ void main() {
       await tester.tap(vpnToggle);
       await tester.pump(const Duration(milliseconds: 200));
 
-      await _waitForVpnState(
+      await vpnStateFinders.waitFor(
         tester,
-        switchConnected: switchConnected,
-        switchDisconnected: switchDisconnected,
-        switchConnecting: switchConnecting,
-        switchDisconnecting: switchDisconnecting,
-        switchMissingPermission: switchMissingPermission,
-        switchError: switchError,
-        expectedStates: const [_ObservedVpnState.disconnected],
+        expected: const [_ObservedVpnState.disconnected],
         timeout: const Duration(seconds: 45),
         reason: 'Failed to reach disconnected state before connect test',
       );
@@ -256,15 +207,9 @@ void main() {
     await tester.tap(vpnToggle);
     await tester.pump(const Duration(milliseconds: 200));
 
-    await _waitForVpnState(
+    await vpnStateFinders.waitFor(
       tester,
-      switchConnected: switchConnected,
-      switchDisconnected: switchDisconnected,
-      switchConnecting: switchConnecting,
-      switchDisconnecting: switchDisconnecting,
-      switchMissingPermission: switchMissingPermission,
-      switchError: switchError,
-      expectedStates: const [_ObservedVpnState.connected],
+      expected: const [_ObservedVpnState.connected],
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not reach connected state within 45 seconds',
     );
@@ -278,15 +223,9 @@ void main() {
     await tester.tap(vpnToggle);
     await tester.pump(const Duration(milliseconds: 200));
 
-    await _waitForVpnState(
+    await vpnStateFinders.waitFor(
       tester,
-      switchConnected: switchConnected,
-      switchDisconnected: switchDisconnected,
-      switchConnecting: switchConnecting,
-      switchDisconnecting: switchDisconnecting,
-      switchMissingPermission: switchMissingPermission,
-      switchError: switchError,
-      expectedStates: const [_ObservedVpnState.disconnected],
+      expected: const [_ObservedVpnState.disconnected],
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not return to disconnected state within 45 seconds',
     );
