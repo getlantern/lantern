@@ -672,7 +672,8 @@ class LanternPlatformService implements LanternCoreService {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-      if (data != "") {
+      appLogger.debug('Acknowledged in-app purchase, response: $data');
+      if (data != "ok") {
         appLogger.debug(
             'Acknowledged in-app purchase and got subscription data: $data');
         appLogger.info(

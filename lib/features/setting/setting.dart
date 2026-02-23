@@ -180,16 +180,6 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (appSetting.userLoggedIn && !hasProSession) ...{
-            SizedBox(height: defaultSize),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                  label: 'logout'.i18n,
-                  icon: AppImagePaths.signIn,
-                  onPressed: () => logoutDialog(context, ref)),
-            ),
-          },
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             SizedBox(height: defaultSize),
             AppCard(
