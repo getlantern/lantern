@@ -89,7 +89,15 @@ class LanternFFIService implements LanternCoreService {
         fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
       }
     } else {
-      fullPath = p.join(basePath, "$_libName.so");
+      final candidates = <String>[
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        p.join(basePath, "..", "lib", "$_libName.so"),
+      ];
+      fullPath = candidates.firstWhere(
+        (candidate) => File(candidate).existsSync(),
+        orElse: () => candidates.first,
+      );
     }
 
     appLogger.debug('singbox native libs path: "$fullPath"');
@@ -165,7 +173,7 @@ class LanternFFIService implements LanternCoreService {
       String env = await _radianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
-         if (appSetting != null) {
+        if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
         }
       } catch (_) {
@@ -176,7 +184,8 @@ class LanternFFIService implements LanternCoreService {
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.info("Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
+      appLogger.info(
+          "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;

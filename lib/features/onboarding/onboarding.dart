@@ -43,6 +43,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     }
 
     return Scaffold(
+      key: const Key('onboarding.screen'),
       appBar: AppBar(
         leading: const SizedBox.shrink(),
         backgroundColor: context.bgElevated,
@@ -110,6 +111,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 ),
               ),
               PrimaryButton(
+                key: const Key('onboarding.primary'),
                 label:
                     pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
                 isTaller: true,

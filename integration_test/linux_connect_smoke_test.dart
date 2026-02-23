@@ -37,6 +37,33 @@ Future<void> _waitForAnyFinder(
   fail(reason ?? 'Timed out waiting for any expected widget');
 }
 
+Future<void> _waitForVpnToggleWithOnboardingHandling(
+  WidgetTester tester, {
+  required Finder vpnToggle,
+  required Finder onboardingScreen,
+  required Finder onboardingSkip,
+  required Finder onboardingPrimary,
+  required Duration timeout,
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    if (vpnToggle.evaluate().isNotEmpty) {
+      return;
+    }
+
+    if (onboardingScreen.evaluate().isNotEmpty) {
+      if (onboardingSkip.evaluate().isNotEmpty) {
+        await tester.tap(onboardingSkip);
+      } else if (onboardingPrimary.evaluate().isNotEmpty) {
+        await tester.tap(onboardingPrimary);
+      }
+    }
+
+    await tester.pump(const Duration(milliseconds: 300));
+  }
+  fail('VPN toggle not visible');
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -44,7 +71,9 @@ void main() {
     app.main();
 
     final homeScreen = find.byKey(const Key('home.screen'));
+    final onboardingScreen = find.byKey(const Key('onboarding.screen'));
     final onboardingSkip = find.byKey(const Key('onboarding.skip'));
+    final onboardingPrimary = find.byKey(const Key('onboarding.primary'));
     final vpnToggle = find.byKey(const Key('vpn.toggle'));
 
     final disconnectedStatus = find.byKey(const Key('vpn.status.disconnected'));
@@ -52,15 +81,10 @@ void main() {
 
     await _waitForAnyFinder(
       tester,
-      [homeScreen, onboardingSkip],
+      [homeScreen, onboardingScreen],
       timeout: const Duration(seconds: 90),
       reason: 'Home or onboarding did not appear after launch',
     );
-
-    if (onboardingSkip.evaluate().isNotEmpty) {
-      await tester.tap(onboardingSkip);
-      await tester.pump(const Duration(milliseconds: 300));
-    }
 
     await _waitForFinder(
       tester,
@@ -69,11 +93,13 @@ void main() {
       reason: 'Home screen did not load',
     );
 
-    await _waitForFinder(
+    await _waitForVpnToggleWithOnboardingHandling(
       tester,
-      vpnToggle,
+      vpnToggle: vpnToggle,
+      onboardingScreen: onboardingScreen,
+      onboardingSkip: onboardingSkip,
+      onboardingPrimary: onboardingPrimary,
       timeout: const Duration(seconds: 30),
-      reason: 'VPN toggle not visible',
     );
 
     await _waitForAnyFinder(
