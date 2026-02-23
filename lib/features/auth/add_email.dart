@@ -91,7 +91,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
                     child: Text('lantern_pro_license_applied'.i18n,
                         style: textTheme!.bodyMedium!
-                            .copyWith(color: AppColors.gray6, fontSize: 12)),
+                            .copyWith(color: context.textDisabled, fontSize: 12)),
                   ),
                   SizedBox(height: defaultSize),
                 },
@@ -100,7 +100,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
                     child: Text('change_email_message'.i18n,
                         style: textTheme!.bodyMedium!.copyWith(
-                          color: AppColors.gray6,
+                          color: context.textDisabled,
                         )),
                   )
                 else
@@ -108,7 +108,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
                     child: Text('add_your_email_message'.i18n,
                         style: textTheme!.bodyMedium!.copyWith(
-                          color: AppColors.gray6,
+                          color: context.textDisabled,
                         )),
                   ),
                 SizedBox(height: 32),
@@ -451,18 +451,18 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             Text(
               'email_deliverability_notice'.i18n,
               style: textTheme!.headlineSmall!.copyWith(
-                color: AppColors.gray9,
+                color: context.textPrimary,
               ),
             ),
             SizedBox(height: defaultSize),
             Text(
               'email_deliverability_notice_message'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray9),
+              style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
             ),
             SizedBox(height: defaultSize),
             Text(
               'email_deliverability_notice_message_two'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray9),
+              style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
             ),
           ],
         ),

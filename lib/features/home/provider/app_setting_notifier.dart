@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
 
@@ -20,12 +22,26 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   @override
   AppSetting build() {
     _db = sl<LocalStorageService>();
+    final setting = _db.getAppSetting();
+
+    if (setting != null && setting.locale.isNotEmpty) {
+      updateToolbarThemeMode();
+      return setting;
+    }
+    // First-time user → use device locale
     // First-time user or DB was wiped after env switch → use device locale
     final fallback = _detectDeviceLocale();
     final initial = AppSetting(locale: fallback.toString());
     _db.updateAppSetting(initial);
+    updateToolbarThemeMode();
     _detectEnvironmentFromFile();
     return initial;
+  }
+
+  void updateToolbarThemeMode() {
+    final setting = _db.getAppSetting();
+    final mode = setting?.themeMode ?? 'system';
+    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
   }
 
   Future<void> update(AppSetting updated) async {
@@ -111,11 +127,39 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(onboardingCompleted: value));
   }
 
+  void setThemeMode(String mode) {
+    update(state.copyWith(themeMode: mode));
+    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
+  }
+
+  void syncDesktopBrightnessFromCurrentTheme() {
+    unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
+  }
+
+  Future<void> _applyDesktopBrightness(ThemeMode mode) async {
+    if (!PlatformUtils.isDesktop) {
+      return;
+    }
+
+    final brightness = switch (mode) {
+      ThemeMode.light => Brightness.light,
+      ThemeMode.dark => Brightness.dark,
+      ThemeMode.system => PlatformDispatcher.instance.platformBrightness,
+    };
+
+    try {
+      await windowManager.setBrightness(brightness);
+    } catch (e, st) {
+      appLogger.error('Failed to set desktop toolbar brightness: $e', st);
+    }
+  }
+
   Future<void> setEnvironment(bool isStaging) async {
     final env = isStaging ? 'stage' : 'prod';
     update(state.copyWith(environment: env));
     final dir = await AppStorageUtils.getAppDirectory();
     sl<LocalStorageService>().close();
+
     /// Delete and recreate the directory
     if (dir.existsSync()) {
       await dir.delete(recursive: true);

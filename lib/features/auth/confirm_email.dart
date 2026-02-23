@@ -54,7 +54,7 @@ class ConfirmEmail extends HookConsumerWidget {
               child: Text(
                 'confirm_email_code'.i18n,
                 style: textTheme.labelLarge?.copyWith(
-                  color: AppColors.gray8,
+                  color: context.textSecondary,
                   fontSize: 14.sp,
                 ),
               ),
@@ -90,7 +90,7 @@ class ConfirmEmail extends HookConsumerWidget {
             Center(
               child: AppTextButton(
                 label: 'resend_email'.i18n,
-                textColor: AppColors.black,
+                textColor: context.textPrimary,
                 onPressed: () => onResendEmail(context, ref),
               ),
             )

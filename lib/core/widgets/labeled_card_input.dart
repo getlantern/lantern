@@ -39,7 +39,7 @@ class LabeledCardInput extends StatelessWidget {
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.gray2,
+          color: context.borderDefault,
           width: 1,
         ),
       ),

@@ -38,7 +38,7 @@ class DeviceLimitReached extends HookConsumerWidget {
             padding: const EdgeInsets.only(left: 16.0),
             child: Text("lantern_pro_devices".i18n,
                 style: textTheme.labelLarge!.copyWith(
-                  color: AppColors.gray8,
+                  color: context.textSecondary,
                 )),
           ),
           AppCard(
@@ -79,7 +79,7 @@ class DeviceLimitReached extends HookConsumerWidget {
           Center(
             child: AppTextButton(
               label: 'cancel_sign_in'.i18n,
-              textColor: AppColors.gray9,
+              textColor: context.textPrimary,
               onPressed: () {
                 appRouter.popUntilRoot();
               },

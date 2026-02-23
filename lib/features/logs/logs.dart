@@ -80,9 +80,9 @@ class Logs extends HookConsumerWidget {
           Expanded(
             child: Container(
               decoration: ShapeDecoration(
-                color: AppColors.black1,
+                color: context.bgElevated,
                 shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1),
+                  side: BorderSide(width: 1,color: context.borderDefault),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

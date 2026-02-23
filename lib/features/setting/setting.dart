@@ -11,8 +11,8 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/setting/follow_us.dart'
-    show showFollowUsBottomSheet;
+import 'package:lantern/features/setting/appearance.dart'
+    show appearanceModeLabel, showAppearanceBottomSheet;
 
 import '../../core/services/injection_container.dart';
 import '../../lantern/lantern_service_notifier.dart';
@@ -24,9 +24,7 @@ enum _SettingType {
   language,
   appearance,
   support,
-  followUs,
   getPro,
-  downloadLinks,
   checkForUpdates,
   browserUnbounded,
 }
@@ -50,6 +48,7 @@ class _SettingState extends ConsumerState<Setting> {
         localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
     final locale = appSetting.locale;
+    final themeMode = appSetting.themeMode;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final user = ref.watch(homeProvider).value;
@@ -100,7 +99,7 @@ class _SettingState extends ConsumerState<Setting> {
                     : Text(
                         email,
                         style: textTheme.labelMedium!.copyWith(
-                          color: AppColors.blue7,
+                          color: context.textLink,
                         ),
                       ),
                 onPressed: () => settingMenuTap(_SettingType.account),
@@ -133,19 +132,23 @@ class _SettingState extends ConsumerState<Setting> {
                   trailing: Text(
                     displayLanguage(locale),
                     style: textTheme.titleMedium!.copyWith(
-                      color: AppColors.blue7,
+                      color: context.textLink,
                     ),
                   ),
                   onPressed: () => settingMenuTap(_SettingType.language),
                 ),
                 DividerSpace(),
-                if (PlatformUtils.isDesktop)
-                  AppTile(
-                    label: 'check_for_updates'.i18n,
-                    icon: AppImagePaths.update,
-                    onPressed: () async =>
-                        await settingMenuTap(_SettingType.checkForUpdates),
+                AppTile(
+                  label: 'appearance'.i18n,
+                  icon: AppImagePaths.theme,
+                  trailing: Text(
+                    appearanceModeLabel(themeMode),
+                    style: textTheme.titleMedium!.copyWith(
+                      color: context.textLink,
+                    ),
                   ),
+                  onPressed: () => settingMenuTap(_SettingType.appearance),
+                ),
               ],
             ),
           ),
@@ -159,18 +162,15 @@ class _SettingState extends ConsumerState<Setting> {
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
-                DividerSpace(),
-                AppTile(
-                  label: 'download_links'.i18n,
-                  icon: AppImagePaths.desktop,
-                  onPressed: () => settingMenuTap(_SettingType.downloadLinks),
-                ),
-                DividerSpace(),
-                AppTile(
-                  label: 'follow_us'.i18n,
-                  icon: AppImagePaths.thumb,
-                  onPressed: () => settingMenuTap(_SettingType.followUs),
-                ),
+                if (PlatformUtils.isDesktop) ...{
+                  DividerSpace(),
+                  AppTile(
+                    label: 'check_for_updates'.i18n,
+                    icon: AppImagePaths.update,
+                    onPressed: () async =>
+                        await settingMenuTap(_SettingType.checkForUpdates),
+                  ),
+                },
                 DividerSpace(),
                 AppTile(
                   label: 'get_30_days_of_pro_free'.i18n,
@@ -180,7 +180,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if(appSetting.userLoggedIn && !hasProSession)...{
+          if (appSetting.userLoggedIn && !hasProSession) ...{
             SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
@@ -190,7 +190,6 @@ class _SettingState extends ConsumerState<Setting> {
                   onPressed: () => logoutDialog(context, ref)),
             ),
           },
-
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             SizedBox(height: defaultSize),
             AppCard(
@@ -220,7 +219,7 @@ class _SettingState extends ConsumerState<Setting> {
             child: Text(
               'lantern_projects'.i18n,
               style: textTheme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -229,12 +228,13 @@ class _SettingState extends ConsumerState<Setting> {
             child: AppTile(
               minHeight: 72,
               icon: AppImagePaths.lanternLogoRounded,
+              iconUseThemeColor: false,
               trailing: AppImage(path: AppImagePaths.outsideBrowser),
               label: 'unbounded'.i18n,
               subtitle: Text(
                 'help_fight_global_internet_censorship'.i18n,
                 style: textTheme.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+                  color: context.textTertiary,
                 ),
               ),
               onPressed: () {
@@ -257,23 +257,18 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(Language());
         return;
       case _SettingType.appearance:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        if (PlatformUtils.isDesktop) {
+          appRouter.push(const Appearance());
+          return;
+        }
+        showAppearanceBottomSheet(context: context);
+        break;
       case _SettingType.support:
         appRouter.push(Support());
         break;
-      case _SettingType.followUs:
-        if (PlatformUtils.isDesktop) {
-          appRouter.push(FollowUs());
-          return;
-        }
-        showFollowUsBottomSheet(context: context);
-        break;
+
       case _SettingType.getPro:
         appRouter.push(InviteFriends());
-        break;
-      case _SettingType.downloadLinks:
-        appRouter.push(DownloadLinks());
         break;
       case _SettingType.checkForUpdates:
         await checkForUpdates();
@@ -328,7 +323,7 @@ class _SettingState extends ConsumerState<Setting> {
       action: [
         AppTextButton(
           label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
+          textColor: context.textSecondary,
           onPressed: () {
             appRouter.pop();
           },
@@ -353,7 +348,7 @@ class _SettingState extends ConsumerState<Setting> {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ],
