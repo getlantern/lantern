@@ -27,8 +27,10 @@ class AppearanceListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentMode = ref.watch(appSettingProvider).themeMode;
-
+    var currentMode = ref.watch(appSettingProvider).themeMode;
+    if (currentMode.isEmpty) {
+      currentMode = 'system';
+    }
     final options = [
       ('system', 'system'.i18n, AppImagePaths.automatic),
       ('light', 'light'.i18n, AppImagePaths.lightMode),
