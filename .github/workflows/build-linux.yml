@@ -48,27 +48,35 @@ jobs:
 
       - name: Install Linux dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-              build-essential \
-              curl \
-              git \
-              unzip \
-              clang \
-              cmake \
-              pkg-config \
-              libgtk-3-dev \
-              liblzma-dev \
-              xz-utils \
-              ninja-build \
-              lld \
-              libstdc++-12-dev \
-              libgl1-mesa-dev \
-              libegl1-mesa-dev \
-              libayatana-appindicator3-dev \
-              libcurl4-openssl-dev \
-              libwebkit2gtk-4.1-dev \
-              xvfb
+          set -euxo pipefail
+          required_packages=(
+            clang
+            cmake
+            pkg-config
+            libgtk-3-dev
+            liblzma-dev
+            libgl1-mesa-dev
+            libegl1-mesa-dev
+            libayatana-appindicator3-dev
+            libcurl4-openssl-dev
+            libwebkit2gtk-4.1-dev
+            patchelf
+            xvfb
+          )
+
+          missing_packages=()
+          for pkg in "${required_packages[@]}"; do
+            if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+              missing_packages+=("$pkg")
+            fi
+          done
+
+          if [ "${#missing_packages[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing_packages[@]}"
+          else
+            echo "All Linux build dependencies are already installed"
+          fi
 
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
