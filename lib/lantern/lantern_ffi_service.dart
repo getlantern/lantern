@@ -89,15 +89,7 @@ class LanternFFIService implements LanternCoreService {
         fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
       }
     } else {
-      final candidates = <String>[
-        p.join(basePath, "$_libName.so"),
-        p.join(basePath, "lib", "$_libName.so"),
-        p.join(basePath, "..", "lib", "$_libName.so"),
-      ];
-      fullPath = candidates.firstWhere(
-        (candidate) => File(candidate).existsSync(),
-        orElse: () => candidates.first,
-      );
+      fullPath = p.join(basePath, "$_libName.so");
     }
 
     appLogger.debug('singbox native libs path: "$fullPath"');
