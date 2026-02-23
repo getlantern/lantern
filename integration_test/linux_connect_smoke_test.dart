@@ -8,10 +8,39 @@ enum _ObservedVpnState {
   disconnected,
   connecting,
   disconnecting,
-  missingPermission,
   error,
   none,
 }
+
+extension on _ObservedVpnState {
+  String get suffix => switch (this) {
+        _ObservedVpnState.connected => 'connected',
+        _ObservedVpnState.disconnected => 'disconnected',
+        _ObservedVpnState.connecting => 'connecting',
+        _ObservedVpnState.disconnecting => 'disconnecting',
+        _ObservedVpnState.error => 'error',
+        _ObservedVpnState.none => 'none',
+      };
+}
+
+const _vpnStateKeyPrefixes = <String>[
+  'vpn.switch.',
+  'vpn.status.',
+];
+
+const _initialStates = <_ObservedVpnState>[
+  _ObservedVpnState.connected,
+  _ObservedVpnState.disconnected,
+  _ObservedVpnState.connecting,
+  _ObservedVpnState.disconnecting,
+  _ObservedVpnState.error,
+];
+
+const _stableStates = <_ObservedVpnState>[
+  _ObservedVpnState.connected,
+  _ObservedVpnState.disconnected,
+  _ObservedVpnState.error,
+];
 
 Future<void> _waitForFinder(
   WidgetTester tester,
@@ -48,47 +77,14 @@ Future<void> _waitForAnyFinder(
 }
 
 class _VpnStateFinders {
-  _VpnStateFinders()
-      : _byState = {
-          _ObservedVpnState.connected: const [
-            'vpn.state.connected',
-            'vpn.status.connected',
-            'vpn.switch.connected',
-          ],
-          _ObservedVpnState.disconnected: const [
-            'vpn.state.disconnected',
-            'vpn.status.disconnected',
-            'vpn.switch.disconnected',
-          ],
-          _ObservedVpnState.connecting: const [
-            'vpn.state.connecting',
-            'vpn.status.connecting',
-            'vpn.switch.connecting',
-          ],
-          _ObservedVpnState.disconnecting: const [
-            'vpn.state.disconnecting',
-            'vpn.status.disconnecting',
-            'vpn.switch.disconnecting',
-          ],
-          _ObservedVpnState.missingPermission: const [
-            'vpn.state.missingPermission',
-            'vpn.status.missingPermission',
-            'vpn.switch.missingPermission',
-          ],
-          _ObservedVpnState.error: const [
-            'vpn.state.error',
-            'vpn.status.error',
-            'vpn.switch.error',
-          ],
-        };
-
-  final Map<_ObservedVpnState, List<String>> _byState;
-
   _ObservedVpnState current() {
-    for (final entry in _byState.entries) {
-      for (final keyName in entry.value) {
-        if (find.byKey(Key(keyName)).evaluate().isNotEmpty) {
-          return entry.key;
+    for (final state in _ObservedVpnState.values) {
+      if (state == _ObservedVpnState.none) {
+        continue;
+      }
+      for (final prefix in _vpnStateKeyPrefixes) {
+        if (find.byKey(Key('$prefix${state.suffix}')).evaluate().isNotEmpty) {
+          return state;
         }
       }
     }
@@ -179,14 +175,7 @@ void main() {
 
     var vpnState = await vpnStateFinders.waitFor(
       tester,
-      expected: const [
-        _ObservedVpnState.connected,
-        _ObservedVpnState.disconnected,
-        _ObservedVpnState.connecting,
-        _ObservedVpnState.disconnecting,
-        _ObservedVpnState.missingPermission,
-        _ObservedVpnState.error,
-      ],
+      expected: _initialStates,
       timeout: const Duration(seconds: 45),
       reason: 'Initial VPN state did not resolve',
     );
@@ -195,20 +184,12 @@ void main() {
         vpnState == _ObservedVpnState.disconnecting) {
       vpnState = await vpnStateFinders.waitFor(
         tester,
-        expected: const [
-          _ObservedVpnState.connected,
-          _ObservedVpnState.disconnected,
-          _ObservedVpnState.missingPermission,
-          _ObservedVpnState.error,
-        ],
+        expected: _stableStates,
         timeout: const Duration(seconds: 45),
         reason: 'VPN did not settle from transitional startup state',
       );
     }
 
-    if (vpnState == _ObservedVpnState.missingPermission) {
-      fail('VPN reported missingPermission before connect/disconnect smoke');
-    }
     if (vpnState == _ObservedVpnState.error) {
       fail('VPN reported error before connect/disconnect smoke');
     }

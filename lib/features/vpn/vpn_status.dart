@@ -50,7 +50,6 @@ class VpnStatus extends HookConsumerWidget {
             )
           else
             Text(statusValue,
-                key: Key('vpn.state.${vpnStatus.name}'),
                 style: textTheme.titleMedium!
                     .copyWith(color: getStatusColor(vpnStatus, context))),
           if (vpnStatus == VPNStatus.connecting)
