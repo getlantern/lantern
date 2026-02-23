@@ -4,8 +4,6 @@ go 1.25.4
 
 replace github.com/getlantern/radiance => ../radiance
 
-replace github.com/getlantern/common => ../common
-
 replace github.com/getlantern/broflake => ../unbounded
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
@@ -174,7 +172,7 @@ require (
 	github.com/getlantern/amp v0.0.0-20260113204224-600f8e8dfe5f // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/broflake v0.0.0-20260221195823-510790b48bbe // indirect
-	github.com/getlantern/common v1.2.1-0.20260121160752-d8ee5791108f // indirect
+	github.com/getlantern/common v1.2.1-0.20260223192400-cc00002ef6c7 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
 	github.com/getlantern/fronted v0.0.0-20260219001615-7eabaa834efe // indirect
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 // indirect
