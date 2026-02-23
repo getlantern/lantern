@@ -46,7 +46,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
       appBar: AppBar(
         leading: const SizedBox.shrink(),
         backgroundColor: context.bgElevated,
-        title:  LanternLogo(color: context.textPrimary),
+        title: LanternLogo(color: context.textPrimary),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -128,6 +128,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               if (pageIndex.value == 0) ...{
                 SizedBox(height: 12.0),
                 AppTextButton(
+                  key: const Key('onboarding.skip'),
                   label: 'skip_connect_now'.i18n,
                   textColor: context.textPrimary,
                   onPressed: () {
@@ -165,7 +166,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode,useThemeColor: false,),
+            child: AppImage(
+              path: AppImagePaths.smartRouteMode,
+              useThemeColor: false,
+            ),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -186,7 +190,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.advanceProtocol,useThemeColor: false),
+            child: AppImage(
+                path: AppImagePaths.advanceProtocol, useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -207,7 +212,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.privateServerIntro,useThemeColor: false),
+            child: AppImage(
+                path: AppImagePaths.privateServerIntro, useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -228,7 +234,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.nonProfit,useThemeColor: false),
+            child:
+                AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
@@ -362,8 +369,8 @@ class RouteModeContainer extends StatelessWidget {
                   ),
                   child: Text(
                     tags(),
-                    style:
-                        textTheme.labelMedium!.copyWith(color: context.statusInfoText),
+                    style: textTheme.labelMedium!
+                        .copyWith(color: context.statusInfoText),
                   ))
             ],
           ),
@@ -371,7 +378,8 @@ class RouteModeContainer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 38),
             child: Text(description(),
-                style: textTheme.bodyMedium!.copyWith(color: context.textSecondary)),
+                style: textTheme.bodyMedium!
+                    .copyWith(color: context.textSecondary)),
           )
         ],
       ),

@@ -23,10 +23,10 @@ class VpnStatus extends HookConsumerWidget {
     }
 
     return SettingTile(
+      key: Key('vpn.status.${vpnStatus.name}'),
       label: 'vpn_status'.i18n,
       value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
-
       onTap: isExtensionNeeded(systemExtensionStatus)
           ? () {
               appRouter.push(const MacOSExtensionDialog());
@@ -44,7 +44,8 @@ class VpnStatus extends HookConsumerWidget {
           if (isExtensionNeeded(systemExtensionStatus))
             Text(
               'network_extension_required'.i18n,
-              style: textTheme.titleMedium!.copyWith(color: context.textPrimary),
+              style:
+                  textTheme.titleMedium!.copyWith(color: context.textPrimary),
             )
           else
             Text(vpnStatus.name.capitalize,
@@ -55,8 +56,8 @@ class VpnStatus extends HookConsumerWidget {
               animatedTexts: [
                 TyperAnimatedText(
                   '... ',
-                  textStyle:
-                      textTheme.titleMedium!.copyWith(color: context.textPrimary),
+                  textStyle: textTheme.titleMedium!
+                      .copyWith(color: context.textPrimary),
                 ),
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!

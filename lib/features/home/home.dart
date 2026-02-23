@@ -89,8 +89,12 @@ class _HomeState extends ConsumerState<Home> {
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(
+      key: const Key('home.screen'),
       appBar: AppBar(
-        title: LanternLogo(isPro: isUserPro,color: context.textPrimary,),
+        title: LanternLogo(
+          isPro: isUserPro,
+          color: context.textPrimary,
+        ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -151,9 +155,9 @@ class _HomeState extends ConsumerState<Home> {
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(text: 'private_server_usage_message'.i18n)
                 else if (PlatformUtils.isIOS)
-                 const SizedBox.shrink()
+                  const SizedBox.shrink()
                 else
-                 const DataUsage(),
+                  const DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),
@@ -263,12 +267,14 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: 24),
           Text(
             'help_improve_lantern'.i18n,
-            style: textTheme!.headlineSmall!.copyWith(color: context.textPrimary),
+            style:
+                textTheme!.headlineSmall!.copyWith(color: context.textPrimary),
           ),
           SizedBox(height: defaultSize),
           Text(
             'share_anonymous_usage_data'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
           SizedBox(height: defaultSize),
           Text(
@@ -280,7 +286,8 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: defaultSize),
           Text(
             'you_can_change_anytime'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),
