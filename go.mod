@@ -4,7 +4,7 @@ go 1.25.4
 
 replace github.com/getlantern/radiance => ../radiance
 
-replace github.com/getlantern/broflake => ../unbounded
+// replace github.com/getlantern/broflake => ../unbounded
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
