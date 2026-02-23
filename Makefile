@@ -47,8 +47,9 @@ LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
 LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
 LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
 LINUX_PKG_ROOT := linux/packaging
-LINUX_SERVICE_DST := $(LINUX_PKG_ROOT)/usr/bin
+LINUX_SERVICE_DST := $(LINUX_PKG_ROOT)/usr/sbin
 LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
+LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
 LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
 ifeq ($(OS),Windows_NT)
@@ -294,7 +295,7 @@ stage-linux-service: linux-service-amd64
 	$(call MKDIR_P,$(LINUX_SERVICE_DST))
 	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME))
 	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	cp -f $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service $(LINUX_SYSTEMD_UNIT_DST)
+	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
 
 .PHONY: linux-debug
 linux-debug:

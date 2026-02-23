@@ -195,6 +195,14 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
+  test-linux:
+    needs: [set-metadata, build-linux]
+    uses: ./.github/workflows/test-linux.yml
+    secrets: inherit
+    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
+    with:
+      installer_name: ${{ needs.set-metadata.outputs.installer_base_name }}${{ needs.set-metadata.outputs.build_type != 'production' && format('-{0}', needs.set-metadata.outputs.build_type) || '' }}
+
   build-ios:
     needs: [set-metadata, release-create]
     uses: ./.github/workflows/build-ios.yml
@@ -262,11 +270,12 @@ jobs:
             --notes "Build [in progress](${WORKFLOW_URL})..."
 
   upload-s3:
-    needs: [set-metadata, build-macos, build-linux, build-android, build-ios]
+    needs: [set-metadata, build-macos, build-linux, test-linux, build-android, build-ios]
     if: |
       !cancelled() &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+      (needs.test-linux.result == 'success' || needs.test-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
       (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
     runs-on: ubuntu-latest
@@ -334,6 +343,7 @@ jobs:
         release-create,
         build-macos,
         build-linux,
+        test-linux,
         build-android,
         build-ios,
       ]
@@ -342,6 +352,7 @@ jobs:
       needs.release-create.result == 'success' &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+      (needs.test-linux.result == 'success' || needs.test-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
       (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
     runs-on: ubuntu-latest
@@ -530,6 +541,7 @@ jobs:
     needs:
       [
         set-metadata,
+        test-linux,
         upload-s3,
         upload-release-artifacts,
         upload-google-play,
@@ -548,6 +560,7 @@ jobs:
 
       - name: Publish release on success
         if: |
+          (needs.test-linux.result == 'success' || needs.test-linux.result == 'skipped') &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -561,7 +574,8 @@ jobs:
       - name: Delete draft on failure (cleanup enabled)
         if: |
           env.CLEANUP_ON_FAILURE == 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
+          (needs.test-linux.result == 'failure' || needs.test-linux.result == 'cancelled' ||
+           needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
            needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
            needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
            needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
@@ -574,7 +588,8 @@ jobs:
       - name: Report failure (cleanup disabled)
         if: |
           env.CLEANUP_ON_FAILURE != 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
+          (needs.test-linux.result == 'failure' || needs.test-linux.result == 'cancelled' ||
+           needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
            needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
            needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
            needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
