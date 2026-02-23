@@ -50,16 +50,19 @@ overrides:
       - libgtk-3-0
       - libblkid1
       - liblzma5
+      - libwebkit2gtk-4.1-0
   rpm:
     depends:
       - gtk3
       - xz-libs
       - libblkid
+      - webkit2gtk4.1
   archlinux:
     depends:
       - gtk3
       - xz
       - util-linux-libs
+      - webkit2gtk-4.1
     scripts:
       postinstall: linux/packaging/arch/postinstall.sh
       preremove: linux/packaging/arch/preremove.sh
@@ -69,4 +72,3 @@ rpm:
   group: applications/Internet
 archlinux:
   packager: teamlantern <admin@getlantern.org>
-
