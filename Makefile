@@ -178,7 +178,6 @@ install-macos-deps: install-gomobile
 	brew tap joshdk/tap
 	brew install joshdk/tap/retry
 	brew install imagemagick || true
-	dart pub global activate flutter_distributor
 
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_BUILD)
@@ -492,7 +491,6 @@ android-release-ci: android pubget gen android-apk-release android-aab-release
 
 install-ios-deps: install-gomobile
 	npm install -g appdmg
-	dart pub global activate flutter_distributor
 
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
