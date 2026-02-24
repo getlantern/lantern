@@ -448,7 +448,7 @@ jobs:
     needs: [set-metadata, build-ios]
     if: |
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
-      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact
