@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -15,8 +17,15 @@ part 'vpn_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
+  Timer? _autoServerRefreshTimer;
+
   @override
   VPNStatus build() {
+    ref.onDispose(() {
+      _autoServerRefreshTimer?.cancel();
+      _autoServerRefreshTimer = null;
+    });
+
     ref.read(lanternServiceProvider).isVPNConnected();
     ref.listen(
       vPNStatusProvider,
@@ -44,7 +53,11 @@ class VpnNotifier extends _$VpnNotifier {
             ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
             /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(Duration(seconds: 1), () {
+            _autoServerRefreshTimer?.cancel();
+            _autoServerRefreshTimer = Timer(const Duration(seconds: 1), () {
+              if (!ref.mounted) {
+                return;
+              }
               ref
                   .read(serverLocationProvider.notifier)
                   .ifNeededGetAutoServerLocation();
