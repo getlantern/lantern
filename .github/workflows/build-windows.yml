@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write"
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
