@@ -121,11 +121,20 @@ jobs:
           $signScript = "./scripts/ci/sign-windows.ps1"
 
           # List of binaries to sign before packaging
+          # Explicit core binaries
           $binaries = @(
             "$buildDir/lantern.exe",
-            "$buildDir/lanternsvc.exe"
+            "$buildDir/lanternsvc.exe",
+            "$buildDir/liblantern.dll"
           )
 
+          # Discover additional plugin DLLs (from PLUGIN_BUNDLED_LIBRARIES), excluding third-party wintun.dll
+          $pluginDlls = Get-ChildItem -Path $buildDir -Filter '*.dll' -Recurse -File |
+            Where-Object { $_.Name -ne 'wintun.dll' -and $_.FullName -ne "$buildDir\liblantern.dll" } |
+            Select-Object -ExpandProperty FullName
+
+          # Combine explicit binaries with discovered plugin DLLs
+          $binaries = $binaries + $pluginDlls
           # Sign each binary
           foreach ($binary in $binaries) {
             if (Test-Path $binary) {
