@@ -46,9 +46,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
+      - name: Cache APT archives
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: ~/.cache/apt/archives
+          key: ${{ runner.os }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-archives-v1-
+
       - name: Install Linux dependencies
         run: |
           set -euxo pipefail
+          APT_ARCHIVE_DIR="$HOME/.cache/apt/archives"
+          mkdir -p "$APT_ARCHIVE_DIR/partial"
           required_packages=(
             clang
             cmake
@@ -73,7 +85,9 @@ jobs:
 
           if [ "${#missing_packages[@]}" -gt 0 ]; then
             sudo apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing_packages[@]}"
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              -o dir::cache::archives="$APT_ARCHIVE_DIR" \
+              "${missing_packages[@]}"
           else
             echo "All Linux build dependencies are already installed"
           fi
@@ -86,6 +100,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: pubspec.yaml
+          cache: true
 
       - name: Install dependencies
         run: make install-linux-deps
