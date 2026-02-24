@@ -154,7 +154,6 @@ jobs:
             exit 1
           fi
 
-          # Ensure CI user can access daemon IPC for following smoke tests.
           sudo usermod -aG lantern "$USER" || true
 
           systemctl is-active --quiet lanternd.service
