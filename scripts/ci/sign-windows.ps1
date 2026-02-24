@@ -163,6 +163,7 @@ while ($attempt -lt $MaxAttempts) {
         }
 
         Write-Host "Signing complete: $fileName"
+        $global:LASTEXITCODE = 0
         return
 
     } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
