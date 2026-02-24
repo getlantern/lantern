@@ -23,6 +23,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SIGNPATH_SIGNING_POLICY: ${{ inputs.use-self-signed-cert && vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST || vars.SIGNPATH_SIGNING_POLICY_SLUG }}
     permissions:
       contents: "read"
       id-token: "write"
@@ -102,22 +103,57 @@ jobs:
           Write-Host "APP_NAME=$name"
           Write-Host "APP_VERSION=$version"
 
-      - name: Build Windows release
+      - name: Build Windows binaries
         shell: pwsh
-        env:
-          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
           dart pub global activate flutter_distributor
           make windows-release
 
-          Write-Host "=== Files in build/windows/x64/runner/Release/ after make windows-release ==="
+          Write-Host "=== Files in build/windows/x64/runner/Release/ ==="
           Get-ChildItem -Path "build/windows/x64/runner/Release/" -Recurse | Select-Object -First 20 FullName
-          Write-Host ""
-          Write-Host "=== Checking for wintun.dll and lanternsvc.exe ==="
-          if (Test-Path "build/windows/x64/runner/Release/wintun.dll") { Write-Host "✓ wintun.dll exists" } else { Write-Host "✗ wintun.dll NOT FOUND" }
-          if (Test-Path "build/windows/x64/runner/Release/lanternsvc.exe") { Write-Host "✓ lanternsvc.exe exists" } else { Write-Host "✗ lanternsvc.exe NOT FOUND" }
-          Write-Host ""
 
+      - name: Sign embedded binaries
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          $buildDir = "build/windows/x64/runner/Release"
+          $signScript = "./scripts/ci/sign-windows.ps1"
+
+          # List of binaries to sign before packaging
+          $binaries = @(
+            "$buildDir/lantern.exe",
+            "$buildDir/lanternsvc.exe"
+          )
+
+          # Sign each binary
+          foreach ($binary in $binaries) {
+            if (Test-Path $binary) {
+              Write-Host "Signing $binary..."
+              & $signScript `
+                -FilePath $binary `
+                -SigningPolicy "${{ env.SIGNPATH_SIGNING_POLICY }}" `
+                -OrganizationId "${{ vars.SIGNPATH_ORG_ID }}" `
+                -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
+                -ApiToken $env:SIGNPATH_API_TOKEN `
+                -Description "GitHub Actions build ${{ inputs.version }}"
+
+              if ($LASTEXITCODE -ne 0) {
+                Write-Error "Failed to sign $binary"
+                exit 1
+              }
+            } else {
+              Write-Warning "Binary not found, skipping: $binary"
+            }
+          }
+
+          Write-Host "All binaries signed successfully"
+
+      - name: Package installer
+        shell: pwsh
+        env:
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
           flutter_distributor package `
             --platform windows `
             --targets "exe" `
@@ -127,140 +163,29 @@ jobs:
             --flutter-build-args=verbose
 
           Write-Host ""
-          Write-Host "=== Contents of dist/$env:APP_VERSION/ after flutter_distributor ==="
+          Write-Host "=== Contents of dist/$env:APP_VERSION/ ==="
           Get-ChildItem -Path "dist/$env:APP_VERSION/" -Recurse | Select-Object FullName
           Write-Host ""
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
-      - name: Upload unsigned artifact for SignPath
-        id: upload-unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: unsigned-installer
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
-          retention-days: 1
-
-      - name: Download unsigned artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: unsigned-installer
-          path: ./unsigned
-
-      - name: Sign EXE with SignPath (REST API)
-        id: sign
+      - name: Sign installer
         shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
-          # Use test signing policy if self-signed cert is enabled, otherwise use production policy
-          $signingPolicy = if ("${{ inputs.use-self-signed-cert }}" -eq "true") {
-            "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST }}"
-          } else {
-            "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}"
-          }
-
-          Write-Host "=== SignPath Configuration ==="
-          Write-Host "use-self-signed-cert input: ${{ inputs.use-self-signed-cert }}"
-          Write-Host "Organization ID/Slug: ${{ vars.SIGNPATH_ORG_ID }}"
-          Write-Host "Project Slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}"
-          Write-Host "Selected Signing Policy Slug: $signingPolicy"
-          Write-Host "=============================="
-
-          if ([string]::IsNullOrWhiteSpace($signingPolicy)) {
-            Write-Error "Signing policy slug is empty! Check your GitHub variables configuration."
-            exit 1
-          }
-
-          $response = Invoke-WebRequest -Method POST `
-            -Uri "https://app.signpath.io/API/v1/${{ vars.SIGNPATH_ORG_ID }}/SigningRequests" `
-            -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" } `
-            -Form @{
-              "ProjectSlug" = "${{ vars.SIGNPATH_PROJECT_SLUG }}"
-              "SigningPolicySlug" = $signingPolicy
-              "Artifact" = Get-Item "./unsigned/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe"
-              "Description" = "GitHub Actions build - ${{ inputs.version }}"
-            }
-
-          if ($response.StatusCode -eq 201) {
-            $signRequestUrl = $response.Headers.Location
-            Write-Host "Signing request submitted: $signRequestUrl"
-            echo "signing_request_url=$signRequestUrl" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Error "Failed to submit signing request"
-            exit 1
-          }
-
-      - name: Wait for signing completion and download
-        shell: pwsh
-        run: |
-          $signRequestUrl = "${{ steps.sign.outputs.signing_request_url }}"
-          $maxAttempts = 60
-          $attempt = 0
-
-          Write-Host "Waiting for signing to complete..."
-
-          while ($attempt -lt $maxAttempts) {
-            Start-Sleep -Seconds 10
-            $attempt++
-
-            $status = Invoke-RestMethod -Method GET `
-              -Uri $signRequestUrl `
-              -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" }
-
-            Write-Host "Status: $($status.Status) (attempt $attempt/$maxAttempts)"
-
-            if ($status.Status -eq "Completed") {
-              Write-Host "Signing completed successfully!"
-
-              # Download signed artifact
-              New-Item -ItemType Directory -Force -Path "./signed"
-              Invoke-WebRequest -Method GET `
-                -Uri "$signRequestUrl/SignedArtifact" `
-                -Headers @{ "Authorization" = "Bearer ${{ secrets.SIGNPATH_API_TOKEN }}" } `
-                -OutFile "./signed/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe"
-
-              Write-Host "Downloaded signed artifact"
-
-              # Import test certificate for validation if using self-signed cert
-              if ("${{ inputs.use-self-signed-cert }}" -eq "true") {
-                $certPem = "${{ vars.SIGNPATH_SELF_SIGN_CERT }}"
-                $certPath = "test-cert.pem"
-                $certPem | Out-File -FilePath $certPath -Encoding ASCII
-
-                Import-Certificate -FilePath $certPath -CertStoreLocation Cert:\LocalMachine\Root
-                Import-Certificate -FilePath $certPath -CertStoreLocation Cert:\LocalMachine\TrustedPublisher
-
-                Write-Host "✓ Test certificate imported to Trusted Root (for self-signed cert validation)"
-              }
-
-              # Verify signature
-              $sig = Get-AuthenticodeSignature -FilePath "./signed/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe"
-              Write-Host "=== Signature Verification ==="
-              Write-Host "Status: $($sig.Status)"
-              Write-Host "Status Message: $($sig.StatusMessage)"
-              Write-Host "Signer Certificate Subject: $($sig.SignerCertificate.Subject)"
-              Write-Host "Timestamp: $($sig.TimeStamperCertificate.NotBefore)"
-              Write-Host "Certificate Thumbprint: $($sig.SignerCertificate.Thumbprint)"
-              Write-Host "=============================="
-
-              if ($sig.Status -ne "Valid") {
-                Write-Error "Signature verification failed! Status: $($sig.Status)"
-                exit 1
-              }
-
-              Write-Host "✓ Signature verified successfully!"
-              exit 0
-            } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
-              Write-Error "Signing failed with status: $($status.Status)"
-              exit 1
-            }
-          }
-
-          Write-Error "Timeout waiting for signing to complete"
-          exit 1
+          ./scripts/ci/sign-windows.ps1 `
+            -FilePath "$env:FULL_INSTALLER_NAME.exe" `
+            -SigningPolicy "${{ env.SIGNPATH_SIGNING_POLICY }}" `
+            -OrganizationId "${{ vars.SIGNPATH_ORG_ID }}" `
+            -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -Description "Installer - GitHub Actions build ${{ inputs.version }}"
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe
-          path: signed/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
+          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
           retention-days: 2
