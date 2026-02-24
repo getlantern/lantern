@@ -42,5 +42,6 @@ require_file "$TMP_DIR/control/postinst"
 require_grep "ExecStart=/usr/sbin/lanternd" "$TMP_DIR/root/usr/lib/systemd/system/lanternd.service"
 require_grep "groupadd --system lantern" "$TMP_DIR/control/postinst"
 require_grep "systemctl enable --now lanternd.service" "$TMP_DIR/control/postinst"
+require_grep "systemctl is-active --quiet lanternd.service" "$TMP_DIR/control/postinst"
 
 echo "linux package verification passed: $DEB_PATH"
