@@ -78,6 +78,7 @@ class LanternFFIService implements LanternCoreService {
   static LanternBindings _gen() {
     final String basePath = p.dirname(Platform.resolvedExecutable);
     final String fullPath;
+    appLogger.debug('resolved executable: "${Platform.resolvedExecutable}"');
 
     if (Platform.isWindows) {
       final candidates = <String>[
@@ -92,9 +93,7 @@ class LanternFFIService implements LanternCoreService {
         if (envPath != null && envPath.isNotEmpty) envPath,
         p.join(basePath, "$_libName.so"),
         p.join(basePath, "lib", "$_libName.so"),
-        p.join(basePath, "..", "lib", "lantern", "$_libName.so"),
         "/usr/lib/lantern/$_libName.so",
-        "/usr/share/lantern/$_libName.so",
       ];
       fullPath = _firstExisting(candidates);
     } else {
