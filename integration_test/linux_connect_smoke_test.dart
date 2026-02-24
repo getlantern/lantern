@@ -178,16 +178,18 @@ Future<void> _waitForVpnToggleWithOnboardingHandling(
 }) async {
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
-    if (vpnToggle.evaluate().isNotEmpty) {
-      return;
-    }
-
     if (onboardingScreen.evaluate().isNotEmpty) {
       if (onboardingSkip.evaluate().isNotEmpty) {
         await tester.tap(onboardingSkip);
       } else if (onboardingPrimary.evaluate().isNotEmpty) {
         await tester.tap(onboardingPrimary);
       }
+      await tester.pump(const Duration(milliseconds: 400));
+      continue;
+    }
+
+    if (vpnToggle.hitTestable().evaluate().isNotEmpty) {
+      return;
     }
 
     await tester.pump(const Duration(milliseconds: 300));
@@ -231,18 +233,18 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
 
-    await _waitForFinder(
-      tester,
-      homeScreen,
-      timeout: const Duration(seconds: 20),
-      reason: 'Home screen was not visible after onboarding flow',
-    );
-
     await _waitForFinderToDisappear(
       tester,
       onboardingScreen,
       timeout: const Duration(seconds: 20),
       reason: 'Onboarding screen remained visible',
+    );
+
+    await _waitForFinder(
+      tester,
+      homeScreen,
+      timeout: const Duration(seconds: 20),
+      reason: 'Home screen was not visible after onboarding flow',
     );
 
     await _waitForFinder(
