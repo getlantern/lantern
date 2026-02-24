@@ -12,7 +12,7 @@ on:
       installer_base_name:
         required: true
         type: string
-      use-self-signed-cert:
+      use_self_signed_cert:
         description: "Use self-signed code signing certificate"
         required: false
         type: boolean
@@ -23,7 +23,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-      SIGNPATH_SIGNING_POLICY: ${{ inputs.use-self-signed-cert && vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST || vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_SIGNING_POLICY: ${{ inputs.use_self_signed_cert && vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST || vars.SIGNPATH_SIGNING_POLICY_SLUG }}
     permissions:
       contents: "read"
       id-token: "write"
