@@ -672,16 +672,16 @@ class LanternPlatformService implements LanternCoreService {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-      appLogger.debug('Acknowledged in-app purchase, response: $data');
+
       if (data != null) {
-        appLogger.debug(
-            'Acknowledged in-app purchase and got subscription data: $data');
         appLogger.info(
-            "Ohh I see actual userID  and token data is returned after acknowledging in-app purchase, I will update the local storage with the new subscription data",
-            data);
+            "Ohh I see actual userID  and token data is returned after acknowledging in-app purchase, I will update the local storage with the new subscription data");
 
         /// If data is not empty, it means got the subscription data with userid and token and update the local storage, so that user can use the subscription immediately without restart the app
         final userData = UserResponse.fromBuffer(data);
+        appLogger.debug(
+          "Got user data after acknowledging in-app purchase: $userData",
+        );
         sl<LocalStorageService>().saveUser(userData.toEntity());
       }
       return Right('ok');
