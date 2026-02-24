@@ -416,7 +416,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "stripe_subscription",
+                            "acknowledge_in_app_purchase",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
