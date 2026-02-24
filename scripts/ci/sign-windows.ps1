@@ -136,13 +136,30 @@ while ($attempt -lt $MaxAttempts) {
         Write-Host "=============================="
 
         if ($sig.Status -ne "Valid") {
-            # For self-signed certs, status may be UnknownError until cert is trusted
-            # Allow HashMismatch to fail, but warn on other statuses
+            # Determine whether this is a self-signed/test flow based on the signing policy.
+            # Example policies mentioned in the script header: 'release-signing' and 'test-signing'.
+            $isSelfSignedFlow = $SigningPolicy -like "*test*"
+
+            # Always fail on HashMismatch regardless of policy.
             if ($sig.Status -eq "HashMismatch") {
-                Write-Error "Signature verification failed: $($sig.Status)"
+                Write-Error "Signature verification failed (hash mismatch): $($sig.Status) for policy '$SigningPolicy'"
                 exit 1
             }
-            Write-Warning "Signature status is $($sig.Status) - this may be expected for self-signed certificates"
+
+            if (-not $isSelfSignedFlow) {
+                # For production/EV signing, require a strictly valid signature.
+                Write-Error "Signature verification failed for policy '$SigningPolicy': $($sig.Status)"
+                exit 1
+            }
+
+            # For self-signed/test policies, allow only a narrow set of expected statuses.
+            $allowedSelfSignedStatuses = @("Valid", "UnknownError")
+            if ($allowedSelfSignedStatuses -notcontains $sig.Status) {
+                Write-Error "Signature verification failed for self-signed/test policy '$SigningPolicy': $($sig.Status)"
+                exit 1
+            }
+
+            Write-Warning "Signature status is $($sig.Status) for self-signed/test policy '$SigningPolicy' - this may be expected for self-signed certificates"
         }
 
         Write-Host "Signing complete: $fileName"
