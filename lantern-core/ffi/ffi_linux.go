@@ -156,6 +156,11 @@ func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 
 	if err := ipc.StartService(ctx, "", ""); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
 		sendStatusToPort(Error)
+		if errors.Is(err, ipc.ErrIPCNotRunning) {
+			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
+				return C.CString(diagErr.Error())
+			}
+		}
 		return C.CString(fmt.Sprintf("start service failed: %v", err))
 	}
 
@@ -195,6 +200,11 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 	defer cancel()
 
 	if err := ipc.StartService(ctx, group, tag); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+		if errors.Is(err, ipc.ErrIPCNotRunning) {
+			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
+				return SendError(diagErr)
+			}
+		}
 		return SendError(fmt.Errorf("start service failed: %w", err))
 	}
 
