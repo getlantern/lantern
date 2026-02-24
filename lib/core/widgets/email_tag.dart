@@ -14,7 +14,7 @@ class EmailTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Chip(
-      color: WidgetStatePropertyAll(AppColors.blue1),
+      color: WidgetStatePropertyAll(context.bgCallout),
       elevation: 0,
       avatar: AppImage(
         path: AppImagePaths.email,
@@ -27,7 +27,7 @@ class EmailTag extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(100),
         side: BorderSide(
-          color: AppColors.gray3,
+          color: context.borderInput,
           width: 1,
         ),
       ),

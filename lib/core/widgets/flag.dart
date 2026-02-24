@@ -1,7 +1,6 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
-
-import '../common/app_colors.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 class Flag extends StatelessWidget {
   final String countryCode;
@@ -14,7 +13,7 @@ class Flag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.gray3, width: .5),
+        border: Border.all(color: context.borderInput, width: .5),
       ),
       child: SizedBox.fromSize(
         size: size,

@@ -70,7 +70,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 Center(
                   child: AppImage(
                     path: AppImagePaths.creditCard,
-                    color: AppColors.gray9,
+                    color: context.textPrimary,
                     height: 30,
                   ),
                 ),
@@ -87,14 +87,14 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                   textAlign: TextAlign.left,
                   text: TextSpan(
                     style:
-                        textTheme.bodyMedium!.copyWith(color: AppColors.gray8),
+                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
                     text: '${'1'.i18n}. ',
                     children: [
                       TextSpan(text: '${'tap'.i18n} '),
                       TextSpan(
                           text: '${'open_system_settings'.i18n} ',
                           style: AppTextStyles.bodyMediumBold!.copyWith(
-                            color: AppColors.gray8,
+                            color: context.textSecondary,
                           )),
                       TextSpan(text: 'below_to_go_to_do'.i18n),
                     ],
@@ -104,7 +104,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 RichText(
                   text: TextSpan(
                     style:
-                        textTheme.bodyMedium!.copyWith(color: AppColors.gray8),
+                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
                     text: '${'2'.i18n}. ',
                     children: [
                       TextSpan(text: '${'add_payment_method'.i18n} '),
@@ -115,7 +115,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 RichText(
                   text: TextSpan(
                     style:
-                        textTheme.bodyMedium!.copyWith(color: AppColors.gray8),
+                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
                     text: '${'3'.i18n}. ',
                     children: [
                       TextSpan(text: '${'return_to_lantern'.i18n} '),
@@ -130,7 +130,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
           PrimaryButton(
             isTaller: true,
             icon: AppImagePaths.outsideBrowser,
-            iconColor: AppColors.white,
+            iconColor: context.textInverse,
             label: 'open_system_settings'.i18n,
             onPressed: () {
               UrlUtils.openUrl(AppUrls.digitalOceanBillingUrl);

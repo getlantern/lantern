@@ -177,6 +177,10 @@ class AppRouter extends RootStackRouter {
       page: DeveloperMode.page,
     ),
     AutoRoute(
+      path: '/appearance',
+      page: Appearance.page,
+    ),
+    AutoRoute(
       path: '/smart-routing',
       page: SmartRouting.page,
     ),

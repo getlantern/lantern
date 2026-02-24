@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/route_utils.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/features/setting/follow_us.dart' hide FollowUs;
 import 'package:lantern/features/support/app_version.dart';
 
 @RoutePage(name: 'Support')
@@ -21,6 +23,7 @@ class Support extends StatelessWidget {
             Center(
               child: AppImage(
                 path: AppImagePaths.supportIllustration,
+                useThemeColor: false,
                 type: AssetType.svg,
                 height: 180.h,
                 width: 180.w,
@@ -91,11 +94,54 @@ class Support extends StatelessWidget {
               ),
             ),
             const SizedBox(height: defaultSize),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: <Widget>[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'download_links'.i18n,
+                    icon: AppImagePaths.desktop,
+                    onPressed: () {
+                      appRouter.push(DownloadLinks());
+                    },
+                  ),
+                  DividerSpace(),
+                  AppTile(
+                    label: 'follow_us'.i18n,
+                    icon: AppImagePaths.thumb,
+                    onPressed: () {
+                      if (PlatformUtils.isDesktop) {
+                        appRouter.push(FollowUs());
+                        return;
+                      }
+                      showFollowUsBottomSheet(context: context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: defaultSize),
             const AppVersion(),
             const SizedBox(height: size24),
           ],
         ),
       ),
+    );
+  }
+
+  void showFollowUsBottomSheet({required BuildContext context}) {
+    showAppBottomSheet(
+      context: context,
+      title: 'follow_us'.i18n,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.39.h : 0.3.h,
+      builder: (context, scrollController) {
+        return Flexible(
+          child: FollowUsListView(
+            scrollController: scrollController,
+          ),
+        );
+      },
     );
   }
 }

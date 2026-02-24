@@ -45,96 +45,99 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     return Scaffold(
       appBar: AppBar(
         leading: const SizedBox.shrink(),
-        backgroundColor: AppColors.white,
-        title: const LanternLogo(),
+        backgroundColor: context.bgElevated,
+        title:  LanternLogo(color: context.textPrimary),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
         ),
       ),
       body: Container(
-        color: AppColors.white,
+        color: context.bgElevated,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: FlutterCarousel(
-                options: FlutterCarouselOptions(
-                  onPageChanged: (index, reason) {
-                    pageIndex.value = index;
-                  },
-                  controller: controller.value,
-                  height: double.infinity,
-                  viewportFraction: 1.0,
-                  showIndicator: true,
-                  pageSnapping: true,
-                  floatingIndicator: true,
-                  slideIndicator: CircularSlideIndicator(
-                    slideIndicatorOptions: SlideIndicatorOptions(
-                      indicatorRadius: 5,
-                      itemSpacing: 15,
-                      indicatorBorderWidth: 0.0,
-                      currentIndicatorColor: AppColors.blue3,
-                      indicatorBackgroundColor: AppColors.gray3,
-                      enableAnimation: true,
-                      padding: EdgeInsets.only(bottom: 10.0),
-                      alignment: Alignment.bottomCenter,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: FlutterCarousel(
+                  options: FlutterCarouselOptions(
+                    onPageChanged: (index, reason) {
+                      pageIndex.value = index;
+                    },
+                    controller: controller.value,
+                    height: double.infinity,
+                    viewportFraction: 1.0,
+                    showIndicator: true,
+                    pageSnapping: true,
+                    floatingIndicator: true,
+                    slideIndicator: CircularSlideIndicator(
+                      slideIndicatorOptions: SlideIndicatorOptions(
+                        indicatorRadius: 5,
+                        itemSpacing: 15,
+                        indicatorBorderWidth: 0.0,
+                        currentIndicatorColor: AppColors.blue3,
+                        indicatorBackgroundColor: context.borderInput,
+                        enableAnimation: true,
+                        padding: EdgeInsets.only(bottom: 10.0),
+                        alignment: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
+                  items: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppImage(
+                          path: AppImagePaths.appIconSVG,
+                          useThemeColor: false,
+                        ),
+                        SizedBox(height: 48),
+                        Text(
+                          'welcome_to_lantern'.i18n,
+                          style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: context.textSecondary),
+                        ),
+                        SizedBox(height: 16),
+                        Text('lantern_pro_tagline'.i18n)
+                      ],
+                    ),
+                    slide2(context),
+                    if (!PlatformUtils.isIOS) slide3(context),
+                  ],
                 ),
-                items: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AppImage(
-                        path: AppImagePaths.appIconSVG,
-                      ),
-                      SizedBox(height: 48),
-                      Text(
-                        'welcome_to_lantern'.i18n,
-                        style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.gray8),
-                      ),
-                      SizedBox(height: 16),
-                      Text('lantern_pro_tagline'.i18n)
-                    ],
-                  ),
-                  slide2(context),
-                  if (!PlatformUtils.isIOS) slide3(context),
-                ],
               ),
-            ),
-            PrimaryButton(
-              label:
-                  pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
-              isTaller: true,
-              onPressed: () {
-                if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                  onboardingCompleted();
-                  return;
-                }
-                if (pageIndex.value == 2) {
-                  onboardingCompleted();
-                  return;
-                }
-                controller.value.nextPage();
-              },
-            ),
-            if (pageIndex.value == 0) ...{
-              SizedBox(height: 12.0),
-              AppTextButton(
-                label: 'skip_connect_now'.i18n,
-                textColor: AppColors.gray9,
+              PrimaryButton(
+                label:
+                    pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
+                isTaller: true,
                 onPressed: () {
-                  onboardingCompleted();
+                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
+                    onboardingCompleted();
+                    return;
+                  }
+                  if (pageIndex.value == 2) {
+                    onboardingCompleted();
+                    return;
+                  }
+                  controller.value.nextPage();
                 },
-              )
-            },
-            SizedBox(height: 28.0),
-          ],
+              ),
+              if (pageIndex.value == 0) ...{
+                SizedBox(height: 12.0),
+                AppTextButton(
+                  label: 'skip_connect_now'.i18n,
+                  textColor: context.textPrimary,
+                  onPressed: () {
+                    onboardingCompleted();
+                  },
+                )
+              },
+              SizedBox(height: 28.0),
+            ],
+          ),
         ),
       ),
     );
@@ -148,34 +151,34 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         Text(
           'what_makes_lantern_different'.i18n,
           style: textTheme.headlineSmall!.copyWith(
-            color: AppColors.gray8,
+            color: context.textSecondary,
           ),
         ),
         SizedBox(height: 8.0),
         Text(
           'built_for_privacy_speed_freedom'.i18n,
           style: textTheme.bodyLarge!.copyWith(
-            color: AppColors.gray8,
+            color: context.textSecondary,
           ),
         ),
         SizedBox(height: 24.0),
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.smartRouteMode),
+            child: AppImage(path: AppImagePaths.smartRouteMode,useThemeColor: false,),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'smart_routing_mode'.i18n,
             style: textTheme.titleMedium!.copyWith(
-              color: AppColors.black,
+              color: context.textPrimary,
             ),
           ),
           subtitle: Text(
             'region_specific_routing_description'.i18n,
             style: textTheme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ),
@@ -183,20 +186,20 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.advanceProtocol),
+            child: AppImage(path: AppImagePaths.advanceProtocol,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'advanced_protocols'.i18n,
             style: textTheme.titleMedium!.copyWith(
-              color: AppColors.black,
+              color: context.textPrimary,
             ),
           ),
           subtitle: Text(
             'advanced_protocols_description'.i18n,
             style: textTheme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ),
@@ -204,20 +207,20 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.privateServerIntro),
+            child: AppImage(path: AppImagePaths.privateServerIntro,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'private_servers'.i18n,
             style: textTheme.titleMedium!.copyWith(
-              color: AppColors.black,
+              color: context.textPrimary,
             ),
           ),
           subtitle: Text(
             'private_servers_description'.i18n,
             style: textTheme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ),
@@ -225,20 +228,20 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         AppTile(
           icon: Padding(
             padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(path: AppImagePaths.nonProfit),
+            child: AppImage(path: AppImagePaths.nonProfit,useThemeColor: false),
           ),
           label: '',
           titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'nonprofit_mission'.i18n,
             style: textTheme.titleMedium!.copyWith(
-              color: AppColors.black,
+              color: context.textPrimary,
             ),
           ),
           subtitle: Text(
             'built_by_nonprofit'.i18n,
             style: textTheme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
             ),
           ),
         ),
@@ -282,7 +285,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         Text(
           'choose_your_routing_mode'.i18n,
           style: textTheme.headlineSmall!.copyWith(
-            color: AppColors.gray8,
+            color: context.textSecondary,
           ),
         ),
         SizedBox(height: 24.0),
@@ -326,11 +329,11 @@ class RouteModeContainer extends StatelessWidget {
       duration: Duration(milliseconds: 250),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.blue1 : AppColors.gray1,
+        color: isSelected ? context.bgHover : context.bgElevated,
         borderRadius: BorderRadius.circular(16.0),
         border: isSelected
-            ? Border.all(color: AppColors.blue7, width: 3.0)
-            : Border.all(color: AppColors.gray2, width: 1.0),
+            ? Border.all(color: context.borderInputFocus, width: 3.0)
+            : Border.all(color: context.borderDefault, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +348,7 @@ class RouteModeContainer extends StatelessWidget {
               Text(
                 title(),
                 style: textTheme.titleMedium!.copyWith(
-                  color: AppColors.black,
+                  color: context.textPrimary,
                 ),
               ),
               SizedBox(width: 8.0),
@@ -354,13 +357,13 @@ class RouteModeContainer extends StatelessWidget {
                       EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: AppColors.blue4),
-                    color: AppColors.blue2,
+                    border: Border.all(color: context.statusInfoBorder),
+                    color: context.statusInfoBg,
                   ),
                   child: Text(
                     tags(),
                     style:
-                        textTheme.labelMedium!.copyWith(color: AppColors.blue8),
+                        textTheme.labelMedium!.copyWith(color: context.statusInfoText),
                   ))
             ],
           ),
@@ -368,7 +371,7 @@ class RouteModeContainer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 38),
             child: Text(description(),
-                style: textTheme.bodyMedium!.copyWith(color: AppColors.gray8)),
+                style: textTheme.bodyMedium!.copyWith(color: context.textSecondary)),
           )
         ],
       ),

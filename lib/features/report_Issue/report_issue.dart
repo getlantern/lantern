@@ -190,9 +190,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     try {
       if (PlatformUtils.isIOS) {
         logFilePath = (await AppStorageUtils.flutterLogFile()).path;
-      } else {
-        logFilePath =
-            (await AppStorageUtils.appLogFile(createIfMissing: true)).path;
       }
     } catch (e, st) {
       // Don't block reporting if logs fail. Just report without logs

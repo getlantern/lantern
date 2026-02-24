@@ -50,19 +50,22 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       title: '',
       appBar: CustomAppBar(
         leading: SizedBox(),
-        title: LanternLogo(),
+        title: LanternLogo(
+          color: context.textPrimary,
+        ),
         actions: [
           CloseButton(),
         ],
-        backgroundColor: AppColors.white,
+        backgroundColor: context.bgElevated,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          AppImage(path: AppImagePaths.sysDialog),
+          AppImage(path: AppImagePaths.sysDialog, useThemeColor: false),
           const SizedBox(height: 48.0),
           Text('enable_network_extension'.i18n,
-              style: textTheme.headlineSmall!.copyWith(color: AppColors.gray8),
+              style: textTheme.headlineSmall!
+                  .copyWith(color: context.textSecondary),
               textAlign: TextAlign.center),
           const SizedBox(height: 16.0),
           Padding(
@@ -70,21 +73,21 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
             child: Text(
               'enable_network_extension_message'.i18n,
               style: textTheme.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
           const SizedBox(height: 16.0),
           RichText(
             text: TextSpan(
-              style: textTheme.bodyLarge!.copyWith(color: AppColors.gray7),
+              style: textTheme.bodyLarge!.copyWith(color: context.textTertiary),
               children: [
                 TextSpan(text: 'click'.i18n),
                 WidgetSpan(child: SizedBox(width: 4.0)),
                 TextSpan(
                   text: 'open_system_settings'.i18n,
                   style: AppTextStyles.bodyLargeBold.copyWith(
-                    color: AppColors.gray8,
+                    color: context.textSecondary,
                   ),
                 ),
                 WidgetSpan(child: SizedBox(width: 4.0)),

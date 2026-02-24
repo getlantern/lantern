@@ -82,9 +82,9 @@ class ProviderCarousel extends HookConsumerWidget {
                 child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: context.bgElevated,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.gray4, width: 1),
+                      border: Border.all(color: context.textDisabled, width: 1),
                     ),
                     child: AppImage(
                       path: AppImagePaths.arrowBack,
@@ -103,9 +103,9 @@ class ProviderCarousel extends HookConsumerWidget {
                 child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: context.bgElevated,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.gray4, width: 1),
+                      border: Border.all(color: context.textDisabled, width: 1),
                     ),
                     child: AppImage(
                       path: AppImagePaths.arrowForward,
@@ -184,7 +184,7 @@ class _CarouselDots extends StatelessWidget {
       spacing: 8,
       children: List.generate(count, (i) {
         final active = i == current;
-        final fill = active ? AppColors.gray4 : AppColors.gray2;
+        final fill = active ? context.textDisabled : context.borderDefault;
         return Semantics(
           selected: active,
           label: 'Page ${i + 1} of $count',
@@ -198,7 +198,7 @@ class _CarouselDots extends StatelessWidget {
               decoration: BoxDecoration(
                 color: fill,
                 borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: AppColors.gray3, width: 1),
+                border: Border.all(color: context.borderInput, width: 1),
               ),
             ),
           ),
@@ -225,7 +225,7 @@ class _ArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = enabled ? AppColors.black1 : AppColors.gray4;
+    final iconColor = enabled ? context.textPrimary : context.textDisabled;
 
     Widget icon = assetPath != null
         ? AppImage(path: assetPath!, width: 24, height: 24, color: iconColor)

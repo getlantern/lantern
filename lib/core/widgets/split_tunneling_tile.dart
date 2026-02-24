@@ -27,7 +27,7 @@ class SplitTunnelingTile extends StatelessWidget {
           ? Text(
               subtitle!,
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.gray7,
+                color: context.textTertiary,
               ),
             )
           : null,

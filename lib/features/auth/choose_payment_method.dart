@@ -33,15 +33,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final planData = ref.watch(plansProvider.notifier).getPlanData();
     return BaseScreen(
       title: '',
-      appBar: CustomAppBar(
-        title: Text('choose_payment_method'.i18n),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () => onMoreOptionsPressed(context),
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: Text('choose_payment_method'.i18n)),
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -114,7 +106,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         action: [
           AppTextButton(
             label: 'cancel'.i18n,
-            textColor: AppColors.gray8,
+            textColor: context.textSecondary,
             underLine: false,
             onPressed: () {
               appRouter.pop();
@@ -139,12 +131,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await desktopPurchaseFlow(provider, ref, context);
           return;
         }
-
         if (isAndroidSideload) {
           await androidStripeSubscription(provider, ref, context);
           return;
         }
-
         break;
 
       case 'shepherd':
@@ -176,6 +166,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
         /// Start stripe SDK
         sl<StripeService>().startStripeSDK(
+          context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
             onPurchaseResult(true, context, ref);
@@ -302,6 +293,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
+      case AuthFlow.renewSubscription:
+
+        /// User is renewing subscription, pop until payment screen and show success dialog
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
     }
   }
 }
@@ -332,19 +332,19 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
             initiallyExpanded: index == 0,
-            backgroundColor: AppColors.white,
-            collapsedBackgroundColor: AppColors.white,
+            backgroundColor: context.bgElevated,
+            collapsedBackgroundColor: context.bgElevated,
             collapsedShape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: AppColors.gray3,
+                color: context.borderInput,
                 width: 1,
               ),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: AppColors.gray3,
+                color: context.borderInput,
                 width: 1,
               ),
             ),
@@ -370,7 +370,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   Text(
                     '${userPlan.formattedMonthlyPrice}/month',
                     style: theme.bodyMedium!.copyWith(
-                      color: AppColors.gray6,
+                      color: context.textDisabled,
                     ),
                   ),
                 ],
@@ -388,7 +388,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     Text(
                       'free'.i18n,
                       style: theme.bodyMedium!.copyWith(
-                        color: AppColors.gray6,
+                        color: context.textDisabled,
                       ),
                     ),
                   ],
@@ -400,12 +400,12 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text('Order Total:',
                       style: theme.titleSmall!.copyWith(
-                        color: AppColors.gray9,
+                        color: context.textPrimary,
                       )),
                   Text(
                     userPlan.formattedYearlyPrice,
                     style: theme.titleSmall!.copyWith(
-                      color: AppColors.blue10,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -417,7 +417,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
                     : 'billed_once'.i18n.capitalize,
                 style: theme.bodySmall!.copyWith(
-                  color: AppColors.gray6,
+                  color: context.textDisabled,
                 ),
               ),
               SizedBox(height: defaultSize),

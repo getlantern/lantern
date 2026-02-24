@@ -30,26 +30,34 @@ class SwitchButton extends StatelessWidget {
       spacing: 10.h,
       height: PlatformUtils.isDesktop ? 40.h : 30.h,
       wrapperBuilder: (context, global, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           width: trackWidth,
           padding: const EdgeInsets.symmetric(horizontal: 5),
           decoration: BoxDecoration(
-            color: value ? (activeColor ?? AppColors.green5) : AppColors.gray7,
+            // toggle-active-bg: Green.500 light / Green.700 dark
+            // toggle-disabled-bg (off state): Gray.700 both
+            color: value
+                ? (activeColor ??
+                    (isDark ? AppColors.green7 : AppColors.green5))
+                : AppColors.gray7,
             borderRadius: BorderRadius.circular(100),
           ),
           child: child,
         );
       },
       foregroundIndicatorBuilder: (context, global) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return GestureDetector(
           onTap: () {
             onChanged(value ? false : true);
           },
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              // toggle-knob-bg: White light / Gray.100 dark
+              color: isDark ? AppColors.gray1 : Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black12,
                   blurRadius: 4,

@@ -1,6 +1,6 @@
 // Extension for showing error SnackBars.
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 import '../common/app_dimens.dart' show defaultPadding;
@@ -15,13 +15,13 @@ extension SnackBarExtensions on BuildContext {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        backgroundColor: AppColors.red7,
+        backgroundColor: bgSnackbarError,
         showCloseIcon: closeButton,
-        closeIconColor: AppColors.white,
+        closeIconColor: textInverse,
         content: Text(
           message,
           style: textTheme!.copyWith(
-            color: AppColors.white,
+            color: textInverse,
           ),
         ),
         duration: Duration(seconds: 5),
@@ -38,13 +38,13 @@ extension SnackBarExtensions on BuildContext {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        backgroundColor: AppColors.blue9,
+        backgroundColor: bgSnackbar,
         showCloseIcon: closeButton,
-        closeIconColor: AppColors.white,
+        closeIconColor: textInverse,
         content: Text(
           message,
           style: textTheme!.copyWith(
-            color: AppColors.white,
+            color: textInverse,
           ),
         ),
         duration: Duration(seconds: 5),

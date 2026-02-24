@@ -1,11 +1,12 @@
 // Common file to export all common files
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
@@ -16,6 +17,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -30,11 +32,12 @@ export 'package:lantern/core/common/app_dialog.dart';
 export 'package:lantern/core/common/app_dimens.dart';
 export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_image_paths.dart';
+export 'package:lantern/core/common/app_semantic_colors.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
-export 'package:lantern/core/common/date_formatters.dart';
 // Utils
 export 'package:lantern/core/common/app_urls.dart';
+export 'package:lantern/core/common/date_formatters.dart';
 //Desktop export
 export 'package:lantern/core/desktop/app_intent.dart';
 export 'package:lantern/core/desktop/app_shortcuts.dart';
@@ -113,7 +116,11 @@ Future<String> pasteFromClipboard() async {
 
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [Duration(seconds: 1), Duration(seconds: 2),Duration(seconds: 3)];
+  final delays = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 3)
+  ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
@@ -203,3 +210,20 @@ ServerLocationEntity initialServerLocation() {
   );
 }
 
+ThemeMode resolveThemeMode(String raw) {
+  switch (raw) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}
+
+Future<bool> isStageEnvironment() async {
+  final dir = await AppStorageUtils.getAppDirectory();
+  final envFile = File('${dir.path}/.radiance_env');
+  return envFile.existsSync();
+
+}

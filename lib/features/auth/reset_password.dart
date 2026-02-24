@@ -43,7 +43,7 @@ class ResetPassword extends HookConsumerWidget {
               controller: passwordController,
               prefixIcon: AppImagePaths.lock,
               onChanged: (value) {},
-              suffixIcon: _buildSuffix(obscureText),
+              suffixIcon: _buildSuffix(obscureText, context),
             ),
             SizedBox(height: 20),
             AppTextField(
@@ -76,7 +76,7 @@ class ResetPassword extends HookConsumerWidget {
                 }
                 return null;
               },
-              suffixIcon: _buildSuffix(obscureText),
+              suffixIcon: _buildSuffix(obscureText, context),
             ),
             SizedBox(height: 32),
             PrimaryButton(
@@ -96,9 +96,9 @@ class ResetPassword extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSuffix(ValueNotifier<bool> obscureText) {
+  Widget _buildSuffix(ValueNotifier<bool> obscureText, BuildContext context) {
     return AppImage(
-      color: AppColors.yellow9,
+      color: context.textPromoIcon,
       path: obscureText.value ? AppImagePaths.eyeHide : AppImagePaths.eye,
       onPressed: () {
         obscureText.value = !obscureText.value;
@@ -138,7 +138,7 @@ class ResetPassword extends HookConsumerWidget {
           action: [
             AppTextButton(
               label: 'continue'.i18n,
-              textColor: AppColors.gray7,
+              textColor: context.textTertiary,
               onPressed: () {
                 appRouter.popUntilRoot();
               },

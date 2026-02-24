@@ -54,7 +54,7 @@ class ConfirmEmail extends HookConsumerWidget {
               child: Text(
                 'confirm_email_code'.i18n,
                 style: textTheme.labelLarge?.copyWith(
-                  color: AppColors.gray8,
+                  color: context.textSecondary,
                   fontSize: 14.sp,
                 ),
               ),
@@ -90,7 +90,7 @@ class ConfirmEmail extends HookConsumerWidget {
             Center(
               child: AppTextButton(
                 label: 'resend_email'.i18n,
-                textColor: AppColors.black,
+                textColor: context.textPrimary,
                 onPressed: () => onResendEmail(context, ref),
               ),
             )
@@ -157,6 +157,9 @@ class ConfirmEmail extends HookConsumerWidget {
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
         completeChangeEmail(context, ref, code);
+      case AuthFlow.renewSubscription:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -211,20 +214,19 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
-
-        /// If user is from store version no need to check anything
-        /// send them to create password directly
-        if (PlatformUtils.isMobile && isStoreVersion()) {
-          appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
-          return;
-        }
-
-        /// Check if user is pro or not
+        final isStoreUser = PlatformUtils.isMobile && isStoreVersion();
         final isPro = sl<LocalStorageService>().getUser()?.isPro() ?? false;
-        if (isPro) {
+
+        /// For store user already paid so send them to create password screen directly
+        /// if user is already pro no need to show payment method screen just send them to create password screen
+        if (isStoreUser || isPro) {
           appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
+            CreatePassword(
+              email: email,
+              authFlow: authFlow,
+              code: code,
+            ),
+          );
           return;
         }
         appRouter.push(
@@ -237,6 +239,9 @@ class ConfirmEmail extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.changeEmail:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case AuthFlow.renewSubscription:
         // TODO: Handle this case.
         throw UnimplementedError();
     }
@@ -255,6 +260,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         resendChangeEmail(context, ref);
         break;
+      case AuthFlow.renewSubscription:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

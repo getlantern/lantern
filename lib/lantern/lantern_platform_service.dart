@@ -12,6 +12,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -44,8 +45,10 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
   static final RegExp _newlineRegex = RegExp(r'\r?\n');
   static const int _maxBufferedLines = 4000;
+
   // Fraction of lines to keep when trimming the buffer.
   static const double _keepFraction = 0.25;
+
   // Backwards-compatible alias; prefer `_keepFraction` in new code.
   static const double _trimFraction = _keepFraction;
 
@@ -661,14 +664,31 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+  Future<Either<Failure, String>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) async {
     try {
-      await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
+      final data =
+          await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-      return Right(unit);
+
+      if (data != null) {
+        appLogger.info(
+            "User already bought subscription from same apple/google id before, switching user data");
+        try {
+          /// If data is not empty, it means got the subscription data with userid and token and update the local storage, so that user can use the subscription immediately without restart the app
+          final userData = UserResponse.fromBuffer(data);
+          appLogger.debug(
+            "Got user data after acknowledging in-app purchase: ${userData.legacyUserData.userId}",
+          );
+          sl<LocalStorageService>().saveUser(userData.toEntity());
+        } catch (e) {
+          appLogger.error(
+              "Error parsing user data after acknowledging in-app purchase", e);
+        }
+      }
+      return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
       return Left(e.toFailure());
@@ -1050,8 +1070,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
-      required String urls,
+  Future<Either<Failure, Unit>> addServerBasedOnURLs(
+      {required String urls,
       required bool skipCertVerification,
       required String serverName}) async {
     try {
@@ -1241,5 +1261,4 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
 }

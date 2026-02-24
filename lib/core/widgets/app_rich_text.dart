@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 import '../common/app_colors.dart';
 import '../common/app_text_styles.dart';
@@ -29,14 +30,14 @@ class AppRichText extends StatelessWidget {
       text: TextSpan(
         text: texts,
         style: textTheme.labelLarge!.copyWith(
-          color: AppColors.gray8,
+          color: context.textSecondary,
         ),
         children: [
           TextSpan(
             text: boldTexts,
             style: AppTextStyles.labelLargeBold.copyWith(
               fontWeight: FontWeight.bold,
-              color: boldColor ?? AppColors.gray8,
+              color: boldColor ?? context.textSecondary,
               decoration: boldUnderline
                   ? TextDecoration.underline
                   : TextDecoration.none,

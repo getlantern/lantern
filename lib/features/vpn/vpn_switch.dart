@@ -53,7 +53,7 @@ class VPNSwitch extends HookConsumerWidget {
               padding: const EdgeInsets.all(8.0),
               child: CircularProgressIndicator(
                 strokeWidth: 8.r,
-                color: AppColors.gray1,
+                color: context.actionToggleKnobBg,
               ),
             ),
           );
@@ -65,7 +65,7 @@ class VPNSwitch extends HookConsumerWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.gray1,
+              color: context.actionToggleKnobBg,
               borderRadius: BorderRadius.circular(30.r),
             ),
           ),
@@ -75,7 +75,7 @@ class VPNSwitch extends HookConsumerWidget {
         return Container(
           padding: EdgeInsets.all(5.r),
           decoration: BoxDecoration(
-            color: _wrapperColor(vpnStatus),
+            color: _wrapperColor(vpnStatus, context),
             borderRadius: BorderRadius.circular(50.r),
           ),
           child: child,
@@ -106,19 +106,19 @@ class VPNSwitch extends HookConsumerWidget {
     );
   }
 
-  Color _wrapperColor(VPNStatus vpnStatus) {
+  Color _wrapperColor(VPNStatus vpnStatus, BuildContext context) {
     switch (vpnStatus) {
       case VPNStatus.connected:
-        return AppColors.blue4;
+        return context.actionToggleBrandActiveBg;
       case VPNStatus.connecting:
       case VPNStatus.disconnected:
-        return AppColors.gray7;
+        return context.actionToggleDisabledBg;
       case VPNStatus.disconnecting:
-        return AppColors.gray7;
+        return context.textTertiary;
       case VPNStatus.missingPermission:
-        return AppColors.gray7;
+        return context.textTertiary;
       case VPNStatus.error:
-        return AppColors.gray7;
+        return context.textTertiary;
     }
   }
 }

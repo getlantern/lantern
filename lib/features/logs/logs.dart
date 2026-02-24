@@ -49,9 +49,12 @@ class Logs extends HookConsumerWidget {
     Future<void> shareLogFile() async {
       try {
         final logFile = await AppStorageUtils.appLogFile();
-        await Share.shareXFiles(
-          [XFile(logFile.path)],
-          text: 'logs_share_message'.i18n,
+        await SharePlus.instance.share(
+          ShareParams(
+            title: 'logs'.i18n,
+            text: 'logs_share_message'.i18n,
+            files: [XFile(logFile.path)],
+          ),
         );
       } catch (e) {
         appLogger.error("Error sharing log file: $e");
@@ -80,9 +83,9 @@ class Logs extends HookConsumerWidget {
           Expanded(
             child: Container(
               decoration: ShapeDecoration(
-                color: AppColors.black1,
+                color: context.bgElevated,
                 shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1),
+                  side: BorderSide(width: 1, color: context.borderDefault),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

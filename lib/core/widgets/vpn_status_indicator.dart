@@ -28,6 +28,7 @@ class VPNStatusIndicator extends StatelessWidget {
 
     return AppImage(
       path: indicator,
+      useThemeColor: false,
       color: status == VPNStatus.disconnected ? AppColors.gray3 : null,
     );
   }

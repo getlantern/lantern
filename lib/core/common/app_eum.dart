@@ -26,7 +26,7 @@ extension ServerLocationTypeExtension on String {
   }
 }
 
-enum AuthFlow { resetPassword, oauth, signUp, lanternProLicense, changeEmail }
+enum AuthFlow { resetPassword, oauth, signUp, lanternProLicense, changeEmail,renewSubscription }
 
 enum BillingType { subscription, one_time }
 
@@ -77,7 +77,6 @@ enum SplitTunnelActionType {
     }
   }
 }
-
 
 enum BypassListOption {
   global,
@@ -148,9 +147,9 @@ enum RoutingMode { smart, full }
 
 extension RoutingModeX on RoutingMode {
   String get key => switch (this) {
-    RoutingMode.smart => 'smart_routing',
-    RoutingMode.full => 'full_tunnel',
-  };
+        RoutingMode.smart => 'smart_routing',
+        RoutingMode.full => 'full_tunnel',
+      };
 
   String label() => key.i18n;
 

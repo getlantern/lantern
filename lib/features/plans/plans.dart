@@ -13,6 +13,7 @@ import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -20,6 +21,7 @@ import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 import '../../core/models/plan_data.dart';
+import '../home/provider/home_notifier.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
@@ -36,17 +38,17 @@ class _PlansState extends ConsumerState<Plans> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.bgElevated,
       padded: false,
       appBar: CustomAppBar(
         title: SizedBox(
           height: 20.h,
           child: LanternLogo(
-            color: AppColors.gray9,
+            color: context.textPrimary,
             isPro: true,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: context.bgElevated,
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () {
@@ -61,7 +63,10 @@ class _PlansState extends ConsumerState<Plans> {
         ],
       ),
       title: "",
-      body: _buildBody(),
+      body: SafeArea(
+        bottom: !PlatformUtils.isIOS,
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -82,7 +87,7 @@ class _PlansState extends ConsumerState<Plans> {
         DividerSpace(padding: EdgeInsets.zero),
         Expanded(
           child: Container(
-            color: AppColors.gray1,
+            color: context.bgSurface,
             padding: EdgeInsets.symmetric(
                 horizontal: context.isSmallDevice ? 0 : defaultSize),
             child: Column(
@@ -137,7 +142,7 @@ class _PlansState extends ConsumerState<Plans> {
                     child: Text(
                       'subscription_renewal_info'.i18n,
                       style: textTheme.labelMedium!.copyWith(
-                        color: AppColors.gray7,
+                        color: context.textTertiary,
                       ),
                     ),
                   ),
@@ -148,7 +153,7 @@ class _PlansState extends ConsumerState<Plans> {
                         AppTextButton(
                           label: 'privacy_policy'.i18n,
                           fontSize: 12,
-                          textColor: AppColors.gray7,
+                          textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
                                 AppUrls.privacyPolicy);
@@ -161,7 +166,7 @@ class _PlansState extends ConsumerState<Plans> {
                         AppTextButton(
                           label: 'terms_of_service'.i18n,
                           fontSize: 12,
-                          textColor: AppColors.gray7,
+                          textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
                                 AppUrls.termsOfService);
@@ -237,7 +242,7 @@ class _PlansState extends ConsumerState<Plans> {
           SizedBox(height: defaultSize),
           Text('referral_code'.i18n,
               style: textTheme.headlineSmall!.copyWith(
-                color: AppColors.gray9,
+                color: context.textPrimary,
               )),
           SizedBox(height: 24),
           AppTextField(
@@ -255,7 +260,7 @@ class _PlansState extends ConsumerState<Plans> {
         AppTextButton(
           label: 'cancel'.i18n,
           underLine: false,
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },
@@ -358,30 +363,49 @@ class _PlansState extends ConsumerState<Plans> {
     context.hideLoadingDialog();
     appLogger.info('Subscription successful for plan: ${plan.id}');
 
+    /// Update user data in UI immediately after purchase acknowledgment
+    final userData = sl<LocalStorageService>().getUser();
+    if (userData != null) {
+      ref.read(homeProvider.notifier).updateUserData(userData);
+    }
+
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();
+
+    final appSetting = ref.read(appSettingProvider);
+    if (appSetting.userLoggedIn) {
+      /// If user logged in and purchase is successful then check user account status
+      /// to reflect new purchase and send user to pro flow
+      userRenewalFlow();
+      return;
+    }
     await signUpFlow();
   }
 
   Future<void> signUpFlow() async {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
-      /// Check if user is expired or not, if expired send to pro flow if not send to home screen
-      final isUserExpired = ref.read(isUserExpiredProvider);
-      if (isUserExpired) {
-        await userExpiredFlow();
+      /// Check if user is pro or not
+      final isPro = ref.read(isUserProProvider);
+      if (isPro) {
+        appLogger.info('User is already Pro, sending to Pro flow');
+        useProFlow();
         return;
       }
-      appLogger.info('User already logged in, checking account status');
-      useProFlow();
+      final user = ref.read(homeProvider).value;
+      final email = user!.legacyUserData.email;
+
+      /// User is logged but not pro, this can be because user has created account but did not complete purchase flow or user has created account and their plan is expired
+      appRouter.push(ChoosePaymentMethod(
+          email: email, authFlow: AuthFlow.renewSubscription));
       return;
     }
     appLogger.debug('Sending user to AddEmail screen for sign up');
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
-  Future<void> userExpiredFlow() async {
-    appLogger.info('User account is expired, sending to Pro flow');
+  Future<void> userRenewalFlow() async {
+    appLogger.info('User account is expired/free, sending to Pro flow');
     context.showLoadingDialog();
     appLogger.debug("Checking user account status");
     final isPro = await checkUserAccountStatus(ref, context);

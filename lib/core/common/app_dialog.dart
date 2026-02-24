@@ -15,13 +15,9 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.gray1,
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.all(24),
-          // contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -83,7 +79,7 @@ class AppDialog {
         return AlertDialog(
           actionsAlignment: MainAxisAlignment.end,
           actionsOverflowAlignment: OverflowBarAlignment.end,
-          backgroundColor: AppColors.gray1,
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: size24),
           actionsPadding: actionPadding ??
               EdgeInsets.only(
@@ -91,10 +87,6 @@ class AppDialog {
                   bottom: defaultSize,
                   left: defaultSize,
                   right: defaultSize),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppColors.gray3, width: 1),
-          ),
           content: content,
           actions: action,
         );
@@ -113,17 +105,13 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.gray3,
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
               top: defaultSize,
               bottom: defaultSize,
               left: defaultSize,
               right: defaultSize),
-          // contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -161,17 +149,13 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.gray3,
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
               top: defaultSize,
               bottom: defaultSize,
               left: defaultSize,
               right: defaultSize),
-          // contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
