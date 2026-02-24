@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
@@ -78,16 +77,26 @@ class LanternFFIService implements LanternCoreService {
 
   static LanternBindings _gen() {
     final String basePath = p.dirname(Platform.resolvedExecutable);
-    String fullPath = "";
+    final String fullPath;
 
     if (Platform.isWindows) {
-      fullPath = p.join(basePath, "$_libName.dll");
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "$_libName.dll");
-      }
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
-      }
+      final candidates = <String>[
+        p.join(basePath, "$_libName.dll"),
+        p.join(basePath, "bin", "$_libName.dll"),
+        p.join(basePath, "bin", "windows", "$_libName.dll"),
+      ];
+      fullPath = _firstExisting(candidates);
+    } else if (Platform.isLinux) {
+      final envPath = Platform.environment['LANTERN_LIB_PATH'];
+      final candidates = <String>[
+        if (envPath != null && envPath.isNotEmpty) envPath,
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        p.join(basePath, "..", "lib", "lantern", "$_libName.so"),
+        "/usr/lib/lantern/$_libName.so",
+        "/usr/share/lantern/$_libName.so",
+      ];
+      fullPath = _firstExisting(candidates);
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
@@ -95,6 +104,18 @@ class LanternFFIService implements LanternCoreService {
     appLogger.debug('singbox native libs path: "$fullPath"');
     final lib = DynamicLibrary.open(fullPath);
     return LanternBindings(lib);
+  }
+
+  static String _firstExisting(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    appLogger.warning(
+      'Native library not found in candidates: ${candidates.join(', ')}',
+    );
+    return candidates.first;
   }
 
   Future<void> init() async {
