@@ -412,11 +412,11 @@ class MethodHandler : FlutterPlugin,
                             map["planId"] as String
                         )
                         withContext(Dispatchers.Main) {
-                            success("success")
+                            success(subscriptionData)
                         }
                     }.onFailure { e ->
                         result.error(
-                            "stripe_subscription",
+                            "acknowledge_in_app_purchase",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
