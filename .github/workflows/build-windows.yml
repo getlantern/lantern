@@ -16,7 +16,7 @@ on:
         description: "Use self-signed code signing certificate"
         required: false
         type: boolean
-        default: true # TODO: remove for prod
+        default: false # when true, uses self-signed certificate
 
 jobs:
   build-windows:
