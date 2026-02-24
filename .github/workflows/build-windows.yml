@@ -128,21 +128,18 @@ jobs:
           $buildDir = "build/windows/x64/runner/Release"
           $signScript = "./scripts/ci/sign-windows.ps1"
 
-          # List of binaries to sign before packaging
-          # Explicit core binaries
-          $binaries = @(
-            "$buildDir/lantern.exe",
-            "$buildDir/lanternsvc.exe",
-            "$buildDir/liblantern.dll"
+          # Third-party binaries that are already signed by their vendors
+          $thirdParty = @(
+            'wintun.dll',           # WinTun
+            'flutter_windows.dll',  # Google/Flutter
+            'WebView2Loader.dll',   # Microsoft
+            'WinSparkle.dll'        # WinSparkle
           )
 
-          # Discover additional plugin DLLs (from PLUGIN_BUNDLED_LIBRARIES), excluding third-party wintun.dll
-          $pluginDlls = Get-ChildItem -Path $buildDir -Filter '*.dll' -Recurse -File |
-            Where-Object { $_.Name -ne 'wintun.dll' -and $_.FullName -ne "$buildDir\liblantern.dll" } |
+          # Discover all EXEs and DLLs, excluding third-party signed binaries
+          $binaries = Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
+            Where-Object { $thirdParty -notcontains $_.Name } |
             Select-Object -ExpandProperty FullName
-
-          # Combine explicit binaries with discovered plugin DLLs
-          $binaries = $binaries + $pluginDlls
           # Sign each binary
           foreach ($binary in $binaries) {
             if (Test-Path $binary) {
