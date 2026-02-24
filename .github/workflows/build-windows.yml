@@ -108,9 +108,17 @@ jobs:
         run: |
           dart pub global activate flutter_distributor
           make windows-release
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "make windows-release failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
 
           Write-Host "=== Files in build/windows/x64/runner/Release/ ==="
-          Get-ChildItem -Path "build/windows/x64/runner/Release/" -Recurse | Select-Object -First 20 FullName
+          if (Test-Path "build/windows/x64/runner/Release/") {
+            Get-ChildItem -Path "build/windows/x64/runner/Release/" -Recurse | Select-Object -First 20 FullName
+          } else {
+            Write-Warning "Release directory does not exist"
+          }
 
       - name: Sign embedded binaries
         shell: pwsh
