@@ -332,7 +332,7 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
 		}
 		var resp api.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
-			return nil, fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
+			return nil, fmt.Errorf("error unmarshalling acknowledge google purchase response: %v", err)
 		}
 
 		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
@@ -347,7 +347,7 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
 			}
 			return userData, nil
 		}
-		/// Purchase was made on the same account, just return empty byte array to indicate success
+		/// Purchase was made on the same account, just return nil to indicate success
 		return nil, nil
 
 	})
@@ -376,7 +376,7 @@ func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
 			slog.Debug("fetched user", "userdata", string(userData))
 			return userData, nil
 		}
-		/// Purchase was made on the same account, just return empty byte array to indicate success
+		/// Purchase was made on the same account, just return nil to indicate success
 		return nil, nil
 
 	})

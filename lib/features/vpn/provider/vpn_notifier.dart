@@ -53,7 +53,6 @@ class VpnNotifier extends _$VpnNotifier {
               id: NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
-              // delay: Duration(seconds: 2),
             );
           }
         }
