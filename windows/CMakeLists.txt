@@ -52,15 +52,6 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
-#
-## Copy liblantern.dll for local development
-set(LANTERN_DIR "..")
-set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
-
-install(FILES "${LIBLANTERN_DLL}"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}
-        COMPONENT Runtime)
-
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
@@ -87,6 +78,12 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
   COMPONENT Runtime)
 
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+
+# Copy liblantern.dll
+set(LANTERN_DIR "..")
+set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
+install(FILES "${LIBLANTERN_DLL}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)
