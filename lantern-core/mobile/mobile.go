@@ -373,7 +373,7 @@ func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			slog.Debug("fetched user", "userdata", string(userData))
+			slog.Debug("fetched user data after account switch", "userdata", string(userData))
 			return userData, nil
 		}
 		/// Purchase was made on the same account, just return nil to indicate success
