@@ -95,7 +95,7 @@ if ($response.StatusCode -ne 201) {
     exit 1
 }
 
-$signRequestUrl = $response.Headers.Location
+$signRequestUrl = $response.Headers.Location[0]
 Write-Host "Signing request submitted: $signRequestUrl"
 
 # Poll for completion
