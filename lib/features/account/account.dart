@@ -149,10 +149,12 @@ class Account extends HookConsumerWidget {
             child: AppTile(
               contentPadding: EdgeInsets.only(left: 16),
               icon: AppImagePaths.delete,
+              iconUseThemeColor: false,
               label: 'delete_account'.i18n,
               trailing: AppTextButton(
                 label: 'delete'.i18n,
                 textColor: buildContext.statusErrorText,
+
                 onPressed: _onDeleteTap,
               ),
             ),
