@@ -10,6 +10,13 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var pollTimer: DispatchSourceTimer?
   private var streamer: IOSDiagnosticLogStreamer?
 
+  deinit {
+    streamQueue.sync {
+      stopPollingLocked()
+      streamer = nil
+    }
+  }
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let instance = LogsEventHandler()
     instance.channel = FlutterEventChannel(
@@ -21,7 +28,6 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
     -> FlutterError?
   {
-    FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path)
     self.events = events
     let streamer = IOSDiagnosticLogStreamer(logsDirectory: FilePath.logsDirectory)
     streamQueue.async { [weak self] in
@@ -85,6 +91,8 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
 }
 
 private final class IOSDiagnosticLogStreamer {
+  private static let appLogFile = "lantern.log"
+  private static let iosLogFile = "lantern_ios.log"
   private static let initialLinesPerFile = 200
   private static let maxLinesPerUpdate = 400
 
@@ -92,8 +100,8 @@ private final class IOSDiagnosticLogStreamer {
 
   init(logsDirectory: URL) {
     tailers = [
-      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent("lantern.log")),
-      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent("lantern_ios.log")),
+      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent(Self.appLogFile)),
+      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent(Self.iosLogFile)),
     ]
   }
 
@@ -141,8 +149,8 @@ private final class IncrementalFileTailer {
 
     do {
       let fileSize = try handle.seekToEnd()
-      offset = fileSize
       if fileSize == 0 {
+        offset = 0
         return []
       }
 
@@ -151,6 +159,7 @@ private final class IncrementalFileTailer {
       try handle.seek(toOffset: startOffset)
 
       let data = handle.readDataToEndOfFile()
+      offset = startOffset + UInt64(data.count)
       var lines = Self.extractLines(from: data, carryingPartialLineIn: &partialLine)
 
       // If we sought into the middle of the file, drop the first potentially partial line.
@@ -199,7 +208,7 @@ private final class IncrementalFileTailer {
     do {
       try handle.seek(toOffset: offset)
       let data = handle.readDataToEndOfFile()
-      offset = fileSize
+      offset += UInt64(data.count)
 
       guard !data.isEmpty else {
         return []
