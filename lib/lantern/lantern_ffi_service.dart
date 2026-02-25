@@ -44,8 +44,6 @@ const String _libName = 'liblantern';
 /// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
-  bool _radianceReady = false;
-  String? _radianceSetupError;
 
   /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
   /// we keep going and fall back to the non-IPC paths.
@@ -120,9 +118,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   Future<void> init() async {
-    _radianceReady = false;
-    _radianceSetupError = null;
-
     // Set safe defaults up front so callers always have something to listen to.
     _status = _defaultStatusStream();
     _privateServerStatus = const Stream<PrivateServerStatus>.empty();
@@ -131,11 +126,8 @@ class LanternFFIService implements LanternCoreService {
     try {
       final setupResult = await _setupRadiance();
       setupResult.fold((err) {
-        _radianceSetupError = err;
         appLogger.error('Radiance setup failed: $err');
-      }, (_) {
-        _radianceReady = true;
-      });
+      }, (_) {});
 
       if (Platform.isWindows) {
         /// Start windows IPC service.
@@ -177,14 +169,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, st) {
       appLogger.error('Error while setting up radiance', e, st);
     }
-  }
-
-  Failure? _radianceNotReadyFailure() {
-    if (_radianceReady) {
-      return null;
-    }
-    final message = _radianceSetupError ?? 'Lantern backend is not initialized';
-    return Failure(error: message, localizedErrorMessage: message);
   }
 
   /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
@@ -302,10 +286,6 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
-    final notReady = _radianceNotReadyFailure();
-    if (notReady != null) {
-      return left(notReady);
-    }
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
@@ -572,10 +552,6 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    final notReady = _radianceNotReadyFailure();
-    if (notReady != null) {
-      return left(notReady);
-    }
     if (Platform.isWindows) {
       appLogger.debug('Starting VPN on Windows via IPC');
 
@@ -636,10 +612,6 @@ class LanternFFIService implements LanternCoreService {
     String location,
     String tag,
   ) async {
-    final notReady = _radianceNotReadyFailure();
-    if (notReady != null) {
-      return left(notReady);
-    }
     if (Platform.isWindows) {
       try {
         // Do not await here to avoid blocking
@@ -692,10 +664,6 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stopVPN() async {
-    final notReady = _radianceNotReadyFailure();
-    if (notReady != null) {
-      return left(notReady);
-    }
     try {
       appLogger.debug('Stopping VPN');
 
@@ -738,10 +706,6 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, bool>> isVPNConnected() async {
-    final notReady = _radianceNotReadyFailure();
-    if (notReady != null) {
-      return left(notReady);
-    }
     try {
       if (Platform.isWindows) {
         final ws = _windowsService;
