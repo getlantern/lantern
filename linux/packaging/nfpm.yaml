@@ -1,0 +1,75 @@
+name: lantern
+arch: "${GOARCH}"
+platform: linux
+version: "${VERSION}"
+maintainer: teamlantern <admin@getlantern.org>
+description: Lantern
+vendor: teamlantern
+homepage: https://getlantern.org
+license: Other
+section: x11
+priority: optional
+
+contents:
+  # Flutter release bundle
+  - src: build/linux/x64/release/bundle/
+    dst: /usr/lib/lantern
+    type: tree
+
+  # lanternd service binary
+  - src: "${LANTERND_SRC}"
+    dst: /usr/sbin
+    expand: true
+
+  # systemd unit
+  - src: "${SYSTEMD_UNIT_SRC}"
+    dst: /usr/lib/systemd/system/lanternd.service
+    expand: true
+
+  # desktop entry
+  - src: linux/packaging/desktop/lantern.desktop
+    dst: /usr/share/applications/lantern.desktop
+
+  # app icon
+  - src: assets/images/lantern_app_icon.png
+    dst: /usr/share/icons/hicolor/128x128/apps/lantern.png
+
+  # symlink so lantern is on PATH
+  - src: /usr/lib/lantern/lantern
+    dst: /usr/bin/lantern
+    type: symlink
+
+scripts:
+  postinstall: linux/packaging/deb/scripts/postinst
+  preremove: linux/packaging/deb/scripts/prerm
+  postremove: linux/packaging/deb/scripts/postrm
+
+overrides:
+  deb:
+    depends:
+      - libgtk-3-0
+      - libayatana-appindicator3-1
+      - libblkid1
+      - liblzma5
+      - libwebkit2gtk-4.1-0
+  rpm:
+    depends:
+      - gtk3
+      - xz-libs
+      - libblkid
+      - webkit2gtk4.1
+  archlinux:
+    depends:
+      - gtk3
+      - xz
+      - util-linux-libs
+      - webkit2gtk-4.1
+    scripts:
+      postinstall: linux/packaging/arch/postinstall.sh
+      preremove: linux/packaging/arch/preremove.sh
+      postremove: linux/packaging/arch/postremove.sh
+
+rpm:
+  group: applications/Internet
+archlinux:
+  packager: teamlantern <admin@getlantern.org>

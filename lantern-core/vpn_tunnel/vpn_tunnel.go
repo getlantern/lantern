@@ -2,6 +2,7 @@ package vpn_tunnel
 
 import (
 	"fmt"
+	"runtime"
 	"sync/atomic"
 
 	"log/slog"
@@ -85,6 +86,9 @@ func GetSelectedServer() string {
 }
 
 func CloseIPC() error {
+	if runtime.GOOS == "linux" {
+		return nil
+	}
 	if svr := ipcServer.Swap(nil); svr != nil {
 		return svr.Close()
 	}
@@ -92,6 +96,9 @@ func CloseIPC() error {
 }
 
 func initIPC(opts *utils.Opts, platIfce rvpn.PlatformInterface) error {
+	if runtime.GOOS == "linux" {
+		return nil
+	}
 	if ipcServer.Load() != nil {
 		return nil
 	}
