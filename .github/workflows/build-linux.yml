@@ -179,7 +179,22 @@ jobs:
           LC_ALL: en_US.UTF-8
         run: |
           set -euxo pipefail
+          TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
           sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true"
+
+          sudo journalctl -u lanternd.service --since "$TEST_START_UTC" --no-pager > /tmp/lanternd-journal-ui-smoke.log
+
+          if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /service/start IPC request in lanternd journal"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
+
+          if ! grep -Eq 'IPC request.*path=/service/stop' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /service/stop IPC request in lanternd journal"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
