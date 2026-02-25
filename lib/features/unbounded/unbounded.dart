@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/features/unbounded/provider/unbounded_notifier.dart';
 
 @RoutePage(name: 'UnboundedScreen')
 class UnboundedScreen extends HookConsumerWidget {
@@ -16,7 +19,7 @@ class UnboundedScreen extends HookConsumerWidget {
     final appSetting = ref.watch(appSettingProvider);
     final notifier = ref.read(appSettingProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final stats = ref.watch(unboundedStatsProvider);
+    final stats = ref.watch(unboundedProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!appSetting.unboundedWelcomeSeen) {
@@ -273,10 +276,10 @@ class _GlobeView extends ConsumerStatefulWidget {
 class _GlobeViewState extends ConsumerState<_GlobeView> {
   InAppWebViewController? _controller;
   bool _isLoading = true;
+  StreamSubscription<UnboundedConnectionEvent>? _eventSub;
 
   void _handleConnectionEvent(UnboundedConnectionEvent event) {
     if (_controller == null) return;
-
     _controller?.evaluateJavascript(
       source:
           "window.unboundedGlobe.handleMessage({type:'connectionEvent',state:${event.state},workerIdx:${event.workerIdx},addr:'${event.addr}'});",
@@ -284,12 +287,22 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _eventSub = ref
+        .read(unboundedProvider.notifier)
+        .connectionEvents
+        .listen(_handleConnectionEvent);
+  }
+
+  @override
+  void dispose() {
+    _eventSub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    ref.listen(unboundedConnectionProvider, (prev, next) {
-      next.whenData((event) {
-        _handleConnectionEvent(event);
-      });
-    });
 
     return Stack(
       children: [

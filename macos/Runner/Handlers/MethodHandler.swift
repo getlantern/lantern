@@ -278,6 +278,14 @@ class MethodHandler {
         let enable = self.decodeValue(from: call.arguments, result: result) as Bool?
         self.setRoutingMode(result: result, enable: enable ?? false)
 
+      // Unbounded
+      case "setUnboundedEnabled":
+        let enabled: Bool = requireArg(call: call, name: "enabled", result: result)!
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        self.isUnboundedEnabled(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -1162,6 +1170,32 @@ class MethodHandler {
         return
       }
       await MainActor.run { result("ok") }
+    }
+  }
+
+  // Unbounded
+
+  private func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task.detached {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_UNBOUNDED_ENABLED_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  private func isUnboundedEnabled(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let enabled = MobileIsUnboundedEnabled()
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "IS_UNBOUNDED_ENABLED_FAILED")
+        return
+      }
+      await MainActor.run { result(enabled) }
     }
   }
 
