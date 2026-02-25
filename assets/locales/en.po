@@ -1502,9 +1502,17 @@ msgstr "Status"
 msgid "auto_enable_unbounded"
 msgstr "Auto-enable Unbounded"
 
-
 msgid "turn_on_automatically_when_lantern_is_open"
 msgstr "Turn on automatically when Lantern is open"
+
+msgid "welcome_to_unbounded"
+msgstr "Welcome to Unbounded!"
+
+msgid "unbounded_description"
+msgstr "Unbounded lets you share a small amount of your internet bandwidth to help people in censored countries access the open web."
+
+msgid "your_connection_stays_secure_and_private"
+msgstr "Your connection stays secure and private. You control when sharing is active."
 
 
 
