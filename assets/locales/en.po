@@ -1487,6 +1487,25 @@ msgstr "Dark"
 msgid "system"
 msgstr "System"
 
+msgid "help_others_bypass_censorship"
+msgstr "Help others bypass censorship by securely sharing your connection."
+
+msgid "people_you_are_helping_right_now"
+msgstr "People you are helping right now:"
+
+msgid "total_people_helped_to_date"
+msgstr "Total people helped to date:"
+
+msgid "status"
+msgstr "Status"
+
+msgid "auto_enable_unbounded"
+msgstr "Auto-enable Unbounded"
+
+
+msgid "turn_on_automatically_when_lantern_is_open"
+msgstr "Turn on automatically when Lantern is open"
+
 
 
 

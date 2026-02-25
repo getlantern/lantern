@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/features/unbounded/provider/unbounded_notifier.dart';
 
 @RoutePage(name: 'UnboundedScreen')
@@ -16,9 +18,9 @@ class UnboundedScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = TextTheme.of(context);
     final appSetting = ref.watch(appSettingProvider);
     final notifier = ref.read(appSettingProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final stats = ref.watch(unboundedProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -30,33 +32,56 @@ class UnboundedScreen extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'unbounded'.i18n,
-      padded: false,
       body: Column(
         children: [
-          _InfoBanner(),
+          InfoRow(text: 'help_others_bypass_censorship'.i18n),
           Expanded(
             flex: 3,
-            child: _GlobeView(isDark: isDark),
+            child: _GlobeView(),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          AppCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
-                _StatusSection(
-                  enabled: appSetting.unboundedEnabled,
-                  onToggle: notifier.setUnboundedEnabled,
-                  helpingNow: stats.activeCount,
-                  totalHelped: stats.totalCount,
+                AppTile(
+                  label: 'status'.i18n,
+                  tileTextStyle: textTheme.bodyLarge,
+                  icon: Icon(Icons.language, color: context.textPrimary),
+                  trailing: SwitchButton(
+                      value: false, onChanged: notifier.setUnboundedEnabled),
                 ),
-                const SizedBox(height: 12),
-                _AutoEnableRow(
-                  value: appSetting.autoEnableUnbounded,
-                  onChanged: notifier.setAutoEnableUnbounded,
+                DividerSpace(),
+                AppTile(
+                  label: 'people_you_are_helping_right_now'.i18n,
+                  tileTextStyle: textTheme.bodyLarge,
+                  icon: Icon(Icons.person_outline, color: context.textPrimary),
                 ),
-                const SizedBox(height: 16),
+                DividerSpace(),
+                AppTile(
+                  label: 'total_people_helped_to_date'.i18n,
+                  tileTextStyle: textTheme.bodyLarge,
+                  icon: Icon(Icons.people, color: context.textPrimary),
+                ),
               ],
             ),
           ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              icon: AppImagePaths.autoMode,
+              label: 'auto_enable_unbounded'.i18n,
+              subtitle: Text('turn_on_automatically_when_lantern_is_open'.i18n,
+                  style: textTheme.labelMedium!
+                      .copyWith(color: context.textTertiary)),
+              trailing: Checkbox(
+                value: appSetting.autoEnableUnbounded,
+                onChanged: (value) {
+                  notifier.setAutoEnableUnbounded(value!);
+                },
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -117,42 +142,6 @@ class UnboundedScreen extends HookConsumerWidget {
   }
 }
 
-class _InfoBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: context.bgCallout,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-              color: context.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Help others bypass censorship by securely sharing your connection.',
-                style: textTheme.bodySmall!.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _StatusSection extends StatelessWidget {
   final bool enabled;
   final ValueChanged<bool> onToggle;
@@ -178,7 +167,8 @@ class _StatusSection extends StatelessWidget {
         children: [
           ListTile(
             dense: true,
-            leading: Icon(Icons.language, color: context.textSecondary, size: 22),
+            leading:
+                Icon(Icons.language, color: context.textSecondary, size: 22),
             title: Row(
               children: [
                 Text(
@@ -199,10 +189,10 @@ class _StatusSection extends StatelessWidget {
           DividerSpace(),
           ListTile(
             dense: true,
-            leading: Icon(Icons.person_outline, color: context.textSecondary, size: 22),
             title: Text(
               'People you are helping right now:',
-              style: textTheme.bodySmall!.copyWith(color: context.textSecondary),
+              style:
+                  textTheme.bodySmall!.copyWith(color: context.textSecondary),
             ),
             trailing: Text(
               '$helpingNow',
@@ -212,10 +202,12 @@ class _StatusSection extends StatelessWidget {
           DividerSpace(),
           ListTile(
             dense: true,
-            leading: Icon(Icons.people_outline, color: context.textSecondary, size: 22),
+            leading: Icon(Icons.people_outline,
+                color: context.textSecondary, size: 22),
             title: Text(
               'Total people helped to date:',
-              style: textTheme.bodySmall!.copyWith(color: context.textSecondary),
+              style:
+                  textTheme.bodySmall!.copyWith(color: context.textSecondary),
             ),
             trailing: Text(
               '$totalHelped',
@@ -244,7 +236,8 @@ class _AutoEnableRow extends StatelessWidget {
     return AppCard(
       padding: EdgeInsets.zero,
       child: ListTile(
-        leading: Icon(Icons.settings_outlined, color: context.textSecondary, size: 22),
+        leading: Icon(Icons.settings_outlined,
+            color: context.textSecondary, size: 22),
         title: Text(
           'Auto-enable Unbounded',
           style: textTheme.titleSmall,
@@ -265,10 +258,6 @@ class _AutoEnableRow extends StatelessWidget {
 }
 
 class _GlobeView extends ConsumerStatefulWidget {
-  final bool isDark;
-
-  const _GlobeView({required this.isDark});
-
   @override
   ConsumerState<_GlobeView> createState() => _GlobeViewState();
 }
@@ -303,7 +292,6 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   @override
   Widget build(BuildContext context) {
-
     return Stack(
       children: [
         InAppWebView(
@@ -335,34 +323,30 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
             debugPrint('Globe JS: ${consoleMessage.message}');
           },
           onReceivedError: (controller, request, error) {
-            debugPrint('Globe load error: ${error.description} for ${request.url}');
+            debugPrint(
+                'Globe load error: ${error.description} for ${request.url}');
           },
         ),
-        if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF00BCD4),
-            ),
-          ),
+        if (_isLoading) const Center(child: LoadingIndicator()),
       ],
     );
   }
 
   void _sendTheme() {
-    final theme = widget.isDark ? 'dark' : 'light';
+    final theme = context.isDark ? 'dark' : 'light';
     _controller?.evaluateJavascript(
       source:
           "window.unboundedGlobe.handleMessage({type:'setTheme',theme:'$theme'});",
     );
   }
 
-  @override
-  void didUpdateWidget(covariant _GlobeView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isDark != widget.isDark) {
-      _sendTheme();
-    }
-  }
+// @override
+// void didUpdateWidget(covariant _GlobeView oldWidget) {
+//   super.didUpdateWidget(oldWidget);
+//   if (oldWidget.isDark != widget.isDark) {
+//     _sendTheme();
+//   }
+// }
 }
 
 // Globe HTML with built-in geo lookup and connection event handling
