@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -48,6 +50,20 @@ class Logs extends HookConsumerWidget {
 
     Future<void> shareLogFile() async {
       try {
+        if (Platform.isIOS) {
+          final visibleLogs = logAsyncValue.asData?.value ?? const <String>[];
+          if (visibleLogs.isEmpty) {
+            return;
+          }
+          await SharePlus.instance.share(
+            ShareParams(
+              title: 'logs'.i18n,
+              text: visibleLogs.join('\n'),
+            ),
+          );
+          return;
+        }
+
         final logFile = await AppStorageUtils.appLogFile();
         await SharePlus.instance.share(
           ShareParams(
