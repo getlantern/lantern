@@ -53,14 +53,24 @@ class UnboundedScreen extends HookConsumerWidget {
                 DividerSpace(),
                 AppTile(
                   label: 'people_you_are_helping_right_now'.i18n,
+                  trailing: Text(
+                    stats.activeCount.toString(),
+                    style: textTheme.titleMedium!
+                        .copyWith(color: context.textLink),
+                  ),
                   tileTextStyle: textTheme.bodyLarge,
                   icon: Icon(Icons.person_outline, color: context.textPrimary),
                 ),
                 DividerSpace(),
                 AppTile(
                   label: 'total_people_helped_to_date'.i18n,
-                  tileTextStyle: textTheme.bodyLarge,
+                  tileTextStyle: textTheme.bodyLarge!,
                   icon: Icon(Icons.people, color: context.textPrimary),
+                  trailing: Text(
+                    stats.totalCount.toString(),
+                    style: textTheme.titleMedium!
+                        .copyWith(color: context.textLink),
+                  ),
                 ),
               ],
             ),
