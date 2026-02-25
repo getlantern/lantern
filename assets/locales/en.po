@@ -1481,6 +1481,8 @@ msgstr "Dark"
 msgid "system"
 msgstr "System"
 
+msgid "lantern_email"
+msgstr "Lantern Email"
 
 
 
