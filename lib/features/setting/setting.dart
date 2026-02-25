@@ -216,37 +216,39 @@ class _SettingState extends ConsumerState<Setting> {
           const SizedBox(height: 4),
           if (!appSetting.hideUnbounded)
             Card(
-              child: AppTile(
-                minHeight: 72,
-                icon: AppImagePaths.lanternLogoRounded,
-                iconUseThemeColor: false,
-                trailing: AppImage(
-                  path: AppImagePaths.arrowForward,
-                  height: 20,
-                ),
-                label: 'unbounded'.i18n,
-                subtitle: Text(
-                  'help_fight_global_internet_censorship'.i18n,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: context.textTertiary,
+              child: Column(
+                children: [
+                  AppTile(
+                    minHeight: 72,
+                    icon: AppImagePaths.lanternLogoRounded,
+                    iconUseThemeColor: false,
+                    trailing: AppImage(
+                      path: AppImagePaths.arrowForward,
+                      height: 20,
+                    ),
+                    label: 'unbounded'.i18n,
+                    subtitle: Text(
+                      'help_fight_global_internet_censorship'.i18n,
+                      style: textTheme.labelMedium!.copyWith(
+                        color: context.textTertiary,
+                      ),
+                    ),
+                    onPressed: () {
+                      appRouter.push(const UnboundedScreen());
+                    },
                   ),
-                ),
-                onPressed: () {
-                  appRouter.push(const UnboundedScreen());
-                },
+                  DividerSpace(),
+                  AppTile(
+                    label: 'Unbounded Settings',
+                    icon: AppImagePaths.lanternLogoRounded,
+                    iconUseThemeColor: false,
+                    onPressed: () {
+                      appRouter.push(const UnboundedSettingsScreen());
+                    },
+                  ),
+                ],
               ),
             ),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: AppTile(
-              label: 'Unbounded Settings',
-              icon: AppImagePaths.lanternLogoRounded,
-              iconUseThemeColor: false,
-              onPressed: () {
-                appRouter.push(const UnboundedSettingsScreen());
-              },
-            ),
-          ),
           SizedBox(height: defaultSize),
         ],
       ),
