@@ -999,7 +999,7 @@ class MethodHandler {
   func isUnboundedEnabled(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let enabled = MobileIsUnboundedEnabled(&error)
+      let enabled = MobileIsUnboundedEnabled()
       if let error {
         await self.handleFlutterError(error, result: result, code: "IS_UNBOUNDED_ENABLED_ERROR")
         return

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/annotations.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -51,7 +52,7 @@ class UnboundedScreen extends HookConsumerWidget {
                     children: [
                       Text(
                         '${'status'.i18n}: ',
-                        style: textTheme.titleMedium!
+                        style: textTheme.bodyLarge!
                             .copyWith(color: context.textPrimary),
                       ),
                       Text(
@@ -114,7 +115,8 @@ class UnboundedScreen extends HookConsumerWidget {
                 },
               ),
             ),
-          )
+          ),
+          SizedBox(height: defaultSize),
         ],
       ),
     );
@@ -396,16 +398,16 @@ window.onerror = function(msg, url, line, col, err) {
     alpha: true,
     powerPreference: 'high-performance',
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width(), height());
   renderer.setClearColor(0x000000, 0);
   container.appendChild(renderer.domElement);
 
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(50, width() / height(), 1, 5000);
-  camera.position.z = 400;
+  camera.position.z = 350;
 
-  var ambient = new THREE.AmbientLight(0xffffff, 0.6);
+  var ambient = new THREE.AmbientLight(0xffffff, 1);
   scene.add(ambient);
   var dirLight = new THREE.DirectionalLight(0xffffff, 0.25);
   dirLight.position.set(0, 500, 0);
@@ -563,10 +565,11 @@ window.onerror = function(msg, url, line, col, err) {
         globe.globeImageUrl(dark
           ? 'https://embed.lantern.io/uv-map-dark.png'
           : 'https://embed.lantern.io/uv-map.png');
-        globe.atmosphereColor(dark
-          ? 'rgba(0, 188, 212, 1)'
-          : 'rgba(0, 122, 124, 1)');
+        globe.atmosphereColor(dark                                              
+                 ? 'rgba(0, 188, 212, 1)'                                              
+               : 'rgba(0, 122, 124, 1)');   
         globe.atmosphereAltitude(dark ? 0.25 : 0.2);
+        ambient.intensity = dark ? 1 : 1.5;
         break;
     }
   }
