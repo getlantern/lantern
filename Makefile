@@ -252,7 +252,7 @@ macos-release: clean macos pubget gen build-macos-release sign-app package-macos
 
 install-linux-deps:
 	@command -v nfpm >/dev/null 2>&1 || \
-		{ echo "Installing nfpm..."; go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest; }
+		{ echo "Installing nfpm..."; go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.45.0; }
 
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
