@@ -16,16 +16,16 @@ class UnboundedSettingsScreen extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return BaseScreen(
-      title: 'Unbounded Settings',
+      title: 'unbounded_settings'.i18n,
       body: Column(
         children: [
           const SizedBox(height: defaultSize),
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: 'Auto-enable Unbounded',
+              label: 'auto_enable_unbounded'.i18n,
               subtitle: Text(
-                'Turn on automatically when Lantern is open',
+                'auto_enable_unbounded_description'.i18n,
                 style: textTheme.labelMedium!.copyWith(
                   color: context.textTertiary,
                 ),
@@ -45,9 +45,9 @@ class UnboundedSettingsScreen extends HookConsumerWidget {
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: 'Hide Unbounded',
+              label: 'hide_unbounded'.i18n,
               subtitle: Text(
-                'Removes Unbounded from the UI',
+                'hide_unbounded_description'.i18n,
                 style: textTheme.labelMedium!.copyWith(
                   color: context.textTertiary,
                 ),

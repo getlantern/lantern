@@ -239,7 +239,7 @@ class _SettingState extends ConsumerState<Setting> {
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: 'Unbounded Settings',
+              label: 'unbounded_settings'.i18n,
               icon: AppImagePaths.lanternLogoRounded,
               iconUseThemeColor: false,
               onPressed: () {

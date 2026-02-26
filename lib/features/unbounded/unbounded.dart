@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
@@ -74,13 +77,13 @@ class UnboundedScreen extends HookConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Welcome to Unbounded',
+            'unbounded_welcome_title'.i18n,
             style: textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Unbounded lets you share a small amount of your internet bandwidth to help people in censored countries access the open web.',
+            'unbounded_welcome_body_primary'.i18n,
             style: textTheme.bodyMedium!.copyWith(
               color: context.textSecondary,
             ),
@@ -88,7 +91,7 @@ class UnboundedScreen extends HookConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Your connection stays secure and private. You control when sharing is active.',
+            'unbounded_welcome_body_secondary'.i18n,
             style: textTheme.bodyMedium!.copyWith(
               color: context.textSecondary,
             ),
@@ -104,7 +107,7 @@ class UnboundedScreen extends HookConsumerWidget {
           },
         ),
         AppTextButton(
-          label: 'Got It',
+          label: 'got_it'.i18n,
           onPressed: () {
             appRouter.maybePop();
           },
@@ -137,7 +140,7 @@ class _InfoBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Help others bypass censorship by securely sharing your connection.',
+                'help_others_bypass_censorship_securely'.i18n,
                 style: textTheme.bodySmall!.copyWith(
                   color: context.textSecondary,
                 ),
@@ -175,15 +178,16 @@ class _StatusSection extends StatelessWidget {
         children: [
           ListTile(
             dense: true,
-            leading: Icon(Icons.language, color: context.textSecondary, size: 22),
+            leading:
+                Icon(Icons.language, color: context.textSecondary, size: 22),
             title: Row(
               children: [
                 Text(
-                  'Status: ',
+                  '${'status_label'.i18n}: ',
                   style: textTheme.titleSmall,
                 ),
                 Text(
-                  enabled ? 'Enabled' : 'Disabled',
+                  enabled ? 'enabled'.i18n : 'disabled'.i18n,
                   style: textTheme.titleSmall!.copyWith(color: statusColor),
                 ),
               ],
@@ -196,10 +200,12 @@ class _StatusSection extends StatelessWidget {
           DividerSpace(),
           ListTile(
             dense: true,
-            leading: Icon(Icons.person_outline, color: context.textSecondary, size: 22),
+            leading: Icon(Icons.person_outline,
+                color: context.textSecondary, size: 22),
             title: Text(
-              'People you are helping right now:',
-              style: textTheme.bodySmall!.copyWith(color: context.textSecondary),
+              'people_helping_now'.i18n,
+              style:
+                  textTheme.bodySmall!.copyWith(color: context.textSecondary),
             ),
             trailing: Text(
               '$helpingNow',
@@ -209,10 +215,12 @@ class _StatusSection extends StatelessWidget {
           DividerSpace(),
           ListTile(
             dense: true,
-            leading: Icon(Icons.people_outline, color: context.textSecondary, size: 22),
+            leading: Icon(Icons.people_outline,
+                color: context.textSecondary, size: 22),
             title: Text(
-              'Total people helped to date:',
-              style: textTheme.bodySmall!.copyWith(color: context.textSecondary),
+              'total_people_helped'.i18n,
+              style:
+                  textTheme.bodySmall!.copyWith(color: context.textSecondary),
             ),
             trailing: Text(
               '$totalHelped',
@@ -241,13 +249,14 @@ class _AutoEnableRow extends StatelessWidget {
     return AppCard(
       padding: EdgeInsets.zero,
       child: ListTile(
-        leading: Icon(Icons.settings_outlined, color: context.textSecondary, size: 22),
+        leading: Icon(Icons.settings_outlined,
+            color: context.textSecondary, size: 22),
         title: Text(
-          'Auto-enable Unbounded',
+          'auto_enable_unbounded'.i18n,
           style: textTheme.titleSmall,
         ),
         subtitle: Text(
-          'Turn on automatically when Lantern is open',
+          'auto_enable_unbounded_description'.i18n,
           style: textTheme.bodySmall!.copyWith(color: context.textTertiary),
         ),
         trailing: Checkbox(
@@ -273,13 +282,26 @@ class _GlobeView extends ConsumerStatefulWidget {
 class _GlobeViewState extends ConsumerState<_GlobeView> {
   InAppWebViewController? _controller;
   bool _isLoading = true;
+  late final Future<String> _globeHtmlContent;
+
+  @override
+  void initState() {
+    super.initState();
+    _globeHtmlContent = rootBundle.loadString('assets/unbounded/globe.html');
+  }
 
   void _handleConnectionEvent(UnboundedConnectionEvent event) {
     if (_controller == null) return;
 
+    final payload = jsonEncode({
+      'type': 'connectionEvent',
+      'state': event.state,
+      'workerIdx': event.workerIdx,
+      'addr': event.addr,
+    });
+
     _controller?.evaluateJavascript(
-      source:
-          "window.unboundedGlobe.handleMessage({type:'connectionEvent',state:${event.state},workerIdx:${event.workerIdx},addr:'${event.addr}'});",
+      source: 'window.unboundedGlobe.handleMessage($payload);',
     );
   }
 
@@ -291,55 +313,65 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       });
     });
 
-    return Stack(
-      children: [
-        InAppWebView(
-          initialData: InAppWebViewInitialData(
-            data: _globeHtml,
-            baseUrl: WebUri('https://unpkg.com'),
-            mimeType: 'text/html',
-            encoding: 'utf-8',
-          ),
-          initialSettings: InAppWebViewSettings(
-            javaScriptEnabled: true,
-            transparentBackground: true,
-            hardwareAcceleration: true,
-            mediaPlaybackRequiresUserGesture: false,
-            supportZoom: false,
-            disableHorizontalScroll: true,
-            disableVerticalScroll: true,
-            allowUniversalAccessFromFileURLs: true,
-            allowFileAccessFromFileURLs: true,
-          ),
-          onWebViewCreated: (controller) {
-            _controller = controller;
-          },
-          onLoadStop: (controller, url) {
-            setState(() => _isLoading = false);
-            _sendTheme();
-          },
-          onConsoleMessage: (controller, consoleMessage) {
-            debugPrint('Globe JS: ${consoleMessage.message}');
-          },
-          onReceivedError: (controller, request, error) {
-            debugPrint('Globe load error: ${error.description} for ${request.url}');
-          },
-        ),
-        if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF00BCD4),
+    return FutureBuilder<String>(
+      future: _globeHtmlContent,
+      builder: (context, snapshot) {
+        final html = snapshot.data ?? _globeHtml;
+        return Stack(
+          children: [
+            InAppWebView(
+              initialData: InAppWebViewInitialData(
+                data: html,
+                baseUrl: WebUri('https://unpkg.com'),
+                mimeType: 'text/html',
+                encoding: 'utf-8',
+              ),
+              initialSettings: InAppWebViewSettings(
+                javaScriptEnabled: true,
+                transparentBackground: true,
+                hardwareAcceleration: true,
+                mediaPlaybackRequiresUserGesture: false,
+                supportZoom: false,
+                disableHorizontalScroll: true,
+                disableVerticalScroll: true,
+                allowUniversalAccessFromFileURLs: false,
+                allowFileAccessFromFileURLs: false,
+              ),
+              onWebViewCreated: (controller) {
+                _controller = controller;
+              },
+              onLoadStop: (controller, url) {
+                setState(() => _isLoading = false);
+                _sendTheme();
+              },
+              onConsoleMessage: (controller, consoleMessage) {
+                debugPrint('Globe JS: ${consoleMessage.message}');
+              },
+              onReceivedError: (controller, request, error) {
+                debugPrint(
+                    'Globe load error: ${error.description} for ${request.url}');
+              },
             ),
-          ),
-      ],
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF00BCD4),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   void _sendTheme() {
     final theme = widget.isDark ? 'dark' : 'light';
+    final payload = jsonEncode({
+      'type': 'setTheme',
+      'theme': theme,
+    });
     _controller?.evaluateJavascript(
-      source:
-          "window.unboundedGlobe.handleMessage({type:'setTheme',theme:'$theme'});",
+      source: 'window.unboundedGlobe.handleMessage($payload);',
     );
   }
 

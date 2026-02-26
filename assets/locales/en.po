@@ -1487,6 +1487,41 @@ msgstr "Dark"
 msgid "system"
 msgstr "System"
 
+msgid "unbounded_settings"
+msgstr "Unbounded Settings"
+
+msgid "auto_enable_unbounded"
+msgstr "Auto-enable Unbounded"
+
+msgid "auto_enable_unbounded_description"
+msgstr "Turn on automatically when Lantern is open"
+
+msgid "hide_unbounded"
+msgstr "Hide Unbounded"
+
+msgid "hide_unbounded_description"
+msgstr "Removes Unbounded from the UI"
+
+msgid "unbounded_welcome_title"
+msgstr "Welcome to Unbounded"
+
+msgid "unbounded_welcome_body_primary"
+msgstr "Unbounded lets you share a small amount of your internet bandwidth to help people in censored countries access the open web."
+
+msgid "unbounded_welcome_body_secondary"
+msgstr "Your connection stays secure and private. You control when sharing is active."
+
+msgid "help_others_bypass_censorship_securely"
+msgstr "Help others bypass censorship by securely sharing your connection."
+
+msgid "status_label"
+msgstr "Status"
+
+msgid "people_helping_now"
+msgstr "People you are helping right now:"
+
+msgid "total_people_helped"
+msgstr "Total people helped to date:"
 
 
 
