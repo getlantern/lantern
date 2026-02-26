@@ -117,7 +117,7 @@ jobs:
           encodedString: ${{ secrets.APP_ENV }}
 
       - name: Build Linux release
-        run: make linux-release
+        run: make linux-release-ci
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
