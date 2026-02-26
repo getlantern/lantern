@@ -109,6 +109,8 @@ dependencies:
   device_info_plus: ^12.2.0
 
   flutter_inappwebview: ^6.1.5
+  flutter_earth_globe: ^2.2.0
+  http: ^1.2.2
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
