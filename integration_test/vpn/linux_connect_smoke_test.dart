@@ -74,6 +74,7 @@ Future<String> _fetchPublicIpWithRetry({
   while (DateTime.now().isBefore(end)) {
     final ip = await _fetchPublicIpOnce();
     if (ip != null && ip.isNotEmpty) {
+      debugPrint('IP check: fetched public IP for $reason');
       return ip;
     }
     await Future<void>.delayed(const Duration(seconds: 2));
@@ -86,6 +87,7 @@ Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
   while (DateTime.now().isBefore(deadline)) {
     final current = await _fetchPublicIpOnce();
     if (current != null && current.isNotEmpty && current != baselineIp) {
+      debugPrint('IP check: detected public IP change after connect');
       return;
     }
     await Future<void>.delayed(const Duration(seconds: 3));
@@ -302,6 +304,7 @@ void main() {
     }
 
     if (_enableIpCheck) {
+      debugPrint('IP check: enabled; fetching baseline before connect');
       baselinePublicIp = await _fetchPublicIpWithRetry(
         timeout: const Duration(seconds: 40),
         reason: 'before connect',
@@ -319,8 +322,10 @@ void main() {
     );
 
     if (_enableIpCheck && baselinePublicIp != null) {
+      debugPrint('IP check: waiting for IP change after connect');
       await Future<void>.delayed(const Duration(seconds: 3));
       await _assertPublicIpChangesFromBaseline(baselinePublicIp);
+      debugPrint('IP check: passed');
     }
 
     await WidgetWaitUtils.waitForFinder(
