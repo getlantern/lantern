@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/main.dart' as app;
 
+import '../utils/widget_wait_utils.dart';
+
 enum _ObservedVpnState {
   connected,
   disconnected,
@@ -105,56 +107,6 @@ Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
     await Future<void>.delayed(const Duration(seconds: 3));
   }
   fail('Public IP did not change after VPN connected (baseline: $baselineIp)');
-}
-
-Future<void> _waitForFinder(
-  WidgetTester tester,
-  Finder finder, {
-  required Duration timeout,
-  String? reason,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    if (finder.evaluate().isNotEmpty) {
-      return;
-    }
-  }
-  fail(reason ?? 'Timed out waiting for expected widget');
-}
-
-Future<void> _waitForAnyFinder(
-  WidgetTester tester,
-  List<Finder> finders, {
-  required Duration timeout,
-  String? reason,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    for (final finder in finders) {
-      if (finder.evaluate().isNotEmpty) {
-        return;
-      }
-    }
-  }
-  fail(reason ?? 'Timed out waiting for any expected widget');
-}
-
-Future<void> _waitForFinderToDisappear(
-  WidgetTester tester,
-  Finder finder, {
-  required Duration timeout,
-  String? reason,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    if (finder.evaluate().isEmpty) {
-      return;
-    }
-  }
-  fail(reason ?? 'Timed out waiting for widget to disappear');
 }
 
 class _VpnStateFinders {
@@ -268,14 +220,14 @@ void main() {
     final vpnStateFinders = _VpnStateFinders();
     String? baselinePublicIp;
 
-    await _waitForAnyFinder(
+    await WidgetWaitUtils.waitForAnyFinder(
       tester,
       [homeScreen, onboardingScreen],
       timeout: const Duration(seconds: 90),
       reason: 'Home or onboarding did not appear after launch',
     );
 
-    await _waitForFinder(
+    await WidgetWaitUtils.waitForFinder(
       tester,
       homeScreen,
       timeout: const Duration(seconds: 45),
@@ -291,21 +243,21 @@ void main() {
       timeout: const Duration(seconds: 30),
     );
 
-    await _waitForFinderToDisappear(
+    await WidgetWaitUtils.waitForFinderToDisappear(
       tester,
       onboardingScreen,
       timeout: const Duration(seconds: 20),
       reason: 'Onboarding screen remained visible',
     );
 
-    await _waitForFinder(
+    await WidgetWaitUtils.waitForFinder(
       tester,
       homeScreen,
       timeout: const Duration(seconds: 20),
       reason: 'Home screen was not visible after onboarding flow',
     );
 
-    await _waitForFinder(
+    await WidgetWaitUtils.waitForFinder(
       tester,
       vpnToggle,
       timeout: const Duration(seconds: 20),
@@ -387,7 +339,7 @@ void main() {
       await _assertPublicIpChangesFromBaseline(baselinePublicIp);
     }
 
-    await _waitForFinder(
+    await WidgetWaitUtils.waitForFinder(
       tester,
       vpnToggle,
       timeout: const Duration(seconds: 15),

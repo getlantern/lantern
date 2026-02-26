@@ -56,10 +56,14 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       ref.onDispose(() => trayManager.removeListener(this));
     } on MissingPluginException catch (e) {
       _trayAvailable = false;
-      appLogger.warning('System tray plugin unavailable: $e');
+      appLogger.warning(
+        'System tray plugin unavailable on ${Platform.operatingSystem}: $e',
+      );
     } on PlatformException catch (e) {
       _trayAvailable = false;
-      appLogger.warning('System tray initialization failed: $e');
+      appLogger.warning(
+        'System tray initialization failed on ${Platform.operatingSystem}: $e',
+      );
     }
   }
 
