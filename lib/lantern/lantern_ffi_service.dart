@@ -38,6 +38,7 @@ export 'dart:ffi'; // For FFI
 export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
+const Set<String> _ffiOkResults = {'ok', 'true'};
 
 /// Communicates with the native library via FFI.
 ///
@@ -77,16 +78,25 @@ class LanternFFIService implements LanternCoreService {
 
   static LanternBindings _gen() {
     final String basePath = p.dirname(Platform.resolvedExecutable);
-    String fullPath = "";
+    final String fullPath;
+    appLogger.debug('resolved executable: "${Platform.resolvedExecutable}"');
 
     if (Platform.isWindows) {
-      fullPath = p.join(basePath, "$_libName.dll");
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "$_libName.dll");
-      }
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
-      }
+      final candidates = <String>[
+        p.join(basePath, "$_libName.dll"),
+        p.join(basePath, "bin", "$_libName.dll"),
+        p.join(basePath, "bin", "windows", "$_libName.dll"),
+      ];
+      fullPath = _firstExisting(candidates);
+    } else if (Platform.isLinux) {
+      final envPath = Platform.environment['LANTERN_LIB_PATH'];
+      final candidates = <String>[
+        if (envPath != null && envPath.isNotEmpty) envPath,
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        "/usr/lib/lantern/$_libName.so",
+      ];
+      fullPath = _firstExisting(candidates);
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
@@ -96,6 +106,18 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
+  static String _firstExisting(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    appLogger.warning(
+      'Native library not found in candidates: ${candidates.join(', ')}',
+    );
+    return candidates.first;
+  }
+
   Future<void> init() async {
     // Set safe defaults up front so callers always have something to listen to.
     _status = _defaultStatusStream();
@@ -103,7 +125,10 @@ class LanternFFIService implements LanternCoreService {
     _appEvents = const Stream<AppEvent>.empty();
 
     try {
-      await _setupRadiance();
+      final setupResult = await _setupRadiance();
+      setupResult.fold((err) {
+        appLogger.error('Radiance setup failed: $err');
+      }, (_) {});
 
       if (Platform.isWindows) {
         /// Start windows IPC service.
@@ -201,9 +226,15 @@ class LanternFFIService implements LanternCoreService {
           .toDartString();
 
       checkAPIError(result);
+      if (result != 'ok' && result != 'true') {
+        throw PlatformException(
+          code: 'radiance_setup_failed',
+          message: result,
+        );
+      }
       return right(unit);
     } catch (e, st) {
-      appLogger.error('Failed to get data cap info: $e', e, st);
+      appLogger.error('Failed to set up radiance: $e', e, st);
       return Left(e.toFailure().localizedErrorMessage);
     }
   }
@@ -561,11 +592,11 @@ class LanternFFIService implements LanternCoreService {
           )
           .cast<Utf8>()
           .toDartString();
-      if (result.isNotEmpty) {
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('startVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
       return Left(e.toFailure());
@@ -663,11 +694,11 @@ class LanternFFIService implements LanternCoreService {
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
-      if (result.isNotEmpty) {
-        return left(Failure(error: result, localizedErrorMessage: ''));
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
+        return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('stopVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
       return Left(e.toFailure());

@@ -43,7 +43,10 @@ class VpnNotifier extends _$VpnNotifier {
             ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
             /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(Duration(seconds: 1), () {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (!ref.mounted) {
+                return;
+              }
               ref
                   .read(serverLocationProvider.notifier)
                   .ifNeededGetAutoServerLocation();
