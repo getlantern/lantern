@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
@@ -165,7 +164,7 @@ class LanternFFIService implements LanternCoreService {
       String env = await _radianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
-         if (appSetting != null) {
+        if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
         }
       } catch (_) {
@@ -176,7 +175,8 @@ class LanternFFIService implements LanternCoreService {
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.info("Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
+      appLogger.info(
+          "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
@@ -1425,10 +1425,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     try {
-      final result = _ffiService
-          .setUnboundedEnabled(enabled ? 1 : 0)
-          .cast<Utf8>()
-          .toDartString();
+      final resultPtr = _ffiService.setUnboundedEnabled(enabled ? 1 : 0);
+      final result = resultPtr.cast<Utf8>().toDartString();
+      _ffiService.freeCString(resultPtr);
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {

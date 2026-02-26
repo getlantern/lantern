@@ -59,7 +59,7 @@ class UnboundedStats {
 
 /// Provider that tracks unbounded connection stats (active + total).
 final unboundedStatsProvider = Provider<UnboundedStats>((ref) {
-  ref.watch(unboundedConnectionProvider);
+  ref.watch(unboundedStatsListenerProvider);
   return _UnboundedStatsAccumulator.stats;
 });
 
