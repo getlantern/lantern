@@ -18,7 +18,7 @@ contents:
 
   # lanternd service binary
   - src: "${LANTERND_SRC}"
-    dst: /usr/sbin
+    dst: /usr/sbin/lanternd
     expand: true
 
   # systemd unit

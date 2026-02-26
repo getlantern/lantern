@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
@@ -26,6 +28,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   List<Location_> _locations = [];
   RoutingMode _currentRoutingMode = RoutingMode.full;
   ServerLocationEntity? _serverLocation;
+  bool _trayAvailable = true;
 
   bool get isConnected => _currentStatus == VPNStatus.connected;
 
@@ -35,17 +38,33 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   @override
   Future<void> build() async {
-    if (!PlatformUtils.isDesktop) return;
+    if (!PlatformUtils.isDesktop || AppBuildInfo.disableSystemTray) {
+      return;
+    }
     _currentStatus = ref.read(vpnProvider);
     _initializeState();
     _setupListeners();
     _setupTrayManager();
-    await updateTrayMenu();
+    if (_trayAvailable) {
+      await updateTrayMenu();
+    }
   }
 
   void _setupTrayManager() {
-    trayManager.addListener(this);
-    ref.onDispose(() => trayManager.removeListener(this));
+    try {
+      trayManager.addListener(this);
+      ref.onDispose(() => trayManager.removeListener(this));
+    } on MissingPluginException catch (e) {
+      _trayAvailable = false;
+      appLogger.warning(
+        'System tray plugin unavailable on ${Platform.operatingSystem}: $e',
+      );
+    } on PlatformException catch (e) {
+      _trayAvailable = false;
+      appLogger.warning(
+        'System tray initialization failed on ${Platform.operatingSystem}: $e',
+      );
+    }
   }
 
   void _initializeState() {
@@ -201,7 +220,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
       if (loc.serverType.toServerLocationType == ServerLocationType.auto) {
         /// For auto location, we use the autoLocation info which contains the actual connected server details
-        final auto_ = loc.autoLocation!;
+        final auto_ = loc.autoLocation;
+        if (auto_ == null) {
+          return '';
+        }
         countryCode = auto_.countryCode;
         displayName = auto_.displayName;
       } else {
@@ -220,6 +242,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   Future<void> updateTrayMenu() async {
+    if (!_trayAvailable) {
+      return;
+    }
+
     final locationDisplay = _currentLocationDisplay;
 
     final menu = Menu(
@@ -342,10 +368,20 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       ],
     );
 
-    await trayManager.setContextMenu(menu);
-    trayManager.setIcon(_trayIconPath(isConnected),
-        isTemplate: Platform.isMacOS);
-    trayManager.setToolTip('app_name'.i18n);
+    try {
+      await trayManager.setContextMenu(menu);
+      await trayManager.setIcon(
+        _trayIconPath(isConnected),
+        isTemplate: Platform.isMacOS,
+      );
+      await trayManager.setToolTip('app_name'.i18n);
+    } on MissingPluginException catch (e) {
+      _trayAvailable = false;
+      appLogger.warning('System tray plugin unavailable: $e');
+    } on PlatformException catch (e) {
+      _trayAvailable = false;
+      appLogger.warning('System tray update failed: $e');
+    }
   }
 
   String _trayIconPath(bool connected) {
@@ -354,6 +390,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           ? AppImagePaths.lanternConnectedIco
           : AppImagePaths.lanternDisconnectedIco;
     } else if (Platform.isMacOS) {
+      return connected
+          ? AppImagePaths.lanternDarkConnected
+          : AppImagePaths.lanternDarkDisconnected;
+    } else if (Platform.isLinux) {
       return connected
           ? AppImagePaths.lanternDarkConnected
           : AppImagePaths.lanternDarkDisconnected;
@@ -366,6 +406,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   /// Tray Event Handlers
   @override
   Future<void> onTrayIconMouseDown() async {
+    if (!_trayAvailable) {
+      return;
+    }
     if (Platform.isMacOS) {
       await trayManager.popUpContextMenu();
     } else {
@@ -375,6 +418,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   @override
   Future<void> onTrayIconRightMouseDown() async {
+    if (!_trayAvailable) {
+      return;
+    }
     await trayManager.popUpContextMenu();
   }
 }

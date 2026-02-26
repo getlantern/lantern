@@ -38,6 +38,7 @@ export 'dart:ffi'; // For FFI
 export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
+const Set<String> _ffiOkResults = {'ok', 'true'};
 
 /// Communicates with the native library via FFI.
 ///
@@ -591,11 +592,11 @@ class LanternFFIService implements LanternCoreService {
           )
           .cast<Utf8>()
           .toDartString();
-      if (result.isNotEmpty) {
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('startVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
       return Left(e.toFailure());
@@ -693,11 +694,11 @@ class LanternFFIService implements LanternCoreService {
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
-      if (result.isNotEmpty) {
-        return left(Failure(error: result, localizedErrorMessage: ''));
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
+        return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('stopVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
       return Left(e.toFailure());

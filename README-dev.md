@@ -163,6 +163,12 @@ flutter test integration_test
 flutter test integration_test/private_server_flow_test.dart
 ```
 
+### Run Linux VPN connect/disconnect smoke test
+
+```bash
+flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=true
+```
+
 # Auto-Updater Integration
 
 The app supports automatic updates on macOS and Windows, using the [auto_updater](https://pub.dev/packages/auto_updater) package, which is a Flutter-friendly wrapper around the Sparkle update framework.

@@ -301,8 +301,10 @@ linux-debug:
 	@echo "Building Flutter app (debug) for Linux..."
 	flutter build linux --debug
 
-.PHONY: linux-release
-linux-release: clean linux pubget gen
+.PHONY: linux-release linux-release-ci
+linux-release: clean linux-release-ci
+
+linux-release-ci: linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
 
