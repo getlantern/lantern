@@ -180,7 +180,7 @@ jobs:
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
-          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true"
+          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=true"
 
           sudo journalctl -u lanternd.service --since "$TEST_START_UTC" --no-pager > /tmp/lanternd-journal-ui-smoke.log
 

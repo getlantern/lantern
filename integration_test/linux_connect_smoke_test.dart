@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -49,6 +51,61 @@ const _stableStates = <_ObservedVpnState>[
   _ObservedVpnState.disconnected,
   _ObservedVpnState.error,
 ];
+
+const _enableIpCheck =
+    bool.fromEnvironment('ENABLE_IP_CHECK', defaultValue: false);
+
+const _ipCheckEndpoint = 'https://api64.ipify.org';
+
+Future<String?> _fetchPublicIpOnce() async {
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
+  try {
+    final request = await client.getUrl(Uri.parse(_ipCheckEndpoint));
+    final response = await request.close().timeout(const Duration(seconds: 6));
+    if (response.statusCode != HttpStatus.ok) {
+      return null;
+    }
+
+    final body =
+        await response.transform(const SystemEncoding().decoder).join();
+    final ip = body.trim();
+    if (ip.isNotEmpty && InternetAddress.tryParse(ip) != null) {
+      return ip;
+    }
+  } catch (_) {
+    return null;
+  } finally {
+    client.close(force: true);
+  }
+  return null;
+}
+
+Future<String> _fetchPublicIpWithRetry({
+  required Duration timeout,
+  required String reason,
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    final ip = await _fetchPublicIpOnce();
+    if (ip != null && ip.isNotEmpty) {
+      return ip;
+    }
+    await Future<void>.delayed(const Duration(seconds: 2));
+  }
+  fail('Failed to fetch public IP: $reason');
+}
+
+Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    final current = await _fetchPublicIpOnce();
+    if (current != null && current.isNotEmpty && current != baselineIp) {
+      return;
+    }
+    await Future<void>.delayed(const Duration(seconds: 3));
+  }
+  fail('Public IP did not change after VPN connected (baseline: $baselineIp)');
+}
 
 Future<void> _waitForFinder(
   WidgetTester tester,
@@ -209,6 +266,7 @@ void main() {
     final onboardingPrimary = find.byKey(const Key('onboarding.primary'));
     final vpnToggle = find.byKey(const Key('vpn.toggle'));
     final vpnStateFinders = _VpnStateFinders();
+    String? baselinePublicIp;
 
     await _waitForAnyFinder(
       tester,
@@ -307,6 +365,13 @@ void main() {
       );
     }
 
+    if (_enableIpCheck) {
+      baselinePublicIp = await _fetchPublicIpWithRetry(
+        timeout: const Duration(seconds: 40),
+        reason: 'before connect',
+      );
+    }
+
     await tester.tap(vpnToggle);
     await tester.pump(const Duration(milliseconds: 200));
 
@@ -316,6 +381,11 @@ void main() {
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not reach connected state within 45 seconds',
     );
+
+    if (_enableIpCheck && baselinePublicIp != null) {
+      await Future<void>.delayed(const Duration(seconds: 3));
+      await _assertPublicIpChangesFromBaseline(baselinePublicIp);
+    }
 
     await _waitForFinder(
       tester,
