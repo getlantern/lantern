@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
@@ -78,16 +77,25 @@ class LanternFFIService implements LanternCoreService {
 
   static LanternBindings _gen() {
     final String basePath = p.dirname(Platform.resolvedExecutable);
-    String fullPath = "";
+    final String fullPath;
+    appLogger.debug('resolved executable: "${Platform.resolvedExecutable}"');
 
     if (Platform.isWindows) {
-      fullPath = p.join(basePath, "$_libName.dll");
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "$_libName.dll");
-      }
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
-      }
+      final candidates = <String>[
+        p.join(basePath, "$_libName.dll"),
+        p.join(basePath, "bin", "$_libName.dll"),
+        p.join(basePath, "bin", "windows", "$_libName.dll"),
+      ];
+      fullPath = _firstExisting(candidates);
+    } else if (Platform.isLinux) {
+      final envPath = Platform.environment['LANTERN_LIB_PATH'];
+      final candidates = <String>[
+        if (envPath != null && envPath.isNotEmpty) envPath,
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        "/usr/lib/lantern/$_libName.so",
+      ];
+      fullPath = _firstExisting(candidates);
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
@@ -97,6 +105,18 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
+  static String _firstExisting(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    appLogger.warning(
+      'Native library not found in candidates: ${candidates.join(', ')}',
+    );
+    return candidates.first;
+  }
+
   Future<void> init() async {
     // Set safe defaults up front so callers always have something to listen to.
     _status = _defaultStatusStream();
@@ -104,7 +124,10 @@ class LanternFFIService implements LanternCoreService {
     _appEvents = const Stream<AppEvent>.empty();
 
     try {
-      await _setupRadiance();
+      final setupResult = await _setupRadiance();
+      setupResult.fold((err) {
+        appLogger.error('Radiance setup failed: $err');
+      }, (_) {});
 
       if (Platform.isWindows) {
         /// Start windows IPC service.
@@ -165,7 +188,7 @@ class LanternFFIService implements LanternCoreService {
       String env = await _radianceEnv();
       try {
         final appSetting = sl<LocalStorageService>().getAppSetting();
-         if (appSetting != null) {
+        if (appSetting != null) {
           consent = appSetting.telemetryConsent ? 1 : 0;
         }
       } catch (_) {
@@ -176,7 +199,8 @@ class LanternFFIService implements LanternCoreService {
 
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.info("Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
+      appLogger.info(
+          "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
@@ -201,9 +225,15 @@ class LanternFFIService implements LanternCoreService {
           .toDartString();
 
       checkAPIError(result);
+      if (result != 'ok' && result != 'true') {
+        throw PlatformException(
+          code: 'radiance_setup_failed',
+          message: result,
+        );
+      }
       return right(unit);
     } catch (e, st) {
-      appLogger.error('Failed to get data cap info: $e', e, st);
+      appLogger.error('Failed to set up radiance: $e', e, st);
       return Left(e.toFailure().localizedErrorMessage);
     }
   }
