@@ -22,7 +22,7 @@ class Account extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appSettings = ref.watch(appSettingProvider);
     return BaseScreen(
-      title: 'account'.i18n,
+      title: ''.i18n,
       appBar: CustomAppBar(
         title: Text(
           'account'.i18n,
@@ -128,9 +128,7 @@ class Account extends HookConsumerWidget {
                   color: buildContext.textSecondary,
                 ),
               ),
-            )
-          else
-            SizedBox(),
+            ),
           if (!isUserFree)
             AppCard(
               padding: EdgeInsets.zero,
