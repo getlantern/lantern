@@ -95,12 +95,12 @@ Future<String> _fetchPublicIpWithRetry({
   fail('Failed to fetch public IP: $reason');
 }
 
-Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
+Future<String> _assertPublicIpChangesFromBaseline(String baselineIp) async {
   final deadline = DateTime.now().add(const Duration(seconds: 60));
   while (DateTime.now().isBefore(deadline)) {
     final current = await _fetchPublicIpOnce();
     if (current != null && current.isNotEmpty && current != baselineIp) {
-      return;
+      return current;
     }
     await Future<void>.delayed(const Duration(seconds: 3));
   }
@@ -370,6 +370,7 @@ void main() {
         timeout: const Duration(seconds: 40),
         reason: 'before connect',
       );
+      print('IP check baseline (disconnected): $baselinePublicIp');
     }
 
     await tester.tap(vpnToggle);
@@ -384,7 +385,10 @@ void main() {
 
     if (_enableIpCheck && baselinePublicIp != null) {
       await Future<void>.delayed(const Duration(seconds: 3));
-      await _assertPublicIpChangesFromBaseline(baselinePublicIp);
+      final connectedPublicIp = await _assertPublicIpChangesFromBaseline(
+        baselinePublicIp,
+      );
+      print('IP check connected: $connectedPublicIp');
     }
 
     await _waitForFinder(
