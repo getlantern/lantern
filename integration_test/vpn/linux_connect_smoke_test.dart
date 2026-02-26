@@ -3,55 +3,39 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/main.dart' as app;
 
 import '../utils/widget_wait_utils.dart';
-
-enum _ObservedVpnState {
-  connected,
-  disconnected,
-  connecting,
-  disconnecting,
-  error,
-  none,
-}
-
-extension on _ObservedVpnState {
-  String get suffix => switch (this) {
-        _ObservedVpnState.connected => 'connected',
-        _ObservedVpnState.disconnected => 'disconnected',
-        _ObservedVpnState.connecting => 'connecting',
-        _ObservedVpnState.disconnecting => 'disconnecting',
-        _ObservedVpnState.error => 'error',
-        _ObservedVpnState.none => 'none',
-      };
-}
 
 const _vpnStateKeyPrefixes = <String>[
   'vpn.switch.',
   'vpn.status.',
 ];
 
-const _vpnStateLabels = <_ObservedVpnState, String>{
-  _ObservedVpnState.connected: 'Connected',
-  _ObservedVpnState.disconnected: 'Disconnected',
-  _ObservedVpnState.connecting: 'Connecting',
-  _ObservedVpnState.disconnecting: 'Disconnecting',
-  _ObservedVpnState.error: 'Error',
-};
-
-const _initialStates = <_ObservedVpnState>[
-  _ObservedVpnState.connected,
-  _ObservedVpnState.disconnected,
-  _ObservedVpnState.connecting,
-  _ObservedVpnState.disconnecting,
-  _ObservedVpnState.error,
+const _observableStates = <VPNStatus>[
+  VPNStatus.connected,
+  VPNStatus.disconnected,
+  VPNStatus.connecting,
+  VPNStatus.disconnecting,
+  VPNStatus.missingPermission,
+  VPNStatus.error,
 ];
 
-const _stableStates = <_ObservedVpnState>[
-  _ObservedVpnState.connected,
-  _ObservedVpnState.disconnected,
-  _ObservedVpnState.error,
+const _vpnStateLabels = <VPNStatus, String>{
+  VPNStatus.connected: 'Connected',
+  VPNStatus.disconnected: 'Disconnected',
+  VPNStatus.connecting: 'Connecting',
+  VPNStatus.disconnecting: 'Disconnecting',
+  VPNStatus.missingPermission: 'MissingPermission',
+  VPNStatus.error: 'Error',
+};
+
+const _stableStates = <VPNStatus>[
+  VPNStatus.connected,
+  VPNStatus.disconnected,
+  VPNStatus.missingPermission,
+  VPNStatus.error,
 ];
 
 const _enableIpCheck =
@@ -110,13 +94,10 @@ Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
 }
 
 class _VpnStateFinders {
-  _ObservedVpnState current() {
-    for (final state in _ObservedVpnState.values) {
-      if (state == _ObservedVpnState.none) {
-        continue;
-      }
+  VPNStatus? current() {
+    for (final state in _observableStates) {
       for (final prefix in _vpnStateKeyPrefixes) {
-        if (find.byKey(Key('$prefix${state.suffix}')).evaluate().isNotEmpty) {
+        if (find.byKey(Key('$prefix${state.name}')).evaluate().isNotEmpty) {
           return state;
         }
       }
@@ -128,12 +109,12 @@ class _VpnStateFinders {
       }
     }
 
-    return _ObservedVpnState.none;
+    return null;
   }
 
-  Future<_ObservedVpnState> tryWaitFor(
+  Future<VPNStatus?> tryWaitFor(
     WidgetTester tester, {
-    required List<_ObservedVpnState> expected,
+    required List<VPNStatus> expected,
     required Duration timeout,
   }) async {
     final end = DateTime.now().add(timeout);
@@ -144,12 +125,12 @@ class _VpnStateFinders {
         return state;
       }
     }
-    return _ObservedVpnState.none;
+    return null;
   }
 
-  Future<_ObservedVpnState> waitFor(
+  Future<VPNStatus> waitFor(
     WidgetTester tester, {
-    required List<_ObservedVpnState> expected,
+    required List<VPNStatus> expected,
     required Duration timeout,
     String? reason,
   }) async {
@@ -158,7 +139,7 @@ class _VpnStateFinders {
       expected: expected,
       timeout: timeout,
     );
-    if (state != _ObservedVpnState.none) {
+    if (state != null) {
       return state;
     }
 
@@ -171,7 +152,7 @@ class _VpnStateFinders {
         .toList()
       ..sort();
     fail(
-      '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()}. '
+      '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()?.name ?? 'unknown'}. '
       'Visible keyed widgets: $debugKeys',
     );
   }
@@ -266,10 +247,10 @@ void main() {
 
     var vpnState = await vpnStateFinders.tryWaitFor(
       tester,
-      expected: _initialStates,
+      expected: _observableStates,
       timeout: const Duration(seconds: 20),
     );
-    if (vpnState == _ObservedVpnState.none) {
+    if (vpnState == null) {
       await _waitForVpnToggleWithOnboardingHandling(
         tester,
         vpnToggle: vpnToggle,
@@ -285,14 +266,14 @@ void main() {
 
       vpnState = await vpnStateFinders.waitFor(
         tester,
-        expected: _initialStates,
+        expected: _observableStates,
         timeout: const Duration(seconds: 45),
         reason: 'Initial VPN state did not resolve after recovery toggle',
       );
     }
 
-    if (vpnState == _ObservedVpnState.connecting ||
-        vpnState == _ObservedVpnState.disconnecting) {
+    if (vpnState == VPNStatus.connecting ||
+        vpnState == VPNStatus.disconnecting) {
       vpnState = await vpnStateFinders.waitFor(
         tester,
         expected: _stableStates,
@@ -301,17 +282,20 @@ void main() {
       );
     }
 
-    if (vpnState == _ObservedVpnState.error) {
+    if (vpnState == VPNStatus.error) {
       fail('VPN reported error before connect/disconnect smoke');
     }
+    if (vpnState == VPNStatus.missingPermission) {
+      fail('VPN reported missing permission before connect/disconnect smoke');
+    }
 
-    if (vpnState == _ObservedVpnState.connected) {
+    if (vpnState == VPNStatus.connected) {
       await tester.tap(vpnToggle);
       await tester.pump(const Duration(milliseconds: 200));
 
       await vpnStateFinders.waitFor(
         tester,
-        expected: const [_ObservedVpnState.disconnected],
+        expected: const [VPNStatus.disconnected],
         timeout: const Duration(seconds: 45),
         reason: 'Failed to reach disconnected state before connect test',
       );
@@ -329,7 +313,7 @@ void main() {
 
     await vpnStateFinders.waitFor(
       tester,
-      expected: const [_ObservedVpnState.connected],
+      expected: const [VPNStatus.connected],
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not reach connected state within 45 seconds',
     );
@@ -350,7 +334,7 @@ void main() {
 
     await vpnStateFinders.waitFor(
       tester,
-      expected: const [_ObservedVpnState.disconnected],
+      expected: const [VPNStatus.disconnected],
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not return to disconnected state within 45 seconds',
     );
