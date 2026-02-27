@@ -115,5 +115,3 @@ class FollowUsListView extends HookWidget {
     );
   }
 }
-
-

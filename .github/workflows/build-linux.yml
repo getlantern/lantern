@@ -46,28 +46,51 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
+      - name: Cache APT archives
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: ~/.cache/apt/archives
+          key: ${{ runner.os }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-archives-v1-
+
       - name: Install Linux dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-              build-essential \
-              curl \
-              git \
-              unzip \
-              clang \
-              cmake \
-              pkg-config \
-              libgtk-3-dev \
-              liblzma-dev \
-              xz-utils \
-              ninja-build \
-              lld \
-              libstdc++-12-dev \
-              libgl1-mesa-dev \
-              libegl1-mesa-dev \
-              libayatana-appindicator3-dev \
-              libcurl4-openssl-dev \
-              libwebkit2gtk-4.1-dev
+          set -euxo pipefail
+          APT_ARCHIVE_DIR="$HOME/.cache/apt/archives"
+          mkdir -p "$APT_ARCHIVE_DIR/partial"
+          required_packages=(
+            clang
+            cmake
+            pkg-config
+            libgtk-3-dev
+            liblzma-dev
+            libgl1-mesa-dev
+            libegl1-mesa-dev
+            libayatana-appindicator3-dev
+            libcurl4-openssl-dev
+            libwebkit2gtk-4.1-dev
+            patchelf
+            xvfb
+          )
+
+          missing_packages=()
+          for pkg in "${required_packages[@]}"; do
+            if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+              missing_packages+=("$pkg")
+            fi
+          done
+
+          if [ "${#missing_packages[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              -o dir::cache::archives="$APT_ARCHIVE_DIR" \
+              "${missing_packages[@]}"
+          else
+            echo "All Linux build dependencies are already installed"
+          fi
 
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
@@ -77,6 +100,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: pubspec.yaml
+          cache: true
 
       - name: Install dependencies
         run: make install-linux-deps
@@ -93,11 +117,84 @@ jobs:
           encodedString: ${{ secrets.APP_ENV }}
 
       - name: Build Linux release
-        run: make linux-release
+        run: make linux-release-ci
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
+
+      - name: Verify Linux package contents
+        run: |
+          ./scripts/ci/verify_linux_package.sh "${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+
+      - name: Install .deb and verify postinst started daemon
+        shell: bash
+        run: |
+          set -euxo pipefail
+          deb="./${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+          test -f "$deb"
+          sudo apt-get install -y "$deb"
+
+          for i in $(seq 1 30); do
+            if systemctl is-active --quiet lanternd.service; then
+              break
+            fi
+            sleep 1
+          done
+
+          if ! systemctl is-active --quiet lanternd.service; then
+            sudo systemctl status lanternd.service --no-pager || true
+            sudo journalctl -u lanternd.service -n 200 --no-pager || true
+            echo "lanternd.service is not active after package install"
+            exit 1
+          fi
+
+          if ! systemctl is-enabled --quiet lanternd.service; then
+            echo "lanternd.service is not enabled after package install"
+            exit 1
+          fi
+
+          sudo usermod -aG lantern "$USER" || true
+
+          systemctl is-active --quiet lanternd.service
+          test -S /run/lantern/lanternd.sock
+          sudo stat -c "%a %U %G %n" /run/lantern/lanternd.sock
+
+      - name: Installed binary launch smoke
+        shell: bash
+        run: |
+          set -euxo pipefail
+          code=0
+          sg lantern -c "env HOME=$HOME PATH=$PATH xvfb-run -a timeout 15s /usr/bin/lantern >/tmp/lantern-installed-smoke.log 2>&1" || code=$?
+          if [[ "$code" -ne 124 ]]; then
+            cat /tmp/lantern-installed-smoke.log || true
+            echo "Installed /usr/bin/lantern did not stay up under xvfb"
+            exit 1
+          fi
+
+      - name: Linux UI connect/disconnect integration
+        shell: bash
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
+        run: |
+          set -euxo pipefail
+          TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
+          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=true"
+
+          sudo journalctl -u lanternd.service --since "$TEST_START_UTC" --no-pager > /tmp/lanternd-journal-ui-smoke.log
+
+          if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /service/start IPC request in lanternd journal"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
+
+          if ! grep -Eq 'IPC request.*path=/service/stop' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /service/stop IPC request in lanternd journal"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4

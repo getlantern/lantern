@@ -27,6 +27,7 @@ class VPNSwitch extends HookConsumerWidget {
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
+      key: Key('vpn.switch.${vpnStatus.name}'),
       current: isVPNOn,
       allowUnlistedValues: false,
       values: [false, true],
@@ -59,6 +60,7 @@ class VPNSwitch extends HookConsumerWidget {
           );
         }
         return GestureDetector(
+          key: const Key('vpn.toggle'),
           onTap: () {
             appLogger.info('VPN Switch tapped');
             onVPNStateChange(ref, context);

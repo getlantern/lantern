@@ -32,8 +32,8 @@ void showAppBottomSheet(
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    color: context.textPrimary,
-                  ),
+                        color: context.textPrimary,
+                      ),
                 ),
               ),
               DividerSpace(padding: EdgeInsets.only(top: 16)),

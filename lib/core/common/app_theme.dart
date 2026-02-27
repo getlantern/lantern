@@ -32,41 +32,41 @@ class AppTheme {
   static ThemeData appTheme() {
     const cs = ColorScheme.light(
       // Primary action / brand
-      primary: AppColors.blue10,                   // Blue.1000 – action.primary.bg
-      onPrimary: AppColors.gray1,                  // Gray.100  – action.primary.text
-      primaryContainer: AppColors.blue1,           // Blue.100  – bg.hover
+      primary: AppColors.blue10, // Blue.1000 – action.primary.bg
+      onPrimary: AppColors.gray1, // Gray.100  – action.primary.text
+      primaryContainer: AppColors.blue1, // Blue.100  – bg.hover
       onPrimaryContainer: AppColors.gray9,
       // Secondary
-      secondary: AppColors.blue7,                  // Blue.700
+      secondary: AppColors.blue7, // Blue.700
       onSecondary: AppColors.gray1,
-      secondaryContainer: AppColors.blue2,         // Blue.200
+      secondaryContainer: AppColors.blue2, // Blue.200
       onSecondaryContainer: AppColors.gray9,
       // Success (tertiary)
-      tertiary: AppColors.green5,                  // Green.500 – toggle-active-bg
+      tertiary: AppColors.green5, // Green.500 – toggle-active-bg
       onTertiary: AppColors.gray1,
-      tertiaryContainer: AppColors.green2,         // Green.200 – status.success-bg
-      onTertiaryContainer: AppColors.green8,       // Green.800 – status.success-text
+      tertiaryContainer: AppColors.green2, // Green.200 – status.success-bg
+      onTertiaryContainer: AppColors.green8, // Green.800 – status.success-text
       // Error
-      error: AppColors.red6,                       // Red.600  – border.error
+      error: AppColors.red6, // Red.600  – border.error
       onError: AppColors.gray1,
-      errorContainer: AppColors.red2,              // Red.200  – status.error-bg
-      onErrorContainer: AppColors.red8,            // Red.800  – status.error-text
+      errorContainer: AppColors.red2, // Red.200  – status.error-bg
+      onErrorContainer: AppColors.red8, // Red.800  – status.error-text
       // Surfaces
-      surface: AppColors.white,                    // White     – bg.elevated (Card, Dialog, Sheet)
-      onSurface: AppColors.gray9,                  // Gray.900  – text.primary
-      onSurfaceVariant: AppColors.gray8,           // Gray.800  – text.secondary
-      surfaceContainer: AppColors.gray1,           // Gray.100  – bg.surface
-      surfaceContainerHighest: AppColors.gray2,    // Gray.200 – bg.callout
+      surface: AppColors.white, // White     – bg.elevated (Card, Dialog, Sheet)
+      onSurface: AppColors.gray9, // Gray.900  – text.primary
+      onSurfaceVariant: AppColors.gray8, // Gray.800  – text.secondary
+      surfaceContainer: AppColors.gray1, // Gray.100  – bg.surface
+      surfaceContainerHighest: AppColors.gray2, // Gray.200 – bg.callout
       // Borders
-      outline: AppColors.gray2,                    // Gray.200  – border.default
-      outlineVariant: AppColors.gray3,             // Gray.300  – border.input
+      outline: AppColors.gray2, // Gray.200  – border.default
+      outlineVariant: AppColors.gray3, // Gray.300  – border.input
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: cs,
       hoverColor: AppColors.blue1,
-      scaffoldBackgroundColor: AppColors.gray1,   // bg.surface
+      scaffoldBackgroundColor: AppColors.gray1, // bg.surface
       primaryColor: AppColors.blue10,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -107,7 +107,7 @@ class AppTheme {
         ),
         titleSpacing: 0,
         elevation: 0,
-        backgroundColor: AppColors.gray1,          // bg.surface
+        backgroundColor: AppColors.gray1, // bg.surface
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.white,
           statusBarBrightness: Brightness.light,
@@ -122,7 +122,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
-        color: cs.surface,                         // bg.elevated
+        color: cs.surface, // bg.elevated
         clipBehavior: Clip.hardEdge,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
@@ -132,7 +132,7 @@ class AppTheme {
 
       // ── Divider ─────────────────────────────────────────────────────────────
       dividerTheme: DividerThemeData(
-        color: cs.outline,                         // border.default
+        color: cs.outline, // border.default
         thickness: 1,
       ),
 
@@ -140,8 +140,9 @@ class AppTheme {
       // Widgets using TextFormField / TextField inherit these automatically.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cs.surface,                     // bg.input = bg.elevated
-        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        fillColor: cs.surface, // bg.input = bg.elevated
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         hintStyle: TextStyle(color: AppColors.gray4),
         labelStyle: TextStyle(color: cs.onSurfaceVariant), // text.secondary
         border: OutlineInputBorder(
@@ -154,11 +155,12 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.blue8, width: 2), // border.input-focus
+          borderSide: BorderSide(
+              color: AppColors.blue8, width: 2), // border.input-focus
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: cs.error),           // border.error
+          borderSide: BorderSide(color: cs.error), // border.error
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -172,7 +174,7 @@ class AppTheme {
 
       // ── Dialog ──────────────────────────────────────────────────────────────
       dialogTheme: DialogThemeData(
-        backgroundColor: cs.surface,              // bg.elevated
+        backgroundColor: cs.surface, // bg.elevated
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: cs.outlineVariant, width: 1),
@@ -183,7 +185,7 @@ class AppTheme {
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: cs.surface,              // bg.elevated
+        backgroundColor: cs.surface, // bg.elevated
         modalBackgroundColor: cs.surface,
         dragHandleColor: AppColors.gray4,
         shape: const RoundedRectangleBorder(
@@ -193,16 +195,16 @@ class AppTheme {
 
       // ── ListTile (used by AppTile) ───────────────────────────────────────────
       listTileTheme: ListTileThemeData(
-        textColor: cs.onSurface,                  // text.primary
+        textColor: cs.onSurface, // text.primary
         iconColor: cs.onSurface,
         selectedColor: cs.primary,
-        selectedTileColor: cs.primaryContainer,   // bg.hover
+        selectedTileColor: cs.primaryContainer, // bg.hover
       ),
 
       // ── TextButton (used by AppTextButton) ───────────────────────────────────
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.blue7,        // text.link light
+          foregroundColor: AppColors.blue7, // text.link light
         ),
       ),
 
@@ -217,9 +219,9 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: cs.primary,            // action.primary.primary-bg
+          backgroundColor: cs.primary, // action.primary.primary-bg
           enableFeedback: true,
-          foregroundColor: cs.onPrimary,          // action.primary.primary-text
+          foregroundColor: cs.onPrimary, // action.primary.primary-text
           textStyle: AppTextStyles.primaryButtonTextStyle
               .copyWith(fontSize: 18.0, color: cs.onPrimary),
           overlayColor: AppColors.blue6,
@@ -239,34 +241,36 @@ class AppTheme {
   static ThemeData darkTheme() {
     const cs = ColorScheme.dark(
       // Primary action / brand
-      primary: AppColors.blue6,                    // Blue.600  – action.primary.bg
-      onPrimary: AppColors.gray1,                  // Gray.100  – action.primary.text
-      primaryContainer: AppColors.blue9,           // Blue.900  – bg.hover
+      primary: AppColors.blue6, // Blue.600  – action.primary.bg
+      onPrimary: AppColors.gray1, // Gray.100  – action.primary.text
+      primaryContainer: AppColors.blue9, // Blue.900  – bg.hover
       onPrimaryContainer: AppColors.gray2,
       // Secondary
-      secondary: AppColors.blue5,                  // Blue.500
+      secondary: AppColors.blue5, // Blue.500
       onSecondary: AppColors.gray1,
-      secondaryContainer: AppColors.blue7,         // Blue.700
+      secondaryContainer: AppColors.blue7, // Blue.700
       onSecondaryContainer: AppColors.gray2,
       // Success (tertiary)
-      tertiary: AppColors.green7,                  // Green.700 – toggle-active-bg dark
+      tertiary: AppColors.green7, // Green.700 – toggle-active-bg dark
       onTertiary: AppColors.gray1,
       tertiaryContainer: AppColors.green7,
-      onTertiaryContainer: AppColors.green3,       // Green.300 – status.success-text dark
+      onTertiaryContainer:
+          AppColors.green3, // Green.300 – status.success-text dark
       // Error
-      error: AppColors.red5,                       // Red.500   – border.error dark
+      error: AppColors.red5, // Red.500   – border.error dark
       onError: AppColors.gray1,
-      errorContainer: AppColors.red8,              // Red.800   – status.error-bg dark
-      onErrorContainer: AppColors.red2,            // Red.200   – status.error-text dark
+      errorContainer: AppColors.red8, // Red.800   – status.error-bg dark
+      onErrorContainer: AppColors.red2, // Red.200   – status.error-text dark
       // Surfaces
-      surface: AppColors.gray850,                  // Gray.850  – bg.elevated (Card, Dialog, Sheet)
-      onSurface: AppColors.gray2,                  // Gray.200  – text.primary dark
-      onSurfaceVariant: AppColors.gray3,           // Gray.300  – text.secondary dark
-      surfaceContainer: AppColors.gray9,           // Gray.900  – bg.surface dark
-      surfaceContainerHighest: AppColors.gray8,    // Gray.800 – bg.callout dark
+      surface:
+          AppColors.gray850, // Gray.850  – bg.elevated (Card, Dialog, Sheet)
+      onSurface: AppColors.gray2, // Gray.200  – text.primary dark
+      onSurfaceVariant: AppColors.gray3, // Gray.300  – text.secondary dark
+      surfaceContainer: AppColors.gray9, // Gray.900  – bg.surface dark
+      surfaceContainerHighest: AppColors.gray8, // Gray.800 – bg.callout dark
       // Borders
-      outline: AppColors.gray8,                    // Gray.800  – border.default dark
-      outlineVariant: AppColors.gray7,             // Gray.700  – border.input dark
+      outline: AppColors.gray8, // Gray.800  – border.default dark
+      outlineVariant: AppColors.gray7, // Gray.700  – border.input dark
     );
 
     return ThemeData(
@@ -274,7 +278,7 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: cs,
       hoverColor: AppColors.blue9,
-      scaffoldBackgroundColor: AppColors.gray9,   // bg.surface dark
+      scaffoldBackgroundColor: AppColors.gray9, // bg.surface dark
       primaryColor: AppColors.blue6,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -313,11 +317,11 @@ class AppTheme {
         centerTitle: true,
         surfaceTintColor: AppColors.gray850,
         titleTextStyle: AppTextStyles.headingSmall.copyWith(
-          color: cs.onSurface,                     // text.primary dark
+          color: cs.onSurface, // text.primary dark
         ),
         titleSpacing: 0,
         elevation: 0,
-        backgroundColor: AppColors.gray9,           // bg.surface dark
+        backgroundColor: AppColors.gray9, // bg.surface dark
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.gray9,
           statusBarBrightness: Brightness.dark,
@@ -332,7 +336,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
-        color: cs.surface,                          // bg.elevated dark
+        color: cs.surface, // bg.elevated dark
         clipBehavior: Clip.hardEdge,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
@@ -342,17 +346,19 @@ class AppTheme {
 
       // ── Divider ─────────────────────────────────────────────────────────────
       dividerTheme: DividerThemeData(
-        color: cs.outline,                          // border.default dark
+        color: cs.outline, // border.default dark
         thickness: 1,
       ),
 
       // ── Input / TextField ────────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cs.surface,                      // bg.input dark (gray850)
-        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        fillColor: cs.surface, // bg.input dark (gray850)
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         hintStyle: TextStyle(color: AppColors.gray5), // text.disabled dark
-        labelStyle: TextStyle(color: cs.onSurfaceVariant), // text.secondary dark
+        labelStyle:
+            TextStyle(color: cs.onSurfaceVariant), // text.secondary dark
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: cs.outlineVariant), // border.input dark
@@ -363,11 +369,12 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.blue2, width: 2), // border.input-focus dark
+          borderSide: BorderSide(
+              color: AppColors.blue2, width: 2), // border.input-focus dark
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: cs.error),            // border.error dark
+          borderSide: BorderSide(color: cs.error), // border.error dark
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -381,7 +388,7 @@ class AppTheme {
 
       // ── Dialog ──────────────────────────────────────────────────────────────
       dialogTheme: DialogThemeData(
-        backgroundColor: cs.surface,               // bg.elevated dark
+        backgroundColor: cs.surface, // bg.elevated dark
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: cs.outlineVariant, width: 1),
@@ -392,7 +399,7 @@ class AppTheme {
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: cs.surface,               // bg.elevated dark
+        backgroundColor: cs.surface, // bg.elevated dark
         modalBackgroundColor: cs.surface,
         dragHandleColor: AppColors.gray6,
         shape: const RoundedRectangleBorder(
@@ -402,16 +409,16 @@ class AppTheme {
 
       // ── ListTile (used by AppTile) ───────────────────────────────────────────
       listTileTheme: ListTileThemeData(
-        textColor: cs.onSurface,                   // text.primary dark
+        textColor: cs.onSurface, // text.primary dark
         iconColor: cs.onSurface,
         selectedColor: cs.primary,
-        selectedTileColor: cs.primaryContainer,    // bg.hover dark
+        selectedTileColor: cs.primaryContainer, // bg.hover dark
       ),
 
       // ── TextButton (used by AppTextButton) ───────────────────────────────────
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.blue2,         // text.link dark
+          foregroundColor: AppColors.blue2, // text.link dark
         ),
       ),
 
@@ -426,12 +433,12 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: cs.primary,             // action.primary.primary-bg dark
+          backgroundColor: cs.primary, // action.primary.primary-bg dark
           enableFeedback: true,
-          foregroundColor: cs.onPrimary,            // action.primary.primary-text
+          foregroundColor: cs.onPrimary, // action.primary.primary-text
           textStyle: AppTextStyles.primaryButtonTextStyle
               .copyWith(fontSize: 18.0, color: cs.onPrimary),
-          overlayColor: AppColors.blue5,            // action.primary.primary-bg-hover dark
+          overlayColor: AppColors.blue5, // action.primary.primary-bg-hover dark
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,
           shape: RoundedRectangleBorder(

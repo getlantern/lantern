@@ -20,8 +20,22 @@ class Account extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appSettings = ref.watch(appSettingProvider);
     return BaseScreen(
-      title: 'account'.i18n,
+      title: ''.i18n,
+      appBar: CustomAppBar(
+        title: Text(
+          'account'.i18n,
+        ),
+        actions: [
+          if (appSettings.userLoggedIn)
+            AppTextButton(
+              label: 'logout'.i18n,
+              textColor: context.textLink,
+              onPressed: () => logoutDialog(context, ref),
+            )
+        ],
+      ),
       body: _buildBody(context, ref),
     );
   }
@@ -29,13 +43,21 @@ class Account extends HookConsumerWidget {
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
     final isExpired = ref.watch(isUserExpiredProvider);
+    final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
+    final isUserFree = !isExpired && !isPro;
     final theme = Theme.of(buildContext).textTheme;
 
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          if (isUserFree)
+            ProButton(
+              onPressed: () {
+                appRouter.push(const Plans());
+              },
+            ),
           if (isExpired) ...{
             InfoRow(
               minTileHeight: 40,
@@ -58,7 +80,7 @@ class Account extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'lantern_pro_email'.i18n,
+              isUserFree ? 'lantern_email'.i18n : 'lantern_pro_email'.i18n,
               style: theme.labelLarge!.copyWith(
                 color: buildContext.textSecondary,
               ),
@@ -95,7 +117,7 @@ class Account extends HookConsumerWidget {
                 ),
               ),
             )
-          else
+          else if (isPro)
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
@@ -107,34 +129,29 @@ class Account extends HookConsumerWidget {
                 ),
               ),
             ),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: AppTile(
-                label: user!.legacyUserData.toDate(),
-                contentPadding: EdgeInsets.only(left: 16),
-                icon: AppImagePaths.autoRenew,
-                trailing: planTrailingWidget(user, buildContext, ref)),
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'lantern_pro_devices'.i18n,
-              style: theme.labelLarge!.copyWith(
-                color: buildContext.textSecondary,
-              ),
-            ),
-          ),
-          UserDevices(),
-          SizedBox(height: defaultSize),
-          if (appSettings.userLoggedIn)
+          if (!isUserFree)
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
-                  label: 'logout'.i18n,
-                  icon: AppImagePaths.signIn,
-                  onPressed: () => logoutDialog(buildContext, ref)),
+                  label: user!.legacyUserData.toDate(),
+                  contentPadding: EdgeInsets.only(left: 16),
+                  icon: AppImagePaths.autoRenew,
+                  trailing: planTrailingWidget(user, buildContext, ref)),
             ),
+          if (isPro) ...[
+            SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'lantern_pro_devices'.i18n,
+                style: theme.labelLarge!.copyWith(
+                  color: buildContext.textSecondary,
+                ),
+              ),
+            ),
+            UserDevices(),
+          ],
+          SizedBox(height: defaultSize),
           Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -149,6 +166,7 @@ class Account extends HookConsumerWidget {
             child: AppTile(
               contentPadding: EdgeInsets.only(left: 16),
               icon: AppImagePaths.delete,
+              iconUseThemeColor: false,
               label: 'delete_account'.i18n,
               trailing: AppTextButton(
                 label: 'delete'.i18n,
