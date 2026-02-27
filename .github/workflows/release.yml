@@ -39,6 +39,9 @@ concurrency:
 
 jobs:
   set-metadata:
+    # Allow only tag-push releases, and only allow scheduled/manual release
+    # workflows from the repository default branch.
+    if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name != 'push' && github.ref_name == github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
