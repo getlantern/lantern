@@ -134,7 +134,8 @@ class Support extends StatelessWidget {
     showAppBottomSheet(
       context: context,
       title: 'follow_us'.i18n,
-      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.39.h : 0.3.h,
+      scrollControlDisabledMaxHeightRatio:
+          context.isSmallDevice ? 0.39.h : 0.3.h,
       builder: (context, scrollController) {
         return Flexible(
           child: FollowUsListView(

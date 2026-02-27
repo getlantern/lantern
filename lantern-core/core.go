@@ -670,7 +670,12 @@ func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 
 func (lc *LanternCore) SignUp(email, password string) error {
 	slog.Debug("Signing up user")
-	return lc.apiClient.SignUp(context.Background(), email, password)
+	salt, body, err := lc.apiClient.SignUp(context.Background(), email, password)
+	if err != nil {
+		return fmt.Errorf("error signing up: %w", err)
+	}
+	slog.Debug("SignUp response: ", "salt", salt, "body", body)
+	return nil
 }
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {
