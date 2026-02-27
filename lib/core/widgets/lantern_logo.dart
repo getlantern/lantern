@@ -53,6 +53,7 @@ class LanternRoundedLogo extends StatelessWidget {
     return AppImage(
       height: height,
       width: width,
+      useThemeColor: false,
       path: AppImagePaths.lanternLogoRounded,
     );
   }

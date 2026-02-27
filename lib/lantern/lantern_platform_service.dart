@@ -672,19 +672,23 @@ class LanternPlatformService implements LanternCoreService {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-      if (data != "") {
-        appLogger.debug(
-            'Acknowledged in-app purchase and got subscription data: $data');
-        appLogger.info(
-            "Ohh I see actual userID  and token data is returned after acknowledging in-app purchase, I will update the local storage with the new subscription data",
-            data);
 
-        /// If data is not empty, it means got the subscription data with userid and token and update the local storage, so that user can use the subscription immediately without restart the app
-        final map = jsonDecode(data);
-        final userData = UserResponse.fromJson(map);
-        sl<LocalStorageService>().saveUser(userData.toEntity());
+      if (data != null) {
+        appLogger.info(
+            "User already bought subscription from same apple/google id before, switching user data");
+        try {
+          /// If data is not empty, it means got the subscription data with userid and token and update the local storage, so that user can use the subscription immediately without restart the app
+          final userData = UserResponse.fromBuffer(data);
+          appLogger.debug(
+            "Got user data after acknowledging in-app purchase: ${userData.legacyUserData.userId}",
+          );
+          sl<LocalStorageService>().saveUser(userData.toEntity());
+        } catch (e) {
+          appLogger.error(
+              "Error parsing user data after acknowledging in-app purchase", e);
+        }
       }
-      return Right(data);
+      return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
       return Left(e.toFailure());

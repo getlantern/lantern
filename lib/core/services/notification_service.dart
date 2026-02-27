@@ -106,6 +106,7 @@ class NotificationService {
   /// schedules a notification to be shown after [delay]
   /// this uses zonedSchedule to ensure it works even if the app is terminated
   /// if [notificationDetails] is not provided, uses default details for main type
+  /// This will not work on android due to permission issues
   Future<void> scheduleNotification(
     int id, {
     required String title,

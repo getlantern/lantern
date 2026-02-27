@@ -29,11 +29,10 @@ class VpnNotifier extends _$VpnNotifier {
             previousStatus != nextStatus) {
           if (previousStatus != VPNStatus.connecting &&
               nextStatus == VPNStatus.disconnected) {
-            sl<NotificationService>().scheduleNotification(
-              NotificationEvent.vpnDisconnected.id,
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnDisconnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_disconnected'.i18n,
-              delay: Duration(seconds: 2),
             );
           } else if (nextStatus == VPNStatus.connected) {
             if (PlatformUtils.isMobile) {
@@ -44,17 +43,19 @@ class VpnNotifier extends _$VpnNotifier {
             ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
             /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(Duration(seconds: 1), () {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (!ref.mounted) {
+                return;
+              }
               ref
                   .read(serverLocationProvider.notifier)
                   .ifNeededGetAutoServerLocation();
             });
 
-            sl<NotificationService>().scheduleNotification(
-              NotificationEvent.vpnConnected.id,
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
-              delay: Duration(seconds: 2),
             );
           }
         }

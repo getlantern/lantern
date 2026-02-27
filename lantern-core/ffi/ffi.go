@@ -252,41 +252,6 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 	return C.CString("ok")
 }
 
-// startVPN initializes and starts the VPN server if it is not already running.
-//
-//export startVPN
-func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
-	slog.Debug("startVPN called")
-	sendStatusToPort(Connecting)
-	if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
-		DataDir: C.GoString(_dataDir),
-		Locale:  C.GoString(_locale),
-	}); err != nil {
-		err = fmt.Errorf("unable to start vpn server: %v", err)
-		sendStatusToPort(Disconnected)
-		return C.CString(err.Error())
-	}
-	sendStatusToPort(Connected)
-	slog.Debug("VPN server started successfully")
-	return C.CString("ok")
-}
-
-// stopVPN stops the VPN server if it is running.
-//
-//export stopVPN
-func stopVPN() *C.char {
-	slog.Debug("stopVPN called")
-	sendStatusToPort(Disconnecting)
-	if err := vpn_tunnel.StopVPN(); err != nil {
-		err = fmt.Errorf("unable to stop vpn server: %v", err)
-		sendStatusToPort(Connected)
-		return C.CString(err.Error())
-	}
-	sendStatusToPort(Disconnected)
-	slog.Debug("VPN server stopped successfully")
-	return C.CString("ok")
-}
-
 // getAutoLocation returns the auto location in JSON format.
 //
 //export getAutoLocation
@@ -346,29 +311,6 @@ func getAvailableServers() *C.char {
 	return C.CString(string(c.GetAvailableServers()))
 }
 
-// connectToServer sets the private server with the given tag.
-// connectToServer connects to a specific VPN server identified by the location type and tag.
-// connectToServer will open and start the VPN tunnel if it is not already running.
-//
-//export connectToServer
-func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
-	tag := C.GoString(_tag)
-	locationType := C.GoString(_location)
-
-	// Valid location types are:
-	// auto,
-	// privateServer,
-	// lanternLocation;
-	if err := vpn_tunnel.ConnectToServer(locationType, tag, nil, &utils.Opts{
-		DataDir: C.GoString(_dataDir),
-		Locale:  C.GoString(_locale),
-	}); err != nil {
-		return SendError(fmt.Errorf("Error setting private server: %v", err))
-	}
-	slog.Debug("Private server set with tag", "tag", tag)
-	return C.CString("ok")
-}
-
 func sendStatusToPort(status VPNStatus) {
 	slog.Debug("sendStatusToPort called", "status", status)
 	if statusPort == 0 {
@@ -382,21 +324,6 @@ func sendStatusToPort(status VPNStatus) {
 	dart_api_dl.SendToPort(statusPort, string(data))
 	slog.Debug("Status sent to port successfully", "status", status)
 
-}
-
-// isVPNConnected checks if the VPN server is running and connected.
-//
-//export isVPNConnected
-func isVPNConnected() C.int {
-	connected := vpn_tunnel.IsVPNRunning()
-	slog.Debug("isVPNConnected called, connected:", "connected", connected)
-	if connected {
-		sendStatusToPort(Connected)
-		return 1
-	} else {
-		sendStatusToPort(Disconnected)
-		return 0
-	}
 }
 
 // APIS

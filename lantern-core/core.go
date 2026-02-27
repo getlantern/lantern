@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -107,7 +108,7 @@ type Payment interface {
 	StripeSubscription(email, planID string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) error
+	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
 	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
@@ -199,9 +200,15 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	if runtime.GOOS == "linux" {
+		slog.Debug("Setting IPC settings path for Linux", "path", settings.GetString(settings.DataPathKey))
 		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
-			slog.Error("Failed to set IPC settings path", "error", err)
-			return fmt.Errorf("failed to set IPC settings path: %w", err)
+			// lanternd may not be ready yet during app startup; defer this until daemon is reachable.
+			if errors.Is(err, ipc.ErrIPCNotRunning) || errors.Is(err, ipc.ErrServiceIsNotReady) {
+				slog.Warn("Skipping IPC settings path update because lanternd is not ready", "error", err)
+			} else {
+				slog.Error("Failed to set IPC settings path", "error", err)
+				return fmt.Errorf("failed to set IPC settings path: %w", err)
+			}
 		}
 	}
 
@@ -621,7 +628,7 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return lc.apiClient.StripeBillingPortalUrl(context.Background())
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	slog.Debug("Purchase token: ", "token", purchaseToken, "planId", planId)
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
@@ -629,14 +636,13 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 	}
 	status, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
-		return fmt.Errorf("error acknowledging google purchase: %w", err)
+		return "", fmt.Errorf("error acknowledging google purchase: %w", err)
 	}
 	slog.Debug("acknowledge google purchase:", "status", status)
-	return nil
+	return status, nil
 }
 
 func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
-	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
@@ -680,7 +686,12 @@ func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 
 func (lc *LanternCore) SignUp(email, password string) error {
 	slog.Debug("Signing up user")
-	return lc.apiClient.SignUp(context.Background(), email, password)
+	salt, body, err := lc.apiClient.SignUp(context.Background(), email, password)
+	if err != nil {
+		return fmt.Errorf("error signing up: %w", err)
+	}
+	slog.Debug("SignUp response: ", "salt", salt, "body", body)
+	return nil
 }
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {
