@@ -43,9 +43,9 @@ class Account extends HookConsumerWidget {
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
     final isExpired = ref.watch(isUserExpiredProvider);
-    final isPro = ref.read(isUserProProvider);
-    final isUserFree = !isExpired && !isPro;
+    final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
+    final isUserFree = !isExpired && !isPro;
     final theme = Theme.of(buildContext).textTheme;
 
     return SafeArea(
