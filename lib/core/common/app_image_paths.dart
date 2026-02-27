@@ -111,6 +111,10 @@ class AppImagePaths {
   static const automatic = 'assets/images/automatic.svg';
   static const lightMode = 'assets/images/light_mode.svg';
   static const darkMode = 'assets/images/dark_mode.svg';
+  static const autoMode = 'assets/images/auto_mode.svg';
+  static const darkMap = 'assets/unbounded/uv-map-dark.png';
+  static const lightMap = 'assets/unbounded/uv-map.png';
+
 
   /// Validates and returns a safe flag path for the given country code.
   /// Returns null if the country code is invalid or the flag asset doesn't exist.

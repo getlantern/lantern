@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
+import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -15,87 +15,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/models/available_servers.dart';
 import 'data_cap_info_provider.dart' show dataCapInfoProvider;
+import '../../unbounded/provider/unbounded_notifier.dart'
+    show unboundedProvider;
 
 part 'app_event_notifier.g.dart';
-
-/// Represents a consumer connection change from the broflake widget proxy.
-class UnboundedConnectionEvent {
-  final int state; // 1 = connected, -1 = disconnected
-  final int workerIdx;
-  final String addr; // IP address
-
-  UnboundedConnectionEvent({
-    required this.state,
-    required this.workerIdx,
-    required this.addr,
-  });
-
-  factory UnboundedConnectionEvent.fromJson(Map<String, dynamic> json) {
-    return UnboundedConnectionEvent(
-      state: json['state'] as int,
-      workerIdx: json['workerIdx'] as int,
-      addr: json['addr'] as String? ?? '',
-    );
-  }
-}
-
-/// Global stream controller for unbounded connection events.
-final _unboundedConnectionController =
-    StreamController<UnboundedConnectionEvent>.broadcast();
-
-/// Provider that exposes unbounded connection events as a stream.
-final unboundedConnectionProvider =
-    StreamProvider<UnboundedConnectionEvent>((ref) {
-  return _unboundedConnectionController.stream;
-});
-
-/// Tracks live and cumulative connection counts for Unbounded.
-class UnboundedStats {
-  final int activeCount;
-  final int totalCount;
-
-  const UnboundedStats({this.activeCount = 0, this.totalCount = 0});
-}
-
-/// Provider that tracks unbounded connection stats (active + total).
-final unboundedStatsProvider = Provider<UnboundedStats>((ref) {
-  ref.watch(unboundedConnectionProvider);
-  return _UnboundedStatsAccumulator.stats;
-});
-
-/// Simple static accumulator for unbounded stats. Updated by the listener
-/// installed below. We use a static because the stats must survive provider
-/// rebuilds.
-class _UnboundedStatsAccumulator {
-  static UnboundedStats stats = const UnboundedStats();
-}
-
-/// A keep-alive provider whose sole job is to listen to connection events and
-/// accumulate stats in [_UnboundedStatsAccumulator].
-@Riverpod(keepAlive: true)
-class UnboundedStatsListener extends _$UnboundedStatsListener {
-  @override
-  void build() {
-    ref.listen(unboundedConnectionProvider, (prev, next) {
-      next.whenData((event) {
-        final s = _UnboundedStatsAccumulator.stats;
-        if (event.state == 1) {
-          _UnboundedStatsAccumulator.stats = UnboundedStats(
-            activeCount: s.activeCount + 1,
-            totalCount: s.totalCount + 1,
-          );
-        } else if (event.state == -1) {
-          _UnboundedStatsAccumulator.stats = UnboundedStats(
-            activeCount: (s.activeCount - 1).clamp(0, s.activeCount),
-            totalCount: s.totalCount,
-          );
-        }
-        // Invalidate the stats provider so watchers rebuild.
-        ref.invalidate(unboundedStatsProvider);
-      });
-    });
-  }
-}
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
@@ -171,7 +94,7 @@ class AppEventNotifier extends _$AppEventNotifier {
           try {
             final data = jsonDecode(event.message);
             final connEvent = UnboundedConnectionEvent.fromJson(data);
-            _unboundedConnectionController.add(connEvent);
+            ref.read(unboundedProvider.notifier).onConnectionEvent(connEvent);
           } catch (e) {
             appLogger.error('Error parsing unbounded-connection event: $e');
           }

@@ -8,64 +8,6 @@ part of 'app_event_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// A keep-alive provider whose sole job is to listen to connection events and
-/// accumulate stats in [_UnboundedStatsAccumulator].
-
-@ProviderFor(UnboundedStatsListener)
-const unboundedStatsListenerProvider = UnboundedStatsListenerProvider._();
-
-/// A keep-alive provider whose sole job is to listen to connection events and
-/// accumulate stats in [_UnboundedStatsAccumulator].
-final class UnboundedStatsListenerProvider
-    extends $NotifierProvider<UnboundedStatsListener, void> {
-  /// A keep-alive provider whose sole job is to listen to connection events and
-  /// accumulate stats in [_UnboundedStatsAccumulator].
-  const UnboundedStatsListenerProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'unboundedStatsListenerProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
-
-  @override
-  String debugGetCreateSourceHash() => _$unboundedStatsListenerHash();
-
-  @$internal
-  @override
-  UnboundedStatsListener create() => UnboundedStatsListener();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
-    );
-  }
-}
-
-String _$unboundedStatsListenerHash() =>
-    r'7e38010a65e7b4d8ddd441a2bdef65f515d7a6af';
-
-/// A keep-alive provider whose sole job is to listen to connection events and
-/// accumulate stats in [_UnboundedStatsAccumulator].
-
-abstract class _$UnboundedStatsListener extends $Notifier<void> {
-  void build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    build();
-    final ref = this.ref as $Ref<void, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<void, void>, void, Object?, Object?>;
-    element.handleValue(ref, null);
-  }
-}
-
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
 /// in one place.

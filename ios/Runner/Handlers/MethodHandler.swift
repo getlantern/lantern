@@ -214,6 +214,16 @@ class MethodHandler {
           return
         }
         self.setSmartRouteMode(mode: mode, result: result)
+
+      // Unbounded
+      case "setUnboundedEnabled":
+        let data = call.arguments as? [String: Any]
+        let enabled = data?["enabled"] as? Bool ?? false
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        self.isUnboundedEnabled(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -968,6 +978,36 @@ class MethodHandler {
       }
     }
 
+  }
+
+  // MARK: - Unbounded
+
+  func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_UNBOUNDED_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func isUnboundedEnabled(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let enabled = MobileIsUnboundedEnabled()
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "IS_UNBOUNDED_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(enabled)
+      }
+    }
   }
 
   // MARK: - Utils

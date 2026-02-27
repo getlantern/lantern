@@ -114,6 +114,10 @@ enum class Methods(val method: String) {
 
     // Smart routing
     SetRoutingMode("setRoutingMode"),
+
+    // Unbounded
+    SetUnboundedEnabled("setUnboundedEnabled"),
+    IsUnboundedEnabled("isUnboundedEnabled"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -1036,6 +1040,19 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "SetRoutingMode") {
                     val enable = call.arguments as Boolean
                     Mobile.setSmartRoutingEnabled(enable)
+                }
+            }
+
+            Methods.SetUnboundedEnabled.method -> {
+                scope.handleResult(result, "SetUnboundedEnabled") {
+                    val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
+                    Mobile.setUnboundedEnabled(enabled)
+                }
+            }
+
+            Methods.IsUnboundedEnabled.method -> {
+                scope.handleValue(result, "IsUnboundedEnabled") {
+                    Mobile.isUnboundedEnabled()
                 }
             }
 
