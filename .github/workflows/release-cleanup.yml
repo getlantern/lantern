@@ -4,10 +4,6 @@
 name: Release cleanup
 
 on:
-  push:
-    branches:
-      - jay/release-cleanup  # TODO: remove after testing
-
   schedule:
     - cron: "30 3 * * *"
 
