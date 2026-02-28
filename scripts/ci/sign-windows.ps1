@@ -30,6 +30,9 @@
 .PARAMETER PollIntervalSeconds
     Seconds between polling attempts (default: 10).
 
+.PARAMETER IsTestCertificate
+    When set, allows relaxed signature verification for test/self-signed certificates.
+
 .EXAMPLE
     ./sign-windows.ps1 -FilePath "build/lantern.exe" -SigningPolicy "release-signing" `
         -OrganizationId $env:SIGNPATH_ORG_ID -ProjectSlug "lantern" -ApiToken $env:SIGNPATH_API_TOKEN
@@ -58,7 +61,10 @@ param(
     [int]$MaxAttempts = 60,
 
     [Parameter(Mandatory = $false)]
-    [int]$PollIntervalSeconds = 10
+    [int]$PollIntervalSeconds = 10,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$IsTestCertificate = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -137,9 +143,7 @@ while ($attempt -lt $MaxAttempts) {
         Write-Host "=============================="
 
         if ($sig.Status -ne "Valid") {
-            # Determine whether this is a self-signed/test flow based on the signing policy.
-            # Example policies mentioned in the script header: 'release-signing' and 'test-signing'.
-            $isSelfSignedFlow = $SigningPolicy -like "*test*"
+            $isSelfSignedFlow = $IsTestCertificate
 
             # Always fail on HashMismatch regardless of policy.
             if ($sig.Status -eq "HashMismatch") {
@@ -169,7 +173,6 @@ while ($attempt -lt $MaxAttempts) {
 
     } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
         Write-Error "Signing failed with status: $($status.Status)"
-        exit 1
     }
 }
 
