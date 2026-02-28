@@ -120,7 +120,8 @@ while ($attempt -lt $MaxAttempts) {
         Invoke-WebRequest -Method GET `
             -Uri "$signRequestUrl/SignedArtifact" `
             -Headers @{ "Authorization" = "Bearer $ApiToken" } `
-            -OutFile $tempFile
+            -OutFile $tempFile `
+            -SkipHttpErrorCheck
 
         # Replace original with signed version
         Move-Item -Force $tempFile $FilePath
