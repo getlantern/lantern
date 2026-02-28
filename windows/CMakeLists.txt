@@ -81,7 +81,7 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 # Copy liblantern.dll
-set(LANTERN_DIR "..")
+set(LANTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
 install(FILES "${LIBLANTERN_DLL}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
