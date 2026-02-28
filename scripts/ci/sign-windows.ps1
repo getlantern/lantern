@@ -10,7 +10,7 @@
     Path to the file to sign. The signed file will overwrite this path.
 
 .PARAMETER SigningPolicy
-    SignPath signing policy slug (e.g., 'release-signing' or 'test-signing').
+    SignPath signing policy slug ('prod-policy' or 'test-policy').
 
 .PARAMETER OrganizationId
     SignPath organization ID.
@@ -34,7 +34,7 @@
     When set, allows relaxed signature verification for test/self-signed certificates.
 
 .EXAMPLE
-    ./sign-windows.ps1 -FilePath "build/lantern.exe" -SigningPolicy "release-signing" `
+    ./sign-windows.ps1 -FilePath "build/lantern.exe" -SigningPolicy "prod-policy" `
         -OrganizationId $env:SIGNPATH_ORG_ID -ProjectSlug "lantern" -ApiToken $env:SIGNPATH_API_TOKEN
 #>
 
@@ -43,6 +43,7 @@ param(
     [string]$FilePath,
 
     [Parameter(Mandatory = $true)]
+    [ValidateSet("prod-policy", "test-policy")]
     [string]$SigningPolicy,
 
     [Parameter(Mandatory = $true)]
@@ -72,7 +73,6 @@ $ErrorActionPreference = "Stop"
 # Validate file exists
 if (-not (Test-Path $FilePath)) {
     Write-Error "File not found: $FilePath"
-    exit 1
 }
 
 $fileName = Split-Path $FilePath -Leaf
@@ -96,9 +96,7 @@ $response = Invoke-WebRequest -Method POST `
     }
 
 if ($response.StatusCode -ne 201) {
-    Write-Error "Failed to submit signing request: HTTP $($response.StatusCode)"
-    Write-Host "Response body: $($response.Content)"
-    exit 1
+    Write-Error "Failed to submit signing request: HTTP $($response.StatusCode) - $($response.Content)"
 }
 
 $signRequestUrl = $response.Headers.Location[0]
@@ -108,73 +106,71 @@ Write-Host "Signing request submitted: $signRequestUrl"
 Write-Host "Waiting for signing to complete..."
 
 $attempt = 0
-while ($attempt -lt $MaxAttempts) {
+:certStatusCheck while ($attempt -lt $MaxAttempts) {
     Start-Sleep -Seconds $PollIntervalSeconds
     $attempt++
 
     $status = Invoke-RestMethod -Method GET `
         -Uri $signRequestUrl `
-        -Headers @{ "Authorization" = "Bearer $ApiToken" }
+        -Headers @{ "Authorization" = "Bearer $ApiToken" } `
+        -SkipHttpErrorCheck
 
     Write-Host "Status: $($status.Status) (attempt $attempt/$MaxAttempts)"
 
-    if ($status.Status -eq "Completed") {
-        Write-Host "Signing completed successfully!"
-
-        # Download signed artifact to a temp file first
-        $tempFile = "${FilePath}.signed"
-        Invoke-WebRequest -Method GET `
-            -Uri "$signRequestUrl/SignedArtifact" `
-            -Headers @{ "Authorization" = "Bearer $ApiToken" } `
-            -OutFile $tempFile `
-            -SkipHttpErrorCheck
-
-        # Replace original with signed version
-        Move-Item -Force $tempFile $FilePath
-
-        Write-Host "Downloaded signed artifact to: $FilePath"
-
-        # Verify signature
-        $sig = Get-AuthenticodeSignature -FilePath $FilePath
-        Write-Host "=== Signature Verification ==="
-        Write-Host "Status: $($sig.Status)"
-        Write-Host "Signer: $($sig.SignerCertificate.Subject)"
-        Write-Host "Thumbprint: $($sig.SignerCertificate.Thumbprint)"
-        Write-Host "=============================="
-
-        if ($sig.Status -ne "Valid") {
-            $isSelfSignedFlow = $IsTestCertificate
-
-            # Always fail on HashMismatch regardless of policy.
-            if ($sig.Status -eq "HashMismatch") {
-                Write-Error "Signature verification failed (hash mismatch): $($sig.Status) for policy '$SigningPolicy'"
-                exit 1
-            }
-
-            if (-not $isSelfSignedFlow) {
-                # For production/EV signing, require a strictly valid signature.
-                Write-Error "Signature verification failed for policy '$SigningPolicy': $($sig.Status)"
-                exit 1
-            }
-
-            # For self-signed/test policies, allow only a narrow set of expected statuses.
-            $allowedSelfSignedStatuses = @("Valid", "UnknownError")
-            if ($allowedSelfSignedStatuses -notcontains $sig.Status) {
-                Write-Error "Signature verification failed for self-signed/test policy '$SigningPolicy': $($sig.Status)"
-                exit 1
-            }
-
-            Write-Warning "Signature status is $($sig.Status) for self-signed/test policy '$SigningPolicy' - this may be expected for self-signed certificates"
+    switch ($status.Status) {
+        { $_ -in @("Failed", "Denied") } {
+            Write-Error "Signing failed with status: $($status.Status)"
         }
-
-        Write-Host "Signing complete: $fileName"
-        $global:LASTEXITCODE = 0
-        return
-
-    } elseif ($status.Status -eq "Failed" -or $status.Status -eq "Denied") {
-        Write-Error "Signing failed with status: $($status.Status)"
+        "Completed" {
+            break certStatusCheck
+        }
+        { $attempt -ge $MaxAttempts } {
+            Write-Error "Timeout waiting for signing to complete after $MaxAttempts attempts"
+        }
     }
 }
 
-Write-Error "Timeout waiting for signing to complete after $MaxAttempts attempts"
-exit 1
+# Download signed artifact
+Write-Host "Signing completed successfully!"
+
+$tempFile = "$FilePath.signed"
+Invoke-WebRequest -Method GET `
+    -Uri "$signRequestUrl/SignedArtifact" `
+    -Headers @{ "Authorization" = "Bearer $ApiToken" } `
+    -OutFile $tempFile
+
+Move-Item -Force $tempFile $FilePath
+Write-Host "Downloaded signed artifact to: $FilePath"
+
+# Verify signature
+$sig = Get-AuthenticodeSignature -FilePath $FilePath
+Write-Host "=== Signature Verification ==="
+Write-Host "Status: $($sig.Status)"
+Write-Host "Signer: $($sig.SignerCertificate.Subject)"
+Write-Host "Thumbprint: $($sig.SignerCertificate.Thumbprint)"
+Write-Host "=============================="
+
+if ($sig.Status -ne "Valid") {
+    $isSelfSignedFlow = $IsTestCertificate
+
+    # Always fail on HashMismatch regardless of policy.
+    if ($sig.Status -eq "HashMismatch") {
+        Write-Error "Signature verification failed (hash mismatch): $($sig.Status) for policy '$SigningPolicy'"
+    }
+
+    if (-not $isSelfSignedFlow) {
+        # For production/EV signing, require a strictly valid signature.
+        Write-Error "Signature verification failed for policy '$SigningPolicy': $($sig.Status)"
+    }
+
+    # For self-signed/test policies, allow only a narrow set of expected statuses.
+    $allowedSelfSignedStatuses = @("Valid", "UnknownError")
+    if ($allowedSelfSignedStatuses -notcontains $sig.Status) {
+        Write-Error "Signature verification failed for self-signed/test policy '$SigningPolicy': $($sig.Status)"
+    }
+
+    Write-Warning "Signature status is $($sig.Status) for self-signed/test policy '$SigningPolicy' - this may be expected for self-signed certificates"
+}
+
+Write-Host "Signing complete: $fileName"
+$global:LASTEXITCODE = 0
