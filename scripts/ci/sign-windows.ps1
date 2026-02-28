@@ -116,7 +116,7 @@ while ($attempt -lt $MaxAttempts) {
         Write-Host "Signing completed successfully!"
 
         # Download signed artifact to a temp file first
-        $tempFile = "$FilePath.signed"
+        $tempFile = "${FilePath}.signed"
         Invoke-WebRequest -Method GET `
             -Uri "$signRequestUrl/SignedArtifact" `
             -Headers @{ "Authorization" = "Bearer $ApiToken" } `
