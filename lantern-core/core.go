@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -199,9 +200,15 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	if runtime.GOOS == "linux" {
+		slog.Debug("Setting IPC settings path for Linux", "path", settings.GetString(settings.DataPathKey))
 		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
-			slog.Error("Failed to set IPC settings path", "error", err)
-			return fmt.Errorf("failed to set IPC settings path: %w", err)
+			// lanternd may not be ready yet during app startup; defer this until daemon is reachable.
+			if errors.Is(err, ipc.ErrIPCNotRunning) || errors.Is(err, ipc.ErrServiceIsNotReady) {
+				slog.Warn("Skipping IPC settings path update because lanternd is not ready", "error", err)
+			} else {
+				slog.Error("Failed to set IPC settings path", "error", err)
+				return fmt.Errorf("failed to set IPC settings path: %w", err)
+			}
 		}
 	}
 
@@ -679,7 +686,12 @@ func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 
 func (lc *LanternCore) SignUp(email, password string) error {
 	slog.Debug("Signing up user")
-	return lc.apiClient.SignUp(context.Background(), email, password)
+	salt, body, err := lc.apiClient.SignUp(context.Background(), email, password)
+	if err != nil {
+		return fmt.Errorf("error signing up: %w", err)
+	}
+	slog.Debug("SignUp response: ", "salt", salt, "body", body)
+	return nil
 }
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {

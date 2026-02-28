@@ -105,6 +105,9 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 set(LANTERN_DIR "..")
 install(FILES "${LANTERN_DIR}/bin/linux/liblantern.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
+# Keep a root-level copy for FFI loading from Platform.resolvedExecutable dir.
+install(FILES "${LANTERN_DIR}/bin/linux/liblantern.so" DESTINATION "${CMAKE_INSTALL_PREFIX}"
+  COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
   install(FILES "${bundled_library}"

@@ -1,0 +1,48 @@
+# Nightly builds are helpful validation, but useless when old.
+# This script deletes any "nightly" titled release older than DAYS_OLD.
+# Dry run is default, and must be explicitly passed as 'false' to act.
+name: Release cleanup
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no deletions)"
+        type: boolean
+        default: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Clean up old nightly releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name != 'schedule' && (github.event_name != 'workflow_dispatch' || inputs.dry_run) }}
+        run: |
+          set -euo pipefail
+
+          DAYS_OLD=7
+          CUTOFF_DATE=$(date -u -d "${DAYS_OLD} days ago" +%Y-%m-%dT%H:%M:%SZ)
+
+          gh release list -R "$GITHUB_REPOSITORY" \
+            --limit 1000 \
+            --json tagName,publishedAt,name \
+            --jq ".[] | select(.name | test(\"nightly\"; \"i\")) | select(.publishedAt < \"${CUTOFF_DATE}\") | .tagName" |
+          while read -r tag; do
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "DRY-RUN: $tag"
+            else
+              if ! gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes; then
+                echo "Error: release deletion: $tag" >&2
+                exit 1
+              else
+                echo "Release deleted: $tag"
+              fi
+            fi
+          done

@@ -55,9 +55,11 @@ class CardDropdown<T> extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
-        fillColor: enabled ? context.bgElevated : context.borderInput.withOpacity(0.3),
+        fillColor:
+            enabled ? context.bgElevated : context.borderInput.withOpacity(0.3),
         hintText: hintText,
-        hintStyle: AppTextStyles.bodyMedium.copyWith(color: context.textDisabled),
+        hintStyle:
+            AppTextStyles.bodyMedium.copyWith(color: context.textDisabled),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: context.borderInput, width: 1),

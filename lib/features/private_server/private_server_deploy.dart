@@ -106,7 +106,8 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 16),
           Text(
             'private_server_ready_message'.i18n.fill([widget.serverName]),
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),
@@ -149,7 +150,8 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 16),
           Text(
             'server_setup_failed_message'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),

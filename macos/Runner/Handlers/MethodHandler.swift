@@ -489,14 +489,14 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-     let data =  MobileAcknowledgeApplePurchase(token, planId, &error)
+      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
-        await MainActor.run {
-          result(data)
-        }
+      await MainActor.run {
+        result(data)
+      }
     }
   }
 

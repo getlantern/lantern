@@ -95,13 +95,21 @@ Future<void> _setupSentry({required AppRunner runner}) async {
 }
 
 Future<void> _configureLocalTimeZone() async {
-  if (kIsWeb || Platform.isLinux) {
+  if (kIsWeb) {
     return;
   }
+
   tz.initializeTimeZones();
 
-  final timeZoneName = await FlutterTimezone.getLocalTimezone();
-  tz.setLocalLocation(tz.getLocation(timeZoneName.identifier));
+  try {
+    final timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName.identifier));
+  } catch (e) {
+    appLogger.warning(
+      'Failed to configure local timezone, falling back to UTC: $e',
+    );
+    tz.setLocalLocation(tz.UTC);
+  }
 }
 
 Future<void> _loadAppSecrets() async {

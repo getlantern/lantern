@@ -40,7 +40,12 @@ class ProviderCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AppImage(path: icon, width: 20, height: 20,useThemeColor: false,),
+                AppImage(
+                  path: icon,
+                  width: 20,
+                  height: 20,
+                  useThemeColor: false,
+                ),
                 const SizedBox(width: defaultSize),
                 Expanded(
                   child: Text(

@@ -110,7 +110,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(Icons.delete_outline, color: context.textPrimary),
+                      icon: Icon(Icons.delete_outline,
+                          color: context.textPrimary),
                       iconSize: 24,
                       onPressed: () => showDeleteDialog(item.serverName),
                     ),
