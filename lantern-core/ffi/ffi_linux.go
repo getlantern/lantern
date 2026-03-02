@@ -124,6 +124,8 @@ func mapIPCStateToUIStatus(state ipc.VPNStatus, err error) string {
 		return string(Disconnecting)
 	case ipc.Disconnected:
 		return string(Disconnected)
+	case ipc.ErrorStatus:
+		return string(Error)
 	default:
 		return string(Disconnected)
 	}
