@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 class SectionLabel extends StatelessWidget {
   final String title;
@@ -13,7 +13,7 @@ class SectionLabel extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              color: context.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),

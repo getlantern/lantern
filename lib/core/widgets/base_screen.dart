@@ -27,7 +27,9 @@ class BaseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor ?? AppColors.gray1,
+      backgroundColor:
+          backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+      // backgroundColor: backgroundColor ?? AppColors.gray1,
       appBar: appBar ??
           CustomAppBar(
             title: Text(title),

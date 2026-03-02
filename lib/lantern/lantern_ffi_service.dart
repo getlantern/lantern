@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show PlatformDispatcher;
 
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
@@ -40,6 +40,7 @@ export 'dart:ffi'; // For FFI
 export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
+const Set<String> _ffiOkResults = {'ok', 'true'};
 
 /// Communicates with the native library via FFI.
 ///
@@ -79,16 +80,25 @@ class LanternFFIService implements LanternCoreService {
 
   static LanternBindings _gen() {
     final String basePath = p.dirname(Platform.resolvedExecutable);
-    String fullPath = "";
+    final String fullPath;
+    appLogger.debug('resolved executable: "${Platform.resolvedExecutable}"');
 
     if (Platform.isWindows) {
-      fullPath = p.join(basePath, "$_libName.dll");
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "$_libName.dll");
-      }
-      if (!File(fullPath).existsSync()) {
-        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
-      }
+      final candidates = <String>[
+        p.join(basePath, "$_libName.dll"),
+        p.join(basePath, "bin", "$_libName.dll"),
+        p.join(basePath, "bin", "windows", "$_libName.dll"),
+      ];
+      fullPath = _firstExisting(candidates);
+    } else if (Platform.isLinux) {
+      final envPath = Platform.environment['LANTERN_LIB_PATH'];
+      final candidates = <String>[
+        if (envPath != null && envPath.isNotEmpty) envPath,
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        "/usr/lib/lantern/$_libName.so",
+      ];
+      fullPath = _firstExisting(candidates);
     } else {
       fullPath = p.join(basePath, "$_libName.so");
     }
@@ -98,6 +108,18 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
+  static String _firstExisting(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    appLogger.warning(
+      'Native library not found in candidates: ${candidates.join(', ')}',
+    );
+    return candidates.first;
+  }
+
   Future<void> init() async {
     // Set safe defaults up front so callers always have something to listen to.
     _status = _defaultStatusStream();
@@ -105,7 +127,10 @@ class LanternFFIService implements LanternCoreService {
     _appEvents = const Stream<AppEvent>.empty();
 
     try {
-      await _setupRadiance();
+      final setupResult = await _setupRadiance();
+      setupResult.fold((err) {
+        appLogger.error('Radiance setup failed: $err');
+      }, (_) {});
 
       if (Platform.isWindows) {
         /// Start windows IPC service.
@@ -149,11 +174,21 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
+  Future<String> _radianceEnv() async {
+    if (kReleaseMode) {
+      return "prod";
+    } else {
+      final isStageFound = await isStageEnvironment();
+      return isStageFound ? "stage" : "prod";
+    }
+  }
+
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
-
       int consent = 0;
+      String env = await _radianceEnv();
       try {
         // Telemetry consent can be forwarded here when needed.
       } catch (_) {
@@ -165,8 +200,7 @@ class LanternFFIService implements LanternCoreService {
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
       appLogger.info(
-        'Data dir: ${dataDir.path}, Log dir: $logDir Consent: $consent',
-      );
+          "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
@@ -179,6 +213,7 @@ class LanternFFIService implements LanternCoreService {
             logDirPtr,
             dataDirPtr,
             Localization.defaultLocale.toCharPtr,
+            env.toCharPtr,
             loggingReceivePort.sendPort.nativePort,
             appsReceivePort.sendPort.nativePort,
             statusReceivePort.sendPort.nativePort,
@@ -190,9 +225,15 @@ class LanternFFIService implements LanternCoreService {
           .toDartString();
 
       checkAPIError(result);
+      if (result != 'ok' && result != 'true') {
+        throw PlatformException(
+          code: 'radiance_setup_failed',
+          message: result,
+        );
+      }
       return right(unit);
     } catch (e, st) {
-      appLogger.error('Failed to get data cap info: $e', e, st);
+      appLogger.error('Failed to set up radiance: $e', e, st);
       return Left(e.toFailure().localizedErrorMessage);
     }
   }
@@ -572,11 +613,11 @@ class LanternFFIService implements LanternCoreService {
           )
           .cast<Utf8>()
           .toDartString();
-      if (result.isNotEmpty) {
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('startVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
       return Left(e.toFailure());
@@ -674,11 +715,11 @@ class LanternFFIService implements LanternCoreService {
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
-      if (result.isNotEmpty) {
-        return left(Failure(error: result, localizedErrorMessage: ''));
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
+        return left(Failure(error: result, localizedErrorMessage: result));
       }
       appLogger.debug('stopVPN result: $result');
-      return right(result);
+      return right(result.isEmpty ? 'ok' : result);
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
       return Left(e.toFailure());
@@ -895,7 +936,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+  Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
   }) {

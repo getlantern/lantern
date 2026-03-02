@@ -672,14 +672,14 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+  Future<Either<Failure, String>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) async {
     try {
       await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-      return Right(unit);
+      return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
       return Left(e.toFailure());

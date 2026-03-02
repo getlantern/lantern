@@ -32,6 +32,8 @@ class AppTile extends StatelessWidget {
   final Color? selectedTileColor;
   final BorderRadius? borderRadius;
   final VisualDensity? visualDensity;
+  final ListTileTitleAlignment? titleAlignment;
+  final bool? iconUseThemeColor;
 
   const AppTile({
     super.key,
@@ -57,6 +59,8 @@ class AppTile extends StatelessWidget {
     this.selectedTileColor,
     this.borderRadius,
     this.visualDensity,
+    this.titleAlignment,
+    this.iconUseThemeColor,
   });
 
   factory AppTile.link({
@@ -90,7 +94,9 @@ class AppTile extends StatelessWidget {
 
     final textStyle = tileTextStyle ??
         theme.textTheme.labelLarge!.copyWith(
-          color: enabled ? AppColors.gray9 : AppColors.gray6,
+          color: enabled
+              ? context.textPrimary // text.primary
+              : context.textPrimary.withValues(alpha: 0.38), // text.disabled
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
@@ -101,11 +107,17 @@ class AppTile extends StatelessWidget {
         computedLeading = SizedBox(
           width: 24,
           height: 24,
-          child: AppImage(path: icon as String),
+          child: AppImage(
+            path: icon as String,
+            useThemeColor: iconUseThemeColor ?? true,
+          ),
         );
       } else if (icon is IconData) {
-        computedLeading =
-            Icon(icon as IconData, size: 24, color: AppColors.gray9);
+        computedLeading = Icon(
+          icon as IconData,
+          size: 24,
+          color: context.textPrimary, // text.primary
+        );
       } else if (icon is Image) {
         computedLeading = icon as Image;
       } else if (icon is Widget) {
@@ -124,9 +136,12 @@ class AppTile extends StatelessWidget {
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,
-      titleAlignment: ListTileTitleAlignment.center,
-      hoverColor: hoverColor ?? AppColors.blue1,
-      selectedTileColor: selectedTileColor ?? AppColors.blue1,
+      titleAlignment: titleAlignment ?? ListTileTitleAlignment.center,
+      enableFeedback: true,
+      // hoverColor: hoverColor ?? AppColors.blue1,
+      hoverColor: hoverColor ?? theme.hoverColor,
+      // selectedTileColor: selectedTileColor ?? AppColors.blue1,
+      selectedTileColor: selectedTileColor ?? theme.hoverColor,
       tileColor: tileColor,
       minTileHeight: minHeight ?? effectiveMinHeight,
       shape: RoundedRectangleBorder(

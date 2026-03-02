@@ -39,6 +39,9 @@ concurrency:
 
 jobs:
   set-metadata:
+    # Allow only tag-push releases, and only allow scheduled/manual release
+    # workflows from the repository default branch (or jay/signpath for testing).
+    if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name != 'push' && (github.ref_name == github.event.repository.default_branch || github.ref_name == 'jay/signpath')) }}
     runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
@@ -400,7 +403,7 @@ jobs:
     needs: [set-metadata, build-android]
     if: |
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
-      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -424,14 +427,17 @@ jobs:
       - name: Pick Play track
         id: track
         run: |
-          if [ "${{ needs.set-metadata.outputs.build_type }}" = "beta" ]; then
+          bt="${{ needs.set-metadata.outputs.build_type }}"
+          if [ "$bt" = "internal" ]; then
+            echo "track=internal" >> "$GITHUB_OUTPUT"
+          elif [ "$bt" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
             echo "track=production" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload to Google Play
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: org.getlantern.lantern
@@ -445,7 +451,7 @@ jobs:
     needs: [set-metadata, build-ios]
     if: |
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
-      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact
@@ -558,23 +564,23 @@ jobs:
       - name: Delete draft on failure (cleanup enabled)
         if: |
           env.CLEANUP_ON_FAILURE == 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          !(needs.upload-s3.result == 'success' &&
+            needs.upload-release-artifacts.result == 'success' &&
+            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Build failed or cancelled - cleaning up draft release"
-          gh release delete "$RELEASE_TAG" --cleanup-tag --yes || true
+          gh release delete "$RELEASE_TAG" --yes || true
 
       - name: Report failure (cleanup disabled)
         if: |
           env.CLEANUP_ON_FAILURE != 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          !(needs.upload-s3.result == 'success' &&
+            needs.upload-release-artifacts.result == 'success' &&
+            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         run: |
           echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"

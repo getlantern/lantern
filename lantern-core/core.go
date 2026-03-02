@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,12 +17,14 @@ import (
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/config"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
+	"github.com/getlantern/radiance/vpn/ipc"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
@@ -109,8 +112,8 @@ type Payment interface {
 	StripeSubscription(email, planID string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) error
-	AcknowledgeApplePurchase(receipt, planII string) error
+	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
+	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
@@ -180,6 +183,12 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Debug("Starting LanternCore initialization")
+	// Set the environment before initializing Radiance so that common.Stage()/Prod()/Dev()
+	// pick up the correct value during initialization.
+	if opts.Env == "stage" || opts.Env == "staging" {
+		slog.Debug("Setting staging environment")
+		env.SetStagingEnv()
+	}
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
 		LogDir:           opts.LogDir,
@@ -196,6 +205,19 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+	}
+
+	if runtime.GOOS == "linux" {
+		slog.Debug("Setting IPC settings path for Linux", "path", settings.GetString(settings.DataPathKey))
+		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
+			// lanternd may not be ready yet during app startup; defer this until daemon is reachable.
+			if errors.Is(err, ipc.ErrIPCNotRunning) || errors.Is(err, ipc.ErrServiceIsNotReady) {
+				slog.Warn("Skipping IPC settings path update because lanternd is not ready", "error", err)
+			} else {
+				slog.Error("Failed to set IPC settings path", "error", err)
+				return fmt.Errorf("failed to set IPC settings path: %w", err)
+			}
+		}
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
@@ -216,6 +238,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		userData, _ := core.FetchUserData()
 		slog.Debug("Fetched user data", "data", string(userData))
 	}
+
 	return nil
 }
 
@@ -612,32 +635,31 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return lc.apiClient.StripeBillingPortalUrl(context.Background())
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	slog.Debug("Purchase token: ", "token", purchaseToken, "planId", planId)
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
-	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
+	status, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
-		return fmt.Errorf("error acknowledging google purchase: %w", err)
+		return "", fmt.Errorf("error acknowledging google purchase: %w", err)
 	}
 	slog.Debug("acknowledge google purchase:", "status", status)
-	return nil
+	return status, nil
 }
 
-func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) error {
-	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
 	}
-	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
+	data, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
 	if err != nil {
-		return fmt.Errorf("error acknowledging apple purchase: %w", err)
+		return "", fmt.Errorf("error acknowledging apple purchase: %w", err)
 	}
-	slog.Debug("acknowledge apple purchase: ", "status", status)
-	return nil
+	slog.Debug("acknowledge apple purchase: ", "data", data)
+	return data, nil
 }
 
 func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error) {
@@ -671,7 +693,12 @@ func (lc *LanternCore) Login(email, password string) ([]byte, error) {
 
 func (lc *LanternCore) SignUp(email, password string) error {
 	slog.Debug("Signing up user")
-	return lc.apiClient.SignUp(context.Background(), email, password)
+	salt, body, err := lc.apiClient.SignUp(context.Background(), email, password)
+	if err != nil {
+		return fmt.Errorf("error signing up: %w", err)
+	}
+	slog.Debug("SignUp response: ", "salt", salt, "body", body)
+	return nil
 }
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {

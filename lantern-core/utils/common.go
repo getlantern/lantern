@@ -14,6 +14,7 @@ type Opts struct {
 	Deviceid         string
 	LogLevel         string
 	Locale           string
+	Env              string
 	TelemetryConsent bool
 }
 

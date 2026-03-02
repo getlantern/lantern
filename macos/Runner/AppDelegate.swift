@@ -100,6 +100,7 @@ class AppDelegate: FlutterAppDelegate {
     opts.deviceid = ""
     opts.logLevel = "trace"
     opts.telemetryConsent = FilePath.isTelemetryEnabled()
+    opts.env = FilePath.isRadianceEnv()
     opts.locale = Locale.current.identifier
     appLogger.info(
       "logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel) telemetryConsent: \(opts.telemetryConsent) locale: \(opts.locale)"

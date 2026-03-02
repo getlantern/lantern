@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
 
@@ -24,6 +27,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final fallback = _detectDeviceLocale();
     final initial = AppSetting(locale: fallback.toString());
     unawaited(_loadFromPrefs(initial));
+    unawaited(_detectEnvironmentFromFile());
     return initial;
   }
 
@@ -94,6 +98,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void setOnboardingCompleted(bool value) =>
       update(state.copyWith(onboardingCompleted: value));
 
+  void setThemeMode(String mode) {
+    update(state.copyWith(themeMode: mode));
+    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
+  }
+
+  void syncDesktopBrightnessFromCurrentTheme() {
+    unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'
@@ -114,6 +127,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       final decoded = jsonDecode(raw);
       if (decoded is Map) {
         state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
+        unawaited(
+          _applyDesktopBrightness(resolveThemeMode(state.themeMode)),
+        );
       }
     } catch (e, st) {
       appLogger.error(
@@ -129,6 +145,47 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       appLogger.error(
           'Failed to persist app settings to SharedPreferences', e, st);
     }
+  }
+
+  Future<void> _applyDesktopBrightness(ThemeMode mode) async {
+    if (!PlatformUtils.isDesktop) {
+      return;
+    }
+
+    final brightness = switch (mode) {
+      ThemeMode.light => Brightness.light,
+      ThemeMode.dark => Brightness.dark,
+      ThemeMode.system => PlatformDispatcher.instance.platformBrightness,
+    };
+
+    try {
+      await windowManager.setBrightness(brightness);
+    } catch (e, st) {
+      appLogger.error('Failed to set desktop toolbar brightness: $e', st);
+    }
+  }
+
+  Future<void> setEnvironment(bool isStaging) async {
+    final env = isStaging ? 'stage' : 'prod';
+    update(state.copyWith(environment: env));
+
+    final dir = await AppStorageUtils.getAppDirectory();
+    if (dir.existsSync()) {
+      await dir.delete(recursive: true);
+    }
+    await dir.create(recursive: true);
+
+    if (isStaging) {
+      final file = File('${dir.path}/.radiance_env');
+      await file.create();
+    }
+  }
+
+  Future<void> _detectEnvironmentFromFile() async {
+    final dir = await AppStorageUtils.getAppDirectory();
+    final envFile = File('${dir.path}/.radiance_env');
+    final env = envFile.existsSync() ? 'stage' : 'prod';
+    update(state.copyWith(environment: env));
   }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {

@@ -1,8 +1,10 @@
 // Common file to export all common files
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +17,7 @@ import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -29,6 +32,7 @@ export 'package:lantern/core/common/app_dialog.dart';
 export 'package:lantern/core/common/app_dimens.dart';
 export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_image_paths.dart';
+export 'package:lantern/core/common/app_semantic_colors.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
 export 'package:lantern/core/common/date_formatters.dart';
@@ -198,4 +202,21 @@ ServerLocation initialServerLocation() {
       displayName: ('fastest_server'.i18n),
     ),
   );
+}
+
+ThemeMode resolveThemeMode(String raw) {
+  switch (raw) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}
+
+Future<bool> isStageEnvironment() async {
+  final dir = await AppStorageUtils.getAppDirectory();
+  final envFile = File('${dir.path}/.radiance_env');
+  return envFile.existsSync();
 }

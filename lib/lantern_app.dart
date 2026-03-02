@@ -30,12 +30,14 @@ class LanternApp extends StatefulHookConsumerWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _LanternAppState();
 }
 
-class _LanternAppState extends ConsumerState<LanternApp> {
+class _LanternAppState extends ConsumerState<LanternApp>
+    with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     initLifecycleListener();
   }
@@ -55,54 +57,107 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lifecycle.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    ref
+        .read(appSettingProvider.notifier)
+        .syncDesktopBrightnessFromCurrentTheme();
+  }
+
   Future<void> initDeepLinks() async {
     final appLinks = AppLinks();
-    // Handle link when app is in warm state (front or background)
-    appLinks.uriLinkStream.listen((Uri uri) {
-      if (context.mounted) {
-        if (uri.path.startsWith('/report-issue')) {
-          final pathUrl = uri.toString();
-          final queryParams = uri.queryParameters;
-          final segment = pathUrl.split('#');
-          if (segment.length >= 2) {
-            globalRouter.push(ReportIssue(
-                description: '#${segment[1]}', type: queryParams['type']));
-          } else if (queryParams.isNotEmpty) {
-            globalRouter.push(ReportIssue(type: queryParams['type']));
-          } else {
-            globalRouter.push(ReportIssue());
-          }
-        }
-        if (uri.path.startsWith('/auth')) {
-          final pathUrl = uri;
-          if (pathUrl.query.startsWith('token=')) {
-            // user has completed the sign up process using oAuth and comming back
-            sl<DeepLinkCallbackManager>()
-                .handleDeepLink(pathUrl.queryParameters);
-          }
-        }
-        if (uri.path.startsWith('/private-server')) {
-          final data = Map.of(uri.queryParameters);
-          data['accessKey'] =
-              uri.toString().replaceAll('https://lantern.io/', 'lantern//');
-          final expiration = int.parse(data['exp'].toString());
-          final expired =
-              DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
-          // check if date is expired
-          if (expired.isBefore(DateTime.now())) {
-            appLogger.debug("DeepLink expired: $expired");
-            context.showSnackBar('deep_link_expired'.i18n);
-            return;
-          }
 
-          appRouter.push(JoinPrivateServer(deepLinkData: data));
+    // Cold start: defer until first frame so navigation/snackbars are safe.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        final initialUri = await appLinks.getInitialLink();
+        if (!mounted) return;
+        if (initialUri != null) {
+          _handleDeepLinkUri(initialUri);
         }
+      } catch (e) {
+        appLogger.error("Error getting initial deep link: $e");
       }
     });
+
+    // Warm state: handle links when app is already running
+    appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLinkUri(uri);
+    });
+  }
+
+  void _handleDeepLinkUri(Uri uri) {
+    if (!context.mounted) return;
+    final safeLogUri = uri.replace(query: '').toString();
+    appLogger.debug("DeepLink received: $safeLogUri");
+
+    // Normalize: custom scheme lantern://open/path → treat as /path
+    final path = uri.path;
+
+    if (path.startsWith('/report-issue') ||
+        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
+      final pathUrl = uri.toString();
+      final queryParams = uri.queryParameters;
+      final segment = pathUrl.split('#');
+      if (segment.length >= 2) {
+        globalRouter.push(ReportIssue(
+            description: '#${segment[1]}', type: queryParams['type']));
+      } else if (queryParams.isNotEmpty) {
+        globalRouter.push(ReportIssue(type: queryParams['type']));
+      } else {
+        globalRouter.push(ReportIssue());
+      }
+    } else if (path.startsWith('/auth') ||
+        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+      if (uri.queryParameters.containsKey('token')) {
+        sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
+      }
+    } else if (path.startsWith('/private-server') ||
+        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
+      final data = Map.of(uri.queryParameters);
+      data['accessKey'] = _buildPrivateServerAccessKey(uri);
+      final expiration = int.tryParse((data['exp'] ?? '').toString());
+      if (expiration == null) {
+        context.showSnackBar('invalid_deep_link'.i18n);
+        return;
+      }
+      final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+      if (expired.isBefore(DateTime.now())) {
+        appLogger.debug("DeepLink expired: $expired");
+        context.showSnackBar('deep_link_expired'.i18n);
+        return;
+      }
+      appRouter.push(JoinPrivateServer(deepLinkData: data));
+    }
+  }
+
+  String _buildPrivateServerAccessKey(Uri uri) {
+    if (uri.scheme == 'https' &&
+        (uri.host == 'lantern.io' || uri.host == 'www.lantern.io')) {
+      final pathWithoutLeadingSlash =
+          uri.path.startsWith('/') ? uri.path.substring(1) : uri.path;
+      var accessKey = 'lantern//$pathWithoutLeadingSlash';
+      if (uri.hasQuery) {
+        accessKey += '?${uri.query}';
+      }
+      return accessKey;
+    }
+    if (uri.scheme == 'lantern') {
+      // lantern://private-server?key=value → lantern//private-server?key=value
+      var accessKey = 'lantern//${uri.host}';
+      if (uri.hasQuery) {
+        accessKey += '?${uri.query}';
+      }
+      return accessKey;
+    }
+    return uri.toString();
   }
 
   DeepLink navigateToDeepLink(PlatformDeepLink deepLink) {
@@ -125,10 +180,11 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(appSettingProvider).locale;
+    final appSetting = ref.watch(appSettingProvider);
+    final locale = appSetting.locale;
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
-      overlayColor: Colors.black.withOpacity(0.5),
+      overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
       overlayWidgetBuilder: (_) => Center(
         child: LoadingIndicator(),
       ),
@@ -149,9 +205,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.appTheme(),
-
-                themeMode: ThemeMode.light,
                 darkTheme: AppTheme.darkTheme(),
+                themeMode: resolveThemeMode(appSetting.themeMode),
                 supportedLocales: languages
                     .map((lang) =>
                         Locale(lang.split('_').first, lang.split('_').last))

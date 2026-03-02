@@ -287,7 +287,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+  Future<Either<Failure, String>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.acknowledgeInAppPurchase(

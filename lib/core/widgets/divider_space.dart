@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../common/app_colors.dart';
-
 class DividerSpace extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
@@ -15,7 +13,9 @@ class DividerSpace extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Divider(
-        color: AppColors.gray2,
+        // border.default: Gray.200 light / Gray.800 dark
+        // color: AppColors.gray2,
+        color: Theme.of(context).dividerTheme.color,
         height: 1,
       ),
     );

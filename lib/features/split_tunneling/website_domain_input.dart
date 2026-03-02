@@ -99,7 +99,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
             ),
             AppTextButton(
               label: 'add'.i18n,
-              textColor: AppColors.black,
+              textColor: context.textPrimary,
               onPressed: validateAndExtractDomain,
             ),
           ],
@@ -109,7 +109,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
           child: Text(
             'use_commas'.i18n,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.gray7,
+              color: context.textTertiary,
               height: 1.6,
               fontSize: 12,
               fontWeight: FontWeight.w500,

@@ -4,6 +4,8 @@ class AppSetting {
   final bool isPro;
   final bool isSplitTunnelingOn;
   final String locale;
+  final String themeMode;
+  final String environment;
   final String oAuthToken;
   final bool userLoggedIn;
   final bool blockAds;
@@ -19,6 +21,8 @@ class AppSetting {
   const AppSetting({
     this.isPro = false,
     this.isSplitTunnelingOn = false,
+    this.themeMode = 'system',
+    this.environment = 'prod',
     this.userLoggedIn = false,
     this.oAuthToken = '',
     this.blockAds = false,
@@ -37,6 +41,8 @@ class AppSetting {
     bool? newPro,
     bool? newIsSpiltTunnelingOn,
     String? newLocale,
+    String? themeMode,
+    String? environment,
     bool? userLoggedIn,
     bool? blockAds,
     String? oAuthToken,
@@ -53,6 +59,8 @@ class AppSetting {
       isPro: newPro ?? isPro,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
+      themeMode: themeMode ?? this.themeMode,
+      environment: environment ?? this.environment,
       blockAds: blockAds ?? this.blockAds,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
@@ -72,6 +80,8 @@ class AppSetting {
   Map<String, dynamic> toJson() => {
         'isPro': isPro,
         'isSplitTunnelingOn': isSplitTunnelingOn,
+        'themeMode': themeMode,
+        'environment': environment,
         'userLoggedIn': userLoggedIn,
         'oAuthToken': oAuthToken,
         'blockAds': blockAds,
@@ -89,6 +99,8 @@ class AppSetting {
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
         isPro: json['isPro'] == true,
         isSplitTunnelingOn: json['isSplitTunnelingOn'] == true,
+        themeMode: (json['themeMode'] ?? 'system').toString(),
+        environment: (json['environment'] ?? 'prod').toString(),
         userLoggedIn: json['userLoggedIn'] == true,
         oAuthToken: (json['oAuthToken'] ?? '').toString(),
         blockAds: json['blockAds'] == true,

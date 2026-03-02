@@ -22,83 +22,81 @@ class DownloadLinks extends StatelessWidget {
 
   Widget _buildBody(BuildContext buildContext) {
     final theme = Theme.of(buildContext).textTheme;
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Center(
-            child: AppImage(
-              path: AppImagePaths.globIllustration,
-              type: AssetType.png,
-              height: 180.h,
-              width: 180.w,
+    return ListView(
+      children: <Widget>[
+        Center(
+          child: AppImage(
+            path: AppImagePaths.globIllustration,
+            type: AssetType.png,
+            height: 180.h,
+            width: 180.w,
+          ),
+        ),
+        SizedBox(height: defaultSize),
+        Card(
+          child: AppTile(
+            icon: AppImagePaths.lanternLogoRounded,
+            iconUseThemeColor: false,
+            trailing: AppImage(path: AppImagePaths.outsideBrowser),
+            label: 'lantern_io'.i18n,
+            onPressed: () {
+              UrlUtils.openUrl(AppUrls.lanternOfficial);
+            },
+          ),
+        ),
+        SizedBox(height: defaultSize),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            'alternative_download_links'.i18n,
+            style: theme.labelLarge!.copyWith(
+              color: buildContext.textSecondary,
             ),
           ),
-          SizedBox(height: defaultSize),
-          Card(
-            child: AppTile(
-              icon: AppImagePaths.lanternLogoRounded,
-              trailing: AppImage(path: AppImagePaths.outsideBrowser),
-              label: 'lantern_io'.i18n,
-              onPressed: () {
-                UrlUtils.openUrl(AppUrls.lanternOfficial);
-              },
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'alternative_download_links'.i18n,
-              style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+        ),
+        SizedBox(height: 4.0),
+        Card(
+          child: Column(
+            children: [
+              AppTile.link(
+                url: AppUrls.lanternGithub,
+                icon: AppImagePaths.github,
+                label: 'github_download_page'.i18n,
               ),
-            ),
-          ),
-          SizedBox(height: 4.0),
-          Card(
-            child: Column(
-              children: [
-                AppTile.link(
-                  url: AppUrls.lanternGithub,
-                  icon: AppImagePaths.github,
-                  label: 'github_download_page'.i18n,
-                ),
-                DividerSpace(),
-                AppTile.link(
-                  url: AppUrls.telegramBot,
-                  icon: AppImagePaths.telegram,
-                  label: 'telegram_bot'.i18n,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'if_you_cannot_access_website'.i18n,
-              style: theme.bodyMedium!.copyWith(
-                color: AppColors.gray8,
+              DividerSpace(),
+              AppTile.link(
+                url: AppUrls.telegramBot,
+                icon: AppImagePaths.telegram,
+                label: 'telegram_bot'.i18n,
               ),
+            ],
+          ),
+        ),
+        SizedBox(height: defaultSize),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'if_you_cannot_access_website'.i18n,
+            style: theme.bodyMedium!.copyWith(
+              color: buildContext.textSecondary,
             ),
           ),
-          SizedBox(height: defaultSize),
-          DividerSpace(padding: EdgeInsets.zero),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'available_on'.i18n,
-              style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              ),
+        ),
+        SizedBox(height: defaultSize),
+        DividerSpace(padding: EdgeInsets.zero),
+        SizedBox(height: defaultSize),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            'available_on'.i18n,
+            style: theme.labelLarge!.copyWith(
+              color: buildContext.textSecondary,
             ),
           ),
-          SizedBox(height: 4.0),
-          _availableRow(),
-        ],
-      ),
+        ),
+        SizedBox(height: 4.0),
+        _availableRow(),
+      ],
     );
   }
 

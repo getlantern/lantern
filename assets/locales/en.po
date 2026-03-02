@@ -1,3 +1,8 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgid "app_name"
 msgstr "Lantern"
 
@@ -258,6 +263,12 @@ msgstr "Mode"
 
 msgid "use_commas"
 msgstr "Use commas to separate multiple URLs"
+
+msgid "deep_link_expired"
+msgstr "This link has expired. Please request a new one."
+
+msgid "invalid_deep_link"
+msgstr "This link is invalid. Please request a new one."
 
 msgid "default_bypass"
 msgstr "Default Bypass Lists"
@@ -591,7 +602,7 @@ msgid "error"
 msgstr "Error"
 
 msgid "signup_error_user_exists"
-msgstr "It looks like something went wrong with the sign-up. Please try resetting your password, and if the issue continues, reach out to our support team"
+msgstr "It looks like something went wrong with the sign-up. Please try again or sign in if you already have an account"
 
 msgid "user_not_found"
 msgstr "User not recognized. Please check your credentials and try again. If you continue to experience issues, please reach out to our support team for assistance."
@@ -1178,10 +1189,10 @@ msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
 msgid "lantern_pro_license_required"
-msgstr “Lantern Pro license is required”
+msgstr "Lantern Pro license is required"
 
 msgid "lantern_pro_license_invalid"
-msgstr "Invalid Lantern Pro license”
+msgstr "Invalid Lantern Pro license"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro license must be 25 characters"
@@ -1354,10 +1365,6 @@ msgstr "Data Usage Alerts"
 msgid "mb_free_data_remaining"
 msgstr "%d MB free data remaining"
 
-msgid "daily_data_cap_reached"
-msgstr "Daily data cap reached"
-
-
 msgid "daily_data_cap_reached_notification_message"
 msgstr "Your data will reset at %s. Upgrade to Pro for unlimited high-speed data."
 
@@ -1460,6 +1467,23 @@ msgstr "Your Pro plan was purchased through Google Play. Please manage your subs
 msgid "manage_subscription_apple_app_store"
 msgstr "Your Pro plan was purchased through the Apple App Store. Please manage your subscription from your Apple ID account settings."
 
+msgid "create_account_error"
+msgstr "Create Account Error"
+
+msgid "appearance"
+msgstr "Appearance"
+
+msgid "light"
+msgstr "Light"
+
+msgid "dark"
+msgstr "Dark"
+
+msgid "system"
+msgstr "System"
+
+msgid "lantern_email"
+msgstr "Lantern Email"
 
 
 

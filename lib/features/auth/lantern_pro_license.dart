@@ -83,7 +83,7 @@ class LanternProLicense extends HookConsumerWidget {
                 child: Text(
                   '${normalizedLen.value}/25',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.gray6,
+                        color: context.textDisabled,
                       ),
                 ),
               ),

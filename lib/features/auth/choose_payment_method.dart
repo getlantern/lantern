@@ -179,6 +179,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
         /// Start stripe SDK
         sl<StripeService>().startStripeSDK(
+          context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
             onPurchaseResult(true, context, ref);
@@ -305,6 +306,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
+      case AuthFlow.renewSubscription:
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
     }
   }
 }

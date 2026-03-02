@@ -37,6 +37,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
               path: AppImagePaths.delete,
               width: 120,
               height: 120,
+              useThemeColor: false,
             ),
           ),
           SizedBox(height: defaultSize),
@@ -49,7 +50,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             child: Text(
               'delete_account_message'.i18n,
               style: textTheme.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -59,7 +60,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             child: Text(
               'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
-                color: AppColors.gray8,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -79,6 +80,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             label: 'confirm_deletion'.i18n,
             enabled: buttonEnabled.value,
             bgColor: AppColors.red7,
+            isTaller: true,
             onPressed: () => onDeleteAccount(passwordController.text),
           ),
           SizedBox(height: defaultSize),

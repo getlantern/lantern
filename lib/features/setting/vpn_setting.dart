@@ -86,7 +86,7 @@ class VPNSetting extends HookConsumerWidget {
             subtitle: Text(
               'only_active'.i18n,
               style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
+                color: context.textTertiary,
                 letterSpacing: 0.0,
               ),
             ),
@@ -165,7 +165,7 @@ class VPNSetting extends HookConsumerWidget {
               maxFontSize: 12,
               maxLines: 2,
               style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
+                color: context.textTertiary,
                 letterSpacing: 0.0,
               ),
             ),

@@ -38,7 +38,7 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           : Text(
               widget.location.protocol.capitalize,
               style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
+                color: context.textTertiary,
               ),
             ),
       icon: Flag(countryCode: widget.location.countryCode),
