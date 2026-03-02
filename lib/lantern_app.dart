@@ -113,8 +113,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
       } else {
         globalRouter.push(ReportIssue());
       }
-    } else if (path.startsWith('/auth')) {
-      if (uri.query.startsWith('token=')) {
+    } else if (path.startsWith('/auth') ||
+        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+      if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/private-server')) {
