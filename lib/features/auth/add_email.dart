@@ -90,8 +90,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
                     child: Text('lantern_pro_license_applied'.i18n,
-                        style: textTheme!.bodyMedium!
-                            .copyWith(color: context.textDisabled, fontSize: 12)),
+                        style: textTheme!.bodyMedium!.copyWith(
+                            color: context.textDisabled, fontSize: 12)),
                   ),
                   SizedBox(height: defaultSize),
                 },
@@ -457,12 +457,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             SizedBox(height: defaultSize),
             Text(
               'email_deliverability_notice_message'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+              style:
+                  textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
             ),
             SizedBox(height: defaultSize),
             Text(
               'email_deliverability_notice_message_two'.i18n,
-              style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+              style:
+                  textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
             ),
           ],
         ),

@@ -409,7 +409,7 @@ windows-debug: windows
 .PHONY: build-windows-release
 build-windows-release:
 	@echo "Building Flutter app (release) for Windows..."
-	flutter build windows --release
+	flutter build windows --release --verbose
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release

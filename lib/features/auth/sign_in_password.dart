@@ -61,15 +61,16 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               ),
               SizedBox(height: 8),
               if (!widget.fromChangeEmail)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: defaultSize),
-                child: Text(
-                  'if_you_have_not_set_password'.i18n,
-                  textAlign: TextAlign.start,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: context.textDisabled,
-                  ),
-                )),
+                Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text(
+                      'if_you_have_not_set_password'.i18n,
+                      textAlign: TextAlign.start,
+                      style: textTheme.labelMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    )),
               SizedBox(height: 16),
               if (widget.fromChangeEmail)
                 Text('confirm_password_to_continue'.i18n,

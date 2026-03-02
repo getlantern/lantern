@@ -81,7 +81,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               'automatically_chooses_fastest_location'.i18n,
-              style: _textTheme?.bodyMedium!.copyWith(color: context.textSecondary),
+              style: _textTheme?.bodyMedium!
+                  .copyWith(color: context.textSecondary),
             ),
           ),
           SizedBox(height: size24),
@@ -138,7 +139,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'smart_location'.i18n,
-            style: _textTheme?.labelLarge!.copyWith(color: context.textSecondary),
+            style:
+                _textTheme?.labelLarge!.copyWith(color: context.textSecondary),
           ),
         ),
         AppCard(
@@ -160,7 +162,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [AppImage(path: AppImagePaths.blot,color: context.statusWarningBgDot,)],
+              children: [
+                AppImage(
+                  path: AppImagePaths.blot,
+                  color: context.statusWarningBgDot,
+                )
+              ],
             ),
           ),
         ),
@@ -516,7 +523,10 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                       maxLines: 1,
                       style: Theme.of(
                         context,
-                      ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
+                      )
+                          .textTheme
+                          .labelMedium!
+                          .copyWith(color: context.textTertiary),
                     ),
               tileTextStyle: Theme.of(
                 context,
@@ -605,7 +615,8 @@ class _PrivateServerLocationListViewState
           Text(
             'no_private_server_setup_yet'.i18n,
             textAlign: TextAlign.center,
-            style: _textTheme!.titleSmall!.copyWith(color: context.textSecondary),
+            style:
+                _textTheme!.titleSmall!.copyWith(color: context.textSecondary),
           ),
           SizedBox(height: 16),
           PrimaryButton(

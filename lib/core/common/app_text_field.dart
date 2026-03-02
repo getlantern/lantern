@@ -103,8 +103,8 @@ class AppTextField extends StatelessWidget {
           // borders, hintStyle, contentPadding come from inputDecorationTheme
           filled: true,
           fillColor: enable
-              ? context.bgElevated   // bg.input = bg.elevated
-              : context.bgCallout,   // bg.callout for disabled
+              ? context.bgElevated // bg.input = bg.elevated
+              : context.bgCallout, // bg.callout for disabled
           hintText: hintText,
           prefixIcon: prefixIcon != null
               ? _buildFix(prefixIcon!, iconColor: context.textPrimary)

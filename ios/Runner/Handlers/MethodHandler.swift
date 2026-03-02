@@ -483,14 +483,14 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-     let data =  MobileAcknowledgeApplePurchase(token, planId, &error)
+      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
-         await MainActor.run {
-          result(data)
-        }
+      await MainActor.run {
+        result(data)
+      }
     }
   }
 
@@ -548,7 +548,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let payload =  MobileLogin(email, password, &error)
+      let payload = MobileLogin(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
         return

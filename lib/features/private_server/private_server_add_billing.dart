@@ -86,8 +86,8 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 RichText(
                   textAlign: TextAlign.left,
                   text: TextSpan(
-                    style:
-                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+                    style: textTheme.bodyMedium!
+                        .copyWith(color: context.textSecondary),
                     text: '${'1'.i18n}. ',
                     children: [
                       TextSpan(text: '${'tap'.i18n} '),
@@ -103,8 +103,8 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
-                    style:
-                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+                    style: textTheme.bodyMedium!
+                        .copyWith(color: context.textSecondary),
                     text: '${'2'.i18n}. ',
                     children: [
                       TextSpan(text: '${'add_payment_method'.i18n} '),
@@ -114,8 +114,8 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                 SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
-                    style:
-                        textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+                    style: textTheme.bodyMedium!
+                        .copyWith(color: context.textSecondary),
                     text: '${'3'.i18n}. ',
                     children: [
                       TextSpan(text: '${'return_to_lantern'.i18n} '),

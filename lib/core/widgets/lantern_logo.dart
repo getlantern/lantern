@@ -34,7 +34,6 @@ class LanternLogo extends StatelessWidget {
       height: height,
       width: width,
       fit: BoxFit.contain,
-
     );
   }
 }
