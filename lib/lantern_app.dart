@@ -101,7 +101,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
     // Normalize: custom scheme lantern://open/path → treat as /path
     final path = uri.path;
 
-    if (path.startsWith('/report-issue')) {
+    if (path.startsWith('/report-issue') ||
+        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
       final pathUrl = uri.toString();
       final queryParams = uri.queryParameters;
       final segment = pathUrl.split('#');
@@ -113,11 +114,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
       } else {
         globalRouter.push(ReportIssue());
       }
-    } else if (path.startsWith('/auth')) {
-      if (uri.query.startsWith('token=')) {
+    } else if (path.startsWith('/auth') ||
+        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+      if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
-    } else if (path.startsWith('/private-server')) {
+    } else if (path.startsWith('/private-server') ||
+        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
       final expiration = int.tryParse((data['exp'] ?? '').toString());
@@ -141,6 +144,14 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final pathWithoutLeadingSlash =
           uri.path.startsWith('/') ? uri.path.substring(1) : uri.path;
       var accessKey = 'lantern//$pathWithoutLeadingSlash';
+      if (uri.hasQuery) {
+        accessKey += '?${uri.query}';
+      }
+      return accessKey;
+    }
+    if (uri.scheme == 'lantern') {
+      // lantern://private-server?key=value → lantern//private-server?key=value
+      var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';
       }
