@@ -60,5 +60,18 @@
 	<string>We use notifications to keep you informed.</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>org.getlantern.lantern</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lantern</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

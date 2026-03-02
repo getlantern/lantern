@@ -1,3 +1,8 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgid "app_name"
 msgstr "Lantern"
 
@@ -1184,10 +1189,10 @@ msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
 msgid "lantern_pro_license_required"
-msgstr “Lantern Pro license is required”
+msgstr "Lantern Pro license is required"
 
 msgid "lantern_pro_license_invalid"
-msgstr "Invalid Lantern Pro license”
+msgstr "Invalid Lantern Pro license"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro license must be 25 characters"
@@ -1359,10 +1364,6 @@ msgstr "Data Usage Alerts"
 
 msgid "mb_free_data_remaining"
 msgstr "%d MB free data remaining"
-
-msgid "daily_data_cap_reached"
-msgstr "Daily data cap reached"
-
 
 msgid "daily_data_cap_reached_notification_message"
 msgstr "Your data will reset at %s. Upgrade to Pro for unlimited high-speed data."
