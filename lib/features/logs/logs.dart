@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -16,44 +15,12 @@ import 'package:share_plus/share_plus.dart';
 const int _maxVisibleLogLines = 800;
 
 @RoutePage(name: 'Logs')
-class Logs extends HookConsumerWidget {
+class Logs extends ConsumerWidget {
   const Logs({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
-    final scrollController = useScrollController();
-
-    final pinnedToBottom = useState(true);
-    final didInitialScroll = useState(false);
-
-    useEffect(() {
-      void listener() {
-        if (!scrollController.hasClients) return;
-        final pos = scrollController.position;
-
-        // Treat small/non-scrollable content as pinned, so we keep following new logs.
-        final canScrollMeaningfully = pos.maxScrollExtent > 64;
-        final nearBottom =
-            !canScrollMeaningfully || (pos.maxScrollExtent - pos.pixels) < 64;
-        pinnedToBottom.value = nearBottom;
-      }
-
-      scrollController.addListener(listener);
-      return () => scrollController.removeListener(listener);
-    }, [scrollController]);
-
-    void scrollToBottom() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!scrollController.hasClients) return;
-        scrollController.jumpTo(scrollController.position.maxScrollExtent);
-      });
-    }
-
-    void maybeScrollToBottom() {
-      if (!pinnedToBottom.value) return;
-      scrollToBottom();
-    }
 
     Future<void> shareLogFile() async {
       try {
@@ -116,12 +83,6 @@ class Logs extends HookConsumerWidget {
               child: logAsyncValue.when(
                 data: (logs) {
                   final visibleLogs = latestLogsForDisplay(logs);
-                  if (visibleLogs.isNotEmpty && !didInitialScroll.value) {
-                    didInitialScroll.value = true;
-                    scrollToBottom();
-                  } else {
-                    maybeScrollToBottom();
-                  }
                   if (visibleLogs.isEmpty) {
                     return Center(
                       child: Text(
@@ -131,11 +92,14 @@ class Logs extends HookConsumerWidget {
                     );
                   }
                   return ListView.builder(
-                    controller: scrollController,
+                    // Keep chronological order on screen while anchoring the viewport
+                    // at the newest entry by default.
+                    reverse: true,
                     padding: const EdgeInsets.all(8.0),
                     itemCount: visibleLogs.length,
                     itemBuilder: (context, index) {
-                      return LogLineWidget(line: visibleLogs[index]);
+                      final reversedIndex = visibleLogs.length - 1 - index;
+                      return LogLineWidget(line: visibleLogs[reversedIndex]);
                     },
                   );
                 },
