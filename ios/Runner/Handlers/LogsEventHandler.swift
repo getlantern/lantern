@@ -1,18 +1,17 @@
-import Combine
 import Flutter
 import Foundation
 
 class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/logs"
-  private static let maxBufferedLines = 4000
+  private static let maxInitialLines = 800
 
   private var events: FlutterEventSink?
   private var channel: FlutterEventChannel?
-  private var streamer: IOSCommandLogStreamer?
+  private var fileStreamer: IOSFileLogStreamer?
 
   deinit {
-    streamer?.stop()
-    streamer = nil
+    fileStreamer?.stop()
+    fileStreamer = nil
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -27,19 +26,22 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     -> FlutterError?
   {
     self.events = events
-    streamer?.stop()
-    let streamer = IOSCommandLogStreamer(
-      client: CommandClientLogAdapter(logMaxLines: Self.maxBufferedLines))
-    self.streamer = streamer
-    streamer.start { [weak self] lines in
+
+    fileStreamer?.stop()
+    let fileStreamer = IOSFileLogStreamer(
+      fileURL: Self.logFileURL,
+      maxInitialLines: Self.maxInitialLines)
+    self.fileStreamer = fileStreamer
+    fileStreamer.start { [weak self] lines in
       self?.emit(lines)
     }
+
     return nil
   }
 
   public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    streamer?.stop()
-    streamer = nil
+    fileStreamer?.stop()
+    fileStreamer = nil
     events = nil
     return nil
   }
@@ -55,84 +57,170 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
       sink(lines)
     }
   }
+  
+  private static let logFileURL = FilePath.logsDirectory.appendingPathComponent("lantern.log")
 }
 
-protocol IOSCommandLogClient {
-  var logsPublisher: AnyPublisher<[String], Never> { get }
-  func connect()
-  func disconnect()
-}
+final class IOSFileLogStreamer {
+  private static let maxReadBytes = 256 * 1024
+  private static let pollInterval: DispatchTimeInterval = .milliseconds(700)
 
-final class CommandClientLogAdapter: IOSCommandLogClient {
-  private let client: CommandClient
+  private let fileURL: URL
+  private let maxInitialLines: Int
+  private let queue = DispatchQueue(label: "org.getlantern.lantern.ios.file-log-streamer")
+  private var timer: DispatchSourceTimer?
+  private var offset: UInt64 = 0
+  private var pendingPartialLine = ""
+  private var onLines: (([String]) -> Void)?
 
-  init(logMaxLines: Int) {
-    client = CommandClient(.log, logMaxLines: logMaxLines)
-  }
-
-  var logsPublisher: AnyPublisher<[String], Never> {
-    client.$logList.eraseToAnyPublisher()
-  }
-
-  func connect() {
-    client.connect()
-  }
-
-  func disconnect() {
-    client.disconnect()
-  }
-}
-
-final class IOSCommandLogStreamer {
-  private let client: IOSCommandLogClient
-  private var cancellable: AnyCancellable?
-  private var previousSnapshot: [String] = []
-
-  init(client: IOSCommandLogClient) {
-    self.client = client
+  init(fileURL: URL, maxInitialLines: Int) {
+    self.fileURL = fileURL
+    self.maxInitialLines = maxInitialLines
   }
 
   func start(_ onLines: @escaping ([String]) -> Void) {
-    stop()
-    cancellable = client.logsPublisher.sink { [weak self] snapshot in
-      guard let self else {
-        return
+    queue.sync {
+      stopLocked()
+      self.onLines = onLines
+      emitInitialSnapshotLocked()
+
+      let timer = DispatchSource.makeTimerSource(queue: queue)
+      timer.schedule(deadline: .now() + Self.pollInterval, repeating: Self.pollInterval)
+      timer.setEventHandler { [weak self] in
+        self?.pollLocked()
       }
-      let delta = Self.deltaLines(previous: self.previousSnapshot, current: snapshot)
-      self.previousSnapshot = snapshot
-      if !delta.isEmpty {
-        onLines(delta)
-      }
+      self.timer = timer
+      timer.resume()
     }
-    client.connect()
   }
 
   func stop() {
-    cancellable?.cancel()
-    cancellable = nil
-    previousSnapshot = []
-    client.disconnect()
+    queue.sync {
+      stopLocked()
+    }
   }
 
-  static func deltaLines(previous: [String], current: [String]) -> [String] {
-    if current.isEmpty {
+  private func stopLocked() {
+    timer?.setEventHandler {}
+    timer?.cancel()
+    timer = nil
+    onLines = nil
+    offset = 0
+    pendingPartialLine = ""
+  }
+
+  private func emitInitialSnapshotLocked() {
+    guard let onLines else {
+      return
+    }
+    let lines = readLastLines(from: fileURL, maxLines: maxInitialLines)
+    offset = fileSize(of: fileURL)
+    if !lines.isEmpty {
+      onLines(lines)
+    }
+  }
+
+  private func pollLocked() {
+    guard let onLines else {
+      return
+    }
+    let lines = readNewLines()
+    if !lines.isEmpty {
+      onLines(lines)
+    }
+  }
+
+  private func readLastLines(from url: URL, maxLines: Int) -> [String] {
+    guard let handle = try? FileHandle(forReadingFrom: url) else {
       return []
     }
-    if previous.isEmpty {
-      return current
-    }
-    if current.count >= previous.count && current.prefix(previous.count).elementsEqual(previous) {
-      return Array(current.dropFirst(previous.count))
+    defer { try? handle.close() }
+
+    let fileSize = handle.seekToEndOfFile()
+    let bytesToRead = min(fileSize, UInt64(Self.maxReadBytes))
+    handle.seek(toFileOffset: fileSize - bytesToRead)
+    let data = handle.readDataToEndOfFile()
+    guard !data.isEmpty else {
+      return []
     }
 
-    let maxOverlap = min(previous.count, current.count)
-    if maxOverlap > 0 {
-      for overlap in stride(from: maxOverlap, through: 1, by: -1) {
-        if previous.suffix(overlap).elementsEqual(current.prefix(overlap)) {
-          return Array(current.dropFirst(overlap))
-        }
-      }
+    var lines = parseLines(from: data)
+    if bytesToRead < fileSize && !startsAtLineBoundary(data) && !lines.isEmpty {
+      // Initial tail starts mid-file, so the first decoded entry can be a partial line.
+      lines.removeFirst()
     }
-    return current
+    if lines.count > maxLines {
+      lines = Array(lines.suffix(maxLines))
+    }
+    return lines
+  }
+
+  private func readNewLines() -> [String] {
+    guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
+      return []
+    }
+    defer { try? handle.close() }
+
+    let fileSize = handle.seekToEndOfFile()
+    if offset > fileSize {
+      offset = 0
+    }
+    guard fileSize > offset else {
+      return []
+    }
+
+    let unread = fileSize - offset
+    let bytesToRead = min(unread, UInt64(Self.maxReadBytes))
+
+    handle.seek(toFileOffset: offset)
+    let data = handle.readData(ofLength: Int(bytesToRead))
+    offset += UInt64(data.count)
+
+    return parseChunkLines(from: data)
+  }
+
+  private func fileSize(of url: URL) -> UInt64 {
+    guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path) else {
+      return 0
+    }
+    return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
+  }
+
+  private func parseLines(from data: Data) -> [String] {
+    guard let content = String(data: data, encoding: .utf8) else {
+      return []
+    }
+    return content
+      .split(whereSeparator: \.isNewline)
+      .map(String.init)
+      .filter { !$0.isEmpty }
+  }
+
+  private func parseChunkLines(from data: Data) -> [String] {
+    guard !data.isEmpty, let content = String(data: data, encoding: .utf8) else {
+      return []
+    }
+
+    let normalizedContent = content
+      .replacingOccurrences(of: "\r\n", with: "\n")
+      .replacingOccurrences(of: "\r", with: "\n")
+    let combined = pendingPartialLine + normalizedContent
+    let endsWithNewline = combined.hasSuffix("\n")
+
+    var pieces = combined.components(separatedBy: "\n")
+    if !endsWithNewline {
+      pendingPartialLine = pieces.popLast() ?? ""
+    } else {
+      pendingPartialLine = ""
+    }
+
+    return pieces.filter { !$0.isEmpty }
+  }
+
+  private func startsAtLineBoundary(_ data: Data) -> Bool {
+    guard let first = data.first else {
+      return true
+    }
+    return first == 0x0A || first == 0x0D
   }
 }
