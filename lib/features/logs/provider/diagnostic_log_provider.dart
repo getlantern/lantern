@@ -7,8 +7,7 @@ part 'diagnostic_log_provider.g.dart';
 @riverpod
 Stream<List<String>> diagnosticLogStream(Ref ref) async* {
   final coreService = ref.watch(lanternServiceProvider);
-  // Emit an initial empty snapshot so the logs screen renders immediately
-  // instead of remaining in AsyncLoading until native emits a first batch.
+  // Emit once so the logs screen doesn't stay in loading.
   yield const <String>[];
   final path = await AppStorageUtils.getAppLogDirectory();
   yield* coreService.watchLogs(path);

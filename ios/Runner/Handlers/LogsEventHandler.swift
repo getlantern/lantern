@@ -63,19 +63,24 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
 
 final class IOSFileLogStreamer {
   private static let maxReadBytes = 256 * 1024
-  private static let pollInterval: DispatchTimeInterval = .milliseconds(700)
 
   private let fileURL: URL
   private let maxInitialLines: Int
+  private let pollInterval: DispatchTimeInterval
   private let queue = DispatchQueue(label: "org.getlantern.lantern.ios.file-log-streamer")
   private var timer: DispatchSourceTimer?
   private var offset: UInt64 = 0
   private var pendingPartialLine = ""
   private var onLines: (([String]) -> Void)?
 
-  init(fileURL: URL, maxInitialLines: Int) {
+  init(
+    fileURL: URL,
+    maxInitialLines: Int,
+    pollInterval: DispatchTimeInterval = .milliseconds(700)
+  ) {
     self.fileURL = fileURL
     self.maxInitialLines = maxInitialLines
+    self.pollInterval = pollInterval
   }
 
   func start(_ onLines: @escaping ([String]) -> Void) {
@@ -85,7 +90,7 @@ final class IOSFileLogStreamer {
       emitInitialSnapshotLocked()
 
       let timer = DispatchSource.makeTimerSource(queue: queue)
-      timer.schedule(deadline: .now() + Self.pollInterval, repeating: Self.pollInterval)
+      timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
       timer.setEventHandler { [weak self] in
         self?.pollLocked()
       }

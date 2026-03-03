@@ -1,78 +1,127 @@
-import Combine
 @testable import Runner
+import Foundation
 import XCTest
 
-class RunnerTests: XCTestCase {
+final class RunnerTests: XCTestCase {
 
-  func testDeltaLinesForSimpleAppend() {
-    let delta = IOSCommandLogStreamer.deltaLines(
-      previous: ["a", "b"],
-      current: ["a", "b", "c", "d"])
+  func testFileStreamerEmitsInitialTail() throws {
+    let fileURL = try makeTempLogFile(initialContent: "line-1\nline-2\nline-3\n")
+    let streamer = IOSFileLogStreamer(
+      fileURL: fileURL,
+      maxInitialLines: 2,
+      pollInterval: .milliseconds(50))
 
-    XCTAssertEqual(delta, ["c", "d"])
-  }
-
-  func testDeltaLinesForSlidingWindow() {
-    let delta = IOSCommandLogStreamer.deltaLines(
-      previous: ["a", "b", "c"],
-      current: ["b", "c", "d"])
-
-    XCTAssertEqual(delta, ["d"])
-  }
-
-  func testStreamerEmitsOnlyIncrementalLines() {
-    let fakeClient = FakeCommandLogClient()
-    let streamer = IOSCommandLogStreamer(client: fakeClient)
-    var emitted: [[String]] = []
+    let stateQueue = DispatchQueue(label: "RunnerTests.initialTail")
+    let initialEmission = expectation(description: "initial tail emitted")
+    var initialBatch: [String] = []
 
     streamer.start { lines in
-      emitted.append(lines)
+      stateQueue.sync {
+        guard !lines.isEmpty && initialBatch.isEmpty else {
+          return
+        }
+        initialBatch = lines
+        initialEmission.fulfill()
+      }
     }
 
-    fakeClient.subject.send([])
-    fakeClient.subject.send(["line-1", "line-2"])
-    fakeClient.subject.send(["line-1", "line-2", "line-3"])
-    fakeClient.subject.send(["line-2", "line-3", "line-4"])
-
-    XCTAssertEqual(emitted, [["line-1", "line-2"], ["line-3"], ["line-4"]])
-    XCTAssertEqual(fakeClient.connectCallCount, 1)
-
+    wait(for: [initialEmission], timeout: 1.0)
     streamer.stop()
 
-    XCTAssertEqual(fakeClient.disconnectCallCount, 1)
+    let observed = stateQueue.sync { initialBatch }
+    XCTAssertEqual(observed, ["line-2", "line-3"])
   }
 
-  func testStreamerHandlesLogReset() {
-    let fakeClient = FakeCommandLogClient()
-    let streamer = IOSCommandLogStreamer(client: fakeClient)
-    var emitted: [[String]] = []
+  func testFileStreamerEmitsAppendedLines() throws {
+    let fileURL = try makeTempLogFile(initialContent: "line-1\n")
+    let streamer = IOSFileLogStreamer(
+      fileURL: fileURL,
+      maxInitialLines: 10,
+      pollInterval: .milliseconds(50))
+
+    let stateQueue = DispatchQueue(label: "RunnerTests.appendedLines")
+    let appendedEmission = expectation(description: "appended batch emitted")
+    var emittedBatches: [[String]] = []
 
     streamer.start { lines in
-      emitted.append(lines)
+      stateQueue.sync {
+        guard !lines.isEmpty else {
+          return
+        }
+        emittedBatches.append(lines)
+        if lines == ["line-2", "line-3"] {
+          appendedEmission.fulfill()
+        }
+      }
     }
 
-    fakeClient.subject.send(["old-1", "old-2"])
-    fakeClient.subject.send([])
-    fakeClient.subject.send(["new-1"])
+    try append("line-2\nline-3\n", to: fileURL)
 
-    XCTAssertEqual(emitted, [["old-1", "old-2"], ["new-1"]])
-  }
-}
+    wait(for: [appendedEmission], timeout: 2.0)
+    streamer.stop()
 
-private final class FakeCommandLogClient: IOSCommandLogClient {
-  let subject = PassthroughSubject<[String], Never>()
-  private(set) var connectCallCount = 0
-  private(set) var disconnectCallCount = 0
-
-  var logsPublisher: AnyPublisher<[String], Never> {
-    subject.eraseToAnyPublisher()
+    let observed = stateQueue.sync { emittedBatches }
+    XCTAssertTrue(observed.contains(["line-2", "line-3"]))
   }
 
-  func connect() {
-    connectCallCount += 1
+  func testFileStreamerBuffersPartialLineUntilNewline() throws {
+    let fileURL = try makeTempLogFile()
+    let streamer = IOSFileLogStreamer(
+      fileURL: fileURL,
+      maxInitialLines: 10,
+      pollInterval: .milliseconds(50))
+
+    let stateQueue = DispatchQueue(label: "RunnerTests.partialLines")
+    let completedLineEmission = expectation(description: "completed line emitted")
+    var observedLines: [String] = []
+
+    streamer.start { lines in
+      stateQueue.sync {
+        guard !lines.isEmpty else {
+          return
+        }
+        observedLines.append(contentsOf: lines)
+        if observedLines.contains("partial-line") {
+          completedLineEmission.fulfill()
+        }
+      }
+    }
+
+    try append("partial-line", to: fileURL)
+    Thread.sleep(forTimeInterval: 0.25)
+
+    let beforeNewline = stateQueue.sync { observedLines }
+    XCTAssertFalse(beforeNewline.contains("partial-line"))
+
+    try append("\n", to: fileURL)
+    wait(for: [completedLineEmission], timeout: 1.0)
+    streamer.stop()
+
+    let finalObserved = stateQueue.sync { observedLines }
+    XCTAssertTrue(finalObserved.contains("partial-line"))
   }
 
-  func disconnect() {
-    disconnectCallCount += 1
+  private func makeTempLogFile(initialContent: String = "") throws -> URL {
+    let testDirectoryURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent("RunnerTests-\(UUID().uuidString)", isDirectory: true)
+
+    try FileManager.default.createDirectory(
+      at: testDirectoryURL,
+      withIntermediateDirectories: true,
+      attributes: nil)
+    addTeardownBlock {
+      try? FileManager.default.removeItem(at: testDirectoryURL)
+    }
+
+    let logFileURL = testDirectoryURL.appendingPathComponent("lantern.log")
+    try Data(initialContent.utf8).write(to: logFileURL)
+    return logFileURL
+  }
+
+  private func append(_ text: String, to fileURL: URL) throws {
+    let handle = try FileHandle(forWritingTo: fileURL)
+    defer { try? handle.close() }
+    handle.seekToEndOfFile()
+    handle.write(Data(text.utf8))
   }
 }
