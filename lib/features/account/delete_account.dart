@@ -25,11 +25,21 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     return BaseScreen(title: 'delete_account'.i18n, body: _buildBody());
   }
 
+  SignUpMethodType _resolveOAuthMethodType(String provider) {
+    return SignUpMethodType.values.firstWhere(
+      (e) => e.name == provider,
+      orElse: () => SignUpMethodType.google,
+    );
+  }
+
   Widget _buildBody() {
     final textTheme = Theme.of(context).textTheme;
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
-    final isSSOUser = ref.read(appSettingProvider)!.oAuthToken.isNotEmpty;
+    final appSetting = ref.read(appSettingProvider);
+    final isSSOUser = appSetting.oAuthToken.isNotEmpty;
+    final oAuthMethodType =
+        _resolveOAuthMethodType(appSetting.oAuthLoginProvider);
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +71,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             padding: const EdgeInsets.only(left: 16),
             child: Text(
               isSSOUser
-                  ? 'confirm_with_account'.i18n
+                  ? 'confirm_with_account'
+                      .i18n
+                      .fill([appSetting.oAuthLoginProvider])
                   : 'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
                 color: context.textSecondary,
@@ -84,8 +96,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           SizedBox(height: size24),
           if (isSSOUser)
             OAuthLogin(
-              methodType: SignUpMethodType.google,
-              onResult: (token) {},
+              methodType: oAuthMethodType,
+              onResult: (payload) => processOAuthResult(payload),
             )
           else
             PrimaryButton(
@@ -107,12 +119,26 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     );
   }
 
+  void processOAuthResult(Map<String, dynamic> payload) {
+    // No need to handle the token here since the user is already authenticated.
+    // We just need to proceed with account deletion.
+    appLogger.info('Received OAuth payload for account deletion: $payload');
+    final token = payload['token'] as String? ?? '';
+    final oldToken = ref.read(appSettingProvider).oAuthToken;
+    if (token != oldToken) {
+      context.showSnackBarError('oauth_different_account'.i18n);
+      return;
+    }
+    onDeleteAccount('');
+  }
+
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
+    appLogger.info('Initiating account deletion');
     final localStorageService = sl<LocalStorageService>();
     final String email = localStorageService.getUser()!.legacyUserData.email;
-    final isSSOUser =
-        localStorageService.getAppSetting()!.oAuthToken.isNotEmpty;
+    final appSetting = localStorageService.getAppSetting();
+    final isSSOUser = appSetting?.oAuthToken.isNotEmpty ?? false;
 
     final result = await ref
         .read(authProvider.notifier)
@@ -120,6 +146,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
     result.fold(
       (failure) {
+        appLogger
+            .error('Account deletion failed: ${failure.localizedErrorMessage}');
         context.hideLoadingDialog();
         context.showSnackBarError(failure.localizedErrorMessage);
       },
@@ -127,9 +155,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         context.hideLoadingDialog();
         ref.read(appSettingProvider.notifier)
           ..setEmail("")
-          ..setOAuthToken("")
+          ..setOAuthToken("", "")
           ..setUserLoggedIn(false);
-
+        appLogger.info('Account deletion successful, clearing user data and navigating to root');
         ref.read(homeProvider.notifier).updateUserData(userResponse);
         appRouter.popUntilRoot();
       },

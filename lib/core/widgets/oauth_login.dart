@@ -14,11 +14,13 @@ import '../services/injection_container.dart' show sl;
 
 class OAuthLogin extends HookConsumerWidget {
   final SignUpMethodType methodType;
-  final Function(Map<String, dynamic> token) onResult;
+  final String? label;
+  final Function(Map<String, dynamic> payload) onResult;
 
   const OAuthLogin({
     super.key,
     required this.methodType,
+     this.label,
     required this.onResult,
   });
 
@@ -26,7 +28,7 @@ class OAuthLogin extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (methodType == SignUpMethodType.apple) {
       return SecondaryButton(
-        label: 'continue_with_apple'.i18n,
+        label: label??'continue_with_apple'.i18n,
         icon: AppImagePaths.apple,
         isTaller: true,
         iconColor: context.textPrimary,

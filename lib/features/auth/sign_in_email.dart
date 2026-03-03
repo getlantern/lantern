@@ -73,12 +73,14 @@ class SignInEmail extends HookConsumerWidget {
               SizedBox(height: defaultSize),
               OAuthLogin(
                 methodType: SignUpMethodType.google,
-                onResult: (token) => onOAuthResult(token, context, ref),
+                onResult: (token) =>
+                    onOAuthResult(token, context, ref, SignUpMethodType.google),
               ),
               SizedBox(height: defaultSize),
               OAuthLogin(
                 methodType: SignUpMethodType.apple,
-                onResult: (token) => onOAuthResult(token, context, ref),
+                onResult: (token) =>
+                    onOAuthResult(token, context, ref, SignUpMethodType.apple),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -109,8 +111,8 @@ class SignInEmail extends HookConsumerWidget {
     appRouter.push(SignInPassword(email: email));
   }
 
-  Future<void> onOAuthResult(
-      Map<String, dynamic> result, BuildContext context, WidgetRef ref) async {
+  Future<void> onOAuthResult(Map<String, dynamic> result, BuildContext context,
+      WidgetRef ref, SignUpMethodType type) async {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
@@ -127,7 +129,7 @@ class SignInEmail extends HookConsumerWidget {
           appLogger.debug('Login Response: ${response.toString()}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
-            ..setOAuthToken(token)
+            ..setOAuthToken(token, type.name)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);
 
