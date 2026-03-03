@@ -2,6 +2,8 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -27,6 +29,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final textTheme = Theme.of(context).textTheme;
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
+    final isSSOUser = ref.read(appSettingProvider)!.oAuthToken.isNotEmpty;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,31 +60,41 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'delete_account_message_two'.i18n,
+              isSSOUser
+                  ? 'confirm_with_account'.i18n
+                  : 'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
                 color: context.textSecondary,
               ),
             ),
           ),
-          SizedBox(height: defaultSize),
-          AppTextField(
-            hintText: '',
-            label: 'enter_password_to_confirm'.i18n,
-            obscureText: true,
-            controller: passwordController,
-            prefixIcon: AppImagePaths.lock,
-            onChanged: (value) {
-              buttonEnabled.value = value.isNotEmpty;
-            },
-          ),
+          if (!isSSOUser) ...{
+            SizedBox(height: defaultSize),
+            AppTextField(
+              hintText: '',
+              label: 'enter_password_to_confirm'.i18n,
+              obscureText: true,
+              controller: passwordController,
+              prefixIcon: AppImagePaths.lock,
+              onChanged: (value) {
+                buttonEnabled.value = value.isNotEmpty;
+              },
+            ),
+          },
           SizedBox(height: size24),
-          PrimaryButton(
-            label: 'confirm_deletion'.i18n,
-            enabled: buttonEnabled.value,
-            bgColor: AppColors.red7,
-            isTaller: true,
-            onPressed: () => onDeleteAccount(passwordController.text),
-          ),
+          if (isSSOUser)
+            OAuthLogin(
+              methodType: SignUpMethodType.google,
+              onResult: (token) {},
+            )
+          else
+            PrimaryButton(
+              label: 'confirm_deletion'.i18n,
+              enabled: buttonEnabled.value,
+              bgColor: AppColors.red7,
+              isTaller: true,
+              onPressed: () => onDeleteAccount(passwordController.text),
+            ),
           SizedBox(height: defaultSize),
           SecondaryButton(
             label: 'cancel'.i18n,
@@ -96,10 +109,14 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
-    final String email =
-        sl<LocalStorageService>().getUser()!.legacyUserData.email;
-    final result =
-        await ref.read(authProvider.notifier).deleteAccount(email, password);
+    final localStorageService = sl<LocalStorageService>();
+    final String email = localStorageService.getUser()!.legacyUserData.email;
+    final isSSOUser =
+        localStorageService.getAppSetting()!.oAuthToken.isNotEmpty;
+
+    final result = await ref
+        .read(authProvider.notifier)
+        .deleteAccount(email, password, isSSOUser);
 
     result.fold(
       (failure) {

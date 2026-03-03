@@ -671,7 +671,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.deleteAccount(email, password)
+                        val isSSO = map["isSSO"] as Boolean? ?: error("Missing isSSO")
+                        val bytes = Mobile.deleteAccount(email, password,isSSO)
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }

@@ -5790,20 +5790,22 @@ class LanternBindings {
   ffi.Pointer<ffi.Char> deleteAccount(
     ffi.Pointer<ffi.Char> _email,
     ffi.Pointer<ffi.Char> _password,
+    int _isSSO,
   ) {
     return _deleteAccount(
       _email,
       _password,
+      _isSSO,
     );
   }
 
   late final _deleteAccountPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('deleteAccount');
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Int)>>('deleteAccount');
   late final _deleteAccount = _deleteAccountPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, int)>();
 
   ffi.Pointer<ffi.Char> activationCode(
     ffi.Pointer<ffi.Char> _email,

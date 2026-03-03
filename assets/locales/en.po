@@ -1485,6 +1485,10 @@ msgstr "System"
 msgid "lantern_email"
 msgstr "Lantern Email"
 
+msgid "confirm_with_account"
+msgstr "To confirm deletion please verify with your %s account below:"
+
+
 
 
 

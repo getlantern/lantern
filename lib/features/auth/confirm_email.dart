@@ -123,8 +123,9 @@ class ConfirmEmail extends HookConsumerWidget {
     assert(password != null,
         'Password must be provided to delete account on back press');
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).deleteAccount(email, password!);
+    ///OAuth user do not have verification code
+    ///we can pass OAuth as false always
+    final result = await ref.read(authProvider.notifier).deleteAccount(email, password!,false);
 
     result.fold(
       (failure) {
