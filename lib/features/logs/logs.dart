@@ -25,6 +25,7 @@ class Logs extends HookConsumerWidget {
     final scrollController = useScrollController();
 
     final pinnedToBottom = useState(true);
+    final didInitialScroll = useState(false);
 
     useEffect(() {
       void listener() {
@@ -42,12 +43,16 @@ class Logs extends HookConsumerWidget {
       return () => scrollController.removeListener(listener);
     }, [scrollController]);
 
-    void maybeScrollToBottom() {
-      if (!pinnedToBottom.value) return;
+    void scrollToBottom() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!scrollController.hasClients) return;
         scrollController.jumpTo(scrollController.position.maxScrollExtent);
       });
+    }
+
+    void maybeScrollToBottom() {
+      if (!pinnedToBottom.value) return;
+      scrollToBottom();
     }
 
     Future<void> shareLogFile() async {
@@ -111,7 +116,12 @@ class Logs extends HookConsumerWidget {
               child: logAsyncValue.when(
                 data: (logs) {
                   final visibleLogs = latestLogsForDisplay(logs);
-                  maybeScrollToBottom();
+                  if (visibleLogs.isNotEmpty && !didInitialScroll.value) {
+                    didInitialScroll.value = true;
+                    scrollToBottom();
+                  } else {
+                    maybeScrollToBottom();
+                  }
                   if (visibleLogs.isEmpty) {
                     return Center(
                       child: Text(
