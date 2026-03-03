@@ -13,6 +13,8 @@ import 'package:lantern/features/logs/log_line.dart';
 import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+const int _maxVisibleLogLines = 800;
+
 @RoutePage(name: 'Logs')
 class Logs extends HookConsumerWidget {
   const Logs({super.key});
@@ -29,10 +31,10 @@ class Logs extends HookConsumerWidget {
         if (!scrollController.hasClients) return;
         final pos = scrollController.position;
 
-        // Only treat as "near bottom" when there is meaningful scrollable content.
+        // Treat small/non-scrollable content as pinned, so we keep following new logs.
         final canScrollMeaningfully = pos.maxScrollExtent > 64;
         final nearBottom =
-            canScrollMeaningfully && (pos.maxScrollExtent - pos.pixels) < 64;
+            !canScrollMeaningfully || (pos.maxScrollExtent - pos.pixels) < 64;
         pinnedToBottom.value = nearBottom;
       }
 
@@ -51,7 +53,8 @@ class Logs extends HookConsumerWidget {
     Future<void> shareLogFile() async {
       try {
         if (Platform.isIOS) {
-          final visibleLogs = logAsyncValue.asData?.value ?? const <String>[];
+          final visibleLogs = latestLogsForDisplay(
+              logAsyncValue.asData?.value ?? const <String>[]);
           if (visibleLogs.isEmpty) {
             return;
           }
@@ -107,13 +110,22 @@ class Logs extends HookConsumerWidget {
               ),
               child: logAsyncValue.when(
                 data: (logs) {
+                  final visibleLogs = latestLogsForDisplay(logs);
                   maybeScrollToBottom();
+                  if (visibleLogs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No logs yet',
+                        style: AppTextStyles.logTextStyle,
+                      ),
+                    );
+                  }
                   return ListView.builder(
                     controller: scrollController,
                     padding: const EdgeInsets.all(8.0),
-                    itemCount: logs.length,
+                    itemCount: visibleLogs.length,
                     itemBuilder: (context, index) {
-                      return LogLineWidget(line: logs[index]);
+                      return LogLineWidget(line: visibleLogs[index]);
                     },
                   );
                 },
@@ -133,6 +145,14 @@ class Logs extends HookConsumerWidget {
       ),
     );
   }
+}
+
+@visibleForTesting
+List<String> latestLogsForDisplay(List<String> logs) {
+  if (logs.length <= _maxVisibleLogLines) {
+    return logs;
+  }
+  return logs.sublist(logs.length - _maxVisibleLogLines);
 }
 
 TextStyle getLogStyle(String logLine) {
