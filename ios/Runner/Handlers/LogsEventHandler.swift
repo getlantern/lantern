@@ -1,20 +1,18 @@
+import Combine
+import Flutter
 import Foundation
 
 class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/logs"
+  private static let maxBufferedLines = 4000
 
   private var events: FlutterEventSink?
   private var channel: FlutterEventChannel?
-  private let streamQueue = DispatchQueue(label: "org.getlantern.lantern.logs.stream")
-  private let pollInterval: DispatchTimeInterval = .seconds(1)
-  private var pollTimer: DispatchSourceTimer?
-  private var streamer: IOSDiagnosticLogStreamer?
+  private var streamer: IOSCommandLogStreamer?
 
   deinit {
-    streamQueue.sync {
-      stopPollingLocked()
-      streamer = nil
-    }
+    streamer?.stop()
+    streamer = nil
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -29,52 +27,21 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     -> FlutterError?
   {
     self.events = events
-    let streamer = IOSDiagnosticLogStreamer(logsDirectory: FilePath.logsDirectory)
-    streamQueue.async { [weak self] in
-      guard let self else {
-        return
-      }
-      self.streamer = streamer
-      self.startPollingLocked()
-      self.emit(streamer.initialSnapshot())
+    streamer?.stop()
+    let streamer = IOSCommandLogStreamer(
+      client: CommandClientLogAdapter(logMaxLines: Self.maxBufferedLines))
+    self.streamer = streamer
+    streamer.start { [weak self] lines in
+      self?.emit(lines)
     }
     return nil
   }
 
   public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    streamQueue.async { [weak self] in
-      guard let self else {
-        return
-      }
-      self.stopPollingLocked()
-      self.streamer = nil
-    }
+    streamer?.stop()
+    streamer = nil
     events = nil
     return nil
-  }
-
-  private func startPollingLocked() {
-    stopPollingLocked()
-
-    let timer = DispatchSource.makeTimerSource(queue: streamQueue)
-    timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
-    timer.setEventHandler { [weak self] in
-      guard
-        let self,
-        let streamer = self.streamer
-      else {
-        return
-      }
-      self.emit(streamer.readUpdates())
-    }
-    pollTimer = timer
-    timer.resume()
-  }
-
-  private func stopPollingLocked() {
-    pollTimer?.setEventHandler {}
-    pollTimer?.cancel()
-    pollTimer = nil
   }
 
   private func emit(_ lines: [String]) {
@@ -90,160 +57,82 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   }
 }
 
-private final class IOSDiagnosticLogStreamer {
-  private static let appLogFile = "lantern.log"
-  private static let iosLogFile = "lantern_ios.log"
-  private static let initialLinesPerFile = 200
-  private static let maxLinesPerUpdate = 400
+protocol IOSCommandLogClient {
+  var logsPublisher: AnyPublisher<[String], Never> { get }
+  func connect()
+  func disconnect()
+}
 
-  private let tailers: [IncrementalFileTailer]
+final class CommandClientLogAdapter: IOSCommandLogClient {
+  private let client: CommandClient
 
-  init(logsDirectory: URL) {
-    tailers = [
-      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent(Self.appLogFile)),
-      IncrementalFileTailer(fileURL: logsDirectory.appendingPathComponent(Self.iosLogFile)),
-    ]
+  init(logMaxLines: Int) {
+    client = CommandClient(.log, logMaxLines: logMaxLines)
   }
 
-  func initialSnapshot() -> [String] {
-    var lines: [String] = []
-    for tailer in tailers {
-      lines.append(contentsOf: tailer.initializeFromTail(maxLines: Self.initialLinesPerFile))
-    }
-    return lines
+  var logsPublisher: AnyPublisher<[String], Never> {
+    client.$logList.eraseToAnyPublisher()
   }
 
-  func readUpdates() -> [String] {
-    var lines: [String] = []
-    for tailer in tailers {
-      lines.append(contentsOf: tailer.readNewLines())
-    }
-    if lines.count > Self.maxLinesPerUpdate {
-      return Array(lines.suffix(Self.maxLinesPerUpdate))
-    }
-    return lines
+  func connect() {
+    client.connect()
+  }
+
+  func disconnect() {
+    client.disconnect()
   }
 }
 
-private final class IncrementalFileTailer {
-  private static let initialReadLimitBytes = 256 * 1024
+final class IOSCommandLogStreamer {
+  private let client: IOSCommandLogClient
+  private var cancellable: AnyCancellable?
+  private var previousSnapshot: [String] = []
 
-  private let fileURL: URL
-  private var offset: UInt64 = 0
-  private var partialLine = ""
-
-  init(fileURL: URL) {
-    self.fileURL = fileURL
+  init(client: IOSCommandLogClient) {
+    self.client = client
   }
 
-  func initializeFromTail(maxLines: Int) -> [String] {
-    partialLine = ""
-
-    guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
-      offset = 0
-      return []
-    }
-    defer {
-      try? handle.close()
-    }
-
-    do {
-      let fileSize = try handle.seekToEnd()
-      if fileSize == 0 {
-        offset = 0
-        return []
+  func start(_ onLines: @escaping ([String]) -> Void) {
+    stop()
+    cancellable = client.logsPublisher.sink { [weak self] snapshot in
+      guard let self else {
+        return
       }
-
-      let limit = UInt64(Self.initialReadLimitBytes)
-      let startOffset = fileSize > limit ? fileSize - limit : 0
-      try handle.seek(toOffset: startOffset)
-
-      let data = handle.readDataToEndOfFile()
-      offset = startOffset + UInt64(data.count)
-      var lines = Self.extractLines(from: data, carryingPartialLineIn: &partialLine)
-
-      // If we sought into the middle of the file, drop the first potentially partial line.
-      if startOffset > 0, !lines.isEmpty {
-        lines.removeFirst()
+      let delta = Self.deltaLines(previous: self.previousSnapshot, current: snapshot)
+      self.previousSnapshot = snapshot
+      if !delta.isEmpty {
+        onLines(delta)
       }
-
-      if lines.count > maxLines {
-        lines = Array(lines.suffix(maxLines))
-      }
-      return lines
-    } catch {
-      offset = 0
-      return []
     }
+    client.connect()
   }
 
-  func readNewLines() -> [String] {
-    guard
-      let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
-      let sizeNumber = attrs[.size] as? NSNumber
-    else {
-      offset = 0
-      partialLine = ""
-      return []
-    }
-
-    let fileSize = sizeNumber.uint64Value
-    if fileSize < offset {
-      // File was rotated or truncated.
-      offset = 0
-      partialLine = ""
-    }
-
-    guard fileSize > offset else {
-      return []
-    }
-
-    guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
-      return []
-    }
-    defer {
-      try? handle.close()
-    }
-
-    do {
-      try handle.seek(toOffset: offset)
-      let data = handle.readDataToEndOfFile()
-      offset += UInt64(data.count)
-
-      guard !data.isEmpty else {
-        return []
-      }
-      return Self.extractLines(from: data, carryingPartialLineIn: &partialLine)
-    } catch {
-      return []
-    }
+  func stop() {
+    cancellable?.cancel()
+    cancellable = nil
+    previousSnapshot = []
+    client.disconnect()
   }
 
-  private static func extractLines(from data: Data, carryingPartialLineIn partial: inout String)
-    -> [String]
-  {
-    guard !data.isEmpty else {
+  static func deltaLines(previous: [String], current: [String]) -> [String] {
+    if current.isEmpty {
       return []
     }
-
-    let chunk = String(decoding: data, as: UTF8.self)
-    let combined = partial + chunk
-    let normalized = combined
-      .replacingOccurrences(of: "\r\n", with: "\n")
-      .replacingOccurrences(of: "\r", with: "\n")
-
-    let hasTrailingNewline = normalized.hasSuffix("\n")
-    var parts = normalized
-      .split(separator: "\n", omittingEmptySubsequences: false)
-      .map(String.init)
-
-    if hasTrailingNewline {
-      partial = ""
-    } else {
-      partial = parts.popLast() ?? ""
+    if previous.isEmpty {
+      return current
+    }
+    if current.count >= previous.count && current.prefix(previous.count).elementsEqual(previous) {
+      return Array(current.dropFirst(previous.count))
     }
 
-    parts.removeAll(where: \.isEmpty)
-    return parts
+    let maxOverlap = min(previous.count, current.count)
+    if maxOverlap > 0 {
+      for overlap in stride(from: maxOverlap, through: 1, by: -1) {
+        if previous.suffix(overlap).elementsEqual(current.prefix(overlap)) {
+          return Array(current.dropFirst(overlap))
+        }
+      }
+    }
+    return current
   }
 }
