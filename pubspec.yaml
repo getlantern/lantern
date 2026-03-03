@@ -21,10 +21,6 @@ version: 9.0.3+91
 environment:
   sdk: ^3.6.0
   flutter: 3.35.6
-
-dependency_overrides:
-  in_app_purchase_storekit: 0.3.22+1
-
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
