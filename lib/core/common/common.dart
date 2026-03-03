@@ -225,5 +225,4 @@ Future<bool> isStageEnvironment() async {
   final dir = await AppStorageUtils.getAppDirectory();
   final envFile = File('${dir.path}/.radiance_env');
   return envFile.existsSync();
-
 }

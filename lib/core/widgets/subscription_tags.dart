@@ -27,13 +27,16 @@ class SubscriptionTags extends StatelessWidget {
       decoration: BoxDecoration(
           color: isExpired ? context.statusErrorBg : context.statusSuccessBg,
           border: Border.all(
-            color: isExpired ? context.statusErrorBorder : context.statusSuccessBorder,
+            color: isExpired
+                ? context.statusErrorBorder
+                : context.statusSuccessBorder,
           ),
           borderRadius: BorderRadius.circular(8)),
       child: Text(
         isExpired ? 'subscription_expired'.i18n : 'pro'.i18n,
         style: textTheme.labelMedium!.copyWith(
-          color: isExpired ? context.statusErrorText : context.statusSuccessText,
+          color:
+              isExpired ? context.statusErrorText : context.statusSuccessText,
         ),
       ),
     );

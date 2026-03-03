@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/vpn"
 	"github.com/getlantern/radiance/vpn/ipc"
 )
 
@@ -110,18 +111,18 @@ func startLinuxStatusPoller() {
 	})
 }
 
-func mapIPCStateToUIStatus(state string, err error) string {
+func mapIPCStateToUIStatus(state ipc.VPNStatus, err error) string {
 	if err != nil {
 		return string(Disconnected)
 	}
 	switch state {
-	case ipc.StatusRunning:
+	case ipc.Connected:
 		return string(Connected)
-	case ipc.StatusConnecting, ipc.StatusInitializing:
+	case ipc.Connecting:
 		return string(Connecting)
-	case ipc.StatusClosing:
+	case ipc.Disconnecting:
 		return string(Disconnecting)
-	case ipc.StatusClosed:
+	case ipc.Disconnected:
 		return string(Disconnected)
 	default:
 		return string(Disconnected)
@@ -151,10 +152,7 @@ func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 		return C.CString(err.Error())
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := ipc.StartService(ctx, "", ""); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+	if err := vpn.AutoConnect(""); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
 		sendStatusToPort(Error)
 		if errors.Is(err, ipc.ErrIPCNotRunning) {
 			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
@@ -196,24 +194,13 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 		return SendError(err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
-	defer cancel()
-
-	if err := ipc.StartService(ctx, group, tag); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+	if err := vpn.Connect(group, tag); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
 		if errors.Is(err, ipc.ErrIPCNotRunning) {
 			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
 				return SendError(diagErr)
 			}
 		}
 		return SendError(fmt.Errorf("start service failed: %w", err))
-	}
-
-	if tag == "" {
-		return C.CString("ok")
-	}
-
-	if err := ipc.SelectOutbound(ctx, group, tag); err != nil {
-		return SendError(fmt.Errorf("select outbound failed: %w", err))
 	}
 
 	return C.CString("ok")

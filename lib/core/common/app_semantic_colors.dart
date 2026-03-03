@@ -105,7 +105,8 @@ extension AppSemanticColors on BuildContext {
       _isDark ? AppColors.green6 : AppColors.green4;
 
   /// status.warning-text  Yellow.500 light / Yellow.200 dark
-  Color get statusWarningText => _isDark ? AppColors.yellow2 : AppColors.yellow5;
+  Color get statusWarningText =>
+      _isDark ? AppColors.yellow2 : AppColors.yellow5;
 
   /// status.warning-bg-dot  Yellow.300 light / Yellow.500 dark
   Color get statusWarningBgDot =>
@@ -134,8 +135,7 @@ extension AppSemanticColors on BuildContext {
       _isDark ? AppColors.yellow4 : AppColors.yellow2;
 
   /// status.success-bg-dot  Green.600 light / Green.700 dark
-  Color get statusSuccessBgDot =>
-      _isDark ? AppColors.green7 : AppColors.green6;
+  Color get statusSuccessBgDot => _isDark ? AppColors.green7 : AppColors.green6;
 
   /// status.success-border-dot  Green.300 light / Green.500 dark
   Color get statusSuccessBorderDot =>

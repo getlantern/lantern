@@ -38,7 +38,7 @@ class InfoRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
         minTileHeight: minTileHeight,
-        tileColor: backgroundColor?? context.bgElevated,
+        tileColor: backgroundColor ?? context.bgElevated,
         onTap: onPressed,
         contentPadding:
             padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 4),
