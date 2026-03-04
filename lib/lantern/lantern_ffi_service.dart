@@ -49,6 +49,7 @@ class LanternFFIService implements LanternCoreService {
   /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
   /// we keep going and fall back to the non-IPC paths.
   LanternServiceWindows? _windowsService;
+  Future<LanternServiceWindows?>? _windowsServiceInitInFlight;
 
   Stream<LanternStatus> _status = _defaultStatusStream();
 
@@ -62,8 +63,6 @@ class LanternFFIService implements LanternCoreService {
       LanternStatus.fromJson({'status': 'disconnected', 'error': null}),
     );
   }
-
-  bool get _hasWindowsService => _windowsService != null;
 
   static SendPort? _commandSendPort;
   static final Completer<void> _isolateInitialized = Completer<void>();
@@ -133,18 +132,13 @@ class LanternFFIService implements LanternCoreService {
       if (Platform.isWindows) {
         /// Start windows IPC service.
         /// Keep it alive, but we only use it for VPN-related calls.
-        try {
-          await _initializeWindowsService();
-          if (_hasWindowsService) {
-            _status = _windowsService!.watchVPNStatus();
-          }
-        } catch (e, st) {
-          appLogger.error(
+        final ws = await _getOrInitWindowsService();
+        if (ws != null) {
+          _status = ws.watchVPNStatus();
+        } else {
+          appLogger.warning(
             'Windows IPC init failed; continuing without Windows service',
-            e,
-            st,
           );
-          _windowsService = null;
         }
 
         if (!_isolateInitialized.isCompleted) {
@@ -265,14 +259,26 @@ class LanternFFIService implements LanternCoreService {
     if (existing != null) {
       return existing;
     }
-    try {
-      await _initializeWindowsService();
-    } catch (e, st) {
-      appLogger.error('Windows IPC re-init failed', e, st);
-      _windowsService = null;
-      return null;
+
+    final inFlight = _windowsServiceInitInFlight;
+    if (inFlight != null) {
+      return inFlight;
     }
-    return _windowsService;
+
+    final initFuture = () async {
+      try {
+        await _initializeWindowsService();
+      } catch (e, st) {
+        appLogger.error('Windows IPC re-init failed', e, st);
+        _windowsService = null;
+      } finally {
+        _windowsServiceInitInFlight = null;
+      }
+      return _windowsService;
+    }();
+
+    _windowsServiceInitInFlight = initFuture;
+    return initFuture;
   }
 
   @override
