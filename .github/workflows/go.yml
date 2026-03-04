@@ -3,8 +3,17 @@ name: Go CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/go.yml'
   pull_request:
-    branches: [main]
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/go.yml'
 
 jobs:
   build:
