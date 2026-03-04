@@ -38,8 +38,17 @@ class LanternServiceWindows {
     await _rpcPipe.close();
   }
 
+  Future<void> _connectRpcPipeIfNeeded() async {
+    if (_rpcPipe.isConnected) {
+      return;
+    }
+    appLogger.warning('[WS] RPC pipe disconnected; reconnecting');
+    await _rpcPipe.connect().timeout(const Duration(seconds: 5));
+  }
+
   Future<Either<Failure, String>> connect() async {
     try {
+      await _connectRpcPipeIfNeeded();
       await _rpcPipe.call(ServiceCommand.startTunnel.wire);
       return right('ok');
     } catch (e) {
@@ -50,6 +59,7 @@ class LanternServiceWindows {
 
   Future<Either<Failure, String>> disconnect() async {
     try {
+      await _connectRpcPipeIfNeeded();
       await _rpcPipe.call(ServiceCommand.stopTunnel.wire);
       return right('ok');
     } catch (e) {
@@ -60,6 +70,7 @@ class LanternServiceWindows {
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {
+      await _connectRpcPipeIfNeeded();
       await _rpcPipe.call(ServiceCommand.connectToServer.wire, {
         'location': location,
         'tag': tag,
@@ -74,6 +85,7 @@ class LanternServiceWindows {
 
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
+      await _connectRpcPipeIfNeeded();
       final res = await _rpcPipe.call(ServiceCommand.isVPNRunning.wire);
       final running = (res['running'] as bool?) ?? false;
       return right(running);

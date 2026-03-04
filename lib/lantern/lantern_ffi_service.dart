@@ -240,16 +240,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   Future<void> _initializeWindowsService() async {
-    final tokenFile = File(
-      p.join(
-        Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-        'Lantern',
-        'ipc-token',
-      ),
+    final tokenPath = p.join(
+      Platform.environment['ProgramData'] ?? r'C:\ProgramData',
+      'Lantern',
+      'ipc-token',
     );
-
-    final token = (await tokenFile.readAsString()).trim();
-    final pipe = PipeClient(token: token);
+    final pipe = PipeClient(tokenPath: tokenPath);
 
     // Create locally first; only assign to the field after init succeeds.
     final ws = LanternServiceWindows(pipe);
@@ -262,6 +258,21 @@ class LanternFFIService implements LanternCoreService {
       _windowsService = null;
       rethrow; // init() will catch and keep going; this keeps the original stack.
     }
+  }
+
+  Future<LanternServiceWindows?> _getOrInitWindowsService() async {
+    final existing = _windowsService;
+    if (existing != null) {
+      return existing;
+    }
+    try {
+      await _initializeWindowsService();
+    } catch (e, st) {
+      appLogger.error('Windows IPC re-init failed', e, st);
+      _windowsService = null;
+      return null;
+    }
+    return _windowsService;
   }
 
   @override
@@ -567,7 +578,7 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error starting auto location listener: $e");
       }
 
-      final ws = _windowsService;
+      final ws = await _getOrInitWindowsService();
       if (ws == null) {
         return left(
           Failure(
@@ -626,7 +637,7 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error stopping auto location listener: $e");
       }
 
-      final ws = _windowsService;
+      final ws = await _getOrInitWindowsService();
       if (ws == null) {
         return left(
           Failure(
@@ -709,7 +720,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
       if (Platform.isWindows) {
-        final ws = _windowsService;
+        final ws = await _getOrInitWindowsService();
         if (ws == null) {
           return right(false);
         }

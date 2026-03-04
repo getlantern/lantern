@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:lantern/core/common/common.dart';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
-import 'package:win32/win32.dart';
 
 class PipeClient {
   PipeClient({
@@ -51,6 +50,9 @@ class PipeClient {
 
   Future<void> connect() async {
     await _getToken();
+    if (isConnected) {
+      await close();
+    }
     final start = DateTime.now();
     final lpName = TEXT(pipeName);
     try {
@@ -74,6 +76,9 @@ class PipeClient {
           await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
+        if (code == 0) {
+          throw Exception('Failed to open pipe: service pipe unavailable');
+        }
         throw Exception('Failed to open pipe: error $code');
       }
     } finally {
@@ -83,7 +88,43 @@ class PipeClient {
 
   Future<Map<String, dynamic>> call(String cmd,
       [Map<String, dynamic>? params]) async {
-    if (!isConnected) throw StateError('Pipe not connected');
+    await _connectPipeIfNeeded();
+    try {
+      return await _callConnected(cmd, params);
+    } catch (e) {
+      if (!_isRecoverablePipeError(e)) {
+        rethrow;
+      }
+      appLogger.warning('Pipe call failed, reconnecting once: $e');
+      await close();
+      await _connectPipeIfNeeded();
+      return _callConnected(cmd, params);
+    }
+  }
+
+  Future<void> _connectPipeIfNeeded() async {
+    if (isConnected) {
+      return;
+    }
+    await connect();
+  }
+
+  bool _isRecoverablePipeError(Object e) {
+    if (e is StateError) {
+      return true;
+    }
+    final msg = e.toString().toLowerCase();
+    return msg.contains('pipe not connected') ||
+        msg.contains('writefile failed') ||
+        msg.contains('readfile failed') ||
+        msg.contains('broken pipe') ||
+        msg.contains('invalid handle');
+  }
+
+  Future<Map<String, dynamic>> _callConnected(
+    String cmd,
+    Map<String, dynamic>? params,
+  ) async {
     await _getToken();
     final payload = '${jsonEncode({
           'id': DateTime.now().microsecondsSinceEpoch.toString(),
