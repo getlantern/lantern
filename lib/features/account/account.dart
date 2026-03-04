@@ -61,10 +61,10 @@ class Account extends HookConsumerWidget {
           if (isExpired) ...{
             InfoRow(
               minTileHeight: 40,
-              backgroundColor: AppColors.red1,
-              borderColor: AppColors.red2,
+              backgroundColor: buildContext.statusErrorBg,
+              borderColor: buildContext.statusErrorBorder,
               textStyle: theme.labelLarge!.copyWith(
-                color: buildContext.statusErrorBg,
+                color: buildContext.statusErrorText,
               ),
               text: 'pro_subscription_expired_message'.i18n,
             ),

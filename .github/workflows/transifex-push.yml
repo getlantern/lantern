@@ -7,7 +7,6 @@ on:
       - 'assets/locales/**'
       - '.tx/config'
       - '.github/workflows/transifex-push.yml'
-
   workflow_dispatch:
 
 jobs:
@@ -17,6 +16,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate PO file
+        run: |
+          sudo apt-get install -y gettext
+          msgfmt --check assets/locales/en.po
 
       - name: "Push main translations file"
         uses: transifex/cli-action@v2

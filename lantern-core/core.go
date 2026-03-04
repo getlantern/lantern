@@ -3,12 +3,10 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,7 +22,6 @@ import (
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/getlantern/radiance/vpn/ipc"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
@@ -197,19 +194,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
-	}
-
-	if runtime.GOOS == "linux" {
-		slog.Debug("Setting IPC settings path for Linux", "path", settings.GetString(settings.DataPathKey))
-		if err := ipc.SetSettingsPath(context.Background(), settings.GetString(settings.DataPathKey)); err != nil {
-			// lanternd may not be ready yet during app startup; defer this until daemon is reachable.
-			if errors.Is(err, ipc.ErrIPCNotRunning) || errors.Is(err, ipc.ErrServiceIsNotReady) {
-				slog.Warn("Skipping IPC settings path update because lanternd is not ready", "error", err)
-			} else {
-				slog.Error("Failed to set IPC settings path", "error", err)
-				return fmt.Errorf("failed to set IPC settings path: %w", err)
-			}
-		}
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
