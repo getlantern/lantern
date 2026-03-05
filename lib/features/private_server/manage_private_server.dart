@@ -86,8 +86,16 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      buildServersTab(myServers, canShareAccessKey: true),
-                      buildServersTab(joinedServers, canShareAccessKey: false),
+                      buildServersTab(
+                        myServers,
+                        canShareAccessKey: true,
+                        emptyStateMessage: 'no_private_server_setup_yet'.i18n,
+                      ),
+                      buildServersTab(
+                        joinedServers,
+                        canShareAccessKey: false,
+                        emptyStateMessage: 'join_a_private_server'.i18n,
+                      ),
                     ],
                   ),
                 ),
@@ -102,6 +110,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget buildServersTab(
     List<Location_> servers, {
     required bool canShareAccessKey,
+    required String emptyStateMessage,
   }) {
     return Column(
       children: <Widget>[
@@ -114,7 +123,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         ],
         Expanded(
           child: servers.isEmpty
-              ? Center(child: Text('no_private_server_setup_yet'.i18n))
+              ? Center(child: Text(emptyStateMessage))
               : _buildListView(servers, canShareAccessKey: canShareAccessKey),
         ),
       ],
@@ -151,8 +160,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   ],
                 ),
               ),
-              if (canShareAccessKey) ...{
-                SizedBox(height: 8),
+              if (canShareAccessKey) ...[
+                const SizedBox(height: 8),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: context.bgElevated,
@@ -161,8 +170,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     showBorder: true,
                     textColor: context.textPrimary,
                     onPressed: () => onTapShareAccessKey(item)),
-                SizedBox(height: 8),
-              }
+                const SizedBox(height: 8),
+              ]
             ],
           ),
         );
@@ -186,7 +195,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     if (userServer == null || accessToken.isEmpty) {
       appLogger.warning(
           'Missing outbound/access token for private server tag=${location.tag}');
-      context.showSnackBar('Unable to share access key for this server.');
+      context.showSnackBar('error_occurred'.i18n);
       return;
     }
     final privateServer = PrivateServer(
