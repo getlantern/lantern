@@ -90,7 +90,7 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
     AddServerBasedOnURLs("addServerBasedOnURLs"),
-
+    DeleteServerByTag("deleteServerByTag"),
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
@@ -927,6 +927,24 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "DigitalOcean",
                             e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.DeleteServerByTag.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val tag = call.arguments as String? ?: error("Missing tag")
+                        Mobile.deleteServer(tag)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DELETE_SERVER_BY_TAG_ERROR",
+                            e.localizedMessage ?: "Error deleting server by tag",
                             e
                         )
                     }

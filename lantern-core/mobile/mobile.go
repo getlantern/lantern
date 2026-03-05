@@ -518,6 +518,10 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	})
 }
 
+func DeleteServer(tag string) error {
+	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
+}
+
 // Smart Routing Methods
 
 // SetSmartRoutingMode sets the smart routing mode.

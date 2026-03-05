@@ -91,10 +91,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget buildMyServer(List<Location_> myServers) {
     return Column(
       children: <Widget>[
-        const SizedBox(height: defaultSize),
+        const SizedBox(height: 8),
         InfoRow(
           text: 'access_key_expiration'.i18n,
         ),
+        const SizedBox(height: 8),
         Expanded(child: _buildListView(myServers)),
       ],
     );
@@ -102,7 +103,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   Widget _buildListView(List<Location_> myServers) {
     return ListView.builder(
-      padding: const EdgeInsets.all(0),
+      padding:  EdgeInsets.zero,
       itemCount: myServers.length,
       itemBuilder: (context, index) {
         final item = myServers[index];
@@ -128,16 +129,16 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 ),
               ),
               if (true) ...{
-                SizedBox(height: 16),
+                SizedBox(height: 8),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
-                    bgColor: AppColors.blue1,
+                    bgColor: context.bgElevated,
                     icon: AppImagePaths.shareV2,
                     iconColor: context.textPrimary,
                     showBorder: true,
                     textColor: context.textPrimary,
                     onPressed: () => onTapShareAccessKey(item)),
-                SizedBox(height: 16),
+                SizedBox(height: 8),
               }
             ],
           ),

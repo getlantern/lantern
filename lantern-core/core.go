@@ -104,6 +104,7 @@ type PrivateServer interface {
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
 	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
+	DeleteServer(tag string) error
 }
 
 type Payment interface {
@@ -797,6 +798,11 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 	}
 	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
 	return lc.serverManager.RevokePrivateServerInvite(ip, portInt, accessToken, inviteName)
+}
+
+func (lc *LanternCore) DeleteServer(tag string) error {
+	slog.Debug("Deleting server with tag: ", "tag", tag)
+	return lc.serverManager.RemoveServer(tag)
 }
 
 func parsePort(port string) (int, error) {

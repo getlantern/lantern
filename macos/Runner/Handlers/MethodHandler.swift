@@ -187,6 +187,12 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
+      case "deleteServerByTag":
+        guard let data = self.decodeValue(from: call.arguments, result: result) as String? else {
+          return
+        }
+        self.deleteServerByTag(result: result, tag: data)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -845,6 +851,18 @@ class MethodHandler {
       MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func deleteServerByTag(result: @escaping FlutterResult, tag: String) {
+    Task {
+      var error: NSError?
+      MobileDeleteServer(tag, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_SERVER_BY_TAG_ERROR")
         return
       }
       await self.replyOK(result)

@@ -10,11 +10,9 @@ import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
@@ -1189,6 +1187,19 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(
+      String serverName) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+            'deleteServerByTag', serverName);
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching auto server location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
   /// macOS System Extension methods
   @override
   Future<Either<Failure, String>> triggerSystemExtension() async {
@@ -1289,12 +1300,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
-    // TODO: implement deletePrivateServerByName
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, PlansData?>> getCachedPlans() {
     // TODO: implement getCachedPlans
     throw UnimplementedError();
@@ -1312,8 +1317,6 @@ class LanternPlatformService implements LanternCoreService {
     // TODO: implement setCachedPlans
     throw UnimplementedError();
   }
-
-
 
   @override
   Future<Either<Failure, Unit>> updatePrivateServerName(

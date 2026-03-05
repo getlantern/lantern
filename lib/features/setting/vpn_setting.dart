@@ -25,11 +25,7 @@ class VPNSetting extends HookConsumerWidget {
     final isUserPro = ref.watch(isUserProProvider);
     final preferences = ref.read(appSettingProvider);
     final notifier = ref.read(appSettingProvider.notifier);
-    // final privateServersAsync = ref.watch(privateServersProvider);
-    // final isPrivateServerFound = privateServersAsync.maybeWhen(
-    //   data: (servers) => servers.isNotEmpty,
-    //   orElse: () => false,
-    // );
+    final isPrivateServerFound =  ref.watch(isPrivateServerFoundProvider);
     final splitTunnelingEnabled =
         ref.read(appSettingProvider).isSplitTunnelingOn;
     final routingMode = preferences.routingMode;
@@ -138,7 +134,7 @@ class VPNSetting extends HookConsumerWidget {
                 onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
-              if (false)
+              if (isPrivateServerFound)
                 AppTile(
                   label: 'manage_private_servers'.i18n,
                   icon: AppImagePaths.settingServer,
