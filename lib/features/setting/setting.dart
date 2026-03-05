@@ -42,8 +42,8 @@ class _SettingState extends ConsumerState<Setting> {
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
     final user = ref.watch(currentUserProvider);
-    final isUserPro = ref.watch(isUserProFromCoreProvider);
-    final email = ref.watch(userEmailFromCoreProvider);
+    final isUserPro = ref.watch(isUserProProvider);
+    final email = ref.watch(userEmailProvider);
 
     final appSetting = ref.watch(appSettingProvider);
 

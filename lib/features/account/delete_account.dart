@@ -97,7 +97,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
-    final email = ref.read(userEmailFromCoreProvider);
+    final email = ref.read(userEmailProvider);
 
     final result =
         await ref.read(authProvider.notifier).deleteAccount(email, password);

@@ -34,7 +34,7 @@ final class ServerLocationNotifierProvider
 }
 
 String _$serverLocationNotifierHash() =>
-    r'085d1720563f05989fdb0513c9e70dcb94f86416';
+    r'4669f19153fbdc2a07817f5d2d00f075e3dba2cc';
 
 abstract class _$ServerLocationNotifier extends $AsyncNotifier<ServerLocation> {
   FutureOr<ServerLocation> build();

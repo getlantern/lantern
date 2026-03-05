@@ -4,15 +4,15 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -1503,69 +1503,6 @@ class LanternFFIService implements LanternCoreService {
 
   // --- Private servers (FFI) ---
 
-  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() async {
-    final res = await _ffiJsonString(() async {
-      // getPrivateServers() returns a CString / char*
-      return _ffiService.getPrivateServers().toDartString();
-    });
-
-    return res.match(
-      (failure) => left(failure),
-      (jsonStr) {
-        try {
-          if (jsonStr.trim().isEmpty) {
-            return right(<PrivateServer>[]);
-          }
-
-          final decoded = jsonDecode(jsonStr);
-          if (decoded is! List) {
-            // defensive: if Go returns `{error:...}` checkAPIError would have thrown already.
-            return left(
-              Failure(
-                error: 'Invalid private servers payload',
-                localizedErrorMessage: 'Invalid private servers payload',
-              ),
-            );
-          }
-
-          final raw = decoded.cast<Map<String, dynamic>>();
-          final servers = raw.map(PrivateServer.fromJson).toList();
-          return right(servers);
-        } catch (e, st) {
-          appLogger.error('Failed parsing private servers JSON', e, st);
-          return left(e.toFailure());
-        }
-      },
-    );
-  }
-
-  Future<Either<Failure, Unit>> savePrivateServer(
-    PrivateServer server, {
-    required bool joined,
-  }) async {
-    try {
-      final jsonStr = jsonEncode(server.toJson());
-      final jsonPtr = jsonStr.toNativeUtf8();
-
-      try {
-        final result = await runInBackground<String>(() async {
-          // If your generated bindings signature is:
-          //   Pointer<Utf8> savePrivateServer(Pointer<Char> json, Int32 joined)
-          // then this matches your other patterns: `.toDartString()`.
-          return _ffiService
-              .savePrivateServer(jsonPtr.cast<Char>(), joined ? 1 : 0)
-              .toDartString();
-        });
-
-        return _okOrFailureFromString(result);
-      } finally {
-        malloc.free(jsonPtr);
-      }
-    } catch (e, st) {
-      appLogger.error('savePrivateServer failed', e, st);
-      return left(e.toFailure());
-    }
-  }
 
   Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
     try {

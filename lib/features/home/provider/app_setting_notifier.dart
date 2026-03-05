@@ -24,15 +24,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   @override
   AppSetting build() {
-    // First-time fallback, then asynchronously hydrate from prefs.
     final fallback = _detectDeviceLocale();
     final initial = AppSetting(locale: fallback.toString());
-    unawaited(_loadFromPrefs(initial));
-    unawaited(_detectEnvironmentFromFile());
+    unawaited(_loadFromPrefs(initial).then((_) => _detectEnvironmentFromFile()));
+    appLogger.info('initial app settings: ${initial.toJson()}');
     return initial;
   }
 
   Future<void> update(AppSetting updated) async {
+    appLogger.info('Updating app settings: ${updated.toJson()}');
     state = updated;
     await _saveToPrefs(updated);
   }
@@ -64,8 +64,11 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setUserLoggedIn(bool value) =>
       update(state.copyWith(userLoggedIn: value));
+
   void setOAuthToken(String token) => update(state.copyWith(oAuthToken: token));
+
   void setEmail(String email) => update(state.copyWith(email: email));
+
   void setSuccessfulConnection(bool value) =>
       update(state.copyWith(successfulConnection: value));
 
@@ -118,18 +121,24 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   Future<void> _loadFromPrefs(AppSetting fallback) async {
     if (_didAttemptLoad) return;
     _didAttemptLoad = true;
+
     final raw = await _storage.getString(_settingsPrefsKey);
+
+    // No stored settings — save initial defaults and keep current state.
     if (raw == null || raw.isEmpty) {
-      await _storage.setString(_settingsPrefsKey, jsonEncode(fallback.toJson()));
+      appLogger.info('No stored app settings found, using defaults: $fallback');
+      state = fallback;
+      await _saveToPrefs(fallback);
       return;
     }
+
+    // Stored settings found — restore them.
     try {
       final decoded = jsonDecode(raw);
       if (decoded is Map) {
+        appLogger.info('Loaded stored app settings: $decoded');
         state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
-        unawaited(
-          _applyDesktopBrightness(resolveThemeMode(state.themeMode)),
-        );
+        unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
       }
     } catch (e, st) {
       appLogger.error('Failed to parse stored app settings', e, st);

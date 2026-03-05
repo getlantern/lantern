@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/current_user_providers.dart';
 
 @RoutePage(name: 'DeveloperMode')
@@ -20,14 +23,14 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+
     appLogger.info('User info: $user');
-
     final developerMode = ref.watch(developerModeProvider);
-    final devNotifier = ref.watch(developerModeProvider.notifier);
-
-    final userId = user?.legacyUserData.userId.toString() ?? 'N/A';
-    final userLevel = user?.legacyUserData.userLevel ?? 'N/A';
-
+    final devNotifier = ref.read(developerModeProvider.notifier);
+    final appSetting = ref.watch(appSettingProvider);
+    final appSettingNotifier = ref.watch(appSettingProvider.notifier);
+    final isStaging = appSetting.environment == 'stage' ||
+        appSetting.environment == 'staging';
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -41,26 +44,34 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             child: Column(
               children: <Widget>[
                 AppTile(
-                  label: 'Reset App',
-                  onPressed: () => resetAppData(context),
-                ),
-                DividerSpace(),
-                AppTile(
                   label: 'UserId',
-                  trailing: AppTextButton(label: userId),
+                  trailing: AppTextButton(
+                    label: user?.legacyUserData.userId?.toString() ?? 'N/A',
+                  ),
                 ),
                 DividerSpace(),
                 AppTile(
                   label: 'Status',
-                  trailing: AppTextButton(label: userLevel),
+                  trailing: AppTextButton(
+                    label: user?.legacyUserData.userLevel ?? 'N/A',
+                  ),
                 ),
                 DividerSpace(),
+              ],
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
                 if (PlatformUtils.isAndroid)
                   AppTile(
                     label: 'Test Play Purchase',
                     trailing: SwitchButton(
                       value: developerMode.testPlayPurchaseEnabled,
                       onChanged: (bool? value) {
+                        appLogger.info('Test Play Purchase toggled: $value');
                         devNotifier.updateDeveloperSettings(
                           developerMode.copyWith(
                             testPlayPurchaseEnabled: value ?? false,
@@ -69,13 +80,102 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       },
                     ),
                   ),
+                DividerSpace(),
+                if (!PlatformUtils.isIOS)
+                  AppTile(
+                    label: 'Stage Environment',
+                    trailing: SwitchButton(
+                      value: isStaging,
+                      onChanged: (value) async {
+                        await appSettingNotifier.setEnvironment(value);
+                        if (!context.mounted) return;
+                        AppDialog.dialog(
+                          context: context,
+                          title: 'Restart Required',
+                          content:
+                              'Please restart the app for the environment change to take effect.',
+                          onPressed: () {
+                            exit(0);
+                          },
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
-          )
+          ),
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'Reset App',
+              onPressed: () => resetAppData(context),
+            ),
+          ),
         ],
       ),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   final user = ref.watch(currentUserProvider);
+  //   appLogger.info('User info: $user');
+  //
+  //   final developerMode = ref.watch(developerModeProvider);
+  //   final devNotifier = ref.watch(developerModeProvider.notifier);
+  //
+  //   final userId = user?.legacyUserData.userId.toString() ?? 'N/A';
+  //   final userLevel = user?.legacyUserData.userLevel ?? 'N/A';
+  //
+  //   return BaseScreen(
+  //     title: 'developer_mode'.i18n,
+  //     body: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         InfoRow(text: 'developer_mode_note'.i18n),
+  //         SizedBox(height: defaultSize),
+  //         AppCard(
+  //           margin: EdgeInsets.zero,
+  //           padding: EdgeInsets.zero,
+  //           child: Column(
+  //             children: <Widget>[
+  //               AppTile(
+  //                 label: 'Reset App',
+  //                 onPressed: () => resetAppData(context),
+  //               ),
+  //               DividerSpace(),
+  //               AppTile(
+  //                 label: 'UserId',
+  //                 trailing: AppTextButton(label: userId),
+  //               ),
+  //               DividerSpace(),
+  //               AppTile(
+  //                 label: 'Status',
+  //                 trailing: AppTextButton(label: userLevel),
+  //               ),
+  //               DividerSpace(),
+  //               if (PlatformUtils.isAndroid)
+  //                 AppTile(
+  //                   label: 'Test Play Purchase',
+  //                   trailing: SwitchButton(
+  //                     value: developerMode.testPlayPurchaseEnabled,
+  //                     onChanged: (bool? value) {
+  //                       devNotifier.updateDeveloperSettings(
+  //                         developerMode.copyWith(
+  //                           testPlayPurchaseEnabled: value ?? false,
+  //                         ),
+  //                       );
+  //                     },
+  //                   ),
+  //                 ),
+  //             ],
+  //           ),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Future<void> resetAppData(BuildContext context) async {
     final appDir = await AppStorageUtils.getAppDirectory();

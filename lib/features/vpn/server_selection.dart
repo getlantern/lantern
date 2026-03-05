@@ -152,17 +152,11 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     );
   }
 
-  Widget _buildSmartLocation(ServerLocation selectedServer) {
-    final displayName = selectedServer.displayName.isNotEmpty
-        ? selectedServer.displayName
-        : 'smart_location'.i18n;
-
-    final flag = selectedServer.countryCode;
-    final protocol = selectedServer.protocol;
-
-    final isAutoSelected =
-        selectedServer.serverType == ServerLocationType.auto.name;
-
+  Widget _buildSmartLocation(ServerLocation serverLocation) {
+    final autoLocation = serverLocation.autoLocation;
+    final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
+    final flag = autoLocation?.countryCode ?? '';
+    final protocol = autoLocation?.protocol ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -170,7 +164,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'smart_location'.i18n,
-            style: _textTheme?.labelLarge!.copyWith(color: AppColors.gray8),
+            style:
+                _textTheme?.labelLarge!.copyWith(color: context.textSecondary),
           ),
         ),
         AppCard(
@@ -185,14 +180,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 : Text(
                     protocol.capitalize,
                     style: _textTheme!.labelMedium!.copyWith(
-                      color: AppColors.gray7,
+                      color: context.textTertiary,
                     ),
                   ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isAutoSelected) AppImage(path: AppImagePaths.blot),
-              ],
+            trailing: AppImage(
+              path: AppImagePaths.blot,
+              color: context.statusWarningBgDot,
             ),
           ),
         ),
@@ -654,13 +647,12 @@ class _PrivateServerLocationListViewState
 
         await ref.read(serverLocationProvider.notifier).updateServerLocation(
               ServerLocation(
-                serverType: ServerLocationType.privateServer.name,
-                serverName: location.tag,
-                country: location.country,
-                city: location.city,
-                countryCode: location.countryCode,
-                protocol: location.protocol
-              ),
+                  serverType: ServerLocationType.privateServer.name,
+                  serverName: location.tag,
+                  country: location.country,
+                  city: location.city,
+                  countryCode: location.countryCode,
+                  protocol: location.protocol),
             );
         appRouter.popUntilRoot();
       },

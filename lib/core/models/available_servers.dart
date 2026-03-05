@@ -22,11 +22,13 @@ class Lantern {
   List<Endpoint> endpoints;
   List<Endpoint> outbounds;
   Map<String, Location_> locations;
+  Map<String, String> accessTokens;
 
   Lantern({
     required this.endpoints,
     required this.outbounds,
     required this.locations,
+    required this.accessTokens,
   });
 
   factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
@@ -48,6 +50,9 @@ class Lantern {
                   ),
                 ),
               ),
+    accessTokens: json["access_tokens"] == null
+            ? <String, String>{}
+            : Map<String, String>.from(json["access_tokens"] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
@@ -60,18 +65,21 @@ class Endpoint {
   String type;
   String tag;
   String server;
+  String serverPort;
 
   Endpoint({
     required this.type,
     required this.tag,
     required this.server,
+    required this.serverPort,
   });
 
   factory Endpoint.fromJson(Map<String, dynamic> json) => Endpoint(
-        type: json["type"],
-        tag: json["tag"],
-        server: json["server"]??'',
-      );
+      type: json["type"],
+      tag: json["tag"],
+      server: json["server"] ?? '',
+      serverPort:
+          json["server_port"] == null ? "" : json["server_port"].toString());
 
   Map<String, dynamic> toJson() => {
         "type": type,

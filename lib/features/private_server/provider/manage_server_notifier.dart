@@ -1,4 +1,5 @@
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -7,17 +8,12 @@ part 'manage_server_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class ManageServerNotifier extends _$ManageServerNotifier {
   @override
-  Future<List<PrivateServer>> build() async {
-    final res = await ref.read(lanternServiceProvider).getPrivateServers();
-    return res.fold((f) => <PrivateServer>[], (list) => list);
-  }
+  void build() async {}
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final res = await ref.read(lanternServiceProvider).getPrivateServers();
-      return res.fold((_) => <PrivateServer>[], (l) => l);
-    });
+    final res = await ref
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
   }
 
   Future<void> deleteServer(String serverName) async {

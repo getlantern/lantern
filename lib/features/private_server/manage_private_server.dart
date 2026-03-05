@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ManagePrivateServer')
@@ -28,7 +27,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    final serversAsync = ref.watch(manageServerProvider);
+    final serversAsync = ref.watch(availableServersProvider);
 
     return serversAsync.when(
       loading: () => BaseScreen(
@@ -40,8 +39,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         body: Center(child: Text(err.toString())),
       ),
       data: (servers) {
-        final myServers = servers.where((s) => !s.isJoined).toList();
-        final joinedServers = servers.where((s) => s.isJoined).toList();
+        final myServers = servers.user.locations.values.toList();
 
         return BaseScreen(
           title: 'manage_private_servers'.i18n,
@@ -61,8 +59,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     unselectedLabelColor: Colors.grey,
                     labelStyle: textTheme!.titleSmall,
                     indicator: BoxDecoration(
-                      color: AppColors.blue2,
+                      color: context.textLink,
                       borderRadius: BorderRadius.circular(40),
+                      shape: BoxShape.rectangle,
                       border: Border.all(color: AppColors.blue3, width: 1),
                     ),
                     tabs: [
@@ -77,7 +76,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   child: TabBarView(
                     children: [
                       buildMyServer(myServers),
-                      _buildListView(joinedServers),
+                      const Center(child: Text('')),
                     ],
                   ),
                 ),
@@ -89,53 +88,54 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  Widget buildMyServer(List<PrivateServer> privateServers) {
+  Widget buildMyServer(List<Location_> myServers) {
     return Column(
       children: <Widget>[
         const SizedBox(height: defaultSize),
         InfoRow(
           text: 'access_key_expiration'.i18n,
         ),
-        Expanded(child: _buildListView(privateServers)),
+        Expanded(child: _buildListView(myServers)),
       ],
     );
   }
 
-  Widget _buildListView(List<PrivateServer> privateServers) {
+  Widget _buildListView(List<Location_> myServers) {
     return ListView.builder(
       padding: const EdgeInsets.all(0),
-      itemCount: privateServers.length,
+      itemCount: myServers.length,
       itemBuilder: (context, index) {
-        final item = privateServers[index];
+        final item = myServers[index];
         return AppCard(
-          margin: const EdgeInsets.symmetric(vertical: 16),
+          margin: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               AppTile(
-                label: item.serverName,
-                subtitle: Text(item.serverLocationName),
-                icon: Flag(countryCode: item.serverCountryCode),
+                label: item.tag,
+                subtitle: Text(item.city),
+                icon: Flag(countryCode: item.countryCode),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(Icons.delete_outline, color: AppColors.gray9),
+                      icon: Icon(Icons.delete_outline,
+                          color: context.textPrimary),
                       iconSize: 24,
-                      onPressed: () => showDeleteDialog(item.serverName),
+                      onPressed: () => showDeleteDialog(item.tag),
                     ),
                   ],
                 ),
               ),
-              if (!item.isJoined) ...{
+              if (true) ...{
                 SizedBox(height: 16),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
                     icon: AppImagePaths.shareV2,
-                    iconColor: AppColors.gray9,
+                    iconColor: context.textPrimary,
                     showBorder: true,
-                    textColor: AppColors.gray9,
+                    textColor: context.textPrimary,
                     onPressed: () => onTapShareAccessKey(item)),
                 SizedBox(height: 16),
               }
@@ -146,18 +146,38 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  void onTapShareAccessKey(PrivateServer server) {
-    if (shareAccessKey.isNotEmpty && shareAccessKey != "") {
+  void onTapShareAccessKey(Location_ location) {
+    final servers = ref.read(availableServersProvider).value;
+
+    if (servers == null) {
+      appLogger.info('Servers data is null, cannot share access key');
+      return;
+    }
+
+    final userServers =
+        servers.user.outbounds.firstWhere((o) => o.tag == location.tag);
+    final accessToken = servers.user.accessTokens[location.tag] ?? '';
+    final privateServer = PrivateServer(
+      serverName: location.tag,
+      externalIp: userServers.server,
+      port: userServers.serverPort,
+      accessToken: accessToken,
+      serverLocationName: location.city,
+      serverCountryCode: location.countryCode,
+      protocol: location.protocol,
+    );
+
+    if (shareAccessKey.isNotEmpty) {
       try {
         // If the shareAccessKey is already generated, we don't need to generate it again.
         Map<String, dynamic> tokenData = JwtDecoder.decode(shareAccessKey);
-        sharePrivateAccessKey(server, tokenData);
+        sharePrivateAccessKey(privateServer, tokenData);
       } catch (e) {
         // If the shareAccessKey is invalid, we need to generate it again.
-        showShareAccessKeyDialog(server);
+        showShareAccessKeyDialog(privateServer);
       }
     } else {
-      showShareAccessKeyDialog(server);
+      showShareAccessKeyDialog(privateServer);
     }
   }
 
@@ -191,7 +211,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         action: [
           AppTextButton(
             label: 'cancel'.i18n,
-            textColor: AppColors.gray6,
+            textColor: context.textDisabled,
             onPressed: () {
               appRouter.pop();
             },
@@ -210,7 +230,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       PrivateServer server, String inviteName) async {
     if (inviteName.isEmpty) {
       context.showSnackBar('server_alias_cannot_be_empty'.i18n);
-
       return;
     }
     context.showLoadingDialog();
@@ -263,7 +282,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       action: [
         AppTextButton(
           label: 'cancel',
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },
@@ -302,7 +321,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       action: [
         AppTextButton(
           label: 'cancel'.i18n,
-          textColor: AppColors.gray6,
+          textColor: context.textDisabled,
           onPressed: () {
             appRouter.pop();
           },
@@ -321,26 +340,28 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   void onRename(String serverName, String newName) async {
     if (newName.isEmpty) return;
-
     context.showLoadingDialog();
-    final lantern = ref.read(lanternServiceProvider);
-
-    final res = await lantern.updatePrivateServerName(serverName, newName);
+    final res = await ref
+        .read(lanternServiceProvider)
+        .updatePrivateServerName(serverName, newName);
+    if (!mounted) return;
     context.hideLoadingDialog();
-
     res.fold(
-      (failure) {
-        context.showSnackBarError(failure.localizedErrorMessage);
-      },
-      (_) {
-        ref.invalidate(manageServerProvider);
-      },
+      (failure) => context.showSnackBarError(failure.localizedErrorMessage),
+      (_) => ref.invalidate(availableServersProvider),
     );
   }
 
   Future<void> onDelete(String serverName) async {
     context.showLoadingDialog();
-    await ref.read(manageServerProvider.notifier).deleteServer(serverName);
+    final res = await ref
+        .read(lanternServiceProvider)
+        .deletePrivateServerByName(serverName);
+    if (!mounted) return;
     context.hideLoadingDialog();
+    res.fold(
+      (failure) => context.showSnackBarError(failure.localizedErrorMessage),
+      (_) => ref.invalidate(availableServersProvider),
+    );
   }
 }

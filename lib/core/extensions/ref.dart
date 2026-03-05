@@ -16,3 +16,16 @@ final isUserExpiredProvider = Provider<bool>((ref) {
     ),
   );
 });
+
+
+final userEmailProvider = Provider<String>((ref) {
+  return ref.watch(
+    homeProvider.select(
+      (value) => value.value?.legacyUserData.email ?? '',
+    ),
+  );
+});
+
+
+
+

@@ -1,15 +1,10 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
-
-import '../../core/services/injection_container.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
 @RoutePage(name: 'ManuallyServerSetup')
 class ManuallyServerSetup extends StatefulHookConsumerWidget {
@@ -34,12 +29,9 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
-          final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServer.fromJson(data);
-          ref.read(lanternServiceProvider).savePrivateServer(
-                serverData,
-                joined: false,
-              );
+          ref
+              .read(availableServersProvider.notifier)
+              .forceFetchAvailableServers();
           showSuccessDialog();
         });
       }

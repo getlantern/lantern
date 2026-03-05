@@ -234,7 +234,7 @@ func listenToServerEvents(ps provisionSession) {
 				// sgp1 - SG [SG]
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
-				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{CountryCode: country, City: city})
+				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{CountryCode: country, City: city}, false)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -363,13 +363,20 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 		eventSink: events,
 	}
 	storeSession(provisionSession)
-	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, nil)
+	location := getGeoInfo(ip)
+	_, city, country := ParseLocation(location)
+
+	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{
+		Country:     "",
+		City:        city,
+		CountryCode: country,
+	}, true)
 	if err != nil {
 		return err
 	}
 	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 	resp.Tag = tag
-	location := getGeoInfo(ip)
+
 	resp.Location = location
 	server, jerr := json.Marshal(resp)
 	if jerr != nil {

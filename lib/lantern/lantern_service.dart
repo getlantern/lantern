@@ -662,22 +662,7 @@ class LanternService implements LanternCoreService {
     return _platformService.setCachedPlans(plans);
   }
 
-  @override
-  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getSelectedServerLocation();
-    }
-    return _platformService.getSelectedServerLocation();
-  }
 
-  @override
-  Future<Either<Failure, Unit>> setSelectedServerLocation(
-      ServerLocation location) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setSelectedServerLocation(location);
-    }
-    return _platformService.setSelectedServerLocation(location);
-  }
 
   @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
@@ -689,24 +674,7 @@ class LanternService implements LanternCoreService {
     return _platformService.getSplitTunnelItems(type);
   }
 
-  @override
-  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getPrivateServers();
-    }
-    return _platformService.getPrivateServers();
-  }
 
-  @override
-  Future<Either<Failure, Unit>> savePrivateServer(
-    PrivateServer server, {
-    required bool joined,
-  }) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.savePrivateServer(server, joined: joined);
-    }
-    return _platformService.savePrivateServer(server, joined: joined);
-  }
 
   @override
   Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
@@ -727,19 +695,5 @@ class LanternService implements LanternCoreService {
     return _platformService.updatePrivateServerName(oldName, newName);
   }
 
-  @override
-  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getDeveloperMode();
-    }
-    return _platformService.getDeveloperMode();
-  }
 
-  @override
-  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setDeveloperMode(dev);
-    }
-    return _platformService.setDeveloperMode(dev);
-  }
 }

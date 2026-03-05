@@ -42,7 +42,7 @@ final class DeveloperModeNotifierProvider
 }
 
 String _$developerModeNotifierHash() =>
-    r'32f2c61108de9fe0e78afecaad4aa4bcc2299e94';
+    r'ef2f74f7621f836fe96a4da576eacb3f39cde6b7';
 
 abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperMode> {
   DeveloperMode build();

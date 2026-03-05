@@ -222,7 +222,7 @@ class ConfirmEmail extends HookConsumerWidget {
         }
 
         /// Check if user is pro or not
-        final isPro = ref.read(isUserProFromCoreProvider);
+        final isPro = ref.read(isUserProProvider);
         if (isPro) {
           appRouter.push(
               CreatePassword(email: email, authFlow: authFlow, code: code));

@@ -39,10 +39,12 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
+      final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
         appLogger.info(
             "User has not completed onboarding, navigating to Onboarding Screen");
         appRouter.push(const Onboarding());
+        appSettingNotifier.setOnboardingCompleted(true);
         return;
       }
 
@@ -56,7 +58,7 @@ class _HomeState extends ConsumerState<Home> {
           appRouter.push(const MacOSExtensionDialog());
           //User has seen dialog, do not show again
           appLogger.info("Setting showSplashScreen to false");
-          ref.read(appSettingProvider.notifier).setSplashScreen(false);
+          appSettingNotifier.setSplashScreen(false);
           return;
         }
       }
@@ -65,7 +67,7 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final isUserPro = ref.watch(isUserProFromCoreProvider);
+    final isUserPro = ref.watch(isUserProProvider);
     final featureFlag = ref.watch(featureFlagProvider);
     final appSetting = ref.read(appSettingProvider);
 

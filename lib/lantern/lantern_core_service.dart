@@ -227,10 +227,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> setCachedPlans(PlansData plans);
 
-  Future<Either<Failure, List<PrivateServer>>> getPrivateServers();
 
-  Future<Either<Failure, Unit>> savePrivateServer(PrivateServer server,
-      {required bool joined});
   Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName);
 
   Future<Either<Failure, Unit>> updatePrivateServerName(
