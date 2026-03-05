@@ -190,7 +190,7 @@ class AppPurchase {
           status == PurchaseStatus.restored) {
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
-        if (_checkIfAlreadyPurchased()) {
+        if (await _checkIfAlreadyPurchased()) {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
@@ -275,9 +275,35 @@ class AppPurchase {
   /// Apple sends purchase updates for previously purchased items when the
   /// app starts. This function checks if the user has already purchased the
   /// subscription to avoid duplicate processing
-  bool _checkIfAlreadyPurchased() {
-    // No durable purchase cache in app state yet.
-    return false;
+  Future<bool> _checkIfAlreadyPurchased() async {
+    final lanternService = sl<LanternPlatformService>();
+
+    final fetchResult = await lanternService.fetchUserData();
+    final fetchedUser = fetchResult.fold((failure) {
+      appLogger.warning(
+        '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.localizedErrorMessage}',
+      );
+      return null;
+    }, (user) => user);
+
+    final user = fetchedUser ??
+        (await lanternService.getUserData()).fold((failure) {
+          appLogger.warning(
+            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.localizedErrorMessage}',
+          );
+          return null;
+        }, (user) => user);
+
+    if (user == null) {
+      return false;
+    }
+
+    final userLevel = user.legacyUserData.userLevel.toLowerCase();
+    final subscriptionStatus = user.legacyUserData.hasSubscriptionData()
+        ? user.legacyUserData.subscriptionData.status.toLowerCase()
+        : '';
+
+    return userLevel == 'pro' || subscriptionStatus == 'active';
   }
 
   /// Determines the plan id to send to the backend for acknowledgment.
