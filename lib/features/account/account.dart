@@ -358,7 +358,7 @@ class Account extends HookConsumerWidget {
       action: [
         AppTextButton(
           label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
+          textColor: context.textSecondary,
           onPressed: () {
             appRouter.pop();
           },
@@ -383,7 +383,7 @@ class Account extends HookConsumerWidget {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textPrimary,
             ),
           ),
         ],

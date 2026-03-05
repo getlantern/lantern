@@ -1610,40 +1610,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, PlansData?>> getCachedPlans() async {
-    try {
-      final jsonStr = await runInBackground<String>(() async {
-        return _ffiService.getCachedPlans().toDartString();
-      });
-
-      checkAPIError(jsonStr);
-
-      if (jsonStr.trim().isEmpty) {
-        return right(null);
-      }
-
-      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final plans = PlansData.fromJson(map);
-
-      // keep your existing sort normalization if desired
-      plans.plans.sort((a, b) {
-        if (a.bestValue != b.bestValue) return a.bestValue ? -1 : 1;
-        return b.usdPrice.compareTo(a.usdPrice);
-      });
-
-      plans.providers.desktop.sort((a, b) {
-        return (b.providers.supportSubscription ? 1 : 0) -
-            (a.providers.supportSubscription ? 1 : 0);
-      });
-
-      return right(plans);
-    } catch (e, st) {
-      appLogger.error('Error getting cached plans via FFI', e, st);
-      return left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, Unit>> setSelectedServerLocation(
       ServerLocation location) async {
     try {
@@ -1712,22 +1678,6 @@ class LanternFFIService implements LanternCoreService {
     );
   }
 
-  @override
-  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) async {
-    try {
-      final jsonStr = jsonEncode(plans.toJson());
-
-      final result = await runInBackground<String>(() async {
-        return _ffiService.setCachedPlans(jsonStr.toCharPtr).toDartString();
-      });
-
-      checkAPIError(result);
-      return right(unit);
-    } catch (e, st) {
-      appLogger.error('Error setting cached plans via FFI', e, st);
-      return left(e.toFailure());
-    }
-  }
 
   @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {

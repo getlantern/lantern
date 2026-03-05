@@ -1192,7 +1192,7 @@ class LanternPlatformService implements LanternCoreService {
       String serverName) async {
     try {
       final result = await _methodChannel.invokeMethod<String>(
-            'deleteServerByTag', serverName);
+          'deleteServerByTag', serverName);
       return right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
@@ -1300,22 +1300,23 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, PlansData?>> getCachedPlans() {
-    // TODO: implement getCachedPlans
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
-      SplitTunnelFilterType type) {
-    // TODO: implement getSplitTunnelItems
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
-    // TODO: implement setCachedPlans
-    throw UnimplementedError();
+      SplitTunnelFilterType type) async {
+    try {
+      final items =
+          await _methodChannel.invokeMethod<List>('getSplitTunnelItems', {
+        'filterType': type.value,
+      });
+      final result = items
+              ?.whereType<String>()
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList() ??
+          [];
+      return Right(result);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override

@@ -522,6 +522,26 @@ func DeleteServer(tag string) error {
 	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
 }
 
+func DeletePrivateServerByName(serverName string) error {
+	return withCore(func(c lanterncore.Core) error { return c.DeletePrivateServerByName(serverName) })
+}
+
+func UpdatePrivateServerName(oldName, newName string) error {
+	return withCore(func(c lanterncore.Core) error { return c.UpdatePrivateServerName(oldName, newName) })
+}
+
+func GetSplitTunnelItems(filterType string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelItems(filterType)
+	})
+}
+
+func GetSplitTunnelStateJSON() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelStateJSON()
+	})
+}
+
 // Smart Routing Methods
 
 // SetSmartRoutingMode sets the smart routing mode.

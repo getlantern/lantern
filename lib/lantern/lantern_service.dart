@@ -651,20 +651,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, PlansData?>> getCachedPlans() {
-    if (PlatformUtils.isFFISupported) return _ffiService.getCachedPlans();
-    return _platformService.getCachedPlans();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
-    if (PlatformUtils.isFFISupported) return _ffiService.setCachedPlans(plans);
-    return _platformService.setCachedPlans(plans);
-  }
-
-
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,
   ) {

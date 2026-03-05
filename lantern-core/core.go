@@ -117,8 +117,6 @@ type Payment interface {
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
-	GetCachedPlans() (string, error)
-	SetCachedPlans(plansJSON string) error
 }
 
 type SplitTunnel interface {
@@ -923,43 +921,6 @@ func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
 		return "", err
 	}
 	return string(b), nil
-}
-
-func (lc *LanternCore) GetCachedPlans() (string, error) {
-	path := filepath.Join(settings.GetString(settings.DataPathKey), plansCacheFile)
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", err
-	}
-	if len(b) == 0 {
-		return "", nil
-	}
-
-	var tmp any
-	if err := json.Unmarshal(b, &tmp); err != nil {
-		return "", nil
-	}
-
-	return string(b), nil
-}
-
-func (lc *LanternCore) SetCachedPlans(plansJSON string) error {
-	var tmp any
-	if err := json.Unmarshal([]byte(plansJSON), &tmp); err != nil {
-		return err
-	}
-
-	dir := settings.GetString(settings.DataPathKey)
-	path := filepath.Join(dir, plansCacheFile)
-
-	tmpPath := path + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(plansJSON), 0644); err != nil {
-		return err
-	}
-	return os.Rename(tmpPath, path)
 }
 
 // Keep the struct flexible: we store JSON blobs but still need some keys.
