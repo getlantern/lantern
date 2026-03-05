@@ -577,6 +577,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
@@ -588,6 +589,7 @@ jobs:
       - name: Publish release on success
         if: |
           env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -601,6 +603,7 @@ jobs:
       - name: Delete draft release
         if: |
           env.IS_TEST_RUN == 'true' ||
+          env.BUILD_TYPE == 'nightly' ||
           (env.CLEANUP_ON_FAILURE == 'true' &&
            !(needs.upload-s3.result == 'success' &&
              needs.upload-release-artifacts.result == 'success' &&
@@ -611,6 +614,8 @@ jobs:
         run: |
           if [[ "$IS_TEST_RUN" == "true" ]]; then
             echo "Test run from non-main branch - deleting draft release"
+          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
+            echo "Nightly build - deleting draft release"
           else
             echo "Build failed or cancelled - cleaning up draft release"
           fi
@@ -619,6 +624,7 @@ jobs:
       - name: Report failure (cleanup disabled)
         if: |
           env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           env.CLEANUP_ON_FAILURE != 'true' &&
           !(needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&
