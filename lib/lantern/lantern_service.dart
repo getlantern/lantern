@@ -681,5 +681,4 @@ class LanternService implements LanternCoreService {
     return _platformService.updatePrivateServerName(oldName, newName);
   }
 
-
 }

@@ -116,14 +116,6 @@ func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, 
 	return nil
 }
 
-type ServerLocation struct {
-	Country     string  `json:"country,omitempty"`
-	City        string  `json:"city,omitempty"`
-	Latitude    float32 `json:"latitude,omitempty"`
-	Longitude   float32 `json:"longitude,omitempty"`
-	CountryCode string  `json:"country_code,omitempty"`
-}
-
 // listenToServerEvents listens for events from the provisioner session and handles them accordingly.
 func listenToServerEvents(ps provisionSession) {
 	provisioner := ps.provisioner
