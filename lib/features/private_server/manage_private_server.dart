@@ -39,7 +39,18 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         body: Center(child: Text(err.toString())),
       ),
       data: (servers) {
-        final myServers = servers.user.locations.values.toList();
+        final userServers = servers.user.locations.values.toList()
+          ..sort((a, b) => a.tag.compareTo(b.tag));
+        final ownedTags = servers.user.accessTokens.entries
+            .where((entry) => entry.value.trim().isNotEmpty)
+            .map((entry) => entry.key)
+            .toSet();
+        final myServers = userServers
+            .where((server) => ownedTags.contains(server.tag))
+            .toList();
+        final joinedServers = userServers
+            .where((server) => !ownedTags.contains(server.tag))
+            .toList();
 
         return BaseScreen(
           title: 'manage_private_servers'.i18n,
@@ -75,8 +86,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      buildMyServer(myServers),
-                      const Center(child: Text('')),
+                      buildServersTab(myServers, canShareAccessKey: true),
+                      buildServersTab(joinedServers, canShareAccessKey: false),
                     ],
                   ),
                 ),
@@ -88,25 +99,37 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  Widget buildMyServer(List<Location_> myServers) {
+  Widget buildServersTab(
+    List<Location_> servers, {
+    required bool canShareAccessKey,
+  }) {
     return Column(
       children: <Widget>[
         const SizedBox(height: 8),
-        InfoRow(
-          text: 'access_key_expiration'.i18n,
+        if (canShareAccessKey) ...[
+          InfoRow(
+            text: 'access_key_expiration'.i18n,
+          ),
+          const SizedBox(height: 8),
+        ],
+        Expanded(
+          child: servers.isEmpty
+              ? Center(child: Text('no_private_server_setup_yet'.i18n))
+              : _buildListView(servers, canShareAccessKey: canShareAccessKey),
         ),
-        const SizedBox(height: 8),
-        Expanded(child: _buildListView(myServers)),
       ],
     );
   }
 
-  Widget _buildListView(List<Location_> myServers) {
+  Widget _buildListView(
+    List<Location_> servers, {
+    required bool canShareAccessKey,
+  }) {
     return ListView.builder(
-      padding:  EdgeInsets.zero,
-      itemCount: myServers.length,
+      padding: EdgeInsets.zero,
+      itemCount: servers.length,
       itemBuilder: (context, index) {
-        final item = myServers[index];
+        final item = servers[index];
         return AppCard(
           margin: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
@@ -128,7 +151,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   ],
                 ),
               ),
-              if (true) ...{
+              if (canShareAccessKey) ...{
                 SizedBox(height: 8),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
@@ -155,13 +178,21 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       return;
     }
 
-    final userServers =
-        servers.user.outbounds.firstWhere((o) => o.tag == location.tag);
+    final outboundsByTag = {
+      for (final outbound in servers.user.outbounds) outbound.tag: outbound
+    };
+    final userServer = outboundsByTag[location.tag];
     final accessToken = servers.user.accessTokens[location.tag] ?? '';
+    if (userServer == null || accessToken.isEmpty) {
+      appLogger.warning(
+          'Missing outbound/access token for private server tag=${location.tag}');
+      context.showSnackBar('Unable to share access key for this server.');
+      return;
+    }
     final privateServer = PrivateServer(
       serverName: location.tag,
-      externalIp: userServers.server,
-      port: userServers.serverPort,
+      externalIp: userServer.server,
+      port: userServer.serverPort,
       accessToken: accessToken,
       serverLocationName: location.city,
       serverCountryCode: location.countryCode,

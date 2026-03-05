@@ -15,7 +15,10 @@ class AvailableServers {
             (json["user"] as Map<String, dynamic>?) ?? const {}),
       );
 
-  Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
+  Map<String, dynamic> toJson() => {
+        "lantern": lantern.toJson(),
+        "user": user.toJson(),
+      };
 }
 
 class Lantern {
@@ -50,14 +53,17 @@ class Lantern {
                   ),
                 ),
               ),
-    accessTokens: json["access_tokens"] == null
+        accessTokens: json["access_tokens"] == null
             ? <String, String>{}
-            : Map<String, String>.from(json["access_tokens"] as Map<String, dynamic>),
+            : Map<String, String>.from(
+                json["access_tokens"] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
         "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
+        "outbounds": List<dynamic>.from(outbounds.map((x) => x.toJson())),
         "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
+        "access_tokens": accessTokens,
       };
 }
 
@@ -85,6 +91,7 @@ class Endpoint {
         "type": type,
         "tag": tag,
         "server": server,
+        "server_port": serverPort,
       };
 }
 

@@ -898,7 +898,7 @@ func deleteServerByTag(_tag *C.char) *C.char {
 	}
 	tag := C.GoString(_tag)
 	slog.Debug("Deleting server with tag:", "tag", tag)
-	err := c.DeleteServerByTag(tag)
+	err := c.DeleteServer(tag)
 	if err != nil {
 		return SendError(fmt.Errorf("Error deleting server by tag: %v", err))
 	}

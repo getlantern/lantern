@@ -16,7 +16,6 @@ import (
 
 	"github.com/getlantern/radiance/servers"
 
-	C "github.com/getlantern/common"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
@@ -226,7 +225,7 @@ func listenToServerEvents(ps provisionSession) {
 				// sgp1 - SG [SG]
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
-				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{CountryCode: country, City: city}, false)
+				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -356,13 +355,8 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 	}
 	storeSession(provisionSession)
 	location := getGeoInfo(ip)
-	_, city, country := ParseLocation(location)
 
-	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{
-		Country:     "",
-		City:        city,
-		CountryCode: country,
-	}, true)
+	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		return err
 	}
