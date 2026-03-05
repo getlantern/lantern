@@ -1,7 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/user_pro_ext.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';

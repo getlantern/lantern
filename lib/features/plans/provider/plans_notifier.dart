@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,14 +13,15 @@ part 'plans_notifier.g.dart';
 @Riverpod()
 class PlansNotifier extends _$PlansNotifier {
   static const _prefsKey = 'plans_json';
-  final _storage = LocalStorageService();
+
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   Plan? userSelectedPlan;
 
   @override
   Future<PlansData> build() async {
     state = const AsyncLoading();
-    final cached = await _getPlansFromPrefs();
+    final cached = _getPlansFromPrefs();
     if (cached != null) {
       unawaited(_refreshInBackground());
       state = AsyncData(cached);
@@ -29,9 +31,9 @@ class PlansNotifier extends _$PlansNotifier {
     return fetchPlans();
   }
 
-  Future<PlansData?> _getPlansFromPrefs() async {
+  PlansData? _getPlansFromPrefs() {
     try {
-      final raw = await _storage.getString(_prefsKey);
+      final raw = _storage.getString(_prefsKey);
       if (raw == null || raw.isEmpty) return null;
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
       return PlansData.fromJson(decoded);
@@ -79,6 +81,4 @@ class PlansNotifier extends _$PlansNotifier {
   void setSelectedPlan(Plan plan) => userSelectedPlan = plan;
 
   Plan getSelectedPlan() => userSelectedPlan!;
-
-  Future<PlansData?> getPlanData() => _getPlansFromPrefs();
 }

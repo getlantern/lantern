@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/user_pro_ext.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';

@@ -1,5 +1,6 @@
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -11,11 +12,11 @@ const selectedServerLocationPrefsKey = 'selected_server_location';
 
 @Riverpod()
 class ServerLocationNotifier extends _$ServerLocationNotifier {
-  final _storage = LocalStorageService();
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   Future<ServerLocation> build() async {
-    final raw = await _storage.getString(selectedServerLocationPrefsKey);
+    final raw = _storage.getString(selectedServerLocationPrefsKey);
     if (raw == null || raw.isEmpty) return _defaultLocation();
     try {
       return ServerLocation.fromJsonString(raw);

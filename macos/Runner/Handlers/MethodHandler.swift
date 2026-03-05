@@ -187,21 +187,11 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
-      case "deleteServerByTag":
-        guard let data = self.decodeValue(from: call.arguments, result: result) as String? else {
-          return
-        }
-        self.deleteServerByTag(result: result, tag: data)
-
       case "deletePrivateServerByName":
         guard let name = self.decodeValue(from: call.arguments, result: result) as String? else {
           return
         }
         self.deletePrivateServerByName(result: result, name: name)
-
-      case "updatePrivateServerName":
-        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
-        self.updatePrivateServerName(result: result, data: data)
 
       case "getSplitTunnelItems":
         let filterType: String = requireArg(call: call, name: "filterType", result: result)!
@@ -874,18 +864,6 @@ class MethodHandler {
     }
   }
 
-  func deleteServerByTag(result: @escaping FlutterResult, tag: String) {
-    Task {
-      var error: NSError?
-      MobileDeleteServer(tag, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "DELETE_SERVER_BY_TAG_ERROR")
-        return
-      }
-      await self.replyOK(result)
-    }
-  }
-
   func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
     Task {
       var error: NSError?
@@ -898,19 +876,19 @@ class MethodHandler {
     }
   }
 
-  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
-    Task {
-      let oldName = data["oldName"] as? String ?? ""
-      let newName = data["newName"] as? String ?? ""
-      var error: NSError?
-      MobileUpdatePrivateServerName(oldName, newName, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
-        return
-      }
-      await self.replyOK(result)
-    }
-  }
+  //  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+  //    Task {
+  //      let oldName = data["oldName"] as? String ?? ""
+  //      let newName = data["newName"] as? String ?? ""
+  //      var error: NSError?
+  //      MobileUpdatePrivateServerName(oldName, newName, &error)
+  //      if let error {
+  //        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
+  //        return
+  //      }
+  //      await self.replyOK(result)
+  //    }
+  //  }
 
   func getSplitTunnelItems(result: @escaping FlutterResult, filterType: String) {
     Task {

@@ -485,7 +485,6 @@ func SelectAccount(account string) error {
 }
 
 func SelectProject(project string) error {
-
 	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 
@@ -518,16 +517,8 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	})
 }
 
-func DeleteServer(tag string) error {
+func DeletePrivateServerByName(tag string) error {
 	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
-}
-
-func DeletePrivateServerByName(serverName string) error {
-	return withCore(func(c lanterncore.Core) error { return c.DeletePrivateServerByName(serverName) })
-}
-
-func UpdatePrivateServerName(oldName, newName string) error {
-	return withCore(func(c lanterncore.Core) error { return c.UpdatePrivateServerName(oldName, newName) })
 }
 
 func GetSplitTunnelItems(filterType string) (string, error) {

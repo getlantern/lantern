@@ -90,7 +90,6 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
     AddServerBasedOnURLs("addServerBasedOnURLs"),
-    DeleteServerByTag("deleteServerByTag"),
     DeletePrivateServerByName("deletePrivateServerByName"),
     UpdatePrivateServerName("updatePrivateServerName"),
 
@@ -937,24 +936,6 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.DeleteServerByTag.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val tag = call.arguments as String? ?: error("Missing tag")
-                        Mobile.deleteServer(tag)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
-                        }
-                    }.onFailure { e ->
-                        result.error(
-                            "DELETE_SERVER_BY_TAG_ERROR",
-                            e.localizedMessage ?: "Error deleting server by tag",
-                            e
-                        )
-                    }
-                }
-            }
-
             Methods.DeletePrivateServerByName.method -> {
                 scope.launch {
                     result.runCatching {
@@ -973,24 +954,24 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.UpdatePrivateServerName.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val oldName = call.argument<String>("oldName") ?: error("Missing oldName")
-                        val newName = call.argument<String>("newName") ?: error("Missing newName")
-                        Mobile.updatePrivateServerName(oldName, newName)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
-                        }
-                    }.onFailure { e ->
-                        result.error(
-                            "UPDATE_PRIVATE_SERVER_NAME_ERROR",
-                            e.localizedMessage ?: "Error updating private server name",
-                            e
-                        )
-                    }
-                }
-            }
+//            Methods.UpdatePrivateServerName.method -> {
+//                scope.launch {
+//                    result.runCatching {
+//                        val oldName = call.argument<String>("oldName") ?: error("Missing oldName")
+//                        val newName = call.argument<String>("newName") ?: error("Missing newName")
+//                        Mobile.updatePrivateServerName(oldName, newName)
+//                        withContext(Dispatchers.Main) {
+//                            success("ok")
+//                        }
+//                    }.onFailure { e ->
+//                        result.error(
+//                            "UPDATE_PRIVATE_SERVER_NAME_ERROR",
+//                            e.localizedMessage ?: "Error updating private server name",
+//                            e
+//                        )
+//                    }
+//                }
+//            }
 
             Methods.GetSplitTunnelItems.method -> {
                 scope.launch {

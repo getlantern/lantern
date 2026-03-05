@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -20,7 +21,7 @@ part 'app_setting_notifier.g.dart';
 class AppSettingNotifier extends _$AppSettingNotifier {
   static const _settingsPrefsKey = 'app_settings_json';
   bool _didAttemptLoad = false;
-  final _storage = LocalStorageService();
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   AppSetting build() {
@@ -122,7 +123,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     if (_didAttemptLoad) return;
     _didAttemptLoad = true;
 
-    final raw = await _storage.getString(_settingsPrefsKey);
+    final raw = _storage.getString(_settingsPrefsKey);
 
     // No stored settings — save initial defaults and keep current state.
     if (raw == null || raw.isEmpty) {

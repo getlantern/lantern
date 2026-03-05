@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:lantern/core/models/developer_mode.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,7 +10,7 @@ part 'developer_mode_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class DeveloperModeNotifier extends _$DeveloperModeNotifier {
   static const _prefsKey = 'developer_mode_json';
-  final _storage = LocalStorageService();
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   DeveloperMode build() {
@@ -17,8 +18,8 @@ class DeveloperModeNotifier extends _$DeveloperModeNotifier {
     return DeveloperMode.initial();
   }
 
-  Future<void> _hydrate() async {
-    final raw = await _storage.getString(_prefsKey);
+  void _hydrate() {
+    final raw = _storage.getString(_prefsKey);
     if (raw == null || raw.isEmpty) return;
     try {
       final decoded = jsonDecode(raw);
