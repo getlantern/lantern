@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
@@ -20,6 +20,7 @@ part 'app_setting_notifier.g.dart';
 class AppSettingNotifier extends _$AppSettingNotifier {
   static const _settingsPrefsKey = 'app_settings_json';
   bool _didAttemptLoad = false;
+  final _storage = LocalStorageService();
 
   @override
   AppSetting build() {
@@ -117,13 +118,12 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   Future<void> _loadFromPrefs(AppSetting fallback) async {
     if (_didAttemptLoad) return;
     _didAttemptLoad = true;
+    final raw = await _storage.getString(_settingsPrefsKey);
+    if (raw == null || raw.isEmpty) {
+      await _storage.setString(_settingsPrefsKey, jsonEncode(fallback.toJson()));
+      return;
+    }
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_settingsPrefsKey);
-      if (raw == null || raw.isEmpty) {
-        await prefs.setString(_settingsPrefsKey, jsonEncode(fallback.toJson()));
-        return;
-      }
       final decoded = jsonDecode(raw);
       if (decoded is Map) {
         state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
@@ -132,19 +132,12 @@ class AppSettingNotifier extends _$AppSettingNotifier {
         );
       }
     } catch (e, st) {
-      appLogger.error(
-          'Failed to load app settings from SharedPreferences', e, st);
+      appLogger.error('Failed to parse stored app settings', e, st);
     }
   }
 
   Future<void> _saveToPrefs(AppSetting value) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_settingsPrefsKey, jsonEncode(value.toJson()));
-    } catch (e, st) {
-      appLogger.error(
-          'Failed to persist app settings to SharedPreferences', e, st);
-    }
+    await _storage.setString(_settingsPrefsKey, jsonEncode(value.toJson()));
   }
 
   Future<void> _applyDesktopBrightness(ThemeMode mode) async {

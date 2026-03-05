@@ -224,21 +224,18 @@ abstract class LanternCoreService {
 
   /// Plans cache
   Future<Either<Failure, PlansData?>> getCachedPlans();
+
   Future<Either<Failure, Unit>> setCachedPlans(PlansData plans);
 
   Future<Either<Failure, List<PrivateServer>>> getPrivateServers();
+
   Future<Either<Failure, Unit>> savePrivateServer(PrivateServer server,
       {required bool joined});
   Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName);
+
   Future<Either<Failure, Unit>> updatePrivateServerName(
       String oldName, String newName);
 
-  Future<Either<Failure, ServerLocation>> getSelectedServerLocation();
-  Future<Either<Failure, Unit>> setSelectedServerLocation(
-      ServerLocation location);
-
-  Future<Either<Failure, DeveloperMode>> getDeveloperMode();
-  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev);
 
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,

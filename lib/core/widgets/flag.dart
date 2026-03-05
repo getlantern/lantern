@@ -14,13 +14,14 @@ class Flag extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: context.borderInput, width: .5),
+
       ),
       child: SizedBox.fromSize(
         size: size,
         child: CountryFlag.fromCountryCode(
           countryCode,
           theme: ImageTheme(
-            shape: RoundedRectangle(3),
+            shape: RoundedRectangle(4),
             height: size.height,
             width: size.width,
           ),

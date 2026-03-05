@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/getlantern/radiance/servers"
 
+	C "github.com/getlantern/common"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
@@ -24,6 +26,7 @@ import (
 var (
 	provisionerMutex sync.Mutex
 	sessions         = sync.Map{}
+	locationRegex    = regexp.MustCompile(`^([a-z0-9]+)\s*-\s*([a-z-]+)\s*\[([A-Z]+)\]`)
 )
 
 type provisionSession struct {
@@ -111,6 +114,14 @@ func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, 
 	storeSession(ps)
 	go listenToServerEvents(*ps)
 	return nil
+}
+
+type ServerLocation struct {
+	Country     string  `json:"country,omitempty"`
+	City        string  `json:"city,omitempty"`
+	Latitude    float32 `json:"latitude,omitempty"`
+	Longitude   float32 `json:"longitude,omitempty"`
+	CountryCode string  `json:"country_code,omitempty"`
 }
 
 // listenToServerEvents listens for events from the provisioner session and handles them accordingly.
@@ -220,7 +231,10 @@ func listenToServerEvents(ps provisionSession) {
 				}
 				resp.Tag = provisioner.serverName
 				resp.Location = provisioner.serverLocation
-				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+				// sgp1 - SG [SG]
+				region, city, country := ParseLocation(provisioner.serverLocation)
+				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
+				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &C.ServerLocation{CountryCode: country, City: city})
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -349,7 +363,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 		eventSink: events,
 	}
 	storeSession(provisionSession)
-	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, nil)
 	if err != nil {
 		return err
 	}
@@ -411,4 +425,27 @@ func convertErrorToJSON(status string, err error) string {
 	}
 	jsonData, _ := json.Marshal(mapError)
 	return string(jsonData)
+}
+
+func ParseLocation(s string) (region, city, country string) {
+	match := locationRegex.FindStringSubmatch(s)
+
+	if len(match) != 4 {
+		return "", "", ""
+	}
+
+	region = match[1]
+	rawCity := match[2]
+	country = match[3]
+
+	// Format city
+	words := strings.Split(rawCity, "-")
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+	city = strings.Join(words, " ")
+
+	return
 }

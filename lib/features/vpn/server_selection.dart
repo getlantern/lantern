@@ -1,4 +1,3 @@
-// lib/features/vpn/server_selection.dart
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,14 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
-import 'package:lantern/features/vpn/provider/private_servers_provider.dart';
-import 'package:lantern/features/vpn/provider/selected_server_location_provider.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
@@ -33,68 +30,48 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   @override
   Widget build(BuildContext context) {
-    final selected = ref.watch(selectedServerLocationProvider);
-    final privateServers = ref.watch(privateServersProvider);
+    final selected = ref.watch(serverLocationProvider);
+    final availableServers = ref.watch(availableServersProvider);
     final isUserPro = ref.watch(isUserProProvider);
 
     _textTheme = Theme.of(context).textTheme;
 
-    // We want both: selected server + private servers list (from Go).
-    if (selected.isLoading || privateServers.isLoading) {
+    final appBar = CustomAppBar(
+      title: Text('server_selection'.i18n),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: onOpenMoreOptions,
+        ),
+      ],
+    );
+
+    if (selected.isLoading || availableServers.isLoading) {
       return BaseScreen(
         title: '',
-        appBar: CustomAppBar(
-          title: Text('server_selection'.i18n),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              onPressed: onOpenMoreOptions,
-            ),
-          ],
-        ),
+        appBar: appBar,
         body: const Center(child: Spinner()),
       );
     }
 
-    final selectedErr = selected.asError;
-    final privateErr = privateServers.asError;
-    if (selectedErr != null || privateErr != null) {
-      final msg = (selectedErr?.error ?? privateErr?.error).toString();
+    final err = selected.asError ?? availableServers.asError;
+    if (err != null) {
       return BaseScreen(
         title: '',
-        appBar: CustomAppBar(
-          title: Text('server_selection'.i18n),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              onPressed: onOpenMoreOptions,
-            ),
-          ],
-        ),
+        appBar: appBar,
         body: Center(
-          child: Text(
-            msg,
-            textAlign: TextAlign.center,
-          ),
+          child: Text(err.error.toString(), textAlign: TextAlign.center),
         ),
       );
     }
 
     final selectedServer = selected.requireValue;
-    final servers = privateServers.requireValue;
-    final isPrivateServerFound = servers.isNotEmpty;
+    final isPrivateServerFound =
+        availableServers.requireValue.user.outbounds.isNotEmpty;
 
     return BaseScreen(
       title: '',
-      appBar: CustomAppBar(
-        title: Text('server_selection'.i18n),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: onOpenMoreOptions,
-          ),
-        ],
-      ),
+      appBar: appBar,
       body: isPrivateServerFound
           ? _buildBody(selectedServer, isUserPro)
           : Column(
@@ -176,17 +153,15 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocation selectedServer) {
-    // Adjust these if your ServerLocation differs.
-    final displayName = (selectedServer.displayName?.isNotEmpty ?? false)
-        ? selectedServer.displayName!
+    final displayName = selectedServer.displayName.isNotEmpty
+        ? selectedServer.displayName
         : 'smart_location'.i18n;
 
-    final flag = selectedServer.countryCode ?? '';
-    final protocol = selectedServer.protocol ?? '';
+    final flag = selectedServer.countryCode;
+    final protocol = selectedServer.protocol;
 
-    final serverType = selectedServer.serverType?.toString();
-    final isAutoSelected = serverType == ServerLocationType.auto.name ||
-        serverType == ServerLocationType.auto.toString();
+    final isAutoSelected =
+        selectedServer.serverType == ServerLocationType.auto.name;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,8 +206,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
       (_) async {
-        // Source of truth is Go.
-        await ref.read(selectedServerLocationProvider.notifier).refreshFromGo();
+        await ref.read(serverLocationProvider.notifier).updateServerLocation(
+              ServerLocation(
+                serverType: ServerLocationType.auto.name,
+                serverName: '',
+              ),
+            );
         appRouter.popUntilRoot();
       },
     );
@@ -290,7 +269,7 @@ class _ServerLocationListViewState
   @override
   Widget build(BuildContext context) {
     final availableServers = ref.watch(availableServersProvider);
-    final selected = ref.watch(selectedServerLocationProvider);
+    final selected = ref.watch(serverLocationProvider);
 
     const verticalSpacing = 12.0;
 
@@ -397,9 +376,9 @@ class _ServerLocationListViewState
         final vpnStatus = ref.read(vpnProvider);
 
         Future<void> syncAndPop() async {
-          await ref
-              .read(selectedServerLocationProvider.notifier)
-              .refreshFromGo();
+          await ref.read(serverLocationProvider.notifier).updateServerLocation(
+                ServerLocation.fromLanternLocation(server: selectedServer),
+              );
           appRouter.popUntilRoot();
         }
 
@@ -562,35 +541,28 @@ class _PrivateServerLocationListViewState
   Widget build(BuildContext context) {
     _textTheme = Theme.of(context).textTheme;
 
-    final privateServers = ref.watch(privateServersProvider);
-    final selected = ref.watch(selectedServerLocationProvider);
+    final availableServers = ref.watch(availableServersProvider);
+    final selected = ref.watch(serverLocationProvider);
 
-    if (privateServers.isLoading || selected.isLoading) {
+    if (availableServers.isLoading || selected.isLoading) {
       return const Center(child: Spinner());
     }
 
-    final err = privateServers.asError ?? selected.asError;
+    final err = availableServers.asError ?? selected.asError;
     if (err != null) {
       return Center(
-        child: Text(
-          err.error.toString(),
-          textAlign: TextAlign.center,
-        ),
+        child: Text(err.error.toString(), textAlign: TextAlign.center),
       );
     }
 
-    final servers = privateServers.requireValue;
-    final selectedServer = selected.requireValue;
+    final userLocations =
+        availableServers.requireValue.user.locations.values.toList();
 
-    final selectedPrivateName = (selectedServer.serverName ?? '').toString();
+    final selectedTag = selected.requireValue.serverName;
 
-    // NOTE: adjust these filters if your PrivateServer model differs.
-    // Common patterns: `joined` boolean, or `isJoined`.
-    final myServer = servers.where((s) => (s.isJoined) == false).toList();
-    final joinedServer = servers.where((s) => (s.isJoined) == true).toList();
-
-    if (servers.isEmpty) {
+    if (userLocations.isEmpty) {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'no_private_server_setup_yet'.i18n,
@@ -600,9 +572,7 @@ class _PrivateServerLocationListViewState
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'setup_private_server'.i18n,
-            onPressed: () {
-              context.pushRoute(VPNSetting());
-            },
+            onPressed: () => context.pushRoute(VPNSetting()),
           ),
         ],
       );
@@ -610,7 +580,7 @@ class _PrivateServerLocationListViewState
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
+      children: [
         const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.only(left: 16.0),
@@ -622,119 +592,55 @@ class _PrivateServerLocationListViewState
           child: ListView.separated(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
-            itemCount: myServer.length,
+            itemCount: userLocations.length,
             separatorBuilder: (_, __) => const DividerSpace(),
             itemBuilder: (context, index) {
-              final server = myServer[index];
-
-              final serverName = server.serverName ?? '';
-              final countryCode = server.serverCountryCode ?? '';
-              final locationName =
-                  server.serverLocationName?.locationName ?? '';
-              final externalIp = server.externalIp ?? '';
-              final protocol = server.protocol ?? '';
-
+              final loc = userLocations[index];
+              final isSelected = selectedTag == loc.tag;
               return AppTile(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 onPressed: () {
-                  if (selectedPrivateName == serverName) {
+                  if (isSelected) {
                     appLogger.debug('Already selected this server');
                     context.showSnackBar('server_already_selected'.i18n);
                     return;
                   }
-                  onPrivateServerSelected(server);
+                  onPrivateServerSelected(loc);
                 },
                 icon: Flag(
-                  countryCode: countryCode,
-                  size: const Size(40, 28),
-                ),
-                label: serverName,
+                    countryCode: loc.countryCode, size: const Size(40, 28)),
+                label: loc.tag,
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 3),
                       child: Text(
-                        '$locationName - $externalIp',
+                        '${loc.city} - ${loc.protocol}',
                         style: _textTheme!.labelMedium!.copyWith(
-                          color: AppColors.gray7,
+                          color: context.textTertiary,
                         ),
                       ),
                     ),
-                    if (protocol.isNotEmpty)
-                      Text(
-                        protocol.capitalize,
-                        style: _textTheme!.labelMedium!.copyWith(
-                          color: AppColors.gray7,
-                        ),
-                      ),
                   ],
                 ),
+                trailing:
+                    isSelected ? AppImage(path: AppImagePaths.blot) : null,
               );
             },
           ),
         ),
-        const SizedBox(height: 16),
-        if (joinedServer.isNotEmpty) ...{
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: HeaderText('joined_servers'.i18n),
-          ),
-          const SizedBox(height: 8),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: ListView(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              children: joinedServer.map((server) {
-                final serverName = server.serverName ?? '';
-                final countryCode = server.serverCountryCode ?? '';
-                final locationName =
-                    server.serverLocationName?.locationName ?? '';
-                final externalIp = server.externalIp ?? '';
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppTile(
-                      onPressed: () {
-                        onPrivateServerSelected(server);
-                      },
-                      icon: Flag(
-                        countryCode: countryCode,
-                        size: const Size(40, 28),
-                      ),
-                      label: serverName,
-                      subtitle: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        child: Text(
-                          '$locationName - $externalIp',
-                          style: _textTheme!.labelMedium!.copyWith(
-                            color: AppColors.gray7,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const DividerSpace(padding: EdgeInsets.zero),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        },
       ],
     );
   }
 
-  Future<void> onPrivateServerSelected(PrivateServer privateServer) async {
+  Future<void> onPrivateServerSelected(Location_ location) async {
     context.showLoadingDialog();
-
-    final serverName = (privateServer.serverName ?? '').trim();
 
     final result = await ref.read(vpnProvider.notifier).connectToServer(
           ServerLocationType.privateServer,
-          serverName,
+          location.tag,
         );
 
     result.fold(
@@ -746,8 +652,16 @@ class _PrivateServerLocationListViewState
         context.hideLoadingDialog();
         context.showSnackBar('connected_to_private_server'.i18n);
 
-        // Source of truth is Go.
-        await ref.read(selectedServerLocationProvider.notifier).refreshFromGo();
+        await ref.read(serverLocationProvider.notifier).updateServerLocation(
+              ServerLocation(
+                serverType: ServerLocationType.privateServer.name,
+                serverName: location.tag,
+                country: location.country,
+                city: location.city,
+                countryCode: location.countryCode,
+                protocol: location.protocol
+              ),
+            );
         appRouter.popUntilRoot();
       },
     );

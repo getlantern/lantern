@@ -1,49 +1,43 @@
-import 'package:lantern/core/models/server_location.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'server_location_notifier.g.dart';
 
+const selectedServerLocationPrefsKey = 'selected_server_location';
+
 @Riverpod()
 class ServerLocationNotifier extends _$ServerLocationNotifier {
+  final _storage = LocalStorageService();
+
   @override
   Future<ServerLocation> build() async {
-    final res =
-        await ref.read(lanternServiceProvider).getSelectedServerLocation();
-    return res.match(
-      (f) {
-        appLogger.error('Failed to load selected server location: ${f.error}');
-        return ServerLocation(
-          serverType: ServerLocationType.auto.name,
-          serverName: '',
-          displayName: '',
-          protocol: '',
-          city: '',
-        );
-      },
-      (loc) => loc,
-    );
+    final raw = await _storage.getString(selectedServerLocationPrefsKey);
+    if (raw == null || raw.isEmpty) return _defaultLocation();
+    try {
+      return ServerLocation.fromJsonString(raw);
+    } catch (e, st) {
+      appLogger.error('Failed to parse server location from prefs', e, st);
+      return _defaultLocation();
+    }
   }
 
   Future<void> updateServerLocation(ServerLocation entity) async {
-    // Update UI immediately; if persisting fails we re-load from core
-    state = AsyncData(entity);
-
-    final res =
-        await ref.read(lanternServiceProvider).setSelectedServerLocation(
-              entity,
-            );
-
-    res.fold(
-      (f) async {
-        appLogger.error('Failed to persist server location: ${f.error}');
-        // Snap back to whatever core thinks is selected
-        state = AsyncData(await build());
-      },
-      (_) {},
-    );
+    final current = state.value;
+    if (entity.serverType != ServerLocationType.auto.name) {
+      ///Preserve auto location metadata when switching to a non-auto server, so we can show user smart location
+      final updated = entity.copyWith(autoLocation: current?.autoLocation);
+      state = AsyncData(updated);
+      await _storage.setString(
+          selectedServerLocationPrefsKey, updated.toJsonString());
+    } else {
+      state = AsyncData(entity);
+      await _storage.setString(
+          selectedServerLocationPrefsKey, entity.toJsonString());
+    }
   }
 
   Future<void> ifNeededGetAutoServerLocation() async {
@@ -62,7 +56,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           final countryName = autoLocation.location!.country;
           final cityName = autoLocation.location!.city;
 
-          final autoServer = ServerLocation(
+          updateServerLocation(ServerLocation(
             serverType: ServerLocationType.auto.name,
             serverName: '',
             displayName: '',
@@ -74,11 +68,17 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
               displayName: '$countryName - $cityName',
               tag: autoLocation.tag,
             ),
-          );
-
-          updateServerLocation(autoServer);
+          ));
         },
       );
     }
   }
+
+  static ServerLocation _defaultLocation() => ServerLocation(
+        serverType: ServerLocationType.auto.name,
+        serverName: '',
+        displayName: '',
+        protocol: '',
+        city: '',
+      );
 }

@@ -1,14 +1,18 @@
 class AvailableServers {
   Lantern lantern;
+  Lantern user;
 
   AvailableServers({
     required this.lantern,
+    required this.user,
   });
 
   factory AvailableServers.fromJson(Map<String, dynamic> json) =>
       AvailableServers(
         lantern: Lantern.fromJson(
             (json["lantern"] as Map<String, dynamic>?) ?? const {}),
+        user: Lantern.fromJson(
+            (json["user"] as Map<String, dynamic>?) ?? const {}),
       );
 
   Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
@@ -55,20 +59,24 @@ class Lantern {
 class Endpoint {
   String type;
   String tag;
+  String server;
 
   Endpoint({
     required this.type,
     required this.tag,
+    required this.server,
   });
 
   factory Endpoint.fromJson(Map<String, dynamic> json) => Endpoint(
         type: json["type"],
         tag: json["tag"],
+        server: json["server"]??'',
       );
 
   Map<String, dynamic> toJson() => {
         "type": type,
         "tag": tag,
+        "server": server,
       };
 }
 

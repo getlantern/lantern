@@ -81,28 +81,20 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
+    final serverLocation = ref.read(serverLocationProvider).value;
 
-    final locRes = await lantern.getSelectedServerLocation();
+    if (serverLocation == null) {
+      appLogger.debug('No cached server location, starting VPN with auto');
+      return lantern.startVPN();
+    }
 
-    return await locRes.fold(
-      (failure) async {
-        appLogger.warning(
-          'Failed to read selected server location from lantern service; falling back to auto: ${failure.localizedErrorMessage}',
-        );
-        return lantern.startVPN();
-      },
-      (serverLocation) async {
-        final type = serverLocation.serverType.toServerLocationType;
+    final type = serverLocation.serverType.toServerLocationType;
+    if (type == ServerLocationType.auto || force) {
+      appLogger.debug('Got server location with type auto or force is true, starting VPN with auto');
+      return lantern.startVPN();
+    }
 
-        if (type == ServerLocationType.auto || force) {
-          appLogger.debug("Starting VPN with auto server location");
-          return lantern.startVPN();
-        }
-
-        final tag = serverLocation.serverName;
-        return connectToServer(type, tag);
-      },
-    );
+    return connectToServer(type, serverLocation.serverName);
   }
 
   /// Connects to a specific server location.

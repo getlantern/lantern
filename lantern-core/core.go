@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -1168,96 +1169,91 @@ func (lc *LanternCore) UpdatePrivateServerName(oldName, newName string) error {
 	return psStore.saveUnlocked(recs)
 }
 
-func (lc *LanternCore) GetSelectedServerLocationJSON() (string, error) {
-	cfg, err := loadAppSettings()
-	if err != nil {
-		return "", err
-	}
+// func (lc *LanternCore) GetSelectedServerLocationJSON() (string, error) {
+// 	cfg, err := loadAppSettings()
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	// If user set something, return it.
-	if len(cfg.SelectedServerLocation) > 0 {
-		// validate it's JSON
-		var tmp any
-		if err := json.Unmarshal(cfg.SelectedServerLocation, &tmp); err == nil {
-			return string(cfg.SelectedServerLocation), nil
-		}
-		// corrupted -> fall through to default
-	}
+// 	// If user set something, return it.
+// 	if len(cfg.SelectedServerLocation) > 0 {
+// 		// validate it's JSON
+// 		var tmp any
+// 		if err := json.Unmarshal(cfg.SelectedServerLocation, &tmp); err == nil {
+// 			return string(cfg.SelectedServerLocation), nil
+// 		}
+// 		// corrupted -> fall through to default
+// 	}
 
-	// Default: Smart Location
-	type selectionPayload struct {
-		ServerType string `json:"serverType"`
-		ServerName string `json:"serverName,omitempty"`
-		Tag        string `json:"tag,omitempty"`
-		Country    string `json:"country,omitempty"`
-		City       string `json:"city,omitempty"`
-		Group      string `json:"group,omitempty"`
-		Type       string `json:"type,omitempty"`
-	}
+// 	// Default: Smart Location
+// 	type selectionPayload struct {
+// 		ServerType string `json:"serverType"`
+// 		ServerName string `json:"serverName,omitempty"`
+// 		Tag        string `json:"tag,omitempty"`
+// 		Country    string `json:"country,omitempty"`
+// 		City       string `json:"city,omitempty"`
+// 		Group      string `json:"group,omitempty"`
+// 		Type       string `json:"type,omitempty"`
+// 	}
 
-	payload := selectionPayload{
-		ServerType: "auto",
-		ServerName: "Smart Location",
-	}
+// 	payload := selectionPayload{
+// 		ServerType: "auto",
+// 		ServerName: "Smart Location",
+// 	}
 
-	b, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
+// 	b, err := json.Marshal(payload)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return string(b), nil
+// }
 
-func (lc *LanternCore) SetSelectedServerLocationJSON(s string) error {
-	var tmp any
-	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
-		return err
-	}
+// func (lc *LanternCore) SetSelectedServerLocationJSON(s string) error {
+// 	var tmp any
+// 	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+// 		return err
+// 	}
 
-	_, err := updateAppSettings(func(cfg *AppSettings) error {
-		cfg.SelectedServerLocation = json.RawMessage([]byte(s))
-		return nil
-	})
-	return err
-}
+// 	_, err := updateAppSettings(func(cfg *AppSettings) error {
+// 		cfg.SelectedServerLocation = json.RawMessage([]byte(s))
+// 		return nil
+// 	})
+// 	return err
+// }
 
-type developerMode struct {
-	TestPlayPurchaseEnabled   bool `json:"testPlayPurchaseEnabled"`
-	TestStripePurchaseEnabled bool `json:"testStripePurchaseEnabled"`
-}
+// func (lc *LanternCore) GetDeveloperModeJSON() (string, error) {
+// 	cfg, err := loadAppSettings()
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-func (lc *LanternCore) GetDeveloperModeJSON() (string, error) {
-	cfg, err := loadAppSettings()
-	if err != nil {
-		return "", err
-	}
+// 	if cfg.DeveloperMode == nil {
+// 		d := developerMode{}
+// 		out, _ := json.Marshal(d)
+// 		return string(out), nil
+// 	}
 
-	if cfg.DeveloperMode == nil {
-		d := developerMode{}
-		out, _ := json.Marshal(d)
-		return string(out), nil
-	}
+// 	out, err := json.Marshal(cfg.DeveloperMode)
+// 	if err != nil {
+// 		d := developerMode{}
+// 		out2, _ := json.Marshal(d)
+// 		return string(out2), nil
+// 	}
+// 	return string(out), nil
+// }
 
-	out, err := json.Marshal(cfg.DeveloperMode)
-	if err != nil {
-		d := developerMode{}
-		out2, _ := json.Marshal(d)
-		return string(out2), nil
-	}
-	return string(out), nil
-}
+// func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
+// 	var dm developerMode
+// 	if err := json.Unmarshal([]byte(s), &dm); err != nil {
+// 		return err
+// 	}
 
-func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
-	var dm developerMode
-	if err := json.Unmarshal([]byte(s), &dm); err != nil {
-		return err
-	}
-
-	_, err := updateAppSettings(func(cfg *AppSettings) error {
-		cfg.DeveloperMode = &dm
-		return nil
-	})
-	return err
-}
+// 	_, err := updateAppSettings(func(cfg *AppSettings) error {
+// 		cfg.DeveloperMode = &dm
+// 		return nil
+// 	})
+// 	return err
+// }
 
 func (lc *LanternCore) GetAppDataDir() string {
 	return settings.GetString(settings.DataPathKey)
