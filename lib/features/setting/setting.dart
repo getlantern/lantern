@@ -51,8 +51,8 @@ class _SettingState extends ConsumerState<Setting> {
     final isAuthenticated = userLoggedIn || hasProSession;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-    final email = ref.watch(
-        homeProvider.select((v) => v.value?.legacyUserData.email ?? ''));
+    final email = ref
+        .watch(homeProvider.select((v) => v.value?.legacyUserData.email ?? ''));
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
@@ -72,7 +72,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (userLoggedIn)
+          if (userLoggedIn || isUserPro)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
