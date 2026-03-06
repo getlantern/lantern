@@ -81,7 +81,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(userLoggedIn: value));
   }
 
-  void setOAuthToken(String token, String provider) {
+  void setOAuthTokenAndProvider(String token, String provider) {
     update(state.copyWith(oAuthToken: token, oAuthLoginProvider: provider));
   }
 

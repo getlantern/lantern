@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -37,9 +36,18 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
     final appSetting = ref.read(appSettingProvider);
-    final isSSOUser = appSetting.oAuthToken.isNotEmpty;
+    var isSSOUser = appSetting.oAuthToken.isNotEmpty;
     final oAuthMethodType =
         _resolveOAuthMethodType(appSetting.oAuthLoginProvider);
+
+    ///For Older versions, if oAuthLoginProvider is not set,
+    /// we should consider the user as non-SSO user to avoid blocking them from deleting account.
+    /// User can logout and login again to see new changes
+    if (appSetting.oAuthLoginProvider.isEmpty) {
+      isSSOUser = false;
+    }
+    appLogger.info(
+        'Building DeleteAccount screen, isSSOUser: $isSSOUser, oAuthMethodType: $oAuthMethodType');
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +104,13 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           SizedBox(height: size24),
           if (isSSOUser)
             OAuthLogin(
+              label: 'verify_with'
+                  .i18n
+                  .fill([appSetting.oAuthLoginProvider.capitalize]),
               methodType: oAuthMethodType,
+              bgColor: context.actionPrimaryBg,
+              foregroundColor: context.actionPrimaryText,
+              removeBorder: true,
               onResult: (payload) => processOAuthResult(payload),
             )
           else
@@ -110,6 +124,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           SizedBox(height: defaultSize),
           SecondaryButton(
             label: 'cancel'.i18n,
+            isTaller: true,
             onPressed: () {
               appRouter.maybePop();
             },
@@ -155,12 +170,39 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         context.hideLoadingDialog();
         ref.read(appSettingProvider.notifier)
           ..setEmail("")
-          ..setOAuthToken("", "")
+          ..setOAuthTokenAndProvider("", "")
           ..setUserLoggedIn(false);
-        appLogger.info('Account deletion successful, clearing user data and navigating to root');
+        appLogger.info(
+            'Account deletion successful, clearing user data and navigating to root');
         ref.read(homeProvider.notifier).updateUserData(userResponse);
-        appRouter.popUntilRoot();
+        showAccountDeletionSuccessDialog();
       },
+    );
+  }
+
+  void showAccountDeletionSuccessDialog() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          AppImage(path: AppImagePaths.roundCorrect),
+          SizedBox(height: 16),
+          Text('account_deleted'.i18n,
+              style: Theme.of(context).textTheme.bodyMedium),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'close'.i18n,
+          onPressed: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              appRouter.popUntilRoot();
+            });
+          },
+        )
+      ],
     );
   }
 }

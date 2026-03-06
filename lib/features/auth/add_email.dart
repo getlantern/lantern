@@ -10,7 +10,6 @@ import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
-enum SignUpMethodType { email, google, apple, withoutEmail }
 
 @RoutePage(name: 'AddEmail')
 class AddEmail extends StatefulHookConsumerWidget {
@@ -305,7 +304,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           appLogger.debug('Login Response: ${response.toString()}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
-            ..setOAuthToken(token, type.name)
+            ..setOAuthTokenAndProvider(token, type.name)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);
           navigateRoute(type, response.legacyUserData.email);

@@ -129,7 +129,7 @@ class SignInEmail extends HookConsumerWidget {
           appLogger.debug('Login Response: ${response.toString()}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
-            ..setOAuthToken(token, type.name)
+            ..setOAuthTokenAndProvider(token, type.name)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);
 
