@@ -20,16 +20,40 @@ part 'app_setting_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
   static const _settingsPrefsKey = 'app_settings_json';
-  bool _didAttemptLoad = false;
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   AppSetting build() {
-    final fallback = _detectDeviceLocale();
-    final initial = AppSetting(locale: fallback.toString());
-    unawaited(_loadFromPrefs(initial).then((_) => _detectEnvironmentFromFile()));
-    appLogger.info('initial app settings: ${initial.toJson()}');
-    return initial;
+    final settings = _fetchStoredSettings();
+    unawaited(_applyDesktopBrightness(resolveThemeMode(settings.themeMode)));
+    unawaited(_detectEnvironmentFromFile());
+    return settings;
+  }
+
+  /// Reads app settings from local storage. Returns stored settings if found
+  /// and valid, otherwise initializes and returns defaults.
+  AppSetting _fetchStoredSettings() {
+    final fallback = AppSetting(locale: _detectDeviceLocale().toString());
+    final raw = _storage.getString(_settingsPrefsKey);
+
+    if (raw == null || raw.isEmpty) {
+      appLogger.info('No stored settings found, saving defaults: ${fallback.toJson()}');
+      unawaited(_saveToPrefs(fallback));
+      return fallback;
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        final settings = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
+        appLogger.info('Loaded stored app settings: $decoded');
+        return settings;
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to parse stored app settings', e, st);
+    }
+
+    return fallback;
   }
 
   Future<void> update(AppSetting updated) async {
@@ -117,33 +141,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
-  }
-
-  Future<void> _loadFromPrefs(AppSetting fallback) async {
-    if (_didAttemptLoad) return;
-    _didAttemptLoad = true;
-
-    final raw = _storage.getString(_settingsPrefsKey);
-
-    // No stored settings — save initial defaults and keep current state.
-    if (raw == null || raw.isEmpty) {
-      appLogger.info('No stored app settings found, using defaults: $fallback');
-      state = fallback;
-      await _saveToPrefs(fallback);
-      return;
-    }
-
-    // Stored settings found — restore them.
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        appLogger.info('Loaded stored app settings: $decoded');
-        state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
-        unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
-      }
-    } catch (e, st) {
-      appLogger.error('Failed to parse stored app settings', e, st);
-    }
   }
 
   Future<void> _saveToPrefs(AppSetting value) async {

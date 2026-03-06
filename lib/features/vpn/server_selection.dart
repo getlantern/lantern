@@ -335,7 +335,7 @@ class _ServerLocationListViewState
                       if (!widget.userPro)
                         Positioned.fill(
                           child: Container(
-                            color: AppColors.white.withValues(alpha: 0.72),
+                            color: context.bgElevated.withValues(alpha: 0.72),
                             alignment: Alignment.center,
                           ),
                         ),
@@ -434,7 +434,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             style: Theme.of(context)
                 .textTheme
                 .bodyLarge!
-                .copyWith(color: AppColors.gray9),
+                .copyWith(color: context.textPrimary),
           ),
           onExpansionChanged: (expanded) {
             setState(() => _isExpanded = expanded);
@@ -591,8 +591,6 @@ class _PrivateServerLocationListViewState
               final loc = userLocations[index];
               final isSelected = selectedTag == loc.tag;
               return AppTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 onPressed: () {
                   if (isSelected) {
                     appLogger.debug('Already selected this server');

@@ -22,7 +22,10 @@ class ManagePrivateServer extends StatefulHookConsumerWidget {
 
 class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   TextTheme? textTheme;
-  String shareAccessKey = "";
+
+  /// Cache of generated access keys keyed by server tag.
+  /// Avoids redundant API calls when the user taps share on the same server.
+  final Map<String, String> _accessKeyCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +56,16 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     indicatorSize: TabBarIndicatorSize.tab,
                     indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
                     splashBorderRadius: BorderRadius.circular(40),
-                    labelColor: Colors.teal.shade900,
-                    indicatorColor: Colors.transparent,
+                    labelColor: context.actionTabbarSelectedText,
                     dividerHeight: 0,
-                    unselectedLabelColor: Colors.grey,
+                    unselectedLabelColor: context.actionTabbarDisabledText,
                     labelStyle: textTheme!.titleSmall,
                     indicator: BoxDecoration(
-                      color: context.textLink,
+                      color: context.actionTabbarBg,
                       borderRadius: BorderRadius.circular(40),
                       shape: BoxShape.rectangle,
-                      border: Border.all(color: AppColors.blue3, width: 1),
+                      border: Border.all(
+                          color: context.actionTabbarBorder, width: 1),
                     ),
                     tabs: [
                       Tab(child: Text('my_servers'.i18n)),
@@ -103,7 +106,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   Widget _buildListView(List<Location_> myServers) {
     return ListView.builder(
-      padding:  EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       itemCount: myServers.length,
       itemBuilder: (context, index) {
         final item = myServers[index];
@@ -130,14 +133,14 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
               ),
               if (true) ...{
                 SizedBox(height: 8),
-                PrimaryButton(
-                    label: 'share_access_key'.i18n,
-                    bgColor: context.bgElevated,
-                    icon: AppImagePaths.shareV2,
-                    iconColor: context.textPrimary,
-                    showBorder: true,
-                    textColor: context.textPrimary,
-                    onPressed: () => onTapShareAccessKey(item)),
+                SecondaryButton(
+                  icon: AppImagePaths.share,
+                  iconColor: AppColors.blue10,
+
+                  label: 'share_access_key'.i18n,
+                  bgColor: context.actionTonalBg,
+                  onPressed: () => onTapShareAccessKey(item),
+                ),
                 SizedBox(height: 8),
               }
             ],
@@ -151,35 +154,55 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     final servers = ref.read(availableServersProvider).value;
 
     if (servers == null) {
-      appLogger.info('Servers data is null, cannot share access key');
+      appLogger.error('Servers data is null, cannot share access key');
       return;
     }
 
-    final userServers =
-        servers.user.outbounds.firstWhere((o) => o.tag == location.tag);
-    final accessToken = servers.user.accessTokens[location.tag] ?? '';
+    final matchingOutbounds =
+        servers.user.outbounds.where((o) => o.tag == location.tag);
+    if (matchingOutbounds.isEmpty) {
+      appLogger.error(
+          'No outbound found for tag: ${location.tag}, cannot share access key');
+      return;
+    }
+    final userServer = matchingOutbounds.first;
+
+    final credential = servers.user.credentials[location.tag];
+    if (credential == null || credential.accessToken.isEmpty) {
+      appLogger.error('No access token for tag: ${location.tag}');
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: 'access_token_missing'.i18n,
+      );
+      return;
+    }
+
     final privateServer = PrivateServer(
-      serverName: location.tag,
-      externalIp: userServers.server,
-      port: userServers.serverPort,
-      accessToken: accessToken,
+      serverName: userServer.tag,
+      externalIp: userServer.server,
+      port: credential.port,
+      accessToken: credential.accessToken,
       serverLocationName: location.city,
       serverCountryCode: location.countryCode,
       protocol: location.protocol,
+      isJoined: credential.isJoined,
     );
-
-    if (shareAccessKey.isNotEmpty) {
+    final cachedKey = _accessKeyCache[location.tag];
+    if (cachedKey != null) {
+      appLogger.info('Reusing cached access key for tag: ${location.tag}');
       try {
-        // If the shareAccessKey is already generated, we don't need to generate it again.
-        Map<String, dynamic> tokenData = JwtDecoder.decode(shareAccessKey);
+        final tokenData = JwtDecoder.decode(cachedKey);
         sharePrivateAccessKey(privateServer, tokenData);
+        return;
       } catch (e) {
-        // If the shareAccessKey is invalid, we need to generate it again.
-        showShareAccessKeyDialog(privateServer);
+        appLogger.warning(
+            'Cached access key invalid for tag: ${location.tag}, regenerating');
+        _accessKeyCache.remove(location.tag);
       }
-    } else {
-      showShareAccessKeyDialog(privateServer);
     }
+
+    showShareAccessKeyDialog(privateServer);
   }
 
   void showShareAccessKeyDialog(PrivateServer server) {
@@ -250,8 +273,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       },
       (accessKey) {
         context.hideLoadingDialog();
-        shareAccessKey = accessKey;
-        Map<String, dynamic> tokenData = JwtDecoder.decode(accessKey);
+        _accessKeyCache[server.serverName] = accessKey;
+        appLogger
+            .info('Access key generated and cached for: ${server.serverName}');
+        final tokenData = JwtDecoder.decode(accessKey);
         sharePrivateAccessKey(server, tokenData);
       },
     );
