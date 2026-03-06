@@ -67,8 +67,10 @@ class _HomeState extends ConsumerState<Home> {
   Widget build(BuildContext context) {
     final isUserPro = ref.watch(isUserProProvider);
     final featureFlag = ref.watch(featureFlagProvider);
-    final appSetting = ref.read(appSettingProvider);
+    final userLoggedIn =
+        ref.watch(appSettingProvider.select((s) => s.userLoggedIn));
     useEffect(() {
+      final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
         appLogger.info(
           "User has successfully connected, checking if needs to show Help Lantern Dialog or not",
@@ -112,8 +114,8 @@ class _HomeState extends ConsumerState<Home> {
               path: AppImagePaths.accountCircle,
               onPressed: () async {
                 final localUser = sl<LocalStorageService>().getUser()!;
-                final userSignedIn = ref.watch(
-                    appSettingProvider.select((value) => value.userLoggedIn));
+                final userSignedIn =
+                    ref.read(appSettingProvider).userLoggedIn;
                 final email = localUser.legacyUserData.email;
                 final isPro = localUser.legacyUserData.isPro();
                 if (isPro && !userSignedIn) {
@@ -125,7 +127,7 @@ class _HomeState extends ConsumerState<Home> {
                 appRouter.push(Account());
               },
             )
-          else if (!appSetting.userLoggedIn)
+          else if (!userLoggedIn)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () {
@@ -170,7 +172,10 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final setting = ref.watch(appSettingProvider);
+    final routingMode =
+        ref.watch(appSettingProvider.select((s) => s.routingMode));
+    final isSplitTunnelingOn =
+        ref.watch(appSettingProvider.select((s) => s.isSplitTunnelingOn));
 
     return Container(
       decoration: BoxDecoration(
@@ -196,7 +201,7 @@ class _HomeState extends ConsumerState<Home> {
               SettingTile(
                 label: 'routing_mode'.i18n,
                 icon: AppImagePaths.route,
-                value: setting.routingMode.label(),
+                value: routingMode.label(),
                 actions: [
                   IconButton(
                     onPressed: null,
@@ -219,9 +224,7 @@ class _HomeState extends ConsumerState<Home> {
               SettingTile(
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
-                value: setting.isSplitTunnelingOn
-                    ? 'enabled'.i18n
-                    : 'disabled'.i18n,
+                value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
                 actions: [
                   IconButton(
                     onPressed: null,
