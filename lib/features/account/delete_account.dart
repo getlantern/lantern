@@ -127,14 +127,29 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   }
 
   void processOAuthResult(Map<String, dynamic> payload) {
-    // No need to handle the token here since the user is already authenticated.
-    // We just need to proceed with account deletion.
-    appLogger.info('Received OAuth payload for account deletion: $payload');
     final token = payload['token'] as String? ?? '';
     final oldToken = ref.read(appSettingProvider).oAuthToken;
 
-    final oldTokenData = JwtDecoder.decode(oldToken);
-    final newTokenData = JwtDecoder.decode(token);
+    if (token.isEmpty || oldToken.isEmpty) {
+      appLogger.warning('Missing OAuth token during account deletion');
+      context.showSnackBarError('error_occurred'.i18n);
+      return;
+    }
+
+    Map<String, dynamic> oldTokenData;
+    Map<String, dynamic> newTokenData;
+    try {
+      oldTokenData = JwtDecoder.decode(oldToken);
+      newTokenData = JwtDecoder.decode(token);
+    } catch (e, st) {
+      appLogger.error(
+        'Failed to decode OAuth token during account deletion',
+        e,
+        st,
+      );
+      context.showSnackBarError('error_occurred'.i18n);
+      return;
+    }
 
     if (oldTokenData['email'] != newTokenData['email']) {
       context.showSnackBarError('oauth_different_account'.i18n);
