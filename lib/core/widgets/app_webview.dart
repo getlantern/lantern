@@ -130,7 +130,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         ///User has completed that private server setup
         if (url.host == 'localhost') {
           appRouter.maybePop(true);
-        } else if (url.scheme == 'lantern' && url.host == 'auth' && url.queryParameters.containsKey('token')) {
+        } else if (url.scheme == 'lantern' &&
+            url.host == 'auth' &&
+            url.queryParameters.containsKey('token')) {
           await appRouter.maybePop(url.queryParameters);
         }
       },

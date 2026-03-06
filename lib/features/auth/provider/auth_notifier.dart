@@ -77,7 +77,7 @@ class AuthNotifier extends _$AuthNotifier {
       String email, String password, bool isSSO) async {
     return ref
         .read(lanternServiceProvider)
-        .deleteAccount(password: password, email: email,isSSO: isSSO);
+        .deleteAccount(password: password, email: email, isSSO: isSSO);
   }
 
   Future<Either<Failure, String>> deviceRemove(String deviceID) async {
