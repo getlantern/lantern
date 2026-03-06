@@ -138,7 +138,7 @@ class Account extends HookConsumerWidget {
                   icon: AppImagePaths.autoRenew,
                   trailing: planTrailingWidget(user, buildContext, ref)),
             ),
-          if (isPro) ...[
+          if (isPro && user!.legacyUserData.devices.toList().isNotEmpty) ...[
             SizedBox(height: defaultSize),
             Padding(
               padding: const EdgeInsets.only(left: 16),
