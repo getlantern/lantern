@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -126,7 +125,9 @@ class SignInEmail extends HookConsumerWidget {
         (response) {
           context.hideLoadingDialog();
           ref.read(homeProvider.notifier).updateUserData(response);
-          appLogger.debug('Login Response: ${response.toString()}');
+
+          appLogger.info(
+              'OAuth login successful, updating app settings with token and user data provider: ${type.name}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
             ..setOAuthTokenAndProvider(token, type.name)

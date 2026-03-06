@@ -300,7 +300,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         (response) {
           context.hideLoadingDialog();
           ref.read(homeProvider.notifier).updateUserData(response);
-          appLogger.debug('Login Response: ${response.toString()}');
+          appLogger.debug(
+              'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}');
+
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
             ..setOAuthTokenAndProvider(token, type.name)

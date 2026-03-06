@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -81,14 +82,14 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
               isSSOUser
                   ? 'confirm_with_account'
                       .i18n
-                      .fill([appSetting.oAuthLoginProvider])
+                      .fill([appSetting.oAuthLoginProvider.capitalize])
                   : 'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
                 color: context.textSecondary,
               ),
             ),
           ),
-          if (!isSSOUser) ...{
+          if (!isSSOUser) ...[
             SizedBox(height: defaultSize),
             AppTextField(
               hintText: '',
@@ -100,7 +101,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
                 buttonEnabled.value = value.isNotEmpty;
               },
             ),
-          },
+          ],
           SizedBox(height: size24),
           if (isSSOUser)
             OAuthLogin(
@@ -140,10 +141,15 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     appLogger.info('Received OAuth payload for account deletion: $payload');
     final token = payload['token'] as String? ?? '';
     final oldToken = ref.read(appSettingProvider).oAuthToken;
-    if (token != oldToken) {
+
+    final oldTokenData = JwtDecoder.decode(oldToken);
+    final newTokenData = JwtDecoder.decode(token);
+
+    if (oldTokenData['email'] != newTokenData['email']) {
       context.showSnackBarError('oauth_different_account'.i18n);
       return;
     }
+
     onDeleteAccount('');
   }
 
@@ -151,10 +157,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     context.showLoadingDialog();
     appLogger.info('Initiating account deletion');
     final localStorageService = sl<LocalStorageService>();
-    final String email = localStorageService.getUser()!.legacyUserData.email;
+    String email = localStorageService.getUser()!.legacyUserData.email;
     final appSetting = localStorageService.getAppSetting();
     final isSSOUser = appSetting?.oAuthToken.isNotEmpty ?? false;
-
     final result = await ref
         .read(authProvider.notifier)
         .deleteAccount(email, password, isSSOUser);
