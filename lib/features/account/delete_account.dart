@@ -181,10 +181,17 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 24),
-          AppImage(path: AppImagePaths.roundCorrect),
+          AppImage(path: AppImagePaths.greenCheck,useThemeColor: false,),
           SizedBox(height: 16),
           Text('account_deleted'.i18n,
-              style: Theme.of(context).textTheme.bodyMedium),
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                color: context.textPrimary,
+              )),
+          SizedBox(height: 16),
+          Text('account_deleted_message'.i18n,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: context.textPrimary,
+              )),
         ],
       ),
       action: [

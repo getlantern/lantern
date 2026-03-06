@@ -1494,6 +1494,8 @@ msgstr "The account you are trying to sign in with does not match the account as
 msgid "account_deleted"
 msgstr "Account Deleted"
 
+msgid "account_deleted_message"
+msgstr "Your account has been permanently deleted. We're sorry to see you go!. If you have any feedback you'd like to share with us, please contact support."
 
 msgid "verify_with"
 msgstr "Verify with %s"
