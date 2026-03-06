@@ -37,18 +37,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
     final appSetting = ref.read(appSettingProvider);
-    var isSSOUser = appSetting.oAuthToken.isNotEmpty;
+    final isSSOUser = appSetting.isSSOUser;
     final oAuthMethodType =
         _resolveOAuthMethodType(appSetting.oAuthLoginProvider);
-
-    ///For Older versions, if oAuthLoginProvider is not set,
-    /// we should consider the user as non-SSO user to avoid blocking them from deleting account.
-    /// User can logout and login again to see new changes
-    if (appSetting.oAuthLoginProvider.isEmpty) {
-      isSSOUser = false;
-    }
-    appLogger.info(
-        'Building DeleteAccount screen, isSSOUser: $isSSOUser, oAuthMethodType: $oAuthMethodType');
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,10 +147,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
     appLogger.info('Initiating account deletion');
-    final localStorageService = sl<LocalStorageService>();
-    String email = localStorageService.getUser()!.legacyUserData.email;
-    final appSetting = localStorageService.getAppSetting();
-    final isSSOUser = appSetting?.oAuthToken.isNotEmpty ?? false;
+    final email = sl<LocalStorageService>().getUser()!.legacyUserData.email;
+    final isSSOUser = ref.read(appSettingProvider).isSSOUser;
     final result = await ref
         .read(authProvider.notifier)
         .deleteAccount(email, password, isSSOUser);
@@ -201,11 +190,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
       action: [
         AppTextButton(
           label: 'close'.i18n,
-          onPressed: () {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              appRouter.popUntilRoot();
-            });
-          },
+          onPressed: () => appRouter.popUntilRoot(),
         )
       ],
     );

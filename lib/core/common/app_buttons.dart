@@ -206,9 +206,6 @@ class SecondaryButton extends StatelessWidget {
     // Heights
     final height = isTaller == true ? hCap(context, 56) : hCap(context, 50);
 
-    // secondary-text: Gray.900 light / Gray.100 dark
-    // final textColor = isDark ? AppColors.gray1 : AppColors.gray9;
-
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {

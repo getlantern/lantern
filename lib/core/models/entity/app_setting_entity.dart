@@ -86,6 +86,11 @@ class AppSetting {
     );
   }
 
+  /// True only when the user authenticated via OAuth AND the provider is known.
+  /// If oAuthLoginProvider is empty (legacy install), treat as non-SSO to avoid
+  /// blocking account deletion for users who haven't re-logged in.
+  bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;
+
   RoutingMode get routingMode => RoutingModeX.fromRaw(routingModeRaw);
   set routingMode(RoutingMode mode) => routingModeRaw = mode.key;
 }
