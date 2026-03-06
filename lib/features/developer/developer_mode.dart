@@ -24,13 +24,14 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
 
-    appLogger.info('User info: $user');
     final developerMode = ref.watch(developerModeProvider);
+    appLogger.info('Developer Mode settings: ${developerMode.toJson()}');
     final devNotifier = ref.read(developerModeProvider.notifier);
     final appSetting = ref.watch(appSettingProvider);
     final appSettingNotifier = ref.watch(appSettingProvider.notifier);
     final isStaging = appSetting.environment == 'stage' ||
         appSetting.environment == 'staging';
+
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(

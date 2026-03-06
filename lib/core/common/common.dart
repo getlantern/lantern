@@ -1,4 +1,5 @@
 // Common file to export all common files
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -12,6 +13,7 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
@@ -23,6 +25,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
+import '../services/local_storage_service.dart';
 import '../utils/store_utils.dart';
 
 export 'package:lantern/core/common/app_asset.dart';
@@ -89,6 +92,19 @@ bool isStoreVersion() {
     return true;
   }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
+    final raw = sl<LocalStorageService>().getString('developer_mode_json');
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          final devMode = DeveloperMode.fromJson(Map<String, dynamic>.from(decoded));
+          appLogger.info('Developer Mode settings: ${devMode.toJson()}');
+          return devMode.testPlayPurchaseEnabled;
+        }
+      } catch (e) {
+        appLogger.error('Failed to parse developer mode settings', e);
+      }
+    }
     return !sl<StoreUtils>().isSideLoaded();
   }
   return !sl<StoreUtils>().isSideLoaded();

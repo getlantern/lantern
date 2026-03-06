@@ -13,20 +13,18 @@ class DeveloperModeNotifier extends _$DeveloperModeNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
-  DeveloperMode build() {
-    _hydrate();
-    return DeveloperMode.initial();
-  }
+  DeveloperMode build() => _hydrate();
 
-  void _hydrate() {
+  DeveloperMode _hydrate() {
     final raw = _storage.getString(_prefsKey);
-    if (raw == null || raw.isEmpty) return;
+    if (raw == null || raw.isEmpty) return DeveloperMode.initial();
     try {
       final decoded = jsonDecode(raw);
       if (decoded is Map) {
-        state = DeveloperMode.fromJson(Map<String, dynamic>.from(decoded));
+        return DeveloperMode.fromJson(Map<String, dynamic>.from(decoded));
       }
     } catch (_) {}
+    return DeveloperMode.initial();
   }
 
   Future<void> updateDeveloperSettings(DeveloperMode dev) async {
