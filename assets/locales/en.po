@@ -1495,7 +1495,7 @@ msgid "account_deleted"
 msgstr "Account Deleted"
 
 msgid "account_deleted_message"
-msgstr "Your account has been permanently deleted. We're sorry to see you go!. If you have any feedback you'd like to share with us, please contact support."
+msgstr "Your account has been permanently deleted."
 
 msgid "verify_with"
 msgstr "Verify with %s"
