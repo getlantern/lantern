@@ -13,6 +13,7 @@ class WebViewLoading extends Notifier<bool> {
   bool build() => false;
 
   void start() => state = true;
+
   void stop() => state = false;
 }
 
@@ -118,7 +119,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
           appRouter.maybePop(true);
         }
       },
-      onReceivedError: (_, webResourceRequest, error) {
+      onReceivedError: (_, webResourceRequest, error) async {
         // Handle received error
         appLogger.error("Received error: $error");
         // Handle load stop
@@ -129,10 +130,17 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         ///User has completed that private server setup
         if (url.host == 'localhost') {
           appRouter.maybePop(true);
+        } else if (url.scheme == 'lantern' &&
+            url.host == 'auth' &&
+            url.queryParameters.containsKey('token')) {
+          await appRouter.maybePop(url.queryParameters);
         }
       },
     );
   }
+
+  bool isLanternHost(String host) =>
+      host == 'lantern.io' || host == 'www.lantern.io';
 
   Future<NavigationActionPolicy?> shouldOverrideUrlLoading(
     InAppWebViewController controller,
@@ -142,9 +150,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (uri == null) return NavigationActionPolicy.ALLOW;
 
     final u = Uri.parse(uri.toString());
-
-    bool isLanternHost(String host) =>
-        host == 'lantern.io' || host == 'www.lantern.io';
 
     // Collect purchaseResult from query
     String? purchaseResult = u.queryParameters['purchaseResult'];

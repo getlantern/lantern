@@ -10,6 +10,7 @@ class AppSetting {
   bool isSplitTunnelingOn;
   String locale;
   String oAuthToken;
+  String oAuthLoginProvider;
   bool userLoggedIn;
   bool blockAds;
   String email;
@@ -29,6 +30,7 @@ class AppSetting {
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
     this.oAuthToken = '',
+    this.oAuthLoginProvider = '',
     this.blockAds = false,
     this.email = '',
     this.locale = 'en_US',
@@ -50,6 +52,7 @@ class AppSetting {
     bool? userLoggedIn,
     bool? blockAds,
     String? oAuthToken,
+    String? oAuthLoginProvider,
     String? email,
     bool? showSplashScreen,
     bool? showTelemetryDialog,
@@ -69,6 +72,7 @@ class AppSetting {
       blockAds: blockAds ?? this.blockAds,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
+      oAuthLoginProvider: oAuthLoginProvider ?? this.oAuthLoginProvider,
       email: email ?? this.email,
       showSplashScreen: showSplashScreen ?? this.showSplashScreen,
       telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
@@ -81,6 +85,11 @@ class AppSetting {
       environment: environment ?? this.environment,
     );
   }
+
+  /// True only when the user authenticated via OAuth AND the provider is known.
+  /// If oAuthLoginProvider is empty (legacy install), treat as non-SSO to avoid
+  /// blocking account deletion for users who haven't re-logged in.
+  bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;
 
   RoutingMode get routingMode => RoutingModeX.fromRaw(routingModeRaw);
   set routingMode(RoutingMode mode) => routingModeRaw = mode.key;

@@ -364,11 +364,13 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) {
+      {required String email, required String password, bool isSSO = false}) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.deleteAccount(email: email, password: password);
+      return _ffiService.deleteAccount(
+          email: email, password: password, isSSO: isSSO);
     }
-    return _platformService.deleteAccount(email: email, password: password);
+    return _platformService.deleteAccount(
+        email: email, password: password, isSSO: isSSO);
   }
 
   @override

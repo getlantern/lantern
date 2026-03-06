@@ -80,7 +80,7 @@ type User interface {
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
-	DeleteAccount(email, password string) ([]byte, error)
+	DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error)
 	RemoveDevice(deviceId string) (*api.LinkResponse, error)
 	//Change email
 	StartChangeEmail(newEmail, password string) error
@@ -702,9 +702,9 @@ func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) err
 	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
 }
 
-func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
+func (lc *LanternCore) DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
 	slog.Debug("Deleting account")
-	return lc.apiClient.DeleteAccount(context.Background(), email, password)
+	return lc.apiClient.DeleteAccount(context.Background(), email, password, isOAuthUser)
 }
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {

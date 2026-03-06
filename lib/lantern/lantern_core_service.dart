@@ -154,7 +154,7 @@ abstract class LanternCoreService {
 
   //Delete account
   Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password});
+      {required String email, required String password, bool isSSO = false});
 
   //Device Remove
   Future<Either<Failure, String>> deviceRemove({

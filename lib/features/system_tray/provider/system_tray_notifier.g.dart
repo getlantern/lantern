@@ -34,7 +34,7 @@ final class SystemTrayNotifierProvider
 }
 
 String _$systemTrayNotifierHash() =>
-    r'ab73408f744c3428316f2022851ddc955ea6cc9c';
+    r'db137dcfbb27b98c519af2e96405a8713167eb58';
 
 abstract class _$SystemTrayNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();

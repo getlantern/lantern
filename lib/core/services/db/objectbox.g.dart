@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(23, 853140105317312758),
+    lastPropertyId: const obx_int.IdUid(24, 3156665197347580943),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -195,6 +195,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(23, 853140105317312758),
         name: 'themeMode',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(24, 3156665197347580943),
+        name: 'oAuthLoginProvider',
         type: 9,
         flags: 0,
       ),
@@ -954,9 +960,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final bundleIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
-        final iconBytesParam = const fb.Uint8ListReader(
-          lazy: false,
-        ).vTableGetNullable(buffer, rootOffset, 10) as Uint8List?;
+        final iconBytesParam =
+            const fb.Uint8ListReader(
+                  lazy: false,
+                ).vTableGetNullable(buffer, rootOffset, 10)
+                as Uint8List?;
         final iconPathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -1012,7 +1020,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final dataCapThresholdOffset = fbb.writeString(object.dataCapThreshold);
         final environmentOffset = fbb.writeString(object.environment);
         final themeModeOffset = fbb.writeString(object.themeMode);
-        fbb.startTable(24);
+        final oAuthLoginProviderOffset = fbb.writeString(
+          object.oAuthLoginProvider,
+        );
+        fbb.startTable(25);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -1030,6 +1041,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(20, object.onboardingCompleted);
         fbb.addOffset(21, environmentOffset);
         fbb.addOffset(22, themeModeOffset);
+        fbb.addOffset(23, oAuthLoginProviderOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1063,6 +1075,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final oAuthTokenParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
+        final oAuthLoginProviderParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 50, '');
         final blockAdsParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -1123,6 +1138,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isSplitTunnelingOn: isSplitTunnelingOnParam,
           userLoggedIn: userLoggedInParam,
           oAuthToken: oAuthTokenParam,
+          oAuthLoginProvider: oAuthLoginProviderParam,
           blockAds: blockAdsParam,
           email: emailParam,
           locale: localeParam,
@@ -1879,19 +1895,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final displayNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 20, '');
-        final object = ServerLocationEntity(
-          serverName: serverNameParam,
-          serverType: serverTypeParam,
-          protocol: protocolParam,
-          countryCode: countryCodeParam,
-          country: countryParam,
-          city: cityParam,
-          displayName: displayNameParam,
-        )
-          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
-          ..autoLocationJson = const fb.StringReader(
-            asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 22, '');
+        final object =
+            ServerLocationEntity(
+                serverName: serverNameParam,
+                serverType: serverTypeParam,
+                protocol: protocolParam,
+                countryCode: countryCodeParam,
+                country: countryParam,
+                city: cityParam,
+                displayName: displayNameParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..autoLocationJson = const fb.StringReader(
+                asciiOptimization: true,
+              ).vTableGet(buffer, rootOffset, 22, '');
 
         return object;
       },
@@ -2074,6 +2091,11 @@ class AppSetting_ {
   static final themeMode = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[16],
   );
+
+  /// See [AppSetting.oAuthLoginProvider].
+  static final oAuthLoginProvider = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[17],
+  );
 }
 
 /// [DeviceEntity] entity fields to define ObjectBox queries.
@@ -2147,8 +2169,8 @@ class PlansDataEntity_ {
   /// See [PlansDataEntity.providers].
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
-    _entities[4].properties[1],
-  );
+        _entities[4].properties[1],
+      );
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(
@@ -2254,8 +2276,8 @@ class SubscriptionDataEntity_ {
   /// See [SubscriptionDataEntity.stripeCustomerID].
   static final stripeCustomerID =
       obx.QueryStringProperty<SubscriptionDataEntity>(
-    _entities[8].properties[2],
-  );
+        _entities[8].properties[2],
+      );
 
   /// See [SubscriptionDataEntity.startAt].
   static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
@@ -2398,8 +2420,8 @@ class UserDataEntity_ {
   /// See [UserDataEntity.subscriptionData].
   static final subscriptionData =
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
-    _entities[9].properties[19],
-  );
+        _entities[9].properties[19],
+      );
 
   /// See [UserDataEntity.deviceID].
   static final deviceID = obx.QueryStringProperty<UserDataEntity>(
@@ -2452,14 +2474,14 @@ class UserResponseEntity_ {
   /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
-    _entities[10].properties[5],
-  );
+        _entities[10].properties[5],
+      );
 
   /// see [UserResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
-    _entities[10].relations[0],
-  );
+        _entities[10].relations[0],
+      );
 }
 
 /// [Website] entity fields to define ObjectBox queries.
@@ -2533,12 +2555,12 @@ class DeveloperModeEntity_ {
   /// See [DeveloperModeEntity.testPlayPurchaseEnabled].
   static final testPlayPurchaseEnabled =
       obx.QueryBooleanProperty<DeveloperModeEntity>(
-    _entities[13].properties[1],
-  );
+        _entities[13].properties[1],
+      );
 
   /// See [DeveloperModeEntity.testStripePurchaseEnabled].
   static final testStripePurchaseEnabled =
       obx.QueryBooleanProperty<DeveloperModeEntity>(
-    _entities[13].properties[2],
-  );
+        _entities[13].properties[2],
+      );
 }
