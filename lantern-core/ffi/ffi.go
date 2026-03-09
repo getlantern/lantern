@@ -975,20 +975,6 @@ func getSplitTunnelItems(filterTypeC *C.char) *C.char {
 	return C.CString(s)
 }
 
-//export savePrivateServer
-func savePrivateServer(_json *C.char, _joined C.int) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	js := C.GoString(_json)
-	joined := _joined != 0
-	if err := c.(*lanterncore.LanternCore).SavePrivateServerJSON(js, joined); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
 //export deletePrivateServerByName
 func deletePrivateServerByName(_name *C.char) *C.char {
 	c, errStr := requireCore()
@@ -996,25 +982,25 @@ func deletePrivateServerByName(_name *C.char) *C.char {
 		return errStr
 	}
 	name := C.GoString(_name)
-	if err := c.(*lanterncore.LanternCore).DeletePrivateServerByName(name); err != nil {
+	if err := c.(*lanterncore.LanternCore).DeleteServer(name); err != nil {
 		return SendError(err)
 	}
 	return C.CString("ok")
 }
 
-//export updatePrivateServerName
-func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	oldName := C.GoString(_oldName)
-	newName := C.GoString(_newName)
-	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
+// //export updatePrivateServerName
+// func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
+// 	c, errStr := requireCore()
+// 	if errStr != nil {
+// 		return errStr
+// 	}
+// 	oldName := C.GoString(_oldName)
+// 	newName := C.GoString(_newName)
+// 	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
+// 		return SendError(err)
+// 	}
+// 	return C.CString("ok")
+// }
 
 //export getEnabledApps
 func getEnabledApps() *C.char {
