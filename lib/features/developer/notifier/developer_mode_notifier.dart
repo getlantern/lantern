@@ -10,7 +10,8 @@ class DeveloperModeNotifier extends _$DeveloperModeNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
-  DeveloperMode build() => _storage.getDeveloperMode() ?? DeveloperMode.initial();
+  DeveloperMode build() =>
+      _storage.getDeveloperMode() ?? DeveloperMode.initial();
 
   Future<void> updateDeveloperSettings(DeveloperMode dev) async {
     state = dev;

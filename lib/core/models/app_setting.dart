@@ -81,7 +81,6 @@ class AppSetting {
 
   RoutingMode get routingMode => RoutingModeX.fromRaw(routingModeRaw);
 
-
   Map<String, dynamic> toJson() => {
         'isPro': isPro,
         'isSplitTunnelingOn': isSplitTunnelingOn,
@@ -120,8 +119,5 @@ class AppSetting {
         onboardingCompleted: json['onboardingCompleted'] == true,
       );
 
-
   bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;
-
 }
-

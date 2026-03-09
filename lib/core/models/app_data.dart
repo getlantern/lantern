@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:lantern/core/utils/app_data_utils.dart';
 
 class AppData {

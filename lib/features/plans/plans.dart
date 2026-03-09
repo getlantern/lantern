@@ -21,7 +21,6 @@ import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 import '../../core/models/plan_data.dart';
-import '../home/provider/home_notifier.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {

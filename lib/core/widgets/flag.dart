@@ -14,7 +14,6 @@ class Flag extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: context.borderInput, width: .5),
-
       ),
       child: SizedBox.fromSize(
         size: size,

@@ -1361,9 +1361,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> updatePrivateServerName(
-      String oldName,
-      String newName,
-      ) async {
+    String oldName,
+    String newName,
+  ) async {
     try {
       final oldPtr = oldName.toNativeUtf8();
       final newPtr = newName.toNativeUtf8();
@@ -1549,8 +1549,6 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
-
 
   @override
   Future<Either<Failure, String>> triggerSystemExtension() {

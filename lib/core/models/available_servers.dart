@@ -122,7 +122,6 @@ class Endpoint {
         "tag": tag,
         "server": server,
         "server_port": serverPort,
-
       };
 }
 

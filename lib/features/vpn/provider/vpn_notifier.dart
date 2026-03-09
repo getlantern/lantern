@@ -90,7 +90,8 @@ class VpnNotifier extends _$VpnNotifier {
 
     final type = serverLocation.serverType.toServerLocationType;
     if (type == ServerLocationType.auto || force) {
-      appLogger.debug('Got server location with type auto or force is true, starting VPN with auto');
+      appLogger.debug(
+          'Got server location with type auto or force is true, starting VPN with auto');
       return lantern.startVPN();
     }
 
