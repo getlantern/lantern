@@ -4,8 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
@@ -115,11 +115,10 @@ class _HomeState extends ConsumerState<Home> {
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
-                final localUser = sl<LocalStorageService>().getUser()!;
-                final userSignedIn =
-                    ref.read(appSettingProvider).userLoggedIn;
-                final email = localUser.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro();
+                final localUser = ref.read(currentUserProvider);
+                final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
+                final email = localUser!.legacyUserData.email;
+                final isPro = localUser.legacyUserData.isPro;
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
                   await showProAccountFlowDialog(

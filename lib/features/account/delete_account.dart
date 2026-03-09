@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
 import '../../core/services/injection_container.dart';
+import '../../core/services/local_storage_service.dart';
 import '../auth/provider/auth_notifier.dart';
 
 @RoutePage(name: 'DeleteAccount')
@@ -164,14 +165,11 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     context.showLoadingDialog();
     final email = ref.read(userEmailProvider);
 
-    final result =
-        await ref.read(authProvider.notifier).deleteAccount(email, password);
-    appLogger.info('Initiating account deletion');
-    final email = sl<LocalStorageService>().getUser()!.legacyUserData.email;
     final isSSOUser = ref.read(appSettingProvider).isSSOUser;
-    final result = await ref
-        .read(authProvider.notifier)
-        .deleteAccount(email, password, isSSOUser);
+
+    final result =
+        await ref.read(authProvider.notifier).deleteAccount(email, password,isSSOUser);
+    appLogger.info('Initiating account deletion');
 
     result.fold(
       (failure) {

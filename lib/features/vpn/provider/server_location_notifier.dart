@@ -8,22 +8,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'server_location_notifier.g.dart';
 
-const selectedServerLocationPrefsKey = 'selected_server_location';
-
 @Riverpod()
 class ServerLocationNotifier extends _$ServerLocationNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   Future<ServerLocation> build() async {
-    final raw = _storage.getString(selectedServerLocationPrefsKey);
-    if (raw == null || raw.isEmpty) return _defaultLocation();
-    try {
-      return ServerLocation.fromJsonString(raw);
-    } catch (e, st) {
-      appLogger.error('Failed to parse server location from prefs', e, st);
-      return _defaultLocation();
-    }
+    return _storage.getServerLocation() ?? _defaultLocation();
   }
 
   Future<void> updateServerLocation(ServerLocation entity) async {
@@ -32,12 +23,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       ///Preserve auto location metadata when switching to a non-auto server, so we can show user smart location
       final updated = entity.copyWith(autoLocation: current?.autoLocation);
       state = AsyncData(updated);
-      await _storage.setString(
-          selectedServerLocationPrefsKey, updated.toJsonString());
+      await _storage.saveServerLocation(updated);
     } else {
       state = AsyncData(entity);
-      await _storage.setString(
-          selectedServerLocationPrefsKey, entity.toJsonString());
+      await _storage.saveServerLocation(entity);
     }
   }
 

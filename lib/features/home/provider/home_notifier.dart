@@ -84,7 +84,6 @@ class HomeNotifier extends _$HomeNotifier {
       email = userData.legacyUserData.email;
     }
     ref.read(appSettingProvider.notifier).setEmail(email);
-    sl<LocalStorageService>().saveUser(userData.toEntity());
     checkIfUserProAndDeviceIsAdded();
   }
 

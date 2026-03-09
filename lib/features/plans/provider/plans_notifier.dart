@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -12,8 +11,6 @@ part 'plans_notifier.g.dart';
 
 @Riverpod()
 class PlansNotifier extends _$PlansNotifier {
-  static const _prefsKey = 'plans_json';
-
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   Plan? userSelectedPlan;
@@ -21,7 +18,7 @@ class PlansNotifier extends _$PlansNotifier {
   @override
   Future<PlansData> build() async {
     state = const AsyncLoading();
-    final cached = _getPlansFromPrefs();
+    final cached = _storage.getPlans();
     if (cached != null) {
       unawaited(_refreshInBackground());
       state = AsyncData(cached);
@@ -29,26 +26,6 @@ class PlansNotifier extends _$PlansNotifier {
     }
 
     return fetchPlans();
-  }
-
-  PlansData? _getPlansFromPrefs() {
-    try {
-      final raw = _storage.getString(_prefsKey);
-      if (raw == null || raw.isEmpty) return null;
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      return PlansData.fromJson(decoded);
-    } catch (e, st) {
-      appLogger.error('Error reading cached plans from prefs', e, st);
-      return null;
-    }
-  }
-
-  Future<void> _savePlansToPrefs(PlansData plans) async {
-    try {
-      await _storage.setString(_prefsKey, jsonEncode(plans.toJson()));
-    } catch (e, st) {
-      appLogger.error('Error saving plans to prefs', e, st);
-    }
   }
 
   Future<PlansData> fetchPlans({bool fromBackground = false}) async {
@@ -66,7 +43,7 @@ class PlansNotifier extends _$PlansNotifier {
         throw Exception('Plans fetch failed');
       },
       (remote) {
-        unawaited(_savePlansToPrefs(remote));
+        unawaited(_storage.savePlans(remote));
         return remote;
       },
     );

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -19,7 +18,6 @@ part 'app_setting_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
-  static const _settingsPrefsKey = 'app_settings_json';
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
@@ -34,32 +32,22 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   /// and valid, otherwise initializes and returns defaults.
   AppSetting _fetchStoredSettings() {
     final fallback = AppSetting(locale: _detectDeviceLocale().toString());
-    final raw = _storage.getString(_settingsPrefsKey);
+    final settings = _storage.getAppSettings();
 
-    if (raw == null || raw.isEmpty) {
+    if (settings == null) {
       appLogger.info('No stored settings found, saving defaults: ${fallback.toJson()}');
-      unawaited(_saveToPrefs(fallback));
+      unawaited(_storage.saveAppSettings(fallback));
       return fallback;
     }
 
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        final settings = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
-        appLogger.info('Loaded stored app settings: $decoded');
-        return settings;
-      }
-    } catch (e, st) {
-      appLogger.error('Failed to parse stored app settings', e, st);
-    }
-
-    return fallback;
+    appLogger.info('Loaded stored app settings: ${settings.toJson()}');
+    return settings;
   }
 
   Future<void> update(AppSetting updated) async {
     appLogger.info('Updating app settings: ${updated.toJson()}');
     state = updated;
-    await _saveToPrefs(updated);
+    await _storage.saveAppSettings(updated);
   }
 
   void togglePro(bool value) => update(state.copyWith(newPro: value));
@@ -143,10 +131,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
-  }
-
-  Future<void> _saveToPrefs(AppSetting value) async {
-    await _storage.setString(_settingsPrefsKey, jsonEncode(value.toJson()));
   }
 
   Future<void> _applyDesktopBrightness(ThemeMode mode) async {

@@ -18,29 +18,6 @@ class AvailableServers {
   Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
 }
 
-class ServerCredential {
-  String accessToken;
-  bool isJoined;
-  String port;
-
-  ServerCredential({
-    required this.accessToken,
-    required this.isJoined,
-    required this.port,
-  });
-
-  factory ServerCredential.fromJson(Map<String, dynamic> json) => ServerCredential(
-        accessToken: json["access_token"] ?? '',
-        isJoined: json["isJoined"] ?? false,
-        port: json["port"]?.toString() ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {
-        "access_token": accessToken,
-        "isJoined": isJoined,
-        "port": port,
-      };
-}
 
 class Lantern {
   List<Endpoint> endpoints;
@@ -69,7 +46,7 @@ class Lantern {
             : Map<String, Location_>.from(
                 (json["locations"] as Map<String, dynamic>).map(
                   (k, v) => MapEntry(
-                    k as String,
+                    k,
                     Location_.fromJson(v as Map<String, dynamic>)..tag = k,
                   ),
                 ),
@@ -79,7 +56,7 @@ class Lantern {
             : Map<String, ServerCredential>.from(
                 (json["credentials"] as Map<String, dynamic>).map(
                   (k, v) => MapEntry(
-                    k as String,
+                    k,
                     ServerCredential.fromJson(v as Map<String, dynamic>),
                   ),
                 ),
@@ -90,6 +67,31 @@ class Lantern {
         "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
         "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
       };
+}
+
+
+class ServerCredential {
+  String accessToken;
+  bool isJoined;
+  String port;
+
+  ServerCredential({
+    required this.accessToken,
+    required this.isJoined,
+    required this.port,
+  });
+
+  factory ServerCredential.fromJson(Map<String, dynamic> json) => ServerCredential(
+    accessToken: json["access_token"] ?? '',
+    isJoined: json["isJoined"] ?? false,
+    port: json["port"]?.toString() ?? '',
+  );
+
+  Map<String, dynamic> toJson() => {
+    "access_token": accessToken,
+    "isJoined": isJoined,
+    "port": port,
+  };
 }
 
 class Endpoint {

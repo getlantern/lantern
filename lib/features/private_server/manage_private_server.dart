@@ -42,7 +42,13 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         body: Center(child: Text(err.toString())),
       ),
       data: (servers) {
-        final myServers = servers.user.locations.values.toList();
+        final allServers = servers.user.locations.values.toList();
+        final joinedServers = allServers
+            .where((loc) => servers.user.credentials[loc.tag]?.isJoined == true)
+            .toList();
+        final myServers = allServers
+            .where((loc) => servers.user.credentials[loc.tag]?.isJoined != true)
+            .toList();
 
         return BaseScreen(
           title: 'manage_private_servers'.i18n,
@@ -79,7 +85,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   child: TabBarView(
                     children: [
                       buildMyServer(myServers),
-                      const Center(child: Text('')),
+                      Padding(
+                        padding: const EdgeInsets.only(top: defaultSize),
+                        child: _buildListView(joinedServers),
+                      ),
                     ],
                   ),
                 ),
@@ -135,8 +144,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 SizedBox(height: 8),
                 SecondaryButton(
                   icon: AppImagePaths.share,
-                  iconColor: AppColors.blue10,
-
+                  foregroundColor: context.actionTonalText,
                   label: 'share_access_key'.i18n,
                   bgColor: context.actionTonalBg,
                   onPressed: () => onTapShareAccessKey(item),

@@ -47,6 +47,7 @@ class _SettingState extends ConsumerState<Setting> {
 
     final appSetting = ref.watch(appSettingProvider);
 
+
     final hasProSession = (user?.legacyUserData.isPro ?? false) &&
         (user?.legacyUserData.unpassRegistered ?? false);
 
@@ -55,6 +56,7 @@ class _SettingState extends ConsumerState<Setting> {
     final locale = appSetting.locale;
     final themeMode = appSetting.themeMode;
     final textTheme = Theme.of(context).textTheme;
+    final userLoggedIn = appSetting.userLoggedIn;
 
     return BaseScreen(
       title: 'settings'.i18n,
