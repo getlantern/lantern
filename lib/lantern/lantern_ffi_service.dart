@@ -15,10 +15,8 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
-import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -348,28 +346,6 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];
     }
-  }
-
-  List<AppData> _mapToAppData(
-    Iterable<Map<String, dynamic>> rawApps,
-    EnabledAppsSnapshot enabled,
-  ) {
-    return rawApps.map((raw) {
-      final name = (raw["name"] as String? ?? "").trim();
-      final bundleId = (raw["bundleId"] as String? ?? "").trim();
-
-      final key = bundleId.isNotEmpty ? bundleId : name;
-      final isEnabled = enabled.contains(key: key, name: name);
-
-      return AppData(
-        name: name,
-        bundleId: bundleId,
-        appPath: raw["appPath"] as String? ?? '',
-        iconPath: raw["iconPath"] as String? ?? '',
-        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
-        isEnabled: isEnabled,
-      );
-    }).toList();
   }
 
   // Split tunneling
@@ -749,21 +725,6 @@ class LanternFFIService implements LanternCoreService {
       return right(unit);
     } catch (e, st) {
       appLogger.error('FFI call returned error', e, st);
-      return left(e.toFailure());
-    }
-  }
-
-  /// Runs an FFI call that returns a JSON string on a background isolate,
-  /// then checks for API error payloads before returning the raw string.
-  Future<Either<Failure, String>> _ffiJsonString(
-    Future<String> Function() call,
-  ) async {
-    try {
-      final jsonStr = await runInBackground<String>(() async => call());
-      checkAPIError(jsonStr);
-      return right(jsonStr);
-    } catch (e, st) {
-      appLogger.error('FFI JSON call failed', e, st);
       return left(e.toFailure());
     }
   }
@@ -1592,26 +1553,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setSelectedServerLocation(
-      ServerLocation location) async {
-    try {
-      final jsonStr = jsonEncode(location.toJson());
-
-      final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setSelectedServerLocation(jsonStr.toCharPtr)
-            .toDartString();
-      });
-
-      checkAPIError(result);
-      return right(unit);
-    } catch (e, st) {
-      appLogger.error('Error setting selected server location via FFI', e, st);
-      return left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,
   ) async {
@@ -1646,20 +1587,6 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
-    final res = await _ffiJsonString(() async {
-      return _ffiService.getSelectedServerLocation().toDartString();
-    });
-
-    return res.match(
-      left,
-      (jsonStr) {
-        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
-        return right(ServerLocation.fromJson(map));
-      },
-    );
-  }
-
   @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {
@@ -1674,7 +1601,6 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  @override
   Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
     // TODO: implement getDeveloperMode
     throw UnimplementedError();

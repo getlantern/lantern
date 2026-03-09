@@ -104,6 +104,7 @@ type PrivateServer interface {
 	StartDeployment(location, serverName string) error
 	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
 	DeleteServer(tag string) error
+	UpdatePrivateServerName(oldTag, newTag string) error
 }
 
 type Payment interface {
@@ -800,6 +801,65 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 func (lc *LanternCore) DeleteServer(tag string) error {
 	slog.Debug("Deleting server with tag: ", "tag", tag)
 	return lc.serverManager.RemoveServer(tag)
+}
+
+func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
+	if oldTag == "" || newTag == "" {
+		return fmt.Errorf("old and new server names must be non-empty")
+	}
+	if oldTag == newTag {
+		return nil
+	}
+
+	// Ensure the source exists in user servers.
+	userServers := lc.serverManager.Servers()[servers.SGUser]
+	sourceExists := false
+	for _, ep := range userServers.Endpoints {
+		if ep.Tag == oldTag {
+			sourceExists = true
+			break
+		}
+	}
+	if !sourceExists {
+		for _, out := range userServers.Outbounds {
+			if out.Tag == oldTag {
+				sourceExists = true
+				break
+			}
+		}
+	}
+	if !sourceExists {
+		return fmt.Errorf("server with tag %q not found", oldTag)
+	}
+
+	// Prevent collisions against any existing server tag.
+	if _, exists := lc.serverManager.GetServerByTag(newTag); exists {
+		return fmt.Errorf("server with tag %q already exists", newTag)
+	}
+
+	for i, ep := range userServers.Endpoints {
+		if ep.Tag == oldTag {
+			userServers.Endpoints[i].Tag = newTag
+		}
+	}
+	for i, out := range userServers.Outbounds {
+		if out.Tag == oldTag {
+			userServers.Outbounds[i].Tag = newTag
+		}
+	}
+	if loc, ok := userServers.Locations[oldTag]; ok {
+		delete(userServers.Locations, oldTag)
+		userServers.Locations[newTag] = loc
+	}
+	if creds, ok := userServers.Credentials[oldTag]; ok {
+		delete(userServers.Credentials, oldTag)
+		userServers.Credentials[newTag] = creds
+	}
+
+	if err := lc.serverManager.SetServers(servers.SGUser, userServers); err != nil {
+		return fmt.Errorf("failed to rename private server %q to %q: %w", oldTag, newTag, err)
+	}
+	return nil
 }
 
 func parsePort(port string) (int, error) {

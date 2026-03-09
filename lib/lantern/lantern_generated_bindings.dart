@@ -3239,58 +3239,6 @@ class LanternBindings {
   late final _getSplitTunnelItems = _getSplitTunnelItemsPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> getCachedPlans() {
-    return _getCachedPlans();
-  }
-
-  late final _getCachedPlansPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'getCachedPlans');
-  late final _getCachedPlans =
-      _getCachedPlansPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
-
-  ffi.Pointer<ffi.Char> setCachedPlans(
-    ffi.Pointer<ffi.Char> plansJSON,
-  ) {
-    return _setCachedPlans(
-      plansJSON,
-    );
-  }
-
-  late final _setCachedPlansPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>)>>('setCachedPlans');
-  late final _setCachedPlans = _setCachedPlansPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
-
-  ffi.Pointer<ffi.Char> getPrivateServers() {
-    return _getPrivateServers();
-  }
-
-  late final _getPrivateServersPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'getPrivateServers');
-  late final _getPrivateServers =
-      _getPrivateServersPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
-
-  ffi.Pointer<ffi.Char> savePrivateServer(
-    ffi.Pointer<ffi.Char> _json,
-    int _joined,
-  ) {
-    return _savePrivateServer(
-      _json,
-      _joined,
-    );
-  }
-
-  late final _savePrivateServerPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>, ffi.Int)>>('savePrivateServer');
-  late final _savePrivateServer = _savePrivateServerPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, int)>();
-
   ffi.Pointer<ffi.Char> deletePrivateServerByName(
     ffi.Pointer<ffi.Char> _name,
   ) {
@@ -3324,41 +3272,6 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> getSelectedServerLocation() {
-    return _getSelectedServerLocation();
-  }
-
-  late final _getSelectedServerLocationPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'getSelectedServerLocation');
-  late final _getSelectedServerLocation = _getSelectedServerLocationPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function()>();
-
-  ffi.Pointer<ffi.Char> getDeveloperMode() {
-    return _getDeveloperMode();
-  }
-
-  late final _getDeveloperModePtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'getDeveloperMode');
-  late final _getDeveloperMode =
-      _getDeveloperModePtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
-
-  ffi.Pointer<ffi.Char> setDeveloperMode(
-    ffi.Pointer<ffi.Char> jsonC,
-  ) {
-    return _setDeveloperMode(
-      jsonC,
-    );
-  }
-
-  late final _setDeveloperModePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>)>>('setDeveloperMode');
-  late final _setDeveloperMode = _setDeveloperModePtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
-
   ffi.Pointer<ffi.Char> getAppDataDir() {
     return _getAppDataDir();
   }
@@ -3379,20 +3292,6 @@ class LanternBindings {
   late final _getEnabledApps =
       _getEnabledAppsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
-  ffi.Pointer<ffi.Char> setSelectedServerLocation(
-    ffi.Pointer<ffi.Char> jsonC,
-  ) {
-    return _setSelectedServerLocation(
-      jsonC,
-    );
-  }
-
-  late final _setSelectedServerLocationPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>)>>('setSelectedServerLocation');
-  late final _setSelectedServerLocation = _setSelectedServerLocationPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
   ffi.Pointer<ffi.Char> startVPN(
     ffi.Pointer<ffi.Char> _logDir,
     ffi.Pointer<ffi.Char> _dataDir,

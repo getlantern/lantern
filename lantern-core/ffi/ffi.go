@@ -964,25 +964,34 @@ func deletePrivateServerByName(_name *C.char) *C.char {
 		return errStr
 	}
 	name := C.GoString(_name)
-	if err := c.(*lanterncore.LanternCore).DeleteServer(name); err != nil {
+	if err := c.DeleteServer(name); err != nil {
 		return SendError(err)
 	}
 	return C.CString("ok")
 }
 
-// //export updatePrivateServerName
-// func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
-// 	c, errStr := requireCore()
-// 	if errStr != nil {
-// 		return errStr
-// 	}
-// 	oldName := C.GoString(_oldName)
-// 	newName := C.GoString(_newName)
-// 	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
-// 		return SendError(err)
-// 	}
-// 	return C.CString("ok")
-// }
+//export updatePrivateServerName
+func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	oldName := C.GoString(_oldName)
+	newName := C.GoString(_newName)
+	if err := c.UpdatePrivateServerName(oldName, newName); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export getAppDataDir
+func getAppDataDir() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(c.GetAppDataDir())
+}
 
 //export getEnabledApps
 func getEnabledApps() *C.char {
