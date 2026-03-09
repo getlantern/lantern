@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/widgets/censored_dialog.dart';
-import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 import '../../features/auth/provider/auth_notifier.dart';
@@ -14,30 +13,43 @@ import '../services/injection_container.dart' show sl;
 
 class OAuthLogin extends HookConsumerWidget {
   final SignUpMethodType methodType;
-  final Function(Map<String, dynamic> token) onResult;
+  final String? label;
+  final Color? bgColor;
+  final Color? foregroundColor;
+  final bool? removeBorder;
+  final Function(Map<String, dynamic> payload) onResult;
 
   const OAuthLogin({
     super.key,
     required this.methodType,
+    this.label,
     required this.onResult,
+    this.bgColor,
+    this.foregroundColor,
+    this.removeBorder,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (methodType == SignUpMethodType.apple) {
       return SecondaryButton(
-        label: 'continue_with_apple'.i18n,
+        label: label ?? 'continue_with_apple'.i18n,
         icon: AppImagePaths.apple,
         isTaller: true,
-        iconColor: context.textPrimary,
+        bgColor: bgColor,
+        removeBorder: removeBorder,
+        foregroundColor: foregroundColor,
         onPressed: () => _handleSignIn(SignUpMethodType.apple, ref, context),
       );
     }
     return SecondaryButton(
-      label: 'continue_with_google'.i18n,
+      label: label ?? 'continue_with_google'.i18n,
       icon: AppImagePaths.google,
       isTaller: true,
+      bgColor: bgColor,
       useThemeColor: false,
+      removeBorder: removeBorder,
+      foregroundColor: foregroundColor,
       onPressed: () => _handleSignIn(SignUpMethodType.google, ref, context),
     );
   }

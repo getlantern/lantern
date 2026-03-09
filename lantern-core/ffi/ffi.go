@@ -609,12 +609,12 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 // Delete account permanently
 //
 //export deleteAccount
-func deleteAccount(_email, _password *C.char) *C.char {
+func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
 	c, errStr := requireCore()
 	if errStr != nil {
 		return errStr
 	}
-	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password))
+	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password), _isSSO != 0)
 	if err != nil {
 		return SendError(err)
 	}
@@ -957,58 +957,6 @@ func getSplitTunnelItems(filterTypeC *C.char) *C.char {
 	return C.CString(s)
 }
 
-//export getCachedPlans
-func getCachedPlans() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.GetCachedPlans()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export setCachedPlans
-func setCachedPlans(plansJSON *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.SetCachedPlans(C.GoString(plansJSON)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
-//export getPrivateServers
-func getPrivateServers() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetPrivateServersJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export savePrivateServer
-func savePrivateServer(_json *C.char, _joined C.int) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	js := C.GoString(_json)
-	joined := _joined != 0
-	if err := c.(*lanterncore.LanternCore).SavePrivateServerJSON(js, joined); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
 //export deletePrivateServerByName
 func deletePrivateServerByName(_name *C.char) *C.char {
 	c, errStr := requireCore()
@@ -1016,72 +964,25 @@ func deletePrivateServerByName(_name *C.char) *C.char {
 		return errStr
 	}
 	name := C.GoString(_name)
-	if err := c.(*lanterncore.LanternCore).DeletePrivateServerByName(name); err != nil {
+	if err := c.(*lanterncore.LanternCore).DeleteServer(name); err != nil {
 		return SendError(err)
 	}
 	return C.CString("ok")
 }
 
-//export updatePrivateServerName
-func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	oldName := C.GoString(_oldName)
-	newName := C.GoString(_newName)
-	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
-//export getSelectedServerLocation
-func getSelectedServerLocation() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetSelectedServerLocationJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export getDeveloperMode
-func getDeveloperMode() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetDeveloperModeJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export setDeveloperMode
-func setDeveloperMode(jsonC *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.(*lanterncore.LanternCore).SetDeveloperModeJSON(C.GoString(jsonC)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
-//export getAppDataDir
-func getAppDataDir() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	return C.CString(c.GetAppDataDir())
-}
+// //export updatePrivateServerName
+// func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
+// 	c, errStr := requireCore()
+// 	if errStr != nil {
+// 		return errStr
+// 	}
+// 	oldName := C.GoString(_oldName)
+// 	newName := C.GoString(_newName)
+// 	if err := c.(*lanterncore.LanternCore).UpdatePrivateServerName(oldName, newName); err != nil {
+// 		return SendError(err)
+// 	}
+// 	return C.CString("ok")
+// }
 
 //export getEnabledApps
 func getEnabledApps() *C.char {
@@ -1094,18 +995,4 @@ func getEnabledApps() *C.char {
 		return SendError(err)
 	}
 	return C.CString(s)
-}
-
-//export setSelectedServerLocation
-func setSelectedServerLocation(jsonC *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-
-	if err := c.(*lanterncore.LanternCore).SetSelectedServerLocationJSON(C.GoString(jsonC)); err != nil {
-		return SendError(err)
-	}
-
-	return C.CString("ok")
 }

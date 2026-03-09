@@ -181,6 +181,12 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
+      case "deletePrivateServerByName":
+        guard let name: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.deletePrivateServerByName(result: result, name: name)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -214,6 +220,7 @@ class MethodHandler {
           return
         }
         self.setSmartRouteMode(mode: mode, result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -591,8 +598,9 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
+      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, &error)
+      let payload = MobileDeleteAccount(email, password, isSSO, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
@@ -845,6 +853,18 @@ class MethodHandler {
     }
   }
 
+  func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
+    Task {
+      var error: NSError?
+      MobileDeletePrivateServerByName(name, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
   // MARK: - Feature flags / locale / servers / issues
 
   func featureFlags(result: @escaping FlutterResult) {
@@ -968,6 +988,30 @@ class MethodHandler {
       }
     }
 
+  }
+
+  // MARK: - Argument helpers
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
   }
 
   // MARK: - Utils

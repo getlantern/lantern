@@ -84,7 +84,7 @@ type User interface {
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
-	DeleteAccount(email, password string) ([]byte, error)
+	DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error)
 	RemoveDevice(deviceId string) (*api.LinkResponse, error)
 	//Change email
 	StartChangeEmail(newEmail, password string) error
@@ -103,6 +103,7 @@ type PrivateServer interface {
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
 	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
+	DeleteServer(tag string) error
 }
 
 type Payment interface {
@@ -115,8 +116,6 @@ type Payment interface {
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
-	GetCachedPlans() (string, error)
-	SetCachedPlans(plansJSON string) error
 }
 
 type SplitTunnel interface {
@@ -395,8 +394,6 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 
 func (lc *LanternCore) GetAvailableServers() []byte {
 	serversList := lc.rad.ServerManager().Servers()
-	slog.Debug("Available servers", "servers", serversList)
-
 	jsonBytes, err := json.Marshal(serversList)
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
@@ -709,9 +706,9 @@ func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) err
 	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
 }
 
-func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
+func (lc *LanternCore) DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
 	slog.Debug("Deleting account")
-	return lc.apiClient.DeleteAccount(context.Background(), email, password)
+	return lc.apiClient.DeleteAccount(context.Background(), email, password, isOAuthUser)
 }
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
@@ -798,6 +795,11 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 	}
 	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
 	return lc.serverManager.RevokePrivateServerInvite(ip, portInt, accessToken, inviteName)
+}
+
+func (lc *LanternCore) DeleteServer(tag string) error {
+	slog.Debug("Deleting server with tag: ", "tag", tag)
+	return lc.serverManager.RemoveServer(tag)
 }
 
 func parsePort(port string) (int, error) {
@@ -920,112 +922,6 @@ func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
 	return string(b), nil
 }
 
-func (lc *LanternCore) GetCachedPlans() (string, error) {
-	path := filepath.Join(settings.GetString(settings.DataPathKey), plansCacheFile)
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", err
-	}
-	if len(b) == 0 {
-		return "", nil
-	}
-
-	var tmp any
-	if err := json.Unmarshal(b, &tmp); err != nil {
-		return "", nil
-	}
-
-	return string(b), nil
-}
-
-func (lc *LanternCore) SetCachedPlans(plansJSON string) error {
-	var tmp any
-	if err := json.Unmarshal([]byte(plansJSON), &tmp); err != nil {
-		return err
-	}
-
-	dir := settings.GetString(settings.DataPathKey)
-	path := filepath.Join(dir, plansCacheFile)
-
-	tmpPath := path + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(plansJSON), 0644); err != nil {
-		return err
-	}
-	return os.Rename(tmpPath, path)
-}
-
-// Keep the struct flexible: we store JSON blobs but still need some keys.
-type privateServerRecord map[string]any
-
-type privateServersStore struct {
-	mu sync.Mutex
-}
-
-func (s *privateServersStore) path() string {
-	return filepath.Join(settings.GetString(settings.DataPathKey), "private-servers.json")
-}
-
-func (s *privateServersStore) loadUnlocked() ([]privateServerRecord, error) {
-	p := s.path()
-	b, err := os.ReadFile(p)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []privateServerRecord{}, nil
-		}
-		return nil, err
-	}
-	if len(b) == 0 {
-		return []privateServerRecord{}, nil
-	}
-
-	var out []privateServerRecord
-	if err := json.Unmarshal(b, &out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (s *privateServersStore) saveUnlocked(recs []privateServerRecord) error {
-	p := s.path()
-	tmp := p + ".tmp"
-
-	b, err := json.MarshalIndent(recs, "", "  ")
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(tmp, b, 0644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, p)
-}
-
-// Helpers for identifying a server.
-// Prefer stable keys if present (tag, externalIp+port). Fall back to serverName.
-func recordKey(r privateServerRecord) string {
-	if v, ok := r["tag"].(string); ok && v != "" {
-		return "tag:" + v
-	}
-	ip, _ := r["externalIp"].(string)
-	portAny := r["port"]
-	portStr := ""
-	switch t := portAny.(type) {
-	case string:
-		portStr = t
-	case float64:
-		portStr = jsonNumberToIntString(t)
-	}
-	if ip != "" && portStr != "" {
-		return "addr:" + ip + ":" + portStr
-	}
-	if v, ok := r["serverName"].(string); ok && v != "" {
-		return "name:" + v
-	}
-	return ""
-}
-
 func jsonNumberToIntString(f float64) string {
 	// ports are integral; safe enough here
 	return string([]byte((func() string {
@@ -1057,206 +953,6 @@ func itoa(n int) string {
 		buf[i], buf[j] = buf[j], buf[i]
 	}
 	return string(buf)
-}
-
-var psStore = &privateServersStore{}
-
-func (lc *LanternCore) GetPrivateServersJSON() (string, error) {
-	psStore.mu.Lock()
-	defer psStore.mu.Unlock()
-
-	recs, err := psStore.loadUnlocked()
-	if err != nil {
-		return "", err
-	}
-	b, _ := json.Marshal(recs)
-	return string(b), nil
-}
-
-// serverJSON is the JSON emitted by your provisioning/join flows.
-// joined indicates whether this is a joined server or “my server”.
-func (lc *LanternCore) SavePrivateServerJSON(serverJSON string, joined bool) error {
-	if serverJSON == "" {
-		return errors.New("empty server json")
-	}
-	var rec privateServerRecord
-	if err := json.Unmarshal([]byte(serverJSON), &rec); err != nil {
-		return err
-	}
-	rec["isJoined"] = joined
-
-	psStore.mu.Lock()
-	defer psStore.mu.Unlock()
-
-	recs, err := psStore.loadUnlocked()
-	if err != nil {
-		return err
-	}
-
-	key := recordKey(rec)
-	if key == "" {
-		// still allow save; but it becomes “append-only”
-		recs = append(recs, rec)
-		return psStore.saveUnlocked(recs)
-	}
-
-	// upsert by key
-	out := make([]privateServerRecord, 0, len(recs)+1)
-	replaced := false
-	for _, r := range recs {
-		if recordKey(r) == key {
-			out = append(out, rec)
-			replaced = true
-		} else {
-			out = append(out, r)
-		}
-	}
-	if !replaced {
-		out = append(out, rec)
-	}
-	return psStore.saveUnlocked(out)
-}
-
-// Delete by serverName for drop-in parity with existing UI.
-// (If you have tag/address available, you can add additional delete funcs.)
-func (lc *LanternCore) DeletePrivateServerByName(serverName string) error {
-	if serverName == "" {
-		return errors.New("empty serverName")
-	}
-
-	psStore.mu.Lock()
-	defer psStore.mu.Unlock()
-
-	recs, err := psStore.loadUnlocked()
-	if err != nil {
-		return err
-	}
-	out := make([]privateServerRecord, 0, len(recs))
-	for _, r := range recs {
-		if n, _ := r["serverName"].(string); n == serverName {
-			continue
-		}
-		out = append(out, r)
-	}
-	return psStore.saveUnlocked(out)
-}
-
-func (lc *LanternCore) UpdatePrivateServerName(oldName, newName string) error {
-	if oldName == "" || newName == "" {
-		return errors.New("oldName/newName required")
-	}
-
-	psStore.mu.Lock()
-	defer psStore.mu.Unlock()
-
-	recs, err := psStore.loadUnlocked()
-	if err != nil {
-		return err
-	}
-
-	updated := false
-	for _, r := range recs {
-		if n, _ := r["serverName"].(string); n == oldName {
-			r["serverName"] = newName
-			updated = true
-			break
-		}
-	}
-	if !updated {
-		return errors.New("server not found")
-	}
-	return psStore.saveUnlocked(recs)
-}
-
-func (lc *LanternCore) GetSelectedServerLocationJSON() (string, error) {
-	cfg, err := loadAppSettings()
-	if err != nil {
-		return "", err
-	}
-
-	// If user set something, return it.
-	if len(cfg.SelectedServerLocation) > 0 {
-		// validate it's JSON
-		var tmp any
-		if err := json.Unmarshal(cfg.SelectedServerLocation, &tmp); err == nil {
-			return string(cfg.SelectedServerLocation), nil
-		}
-		// corrupted -> fall through to default
-	}
-
-	// Default: Smart Location
-	type selectionPayload struct {
-		ServerType string `json:"serverType"`
-		ServerName string `json:"serverName,omitempty"`
-		Tag        string `json:"tag,omitempty"`
-		Country    string `json:"country,omitempty"`
-		City       string `json:"city,omitempty"`
-		Group      string `json:"group,omitempty"`
-		Type       string `json:"type,omitempty"`
-	}
-
-	payload := selectionPayload{
-		ServerType: "auto",
-		ServerName: "Smart Location",
-	}
-
-	b, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-func (lc *LanternCore) SetSelectedServerLocationJSON(s string) error {
-	var tmp any
-	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
-		return err
-	}
-
-	_, err := updateAppSettings(func(cfg *AppSettings) error {
-		cfg.SelectedServerLocation = json.RawMessage([]byte(s))
-		return nil
-	})
-	return err
-}
-
-type developerMode struct {
-	TestPlayPurchaseEnabled   bool `json:"testPlayPurchaseEnabled"`
-	TestStripePurchaseEnabled bool `json:"testStripePurchaseEnabled"`
-}
-
-func (lc *LanternCore) GetDeveloperModeJSON() (string, error) {
-	cfg, err := loadAppSettings()
-	if err != nil {
-		return "", err
-	}
-
-	if cfg.DeveloperMode == nil {
-		d := developerMode{}
-		out, _ := json.Marshal(d)
-		return string(out), nil
-	}
-
-	out, err := json.Marshal(cfg.DeveloperMode)
-	if err != nil {
-		d := developerMode{}
-		out2, _ := json.Marshal(d)
-		return string(out2), nil
-	}
-	return string(out), nil
-}
-
-func (lc *LanternCore) SetDeveloperModeJSON(s string) error {
-	var dm developerMode
-	if err := json.Unmarshal([]byte(s), &dm); err != nil {
-		return err
-	}
-
-	_, err := updateAppSettings(func(cfg *AppSettings) error {
-		cfg.DeveloperMode = &dm
-		return nil
-	})
-	return err
 }
 
 func (lc *LanternCore) GetAppDataDir() string {

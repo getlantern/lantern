@@ -458,8 +458,8 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
+func DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password, isOAuthUser) })
 }
 
 func ActivationCode(email, resellerCode string) error {
@@ -485,7 +485,6 @@ func SelectAccount(account string) error {
 }
 
 func SelectProject(project string) error {
-
 	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 
@@ -515,6 +514,22 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
 		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	})
+}
+
+func DeletePrivateServerByName(tag string) error {
+	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
+}
+
+func GetSplitTunnelItems(filterType string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelItems(filterType)
+	})
+}
+
+func GetSplitTunnelStateJSON() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelStateJSON()
 	})
 }
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -7,33 +6,49 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
-  static const _settingsPrefsKey = 'app_settings_json';
-  bool _didAttemptLoad = false;
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   AppSetting build() {
-    // First-time fallback, then asynchronously hydrate from prefs.
-    final fallback = _detectDeviceLocale();
-    final initial = AppSetting(locale: fallback.toString());
-    unawaited(_loadFromPrefs(initial));
+    final settings = _fetchStoredSettings();
+    unawaited(_applyDesktopBrightness(resolveThemeMode(settings.themeMode)));
     unawaited(_detectEnvironmentFromFile());
-    return initial;
+    return settings;
+  }
+
+  /// Reads app settings from local storage. Returns stored settings if found
+  /// and valid, otherwise initializes and returns defaults.
+  AppSetting _fetchStoredSettings() {
+    final fallback = AppSetting(locale: _detectDeviceLocale().toString());
+    final settings = _storage.getAppSettings();
+
+    if (settings == null) {
+      appLogger.info(
+          'No stored settings found, saving defaults: ${fallback.toJson()}');
+      unawaited(_storage.saveAppSettings(fallback));
+      return fallback;
+    }
+
+    appLogger.info('Loaded stored app settings: ${settings.toJson()}');
+    return settings;
   }
 
   Future<void> update(AppSetting updated) async {
+    appLogger.info('Updating app settings: ${updated.toJson()}');
     state = updated;
-    await _saveToPrefs(updated);
+    await _storage.saveAppSettings(updated);
   }
 
   void togglePro(bool value) => update(state.copyWith(newPro: value));
@@ -63,8 +78,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setUserLoggedIn(bool value) =>
       update(state.copyWith(userLoggedIn: value));
-  void setOAuthToken(String token) => update(state.copyWith(oAuthToken: token));
+
+  void setOAuthTokenAndProvider(String token, String provider) {
+    update(state.copyWith(oAuthToken: token, oAuthLoginProvider: provider));
+  }
+
   void setEmail(String email) => update(state.copyWith(email: email));
+
   void setSuccessfulConnection(bool value) =>
       update(state.copyWith(successfulConnection: value));
 
@@ -114,39 +134,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
         : deviceLocale;
   }
 
-  Future<void> _loadFromPrefs(AppSetting fallback) async {
-    if (_didAttemptLoad) return;
-    _didAttemptLoad = true;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_settingsPrefsKey);
-      if (raw == null || raw.isEmpty) {
-        await prefs.setString(_settingsPrefsKey, jsonEncode(fallback.toJson()));
-        return;
-      }
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        state = AppSetting.fromJson(Map<String, dynamic>.from(decoded));
-        unawaited(
-          _applyDesktopBrightness(resolveThemeMode(state.themeMode)),
-        );
-      }
-    } catch (e, st) {
-      appLogger.error(
-          'Failed to load app settings from SharedPreferences', e, st);
-    }
-  }
-
-  Future<void> _saveToPrefs(AppSetting value) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_settingsPrefsKey, jsonEncode(value.toJson()));
-    } catch (e, st) {
-      appLogger.error(
-          'Failed to persist app settings to SharedPreferences', e, st);
-    }
-  }
-
   Future<void> _applyDesktopBrightness(ThemeMode mode) async {
     if (!PlatformUtils.isDesktop) {
       return;
@@ -174,11 +161,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       await dir.delete(recursive: true);
     }
     await dir.create(recursive: true);
+    sl<LocalStorageService>().deleteAll();
 
     if (isStaging) {
       final file = File('${dir.path}/.radiance_env');
       await file.create();
     }
+    appLogger.info('Environment set to: $env');
   }
 
   Future<void> _detectEnvironmentFromFile() async {

@@ -1,16 +1,12 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
-
-import 'package:lantern/core/models/developer_mode.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -368,11 +364,13 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) {
+      {required String email, required String password, bool isSSO = false}) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.deleteAccount(email: email, password: password);
+      return _ffiService.deleteAccount(
+          email: email, password: password, isSSO: isSSO);
     }
-    return _platformService.deleteAccount(email: email, password: password);
+    return _platformService.deleteAccount(
+        email: email, password: password, isSSO: isSSO);
   }
 
   @override
@@ -651,35 +649,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, PlansData?>> getCachedPlans() {
-    if (PlatformUtils.isFFISupported) return _ffiService.getCachedPlans();
-    return _platformService.getCachedPlans();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
-    if (PlatformUtils.isFFISupported) return _ffiService.setCachedPlans(plans);
-    return _platformService.setCachedPlans(plans);
-  }
-
-  @override
-  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getSelectedServerLocation();
-    }
-    return _platformService.getSelectedServerLocation();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setSelectedServerLocation(
-      ServerLocation location) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setSelectedServerLocation(location);
-    }
-    return _platformService.setSelectedServerLocation(location);
-  }
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,
   ) {
@@ -687,25 +656,6 @@ class LanternService implements LanternCoreService {
       return _ffiService.getSplitTunnelItems(type);
     }
     return _platformService.getSplitTunnelItems(type);
-  }
-
-  @override
-  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getPrivateServers();
-    }
-    return _platformService.getPrivateServers();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> savePrivateServer(
-    PrivateServer server, {
-    required bool joined,
-  }) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.savePrivateServer(server, joined: joined);
-    }
-    return _platformService.savePrivateServer(server, joined: joined);
   }
 
   @override
@@ -725,21 +675,5 @@ class LanternService implements LanternCoreService {
       return _ffiService.updatePrivateServerName(oldName, newName);
     }
     return _platformService.updatePrivateServerName(oldName, newName);
-  }
-
-  @override
-  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.getDeveloperMode();
-    }
-    return _platformService.getDeveloperMode();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.setDeveloperMode(dev);
-    }
-    return _platformService.setDeveloperMode(dev);
   }
 }

@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/user_pro_ext.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
@@ -41,9 +40,9 @@ class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
-    final user = ref.watch(currentUserProvider);
-    final isUserPro = ref.watch(isUserProFromCoreProvider);
-    final email = ref.watch(userEmailFromCoreProvider);
+    final user = ref.watch(homeProvider).value;
+    final isUserPro = ref.watch(isUserProProvider);
+    final email = ref.watch(userEmailProvider);
 
     final appSetting = ref.watch(appSettingProvider);
 
@@ -55,6 +54,7 @@ class _SettingState extends ConsumerState<Setting> {
     final locale = appSetting.locale;
     final themeMode = appSetting.themeMode;
     final textTheme = Theme.of(context).textTheme;
+    final userLoggedIn = appSetting.userLoggedIn;
 
     return BaseScreen(
       title: 'settings'.i18n,
@@ -75,7 +75,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (appSetting.userLoggedIn)
+          if (userLoggedIn || isUserPro)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -254,7 +254,7 @@ class _SettingState extends ConsumerState<Setting> {
         break;
 
       case _SettingType.account:
-        final user = ref.read(currentUserProvider);
+        final user = ref.read(homeProvider).value;
         if (user == null) {
           appRouter.push(const SignInEmail());
           return;

@@ -3,8 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
 
-import 'app_colors.dart' show AppColors;
-
 class AppDropdown<T> extends StatelessWidget {
   final T? value;
   final List<DropdownMenuItem<T>> items;

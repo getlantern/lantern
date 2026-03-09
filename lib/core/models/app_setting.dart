@@ -7,6 +7,7 @@ class AppSetting {
   final String themeMode;
   final String environment;
   final String oAuthToken;
+  final String oAuthLoginProvider;
   final bool userLoggedIn;
   final bool blockAds;
   final String email;
@@ -25,6 +26,7 @@ class AppSetting {
     this.environment = 'prod',
     this.userLoggedIn = false,
     this.oAuthToken = '',
+    this.oAuthLoginProvider = '',
     this.blockAds = false,
     this.email = '',
     this.locale = 'en_US',
@@ -46,6 +48,7 @@ class AppSetting {
     bool? userLoggedIn,
     bool? blockAds,
     String? oAuthToken,
+    String? oAuthLoginProvider,
     String? email,
     bool? showSplashScreen,
     bool? showTelemetryDialog,
@@ -64,6 +67,7 @@ class AppSetting {
       blockAds: blockAds ?? this.blockAds,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
+      oAuthLoginProvider: oAuthLoginProvider ?? this.oAuthLoginProvider,
       email: email ?? this.email,
       showSplashScreen: showSplashScreen ?? this.showSplashScreen,
       telemetryDialogDismissed: showTelemetryDialog ?? telemetryDialogDismissed,
@@ -114,4 +118,6 @@ class AppSetting {
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
         onboardingCompleted: json['onboardingCompleted'] == true,
       );
+
+  bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;
 }

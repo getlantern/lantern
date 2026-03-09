@@ -8,7 +8,6 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -20,145 +19,165 @@ class Account extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appSettings = ref.watch(appSettingProvider);
+
     return BaseScreen(
       title: 'account'.i18n,
+      appBar: CustomAppBar(
+        title: Text(
+          'account'.i18n,
+        ),
+        actions: [
+          if (appSettings.userLoggedIn)
+            AppTextButton(
+              label: 'logout'.i18n,
+              textColor: context.textLink,
+              onPressed: () => logoutDialog(context, ref),
+            )
+        ],
+      ),
       body: _buildBody(context, ref),
     );
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
-    final email = ref.watch(userEmailFromCoreProvider);
+    final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
+    final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
-    final theme = Theme.of(buildContext).textTheme;
+    final isUserFree = !isExpired && !isPro;
+    final theme = TextTheme.of(buildContext);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        if (isExpired) ...{
-          InfoRow(
-            minTileHeight: 40,
-            backgroundColor: AppColors.red1,
-            borderColor: AppColors.red2,
-            textStyle: theme.labelLarge!.copyWith(
-              color: AppColors.red9,
-            ),
-            text: 'pro_subscription_expired_message'.i18n,
-          ),
-          SizedBox(height: defaultSize),
-          ProButton(
-            label: 'renew_pro_subscription'.i18n,
-            onPressed: () {
-              appRouter.push(const Plans());
-            },
-          ),
-        },
-        SizedBox(height: defaultSize),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'lantern_pro_email'.i18n,
-            style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
-            ),
-          ),
-        ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: AppTile(
-            label: email.toLowerCase(),
-            icon: AppImagePaths.email,
-            contentPadding: EdgeInsets.only(left: 16),
-            onPressed: kDebugMode
-                ? () {
-                    copyToClipboard(email);
-                  }
-                : null,
-            trailing: AppTextButton(
-              label: 'change_email'.i18n,
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (isUserFree)
+            ProButton(
               onPressed: () {
-                appRouter
-                    .push(SignInPassword(email: email, fromChangeEmail: true));
+                appRouter.push(const Plans());
               },
             ),
-          ),
-        ),
-        SizedBox(height: defaultSize),
-        if (isExpired)
+          if (isExpired) ...{
+            InfoRow(
+              minTileHeight: 40,
+              backgroundColor: buildContext.statusErrorBg,
+              borderColor: buildContext.statusErrorBorder,
+              textStyle: theme.labelLarge!.copyWith(
+                color: buildContext.statusErrorText,
+              ),
+              text: 'pro_subscription_expired_message'.i18n,
+            ),
+            SizedBox(height: defaultSize),
+            ProButton(
+              label: 'renew_pro_subscription'.i18n,
+              onPressed: () {
+                appRouter.push(const Plans());
+              },
+            ),
+          },
+          SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'last_subscription_renewal_date'.i18n,
+              isUserFree ? 'lantern_email'.i18n : 'lantern_pro_email'.i18n,
               style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              ),
-            ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              user!.legacyUserData.subscriptionData.autoRenew
-                  ? 'subscription_renewal_date'.i18n
-                  : 'pro_account_expiration'.i18n,
-              style: theme.labelLarge!.copyWith(
-                color: AppColors.gray8,
+                color: buildContext.textSecondary,
               ),
             ),
           ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: AppTile(
-              label: user!.legacyUserData.toDate(),
-              contentPadding: EdgeInsets.only(left: 16),
-              icon: AppImagePaths.autoRenew,
-              trailing: planTrailingWidget(user, buildContext, ref)),
-        ),
-        SizedBox(height: defaultSize),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'lantern_pro_devices'.i18n,
-            style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
-            ),
-          ),
-        ),
-        UserDevices(),
-        SizedBox(height: defaultSize),
-        if (appSettings.userLoggedIn)
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-                label: 'logout'.i18n,
-                icon: AppImagePaths.signIn,
-                onPressed: () => logoutDialog(buildContext, ref)),
-          ),
-        Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'danger_zone'.i18n,
-            style: theme.labelLarge!.copyWith(
-              color: AppColors.gray8,
+              label: appSettings.email.toLowerCase(),
+              icon: AppImagePaths.email,
+              contentPadding: EdgeInsets.only(left: 16),
+              onPressed: kDebugMode
+                  ? () {
+                      copyToClipboard(appSettings.email);
+                    }
+                  : null,
+              trailing: AppTextButton(
+                label: 'change_email'.i18n,
+                onPressed: () {
+                  appRouter.push(SignInPassword(
+                      email: appSettings.email, fromChangeEmail: true));
+                },
+              ),
             ),
           ),
-        ),
-        Card(
-          child: AppTile(
-            contentPadding: EdgeInsets.only(left: 16),
-            icon: AppImagePaths.delete,
-            label: 'delete_account'.i18n,
-            trailing: AppTextButton(
-              label: 'delete'.i18n,
-              textColor: AppColors.red7,
-              onPressed: _onDeleteTap,
+          SizedBox(height: defaultSize),
+          if (isExpired)
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'last_subscription_renewal_date'.i18n,
+                style: theme.labelLarge!.copyWith(
+                  color: buildContext.textSecondary,
+                ),
+              ),
+            )
+          else if (isPro)
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                user!.legacyUserData.subscriptionData.autoRenew
+                    ? 'subscription_renewal_date'.i18n
+                    : 'pro_account_expiration'.i18n,
+                style: theme.labelLarge!.copyWith(
+                  color: buildContext.textSecondary,
+                ),
+              ),
+            ),
+          if (!isUserFree)
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: AppTile(
+                  label: user!.legacyUserData.toDate(),
+                  contentPadding: EdgeInsets.only(left: 16),
+                  icon: AppImagePaths.autoRenew,
+                  trailing: planTrailingWidget(user, buildContext, ref)),
+            ),
+          if (isPro && user!.legacyUserData.devices.toList().isNotEmpty) ...[
+            SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'lantern_pro_devices'.i18n,
+                style: theme.labelLarge!.copyWith(
+                  color: buildContext.textSecondary,
+                ),
+              ),
+            ),
+            UserDevices(),
+          ],
+          SizedBox(height: defaultSize),
+          Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'danger_zone'.i18n,
+              style: theme.labelLarge!.copyWith(
+                color: buildContext.textSecondary,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: defaultSize),
-      ],
+          Card(
+            child: AppTile(
+              contentPadding: EdgeInsets.only(left: 16),
+              icon: AppImagePaths.delete,
+              iconUseThemeColor: false,
+              label: 'delete_account'.i18n,
+              trailing: AppTextButton(
+                label: 'delete'.i18n,
+                textColor: buildContext.statusErrorText,
+                onPressed: _onDeleteTap,
+              ),
+            ),
+          ),
+          SizedBox(height: size24),
+        ],
+      ),
     );
   }
 
@@ -206,11 +225,11 @@ class Account extends HookConsumerWidget {
           context: buildContext,
           title: 'manage_subscription'.i18n,
           content: 'manage_subscription_google_play'.i18n,
-
         );
 
         break;
       case 'stripe':
+
         /// No matter user is using desktop or mobile, if the provider is stripe, open billing portal
         stripeBillingPortal(ref, buildContext);
         break;
@@ -253,7 +272,7 @@ class Account extends HookConsumerWidget {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
-      final oldUser = ref.read(currentUserProvider)!;
+      final oldUser = ref.read(homeProvider).value!;
       final lanternService = ref.read(lanternServiceProvider);
       final notifier = ref.read(homeProvider.notifier);
 
@@ -338,7 +357,7 @@ class Account extends HookConsumerWidget {
       action: [
         AppTextButton(
           label: 'not_now'.i18n,
-          textColor: AppColors.gray8,
+          textColor: context.textSecondary,
           onPressed: () {
             appRouter.pop();
           },
@@ -363,7 +382,7 @@ class Account extends HookConsumerWidget {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: AppColors.gray8,
+              color: context.textPrimary,
             ),
           ),
         ],

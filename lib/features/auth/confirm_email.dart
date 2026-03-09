@@ -8,7 +8,6 @@ import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -122,8 +121,12 @@ class ConfirmEmail extends HookConsumerWidget {
     assert(password != null,
         'Password must be provided to delete account on back press');
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).deleteAccount(email, password!);
+
+    /// This back-press deletion is part of the email/password signup flow,
+    /// so isSSO is always false because this is not an OAuth user.
+    final result = await ref
+        .read(authProvider.notifier)
+        .deleteAccount(email, password!, false);
 
     result.fold(
       (failure) {
@@ -222,7 +225,7 @@ class ConfirmEmail extends HookConsumerWidget {
         }
 
         /// Check if user is pro or not
-        final isPro = ref.read(isUserProFromCoreProvider);
+        final isPro = ref.read(isUserProProvider);
         if (isPro) {
           appRouter.push(
               CreatePassword(email: email, authFlow: authFlow, code: code));

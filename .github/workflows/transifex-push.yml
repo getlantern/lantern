@@ -3,6 +3,10 @@ name: "Push to transifex"
 on:
   push:
     branches: [main]
+    paths:
+      - 'assets/locales/**'
+      - '.tx/config'
+      - '.github/workflows/transifex-push.yml'
   workflow_dispatch:
 
 jobs:

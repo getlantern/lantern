@@ -5,17 +5,14 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
@@ -46,8 +43,10 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
   static final RegExp _newlineRegex = RegExp(r'\r?\n');
   static const int _maxBufferedLines = 4000;
+
   // Fraction of lines to keep when trimming the buffer.
   static const double _keepFraction = 0.25;
+
   // Backwards-compatible alias; prefer `_keepFraction` in new code.
   static const double _trimFraction = _keepFraction;
 
@@ -900,11 +899,14 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) async {
+      {required String email,
+      required String password,
+      bool isSSO = false}) async {
     try {
       final bytes = await _methodChannel.invokeMethod('deleteAccount', {
         'email': email,
         'password': password,
+        'isSSO': isSSO,
       });
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
@@ -1160,29 +1162,43 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod('getLanternAvailableServers');
       final servers = AvailableServers.fromJson(jsonDecode(result));
 
-      final outboundsByTag = {
-        for (var outbound in servers.lantern.outbounds)
-          outbound.tag: outbound.type
-      };
-
-      servers.lantern.locations.forEach((key, value) {
-        final protoValue = outboundsByTag[key];
-        if (protoValue != null) {
-          value.protocol = protoValue;
-        } else {
-          try {
-            //if not found, try to extract from tag
-            value.protocol = value.tag.split('-').first;
-          } catch (e) {
-            //if any error, set to empty
-            value.protocol = '';
+      void applyProtocols(Lantern lantern) {
+        final outboundsByTag = {
+          for (var outbound in lantern.outbounds) outbound.tag: outbound.type
+        };
+        lantern.locations.forEach((key, value) {
+          final protoValue = outboundsByTag[key];
+          if (protoValue != null) {
+            value.protocol = protoValue;
+          } else {
+            try {
+              value.protocol = value.tag.split('-').first;
+            } catch (e) {
+              value.protocol = '';
+            }
           }
-        }
-      });
+        });
+      }
+
+      applyProtocols(servers.lantern);
+      applyProtocols(servers.user);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(
           'Error fetching Lantern available servers', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(
+      String serverName) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+          'deletePrivateServerByName', serverName);
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching auto server location', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1287,66 +1303,18 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
-    // TODO: implement deletePrivateServerByName
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, PlansData?>> getCachedPlans() {
-    // TODO: implement getCachedPlans
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
-    // TODO: implement getDeveloperMode
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, List<PrivateServer>>> getPrivateServers() {
-    // TODO: implement getPrivateServers
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
-    // TODO: implement getSelectedServerLocation
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
-      SplitTunnelFilterType type) {
-    // TODO: implement getSplitTunnelItems
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> savePrivateServer(PrivateServer server,
-      {required bool joined}) {
-    // TODO: implement savePrivateServer
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setCachedPlans(PlansData plans) {
-    // TODO: implement setCachedPlans
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode dev) {
-    // TODO: implement setDeveloperMode
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setSelectedServerLocation(
-      ServerLocation location) {
-    // TODO: implement setSelectedServerLocation
-    throw UnimplementedError();
+      SplitTunnelFilterType type) async {
+    try {
+      final items =
+          await _methodChannel.invokeMethod<String>('getSplitTunnelItems', {
+        'filterType': type.value,
+      });
+      List<String> list = List<String>.from(jsonDecode(items!));
+      return Right(list);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override

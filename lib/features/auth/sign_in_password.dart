@@ -149,7 +149,9 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         /// fetch available servers
         ref.read(appSettingProvider.notifier)
           ..setUserLoggedIn(true)
+          ..setOAuthTokenAndProvider('', SignUpMethodType.email.name)
           ..setEmail(widget.email);
+
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
       },

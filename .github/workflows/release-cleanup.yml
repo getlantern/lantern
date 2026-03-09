@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          DAYS_OLD=7
+          DAYS_OLD=1
           CUTOFF_DATE=$(date -u -d "${DAYS_OLD} days ago" +%Y-%m-%dT%H:%M:%SZ)
 
           gh release list -R "$GITHUB_REPOSITORY" \
@@ -38,7 +38,7 @@ jobs:
             if [[ "$DRY_RUN" == "true" ]]; then
               echo "DRY-RUN: $tag"
             else
-              if ! gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes; then
+              if ! gh release delete "$tag" --cleanup-tag -R "$GITHUB_REPOSITORY" --yes; then
                 echo "Error: release deletion: $tag" >&2
                 exit 1
               else

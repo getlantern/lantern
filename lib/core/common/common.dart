@@ -2,12 +2,10 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
@@ -23,6 +21,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
+import '../services/local_storage_service.dart';
 import '../utils/store_utils.dart';
 
 export 'package:lantern/core/common/app_asset.dart';
@@ -35,9 +34,9 @@ export 'package:lantern/core/common/app_image_paths.dart';
 export 'package:lantern/core/common/app_semantic_colors.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
-export 'package:lantern/core/common/date_formatters.dart';
 // Utils
 export 'package:lantern/core/common/app_urls.dart';
+export 'package:lantern/core/common/date_formatters.dart';
 //Desktop export
 export 'package:lantern/core/desktop/app_intent.dart';
 export 'package:lantern/core/desktop/app_shortcuts.dart';
@@ -89,7 +88,11 @@ bool isStoreVersion() {
     return true;
   }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    return !sl<StoreUtils>().isSideLoaded();
+    if (!sl.isReadySync<LocalStorageService>()) {
+      return !sl<StoreUtils>().isSideLoaded();
+    }
+    final devMode = sl<LocalStorageService>().getDeveloperMode();
+    return devMode?.testPlayPurchaseEnabled ?? !sl<StoreUtils>().isSideLoaded();
   }
   return !sl<StoreUtils>().isSideLoaded();
 }

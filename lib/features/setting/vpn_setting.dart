@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/vpn/provider/private_servers_provider.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -25,11 +24,7 @@ class VPNSetting extends HookConsumerWidget {
     final isUserPro = ref.watch(isUserProProvider);
     final preferences = ref.read(appSettingProvider);
     final notifier = ref.read(appSettingProvider.notifier);
-    final privateServersAsync = ref.watch(privateServersProvider);
-    final isPrivateServerFound = privateServersAsync.maybeWhen(
-      data: (servers) => servers.isNotEmpty,
-      orElse: () => false,
-    );
+    final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
     final splitTunnelingEnabled =
         ref.read(appSettingProvider).isSplitTunnelingOn;
     final routingMode = preferences.routingMode;
