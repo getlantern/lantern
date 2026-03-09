@@ -20,7 +20,8 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   Future<void> updateServerLocation(ServerLocation entity) async {
     final current = state.value;
     if (entity.serverType != ServerLocationType.auto.name) {
-      ///Preserve auto location metadata when switching to a non-auto server, so we can show user smart location
+      //Preserve auto location metadata when switching to a non-auto server,
+      // so we can show user smart location
       final updated = entity.copyWith(autoLocation: current?.autoLocation);
       state = AsyncData(updated);
       await _storage.saveServerLocation(updated);

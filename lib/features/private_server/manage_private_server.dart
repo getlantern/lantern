@@ -7,9 +7,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ManagePrivateServer')
 class ManagePrivateServer extends StatefulHookConsumerWidget {
@@ -376,26 +376,29 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     if (newName.isEmpty) return;
     context.showLoadingDialog();
     final res = await ref
-        .read(lanternServiceProvider)
-        .updatePrivateServerName(serverName, newName);
+        .read(manageServerProvider.notifier)
+        .renameServer(serverName, newName);
     if (!mounted) return;
     context.hideLoadingDialog();
     res.fold(
       (failure) => context.showSnackBarError(failure.localizedErrorMessage),
-      (_) => ref.invalidate(availableServersProvider),
+      (r) {
+        appLogger.info('Server renamed: $serverName to $newName');
+      },
     );
   }
 
   Future<void> onDelete(String serverName) async {
     context.showLoadingDialog();
-    final res = await ref
-        .read(lanternServiceProvider)
-        .deletePrivateServerByName(serverName);
+    final res =
+        await ref.read(manageServerProvider.notifier).deleteServer(serverName);
     if (!mounted) return;
     context.hideLoadingDialog();
     res.fold(
       (failure) => context.showSnackBarError(failure.localizedErrorMessage),
-      (_) => ref.invalidate(availableServersProvider),
+      (r) {
+        appLogger.info('Server deleted: $serverName');
+      },
     );
   }
 }

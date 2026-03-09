@@ -139,7 +139,7 @@ class LocalStorageService {
     }
   }
 
-  void deleteAll() {
-    clear();
+  Future<void> deleteAll() async {
+    await clear();
   }
 }

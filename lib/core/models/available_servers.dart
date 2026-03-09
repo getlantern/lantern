@@ -15,9 +15,11 @@ class AvailableServers {
             (json["user"] as Map<String, dynamic>?) ?? const {}),
       );
 
-  Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
+  Map<String, dynamic> toJson() => {
+        "lantern": lantern.toJson(),
+        "user": user.toJson(),
+      };
 }
-
 
 class Lantern {
   List<Endpoint> endpoints;
@@ -66,9 +68,9 @@ class Lantern {
   Map<String, dynamic> toJson() => {
         "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
         "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
+        "credentials": credentials.map((k, v) => MapEntry(k, v.toJson())),
       };
 }
-
 
 class ServerCredential {
   String accessToken;
@@ -81,17 +83,18 @@ class ServerCredential {
     required this.port,
   });
 
-  factory ServerCredential.fromJson(Map<String, dynamic> json) => ServerCredential(
-    accessToken: json["access_token"] ?? '',
-    isJoined: json["isJoined"] ?? false,
-    port: json["port"]?.toString() ?? '',
-  );
+  factory ServerCredential.fromJson(Map<String, dynamic> json) =>
+      ServerCredential(
+        accessToken: json["access_token"] ?? '',
+        isJoined: json["isJoined"] ?? false,
+        port: json["port"]?.toString() ?? '',
+      );
 
   Map<String, dynamic> toJson() => {
-    "access_token": accessToken,
-    "isJoined": isJoined,
-    "port": port,
-  };
+        "access_token": accessToken,
+        "isJoined": isJoined,
+        "port": port,
+      };
 }
 
 class Endpoint {
@@ -118,6 +121,8 @@ class Endpoint {
         "type": type,
         "tag": tag,
         "server": server,
+        "server_port": serverPort,
+
       };
 }
 

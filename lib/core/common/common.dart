@@ -1,19 +1,15 @@
 // Common file to export all common files
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
@@ -38,9 +34,9 @@ export 'package:lantern/core/common/app_image_paths.dart';
 export 'package:lantern/core/common/app_semantic_colors.dart';
 export 'package:lantern/core/common/app_text_field.dart';
 export 'package:lantern/core/common/app_theme.dart';
-export 'package:lantern/core/common/date_formatters.dart';
 // Utils
 export 'package:lantern/core/common/app_urls.dart';
+export 'package:lantern/core/common/date_formatters.dart';
 //Desktop export
 export 'package:lantern/core/desktop/app_intent.dart';
 export 'package:lantern/core/desktop/app_shortcuts.dart';
@@ -92,20 +88,11 @@ bool isStoreVersion() {
     return true;
   }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    final raw = sl<LocalStorageService>().getString('developer_mode_json');
-    if (raw != null && raw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(raw);
-        if (decoded is Map) {
-          final devMode = DeveloperMode.fromJson(Map<String, dynamic>.from(decoded));
-          appLogger.info('Developer Mode settings: ${devMode.toJson()}');
-          return devMode.testPlayPurchaseEnabled;
-        }
-      } catch (e) {
-        appLogger.error('Failed to parse developer mode settings', e);
-      }
+    if (!sl.isReadySync<LocalStorageService>()) {
+      return !sl<StoreUtils>().isSideLoaded();
     }
-    return !sl<StoreUtils>().isSideLoaded();
+    final devMode = sl<LocalStorageService>().getDeveloperMode();
+    return devMode?.testPlayPurchaseEnabled ?? !sl<StoreUtils>().isSideLoaded();
   }
   return !sl<StoreUtils>().isSideLoaded();
 }

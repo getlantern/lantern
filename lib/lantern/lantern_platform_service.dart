@@ -1195,7 +1195,7 @@ class LanternPlatformService implements LanternCoreService {
       String serverName) async {
     try {
       final result = await _methodChannel.invokeMethod<String>(
-          'deleteServerByTag', serverName);
+          'deletePrivateServerByName', serverName);
       return right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
@@ -1307,16 +1307,11 @@ class LanternPlatformService implements LanternCoreService {
       SplitTunnelFilterType type) async {
     try {
       final items =
-          await _methodChannel.invokeMethod<List>('getSplitTunnelItems', {
+          await _methodChannel.invokeMethod<String>('getSplitTunnelItems', {
         'filterType': type.value,
       });
-      final result = items
-              ?.whereType<String>()
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList() ??
-          [];
-      return Right(result);
+      List<String> list = List<String>.from(jsonDecode(items!));
+      return Right(list);
     } catch (e) {
       return Left(e.toFailure());
     }
