@@ -77,12 +77,15 @@ class HomeNotifier extends _$HomeNotifier {
     if (!userData.legacyUserData.isPro) {
       resetServerLocation();
     }
-
-    ref
-        .read(appSettingProvider.notifier)
-        .setEmail(userData.legacyUserData.email);
-
-    _checkIfUserProAndDeviceIsAdded(userData);
+    String email;
+    if (userData.legacyUserData.email.isEmpty) {
+      email = userData.id;
+    } else {
+      email = userData.legacyUserData.email;
+    }
+    ref.read(appSettingProvider.notifier).setEmail(email);
+    sl<LocalStorageService>().saveUser(userData.toEntity());
+    checkIfUserProAndDeviceIsAdded();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {

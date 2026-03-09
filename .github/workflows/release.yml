@@ -39,9 +39,10 @@ concurrency:
 
 jobs:
   set-metadata:
-    # Allow only tag-push releases, and only allow scheduled/manual release
-    # workflows from the repository default branch (or jay/signpath for testing).
-    if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name != 'push' && (github.ref_name == github.event.repository.default_branch || github.ref_name == 'jay/signpath')) }}
+    # Allow tag-push releases, scheduled builds from default branch,
+    # and workflow_dispatch from any branch (non-main branches create
+    # draft releases that are immediately deleted for testing).
+    if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule' && github.ref_name == github.event.repository.default_branch) || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
@@ -49,6 +50,7 @@ jobs:
       version: ${{ steps.meta.outputs.version }}
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
+      is_test_run: ${{ steps.meta.outputs.is_test_run }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -144,11 +146,22 @@ jobs:
           echo "  Platform:      $PLATFORM"
           echo "  Installer:     $INSTALLER_BASE_NAME"
 
+          # Test run: workflow_dispatch from non-default branch
+          IS_TEST_RUN="false"
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+            if [[ "${{ github.ref_name }}" != "$DEFAULT_BRANCH" ]]; then
+              IS_TEST_RUN="true"
+              echo "Test run: draft release will be deleted after build"
+            fi
+          fi
+
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
+          echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -564,7 +577,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -573,6 +588,8 @@ jobs:
 
       - name: Publish release on success
         if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -583,21 +600,31 @@ jobs:
           echo "All steps succeeded - publishing draft release"
           gh release edit "$RELEASE_TAG" --draft=false
 
-      - name: Delete draft on failure (cleanup enabled)
+      - name: Delete draft release
         if: |
-          env.CLEANUP_ON_FAILURE == 'true' &&
-          !(needs.upload-s3.result == 'success' &&
-            needs.upload-release-artifacts.result == 'success' &&
-            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
+          env.IS_TEST_RUN == 'true' ||
+          env.BUILD_TYPE == 'nightly' ||
+          (env.CLEANUP_ON_FAILURE == 'true' &&
+           !(needs.upload-s3.result == 'success' &&
+             needs.upload-release-artifacts.result == 'success' &&
+             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Build failed or cancelled - cleaning up draft release"
+          if [[ "$IS_TEST_RUN" == "true" ]]; then
+            echo "Test run from non-main branch - deleting draft release"
+          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
+            echo "Nightly build - deleting draft release"
+          else
+            echo "Build failed or cancelled - cleaning up draft release"
+          fi
           gh release delete "$RELEASE_TAG" --yes || true
 
       - name: Report failure (cleanup disabled)
         if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           env.CLEANUP_ON_FAILURE != 'true' &&
           !(needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&

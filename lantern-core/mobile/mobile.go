@@ -458,8 +458,8 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
+func DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password, isOAuthUser) })
 }
 
 func ActivationCode(email, resellerCode string) error {

@@ -75,7 +75,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (appSetting.userLoggedIn)
+          if (userLoggedIn || isUserPro)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,

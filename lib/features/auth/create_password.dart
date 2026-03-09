@@ -102,7 +102,9 @@ class CreatePassword extends HookConsumerWidget {
       (success) {
         context.hideLoadingDialog();
         appLogger.info('Password created successfully');
-        ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+        ref.read(appSettingProvider.notifier)
+          ..setUserLoggedIn(true)
+          ..setOAuthTokenAndProvider('', SignUpMethodType.email.name);
         resolveRoutes(context, ref);
       },
     );
