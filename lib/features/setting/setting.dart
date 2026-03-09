@@ -10,7 +10,6 @@ import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
@@ -41,7 +40,7 @@ class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(homeProvider).value;
     final isUserPro = ref.watch(isUserProProvider);
     final email = ref.watch(userEmailProvider);
 
@@ -256,7 +255,7 @@ class _SettingState extends ConsumerState<Setting> {
         break;
 
       case _SettingType.account:
-        final user = ref.read(currentUserProvider);
+        final user = ref.read(homeProvider).value;
         if (user == null) {
           appRouter.push(const SignInEmail());
           return;

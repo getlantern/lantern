@@ -8,7 +8,6 @@ import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {

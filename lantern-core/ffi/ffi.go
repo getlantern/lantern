@@ -975,44 +975,6 @@ func getSplitTunnelItems(filterTypeC *C.char) *C.char {
 	return C.CString(s)
 }
 
-//export getCachedPlans
-func getCachedPlans() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.GetCachedPlans()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export setCachedPlans
-func setCachedPlans(plansJSON *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.SetCachedPlans(C.GoString(plansJSON)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
-//export getPrivateServers
-func getPrivateServers() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetPrivateServersJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
 //export savePrivateServer
 func savePrivateServer(_json *C.char, _joined C.int) *C.char {
 	c, errStr := requireCore()
@@ -1054,53 +1016,6 @@ func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
 	return C.CString("ok")
 }
 
-//export getSelectedServerLocation
-func getSelectedServerLocation() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetSelectedServerLocationJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export getDeveloperMode
-func getDeveloperMode() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	s, err := c.(*lanterncore.LanternCore).GetDeveloperModeJSON()
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(s)
-}
-
-//export setDeveloperMode
-func setDeveloperMode(jsonC *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.(*lanterncore.LanternCore).SetDeveloperModeJSON(C.GoString(jsonC)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
-}
-
-//export getAppDataDir
-func getAppDataDir() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	return C.CString(c.GetAppDataDir())
-}
-
 //export getEnabledApps
 func getEnabledApps() *C.char {
 	c, errStr := requireCore()
@@ -1112,18 +1027,4 @@ func getEnabledApps() *C.char {
 		return SendError(err)
 	}
 	return C.CString(s)
-}
-
-//export setSelectedServerLocation
-func setSelectedServerLocation(jsonC *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-
-	if err := c.(*lanterncore.LanternCore).SetSelectedServerLocationJSON(C.GoString(jsonC)); err != nil {
-		return SendError(err)
-	}
-
-	return C.CString("ok")
 }

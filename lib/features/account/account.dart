@@ -8,7 +8,6 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -42,7 +41,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
     final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
@@ -273,7 +272,7 @@ class Account extends HookConsumerWidget {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
-      final oldUser = ref.read(currentUserProvider)!;
+      final oldUser = ref.read(homeProvider).value!;
       final lanternService = ref.read(lanternServiceProvider);
       final notifier = ref.read(homeProvider.notifier);
 

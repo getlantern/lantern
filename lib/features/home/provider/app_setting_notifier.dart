@@ -35,7 +35,8 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final settings = _storage.getAppSettings();
 
     if (settings == null) {
-      appLogger.info('No stored settings found, saving defaults: ${fallback.toJson()}');
+      appLogger.info(
+          'No stored settings found, saving defaults: ${fallback.toJson()}');
       unawaited(_storage.saveAppSettings(fallback));
       return fallback;
     }
@@ -160,11 +161,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       await dir.delete(recursive: true);
     }
     await dir.create(recursive: true);
+    sl<LocalStorageService>().deleteAll();
 
     if (isStaging) {
       final file = File('${dir.path}/.radiance_env');
       await file.create();
     }
+    appLogger.info('Environment set to: $env');
   }
 
   Future<void> _detectEnvironmentFromFile() async {

@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';

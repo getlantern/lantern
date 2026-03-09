@@ -14,7 +14,6 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -1339,6 +1338,55 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
+    try {
+      final namePtr = name.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .deletePrivateServerByName(namePtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(namePtr);
+      }
+    } catch (e, st) {
+      appLogger.error('deletePrivateServerByName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+      String oldName,
+      String newName,
+      ) async {
+    try {
+      final oldPtr = oldName.toNativeUtf8();
+      final newPtr = newName.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .updatePrivateServerName(oldPtr.cast<Char>(), newPtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(oldPtr);
+        malloc.free(newPtr);
+      }
+    } catch (e, st) {
+      appLogger.error('updatePrivateServerName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final result = await runInBackground<String>(() async {
@@ -1502,72 +1550,7 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  // --- Private servers (FFI) ---
 
-
-  Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
-    try {
-      final namePtr = name.toNativeUtf8();
-
-      try {
-        final result = await runInBackground<String>(() async {
-          return _ffiService
-              .deletePrivateServerByName(namePtr.cast<Char>())
-              .toDartString();
-        });
-
-        return _okOrFailureFromString(result);
-      } finally {
-        malloc.free(namePtr);
-      }
-    } catch (e, st) {
-      appLogger.error('deletePrivateServerByName failed', e, st);
-      return left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> setDeveloperMode(DeveloperMode mode) async {
-    try {
-      final result = await runInBackground<String>(() async {
-        // adjust call name/signature to match generated bindings
-        return _ffiService
-            .setDeveloperMode(mode.toString().toCharPtr)
-            .toDartString();
-      });
-      checkAPIError(result);
-      return right(unit);
-    } catch (e, st) {
-      appLogger.error('Error setting developer mode via FFI', e, st);
-      return left(e.toFailure());
-    }
-  }
-
-  Future<Either<Failure, Unit>> updatePrivateServerName(
-    String oldName,
-    String newName,
-  ) async {
-    try {
-      final oldPtr = oldName.toNativeUtf8();
-      final newPtr = newName.toNativeUtf8();
-
-      try {
-        final result = await runInBackground<String>(() async {
-          return _ffiService
-              .updatePrivateServerName(oldPtr.cast<Char>(), newPtr.cast<Char>())
-              .toDartString();
-        });
-
-        return _okOrFailureFromString(result);
-      } finally {
-        malloc.free(oldPtr);
-        malloc.free(newPtr);
-      }
-    } catch (e, st) {
-      appLogger.error('updatePrivateServerName failed', e, st);
-      return left(e.toFailure());
-    }
-  }
 
   @override
   Future<Either<Failure, String>> triggerSystemExtension() {
@@ -1678,7 +1661,6 @@ class LanternFFIService implements LanternCoreService {
       },
     );
   }
-
 
   @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {

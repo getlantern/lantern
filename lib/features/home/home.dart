@@ -11,8 +11,8 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -115,7 +115,7 @@ class _HomeState extends ConsumerState<Home> {
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
-                final localUser = ref.read(currentUserProvider);
+                final localUser = ref.read(homeProvider).value;
                 final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
                 final email = localUser!.legacyUserData.email;
                 final isPro = localUser.legacyUserData.isPro;

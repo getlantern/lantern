@@ -138,4 +138,8 @@ class LocalStorageService {
       appLogger.error('LocalStorage clear() failed', e, st);
     }
   }
+
+  void deleteAll() {
+    clear();
+  }
 }

@@ -4,12 +4,15 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/current_user_providers.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+
+import '../../core/services/injection_container.dart' show sl;
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -22,7 +25,7 @@ class DeveloperMode extends StatefulHookConsumerWidget {
 class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(homeProvider).value;
 
     final developerMode = ref.watch(developerModeProvider);
     appLogger.info('Developer Mode settings: ${developerMode.toJson()}');
@@ -118,69 +121,10 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     );
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   final user = ref.watch(currentUserProvider);
-  //   appLogger.info('User info: $user');
-  //
-  //   final developerMode = ref.watch(developerModeProvider);
-  //   final devNotifier = ref.watch(developerModeProvider.notifier);
-  //
-  //   final userId = user?.legacyUserData.userId.toString() ?? 'N/A';
-  //   final userLevel = user?.legacyUserData.userLevel ?? 'N/A';
-  //
-  //   return BaseScreen(
-  //     title: 'developer_mode'.i18n,
-  //     body: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         InfoRow(text: 'developer_mode_note'.i18n),
-  //         SizedBox(height: defaultSize),
-  //         AppCard(
-  //           margin: EdgeInsets.zero,
-  //           padding: EdgeInsets.zero,
-  //           child: Column(
-  //             children: <Widget>[
-  //               AppTile(
-  //                 label: 'Reset App',
-  //                 onPressed: () => resetAppData(context),
-  //               ),
-  //               DividerSpace(),
-  //               AppTile(
-  //                 label: 'UserId',
-  //                 trailing: AppTextButton(label: userId),
-  //               ),
-  //               DividerSpace(),
-  //               AppTile(
-  //                 label: 'Status',
-  //                 trailing: AppTextButton(label: userLevel),
-  //               ),
-  //               DividerSpace(),
-  //               if (PlatformUtils.isAndroid)
-  //                 AppTile(
-  //                   label: 'Test Play Purchase',
-  //                   trailing: SwitchButton(
-  //                     value: developerMode.testPlayPurchaseEnabled,
-  //                     onChanged: (bool? value) {
-  //                       devNotifier.updateDeveloperSettings(
-  //                         developerMode.copyWith(
-  //                           testPlayPurchaseEnabled: value ?? false,
-  //                         ),
-  //                       );
-  //                     },
-  //                   ),
-  //                 ),
-  //             ],
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Future<void> resetAppData(BuildContext context) async {
     final appDir = await AppStorageUtils.getAppDirectory();
     appDir.delete(recursive: true);
+    sl<LocalStorageService>().deleteAll();
     AppDialog.errorDialog(
       context: context,
       title: 'Reset',
