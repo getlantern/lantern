@@ -888,24 +888,6 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverNam
 	return C.CString("ok")
 }
 
-// deleteServerByTag deletes a server by its tag.
-//
-//export deleteServerByTag
-func deleteServerByTag(_tag *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	tag := C.GoString(_tag)
-	slog.Debug("Deleting server with tag:", "tag", tag)
-	err := c.DeleteServerByTag(tag)
-	if err != nil {
-		return SendError(fmt.Errorf("Error deleting server by tag: %v", err))
-	}
-	slog.Debug("Server deleted successfully with tag:", "tag", tag)
-	return C.CString("ok")
-}
-
 //export setBlockAdsEnabled
 func setBlockAdsEnabled(enabled C.int) *C.char {
 	c, errStr := requireCore()
