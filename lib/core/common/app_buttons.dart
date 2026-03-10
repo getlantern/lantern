@@ -151,7 +151,8 @@ class SecondaryButton extends StatelessWidget {
   final Color? bgColor;
   final bool? isTaller;
   final bool? useThemeColor;
-  final Color? iconColor;
+  final Color? foregroundColor;
+  final bool? removeBorder;
 
   const SecondaryButton({
     super.key,
@@ -163,7 +164,8 @@ class SecondaryButton extends StatelessWidget {
     this.icon,
     this.bgColor,
     this.useThemeColor,
-    this.iconColor,
+    this.foregroundColor,
+    this.removeBorder,
   });
 
   @override
@@ -184,7 +186,7 @@ class SecondaryButton extends StatelessWidget {
             icon: AppImage(
               path: icon!,
               height: iconHeight,
-              color: iconColor,
+              color: foregroundColor,
               useThemeColor: useThemeColor ?? false,
             ),
             label: Text(label),
@@ -204,9 +206,6 @@ class SecondaryButton extends StatelessWidget {
     // Heights
     final height = isTaller == true ? hCap(context, 56) : hCap(context, 50);
 
-    // secondary-text: Gray.900 light / Gray.100 dark
-    final textColor = isDark ? AppColors.gray1 : AppColors.gray9;
-
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
@@ -216,14 +215,18 @@ class SecondaryButton extends StatelessWidget {
           }
           if (states.contains(WidgetState.hovered)) {
             // secondary-bg-hover: Gray.200 light / Gray.800 dark
-            return isDark ? AppColors.gray8 : AppColors.gray2;
+            return context.actionSecondaryBgHover;
           }
           // secondary-bg: Gray.100 light / Gray.900 dark
-          return bgColor ?? (isDark ? AppColors.gray9 : AppColors.gray1);
+          return bgColor ?? context.actionSecondaryBg;
         },
       ),
       side: WidgetStateProperty.resolveWith<BorderSide>(
         (Set<WidgetState> states) {
+          if (removeBorder ?? false) {
+            return BorderSide.none;
+          }
+
           if (states.contains(WidgetState.disabled)) {
             // secondary-disabled-border: Gray.400 light / Gray.700 dark
             return BorderSide(
@@ -242,7 +245,8 @@ class SecondaryButton extends StatelessWidget {
       overlayColor: WidgetStatePropertyAll<Color>(
         isDark ? AppColors.gray8 : AppColors.gray2,
       ),
-      foregroundColor: WidgetStatePropertyAll<Color>(textColor),
+      foregroundColor:
+          WidgetStatePropertyAll<Color>(foregroundColor ?? context.textPrimary),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
         EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
@@ -250,7 +254,6 @@ class SecondaryButton extends StatelessWidget {
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
           fontSize: expanded ? fontSz : 16.0,
-          color: textColor,
           fontWeight: FontWeight.w600,
         ),
       ),

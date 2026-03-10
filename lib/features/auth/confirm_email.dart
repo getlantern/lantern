@@ -123,8 +123,12 @@ class ConfirmEmail extends HookConsumerWidget {
     assert(password != null,
         'Password must be provided to delete account on back press');
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).deleteAccount(email, password!);
+
+    /// This back-press deletion is part of the email/password signup flow,
+    /// so isSSO is always false because this is not an OAuth user.
+    final result = await ref
+        .read(authProvider.notifier)
+        .deleteAccount(email, password!, false);
 
     result.fold(
       (failure) {

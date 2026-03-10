@@ -1037,11 +1037,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, UserResponse>> deleteAccount({
     required String email,
     required String password,
+    bool isSSO = false,
   }) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .deleteAccount(email.toCharPtr, password.toCharPtr)
+            .deleteAccount(email.toCharPtr, password.toCharPtr, isSSO ? 1 : 0)
             .toDartString();
       });
       checkAPIError(result);

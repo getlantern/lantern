@@ -1485,6 +1485,22 @@ msgstr "System"
 msgid "lantern_email"
 msgstr "Lantern Email"
 
+msgid "confirm_with_account"
+msgstr "To confirm deletion please verify with your %s account below:"
+
+msgid "oauth_different_account"
+msgstr "The account you are trying to sign in with does not match the account associated with this email. Please sign in with the correct account or choose a different email."
+
+msgid "account_deleted"
+msgstr "Account Deleted"
+
+msgid "account_deleted_message"
+msgstr "Your account has been permanently deleted."
+
+msgid "verify_with"
+msgstr "Verify with %s"
+
+
 
 
 

@@ -40,21 +40,19 @@ class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
-    final appSetting = ref.watch(appSettingProvider);
+    final userLoggedIn =
+        ref.watch(appSettingProvider.select((s) => s.userLoggedIn));
+    final locale = ref.watch(appSettingProvider.select((s) => s.locale));
+    final themeMode = ref.watch(appSettingProvider.select((s) => s.themeMode));
     final localUser = sl<LocalStorageService>().getUser();
     final localIsPro = localUser?.legacyUserData.isPro() ?? false;
     final hasProSession =
         localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
-    final isAuthenticated = appSetting.userLoggedIn || hasProSession;
-    final locale = appSetting.locale;
-    final themeMode = appSetting.themeMode;
+    final isAuthenticated = userLoggedIn || hasProSession;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-    final user = ref.watch(homeProvider).value;
-    String email = '';
-    if (user != null) {
-      email = user.legacyUserData.email;
-    }
+    final email = ref
+        .watch(homeProvider.select((v) => v.value?.legacyUserData.email ?? ''));
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
@@ -74,7 +72,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (appSetting.userLoggedIn)
+          if (userLoggedIn || isUserPro)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,

@@ -27,7 +27,7 @@ class VPNSwitch extends HookConsumerWidget {
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
-      key: Key('vpn.switch.${vpnStatus.name}'),
+
       current: isVPNOn,
       allowUnlistedValues: false,
       values: [false, true],
@@ -75,6 +75,7 @@ class VPNSwitch extends HookConsumerWidget {
       },
       wrapperBuilder: (context, global, child) {
         return Container(
+          key: Key('vpn.switch.${vpnStatus.name}'),
           padding: EdgeInsets.all(5.r),
           decoration: BoxDecoration(
             color: _wrapperColor(vpnStatus, context),
