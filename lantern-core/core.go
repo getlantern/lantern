@@ -851,11 +851,6 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 		delete(userServers.Locations, oldTag)
 		userServers.Locations[newTag] = loc
 	}
-	if creds, ok := userServers.Credentials[oldTag]; ok {
-		delete(userServers.Credentials, oldTag)
-		userServers.Credentials[newTag] = creds
-	}
-
 	if err := lc.serverManager.SetServers(servers.SGUser, userServers); err != nil {
 		return fmt.Errorf("failed to rename private server %q to %q: %w", oldTag, newTag, err)
 	}

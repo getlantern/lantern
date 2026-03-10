@@ -187,6 +187,10 @@ class MethodHandler {
         }
         self.deletePrivateServerByName(result: result, name: name)
 
+      case "updatePrivateServerName":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updatePrivateServerName(result: result, data: data)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -859,6 +863,20 @@ class MethodHandler {
       MobileDeletePrivateServerByName(name, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let oldName = data["oldName"] as? String ?? ""
+      let newName = data["newName"] as? String ?? ""
+      var error: NSError?
+      MobileUpdatePrivateServerName(oldName, newName, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
         return
       }
       await self.replyOK(result)

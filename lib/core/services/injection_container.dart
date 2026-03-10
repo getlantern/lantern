@@ -17,19 +17,15 @@ final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
   try {
-    sl.registerSingletonAsync<LocalStorageService>(() async {
-      appLogger.info("Initializing LocalStorageService");
-      final storage = LocalStorageService();
-      await storage.init();
-      return storage;
-    });
+    appLogger.info("Initializing LocalStorageService");
+    final storage = LocalStorageService();
+    await storage.init();
+    sl.registerSingleton<LocalStorageService>(storage);
 
-    sl.registerSingletonAsync<StoreUtils>(() async {
-      appLogger.info("Initializing StoreUtils");
-      final storeUtils = StoreUtils();
-      await storeUtils.init();
-      return storeUtils;
-    });
+    appLogger.info("Initializing StoreUtils");
+    final storeUtils = StoreUtils();
+    await storeUtils.init();
+    sl.registerSingleton<StoreUtils>(storeUtils);
 
     sl.registerLazySingleton(() => AppRouter());
     sl.registerLazySingleton(() => AppPurchase());

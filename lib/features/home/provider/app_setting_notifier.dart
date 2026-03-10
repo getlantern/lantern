@@ -36,17 +36,18 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     if (settings == null) {
       appLogger.info(
-          'No stored settings found, saving defaults: ${fallback.toJson()}');
+          'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}');
       unawaited(_storage.saveAppSettings(fallback));
       return fallback;
     }
 
-    appLogger.info('Loaded stored app settings: ${settings.toJson()}');
+    appLogger
+        .info('Loaded stored app settings: ${_settingsLogFields(settings)}');
     return settings;
   }
 
   Future<void> update(AppSetting updated) async {
-    appLogger.info('Updating app settings: ${updated.toJson()}');
+    appLogger.info('Updating app settings: ${_settingsLogFields(updated)}');
     state = updated;
     await _storage.saveAppSettings(updated);
   }
@@ -205,4 +206,23 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       },
     );
   }
+
+  Map<String, Object> _settingsLogFields(AppSetting setting) => {
+        'isPro': setting.isPro,
+        'isSplitTunnelingOn': setting.isSplitTunnelingOn,
+        'themeMode': setting.themeMode,
+        'environment': setting.environment,
+        'locale': setting.locale,
+        'userLoggedIn': setting.userLoggedIn,
+        'blockAds': setting.blockAds,
+        'showSplashScreen': setting.showSplashScreen,
+        'telemetryDialogDismissed': setting.telemetryDialogDismissed,
+        'telemetryConsent': setting.telemetryConsent,
+        'successfulConnection': setting.successfulConnection,
+        'routingModeRaw': setting.routingModeRaw,
+        'dataCapThreshold': setting.dataCapThreshold,
+        'onboardingCompleted': setting.onboardingCompleted,
+        'hasOAuthToken': setting.oAuthToken.isNotEmpty,
+        'hasEmail': setting.email.isNotEmpty,
+      };
 }

@@ -955,24 +955,24 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-//            Methods.UpdatePrivateServerName.method -> {
-//                scope.launch {
-//                    result.runCatching {
-//                        val oldName = call.argument<String>("oldName") ?: error("Missing oldName")
-//                        val newName = call.argument<String>("newName") ?: error("Missing newName")
-//                        Mobile.updatePrivateServerName(oldName, newName)
-//                        withContext(Dispatchers.Main) {
-//                            success("ok")
-//                        }
-//                    }.onFailure { e ->
-//                        result.error(
-//                            "UPDATE_PRIVATE_SERVER_NAME_ERROR",
-//                            e.localizedMessage ?: "Error updating private server name",
-//                            e
-//                        )
-//                    }
-//                }
-//            }
+            Methods.UpdatePrivateServerName.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val oldName = call.argument<String>("oldName") ?: error("Missing oldName")
+                        val newName = call.argument<String>("newName") ?: error("Missing newName")
+                        Mobile.updatePrivateServerName(oldName, newName)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "UPDATE_PRIVATE_SERVER_NAME_ERROR",
+                            e.localizedMessage ?: "Error updating private server name",
+                            e
+                        )
+                    }
+                }
+            }
 
             Methods.GetSplitTunnelItems.method -> {
                 scope.launch {

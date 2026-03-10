@@ -521,6 +521,12 @@ func DeletePrivateServerByName(tag string) error {
 	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
 }
 
+func UpdatePrivateServerName(oldTag, newTag string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdatePrivateServerName(oldTag, newTag)
+	})
+}
+
 func GetSplitTunnelItems(filterType string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.GetSplitTunnelItems(filterType)

@@ -1194,11 +1194,11 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> deletePrivateServerByName(
       String serverName) async {
     try {
-      final result = await _methodChannel.invokeMethod<String>(
+      await _methodChannel.invokeMethod<String>(
           'deletePrivateServerByName', serverName);
       return right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error fetching auto server location', e, stackTrace);
+      appLogger.error('Error deleting private server', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1319,8 +1319,16 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> updatePrivateServerName(
-      String oldName, String newName) {
-    // TODO: implement updatePrivateServerName
-    throw UnimplementedError();
+      String oldName, String newName) async {
+    try {
+      await _methodChannel.invokeMethod<String>('updatePrivateServerName', {
+        'oldName': oldName,
+        'newName': newName,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error updating private server name', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 }
