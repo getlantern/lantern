@@ -170,23 +170,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     return uri.toString();
   }
 
-  DeepLink navigateToDeepLink(PlatformDeepLink deepLink) {
-    appLogger
-        .debug("DeepLink configuration: ${deepLink.configuration.toString()}");
-    if (deepLink.path.toLowerCase().startsWith('/report-issue')) {
-      appLogger.debug("DeepLink uri: ${deepLink.uri.toString()}");
-      final pathUrl = deepLink.uri.toString();
-      final segment = pathUrl.split('#');
-      //If deeplink doesn't have data it should send to report issue with empty description'
-      if (segment.length >= 2) {
-        final description = segment[1];
-        return DeepLink([Home(), ReportIssue(description: '#$description')]);
-      }
-      return DeepLink([Home(), ReportIssue()]);
-    } else {
-      return DeepLink.defaultPath;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +206,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     .toList(),
                 // List of supported languages
                 routerConfig: globalRouter.config(
-                  deepLinkBuilder: navigateToDeepLink,
+                  // Always return default path so AutoRoute does not attempt
+                  // to parse and navigate the deeplink URI itself. All deeplink
+                  // navigation is handled exclusively by _handleDeepLinkUri
+                  // (via getInitialLink / uriLinkStream). Without this,
+                  // AutoRoute would push a matching route AND _handleDeepLinkUri
+                  // would push it again, causing a double-push on cold start.
+                  deepLinkBuilder: (_) => DeepLink.defaultPath,
                   navigatorObservers: () => [
                     routeObserver,
                   ],
