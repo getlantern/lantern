@@ -1,127 +1,40 @@
 @testable import Runner
-import Foundation
 import XCTest
 
 final class RunnerTests: XCTestCase {
 
-  func testFileStreamerEmitsInitialTail() throws {
-    let fileURL = try makeTempLogFile(initialContent: "line-1\nline-2\nline-3\n")
-    let streamer = IOSFileLogStreamer(
-      fileURL: fileURL,
-      maxInitialLines: 2,
-      pollInterval: .milliseconds(50))
+  func testBatchDifferEmitsInitialSnapshot() {
+    var differ = LogBatchDiffer()
 
-    let stateQueue = DispatchQueue(label: "RunnerTests.initialTail")
-    let initialEmission = expectation(description: "initial tail emitted")
-    var initialBatch: [String] = []
+    let batch = differ.consume(["line-1", "line-2"])
 
-    streamer.start { lines in
-      stateQueue.sync {
-        guard !lines.isEmpty && initialBatch.isEmpty else {
-          return
-        }
-        initialBatch = lines
-        initialEmission.fulfill()
-      }
-    }
-
-    wait(for: [initialEmission], timeout: 1.0)
-    streamer.stop()
-
-    let observed = stateQueue.sync { initialBatch }
-    XCTAssertEqual(observed, ["line-2", "line-3"])
+    XCTAssertEqual(batch, ["line-1", "line-2"])
   }
 
-  func testFileStreamerEmitsAppendedLines() throws {
-    let fileURL = try makeTempLogFile(initialContent: "line-1\n")
-    let streamer = IOSFileLogStreamer(
-      fileURL: fileURL,
-      maxInitialLines: 10,
-      pollInterval: .milliseconds(50))
+  func testBatchDifferEmitsOnlyAppendedLines() {
+    var differ = LogBatchDiffer()
+    _ = differ.consume(["line-1", "line-2"])
 
-    let stateQueue = DispatchQueue(label: "RunnerTests.appendedLines")
-    let appendedEmission = expectation(description: "appended batch emitted")
-    var emittedBatches: [[String]] = []
+    let batch = differ.consume(["line-1", "line-2", "line-3", "line-4"])
 
-    streamer.start { lines in
-      stateQueue.sync {
-        guard !lines.isEmpty else {
-          return
-        }
-        emittedBatches.append(lines)
-        if lines == ["line-2", "line-3"] {
-          appendedEmission.fulfill()
-        }
-      }
-    }
-
-    try append("line-2\nline-3\n", to: fileURL)
-
-    wait(for: [appendedEmission], timeout: 2.0)
-    streamer.stop()
-
-    let observed = stateQueue.sync { emittedBatches }
-    XCTAssertTrue(observed.contains(["line-2", "line-3"]))
+    XCTAssertEqual(batch, ["line-3", "line-4"])
   }
 
-  func testFileStreamerBuffersPartialLineUntilNewline() throws {
-    let fileURL = try makeTempLogFile()
-    let streamer = IOSFileLogStreamer(
-      fileURL: fileURL,
-      maxInitialLines: 10,
-      pollInterval: .milliseconds(50))
+  func testBatchDifferHandlesRollingWindowWithoutDroppingNewLines() {
+    var differ = LogBatchDiffer()
+    _ = differ.consume(["line-1", "line-2", "line-3"])
 
-    let stateQueue = DispatchQueue(label: "RunnerTests.partialLines")
-    let completedLineEmission = expectation(description: "completed line emitted")
-    var observedLines: [String] = []
+    let batch = differ.consume(["line-2", "line-3", "line-4"])
 
-    streamer.start { lines in
-      stateQueue.sync {
-        guard !lines.isEmpty else {
-          return
-        }
-        observedLines.append(contentsOf: lines)
-        if observedLines.contains("partial-line") {
-          completedLineEmission.fulfill()
-        }
-      }
-    }
-
-    try append("partial-line", to: fileURL)
-    Thread.sleep(forTimeInterval: 0.25)
-
-    let beforeNewline = stateQueue.sync { observedLines }
-    XCTAssertFalse(beforeNewline.contains("partial-line"))
-
-    try append("\n", to: fileURL)
-    wait(for: [completedLineEmission], timeout: 1.0)
-    streamer.stop()
-
-    let finalObserved = stateQueue.sync { observedLines }
-    XCTAssertTrue(finalObserved.contains("partial-line"))
+    XCTAssertEqual(batch, ["line-4"])
   }
 
-  private func makeTempLogFile(initialContent: String = "") throws -> URL {
-    let testDirectoryURL = FileManager.default.temporaryDirectory
-      .appendingPathComponent("RunnerTests-\(UUID().uuidString)", isDirectory: true)
+  func testBatchDifferReturnsCurrentSnapshotOnNoOverlap() {
+    var differ = LogBatchDiffer()
+    _ = differ.consume(["line-1", "line-2"])
 
-    try FileManager.default.createDirectory(
-      at: testDirectoryURL,
-      withIntermediateDirectories: true,
-      attributes: nil)
-    addTeardownBlock {
-      try? FileManager.default.removeItem(at: testDirectoryURL)
-    }
+    let batch = differ.consume(["other-1", "other-2"])
 
-    let logFileURL = testDirectoryURL.appendingPathComponent("lantern.log")
-    try Data(initialContent.utf8).write(to: logFileURL)
-    return logFileURL
-  }
-
-  private func append(_ text: String, to fileURL: URL) throws {
-    let handle = try FileHandle(forWritingTo: fileURL)
-    defer { try? handle.close() }
-    handle.seekToEndOfFile()
-    handle.write(Data(text.utf8))
+    XCTAssertEqual(batch, ["other-1", "other-2"])
   }
 }
