@@ -52,7 +52,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 unselectedLabelColor: Colors.grey,
                 labelStyle: textTheme!.titleSmall,
                 indicator: BoxDecoration(
-                  color: context.textLink,
+                  color: context.actionTabbarBg,
                   borderRadius: BorderRadius.circular(40),
                   shape: BoxShape.rectangle,
                   border: Border.all(color: AppColors.blue3, width: 1),
