@@ -1275,43 +1275,56 @@ class LanternPlatformService implements LanternCoreService {
 
   /// Pull enabled apps from native/Go
   Future<void> _refreshEnabledAppsSnapshot() async {
-    try {
-      final res = await _methodChannel.invokeMethod('getEnabledAppsSnapshot');
+    final keys = <String>{};
 
-      if (res is Map) {
-        final keys = (res['keys'] as List?)
-                ?.whereType<String>()
-                .map((s) => s.trim())
-                .where((s) => s.isNotEmpty)
-                .toSet() ??
-            <String>{};
-        final names = (res['names'] as List?)
-                ?.whereType<String>()
-                .map((s) => s.trim())
-                .where((s) => s.isNotEmpty)
-                .toSet() ??
-            <String>{};
-
-        _enabledApps = EnabledAppsSnapshot(keys: keys, names: names);
-      } else {
-        _enabledApps = const EnabledAppsSnapshot.empty();
-      }
-    } catch (_) {
-      // On old builds / missing plugin method, fail closed
-      _enabledApps = const EnabledAppsSnapshot.empty();
+    Future<void> collect(SplitTunnelFilterType type) async {
+      final result = await getSplitTunnelItems(type);
+      result.match(
+        (_) {},
+        (items) {
+          for (final item in items) {
+            final normalized = item.trim();
+            if (normalized.isNotEmpty) {
+              keys.add(normalized);
+            }
+          }
+        },
+      );
     }
+
+    await Future.wait([
+      collect(SplitTunnelFilterType.packageName),
+      collect(SplitTunnelFilterType.processPath),
+      collect(SplitTunnelFilterType.processPathRegex),
+    ]);
+
+    _enabledApps = EnabledAppsSnapshot(keys: keys, names: const <String>{});
   }
 
   @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
       SplitTunnelFilterType type) async {
     try {
-      final items =
+      final itemsJson =
           await _methodChannel.invokeMethod<String>('getSplitTunnelItems', {
         'filterType': type.value,
       });
-      List<String> list = List<String>.from(jsonDecode(items!));
-      return Right(list);
+
+      if (itemsJson == null || itemsJson.trim().isEmpty) {
+        return right(<String>[]);
+      }
+
+      final decoded = jsonDecode(itemsJson);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
+
+      final list = decoded
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+      return right(list);
     } catch (e) {
       return Left(e.toFailure());
     }

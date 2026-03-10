@@ -87,7 +87,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                       buildMyServer(myServers),
                       Padding(
                         padding: const EdgeInsets.only(top: defaultSize),
-                        child: _buildListView(joinedServers),
+                        child: _buildListView(
+                          joinedServers,
+                          showShareAccessKey: false,
+                        ),
                       ),
                     ],
                   ),
@@ -108,12 +111,20 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
           text: 'access_key_expiration'.i18n,
         ),
         const SizedBox(height: 8),
-        Expanded(child: _buildListView(myServers)),
+        Expanded(
+          child: _buildListView(
+            myServers,
+            showShareAccessKey: true,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildListView(List<Location_> myServers) {
+  Widget _buildListView(
+    List<Location_> myServers, {
+    required bool showShareAccessKey,
+  }) {
     return ListView.builder(
       padding: EdgeInsets.zero,
       itemCount: myServers.length,
@@ -140,7 +151,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   ],
                 ),
               ),
-              if (true) ...{
+              if (showShareAccessKey) ...{
                 SizedBox(height: 8),
                 SecondaryButton(
                   icon: AppImagePaths.share,

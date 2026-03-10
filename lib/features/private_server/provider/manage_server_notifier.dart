@@ -11,12 +11,12 @@ part 'manage_server_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class ManageServerNotifier extends _$ManageServerNotifier {
   @override
-  void build() async {}
+  void build() {}
 
   Future<void> refresh() async {
     appLogger.debug(
         'Force fetching available servers from Go after server management operation...');
-    final res = await ref
+    await ref
         .read(availableServersProvider.notifier)
         .forceFetchAvailableServers();
   }

@@ -1557,24 +1557,23 @@ class LanternFFIService implements LanternCoreService {
     SplitTunnelFilterType type,
   ) async {
     try {
-      final dataDir = await AppStorageUtils.getAppDirectory();
-      final file = File('${dataDir.path}/split-tunnel.json');
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .getSplitTunnelItems(type.value.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
 
-      if (!await file.exists()) return right(<String>[]);
+      if (result.trim().isEmpty) {
+        return right(<String>[]);
+      }
 
-      final raw = await file.readAsString();
-      if (raw.trim().isEmpty) return right(<String>[]);
+      final decoded = jsonDecode(result);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
 
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) return right(<String>[]);
-
-      final key =
-          type.value; // e.g. "processPathRegex" / "processPath" / "packageName"
-      final v = decoded[key];
-
-      if (v is! List) return right(<String>[]);
-
-      final items = v
+      final items = decoded
           .whereType<String>()
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
