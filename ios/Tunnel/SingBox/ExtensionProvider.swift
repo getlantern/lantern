@@ -71,7 +71,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
       return
     }
-    ensureCommandServerStarted()
+    startCommandServerIfNeeded()
     completion?(true, nil)
     writeMessage("(lantern-tunnel) tunnel started successfully")
   }
@@ -89,7 +89,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
       return
     }
-    ensureCommandServerStarted()
+    startCommandServerIfNeeded()
     completion?(true, nil)
     writeMessage("(lantern-tunnel) connected to server successfully")
   }
@@ -142,7 +142,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     platformInterface.reset()
   }
 
-  private func ensureCommandServerStarted() {
+  private func startCommandServerIfNeeded() {
     guard commandServer == nil, let platformInterface else {
       return
     }
