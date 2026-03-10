@@ -35,13 +35,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
   StreamSubscription<Uri>? _deepLinkSubscription;
-
-  // Set of URI strings already dispatched to _handleDeepLinkUri this session.
-  // Using a Set (not a single URI) correctly deduplicates across all call sites
-  // (stream, getInitialLink) without any timing dependency.
-  // Instance field — cleared on app resume so the same link can be reused
-  // after the user backgrounds and re-opens the app.
-
   @override
   void initState() {
     super.initState();
@@ -81,10 +74,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   Future<void> initDeepLinks() async {
     final appLinks = AppLinks();
-
-    // app_links 7.x delivers the cold-start URI via uriLinkStream on all
-    // platforms (including when the app was fully closed), so getInitialLink()
-    // is not needed and would cause a double push.
     _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
   }
 
@@ -101,14 +90,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final pathUrl = uri.toString();
       final queryParams = uri.queryParameters;
       final segment = pathUrl.split('#');
-      if (segment.length >= 2) {
-        appRouter.push(ReportIssue(
-            description: '#${segment[1]}', type: queryParams['type']));
-      } else if (queryParams.isNotEmpty) {
-        appRouter.push(ReportIssue(type: queryParams['type']));
-      } else {
-        appRouter.push(ReportIssue(),);
-      }
+      final route = segment.length >= 2
+          ? ReportIssue(description: '#${segment[1]}', type: queryParams['type'])
+          : queryParams.isNotEmpty
+              ? ReportIssue(type: queryParams['type'])
+              : ReportIssue();
+      _pushWithHome(route);
     } else if (path.startsWith('/auth') ||
         (uri.scheme == 'lantern' && uri.host == 'auth')) {
       if (uri.queryParameters.containsKey('token')) {
@@ -139,7 +126,19 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       appLogger
           .debug("DeepLink private-server: navigating to JoinPrivateServer");
-      appRouter.push(JoinPrivateServer(deepLinkData: data));
+      _pushWithHome(JoinPrivateServer(deepLinkData: data));
+    }
+  }
+
+  /// Pushes [route] on the current stack when the app is in the foreground
+  /// (Home already loaded). On a cold start the router stack is empty, so we
+  /// seed it with Home first to ensure the user always has a back button.
+  void _pushWithHome(PageRouteInfo route) {
+    final homeInStack = appRouter.stack.any((r) => r.name == Home.name);
+    if (homeInStack) {
+      appRouter.push(route);
+    } else {
+      appRouter.replaceAll([Home(), route]);
     }
   }
 
@@ -200,12 +199,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     .toList(),
                 // List of supported languages
                 routerConfig: globalRouter.config(
-                  // Always return default path so AutoRoute does not attempt
-                  // to parse and navigate the deeplink URI itself. All deeplink
-                  // navigation is handled exclusively by _handleDeepLinkUri
-                  // (via getInitialLink / uriLinkStream). Without this,
-                  // AutoRoute would push a matching route AND _handleDeepLinkUri
-                  // would push it again, causing a double-push on cold start.
                   deepLinkBuilder: (_) => DeepLink.defaultPath,
                   navigatorObservers: () => [
                     routeObserver,
