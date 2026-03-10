@@ -77,10 +77,10 @@ packages:
     dependency: "direct main"
     description:
       name: app_links
-      sha256: "5f88447519add627fe1cbcab4fd1da3d4fed15b9baf29f28b22535c95ecee3e8"
+      sha256: "3462d9defc61565fde4944858b59bec5be2b9d5b05f20aed190adb3ad08a7abc"
       url: "https://pub.dev"
     source: hosted
-    version: "6.4.1"
+    version: "7.0.0"
   app_links_linux:
     dependency: transitive
     description:
@@ -125,18 +125,18 @@ packages:
     dependency: "direct main"
     description:
       name: auto_route
-      sha256: "6d3ccc11b520b6eff0ab5a2c3d1c43c46d1486249cc746c4bb14486d876e8b43"
+      sha256: e9acfeb3df33d188fce4ad0239ef4238f333b7aa4d95ec52af3c2b9360dcd969
       url: "https://pub.dev"
     source: hosted
-    version: "10.3.0"
+    version: "11.1.0"
   auto_route_generator:
     dependency: "direct dev"
     description:
       name: auto_route_generator
-      sha256: a84dcd972e3e38c8925cca2669faa8112a79db9b5d726e0fb8d4ea15ced095fb
+      sha256: "04300eaf5821962aae8b5cd94f67013fd2fd326dc3be212d3ec1ae7470f09834"
       url: "https://pub.dev"
     source: hosted
-    version: "10.3.1"
+    version: "10.4.0"
   auto_size_text:
     dependency: "direct main"
     description:
@@ -575,34 +575,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "19ffb0a8bb7407875555e5e98d7343a633bb73707bae6c6a5f37c90014077875"
+      sha256: "0d9035862236fe38250fe1644d7ed3b8254e34a21b2c837c9f539fbb3bba5ef1"
       url: "https://pub.dev"
     source: hosted
-    version: "19.5.0"
+    version: "21.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: e3c277b2daab8e36ac5a6820536668d07e83851aeeb79c446e525a70710770a5
+      sha256: e0f25e243c6c44c825bbbc6b2b2e76f7d9222362adcfe9fd780bf01923c840bd
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0"
+    version: "8.0.0"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "277d25d960c15674ce78ca97f57d0bae2ee401c844b6ac80fcd972a9c99d09fe"
+      sha256: e7db3d5b49c2b7ecc68deba4aaaa67a348f92ee0fef34c8e4b4459dbef0d7307
       url: "https://pub.dev"
     source: hosted
-    version: "9.1.0"
+    version: "11.0.0"
   flutter_local_notifications_windows:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: "8d658f0d367c48bd420e7cf2d26655e2d1130147bca1eea917e576ca76668aaf"
+      sha256: "3a2654ba104fbb52c618ebed9def24ef270228470718c43b3a6afcd5c81bef0c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "3.0.0"
   flutter_localizations:
     dependency: "direct main"
     description: flutter
@@ -723,10 +723,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: ba03d03bcaa2f6cb7bd920e3b5027181db75ab524f8891c8bc3aa603885b8055
+      sha256: db9df7a5898d894eeda4c78143f35c30a243558be439518972366880b80bf88e
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.3"
+    version: "8.0.2"
   graphs:
     dependency: transitive
     description:
@@ -847,14 +847,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.8+1"
-  installed_apps:
-    dependency: "direct main"
-    description:
-      name: installed_apps
-      sha256: "62b9cb196e2b34558ef0586024251e5dcc5a08199ea0c55c708f0ecc53116341"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.1"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -1184,10 +1176,10 @@ packages:
     dependency: "direct main"
     description:
       name: pinput
-      sha256: c41f42ee301505ae2375ec32871c985d3717bf8aee845620465b286e0140aad2
+      sha256: "4c3f1b84768b47a56a1abdaca551bd7cef4ac673b882209039ecdf803a5d6e68"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.2"
+    version: "6.0.2"
   platform:
     dependency: transitive
     description:
@@ -1232,10 +1224,10 @@ packages:
     dependency: "direct main"
     description:
       name: protobuf
-      sha256: "2fcc8a202ca7ec17dab7c97d6b6d91cf03aa07fe6f65f8afbb6dfa52cc5bd902"
+      sha256: "75ec242d22e950bdcc79ee38dd520ce4ee0bc491d7fadc4ea47694604d22bf06"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "6.0.0"
   pub_semver:
     dependency: transitive
     description:
@@ -1637,10 +1629,10 @@ packages:
     dependency: "direct main"
     description:
       name: timezone
-      sha256: dd14a3b83cfd7cb19e7888f1cbc20f258b8d71b54c06f79ac585f14093a287d1
+      sha256: "784a5e34d2eb62e1326f24d6f600aaaee452eb8ca8ef2f384a59244e292d158b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.1"
+    version: "0.11.0"
   tray_manager:
     dependency: "direct main"
     description:
@@ -1658,14 +1650,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  universal_platform:
-    dependency: transitive
-    description:
-      name: universal_platform
-      sha256: "64e16458a0ea9b99260ceb5467a214c1f298d647c659af1bff6d3bf82536b1ec"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   url_launcher:
     dependency: "direct main"
     description:

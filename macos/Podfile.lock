@@ -129,7 +129,7 @@ SPEC CHECKSUMS:
   desktop_webview_window: d4365e71bcd4e1aa0c14cf0377aa24db0c16a7e2
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
-  flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
+  flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
   flutter_timezone: b3bc0c587d8780d395651284a1ff46eb1e5753ac
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a

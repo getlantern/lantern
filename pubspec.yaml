@@ -40,7 +40,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^10.2.1
+  auto_route: ^11.1.0
   #UI Utils
   animated_toggle_switch: ^0.8.7
   animated_text_kit: ^4.3.0
@@ -48,7 +48,7 @@ dependencies:
   auto_size_text: ^3.0.0
 
   badges: ^3.1.2
-  pinput: ^5.0.2
+  pinput: ^6.0.2
   email_validator: ^3.0.0
   shimmer: ^3.0.0
   #Loading
@@ -78,7 +78,7 @@ dependencies:
   # dependency injection
   get_it: ^9.2.1
   #fonts
-  google_fonts: ^6.3.2
+  google_fonts: ^8.0.2
   #env
   flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
@@ -87,7 +87,7 @@ dependencies:
   #native
   sentry_flutter: ^9.14.0
   # Deeplink handling
-  app_links: ^6.4.1
+  app_links: ^7.0.0
   # Desktop
   window_manager: ^0.5.1
   tray_manager:
@@ -101,7 +101,6 @@ dependencies:
   jwt_decoder: ^2.0.1
   country_flags: ^4.1.2
   mobile_scanner: ^7.2.0
-  installed_apps: ^2.1.0
   device_info_plus: ^12.3.0
 
   flutter_inappwebview: ^6.1.5
@@ -111,12 +110,12 @@ dependencies:
   in_app_purchase: ^3.2.3
   flutter_stripe: ^12.4.0
   # protobuf
-  protobuf: ^5.1.0
+  protobuf: ^6.0.0
   # auto updates
   auto_updater: ^1.0.0
   # notifications
-  flutter_local_notifications: ^19.5.0
-  timezone: ^0.10.1
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
   flutter_timezone: ^5.0.1
   win32: ^5.15.0
   fixnum: ^1.1.1
@@ -129,7 +128,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  auto_route_generator: ^10.2.6
+  auto_route_generator: ^10.4.0
   build_runner: ^2.12.2
   objectbox_generator: ^5.2.0
   riverpod_generator: ^4.0.3
