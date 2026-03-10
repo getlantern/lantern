@@ -36,6 +36,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
   late final AppLifecycleListener _lifecycle;
   StreamSubscription<Uri>? _deepLinkSubscription;
 
+  // Set of URI strings already dispatched to _handleDeepLinkUri this session.
+  // Using a Set (not a single URI) correctly deduplicates across all call sites
+  // (stream, getInitialLink) without any timing dependency.
+  // Instance field — cleared on app resume so the same link can be reused
+  // after the user backgrounds and re-opens the app.
+
   @override
   void initState() {
     super.initState();
@@ -76,20 +82,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
   Future<void> initDeepLinks() async {
     final appLinks = AppLinks();
 
-    // Cold start: defer until first frame so navigation/snackbars are safe.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      try {
-        final initialUri = await appLinks.getInitialLink();
-        if (!mounted) return;
-        if (initialUri != null) {
-          _handleDeepLinkUri(initialUri);
-        }
-      } catch (e) {
-        appLogger.error("Error getting initial deep link: $e");
-      }
-    });
-
+    // app_links 7.x delivers the cold-start URI via uriLinkStream on all
+    // platforms (including when the app was fully closed), so getInitialLink()
+    // is not needed and would cause a double push.
     _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
   }
 
@@ -107,12 +102,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final queryParams = uri.queryParameters;
       final segment = pathUrl.split('#');
       if (segment.length >= 2) {
-        globalRouter.push(ReportIssue(
+        appRouter.push(ReportIssue(
             description: '#${segment[1]}', type: queryParams['type']));
       } else if (queryParams.isNotEmpty) {
-        globalRouter.push(ReportIssue(type: queryParams['type']));
+        appRouter.push(ReportIssue(type: queryParams['type']));
       } else {
-        globalRouter.push(ReportIssue());
+        appRouter.push(ReportIssue(),);
       }
     } else if (path.startsWith('/auth') ||
         (uri.scheme == 'lantern' && uri.host == 'auth')) {
@@ -169,7 +164,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     }
     return uri.toString();
   }
-
 
   @override
   Widget build(BuildContext context) {
