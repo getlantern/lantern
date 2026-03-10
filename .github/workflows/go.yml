@@ -3,8 +3,17 @@ name: Go CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/go.yml'
   pull_request:
-    branches: [main]
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/go.yml'
 
 jobs:
   build:
@@ -43,4 +52,4 @@ jobs:
           fi
 
       - name: Run tests
-        run: CGO_ENABLED=1 go test -v ./...
+        run: CGO_ENABLED=1 go test -v -tags with_clash_api,with_conntrack ./...

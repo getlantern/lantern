@@ -9,6 +9,8 @@ enum VPNStatus {
   error,
 }
 
+enum SignUpMethodType { email, google, apple, withoutEmail }
+
 enum ServerLocationType { auto, privateServer, lanternLocation }
 
 extension ServerLocationTypeExtension on String {

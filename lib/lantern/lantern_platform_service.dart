@@ -909,11 +909,14 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> deleteAccount(
-      {required String email, required String password}) async {
+      {required String email,
+      required String password,
+      bool isSSO = false}) async {
     try {
       final bytes = await _methodChannel.invokeMethod('deleteAccount', {
         'email': email,
         'password': password,
+        'isSSO': isSSO,
       });
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {

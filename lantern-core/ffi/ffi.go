@@ -609,12 +609,12 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 // Delete account permanently
 //
 //export deleteAccount
-func deleteAccount(_email, _password *C.char) *C.char {
+func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
 	c, errStr := requireCore()
 	if errStr != nil {
 		return errStr
 	}
-	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password))
+	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password), _isSSO != 0)
 	if err != nil {
 		return SendError(err)
 	}

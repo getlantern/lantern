@@ -597,8 +597,9 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
+      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, &error)
+      let payload = MobileDeleteAccount(email, password, isSSO, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
