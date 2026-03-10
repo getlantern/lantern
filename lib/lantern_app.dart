@@ -87,10 +87,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
     });
 
-    // Warm state: handle links when app is already running
-    appLinks.uriLinkStream.listen((Uri uri) {
-      _handleDeepLinkUri(uri);
-    });
+    // Warm state: handle links when app is already running.
+    // Linux is excluded because app_links has no Linux native plugin.
+    if (!PlatformUtils.isLinux) {
+      appLinks.uriLinkStream.listen((Uri uri) {
+        _handleDeepLinkUri(uri);
+      });
+    }
   }
 
   void _handleDeepLinkUri(Uri uri) {
@@ -122,18 +125,28 @@ class _LanternAppState extends ConsumerState<LanternApp>
     } else if (path.startsWith('/private-server') ||
         (uri.scheme == 'lantern' && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
+      appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
       final expiration = int.tryParse((data['exp'] ?? '').toString());
       if (expiration == null) {
+        appLogger
+            .debug("DeepLink private-server: missing or invalid exp param");
         context.showSnackBar('invalid_deep_link'.i18n);
         return;
       }
       final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+      appLogger.debug(
+          "DeepLink private-server: exp=$expired, now=${DateTime.now()}, expired=${expired.isBefore(DateTime.now())}");
       if (expired.isBefore(DateTime.now())) {
-        appLogger.debug("DeepLink expired: $expired");
-        context.showSnackBar('deep_link_expired'.i18n);
+        AppDialog.dialog(
+          context: context,
+          title: 'expired'.i18n,
+          content: 'deep_link_expired'.i18n,
+        );
         return;
       }
+      appLogger
+          .debug("DeepLink private-server: navigating to JoinPrivateServer");
       appRouter.push(JoinPrivateServer(deepLinkData: data));
     }
   }
