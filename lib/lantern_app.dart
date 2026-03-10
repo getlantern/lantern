@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:app_links/app_links.dart';
@@ -33,6 +34,7 @@ class LanternApp extends StatefulHookConsumerWidget {
 class _LanternAppState extends ConsumerState<LanternApp>
     with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
+  StreamSubscription<Uri>? _deepLinkSubscription;
 
   @override
   void initState() {
@@ -59,6 +61,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _lifecycle.dispose();
+    _deepLinkSubscription?.cancel();
     super.dispose();
   }
 
@@ -87,13 +90,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
     });
 
-    // Warm state: handle links when app is already running.
-    // Linux is excluded because app_links has no Linux native plugin.
-    if (!PlatformUtils.isLinux) {
-      appLinks.uriLinkStream.listen((Uri uri) {
-        _handleDeepLinkUri(uri);
-      });
-    }
+    _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
   }
 
   void _handleDeepLinkUri(Uri uri) {
