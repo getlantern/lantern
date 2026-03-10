@@ -10,21 +10,26 @@ part of 'app_list_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(appList)
-const appListProvider = AppListProvider._();
+final appListProvider = AppListProvider._();
 
-final class AppListProvider extends $FunctionalProvider<
-        AsyncValue<List<AppData>>, List<AppData>, Stream<List<AppData>>>
+final class AppListProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AppData>>,
+          List<AppData>,
+          Stream<List<AppData>>
+        >
     with $FutureModifier<List<AppData>>, $StreamProvider<List<AppData>> {
-  const AppListProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'appListProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AppListProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appListProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$appListHash();
@@ -32,8 +37,8 @@ final class AppListProvider extends $FunctionalProvider<
   @$internal
   @override
   $StreamProviderElement<List<AppData>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<AppData>> create(Ref ref) {

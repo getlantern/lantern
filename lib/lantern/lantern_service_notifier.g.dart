@@ -10,21 +10,21 @@ part of 'lantern_service_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(lanternService)
-const lanternServiceProvider = LanternServiceProvider._();
+final lanternServiceProvider = LanternServiceProvider._();
 
 final class LanternServiceProvider
     extends $FunctionalProvider<LanternService, LanternService, LanternService>
     with $Provider<LanternService> {
-  const LanternServiceProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'lanternServiceProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  LanternServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'lanternServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$lanternServiceHash();

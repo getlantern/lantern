@@ -10,20 +10,20 @@ part of 'local_storage_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(LocalStorageNotifier)
-const localStorageProvider = LocalStorageNotifierProvider._();
+final localStorageProvider = LocalStorageNotifierProvider._();
 
 final class LocalStorageNotifierProvider
     extends $NotifierProvider<LocalStorageNotifier, LocalStorageService> {
-  const LocalStorageNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'localStorageProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  LocalStorageNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localStorageProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$localStorageNotifierHash();
@@ -49,13 +49,15 @@ abstract class _$LocalStorageNotifier extends $Notifier<LocalStorageService> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<LocalStorageService, LocalStorageService>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<LocalStorageService, LocalStorageService>,
-        LocalStorageService,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<LocalStorageService, LocalStorageService>,
+              LocalStorageService,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

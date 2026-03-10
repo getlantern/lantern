@@ -10,20 +10,20 @@ part of 'app_setting_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AppSettingNotifier)
-const appSettingProvider = AppSettingNotifierProvider._();
+final appSettingProvider = AppSettingNotifierProvider._();
 
 final class AppSettingNotifierProvider
     extends $NotifierProvider<AppSettingNotifier, AppSetting> {
-  const AppSettingNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'appSettingProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AppSettingNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appSettingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$appSettingNotifierHash();
@@ -42,17 +42,22 @@ final class AppSettingNotifierProvider
 }
 
 String _$appSettingNotifierHash() =>
-    r'429ab824fb96c8c18c0fc360f078c2a39a914028';
+    r'0f7b6063748a81dfbac1b5df79e45e647767084e';
 
 abstract class _$AppSettingNotifier extends $Notifier<AppSetting> {
   AppSetting build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AppSetting, AppSetting>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AppSetting, AppSetting>, AppSetting, Object?, Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AppSetting, AppSetting>,
+              AppSetting,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

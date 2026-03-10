@@ -10,20 +10,20 @@ part of 'available_servers_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AvailableServersNotifier)
-const availableServersProvider = AvailableServersNotifierProvider._();
+final availableServersProvider = AvailableServersNotifierProvider._();
 
 final class AvailableServersNotifierProvider
     extends $AsyncNotifierProvider<AvailableServersNotifier, AvailableServers> {
-  const AvailableServersNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'availableServersProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AvailableServersNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'availableServersProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$availableServersNotifierHash();
@@ -42,14 +42,16 @@ abstract class _$AvailableServersNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref as $Ref<AsyncValue<AvailableServers>, AvailableServers>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<AvailableServers>, AvailableServers>,
-        AsyncValue<AvailableServers>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<AvailableServers>, AvailableServers>,
+              AsyncValue<AvailableServers>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

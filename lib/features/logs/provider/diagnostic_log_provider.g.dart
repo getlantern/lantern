@@ -10,21 +10,26 @@ part of 'diagnostic_log_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(diagnosticLogStream)
-const diagnosticLogStreamProvider = DiagnosticLogStreamProvider._();
+final diagnosticLogStreamProvider = DiagnosticLogStreamProvider._();
 
-final class DiagnosticLogStreamProvider extends $FunctionalProvider<
-        AsyncValue<List<String>>, List<String>, Stream<List<String>>>
+final class DiagnosticLogStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<String>>,
+          List<String>,
+          Stream<List<String>>
+        >
     with $FutureModifier<List<String>>, $StreamProvider<List<String>> {
-  const DiagnosticLogStreamProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'diagnosticLogStreamProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  DiagnosticLogStreamProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'diagnosticLogStreamProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$diagnosticLogStreamHash();
@@ -32,8 +37,8 @@ final class DiagnosticLogStreamProvider extends $FunctionalProvider<
   @$internal
   @override
   $StreamProviderElement<List<String>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<String>> create(Ref ref) {
