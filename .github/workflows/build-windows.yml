@@ -120,11 +120,6 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
-      - name: Windows UI connect/disconnect integration
-        shell: pwsh
-        run: |
-          ./.github/scripts/windows_connect_smoke.ps1 -EnableIpCheck
-
       - name: Sign embedded binaries
         shell: pwsh
         env:
@@ -187,6 +182,16 @@ jobs:
           Write-Host ""
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
+
+      - name: Windows installer + UI connect/disconnect integration
+        shell: pwsh
+        env:
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          ./.github/scripts/windows_connect_smoke.ps1 `
+            -UseInstaller `
+            -InstallerPath "$env:FULL_INSTALLER_NAME.exe" `
+            -EnableIpCheck
 
       - name: Sign installer
         shell: pwsh
