@@ -1,6 +1,6 @@
 param(
   [string]$ServiceName = "LanternSvc",
-  [string]$ServiceExe = "bin/windows-amd64/lanternsvc.exe",
+  [string]$ServiceExe = "build/windows/x64/runner/Release/lanternsvc.exe",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [int]$WaitSeconds = 30
