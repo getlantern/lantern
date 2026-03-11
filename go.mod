@@ -22,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260306130358-8eebca68b165
+	github.com/getlantern/radiance v0.0.0-20260310150212-969425215c03
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.40.0
@@ -123,6 +123,7 @@ require (
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa // indirect
+	github.com/alitto/pond v1.9.2 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/anacrolix/chansync v0.3.0 // indirect
 	github.com/anacrolix/dht/v2 v2.19.2-0.20221121215055-066ad8494444 // indirect
@@ -175,13 +176,13 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae // indirect
 	github.com/getlantern/kindling v0.0.0-20260305202005-ca73a10f13ac // indirect
-	github.com/getlantern/lantern-box v0.0.6-0.20260220213333-4b20583e43ff // indirect
+	github.com/getlantern/lantern-box v0.0.6-0.20260310125919-243235c404a1 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260130212632-d5ea08838250 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
-	github.com/getlantern/samizdat v0.0.2 // indirect
+	github.com/getlantern/samizdat v0.0.3-0.20260310125445-325cf1bd1b60 // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.6-0.20260105215053-2a1cd54af4d5 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
