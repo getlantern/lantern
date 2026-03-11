@@ -146,6 +146,9 @@ class AppPurchase {
 
     final purchaseParam = PurchaseParam(productDetails: product);
     try {
+      appLogger.info(
+        '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
+      );
       final started =
           await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
