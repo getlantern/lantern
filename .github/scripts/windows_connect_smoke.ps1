@@ -62,6 +62,6 @@ finally {
   try {
     Remove-ServiceIfPresent -Name $ServiceName
   } catch {
-    Write-Warning "Failed to clean up service $ServiceName: $_"
+    Write-Warning ("Failed to clean up service {0}: {1}" -f $ServiceName, $_)
   }
 }
