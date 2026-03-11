@@ -123,7 +123,7 @@ jobs:
       - name: Windows UI connect/disconnect integration
         shell: pwsh
         run: |
-          ./.github/scripts/windows_connect_smoke.ps1
+          ./.github/scripts/windows_connect_smoke.ps1 -EnableIpCheck
 
       - name: Sign embedded binaries
         shell: pwsh

@@ -3,7 +3,8 @@ param(
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternsvc.exe",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
-  [int]$WaitSeconds = 30
+  [int]$WaitSeconds = 30,
+  [switch]$EnableIpCheck
 )
 
 $ErrorActionPreference = "Stop"
@@ -53,7 +54,18 @@ try {
     throw "IPC token file not found at $TokenPath"
   }
 
-  flutter test $TestPath -d windows --dart-define=DISABLE_SYSTEM_TRAY=true
+  $flutterArgs = @(
+    "test",
+    $TestPath,
+    "-d",
+    "windows",
+    "--dart-define=DISABLE_SYSTEM_TRAY=true"
+  )
+  if ($EnableIpCheck) {
+    $flutterArgs += "--dart-define=ENABLE_IP_CHECK=true"
+  }
+
+  & flutter @flutterArgs
   if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
   }
