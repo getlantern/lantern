@@ -35,6 +35,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
     with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
   StreamSubscription<Uri>? _deepLinkSubscription;
+  Uri? _lastHandledUri;
+  DateTime? _lastHandledTime;
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +83,19 @@ class _LanternAppState extends ConsumerState<LanternApp>
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
     final safeLogUri = uri.replace(query: '').toString();
+
+    // Deduplicate: on cold start macOS may deliver the same URI via multiple
+    // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
+    final now = DateTime.now();
+    if (_lastHandledUri == uri &&
+        _lastHandledTime != null &&
+        now.difference(_lastHandledTime!) < const Duration(seconds: 3)) {
+      appLogger.debug("DeepLink deduplicated (already handled): $safeLogUri");
+      return;
+    }
+    _lastHandledUri = uri;
+    _lastHandledTime = now;
+
     appLogger.debug("DeepLink received: $safeLogUri");
 
     // Normalize: custom scheme lantern://open/path → treat as /path
@@ -91,7 +107,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final queryParams = uri.queryParameters;
       final segment = pathUrl.split('#');
       final route = segment.length >= 2
-          ? ReportIssue(description: '#${segment[1]}', type: queryParams['type'])
+          ? ReportIssue(
+              description: '#${segment[1]}', type: queryParams['type'])
           : queryParams.isNotEmpty
               ? ReportIssue(type: queryParams['type'])
               : ReportIssue();
@@ -134,10 +151,19 @@ class _LanternAppState extends ConsumerState<LanternApp>
   /// (Home already loaded). On a cold start the router stack is empty, so we
   /// seed it with Home first to ensure the user always has a back button.
   void _pushWithHome(PageRouteInfo route) {
-    final homeInStack = appRouter.stack.any((r) => r.name == Home.name);
+    final stack = appRouter.stack;
+    // Guard against double-push: if the same route is already on top, skip.
+    if (stack.isNotEmpty && stack.last.name == route.routeName) {
+      appLogger.debug("Route ${route.routeName} already on top, skipping push");
+      return;
+    }
+    final homeInStack = stack.any((r) => r.name == Home.name);
     if (homeInStack) {
+      appLogger.debug("Pushing route $route on top of Home");
       appRouter.push(route);
     } else {
+      appLogger.debug(
+          "Home not in stack, replacing with Home and then pushing $route");
       appRouter.replaceAll([Home(), route]);
     }
   }
@@ -199,7 +225,11 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     .toList(),
                 // List of supported languages
                 routerConfig: globalRouter.config(
-                  deepLinkBuilder: (_) => DeepLink.defaultPath,
+                  deepLinkBuilder: (deepLink) {
+                    appLogger.debug("Building route for deepLink: $deepLink");
+                    return DeepLink
+                        .defaultPath; // We handle deep links manually, so return null to use the default route
+                  },
                   navigatorObservers: () => [
                     routeObserver,
                   ],
