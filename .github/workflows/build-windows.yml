@@ -120,6 +120,64 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
+      - name: Windows UI connect/disconnect integration
+        shell: pwsh
+        run: |
+          $serviceName = "LanternSvc"
+          $serviceExe = (Resolve-Path "bin/windows-amd64/lanternsvc.exe").Path
+          $tokenPath = "C:\ProgramData\Lantern\ipc-token"
+
+          try {
+            if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+              sc.exe stop $serviceName | Out-Null
+              Start-Sleep -Seconds 2
+              sc.exe delete $serviceName | Out-Null
+              Start-Sleep -Seconds 2
+            }
+
+            sc.exe create $serviceName binPath= "`"$serviceExe`"" start= demand DisplayName= "Lantern Service (CI)" | Out-Null
+            sc.exe start $serviceName | Out-Null
+
+            $serviceReady = $false
+            for ($i = 0; $i -lt 30; $i++) {
+              $status = (Get-Service -Name $serviceName -ErrorAction SilentlyContinue).Status
+              if ($status -eq 'Running') {
+                $serviceReady = $true
+                break
+              }
+              Start-Sleep -Seconds 1
+            }
+            if (-not $serviceReady) {
+              Write-Error "Windows service did not reach Running state"
+              sc.exe query $serviceName
+              exit 1
+            }
+
+            $tokenReady = $false
+            for ($i = 0; $i -lt 30; $i++) {
+              if (Test-Path $tokenPath) {
+                $tokenReady = $true
+                break
+              }
+              Start-Sleep -Seconds 1
+            }
+            if (-not $tokenReady) {
+              Write-Error "IPC token file not found at $tokenPath"
+              exit 1
+            }
+
+            flutter test integration_test/vpn/windows_connect_smoke_test.dart -d windows --dart-define=DISABLE_SYSTEM_TRAY=true
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+          } finally {
+            if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+              sc.exe stop $serviceName | Out-Null
+              Start-Sleep -Seconds 2
+              sc.exe delete $serviceName | Out-Null
+            }
+          }
+
       - name: Sign embedded binaries
         shell: pwsh
         env:
