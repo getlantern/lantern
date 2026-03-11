@@ -1726,10 +1726,10 @@ packages:
     dependency: transitive
     description:
       name: vector_graphics
-      sha256: a4f059dc26fc8295b5921376600a194c4ec7d55e72f2fe4c7d2831e103d461e6
+      sha256: "7076216a10d5c390315fbe536a30f1254c341e7543e6c4c8a815e591307772b1"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.19"
+    version: "1.1.20"
   vector_graphics_codec:
     dependency: transitive
     description:
