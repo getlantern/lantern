@@ -58,7 +58,7 @@ function Invoke-ProcessWithTimeout {
   )
 
   $arguments = $ArgumentList -join " "
-  Write-Step "$Description: $FilePath $arguments"
+  Write-Step ("{0}: {1} {2}" -f $Description, $FilePath, $arguments)
   $proc = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -PassThru
   Wait-ProcessWithTimeout -Process $proc -TimeoutSeconds $TimeoutSeconds -PulseSeconds $PulseSeconds -Description $Description
   $proc.Refresh()
