@@ -16,6 +16,10 @@ import 'logger_service.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
+  if (!sl.isRegistered<Updater>()) {
+    sl.registerLazySingleton<Updater>(() => Updater());
+  }
+
   try {
     sl.registerSingletonAsync<StoreUtils>(() async {
       appLogger.info("Initializing StoreUtils");
@@ -38,7 +42,6 @@ Future<void> injectServices() async {
     await ps.init();
     sl.registerSingleton<LanternPlatformService>(ps);
 
-    sl.registerLazySingleton<Updater>(() => Updater());
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());
       await sl<LanternFFIService>().init();
