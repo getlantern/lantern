@@ -252,7 +252,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     guard let message else {
       return
     }
-    tunnel.writeMessage(message)
+    appLogger.log(message)
   }
 
   private var nwMonitor: NWPathMonitor? = nil

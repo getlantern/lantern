@@ -23,10 +23,7 @@ import NetworkExtension
 #endif
 
 class ExtensionProvider: NEPacketTunnelProvider {
-  private static let commandServerMaxLines: Int32 = 1200
-
   private var platformInterface: ExtensionPlatformInterface!
-  private var commandServer: LibboxCommandServer?
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
@@ -53,13 +50,8 @@ class ExtensionProvider: NEPacketTunnelProvider {
     cancelTunnelWithError(nil)
   }
 
-  func writeMessage(_ message: String) {
-    appLogger.log(message)
-    commandServer?.writeMessage(message)
-  }
-
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
-    writeMessage("(lantern-tunnel) quick connect")
+    appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
 
     MobileStartVPN(platformInterface, opts(), &error)
@@ -71,15 +63,14 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
       return
     }
-    startCommandServerIfNeeded()
     completion?(true, nil)
-    writeMessage("(lantern-tunnel) tunnel started successfully")
+    appLogger.log("(lantern-tunnel) tunnel started successfully")
   }
 
   func connectToServer(
     location: String, serverName: String, completion: ((Bool, String?) -> Void)? = nil
   ) {
-    writeMessage("(lantern-tunnel) connecting to server")
+    appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
@@ -89,21 +80,19 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
       return
     }
-    startCommandServerIfNeeded()
     completion?(true, nil)
-    writeMessage("(lantern-tunnel) connected to server successfully")
+    appLogger.log("(lantern-tunnel) connected to server successfully")
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     let startTime = Date()
-    writeMessage("(lantern-tunnel) stopping, reason: \(reason)")
+    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
     var error: NSError?
     MobileCloseIPC(&error)
     if error != nil {
       appLogger.log("error closing IPC \(error?.localizedDescription ?? "")")
     }
-    closeCommandServer()
     let elapsed = Date().timeIntervalSince(startTime)
     appLogger.log("(lantern-tunnel) stopTunnel completed in \(elapsed) seconds")
   }
@@ -129,7 +118,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func restartService() {
-    writeMessage("(lantern-tunnel) restarting service")
+    appLogger.log("(lantern-tunnel) restarting service")
     reasserting = true
     defer {
       reasserting = false
@@ -141,34 +130,4 @@ class ExtensionProvider: NEPacketTunnelProvider {
   func postServiceClose() {
     platformInterface.reset()
   }
-
-  private func startCommandServerIfNeeded() {
-    guard commandServer == nil, let platformInterface else {
-      return
-    }
-    guard let server = LibboxNewCommandServer(platformInterface, Self.commandServerMaxLines) else {
-      appLogger.error("failed to create command server")
-      return
-    }
-    do {
-      try server.start()
-      commandServer = server
-      appLogger.log("(lantern-tunnel) command server started")
-    } catch {
-      appLogger.error("(lantern-tunnel) failed to start command server: \(error.localizedDescription)")
-    }
-  }
-
-  private func closeCommandServer() {
-    guard let server = commandServer else {
-      return
-    }
-    do {
-      try server.close()
-    } catch {
-      appLogger.error("(lantern-tunnel) failed to close command server: \(error.localizedDescription)")
-    }
-    commandServer = nil
-  }
-
 }

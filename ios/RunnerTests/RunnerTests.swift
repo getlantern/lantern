@@ -1,40 +1,34 @@
 @testable import Runner
+import Foundation
 import XCTest
 
 final class RunnerTests: XCTestCase {
 
-  func testBatchDifferEmitsInitialSnapshot() {
-    var differ = LogBatchDiffer()
+  func testReadLastLinesReturnsTail() throws {
+    let tempFile = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+    defer {
+      try? FileManager.default.removeItem(at: tempFile)
+    }
 
-    let batch = differ.consume(["line-1", "line-2"])
+    let content = (1...8).map { "line-\($0)" }.joined(separator: "\n")
+    try content.write(to: tempFile, atomically: true, encoding: .utf8)
 
-    XCTAssertEqual(batch, ["line-1", "line-2"])
+    let lines = try LogTailer.readLastLines(path: tempFile.path, maxLines: 3)
+    XCTAssertEqual(lines, ["line-6", "line-7", "line-8"])
   }
 
-  func testBatchDifferEmitsOnlyAppendedLines() {
-    var differ = LogBatchDiffer()
-    _ = differ.consume(["line-1", "line-2"])
+  func testReadLastLinesReturnsAllWhenFileHasFewerLinesThanLimit() throws {
+    let tempFile = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+    defer {
+      try? FileManager.default.removeItem(at: tempFile)
+    }
 
-    let batch = differ.consume(["line-1", "line-2", "line-3", "line-4"])
+    let content = ["a", "b", "c"].joined(separator: "\n")
+    try content.write(to: tempFile, atomically: true, encoding: .utf8)
 
-    XCTAssertEqual(batch, ["line-3", "line-4"])
-  }
-
-  func testBatchDifferHandlesRollingWindowWithoutDroppingNewLines() {
-    var differ = LogBatchDiffer()
-    _ = differ.consume(["line-1", "line-2", "line-3"])
-
-    let batch = differ.consume(["line-2", "line-3", "line-4"])
-
-    XCTAssertEqual(batch, ["line-4"])
-  }
-
-  func testBatchDifferReturnsCurrentSnapshotOnNoOverlap() {
-    var differ = LogBatchDiffer()
-    _ = differ.consume(["line-1", "line-2"])
-
-    let batch = differ.consume(["other-1", "other-2"])
-
-    XCTAssertEqual(batch, ["other-1", "other-2"])
+    let lines = try LogTailer.readLastLines(path: tempFile.path, maxLines: 10)
+    XCTAssertEqual(lines, ["a", "b", "c"])
   }
 }
