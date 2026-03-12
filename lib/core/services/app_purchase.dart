@@ -28,7 +28,7 @@ class AppPurchase {
   String? _pendingPlanId;
 
   void init() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop || _subscription != null) {
       return;
     }
 
@@ -38,8 +38,6 @@ class AppPurchase {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
-
-    unawaited(fetchSubscriptions());
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -124,6 +122,8 @@ class AppPurchase {
     required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
   }) async {
+    init();
+
     _onSuccess = onSuccess;
     _onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
