@@ -619,7 +619,22 @@ jobs:
           else
             echo "Build failed or cancelled - cleaning up draft release"
           fi
-          gh release delete "$RELEASE_TAG" --yes || true
+
+          attempt=0
+          max_retries=5
+          while [ "$attempt" -lt "$max_retries" ]; do
+            attempt=$((attempt + 1))
+            echo "Deleting release $RELEASE_TAG (attempt $attempt/$max_retries)..."
+            if gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>&1; then
+              echo "Release $RELEASE_TAG deleted"
+              break
+            fi
+            if [ "$attempt" -eq "$max_retries" ]; then
+              echo "Failed to delete release after $max_retries attempts"
+              exit 1
+            fi
+            sleep 3
+          done
 
       - name: Report failure (cleanup disabled)
         if: |
