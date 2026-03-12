@@ -48,12 +48,12 @@ Future<void> main() async {
   }
   final flags = await _loadFeatureFlags();
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
-  if (!sl.isRegistered<Updater>()) {
+  if (sl.isRegistered<Updater>()) {
+    await sl<Updater>().init(flags: flags);
+  } else {
     appLogger.warning(
-        'Updater was not registered during startup, registering fallback');
-    sl.registerLazySingleton<Updater>(() => Updater());
+        'Updater not registered during startup; skipping updater initialization');
   }
-  await sl<Updater>().init(flags: flags);
 
   FutureOr<void> runner() {
     runApp(
