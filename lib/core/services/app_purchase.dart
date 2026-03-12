@@ -16,6 +16,7 @@ class AppPurchase {
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   final List<ProductDetails> _subscriptionSku = [];
   final List<String> _subscriptionIds = <String>['1m_sub', '1y_sub'];
+  bool _initialized = false;
 
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
@@ -28,6 +29,11 @@ class AppPurchase {
   String? _pendingPlanId;
 
   void init() {
+    if (_initialized) {
+      return;
+    }
+    _initialized = true;
+
     if (PlatformUtils.isDesktop) {
       return;
     }
@@ -124,6 +130,8 @@ class AppPurchase {
     required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
   }) async {
+    init();
+
     _onSuccess = onSuccess;
     _onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")

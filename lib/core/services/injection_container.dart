@@ -32,7 +32,6 @@ Future<void> injectServices() async {
     await sl<LocalStorageService>().init();
     sl.registerLazySingleton(() => AppRouter());
     sl.registerLazySingleton(() => AppPurchase());
-    sl<AppPurchase>().init();
     sl.registerLazySingleton<DeepLinkCallbackManager>(
         () => DeepLinkCallbackManager());
     // We want to make sure the platform service and FFI service are
