@@ -48,6 +48,7 @@ class LanternFFIService implements LanternCoreService {
   /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
   /// we keep going and fall back to the non-IPC paths.
   LanternServiceWindows? _windowsService;
+  Future<LanternServiceWindows?>? _windowsServiceInitInFlight;
 
   Stream<LanternStatus> _status = _defaultStatusStream();
 
@@ -61,8 +62,6 @@ class LanternFFIService implements LanternCoreService {
       LanternStatus.fromJson({'status': 'disconnected', 'error': null}),
     );
   }
-
-  bool get _hasWindowsService => _windowsService != null;
 
   static SendPort? _commandSendPort;
   static final Completer<void> _isolateInitialized = Completer<void>();
@@ -132,18 +131,13 @@ class LanternFFIService implements LanternCoreService {
       if (Platform.isWindows) {
         /// Start windows IPC service.
         /// Keep it alive, but we only use it for VPN-related calls.
-        try {
-          await _initializeWindowsService();
-          if (_hasWindowsService) {
-            _status = _windowsService!.watchVPNStatus();
-          }
-        } catch (e, st) {
-          appLogger.error(
+        final ws = await _getOrInitWindowsService();
+        if (ws != null) {
+          _status = ws.watchVPNStatus();
+        } else {
+          appLogger.warning(
             'Windows IPC init failed; continuing without Windows service',
-            e,
-            st,
           );
-          _windowsService = null;
         }
 
         if (!_isolateInitialized.isCompleted) {
@@ -236,16 +230,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   Future<void> _initializeWindowsService() async {
-    final tokenFile = File(
-      p.join(
-        Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-        'Lantern',
-        'ipc-token',
-      ),
+    final tokenPath = p.join(
+      Platform.environment['ProgramData'] ?? r'C:\ProgramData',
+      'Lantern',
+      'ipc-token',
     );
-
-    final token = (await tokenFile.readAsString()).trim();
-    final pipe = PipeClient(token: token);
+    final pipe = PipeClient(tokenPath: tokenPath);
 
     // Create locally first; only assign to the field after init succeeds.
     final ws = LanternServiceWindows(pipe);
@@ -258,6 +248,33 @@ class LanternFFIService implements LanternCoreService {
       _windowsService = null;
       rethrow; // init() will catch and keep going; this keeps the original stack.
     }
+  }
+
+  Future<LanternServiceWindows?> _getOrInitWindowsService() async {
+    final existing = _windowsService;
+    if (existing != null) {
+      return existing;
+    }
+
+    final inFlight = _windowsServiceInitInFlight;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final initFuture = () async {
+      try {
+        await _initializeWindowsService();
+      } catch (e, st) {
+        appLogger.error('Windows IPC re-init failed', e, st);
+        _windowsService = null;
+      } finally {
+        _windowsServiceInitInFlight = null;
+      }
+      return _windowsService;
+    }();
+
+    _windowsServiceInitInFlight = initFuture;
+    return initFuture;
   }
 
   @override
@@ -563,7 +580,7 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error starting auto location listener: $e");
       }
 
-      final ws = _windowsService;
+      final ws = await _getOrInitWindowsService();
       if (ws == null) {
         return left(
           Failure(
@@ -622,7 +639,7 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error stopping auto location listener: $e");
       }
 
-      final ws = _windowsService;
+      final ws = await _getOrInitWindowsService();
       if (ws == null) {
         return left(
           Failure(
@@ -705,7 +722,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
       if (Platform.isWindows) {
-        final ws = _windowsService;
+        final ws = await _getOrInitWindowsService();
         if (ws == null) {
           return right(false);
         }
