@@ -95,6 +95,9 @@ ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+ANDROID_PAGE_SIZE ?= 16384
+# Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
+ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -452,7 +455,7 @@ build-android: check-gomobile
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="-checklinkname=0" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
