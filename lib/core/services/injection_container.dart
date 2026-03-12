@@ -7,6 +7,7 @@ import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -45,9 +46,13 @@ Future<void> injectServices() async {
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());
       await sl<LanternFFIService>().init();
+      sl.registerLazySingleton<LanternCoreService>(
+          () => sl<LanternFFIService>());
     } else {
       sl.registerLazySingleton<LanternFFIService>(
           () => MockLanternFFIService());
+      sl.registerLazySingleton<LanternCoreService>(
+          () => sl<LanternPlatformService>());
     }
 
     if (PlatformUtils.isAndroid) {
