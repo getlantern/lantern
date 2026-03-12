@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:lantern/core/common/common.dart';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
-import 'package:win32/win32.dart';
 
 class PipeClient {
   PipeClient({
@@ -51,6 +50,9 @@ class PipeClient {
 
   Future<void> connect() async {
     await _getToken();
+    if (isConnected) {
+      await close();
+    }
     final start = DateTime.now();
     final lpName = TEXT(pipeName);
     try {
@@ -67,14 +69,22 @@ class PipeClient {
         if (_hPipe != INVALID_HANDLE_VALUE) return;
 
         final code = GetLastError();
-        if (code == ERROR_PIPE_BUSY) {
+        final retryableOpen = code == ERROR_PIPE_BUSY ||
+            code == ERROR_FILE_NOT_FOUND ||
+            code == ERROR_PATH_NOT_FOUND ||
+            code == 0;
+        if (retryableOpen) {
           if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw Exception('Timed out waiting for pipe');
+            throw _PipeTransportException(
+              operation: 'Open pipe',
+              code: code,
+              timedOut: true,
+            );
           }
           await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
-        throw Exception('Failed to open pipe: error $code');
+        throw _PipeTransportException(operation: 'Open pipe', code: code);
       }
     } finally {
       free(lpName);
@@ -83,7 +93,54 @@ class PipeClient {
 
   Future<Map<String, dynamic>> call(String cmd,
       [Map<String, dynamic>? params]) async {
-    if (!isConnected) throw StateError('Pipe not connected');
+    try {
+      await _connectPipeIfNeeded();
+      return await _callConnected(cmd, params);
+    } catch (e) {
+      if (!_isRecoverablePipeError(e)) {
+        rethrow;
+      }
+      appLogger.warning('Pipe call failed, reconnecting once: $e');
+      await _resetConnectionState();
+      await _connectPipeIfNeeded();
+      return _callConnected(cmd, params);
+    }
+  }
+
+  Future<void> _connectPipeIfNeeded() async {
+    if (isConnected) {
+      return;
+    }
+    await connect();
+  }
+
+  Future<void> _resetConnectionState() async {
+    await close();
+    token = null;
+  }
+
+  bool _isRecoverablePipeError(Object e) {
+    if (e is _PipeTransportException) {
+      const recoverable = <int>{
+        ERROR_BROKEN_PIPE,
+        ERROR_PIPE_NOT_CONNECTED,
+        ERROR_NO_DATA,
+        ERROR_INVALID_HANDLE,
+        ERROR_PIPE_BUSY,
+        ERROR_FILE_NOT_FOUND,
+        ERROR_PATH_NOT_FOUND,
+        0,
+      };
+      return recoverable.contains(e.code);
+    }
+    final msg = e.toString().toLowerCase();
+    return msg.contains('pipe not connected') || msg.contains('broken pipe');
+  }
+
+  Future<Map<String, dynamic>> _callConnected(
+    String cmd,
+    Map<String, dynamic>? params,
+  ) async {
     await _getToken();
     final payload = '${jsonEncode({
           'id': DateTime.now().microsecondsSinceEpoch.toString(),
@@ -98,7 +155,12 @@ class PipeClient {
     try {
       pBuf.asTypedList(bytes.length).setAll(0, bytes);
       final ok = WriteFile(_hPipe, pBuf, bytes.length, pWritten, nullptr);
-      if (ok == 0) throw Exception('WriteFile failed: ${GetLastError()}');
+      if (ok == 0) {
+        throw _PipeTransportException(
+          operation: 'WriteFile',
+          code: GetLastError(),
+        );
+      }
     } finally {
       free(pWritten);
       free(pBuf);
@@ -129,7 +191,12 @@ class PipeClient {
     try {
       while (true) {
         final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
-        if (ok == 0) throw Exception('ReadFile failed: ${GetLastError()}');
+        if (ok == 0) {
+          throw _PipeTransportException(
+            operation: 'ReadFile',
+            code: GetLastError(),
+          );
+        }
         final n = pRead.value;
         if (n == 0) continue;
         final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
@@ -231,6 +298,27 @@ class PipeClient {
         } catch (_) {}
       }),
     );
+  }
+}
+
+class _PipeTransportException implements Exception {
+  const _PipeTransportException({
+    required this.operation,
+    required this.code,
+    this.timedOut = false,
+  });
+
+  final String operation;
+  final int code;
+  final bool timedOut;
+
+  @override
+  String toString() {
+    final hex = '0x${code.toRadixString(16)}';
+    if (timedOut) {
+      return '$operation timed out (last error: $code/$hex)';
+    }
+    return '$operation failed: $code ($hex)';
   }
 }
 
