@@ -186,51 +186,89 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
+  release-approval:
+    needs: [set-metadata]
+    if: needs.set-metadata.outputs.build_type == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Release summary
+        env:
+          VERSION: ${{ needs.set-metadata.outputs.version }}
+          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+        run: |
+          {
+            echo "## Production Release"
+            echo ""
+            echo "**Version:** $VERSION"
+            echo "**Tag:** \`$RELEASE_TAG\`"
+            echo ""
+            echo "### Platforms"
+            echo ""
+            for p in macOS Windows Linux Android iOS; do
+              lower=$(echo "$p" | tr '[:upper:]' '[:lower:]')
+              if [[ "$PLATFORM" == "all" || "$PLATFORM" == *"$lower"* ]]; then
+                echo "- $p"
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build-macos:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-windows:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-linux:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-ios:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
