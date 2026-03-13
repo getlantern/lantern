@@ -17,7 +17,9 @@ import 'logger_service.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
-  sl.registerLazySingleton<Updater>(() => Updater());
+  if (!sl.isRegistered<Updater>()) {
+    sl.registerLazySingleton<Updater>(() => Updater());
+  }
 
   try {
     sl.registerSingletonAsync<StoreUtils>(() async {
