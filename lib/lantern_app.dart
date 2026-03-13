@@ -101,20 +101,19 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
     if (path.startsWith('/report-issue') ||
         (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
-      final pathUrl = uri.toString();
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
-      final segment = pathUrl.split('#');
-      final hasSegment = segment.length > 1 && segment[1].isNotEmpty;
+      final fragment = uri.fragment;
+      final hasSegment = fragment.isNotEmpty;
       appLogger.debug(
-        "DeepLink report-issue: hasSegment=$hasSegment, foundType=$foundType, segment=${segment.length > 1 ? segment[1] : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
+        "DeepLink report-issue: hasSegment=$hasSegment, foundType=$foundType, segment=${hasSegment ? fragment : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
       );
       if (hasSegment && foundType) {
         _pushWithHome(
-          ReportIssue(description: '#${segment[1]}', type: queryParams['type']),
+          ReportIssue(description: '#$fragment', type: queryParams['type']),
         );
       } else if (hasSegment) {
-        _pushWithHome(ReportIssue(description: '#${segment[1]}'));
+        _pushWithHome(ReportIssue(description: '#$fragment'));
       } else if (foundType) {
         _pushWithHome(ReportIssue(type: queryParams['type']));
       } else {
