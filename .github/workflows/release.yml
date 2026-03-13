@@ -190,7 +190,7 @@ jobs:
     needs: [set-metadata]
     if: needs.set-metadata.outputs.build_type == 'production'
     runs-on: ubuntu-latest
-    environment: production
+    environment: production-${{ needs.set-metadata.outputs.platform }}
     steps:
       - name: Release summary
         env:
