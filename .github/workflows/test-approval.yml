@@ -16,7 +16,33 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - run: echo "Approved"
+      - name: Release summary
+        run: |
+          {
+            echo "## Production Release"
+            echo ""
+            echo "**Version:** 9.1.0"
+            echo "**Tag:** \`v9.1.0\`"
+            echo ""
+            echo "### Platforms"
+            echo ""
+            echo "- macOS"
+            echo "- Windows"
+            echo "- Linux"
+            echo "- Android"
+            echo "- iOS"
+            echo ""
+            echo "### Tag Reference"
+            echo ""
+            echo '```'
+            echo "v9.1.0                   → production, all platforms (requires approval)"
+            echo "v9.1.0-ios               → production, iOS only (requires approval)"
+            echo "v9.1.0-beta              → beta, all platforms"
+            echo "v9.1.0-beta-ios          → beta, iOS only"
+            echo "v9.1.0-beta-linux        → beta, Linux only"
+            echo "v9.1.0-{ref}-{timestamp} → nightly, cron or dispatch"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   goodbye:
     needs: approve
