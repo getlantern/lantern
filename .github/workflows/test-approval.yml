@@ -1,0 +1,23 @@
+name: Test Approval
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello world"
+
+  approve:
+    needs: hello
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "Approved"
+
+  goodbye:
+    needs: approve
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Goodbye world"
