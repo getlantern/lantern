@@ -82,7 +82,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
-    final safeLogUri = uri.toString();
+    final safeLogUri = uri.replace(query: '').toString();
 
     // Deduplicate: on cold start macOS may deliver the same URI via multiple
     // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
@@ -101,20 +101,19 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
     if (path.startsWith('/report-issue') ||
         (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
-      final pathUrl = uri.toString();
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
-      final segment = pathUrl.split('#');
-      final hasSegment = segment.isEmpty && segment[0].isNotEmpty;
+      final fragment = uri.fragment;
+      final hasFragment = fragment.isNotEmpty;
       appLogger.debug(
-        "DeepLink report-issue: hasSegment=$hasSegment, foundType=$foundType, segment=${segment.length > 1 ? segment[1] : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
+        "DeepLink report-issue: hasFragment=$hasFragment, foundType=$foundType, fragment=${hasFragment ? fragment : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
       );
-      if (hasSegment && foundType) {
+      if (hasFragment && foundType) {
         _pushWithHome(
-          ReportIssue(description: '#${segment[1]}', type: queryParams['type']),
+          ReportIssue(description: '#$fragment', type: queryParams['type']),
         );
-      } else if (hasSegment) {
-        _pushWithHome(ReportIssue(description: '#${segment[1]}'));
+      } else if (hasFragment) {
+        _pushWithHome(ReportIssue(description: '#$fragment'));
       } else if (foundType) {
         _pushWithHome(ReportIssue(type: queryParams['type']));
       } else {
