@@ -1,7 +1,9 @@
 name: Test Approval
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - jay/release-types
 
 jobs:
   hello:
