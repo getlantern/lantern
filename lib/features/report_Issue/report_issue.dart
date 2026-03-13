@@ -29,10 +29,10 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   final formKey = GlobalKey<FormState>();
 
   final issueOptions = <String>[
-    'cannot_access_blocked_sites'.i18n,
     'cannot_complete_purchase'.i18n,
     'cannot_sign_in'.i18n,
     'spinner_loads_endlessly'.i18n,
+    'cannot_access_blocked_sites'.i18n,
     'slow'.i18n,
     'cannot_link_devices'.i18n,
     'application_crashes'.i18n,
