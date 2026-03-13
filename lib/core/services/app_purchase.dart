@@ -122,8 +122,6 @@ class AppPurchase {
     required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
   }) async {
-    init();
-
     _onSuccess = onSuccess;
     _onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
