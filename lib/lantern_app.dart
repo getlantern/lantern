@@ -82,7 +82,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
-    final safeLogUri = uri.replace(query: '').toString();
+    final safeLogUri = uri.toString();
 
     // Deduplicate: on cold start macOS may deliver the same URI via multiple
     // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
@@ -97,22 +97,26 @@ class _LanternAppState extends ConsumerState<LanternApp>
     _lastHandledTime = now;
 
     appLogger.debug("DeepLink received: $safeLogUri");
-
-    // Normalize: custom scheme lantern://open/path → treat as /path
     final path = uri.path;
 
     if (path.startsWith('/report-issue') ||
         (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
       final pathUrl = uri.toString();
       final queryParams = uri.queryParameters;
+      final foundType = queryParams.containsKey('type');
       final segment = pathUrl.split('#');
-      final route = segment.length >= 2
-          ? ReportIssue(
-              description: '#${segment[1]}', type: queryParams['type'])
-          : queryParams.isNotEmpty
-              ? ReportIssue(type: queryParams['type'])
-              : ReportIssue();
-      _pushWithHome(route);
+      final hasSegment = segment.isEmpty && segment[0].isNotEmpty;
+      if (hasSegment && foundType) {
+        _pushWithHome(
+          ReportIssue(description: '#${segment[1]}', type: queryParams['type']),
+        );
+      } else if (hasSegment) {
+        _pushWithHome(ReportIssue(description: '#${segment[1]}'));
+      } else if (foundType) {
+        _pushWithHome(ReportIssue(type: queryParams['type']));
+      } else {
+        _pushWithHome(ReportIssue());
+      }
     } else if (path.startsWith('/auth') ||
         (uri.scheme == 'lantern' && uri.host == 'auth')) {
       if (uri.queryParameters.containsKey('token')) {
@@ -125,14 +129,16 @@ class _LanternAppState extends ConsumerState<LanternApp>
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
       final expiration = int.tryParse((data['exp'] ?? '').toString());
       if (expiration == null) {
-        appLogger
-            .debug("DeepLink private-server: missing or invalid exp param");
+        appLogger.debug(
+          "DeepLink private-server: missing or invalid exp param",
+        );
         context.showSnackBar('invalid_deep_link'.i18n);
         return;
       }
       final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
       appLogger.debug(
-          "DeepLink private-server: exp=$expired, now=${DateTime.now()}, expired=${expired.isBefore(DateTime.now())}");
+        "DeepLink private-server: exp=$expired, now=${DateTime.now()}, expired=${expired.isBefore(DateTime.now())}",
+      );
       if (expired.isBefore(DateTime.now())) {
         AppDialog.dialog(
           context: context,
@@ -141,8 +147,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
         );
         return;
       }
-      appLogger
-          .debug("DeepLink private-server: navigating to JoinPrivateServer");
+      appLogger.debug(
+        "DeepLink private-server: navigating to JoinPrivateServer",
+      );
       _pushWithHome(JoinPrivateServer(deepLinkData: data));
     }
   }
@@ -163,7 +170,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
       appRouter.push(route);
     } else {
       appLogger.debug(
-          "Home not in stack, replacing with Home and then pushing $route");
+        "Home not in stack, replacing with Home and then pushing $route",
+      );
       appRouter.replaceAll([Home(), route]);
     }
   }
@@ -171,8 +179,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
   String _buildPrivateServerAccessKey(Uri uri) {
     if (uri.scheme == 'https' &&
         (uri.host == 'lantern.io' || uri.host == 'www.lantern.io')) {
-      final pathWithoutLeadingSlash =
-          uri.path.startsWith('/') ? uri.path.substring(1) : uri.path;
+      final pathWithoutLeadingSlash = uri.path.startsWith('/')
+          ? uri.path.substring(1)
+          : uri.path;
       var accessKey = 'lantern//$pathWithoutLeadingSlash';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';
@@ -197,9 +206,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
       overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
-      overlayWidgetBuilder: (_) => Center(
-        child: LoadingIndicator(),
-      ),
+      overlayWidgetBuilder: (_) => Center(child: LoadingIndicator()),
       child: WindowWrapper(
         child: SystemTrayWrapper(
           child: ScreenUtilInit(
@@ -220,8 +227,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
                 darkTheme: AppTheme.darkTheme(),
                 themeMode: resolveThemeMode(appSetting.themeMode),
                 supportedLocales: languages
-                    .map((lang) =>
-                        Locale(lang.split('_').first, lang.split('_').last))
+                    .map(
+                      (lang) =>
+                          Locale(lang.split('_').first, lang.split('_').last),
+                    )
                     .toList(),
                 // List of supported languages
                 routerConfig: globalRouter.config(
@@ -230,9 +239,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     return DeepLink
                         .defaultPath; // We handle deep links manually, so return null to use the default route
                   },
-                  navigatorObservers: () => [
-                    routeObserver,
-                  ],
+                  navigatorObservers: () => [routeObserver],
                 ),
                 localizationsDelegates: const [
                   GlobalMaterialLocalizations.delegate,
