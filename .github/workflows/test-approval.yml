@@ -21,8 +21,8 @@ jobs:
           {
             echo "## Production Release"
             echo ""
-            echo "**Version:** 9.1.0"
-            echo "**Tag:** \`v9.1.0\`"
+            echo "**Version:** 9.2.0"
+            echo "**Tag:** \`v9.2.0\`"
             echo ""
             echo "### Platforms"
             echo ""
