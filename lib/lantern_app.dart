@@ -82,7 +82,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
-    final safeLogUri = uri.toString();
+    final safeLogUri = uri.replace(query: '').toString();
 
     // Deduplicate: on cold start macOS may deliver the same URI via multiple
     // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
@@ -105,7 +105,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final segment = pathUrl.split('#');
-      final hasSegment = segment.isEmpty && segment[0].isNotEmpty;
+      final hasSegment = segment.length > 1 && segment[1].isNotEmpty;
       appLogger.debug(
         "DeepLink report-issue: hasSegment=$hasSegment, foundType=$foundType, segment=${segment.length > 1 ? segment[1] : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
       );
