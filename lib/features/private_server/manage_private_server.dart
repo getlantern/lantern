@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 
@@ -46,13 +45,12 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
                 splashBorderRadius: BorderRadius.circular(40),
-                labelColor: Colors.teal.shade900,
-                indicatorColor: Colors.transparent,
+                labelColor: context.actionTabbarSelectedText,
                 dividerHeight: 0,
-                unselectedLabelColor: Colors.grey,
+                unselectedLabelColor: context.actionTabbarDisabledText,
                 labelStyle: textTheme!.titleSmall,
                 indicator: BoxDecoration(
-                  color: context.textLink,
+                  color: context.actionTabbarBg,
                   borderRadius: BorderRadius.circular(40),
                   shape: BoxShape.rectangle,
                   border: Border.all(color: AppColors.blue3, width: 1),
