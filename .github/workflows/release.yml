@@ -200,7 +200,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Production release v${{ needs.set-metadata.outputs.version }} awaiting approval: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "Production release v${{ needs.set-metadata.outputs.version }} awaiting approval before releasing on all platforms: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
 
   release-approval:
