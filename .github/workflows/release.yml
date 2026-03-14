@@ -186,11 +186,30 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
-  release-approval:
+  release-notify:
     needs: [set-metadata]
-    if: needs.set-metadata.outputs.build_type == 'production'
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
     runs-on: ubuntu-latest
-    environment: production-${{ needs.set-metadata.outputs.platform }}
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "Production release v${{ needs.set-metadata.outputs.version }} awaiting approval: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+
+  release-approval:
+    needs: [set-metadata, release-notify]
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
+    runs-on: ubuntu-latest
+    environment: production
     steps:
       - run: echo "Approved"
 
