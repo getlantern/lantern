@@ -25,6 +25,7 @@ environment:
 
 dependency_overrides:
   in_app_purchase_storekit: 0.4.8+1
+  in_app_purchase_android: 0.4.0+8
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,

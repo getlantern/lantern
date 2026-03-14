@@ -86,9 +86,12 @@ class LocalStorageService {
     }
 
     dbLogger.debug("Opening ObjectBox store...");
+    final macosAppGroup = Platform.isMacOS && macosApplicationGroup.isNotEmpty
+        ? macosApplicationGroup
+        : null;
     _store = await openStore(
       directory: dbPath,
-      macosApplicationGroup: macosApplicationGroup,
+      macosApplicationGroup: macosAppGroup,
     );
     dbLogger.debug("ObjectBox store opened successfully.");
   }
