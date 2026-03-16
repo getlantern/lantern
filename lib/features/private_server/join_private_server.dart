@@ -51,11 +51,12 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           InfoRow(
             backgroundColor: context.bgPromo,
             showLeadingIcon: false,
+            padding: EdgeInsets.symmetric(horizontal: 8),
             text: '',
             child: Row(
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.only(right: 8),
                   child: AppImage(
                     path: AppImagePaths.warning,
                     width: 20,

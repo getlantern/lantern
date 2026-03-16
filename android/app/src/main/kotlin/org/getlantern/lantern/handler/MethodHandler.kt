@@ -916,7 +916,7 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val urls = map["urls"] as String? ?: error("Missing urls")
                         val skipValidation =
-                            map["skipValidation"] as Boolean? ?: error("Missing skipValidation")
+                            map["skipCertVerification"] as Boolean? ?: error("Missing skipCertVerification")
                         val serverName = map["serverName"] as String? ?: error("Missing serverName")
 
                         Mobile.addServerBasedOnURLs(
