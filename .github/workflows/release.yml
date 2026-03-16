@@ -16,7 +16,6 @@ on:
           - nightly
           - production
           - beta
-          - internal
         default: nightly
       platforms:
         description: "Platforms to build ('all', or 'macos,linux,android,ios,windows')"
@@ -81,7 +80,7 @@ jobs:
               PLATFORM="${{ github.event.inputs.platforms }}"
 
               case "$BUILD_TYPE" in
-                nightly|internal|beta)
+                nightly|beta)
                   VERSION=$(./scripts/ci/version.sh generate "$BUILD_TYPE")
                   RELEASE_TAG="v${VERSION}"
                   ;;
@@ -101,9 +100,6 @@ jobs:
               VERSION="${RELEASE_TAG#v}"
 
               case "$RELEASE_TAG" in
-                *-internal*)
-                  BUILD_TYPE="internal"
-                  ;;
                 *-beta*)
                   BUILD_TYPE="beta"
                   ;;
@@ -115,7 +111,6 @@ jobs:
                     echo "Error: Invalid tag format for build" >&2
                     echo "  Use 'v1.0.0' for production" >&2
                     echo "  Use 'v1.0.0-beta' for beta" >&2
-                    echo "  Use 'v1.0.0-internal' for internal" >&2
                     echo "Got: $RELEASE_TAG" >&2
                     exit 1
                   fi
@@ -171,7 +166,7 @@ jobs:
           # Strip 'v' prefix if present
           VERSION="${RELEASE_TAG#v}"
 
-          # Extract base semver (strip suffixes like -beta, -internal, -nightly-...)
+          # Extract base semver (strip suffixes like -beta, -nightly-...)
           BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
 
           CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
@@ -191,51 +186,88 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
+  release-notify:
+    needs: [set-metadata]
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "Production release v${{ needs.set-metadata.outputs.version }} awaiting approval before releasing on all platforms: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+
+  release-approval:
+    needs: [set-metadata, release-notify]
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "Approved"
+
   build-macos:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-windows:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-linux:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-ios:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android') }}
+    if: |
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
@@ -268,10 +300,6 @@ jobs:
             beta)
               PRERELEASE_FLAG="--prerelease"
               TITLE="Beta $VERSION"
-              ;;
-            internal)
-              PRERELEASE_FLAG="--prerelease"
-              TITLE="Internal $VERSION"
               ;;
             nightly)
               PRERELEASE_FLAG="--prerelease"
@@ -438,7 +466,7 @@ jobs:
     needs: [set-metadata, build-android]
     if: |
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
-      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -463,9 +491,7 @@ jobs:
         id: track
         run: |
           bt="${{ needs.set-metadata.outputs.build_type }}"
-          if [ "$bt" = "internal" ]; then
-            echo "track=internal" >> "$GITHUB_OUTPUT"
-          elif [ "$bt" = "beta" ]; then
+          if [ "$bt" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
             echo "track=production" >> "$GITHUB_OUTPUT"
@@ -486,7 +512,7 @@ jobs:
     needs: [set-metadata, build-ios]
     if: |
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
-      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact
@@ -521,7 +547,6 @@ jobs:
        contains(needs.set-metadata.outputs.platform, 'macos') ||
        contains(needs.set-metadata.outputs.platform, 'windows') ||
        contains(needs.set-metadata.outputs.platform, 'linux')) &&
-      needs.set-metadata.outputs.build_type != 'internal' &&
       needs.set-metadata.outputs.build_type != 'nightly'
     runs-on: ubuntu-latest
     steps:
