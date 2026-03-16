@@ -207,7 +207,7 @@ class AppRow extends HookConsumerWidget {
     }
 
     return SizedBox(
-      height: 54.h,
+      height: 44.h,
       child: Row(
         children: [
           Expanded(
