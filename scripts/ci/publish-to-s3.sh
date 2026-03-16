@@ -6,7 +6,7 @@ set -euo pipefail
 # Usage: publish-to-s3.sh <build_type> <version> <installer_base_name> <platforms>
 #
 # Arguments:
-#   build_type:          production, beta, internal, or nightly
+#   build_type:          production, beta, or nightly
 #   version:             version string (e.g., 1.2.3 or 1.2.4-abc123-20260206T120000Z) - no 'v' prefix
 #   installer_base_name: base name WITHOUT build-type suffix (e.g., lantern-installer)
 #                        Script appends -$BUILD_TYPE for non-production builds

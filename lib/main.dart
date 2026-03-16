@@ -14,7 +14,7 @@ import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -68,7 +68,7 @@ Future<void> main() async {
 
 Future<Map<String, dynamic>> _loadFeatureFlags() async {
   try {
-    final either = await sl<LanternCoreService>().featureFlag();
+    final either = await sl<LanternService>().featureFlag();
     return either.fold((_) => <String, dynamic>{}, (s) => json.decode(s));
   } catch (_) {
     return <String, dynamic>{};

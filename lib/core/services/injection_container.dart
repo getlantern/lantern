@@ -9,6 +9,7 @@ import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 
 import '../router/router.dart';
 import 'logger_service.dart';
@@ -16,6 +17,8 @@ import 'logger_service.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
+  sl.registerLazySingleton<Updater>(() => Updater());
+
   try {
     sl.registerSingletonAsync<StoreUtils>(() async {
       appLogger.info("Initializing StoreUtils");
@@ -38,7 +41,6 @@ Future<void> injectServices() async {
     await ps.init();
     sl.registerSingleton<LanternPlatformService>(ps);
 
-    sl.registerLazySingleton<Updater>(() => Updater());
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());
       await sl<LanternFFIService>().init();
@@ -46,6 +48,13 @@ Future<void> injectServices() async {
       sl.registerLazySingleton<LanternFFIService>(
           () => MockLanternFFIService());
     }
+    sl.registerLazySingleton<LanternService>(
+      () => LanternService(
+        ffiService: sl<LanternFFIService>(),
+        platformService: sl<LanternPlatformService>(),
+        appPurchase: sl<AppPurchase>(),
+      ),
+    );
 
     if (PlatformUtils.isAndroid) {
       sl.registerSingletonAsync<StripeService>(() async {

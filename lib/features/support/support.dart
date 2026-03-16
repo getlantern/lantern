@@ -39,15 +39,13 @@ class Support extends StatelessWidget {
                     label: 'report_an_issue'.i18n,
                     onPressed: () => safePush(context, ReportIssue()),
                   ),
-                  if (!PlatformUtils.isIOS) ...{
-                    const DividerSpace(
-                        padding: EdgeInsets.symmetric(horizontal: 16)),
-                    AppTile(
-                      icon: Icons.code_outlined,
-                      label: 'diagnostic_logs'.i18n,
-                      onPressed: () => safePush(context, Logs()),
-                    ),
-                  }
+                  const DividerSpace(
+                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                  AppTile(
+                    icon: Icons.code_outlined,
+                    label: 'diagnostic_logs'.i18n,
+                    onPressed: () => safePush(context, Logs()),
+                  ),
                 ],
               ),
             ),
