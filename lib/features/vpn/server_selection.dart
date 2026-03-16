@@ -5,10 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -355,6 +357,15 @@ class _ServerLocationListViewState
   }
 
   Future<void> onServerSelected(Location_ selectedServer) async {
+    if (PlatformUtils.isMacOS) {
+      /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
+      final macosExtensionStatus = ref.read(macosExtensionProvider);
+      if (macosExtensionStatus.status == SystemExtensionStatus.notInstalled) {
+        appRouter.push(const MacOSExtensionDialog());
+        return;
+      }
+    }
+
     final result = await ref.read(vpnProvider.notifier).connectToServer(
           ServerLocationType.lanternLocation,
           selectedServer.tag,
