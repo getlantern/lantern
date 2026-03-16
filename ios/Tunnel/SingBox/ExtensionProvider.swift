@@ -130,5 +130,4 @@ class ExtensionProvider: NEPacketTunnelProvider {
   func postServiceClose() {
     platformInterface.reset()
   }
-
 }
