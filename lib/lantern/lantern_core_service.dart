@@ -105,6 +105,10 @@ abstract class LanternCoreService {
     String logFilePath,
   );
 
+  /// iOS only — returns paths to diagnostic log files.
+  /// Throws [UnimplementedError] on other platforms.
+  Future<Either<Failure, List<String>>> diagnosticLogFiles();
+
   Stream<List<AppData>> appsDataStream();
 
   ///OAuth methods

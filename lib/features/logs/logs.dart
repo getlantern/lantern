@@ -5,13 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/logs/log_line.dart';
-import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
-import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
 import 'package:share_plus/share_plus.dart';
 
 const int _maxVisibleLogLines = 800;
@@ -22,43 +20,38 @@ class Logs extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
+    final logAsyncValue = ref.watch(diagnosticLogProvider);
 
     Future<void> shareLogFile() async {
       try {
         if (Platform.isIOS) {
-          final logFilesResult =
-              await sl<LanternPlatformService>().diagnosticLogFiles();
-          final logPaths = logFilesResult.match(
-            (failure) {
-              appLogger.error(
-                "Error fetching iOS diagnostic log files: ${failure.error}",
-              );
-              return const <String>[];
-            },
-            (paths) => paths,
-          );
+          final logFilesResult = await ref
+              .read(diagnosticLogProvider.notifier)
+              .diagnosticLogFilePath();
 
-          if (logPaths.isEmpty) {
+          if (logFilesResult.isEmpty) {
+            appLogger.error("No log files found to share");
             return;
           }
+          final flutterLogFile = await AppStorageUtils.flutterLogFile();
+          logFilesResult.add(flutterLogFile.path);
 
           await SharePlus.instance.share(
             ShareParams(
               title: 'logs'.i18n,
               text: 'logs_share_message'.i18n,
-              files: logPaths.map(XFile.new).toList(growable: false),
+              files: logFilesResult.map(XFile.new).toList(growable: false),
             ),
           );
           return;
         }
 
-        final logFile = await AppStorageUtils.appLogFile();
+        final logFile = await AppStorageUtils.logsFilePaths();
         await SharePlus.instance.share(
           ShareParams(
             title: 'logs'.i18n,
             text: 'logs_share_message'.i18n,
-            files: [XFile(logFile.path)],
+            files: logFile.map(XFile.new).toList(growable: false),
           ),
         );
       } catch (e) {

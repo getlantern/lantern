@@ -817,14 +817,13 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
   Future<Either<Failure, List<String>>> diagnosticLogFiles() async {
     try {
       final files =
           await _methodChannel.invokeListMethod<String>('diagnosticLogFiles');
       return Right(
-        (files ?? const <String>[])
-            .where((path) => path.isNotEmpty)
-            .toList(growable: false),
+        (files ?? const <String>[]).where((path) => path.isNotEmpty).toList(),
       );
     } catch (e, stackTrace) {
       appLogger.error('Error fetching iOS diagnostic log files', e, stackTrace);

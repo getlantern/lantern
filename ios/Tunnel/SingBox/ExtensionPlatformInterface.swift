@@ -16,8 +16,7 @@ import Liblantern
 import NetworkExtension
 import UserNotifications
 
-public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol,
-  LibboxCommandServerHandlerProtocol
+public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol
 {
 
   private let tunnel: ExtensionProvider
@@ -376,10 +375,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     runBlocking { [self] in
       tunnel.restartService()
     }
-  }
-
-  public func serviceReload() throws {
-    try restartService()
   }
 
   public func postServiceClose() {

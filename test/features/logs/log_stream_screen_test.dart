@@ -5,7 +5,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/features/logs/logs.dart';
-import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
+import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
+
+class _FakeDiagnosticLogNotifier extends DiagnosticLogNotifier {
+  final Stream<List<String>> _stream;
+
+  _FakeDiagnosticLogNotifier(this._stream);
+
+  @override
+  Stream<List<String>> build() => _stream;
+
+  @override
+  Future<List<String>> diagnosticLogFilePath() async => const [];
+}
 
 void main() {
   testWidgets('diagnostic logs screen renders streaming updates',
@@ -16,7 +28,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          diagnosticLogStreamProvider.overrideWith((ref) => controller.stream),
+          diagnosticLogProvider.overrideWith(
+            () => _FakeDiagnosticLogNotifier(controller.stream),
+          ),
         ],
         child: ScreenUtilInit(
           designSize: const Size(390, 844),
