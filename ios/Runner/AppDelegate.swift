@@ -26,7 +26,7 @@ import flutter_local_notifications
     GeneratedPluginRegistrant.register(with: registry)
 
     // Configure Flutter local notifications background isolate.
-//    notificationSetup()
+    notificationSetup()
 
     // Register custom event channel handlers.
     registerEventHandlers(registry: registry)
