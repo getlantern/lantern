@@ -676,4 +676,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.updatePrivateServerName(oldName, newName);
   }
+  @override
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() {
+    if (!PlatformUtils.isIOS) {
+      throw UnimplementedError(
+          'diagnosticLogFiles is only supported on iOS');
+    }
+    return _platformService.diagnosticLogFiles();
+  }
 }

@@ -26,7 +26,7 @@ class AppPurchase {
   String? _pendingPlanId;
 
   void init() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop || _subscription != null) {
       return;
     }
 
@@ -36,8 +36,6 @@ class AppPurchase {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
-
-    unawaited(fetchSubscriptions());
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {

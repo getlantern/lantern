@@ -45,6 +45,8 @@
 	<string>alert</string>
 	<key>SUFeedURL</key>
 	<string>https://lantern-vpn.s3.amazonaws.com/releases/production/latest/appcast.xml</string>
+    <key>FlutterDeepLinkingEnabled</key>
+    <false/>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

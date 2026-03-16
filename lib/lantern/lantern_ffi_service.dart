@@ -1617,8 +1617,9 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Future<Either<Failure, DeveloperMode>> getDeveloperMode() {
-    // TODO: implement getDeveloperMode
+  @override
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() {
+    // TODO: implement diagnosticLogFiles
     throw UnimplementedError();
   }
 }

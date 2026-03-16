@@ -41,4 +41,4 @@ final class AppListProvider extends $FunctionalProvider<
   }
 }
 
-String _$appListHash() => r'628aa554c6181339d04a460920ddfabd6c0232af';
+String _$appListHash() => r'f4163d83234b75e5754caa832f2e0953a71f78f1';

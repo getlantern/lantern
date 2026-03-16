@@ -114,18 +114,15 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           SizedBox(
             height: 35.h,
             child: TabBar(
-              splashBorderRadius: BorderRadius.circular(40),
               indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.teal.shade900,
-              indicatorColor: Colors.transparent,
+              indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
+              splashBorderRadius: BorderRadius.circular(40),
+              labelColor: context.actionTabbarSelectedText,
               dividerHeight: 0,
-              padding: EdgeInsets.zero,
-              unselectedLabelColor: Colors.grey,
+              unselectedLabelColor: context.actionTabbarDisabledText,
               labelStyle: _textTheme!.titleSmall,
-              labelPadding: EdgeInsets.zero,
-              indicatorPadding: const EdgeInsets.symmetric(horizontal: size24),
               indicator: BoxDecoration(
-                color: AppColors.blue2,
+                color: context.actionTabbarBg,
                 borderRadius: BorderRadius.circular(40),
                 shape: BoxShape.rectangle,
                 border: Border.all(color: AppColors.blue3, width: 1),

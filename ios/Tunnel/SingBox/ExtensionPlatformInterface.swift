@@ -16,7 +16,8 @@ import Liblantern
 import NetworkExtension
 import UserNotifications
 
-public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol {
+public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtocol
+{
 
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
