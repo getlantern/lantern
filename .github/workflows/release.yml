@@ -229,7 +229,7 @@ jobs:
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
       needs.release-create.result == 'success' &&
-      needs.release-approval.result != 'failure' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
@@ -244,7 +244,7 @@ jobs:
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
       needs.release-create.result == 'success' &&
-      needs.release-approval.result != 'failure' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
@@ -259,7 +259,7 @@ jobs:
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
       needs.release-create.result == 'success' &&
-      needs.release-approval.result != 'failure' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
