@@ -494,6 +494,7 @@ jobs:
   upload-google-play:
     needs: [set-metadata, build-android]
     if: |
+      !cancelled() &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
@@ -540,6 +541,7 @@ jobs:
   upload-testflight:
     needs: [set-metadata, build-ios]
     if: |
+      !cancelled() &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
