@@ -495,6 +495,8 @@ jobs:
     needs: [set-metadata, build-android]
     if: |
       !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-android.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
@@ -542,6 +544,8 @@ jobs:
     needs: [set-metadata, build-ios]
     if: |
       !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-ios.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
