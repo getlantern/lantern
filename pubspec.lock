@@ -824,7 +824,7 @@ packages:
     source: hosted
     version: "3.2.3"
   in_app_purchase_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: in_app_purchase_android
       sha256: abb254ae159a5a9d4f867795ecb076864faeba59ce015ab81d4cca380f23df45
@@ -840,7 +840,7 @@ packages:
     source: hosted
     version: "1.4.0"
   in_app_purchase_storekit:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: in_app_purchase_storekit
       sha256: "1d512809edd9f12ff88fce4596a13a18134e2499013f4d6a8894b04699363c93"

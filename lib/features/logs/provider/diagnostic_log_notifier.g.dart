@@ -10,20 +10,20 @@ part of 'diagnostic_log_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(DiagnosticLogNotifier)
-const diagnosticLogProvider = DiagnosticLogNotifierProvider._();
+final diagnosticLogProvider = DiagnosticLogNotifierProvider._();
 
 final class DiagnosticLogNotifierProvider
     extends $StreamNotifierProvider<DiagnosticLogNotifier, List<String>> {
-  const DiagnosticLogNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'diagnosticLogProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  DiagnosticLogNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'diagnosticLogProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$diagnosticLogNotifierHash();
@@ -34,20 +34,22 @@ final class DiagnosticLogNotifierProvider
 }
 
 String _$diagnosticLogNotifierHash() =>
-    r'3690e816719a11304ba1cfcef1248f5a8d81d0c4';
+    r'949ff4928db76e5c3081f548a9f170b8268e6747';
 
 abstract class _$DiagnosticLogNotifier extends $StreamNotifier<List<String>> {
   Stream<List<String>> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<List<String>>, List<String>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<List<String>>, List<String>>,
-        AsyncValue<List<String>>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<List<String>>, List<String>>,
+              AsyncValue<List<String>>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }
