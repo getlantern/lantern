@@ -200,6 +200,9 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.reportIssue(result: result, data: data)
 
+      case "diagnosticLogFiles":
+        self.diagnosticLogFiles(result: result)
+
       case "setBlockAdsEnabled":
         let data = call.arguments as? [String: Any]
         let enabled = data?["enabled"] as? Bool ?? false
@@ -924,6 +927,48 @@ class MethodHandler {
       }
       await MainActor.run {
         result("ok")
+      }
+    }
+  }
+
+  func diagnosticLogFiles(result: @escaping FlutterResult) {
+    Task {
+      let logDirectory = FilePath.logsDirectory
+      let fileManager = FileManager.default
+
+      guard fileManager.fileExists(atPath: logDirectory.path) else {
+        await MainActor.run { result([String]()) }
+        return
+      }
+
+      do {
+        let entries = try fileManager.contentsOfDirectory(
+          at: logDirectory,
+          includingPropertiesForKeys: [.isRegularFileKey],
+          options: [.skipsHiddenFiles]
+        )
+
+        let files = try entries
+          .filter { entry in
+            let values = try entry.resourceValues(forKeys: [.isRegularFileKey])
+            return values.isRegularFile ?? false
+          }
+          .map(\.path)
+          .sorted()
+
+        await MainActor.run {
+          result(files)
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "DIAGNOSTIC_LOG_FILES_ERROR",
+              message: "Unable to read diagnostic logs",
+              details: error.localizedDescription
+            )
+          )
+        }
       }
     }
   }

@@ -50,7 +50,7 @@ class NotificationService {
         windows: windowsSettings,
       );
       final success = await _plugin.initialize(
-        settings,
+        settings: settings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
       );
       appLogger.info('Notification plugin initialized: $success');
@@ -145,11 +145,11 @@ class NotificationService {
       appLogger
           .info("Notification scheduled (id: $id) for time: $scheduleTime");
       await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduleTime,
-        nd,
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduleTime,
+        notificationDetails: nd,
         payload: payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
@@ -176,10 +176,10 @@ class NotificationService {
       final notificationDetails0 = _getNotificationDetails(notificationType);
       appLogger.debug("Showing notification (id: $id)");
       await _plugin.show(
-        id,
-        title,
-        body,
-        notificationDetails0,
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails0,
         payload: payload,
       );
       appLogger.info("Notification shown (id: $id)");

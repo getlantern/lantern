@@ -1525,6 +1525,12 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() {
+    // TODO: implement diagnosticLogFiles
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

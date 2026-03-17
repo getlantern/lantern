@@ -10,19 +10,19 @@ part of 'search_query.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SearchQuery)
-const searchQueryProvider = SearchQueryProvider._();
+final searchQueryProvider = SearchQueryProvider._();
 
 final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
-  const SearchQueryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'searchQueryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  SearchQueryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'searchQueryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$searchQueryHash();
@@ -47,10 +47,15 @@ abstract class _$SearchQuery extends $Notifier<String> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<String, String>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<String, String>, String, Object?, Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

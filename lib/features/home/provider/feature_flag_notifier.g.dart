@@ -10,20 +10,20 @@ part of 'feature_flag_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(FeatureFlagNotifier)
-const featureFlagProvider = FeatureFlagNotifierProvider._();
+final featureFlagProvider = FeatureFlagNotifierProvider._();
 
 final class FeatureFlagNotifierProvider
     extends $NotifierProvider<FeatureFlagNotifier, Map<String, dynamic>> {
-  const FeatureFlagNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'featureFlagProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  FeatureFlagNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'featureFlagProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$featureFlagNotifierHash();
@@ -49,13 +49,15 @@ abstract class _$FeatureFlagNotifier extends $Notifier<Map<String, dynamic>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Map<String, dynamic>, Map<String, dynamic>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Map<String, dynamic>, Map<String, dynamic>>,
-        Map<String, dynamic>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<String, dynamic>, Map<String, dynamic>>,
+              Map<String, dynamic>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

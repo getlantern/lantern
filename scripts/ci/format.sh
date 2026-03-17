@@ -9,7 +9,7 @@ set -euo pipefail
 #   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
 #   PLATFORM:             platforms built (all, or comma-separated)
 #   BUCKET:               S3 bucket name
-#   BUILD_TYPE:           production, beta, internal, or nightly
+#   BUILD_TYPE:           production, beta, or nightly
 #   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
 #   GITHUB_SHA:           commit SHA (required for release-notes)
 
@@ -45,9 +45,6 @@ release-notes)
   case "$BUILD_TYPE" in
   nightly)
     echo "This is an automated nightly build from commit \`${COMMIT_SHORT}\`."
-    ;;
-  internal)
-    echo "This is an internal build from commit \`${COMMIT_SHORT}\`."
     ;;
   beta)
     echo "This is a beta release from commit \`${COMMIT_SHORT}\`."

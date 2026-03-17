@@ -87,6 +87,18 @@ class AppStorageUtils {
     return logFile;
   }
 
+  static Future<List<String>> logsFilePaths() async {
+    final logDirPath = await getAppLogDirectory();
+    final logDir = Directory(logDirPath);
+    if (!await logDir.exists()) return const [];
+    return logDir
+        .listSync(recursive: false)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.log'))
+        .map((f) => f.path)
+        .toList(growable: false);
+  }
+
   static Future<Directory> getWindowsAppDataDirectory() async {
     if (!Platform.isWindows) throw UnsupportedError("Not running on Windows");
 

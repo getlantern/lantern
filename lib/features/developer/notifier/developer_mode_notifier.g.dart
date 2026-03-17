@@ -10,20 +10,20 @@ part of 'developer_mode_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(DeveloperModeNotifier)
-const developerModeProvider = DeveloperModeNotifierProvider._();
+final developerModeProvider = DeveloperModeNotifierProvider._();
 
 final class DeveloperModeNotifierProvider
     extends $NotifierProvider<DeveloperModeNotifier, DeveloperModeEntity> {
-  const DeveloperModeNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'developerModeProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  DeveloperModeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'developerModeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$developerModeNotifierHash();
@@ -49,13 +49,15 @@ abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperModeEntity> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<DeveloperModeEntity, DeveloperModeEntity>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<DeveloperModeEntity, DeveloperModeEntity>,
-        DeveloperModeEntity,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<DeveloperModeEntity, DeveloperModeEntity>,
+              DeveloperModeEntity,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

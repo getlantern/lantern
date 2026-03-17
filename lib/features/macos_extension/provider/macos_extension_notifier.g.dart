@@ -10,20 +10,20 @@ part of 'macos_extension_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(MacosExtensionNotifier)
-const macosExtensionProvider = MacosExtensionNotifierProvider._();
+final macosExtensionProvider = MacosExtensionNotifierProvider._();
 
 final class MacosExtensionNotifierProvider
     extends $NotifierProvider<MacosExtensionNotifier, MacOSExtensionState> {
-  const MacosExtensionNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'macosExtensionProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  MacosExtensionNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'macosExtensionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$macosExtensionNotifierHash();
@@ -49,13 +49,15 @@ abstract class _$MacosExtensionNotifier extends $Notifier<MacOSExtensionState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<MacOSExtensionState, MacOSExtensionState>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<MacOSExtensionState, MacOSExtensionState>,
-        MacOSExtensionState,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<MacOSExtensionState, MacOSExtensionState>,
+              MacOSExtensionState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

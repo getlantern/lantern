@@ -10,20 +10,20 @@ part of 'account_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AccountNotifier)
-const accountProvider = AccountNotifierProvider._();
+final accountProvider = AccountNotifierProvider._();
 
 final class AccountNotifierProvider
     extends $AsyncNotifierProvider<AccountNotifier, void> {
-  const AccountNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'accountProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AccountNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$accountNotifierHash();
@@ -40,13 +40,15 @@ abstract class _$AccountNotifier extends $AsyncNotifier<void> {
   @$mustCallSuper
   @override
   void runBuild() {
-    build();
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<void>, void>,
-        AsyncValue<void>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, null);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

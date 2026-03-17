@@ -10,20 +10,20 @@ part of 'apps_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SplitTunnelingApps)
-const splitTunnelingAppsProvider = SplitTunnelingAppsProvider._();
+final splitTunnelingAppsProvider = SplitTunnelingAppsProvider._();
 
 final class SplitTunnelingAppsProvider
     extends $NotifierProvider<SplitTunnelingApps, Set<AppData>> {
-  const SplitTunnelingAppsProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'splitTunnelingAppsProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  SplitTunnelingAppsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'splitTunnelingAppsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$splitTunnelingAppsHash();
@@ -49,13 +49,15 @@ abstract class _$SplitTunnelingApps extends $Notifier<Set<AppData>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Set<AppData>, Set<AppData>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Set<AppData>, Set<AppData>>,
-        Set<AppData>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Set<AppData>, Set<AppData>>,
+              Set<AppData>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

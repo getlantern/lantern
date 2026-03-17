@@ -6,86 +6,91 @@ import app_links
 import flutter_local_notifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
 
   private let vpnManager = VPNManager.shared
   private var methodHandler: MethodHandler?
+
+  // MARK: - FlutterImplicitEngineDelegate
+  //
+  // In Flutter 3.41+ the engine is initialised before the first scene connects,
+  // so plugin registration and channel setup must happen here instead of in
+  // application(_:didFinishLaunchingWithOptions:).  The window / root-view-
+  // controller is not yet available at this point; use the messenger from the
+  // engine bridge instead.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    let registry = engineBridge.pluginRegistry
+
+    // Register all Flutter plugins (replaces GeneratedPluginRegistrant call in
+    // didFinishLaunchingWithOptions).
+    GeneratedPluginRegistrant.register(with: registry)
+
+    // Configure Flutter local notifications background isolate.
+    notificationSetup()
+
+    // Register custom event channel handlers.
+    registerEventHandlers(registry: registry)
+
+    // Set up the native method channel using the engine's binary messenger.
+    let nativeChannel = FlutterMethodChannel(
+      name: "org.getlantern.lantern/method",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+  }
+
+  // MARK: - UIApplicationDelegate
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
 
-    // Ensure root controller is a FlutterViewController
-    guard let controller = window?.rootViewController as? FlutterViewController else {
-      fatalError("rootViewController is not a FlutterViewController")
-    }
-
-    // Register Flutter plugins
-    GeneratedPluginRegistrant.register(with: self)
-
-    // Configure Flutter local notifications
-    notificationSetup()
-
-    // Register event handlers
-    registerEventHandlers()
-
-    // Initialize directories and working paths
+    // Initialize directories and working paths (no engine / window needed).
     setupFileSystem()
 
-    // set radiance
+    // Start the Go backend.
     setupRadiance()
-
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
 
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
       print(exception.callStackSymbols)
     }
+
+    // Handle cold-start deep links.
     if let url = AppLinks.shared.getLink(launchOptions: launchOptions) {
-      // We have a link, propagate it to your Flutter app or not
       AppLinks.shared.handleLink(url: url)
-      return true  // Returning true will stop the propagation to other packages
+      return true  // Stop propagation to other packages.
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  /// Registers Flutter event channel handlers
-  private func registerEventHandlers() {
+  // MARK: - Private helpers
 
-    if let registrar = self.registrar(forPlugin: "FlutterEventHandler") {
+  /// Registers Flutter event channel handlers using the plugin registry from
+  /// the engine bridge (UIScene lifecycle compatible).
+  private func registerEventHandlers(registry: FlutterPluginRegistry) {
+    if let registrar = registry.registrar(forPlugin: "FlutterEventHandler") {
       FlutterEventHandler.register(with: registrar)
     }
 
-    if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
+    if let registrar = registry.registrar(forPlugin: "StatusEventHandler") {
       StatusEventHandler.register(with: registrar)
     }
 
-    if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+    if let registrar = registry.registrar(forPlugin: "LogsEventHandler") {
       LogsEventHandler.register(with: registrar)
     }
 
-    if let registrar = self.registrar(forPlugin: "PrivateServerEventHandler") {
+    if let registrar = registry.registrar(forPlugin: "PrivateServerEventHandler") {
       PrivateServerEventHandler.register(with: registrar)
     }
-
   }
 
-  /// Initializes the native method channel handler
-  private func setupMethodHandler(controller: FlutterViewController) {
-    let nativeChannel = FlutterMethodChannel(
-      name: "org.getlantern.lantern/method",
-      binaryMessenger: controller.binaryMessenger
-    )
-    methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
-  }
-
-  /// Prepares the file system directories for use
+  /// Prepares the file system directories for use.
   private func setupFileSystem() {
     do {
-
       try FileManager.default.createDirectory(
         at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
@@ -97,7 +102,7 @@ import flutter_local_notifications
       )
       appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
     } catch {
-      appLogger.error("Failed to create  directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create directory: \(error.localizedDescription)")
     }
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
@@ -105,10 +110,9 @@ import flutter_local_notifications
       return
     }
     appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
-
   }
 
-  /// Configures the Flutter local notifications plugin with the background isolate
+  /// Configures the Flutter local notifications plugin with the background isolate.
   ///
   /// Reference:
   /// https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/ios/Runner/AppDelegate.swift
@@ -117,18 +121,16 @@ import flutter_local_notifications
       GeneratedPluginRegistrant.register(with: registry)
     }
 
-    // Set UNUserNotificationCenter delegate to handle foreground notifications
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
     }
   }
 
-  /// Calls API handler setup
+  /// Calls API handler setup.
   private func setupRadiance() {
     appLogger.info("absoluteString Paths... \(FilePath.sharedDirectory.absoluteString)")
     appLogger.info("relativePath Paths... \(FilePath.sharedDirectory.relativePath)")
     Task {
-      // Set up the base directory and options
       let baseDir = FilePath.sharedDirectory.relativePath
       let opts = UtilsOpts()
       opts.dataDir = baseDir
@@ -140,11 +142,9 @@ import flutter_local_notifications
       opts.env = FilePath.isRadianceEnv()
       var error: NSError?
       MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
-      // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
       }
     }
   }
-
 }

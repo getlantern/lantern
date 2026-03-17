@@ -1,6 +1,6 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:lantern/core/models/entity/user_entity.dart';
-import 'package:lantern/lantern/protos/protos/auth.pbserver.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 extension UserMapper on UserResponse {
   UserResponseEntity toEntity() {
