@@ -41,7 +41,7 @@ jobs:
         uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version-file: .github/flutter-version.yaml
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
