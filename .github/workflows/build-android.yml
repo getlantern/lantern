@@ -90,10 +90,10 @@ jobs:
           done
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version-file: .github/flutter-version.yaml
           cache: true
 
       - name: Cache Dart pub cache

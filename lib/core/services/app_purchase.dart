@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
+import 'local_storage_service.dart';
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
@@ -54,12 +55,14 @@ class AppPurchase {
           '[AppPurchase] Fetching subscriptions, attempt: ${attempt + 1}/$maxAttempts',
         );
 
-        final response =
-            await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
+        final response = await _inAppPurchase.queryProductDetails(
+          _subscriptionIds.toSet(),
+        );
 
         if (response.error != null) {
           appLogger.error(
-              '[AppPurchase] Error fetching subscriptions: ${response.error}');
+            '[AppPurchase] Error fetching subscriptions: ${response.error}',
+          );
         } else if (response.productDetails.isEmpty) {
           appLogger.error(
             '[AppPurchase] Fetched 0 subscriptions. notFoundIDs=${response.notFoundIDs}',
@@ -74,7 +77,8 @@ class AppPurchase {
             _productsLoadedCompleter?.complete();
           }
           appLogger.info(
-              '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
+            '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items',
+          );
           return;
         }
       } catch (e, st) {
@@ -87,29 +91,31 @@ class AppPurchase {
       }
     }
 
-    // All attempts exhausted without success.
-    _productsLoadedCompleter!.completeError(
-      StateError(
-          'Unable to load App Store products after $maxAttempts attempts'),
+    final error = StateError(
+      'Unable to load App Store products after $maxAttempts attempts',
     );
+    //  Safely complete the completer with an error, if it is still pending.
+    if (_productsLoadedCompleter != null &&
+        !_productsLoadedCompleter!.isCompleted) {
+      _productsLoadedCompleter!.completeError(error);
+    }
+    throw error;
   }
 
   /// Ensures products are available before starting a purchase.
-  ///
-  /// If products aren't loaded yet, waits for the in-flight fetch or kicks off
-  /// a new one. Times out to avoid hanging the UI forever.
   Future<void> _waitForProducts() async {
     if (_productsLoaded) return;
 
-    // If there's no active fetch (or it finished), start one
-    if (_productsLoadedCompleter == null ||
-        _productsLoadedCompleter!.isCompleted) {
-      _productsLoadedCompleter = Completer<void>();
-      unawaited(fetchSubscriptions());
+    // If a fetch is already in progress, piggy-back on it.
+    if (_productsLoadedCompleter != null &&
+        !_productsLoadedCompleter!.isCompleted) {
+      await _productsLoadedCompleter!.future;
+      return;
     }
 
-    // Wait for completion (or error)
-    await _productsLoadedCompleter!.future;
+    // No active fetch — reset so fetchSubscriptions creates a fresh completer.
+    _productsLoadedCompleter = null;
+    await fetchSubscriptions();
   }
 
   Future<bool> isAvailable() async {
@@ -156,8 +162,9 @@ class AppPurchase {
       appLogger.info(
         '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
       );
-      final started =
-          await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      final started = await _inAppPurchase.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
       if (!started) {
         _onError?.call("Failed to initiate purchase flow.");
       }
@@ -167,8 +174,9 @@ class AppPurchase {
   }
 
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
-    appLogger
-        .info('[AppPurchase] Received purchase updates: ${purchases.length}');
+    appLogger.info(
+      '[AppPurchase] Received purchase updates: ${purchases.length}',
+    );
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
@@ -191,10 +199,6 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.canceled) {
         /// User has cancelled the purchase
-        if (PlatformUtils.isIOS) {
-          /// iOS specific handling
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
         _onError?.call("Purchase canceled");
         return;
       }
@@ -221,14 +225,16 @@ class AppPurchase {
 
         try {
           appLogger.info(
-              '[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
+            '[AppPurchase] Purchase successful: ${purchaseDetails.productID}',
+          );
           final lanternService = sl<LanternPlatformService>();
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = _resolvePlanId(purchaseDetails);
 
           appLogger.info(
-              '[AppPurchase] Acknowledging purchase with planId: $planId');
+            '[AppPurchase] Acknowledging purchase with planId: $planId',
+          );
           final ack = await lanternService.acknowledgeInAppPurchase(
             purchaseToken: purchaseToken,
             planId: planId,
@@ -251,7 +257,7 @@ class AppPurchase {
         return;
       }
     } catch (e) {
-      appLogger.error('[AppPurchase] Error handling purchase: $e');
+      appLogger.error('[AppPurchase] Error handling purchase: $e', e);
       _onError?.call(e.toString());
     }
   }
@@ -262,6 +268,8 @@ class AppPurchase {
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
       }
+    } catch (e) {
+      appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
       _pendingPlanId = null;
     }
@@ -335,8 +343,18 @@ class AppPurchase {
     }
 
     final prefix = purchase.productID.split('_').first; // "1y" or "1m"
+    final localPlans = sl<LocalStorageService>().getPlans();
+    if (localPlans != null) {
+      for (final plan in localPlans.plans) {
+        if (plan.id.startsWith('$prefix-')) {
+          appLogger.info('[AppPurchase] Resolved plan from cache: ${plan.id}');
+          return plan.id;
+        }
+      }
+    }
+
     appLogger.debug(
-      '[AppPurchase] Using default planId for prefix=$prefix',
+      '[AppPurchase] No cached plan for prefix=$prefix, using default',
     );
     return '$prefix-usd-10';
   }
