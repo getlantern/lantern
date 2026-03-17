@@ -1,12 +1,11 @@
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pbserver.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_notifier.g.dart';
@@ -20,8 +19,9 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await ref.read(lanternServiceProvider).getUserData();
     return result.fold(
       (failure) {
-        appLogger
-            .error('Error getting user data: ${failure.localizedErrorMessage}');
+        appLogger.error(
+          'Error getting user data: ${failure.localizedErrorMessage}',
+        );
         throw Exception('Failed to get user data');
       },
       (userData) {
@@ -38,7 +38,8 @@ class HomeNotifier extends _$HomeNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-            'Error fetching user data: ${failure.localizedErrorMessage}');
+          'Error fetching user data: ${failure.localizedErrorMessage}',
+        );
       },
       (userData) {
         appLogger.debug('Fetched user data form server: $userData');
@@ -151,8 +152,9 @@ class HomeNotifier extends _$HomeNotifier {
       ref.read(appSettingProvider.notifier)
         ..setUserLoggedIn(true)
         ..setEmail(user.legacyUserData.email);
-      appLogger
-          .info("User is Pro and device is added. Logging in automatically.");
+      appLogger.info(
+        "User is Pro and device is added. Logging in automatically.",
+      );
     }
   }
 

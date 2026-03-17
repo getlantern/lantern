@@ -10,20 +10,20 @@ part of 'payment_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PaymentNotifier)
-const paymentProvider = PaymentNotifierProvider._();
+final paymentProvider = PaymentNotifierProvider._();
 
 final class PaymentNotifierProvider
     extends $NotifierProvider<PaymentNotifier, void> {
-  const PaymentNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'paymentProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  PaymentNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paymentProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$paymentNotifierHash();
@@ -48,10 +48,15 @@ abstract class _$PaymentNotifier extends $Notifier<void> {
   @$mustCallSuper
   @override
   void runBuild() {
-    build();
     final ref = this.ref as $Ref<void, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<void, void>, void, Object?, Object?>;
-    element.handleValue(ref, null);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<void, void>,
+              void,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

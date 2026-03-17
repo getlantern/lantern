@@ -74,7 +74,7 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart' as _i47;
 /// [_i1.Account]
 class Account extends _i44.PageRouteInfo<void> {
   const Account({List<_i44.PageRouteInfo>? children})
-      : super(Account.name, initialChildren: children);
+    : super(Account.name, initialChildren: children);
 
   static const String name = 'Account';
 
@@ -95,10 +95,10 @@ class AddEmail extends _i44.PageRouteInfo<AddEmailArgs> {
     String? password,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          AddEmail.name,
-          args: AddEmailArgs(key: key, authFlow: authFlow, password: password),
-          initialChildren: children,
-        );
+         AddEmail.name,
+         args: AddEmailArgs(key: key, authFlow: authFlow, password: password),
+         initialChildren: children,
+       );
 
   static const String name = 'AddEmail';
 
@@ -157,10 +157,10 @@ class AppWebview extends _i44.PageRouteInfo<AppWebviewArgs> {
     required String url,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          AppWebview.name,
-          args: AppWebviewArgs(key: key, title: title, url: url),
-          initialChildren: children,
-        );
+         AppWebview.name,
+         args: AppWebviewArgs(key: key, title: title, url: url),
+         initialChildren: children,
+       );
 
   static const String name = 'AppWebview';
 
@@ -202,7 +202,7 @@ class AppWebviewArgs {
 /// [_i4.Appearance]
 class Appearance extends _i44.PageRouteInfo<void> {
   const Appearance({List<_i44.PageRouteInfo>? children})
-      : super(Appearance.name, initialChildren: children);
+    : super(Appearance.name, initialChildren: children);
 
   static const String name = 'Appearance';
 
@@ -218,7 +218,7 @@ class Appearance extends _i44.PageRouteInfo<void> {
 /// [_i5.AppsSplitTunneling]
 class AppsSplitTunneling extends _i44.PageRouteInfo<void> {
   const AppsSplitTunneling({List<_i44.PageRouteInfo>? children})
-      : super(AppsSplitTunneling.name, initialChildren: children);
+    : super(AppsSplitTunneling.name, initialChildren: children);
 
   static const String name = 'AppsSplitTunneling';
 
@@ -240,15 +240,15 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
     required _i46.AuthFlow authFlow,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          ChoosePaymentMethod.name,
-          args: ChoosePaymentMethodArgs(
-            key: key,
-            email: email,
-            code: code,
-            authFlow: authFlow,
-          ),
-          initialChildren: children,
-        );
+         ChoosePaymentMethod.name,
+         args: ChoosePaymentMethodArgs(
+           key: key,
+           email: email,
+           code: code,
+           authFlow: authFlow,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'ChoosePaymentMethod';
 
@@ -312,15 +312,15 @@ class ConfirmEmail extends _i44.PageRouteInfo<ConfirmEmailArgs> {
     _i46.AuthFlow authFlow = _i46.AuthFlow.signUp,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          ConfirmEmail.name,
-          args: ConfirmEmailArgs(
-            key: key,
-            email: email,
-            password: password,
-            authFlow: authFlow,
-          ),
-          initialChildren: children,
-        );
+         ConfirmEmail.name,
+         args: ConfirmEmailArgs(
+           key: key,
+           email: email,
+           password: password,
+           authFlow: authFlow,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'ConfirmEmail';
 
@@ -384,15 +384,15 @@ class CreatePassword extends _i44.PageRouteInfo<CreatePasswordArgs> {
     required String code,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          CreatePassword.name,
-          args: CreatePasswordArgs(
-            key: key,
-            email: email,
-            authFlow: authFlow,
-            code: code,
-          ),
-          initialChildren: children,
-        );
+         CreatePassword.name,
+         args: CreatePasswordArgs(
+           key: key,
+           email: email,
+           authFlow: authFlow,
+           code: code,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'CreatePassword';
 
@@ -450,7 +450,7 @@ class CreatePasswordArgs {
 /// [_i9.DeleteAccount]
 class DeleteAccount extends _i44.PageRouteInfo<void> {
   const DeleteAccount({List<_i44.PageRouteInfo>? children})
-      : super(DeleteAccount.name, initialChildren: children);
+    : super(DeleteAccount.name, initialChildren: children);
 
   static const String name = 'DeleteAccount';
 
@@ -466,7 +466,7 @@ class DeleteAccount extends _i44.PageRouteInfo<void> {
 /// [_i10.DeveloperMode]
 class DeveloperMode extends _i44.PageRouteInfo<void> {
   const DeveloperMode({List<_i44.PageRouteInfo>? children})
-      : super(DeveloperMode.name, initialChildren: children);
+    : super(DeveloperMode.name, initialChildren: children);
 
   static const String name = 'DeveloperMode';
 
@@ -486,10 +486,10 @@ class DeviceLimitReached extends _i44.PageRouteInfo<DeviceLimitReachedArgs> {
     required List<_i47.UserResponse_Device> devices,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          DeviceLimitReached.name,
-          args: DeviceLimitReachedArgs(key: key, devices: devices),
-          initialChildren: children,
-        );
+         DeviceLimitReached.name,
+         args: DeviceLimitReachedArgs(key: key, devices: devices),
+         initialChildren: children,
+       );
 
   static const String name = 'DeviceLimitReached';
 
@@ -535,7 +535,7 @@ class DeviceLimitReachedArgs {
 /// [_i12.DownloadLinks]
 class DownloadLinks extends _i44.PageRouteInfo<void> {
   const DownloadLinks({List<_i44.PageRouteInfo>? children})
-      : super(DownloadLinks.name, initialChildren: children);
+    : super(DownloadLinks.name, initialChildren: children);
 
   static const String name = 'DownloadLinks';
 
@@ -551,7 +551,7 @@ class DownloadLinks extends _i44.PageRouteInfo<void> {
 /// [_i13.FollowUs]
 class FollowUs extends _i44.PageRouteInfo<void> {
   const FollowUs({List<_i44.PageRouteInfo>? children})
-      : super(FollowUs.name, initialChildren: children);
+    : super(FollowUs.name, initialChildren: children);
 
   static const String name = 'FollowUs';
 
@@ -567,7 +567,7 @@ class FollowUs extends _i44.PageRouteInfo<void> {
 /// [_i14.Home]
 class Home extends _i44.PageRouteInfo<void> {
   const Home({List<_i44.PageRouteInfo>? children})
-      : super(Home.name, initialChildren: children);
+    : super(Home.name, initialChildren: children);
 
   static const String name = 'Home';
 
@@ -583,7 +583,7 @@ class Home extends _i44.PageRouteInfo<void> {
 /// [_i15.InviteFriends]
 class InviteFriends extends _i44.PageRouteInfo<void> {
   const InviteFriends({List<_i44.PageRouteInfo>? children})
-      : super(InviteFriends.name, initialChildren: children);
+    : super(InviteFriends.name, initialChildren: children);
 
   static const String name = 'InviteFriends';
 
@@ -603,10 +603,10 @@ class JoinPrivateServer extends _i44.PageRouteInfo<JoinPrivateServerArgs> {
     Map<String, String>? deepLinkData,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          JoinPrivateServer.name,
-          args: JoinPrivateServerArgs(key: key, deepLinkData: deepLinkData),
-          initialChildren: children,
-        );
+         JoinPrivateServer.name,
+         args: JoinPrivateServerArgs(key: key, deepLinkData: deepLinkData),
+         initialChildren: children,
+       );
 
   static const String name = 'JoinPrivateServer';
 
@@ -657,7 +657,7 @@ class JoinPrivateServerArgs {
 /// [_i17.Language]
 class Language extends _i44.PageRouteInfo<void> {
   const Language({List<_i44.PageRouteInfo>? children})
-      : super(Language.name, initialChildren: children);
+    : super(Language.name, initialChildren: children);
 
   static const String name = 'Language';
 
@@ -678,10 +678,10 @@ class LanternProLicense extends _i44.PageRouteInfo<LanternProLicenseArgs> {
     required String code,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          LanternProLicense.name,
-          args: LanternProLicenseArgs(key: key, email: email, code: code),
-          initialChildren: children,
-        );
+         LanternProLicense.name,
+         args: LanternProLicenseArgs(key: key, email: email, code: code),
+         initialChildren: children,
+       );
 
   static const String name = 'LanternProLicense';
 
@@ -731,7 +731,7 @@ class LanternProLicenseArgs {
 /// [_i19.Logs]
 class Logs extends _i44.PageRouteInfo<void> {
   const Logs({List<_i44.PageRouteInfo>? children})
-      : super(Logs.name, initialChildren: children);
+    : super(Logs.name, initialChildren: children);
 
   static const String name = 'Logs';
 
@@ -747,7 +747,7 @@ class Logs extends _i44.PageRouteInfo<void> {
 /// [_i20.MacOSExtensionDialog]
 class MacOSExtensionDialog extends _i44.PageRouteInfo<void> {
   const MacOSExtensionDialog({List<_i44.PageRouteInfo>? children})
-      : super(MacOSExtensionDialog.name, initialChildren: children);
+    : super(MacOSExtensionDialog.name, initialChildren: children);
 
   static const String name = 'MacOSExtensionDialog';
 
@@ -763,7 +763,7 @@ class MacOSExtensionDialog extends _i44.PageRouteInfo<void> {
 /// [_i21.ManagePrivateServer]
 class ManagePrivateServer extends _i44.PageRouteInfo<void> {
   const ManagePrivateServer({List<_i44.PageRouteInfo>? children})
-      : super(ManagePrivateServer.name, initialChildren: children);
+    : super(ManagePrivateServer.name, initialChildren: children);
 
   static const String name = 'ManagePrivateServer';
 
@@ -779,7 +779,7 @@ class ManagePrivateServer extends _i44.PageRouteInfo<void> {
 /// [_i22.ManuallyServerSetup]
 class ManuallyServerSetup extends _i44.PageRouteInfo<void> {
   const ManuallyServerSetup({List<_i44.PageRouteInfo>? children})
-      : super(ManuallyServerSetup.name, initialChildren: children);
+    : super(ManuallyServerSetup.name, initialChildren: children);
 
   static const String name = 'ManuallyServerSetup';
 
@@ -795,7 +795,7 @@ class ManuallyServerSetup extends _i44.PageRouteInfo<void> {
 /// [_i23.Onboarding]
 class Onboarding extends _i44.PageRouteInfo<void> {
   const Onboarding({List<_i44.PageRouteInfo>? children})
-      : super(Onboarding.name, initialChildren: children);
+    : super(Onboarding.name, initialChildren: children);
 
   static const String name = 'Onboarding';
 
@@ -811,7 +811,7 @@ class Onboarding extends _i44.PageRouteInfo<void> {
 /// [_i24.Plans]
 class Plans extends _i44.PageRouteInfo<void> {
   const Plans({List<_i44.PageRouteInfo>? children})
-      : super(Plans.name, initialChildren: children);
+    : super(Plans.name, initialChildren: children);
 
   static const String name = 'Plans';
 
@@ -827,7 +827,7 @@ class Plans extends _i44.PageRouteInfo<void> {
 /// [_i25.PrivateServerAddBilling]
 class PrivateServerAddBilling extends _i44.PageRouteInfo<void> {
   const PrivateServerAddBilling({List<_i44.PageRouteInfo>? children})
-      : super(PrivateServerAddBilling.name, initialChildren: children);
+    : super(PrivateServerAddBilling.name, initialChildren: children);
 
   static const String name = 'PrivateServerAddBilling';
 
@@ -847,10 +847,10 @@ class PrivateServerDeploy extends _i44.PageRouteInfo<PrivateServerDeployArgs> {
     required String serverName,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          PrivateServerDeploy.name,
-          args: PrivateServerDeployArgs(key: key, serverName: serverName),
-          initialChildren: children,
-        );
+         PrivateServerDeploy.name,
+         args: PrivateServerDeployArgs(key: key, serverName: serverName),
+         initialChildren: children,
+       );
 
   static const String name = 'PrivateServerDeploy';
 
@@ -901,16 +901,16 @@ class PrivateServerLocation
     required _i46.CloudProvider provider,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          PrivateServerLocation.name,
-          args: PrivateServerLocationArgs(
-            key: key,
-            location: location,
-            selectedLocation: selectedLocation,
-            onLocationSelected: onLocationSelected,
-            provider: provider,
-          ),
-          initialChildren: children,
-        );
+         PrivateServerLocation.name,
+         args: PrivateServerLocationArgs(
+           key: key,
+           location: location,
+           selectedLocation: selectedLocation,
+           onLocationSelected: onLocationSelected,
+           provider: provider,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'PrivateServerLocation';
 
@@ -975,7 +975,7 @@ class PrivateServerLocationArgs {
 /// [_i28.PrivateServerSetup]
 class PrivateServerSetup extends _i44.PageRouteInfo<void> {
   const PrivateServerSetup({List<_i44.PageRouteInfo>? children})
-      : super(PrivateServerSetup.name, initialChildren: children);
+    : super(PrivateServerSetup.name, initialChildren: children);
 
   static const String name = 'PrivateServerSetup';
 
@@ -998,15 +998,15 @@ class PrivateServerDetails
     bool isPreFilled = false,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          PrivateServerDetails.name,
-          args: PrivateServerDetailsArgs(
-            key: key,
-            accounts: accounts,
-            provider: provider,
-            isPreFilled: isPreFilled,
-          ),
-          initialChildren: children,
-        );
+         PrivateServerDetails.name,
+         args: PrivateServerDetailsArgs(
+           key: key,
+           accounts: accounts,
+           provider: provider,
+           isPreFilled: isPreFilled,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'PrivateServerDetails';
 
@@ -1067,7 +1067,7 @@ class PrivateServerDetailsArgs {
 /// [_i30.QrCodeScanner]
 class QrCodeScanner extends _i44.PageRouteInfo<void> {
   const QrCodeScanner({List<_i44.PageRouteInfo>? children})
-      : super(QrCodeScanner.name, initialChildren: children);
+    : super(QrCodeScanner.name, initialChildren: children);
 
   static const String name = 'QrCodeScanner';
 
@@ -1088,10 +1088,10 @@ class ReportIssue extends _i44.PageRouteInfo<ReportIssueArgs> {
     String? type,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          ReportIssue.name,
-          args: ReportIssueArgs(key: key, description: description, type: type),
-          initialChildren: children,
-        );
+         ReportIssue.name,
+         args: ReportIssueArgs(key: key, description: description, type: type),
+         initialChildren: children,
+       );
 
   static const String name = 'ReportIssue';
 
@@ -1146,10 +1146,10 @@ class ResetPassword extends _i44.PageRouteInfo<ResetPasswordArgs> {
     required String code,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          ResetPassword.name,
-          args: ResetPasswordArgs(key: key, email: email, code: code),
-          initialChildren: children,
-        );
+         ResetPassword.name,
+         args: ResetPasswordArgs(key: key, email: email, code: code),
+         initialChildren: children,
+       );
 
   static const String name = 'ResetPassword';
 
@@ -1199,10 +1199,10 @@ class ResetPasswordEmail extends _i44.PageRouteInfo<ResetPasswordEmailArgs> {
     String? email,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          ResetPasswordEmail.name,
-          args: ResetPasswordEmailArgs(key: key, email: email),
-          initialChildren: children,
-        );
+         ResetPasswordEmail.name,
+         args: ResetPasswordEmailArgs(key: key, email: email),
+         initialChildren: children,
+       );
 
   static const String name = 'ResetPasswordEmail';
 
@@ -1244,7 +1244,7 @@ class ResetPasswordEmailArgs {
 /// [_i34.ServerSelection]
 class ServerSelection extends _i44.PageRouteInfo<void> {
   const ServerSelection({List<_i44.PageRouteInfo>? children})
-      : super(ServerSelection.name, initialChildren: children);
+    : super(ServerSelection.name, initialChildren: children);
 
   static const String name = 'ServerSelection';
 
@@ -1260,7 +1260,7 @@ class ServerSelection extends _i44.PageRouteInfo<void> {
 /// [_i35.Setting]
 class Setting extends _i44.PageRouteInfo<void> {
   const Setting({List<_i44.PageRouteInfo>? children})
-      : super(Setting.name, initialChildren: children);
+    : super(Setting.name, initialChildren: children);
 
   static const String name = 'Setting';
 
@@ -1276,7 +1276,7 @@ class Setting extends _i44.PageRouteInfo<void> {
 /// [_i36.SignInEmail]
 class SignInEmail extends _i44.PageRouteInfo<void> {
   const SignInEmail({List<_i44.PageRouteInfo>? children})
-      : super(SignInEmail.name, initialChildren: children);
+    : super(SignInEmail.name, initialChildren: children);
 
   static const String name = 'SignInEmail';
 
@@ -1297,14 +1297,14 @@ class SignInPassword extends _i44.PageRouteInfo<SignInPasswordArgs> {
     bool fromChangeEmail = false,
     List<_i44.PageRouteInfo>? children,
   }) : super(
-          SignInPassword.name,
-          args: SignInPasswordArgs(
-            key: key,
-            email: email,
-            fromChangeEmail: fromChangeEmail,
-          ),
-          initialChildren: children,
-        );
+         SignInPassword.name,
+         args: SignInPasswordArgs(
+           key: key,
+           email: email,
+           fromChangeEmail: fromChangeEmail,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'SignInPassword';
 
@@ -1356,7 +1356,7 @@ class SignInPasswordArgs {
 /// [_i38.SmartRouting]
 class SmartRouting extends _i44.PageRouteInfo<void> {
   const SmartRouting({List<_i44.PageRouteInfo>? children})
-      : super(SmartRouting.name, initialChildren: children);
+    : super(SmartRouting.name, initialChildren: children);
 
   static const String name = 'SmartRouting';
 
@@ -1372,7 +1372,7 @@ class SmartRouting extends _i44.PageRouteInfo<void> {
 /// [_i39.SplitTunneling]
 class SplitTunneling extends _i44.PageRouteInfo<void> {
   const SplitTunneling({List<_i44.PageRouteInfo>? children})
-      : super(SplitTunneling.name, initialChildren: children);
+    : super(SplitTunneling.name, initialChildren: children);
 
   static const String name = 'SplitTunneling';
 
@@ -1388,7 +1388,7 @@ class SplitTunneling extends _i44.PageRouteInfo<void> {
 /// [_i40.SplitTunnelingInfo]
 class SplitTunnelingInfo extends _i44.PageRouteInfo<void> {
   const SplitTunnelingInfo({List<_i44.PageRouteInfo>? children})
-      : super(SplitTunnelingInfo.name, initialChildren: children);
+    : super(SplitTunnelingInfo.name, initialChildren: children);
 
   static const String name = 'SplitTunnelingInfo';
 
@@ -1404,7 +1404,7 @@ class SplitTunnelingInfo extends _i44.PageRouteInfo<void> {
 /// [_i41.Support]
 class Support extends _i44.PageRouteInfo<void> {
   const Support({List<_i44.PageRouteInfo>? children})
-      : super(Support.name, initialChildren: children);
+    : super(Support.name, initialChildren: children);
 
   static const String name = 'Support';
 
@@ -1420,7 +1420,7 @@ class Support extends _i44.PageRouteInfo<void> {
 /// [_i42.VPNSetting]
 class VPNSetting extends _i44.PageRouteInfo<void> {
   const VPNSetting({List<_i44.PageRouteInfo>? children})
-      : super(VPNSetting.name, initialChildren: children);
+    : super(VPNSetting.name, initialChildren: children);
 
   static const String name = 'VPNSetting';
 
@@ -1436,7 +1436,7 @@ class VPNSetting extends _i44.PageRouteInfo<void> {
 /// [_i43.WebsiteSplitTunneling]
 class WebsiteSplitTunneling extends _i44.PageRouteInfo<void> {
   const WebsiteSplitTunneling({List<_i44.PageRouteInfo>? children})
-      : super(WebsiteSplitTunneling.name, initialChildren: children);
+    : super(WebsiteSplitTunneling.name, initialChildren: children);
 
   static const String name = 'WebsiteSplitTunneling';
 

@@ -10,20 +10,20 @@ part of 'vpn_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(VpnNotifier)
-const vpnProvider = VpnNotifierProvider._();
+final vpnProvider = VpnNotifierProvider._();
 
 final class VpnNotifierProvider
     extends $NotifierProvider<VpnNotifier, VPNStatus> {
-  const VpnNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'vpnProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  VpnNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vpnProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$vpnNotifierHash();
@@ -48,10 +48,15 @@ abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<VPNStatus, VPNStatus>, VPNStatus, Object?, Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<VPNStatus, VPNStatus>,
+              VPNStatus,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

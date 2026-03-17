@@ -10,20 +10,20 @@ part of 'system_tray_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SystemTrayNotifier)
-const systemTrayProvider = SystemTrayNotifierProvider._();
+final systemTrayProvider = SystemTrayNotifierProvider._();
 
 final class SystemTrayNotifierProvider
     extends $AsyncNotifierProvider<SystemTrayNotifier, void> {
-  const SystemTrayNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'systemTrayProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  SystemTrayNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'systemTrayProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$systemTrayNotifierHash();
@@ -41,13 +41,15 @@ abstract class _$SystemTrayNotifier extends $AsyncNotifier<void> {
   @$mustCallSuper
   @override
   void runBuild() {
-    build();
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<void>, void>,
-        AsyncValue<void>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, null);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }
