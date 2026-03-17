@@ -265,8 +265,8 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64 arm64
+ArchitecturesInstallIn64BitMode=x64 arm64
 SetupLogging=yes
 UninstallLogging=yes
 
@@ -297,7 +297,7 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 
 ; Create service
 Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= ""{app}\lanternsvc.exe"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+  Parameters: "create ""{#SvcName}"" binPath= ""{code:ServiceExecutablePath}"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
@@ -318,6 +318,20 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
+function IsWindowsArm64: Boolean;
+begin
+  Result := (Pos('ARM64', UpperCase(GetEnv('PROCESSOR_ARCHITECTURE'))) > 0) or
+            (Pos('ARM64', UpperCase(GetEnv('PROCESSOR_ARCHITEW6432'))) > 0);
+end;
+
+function ServiceExecutablePath(Param: String): String;
+begin
+  if IsWindowsArm64 then
+    Result := ExpandConstant('{app}\arm64\lanternsvc.exe')
+  else
+    Result := ExpandConstant('{app}\lanternsvc.exe');
+end;
+
 function InitializeSetup: Boolean;
 begin
   Dependency_AddWebView2;
