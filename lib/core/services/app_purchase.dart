@@ -92,12 +92,15 @@ class AppPurchase {
       }
     }
 
-    // All attempts exhausted without success.
-    _productsLoadedCompleter!.completeError(
-      StateError(
-        'Unable to load App Store products after $maxAttempts attempts',
-      ),
+    final error = StateError(
+      'Unable to load App Store products after $maxAttempts attempts',
     );
+    //  Safely complete the completer with an error, if it is still pending.
+    if (_productsLoadedCompleter != null &&
+        !_productsLoadedCompleter!.isCompleted) {
+      _productsLoadedCompleter!.completeError(error);
+    }
+    throw error;
   }
 
   /// Ensures products are available before starting a purchase.
