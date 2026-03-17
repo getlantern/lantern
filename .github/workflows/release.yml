@@ -200,6 +200,7 @@ jobs:
       needs.set-metadata.outputs.build_type == 'production' &&
       needs.set-metadata.outputs.platform == 'all'
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
