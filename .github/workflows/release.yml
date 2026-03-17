@@ -104,12 +104,14 @@ jobs:
                   BUILD_TYPE="beta"
                   ;;
                 *)
-                  # Production builds require bare version tags
-                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                  # Production: bare version or version with platform suffix
+                  # e.g., v9.0.15 (all platforms) or v9.0.15-android (single platform)
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(windows|macos|linux|android|ios))?$ ]]; then
                     BUILD_TYPE="production"
                   else
                     echo "Error: Invalid tag format for build" >&2
-                    echo "  Use 'v1.0.0' for production" >&2
+                    echo "  Use 'v1.0.0' for production (all platforms)" >&2
+                    echo "  Use 'v1.0.0-<platform>' for production (single platform)" >&2
                     echo "  Use 'v1.0.0-beta' for beta" >&2
                     echo "Got: $RELEASE_TAG" >&2
                     exit 1
@@ -126,6 +128,12 @@ jobs:
                 android) PLATFORM="android" ;;
                 ios) PLATFORM="ios" ;;
                 *) PLATFORM="all" ;;
+              esac
+
+              # Strip platform suffix from VERSION (platform is tracked separately)
+              case "$PLATFORM" in
+                all) ;;
+                *) VERSION="${VERSION%-$PLATFORM}" ;;
               esac
               ;;
           esac
@@ -204,7 +212,7 @@ jobs:
             }
 
   release-approval:
-    needs: [set-metadata, release-notify]
+    needs: [set-metadata]
     if: |
       needs.set-metadata.outputs.build_type == 'production' &&
       needs.set-metadata.outputs.platform == 'all'
@@ -218,6 +226,9 @@ jobs:
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
@@ -230,6 +241,9 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
@@ -242,6 +256,9 @@ jobs:
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
@@ -254,6 +271,9 @@ jobs:
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
@@ -266,6 +286,9 @@ jobs:
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
@@ -331,7 +354,10 @@ jobs:
       (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+       needs.build-ios.result == 'success')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -408,7 +434,10 @@ jobs:
       (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+       needs.build-ios.result == 'success')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -465,6 +494,9 @@ jobs:
   upload-google-play:
     needs: [set-metadata, build-android]
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-android.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
@@ -511,6 +543,9 @@ jobs:
   upload-testflight:
     needs: [set-metadata, build-ios]
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-ios.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
@@ -556,10 +591,10 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
+        uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version-file: .github/flutter-version.yaml
 
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
