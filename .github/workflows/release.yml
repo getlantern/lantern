@@ -99,33 +99,41 @@ jobs:
               # Strip 'v' for VERSION (used by build workflows)
               VERSION="${RELEASE_TAG#v}"
 
-              case "$RELEASE_TAG" in
-                *-beta*)
-                  BUILD_TYPE="beta"
+              # Extract platform suffix (if any)
+              platform_suffix="${RELEASE_TAG##*-}"
+              case "$platform_suffix" in
+                windows|macos|linux|android|ios)
+                  PLATFORM="$platform_suffix"
                   ;;
                 *)
-                  # Production builds require bare version tags
-                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    BUILD_TYPE="production"
+                  PLATFORM="all"
+                  ;;
+              esac
+
+              case "$RELEASE_TAG" in
+                *-beta*)
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(-(windows|macos|linux|android|ios))?$ ]]; then
+                    BUILD_TYPE="beta"
                   else
-                    echo "Error: Invalid tag format for build" >&2
-                    echo "  Use 'v1.0.0' for production" >&2
-                    echo "  Use 'v1.0.0-beta' for beta" >&2
+                    echo "Error: Invalid beta tag format for build" >&2
+                    echo "  Use 'v1.0.0-beta' for all platforms" >&2
+                    echo "  Use 'v1.0.0-beta-android' for one platform" >&2
                     echo "Got: $RELEASE_TAG" >&2
                     exit 1
                   fi
                   ;;
-              esac
-
-              # Extract platform suffix (if any)
-              platform_suffix="${RELEASE_TAG##*-}"
-              case "$platform_suffix" in
-                windows) PLATFORM="windows" ;;
-                macos) PLATFORM="macos" ;;
-                linux) PLATFORM="linux" ;;
-                android) PLATFORM="android" ;;
-                ios) PLATFORM="ios" ;;
-                *) PLATFORM="all" ;;
+                *)
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(windows|macos|linux|android|ios))?$ ]]; then
+                    BUILD_TYPE="production"
+                  else
+                    echo "Error: Invalid tag format for build" >&2
+                    echo "  Use 'v1.0.0' for production (all platforms)" >&2
+                    echo "  Use 'v1.0.0-android' for production (single platform)" >&2
+                    echo "  Use 'v1.0.0-beta' or 'v1.0.0-beta-android' for beta" >&2
+                    echo "Got: $RELEASE_TAG" >&2
+                    exit 1
+                  fi
+                  ;;
               esac
               ;;
           esac
@@ -218,6 +226,7 @@ jobs:
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     if: |
+      !cancelled() &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
@@ -230,6 +239,7 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     if: |
+      !cancelled() &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
@@ -242,6 +252,7 @@ jobs:
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     if: |
+      !cancelled() &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
@@ -254,6 +265,7 @@ jobs:
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     if: |
+      !cancelled() &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
@@ -266,6 +278,7 @@ jobs:
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     if: |
+      !cancelled() &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
