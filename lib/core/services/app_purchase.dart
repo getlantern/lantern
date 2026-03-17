@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -140,7 +142,16 @@ class AppPurchase {
       return;
     }
 
-    final purchaseParam = PurchaseParam(productDetails: product);
+    final PurchaseParam purchaseParam;
+    if (Platform.isAndroid && product is GooglePlayProductDetails) {
+      purchaseParam = GooglePlayPurchaseParam(
+        productDetails: product,
+        offerToken: product.offerToken,
+      );
+    } else {
+      purchaseParam = PurchaseParam(productDetails: product);
+    }
+
     try {
       appLogger.info(
         '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
@@ -185,6 +196,14 @@ class AppPurchase {
           await _inAppPurchase.completePurchase(purchaseDetails);
         }
         _onError?.call("Purchase canceled");
+        return;
+      }
+      if (status == PurchaseStatus.pending) {
+        /// Purchase is pending (e.g. deferred payment method on Android).
+        /// Dismiss loading and inform the user — the purchase will complete
+        /// asynchronously when the payment is confirmed.
+        appLogger.info('[AppPurchase] Purchase is pending: ${purchaseDetails.productID}');
+        _onError?.call("Purchase is pending. You will be notified when it completes.");
         return;
       }
       if (status == PurchaseStatus.purchased ||

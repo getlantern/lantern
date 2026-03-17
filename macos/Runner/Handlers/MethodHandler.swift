@@ -856,7 +856,7 @@ class MethodHandler {
   func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let urls = data["urls"] as? String ?? ""
-      let skipVerification = data["skipCertVerification"] as? Bool ?? false
+      let skipVerification = data["skipValidation"] as? Bool ?? false
       let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 

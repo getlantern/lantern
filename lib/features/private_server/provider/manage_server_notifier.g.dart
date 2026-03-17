@@ -10,20 +10,20 @@ part of 'manage_server_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ManageServerNotifier)
-const manageServerProvider = ManageServerNotifierProvider._();
+final manageServerProvider = ManageServerNotifierProvider._();
 
 final class ManageServerNotifierProvider
     extends $NotifierProvider<ManageServerNotifier, void> {
-  const ManageServerNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'manageServerProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  ManageServerNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'manageServerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$manageServerNotifierHash();
@@ -42,17 +42,22 @@ final class ManageServerNotifierProvider
 }
 
 String _$manageServerNotifierHash() =>
-    r'257f97ae48e8976ae7be8571c1d81be5604806b9';
+    r'fc0820bdf102f82b7b05e9346af58be22e12a4f6';
 
 abstract class _$ManageServerNotifier extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
   void runBuild() {
-    build();
     final ref = this.ref as $Ref<void, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<void, void>, void, Object?, Object?>;
-    element.handleValue(ref, null);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<void, void>,
+              void,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

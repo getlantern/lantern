@@ -76,8 +76,10 @@ String generatePassword() {
   const allChars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789!@#\$%^&*()-=+{};:,<.>/?';
   final random = Random.secure();
-  return List.generate(8, (i) => allChars[random.nextInt(allChars.length)])
-      .join();
+  return List.generate(
+    8,
+    (i) => allChars[random.nextInt(allChars.length)],
+  ).join();
 }
 
 bool isStoreVersion() {
@@ -87,13 +89,17 @@ bool isStoreVersion() {
   if (PlatformUtils.isIOS) {
     return true;
   }
-  if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    if (!sl.isReadySync<LocalStorageService>()) {
-      return !sl<StoreUtils>().isSideLoaded();
+  try {
+    if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
+      final devMode = sl<LocalStorageService>().getDeveloperMode();
+      return devMode?.testPlayPurchaseEnabled ??
+          !sl<StoreUtils>().isSideLoaded();
     }
-    final devMode = sl<LocalStorageService>().getDeveloperMode();
-    return devMode?.testPlayPurchaseEnabled ?? !sl<StoreUtils>().isSideLoaded();
+  } catch (e) {
+    appLogger.error("Error checking store version: $e");
+    return !sl<StoreUtils>().isSideLoaded();
   }
+
   return !sl<StoreUtils>().isSideLoaded();
 }
 
@@ -116,7 +122,7 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
   final delays = [
     Duration(seconds: 1),
     Duration(seconds: 2),
-    Duration(seconds: 3)
+    Duration(seconds: 3),
   ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
@@ -150,13 +156,16 @@ void hideKeyboard() {
 }
 
 void sharePrivateAccessKey(
-    PrivateServer server, Map<String, dynamic> tokenPayload) {
+  PrivateServer server,
+  Map<String, dynamic> tokenPayload,
+) {
   final expirationDate = tokenPayload['exp'].toString();
   final aliasName = tokenPayload['sub'];
   final uri = Uri(
     scheme: 'https',
-    host: Uri.parse(AppUrls.lanternOfficial)
-        .host, // ensures host is parsed correctly
+    host: Uri.parse(
+      AppUrls.lanternOfficial,
+    ).host, // ensures host is parsed correctly
     path: '/private-server',
     queryParameters: {
       'ip': server.externalIp,

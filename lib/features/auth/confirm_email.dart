@@ -40,9 +40,7 @@ class ConfirmEmail extends HookConsumerWidget {
         title: '',
         appBar: CustomAppBar(
           title: Text('confirm_email'.i18n),
-          leading: BackButton(
-            onPressed: () => onBackPresses(ref, context),
-          ),
+          leading: BackButton(onPressed: () => onBackPresses(ref, context)),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +50,7 @@ class ConfirmEmail extends HookConsumerWidget {
               child: Text(
                 'confirm_email_code'.i18n,
                 style: textTheme.labelLarge?.copyWith(
-                  color: AppColors.gray8,
+                  color: context.textPrimary,
                   fontSize: 14.sp,
                 ),
               ),
@@ -88,10 +86,9 @@ class ConfirmEmail extends HookConsumerWidget {
             Center(
               child: AppTextButton(
                 label: 'resend_email'.i18n,
-                textColor: AppColors.black,
                 onPressed: () => onResendEmail(context, ref),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -116,10 +113,13 @@ class ConfirmEmail extends HookConsumerWidget {
       appRouter.pop();
       return;
     }
-    appLogger
-        .info('Back button pressed in ConfirmEmail screen Deleting account');
-    assert(password != null,
-        'Password must be provided to delete account on back press');
+    appLogger.info(
+      'Back button pressed in ConfirmEmail screen Deleting account',
+    );
+    assert(
+      password != null,
+      'Password must be provided to delete account on back press',
+    );
     context.showLoadingDialog();
 
     /// This back-press deletion is part of the email/password signup flow,
@@ -165,7 +165,10 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> completeChangeEmail(
-      BuildContext context, WidgetRef ref, String code) async {
+    BuildContext context,
+    WidgetRef ref,
+    String code,
+  ) async {
     context.showLoadingDialog();
     final result = await ref
         .read(authProvider.notifier)
@@ -193,10 +196,14 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> validateCode(
-      BuildContext context, WidgetRef ref, String code) async {
+    BuildContext context,
+    WidgetRef ref,
+    String code,
+  ) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).validateRecoveryCode(email, code);
+    final result = await ref
+        .read(authProvider.notifier)
+        .validateRecoveryCode(email, code);
 
     result.fold(
       (failure) {
@@ -220,7 +227,8 @@ class ConfirmEmail extends HookConsumerWidget {
         /// send them to create password directly
         if (PlatformUtils.isMobile && isStoreVersion()) {
           appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
+            CreatePassword(email: email, authFlow: authFlow, code: code),
+          );
           return;
         }
 
@@ -228,11 +236,13 @@ class ConfirmEmail extends HookConsumerWidget {
         final isPro = ref.read(isUserProProvider);
         if (isPro) {
           appRouter.push(
-              CreatePassword(email: email, authFlow: authFlow, code: code));
+            CreatePassword(email: email, authFlow: authFlow, code: code),
+          );
           return;
         }
         appRouter.push(
-            ChoosePaymentMethod(email: email, authFlow: authFlow, code: code));
+          ChoosePaymentMethod(email: email, authFlow: authFlow, code: code),
+        );
         break;
       case AuthFlow.lanternProLicense:
         appRouter.push(LanternProLicense(email: email, code: code));
@@ -287,8 +297,9 @@ class ConfirmEmail extends HookConsumerWidget {
 
   void onResendCode(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
+    final result = await ref
+        .read(authProvider.notifier)
+        .startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
