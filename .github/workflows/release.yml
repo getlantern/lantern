@@ -350,11 +350,11 @@ jobs:
       ]
     if: |
       !cancelled() &&
-      needs.build-macos.result != 'failure' &&
-      needs.build-windows.result != 'failure' &&
-      needs.build-linux.result != 'failure' &&
-      needs.build-android.result != 'failure' &&
-      needs.build-ios.result != 'failure' &&
+      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
+      (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
       (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
        needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
        needs.build-ios.result == 'success')
