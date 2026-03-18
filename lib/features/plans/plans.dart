@@ -21,7 +21,6 @@ import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 import '../../core/models/plan_data.dart';
-import '../home/provider/home_notifier.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
@@ -363,11 +362,8 @@ class _PlansState extends ConsumerState<Plans> {
     context.hideLoadingDialog();
     appLogger.info('Subscription successful for plan: ${plan.id}');
 
-    /// Update user data in UI immediately after purchase acknowledgment
-    final userData = sl<LocalStorageService>().getUser();
-    if (userData != null) {
-      ref.read(homeProvider.notifier).updateUserData(userData);
-    }
+    /// Refresh user data from core to update UI immediately after purchase acknowledgment.
+    await ref.read(homeProvider.notifier).refreshUser();
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();

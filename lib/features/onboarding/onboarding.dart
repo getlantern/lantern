@@ -174,7 +174,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
             ),
           ),
           label: '',
-          titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'smart_routing_mode'.i18n,
             style: textTheme.titleMedium!.copyWith(
@@ -196,7 +195,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 path: AppImagePaths.advanceProtocol, useThemeColor: false),
           ),
           label: '',
-          titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'advanced_protocols'.i18n,
             style: textTheme.titleMedium!.copyWith(
@@ -218,7 +216,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 path: AppImagePaths.privateServerIntro, useThemeColor: false),
           ),
           label: '',
-          titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'private_servers'.i18n,
             style: textTheme.titleMedium!.copyWith(
@@ -240,7 +237,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
           ),
           label: '',
-          titleAlignment: ListTileTitleAlignment.top,
           labelWidget: Text(
             'nonprofit_mission'.i18n,
             style: textTheme.titleMedium!.copyWith(

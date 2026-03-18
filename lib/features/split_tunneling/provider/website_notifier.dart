@@ -1,9 +1,6 @@
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/core/models/entity/website.dart';
-import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,13 +9,11 @@ part 'website_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
-  static const String enabledWebsitesKey = "enabled_websites";
-  final LocalStorageService _db = sl<LocalStorageService>();
   late final LanternService _lanternService = ref.read(lanternServiceProvider);
 
   @override
   Set<Website> build() {
-    return _db.getEnabledWebsites();
+    return <Website>{};
   }
 
   Future<void> addWebsites(List<Website> websites) async {
@@ -34,9 +29,8 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
       result.match(
         (failure) => appLogger.error('Failed to add domain: ${failure.error}'),
-        (_) async {
+        (_) {
           state = {...state, website};
-          await _db.saveWebsites(state);
         },
       );
     }
@@ -52,9 +46,8 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
     result.match(
       (failure) => appLogger.error('Failed to remove domain: ${failure.error}'),
-      (_) async {
+      (_) {
         state = state.where((a) => a.domain != website.domain).toSet();
-        await _db.saveWebsites(state);
       },
     );
   }

@@ -4,11 +4,10 @@ import 'dart:io';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
-import '../models/plan_data.dart';
 import 'injection_container.dart' show sl;
+import 'local_storage_service.dart';
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
@@ -203,11 +202,19 @@ class AppPurchase {
         _onError?.call("Purchase canceled");
         return;
       }
+      if (status == PurchaseStatus.pending) {
+        /// Purchase is pending (e.g. deferred payment method on Android).
+        /// Dismiss loading and inform the user — the purchase will complete
+        /// asynchronously when the payment is confirmed.
+        appLogger.info('[AppPurchase] Purchase is pending: ${purchaseDetails.productID}');
+        _onError?.call("Purchase is pending. You will be notified when it completes.");
+        return;
+      }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
-        if (_checkIfAlreadyPurchased()) {
+        if (await _checkIfAlreadyPurchased()) {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
@@ -296,44 +303,56 @@ class AppPurchase {
   /// Apple sends purchase updates for previously purchased items when the
   /// app starts. This function checks if the user has already purchased the
   /// subscription to avoid duplicate processing
-  bool _checkIfAlreadyPurchased() {
-    final user = sl<LocalStorageService>().getUser();
-    if (user?.legacyUserData != null) {
-      final legacyData = user!.legacyUserData;
-      final subscriptionStatus = legacyData.subscriptionData.status;
-      if (subscriptionStatus == 'active') {
-        return true;
-      }
+  Future<bool> _checkIfAlreadyPurchased() async {
+    final lanternService = sl<LanternPlatformService>();
+
+    final fetchResult = await lanternService.fetchUserData();
+    final fetchedUser = fetchResult.fold((failure) {
+      appLogger.warning(
+        '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.localizedErrorMessage}',
+      );
+      return null;
+    }, (user) => user);
+
+    final user = fetchedUser ??
+        (await lanternService.getUserData()).fold((failure) {
+          appLogger.warning(
+            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.localizedErrorMessage}',
+          );
+          return null;
+        }, (user) => user);
+
+    if (user == null) {
       return false;
     }
 
-    return false;
+    final userLevel = user.legacyUserData.userLevel.toLowerCase();
+    final subscriptionStatus = user.legacyUserData.hasSubscriptionData()
+        ? user.legacyUserData.subscriptionData.status.toLowerCase()
+        : '';
+
+    return userLevel == 'pro' || subscriptionStatus == 'active';
   }
 
   /// Determines the plan id to send to the backend for acknowledgment.
   ///
-  /// Prefers the exact plan the user selected. Falls back to cached plans,
-  /// then to a sensible default.
+  /// Prefers the exact plan the user selected, then falls back to a default.
   String _resolvePlanId(PurchaseDetails purchase) {
     if (_pendingPlanId != null && _pendingPlanId!.isNotEmpty) {
       return _pendingPlanId!;
     }
 
-    // Fallback: try to find a matching cached plan.
     final prefix = purchase.productID.split('_').first; // "1y" or "1m"
-    final localPlans = sl<LocalStorageService>().getPlans()?.toPlanData();
-
+    final localPlans = sl<LocalStorageService>().getPlans();
     if (localPlans != null) {
-      final match = localPlans.plans.cast<Plan?>().firstWhere(
-        (p) => (p?.id)?.startsWith('$prefix-') ?? false,
-        orElse: () => null,
-      );
-      if (match != null) {
-        appLogger.info('[AppPurchase] Resolved plan from cache: ${match.id}');
-        return match.id;
+      for (final plan in localPlans.plans) {
+        if (plan.id.startsWith('$prefix-')) {
+          appLogger.info('[AppPurchase] Resolved plan from cache: ${plan.id}');
+          return plan.id;
+        }
       }
     }
-    // Last resort fallback.
+
     appLogger.debug(
       '[AppPurchase] No cached plan for prefix=$prefix, using default',
     );

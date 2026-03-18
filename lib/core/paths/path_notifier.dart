@@ -16,7 +16,7 @@ class PathNotifier extends _$PathNotifier {
     final tempDirectory = await getTemporaryDirectory();
 
     final logsPath = p.join(logsDirectory.path, 'Logs', 'Lantern');
-    final dbPath = p.join(dbDirectory.path, 'objectbox-db');
+    final dbPath = p.join(dbDirectory.path, 'lantern-db');
     final tempPath = tempDirectory.path;
 
     final path = PathManager(

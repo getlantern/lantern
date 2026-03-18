@@ -69,9 +69,6 @@ dependencies:
   # Logs
   flutter_loggy: ^2.0.3+1
   loggy: ^2.0.3
-  # Local DB
-  objectbox: ^5.2.0
-  objectbox_flutter_libs: ^5.2.0
   #FFI gen
   ffi: ^2.2.0
   #State management
@@ -124,6 +121,7 @@ dependencies:
   win32: ^5.15.0
   fixnum: ^1.1.1
   package_info_plus: ^9.0.0
+  shared_preferences: ^2.5.4
   flutter_carousel_widget: ^3.1.0
 
 dev_dependencies:
@@ -134,7 +132,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   auto_route_generator: ^10.4.0
   build_runner: ^2.12.2
-  objectbox_generator: ^5.2.0
   riverpod_generator: ^4.0.3
 
   riverpod_lint: ^3.1.3
@@ -156,13 +153,6 @@ flutter:
     - assets/images/flags/
     - assets/locales/
     - app.env
-
-objectbox:
-  output_dir: core/services/db
-  # Or optionally specify the lib and test output folder separately.
-  # output_dir:
-  #   lib: custom
-  #   test: other
 
 ffigen:
   name: "LanternBindings"

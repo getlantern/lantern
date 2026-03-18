@@ -8,7 +8,6 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
-import '../../core/services/injection_container.dart';
 import '../auth/provider/auth_notifier.dart';
 
 @RoutePage(name: 'DeleteAccount')
@@ -161,12 +160,14 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
   Future<void> onDeleteAccount(String password) async {
     context.showLoadingDialog();
-    appLogger.info('Initiating account deletion');
-    final email = sl<LocalStorageService>().getUser()!.legacyUserData.email;
+    final email = ref.read(userEmailProvider);
+
     final isSSOUser = ref.read(appSettingProvider).isSSOUser;
+
     final result = await ref
         .read(authProvider.notifier)
         .deleteAccount(email, password, isSSOUser);
+    appLogger.info('Initiating account deletion');
 
     result.fold(
       (failure) {
@@ -196,17 +197,20 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 24),
-          AppImage(path: AppImagePaths.greenCheck,useThemeColor: false,),
+          AppImage(
+            path: AppImagePaths.greenCheck,
+            useThemeColor: false,
+          ),
           SizedBox(height: 16),
           Text('account_deleted'.i18n,
               style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: context.textPrimary,
-              )),
+                    color: context.textPrimary,
+                  )),
           SizedBox(height: 16),
           Text('account_deleted_message'.i18n,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: context.textPrimary,
-              )),
+                    color: context.textPrimary,
+                  )),
         ],
       ),
       action: [

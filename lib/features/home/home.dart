@@ -4,15 +4,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/feature_flags.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -39,10 +39,12 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
+      final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
         appLogger.info(
             "User has not completed onboarding, navigating to Onboarding Screen");
         appRouter.push(const Onboarding());
+        appSettingNotifier.setOnboardingCompleted(true);
         return;
       }
 
@@ -56,7 +58,7 @@ class _HomeState extends ConsumerState<Home> {
           appRouter.push(const MacOSExtensionDialog());
           //User has seen dialog, do not show again
           appLogger.info("Setting showSplashScreen to false");
-          ref.read(appSettingProvider.notifier).setSplashScreen(false);
+          appSettingNotifier.setSplashScreen(false);
           return;
         }
       }
@@ -113,17 +115,19 @@ class _HomeState extends ConsumerState<Home> {
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
-                final localUser = sl<LocalStorageService>().getUser()!;
-                final userSignedIn =
-                    ref.read(appSettingProvider).userLoggedIn;
-                final email = localUser.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro();
+                final localUser = ref.read(homeProvider).value;
+                final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
+                final email = localUser!.legacyUserData.email;
+                final isPro = localUser.legacyUserData.isPro;
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
                   await showProAccountFlowDialog(
-                      context: context, hasEmail: email.isNotEmpty);
+                    context: context,
+                    hasEmail: email.isNotEmpty,
+                  );
                   return;
                 }
+
                 appRouter.push(Account());
               },
             )
@@ -141,8 +145,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocation = ref.watch(serverLocationProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
+    final serverLocationAsync = ref.watch(serverLocationProvider);
+
+    // Choose a safe default while loading/error
+    final serverLocation = serverLocationAsync.value;
+    final serverType = (serverLocation?.serverType ?? '').toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(

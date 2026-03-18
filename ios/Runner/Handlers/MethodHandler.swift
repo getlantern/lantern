@@ -181,6 +181,16 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
+      case "deletePrivateServerByName":
+        guard let name: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.deletePrivateServerByName(result: result, name: name)
+
+      case "updatePrivateServerName":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updatePrivateServerName(result: result, data: data)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -217,6 +227,7 @@ class MethodHandler {
           return
         }
         self.setSmartRouteMode(mode: mode, result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -836,13 +847,39 @@ class MethodHandler {
   func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let urls = data["urls"] as? String ?? ""
-      let skipVerification = data["skipVerification"] as? Bool ?? false
+      let skipVerification = data["skipValidation"] as? Bool ?? false
       let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
       MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
+    Task {
+      var error: NSError?
+      MobileDeletePrivateServerByName(name, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let oldName = data["oldName"] as? String ?? ""
+      let newName = data["newName"] as? String ?? ""
+      var error: NSError?
+      MobileUpdatePrivateServerName(oldName, newName, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
         return
       }
       await self.replyOK(result)
@@ -1014,6 +1051,30 @@ class MethodHandler {
       }
     }
 
+  }
+
+  // MARK: - Argument helpers
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
   }
 
   // MARK: - Utils

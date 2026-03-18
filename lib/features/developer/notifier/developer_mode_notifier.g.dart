@@ -13,7 +13,7 @@ part of 'developer_mode_notifier.dart';
 final developerModeProvider = DeveloperModeNotifierProvider._();
 
 final class DeveloperModeNotifierProvider
-    extends $NotifierProvider<DeveloperModeNotifier, DeveloperModeEntity> {
+    extends $NotifierProvider<DeveloperModeNotifier, DeveloperMode> {
   DeveloperModeNotifierProvider._()
     : super(
         from: null,
@@ -33,28 +33,28 @@ final class DeveloperModeNotifierProvider
   DeveloperModeNotifier create() => DeveloperModeNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DeveloperModeEntity value) {
+  Override overrideWithValue(DeveloperMode value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<DeveloperModeEntity>(value),
+      providerOverride: $SyncValueProvider<DeveloperMode>(value),
     );
   }
 }
 
 String _$developerModeNotifierHash() =>
-    r'7a8dce32c6cad1e894f62a48e43f146d27aafea0';
+    r'd8c3979e8e2e4f7eaeaef8b5d2916a73ab21b70d';
 
-abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperModeEntity> {
-  DeveloperModeEntity build();
+abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperMode> {
+  DeveloperMode build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<DeveloperModeEntity, DeveloperModeEntity>;
+    final ref = this.ref as $Ref<DeveloperMode, DeveloperMode>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<DeveloperModeEntity, DeveloperModeEntity>,
-              DeveloperModeEntity,
+              AnyNotifier<DeveloperMode, DeveloperMode>,
+              DeveloperMode,
               Object?,
               Object?
             >;

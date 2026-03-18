@@ -20,7 +20,7 @@ class Flag extends StatelessWidget {
         child: CountryFlag.fromCountryCode(
           countryCode,
           theme: ImageTheme(
-            shape: RoundedRectangle(3),
+            shape: RoundedRectangle(4),
             height: size.height,
             width: size.width,
           ),

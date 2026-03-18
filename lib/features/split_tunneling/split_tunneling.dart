@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -18,8 +19,14 @@ class SplitTunneling extends HookConsumerWidget {
     final preferences = ref.watch(appSettingProvider);
     final textTheme = Theme.of(context).textTheme;
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
-    final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
-    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+
+    final enabledApps =
+        (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
+            .toList(growable: false);
+
+    final enabledWebsites =
+        (ref.watch(splitTunnelingWebsitesProvider)).toList(growable: false);
+
     final notifier = ref.read(appSettingProvider.notifier);
 
     void toggleSplitTunneling() {

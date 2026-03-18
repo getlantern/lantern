@@ -8,7 +8,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_window
   flutter_inappwebview_windows
   flutter_timezone
-  objectbox_flutter_libs
   screen_retriever_windows
   sentry_flutter
   share_plus

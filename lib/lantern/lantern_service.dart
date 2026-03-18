@@ -1,8 +1,8 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -13,7 +13,7 @@ import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
-import '../core/common/common.dart';
+import '../core/common/common.dart' hide DeveloperMode;
 import '../core/models/available_servers.dart';
 
 ///LanternService is wrapper around native and ffi services
@@ -648,6 +648,34 @@ class LanternService implements LanternCoreService {
     return _platformService.attachReferralCode(code);
   }
 
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSplitTunnelItems(type);
+    }
+    return _platformService.getSplitTunnelItems(type);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.deletePrivateServerByName(serverName);
+    }
+    return _platformService.deletePrivateServerByName(serverName);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updatePrivateServerName(oldName, newName);
+    }
+    return _platformService.updatePrivateServerName(oldName, newName);
+  }
   @override
   Future<Either<Failure, List<String>>> diagnosticLogFiles() {
     if (!PlatformUtils.isIOS) {

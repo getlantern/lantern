@@ -1,41 +1,87 @@
-import 'package:flutter/services.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
+import 'dart:typed_data';
 
-enum AppDataEventType { snapshot, delta, iconReady, unknown }
+import 'package:lantern/core/utils/app_data_utils.dart';
 
-class AppDataEvent {
-  final AppDataEventType type;
-  final List<AppData> items;
-  final List<String> removed;
+class AppData {
+  final String name;
+  final String bundleId;
+  final Uint8List? iconBytes;
+  final String iconPath;
+  final String appPath;
+  final bool isEnabled;
+  final int lastUpdateTime;
+  final bool removed;
 
-  AppDataEvent({
-    required this.type,
-    required this.items,
-    required this.removed,
+  const AppData({
+    required this.name,
+    required this.bundleId,
+    this.iconBytes,
+    this.iconPath = '',
+    this.appPath = '',
+    this.isEnabled = false,
+    this.lastUpdateTime = 0,
+    this.removed = false,
   });
 
-  factory AppDataEvent.fromMap(Map<dynamic, dynamic> event) {
-    final e = Map<String, dynamic>.from(event);
-    final type = switch ((e['type'] ?? '').toString()) {
-      'snapshot' => AppDataEventType.snapshot,
-      'delta' => AppDataEventType.delta,
-      'icon_ready' => AppDataEventType.iconReady,
-      'iconReady' => AppDataEventType.iconReady,
-      _ => AppDataEventType.unknown,
-    };
-    final rawItems = (e['items'] as List?) ?? const [];
-    final items = rawItems.map((m) => AppData.fromMap(m as Map)).toList();
-    final removedTop =
-        (e['removed'] as List?)?.cast<String>() ?? const <String>[];
-    final removedFromItems =
-        items.where((i) => i.removed).map((i) => i.bundleId);
-
-    return AppDataEvent(
-      type: type,
-      items: items.where((i) => !i.removed).toList(),
-      removed: <String>{...removedTop, ...removedFromItems}
-          .where((s) => s.isNotEmpty)
-          .toList(),
+  AppData copyWith({
+    String? name,
+    String? bundleId,
+    String? iconPath,
+    Uint8List? iconBytes,
+    String? appPath,
+    bool? isEnabled,
+    int? lastUpdateTime,
+    bool? removed,
+  }) {
+    return AppData(
+      name: name ?? this.name,
+      bundleId: bundleId ?? this.bundleId,
+      iconPath: iconPath ?? this.iconPath,
+      iconBytes: iconBytes ?? this.iconBytes,
+      appPath: appPath ?? this.appPath,
+      isEnabled: isEnabled ?? this.isEnabled,
+      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+      removed: removed ?? this.removed,
     );
   }
+
+  String cacheKey(int sizePx, int dpi) => '$bundleId@$sizePx@$dpi';
+
+  factory AppData.fromMap(Map<dynamic, dynamic> raw) {
+    final m = Map<String, dynamic>.from(raw);
+    final bundleId = (m['package'] ?? m['bundleId'] ?? '') as String;
+    final name = (m['label'] ?? m['name'] ?? bundleId).toString();
+
+    return AppData(
+      bundleId: bundleId,
+      name: name,
+      iconPath: (m['iconPath'] as String?) ?? '',
+      appPath: (m['appPath'] as String?) ?? '',
+      iconBytes: iconToBytes(m['icon'] ?? m['iconBytes']),
+      lastUpdateTime: (m['lastUpdateTime'] as num?)?.toInt() ?? 0,
+      removed: m['removed'] == true || m['isRemoved'] == true,
+    );
+  }
+
+  factory AppData.fromJson(Map<String, dynamic> json) => AppData(
+        name: (json['name'] ?? '').toString(),
+        bundleId: (json['bundleId'] ?? json['package'] ?? '').toString(),
+        iconPath: (json['iconPath'] ?? '').toString(),
+        appPath: (json['appPath'] ?? '').toString(),
+        isEnabled: json['isEnabled'] == true,
+        iconBytes: iconToBytes(json['icon'] ?? json['iconBytes']),
+        lastUpdateTime: (json['lastUpdateTime'] as num?)?.toInt() ?? 0,
+        removed: json['removed'] == true || json['isRemoved'] == true,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'bundleId': bundleId,
+        'iconPath': iconPath,
+        'appPath': appPath,
+        'isEnabled': isEnabled,
+        'iconBytes': iconBytes, // or base64 if you serialize across FFI
+        'lastUpdateTime': lastUpdateTime,
+        'removed': removed,
+      };
 }
