@@ -265,8 +265,8 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
-ArchitecturesAllowed=x64 arm64
-ArchitecturesInstallIn64BitMode=x64 arm64
+ArchitecturesAllowed=x64compatible arm64
+ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
 UninstallLogging=yes
 
@@ -318,16 +318,13 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
-function IsWindowsArm64: Boolean;
-begin
-  Result := (Pos('ARM64', UpperCase(GetEnv('PROCESSOR_ARCHITECTURE'))) > 0) or
-            (Pos('ARM64', UpperCase(GetEnv('PROCESSOR_ARCHITEW6432'))) > 0);
-end;
-
 function ServiceExecutablePath(Param: String): String;
+var
+  Arm64ServicePath: String;
 begin
-  if IsWindowsArm64 then
-    Result := ExpandConstant('{app}\arm64\lanternsvc.exe')
+  Arm64ServicePath := ExpandConstant('{app}\arm64\lanternsvc.exe');
+  if IsArm64 and FileExists(Arm64ServicePath) then
+    Result := Arm64ServicePath
   else
     Result := ExpandConstant('{app}\lanternsvc.exe');
 end;
