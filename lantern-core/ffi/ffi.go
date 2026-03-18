@@ -265,23 +265,16 @@ func getAutoLocation() *C.char {
 		return SendError(err)
 	}
 
-	// Use RunOnGoStack to avoid GC write barrier panics when marshalling
-	// pointer-rich Server types on the CGo callback stack.
-	jsonStr, err := utils.RunOnGoStack(func() (string, error) {
-		servers, ok := c.GetServerByTag(location.Lantern)
-		if !ok {
-			return "", fmt.Errorf("error finding server with tag: %s", location.Lantern)
-		}
-		jsonBytes, err := json.Marshal(servers)
-		if err != nil {
-			return "", fmt.Errorf("error marshalling server: %v", err)
-		}
-		return string(jsonBytes), nil
-	})
+	// Use GetServerByTagJSON which marshals internally, avoiding GC write
+	// barrier panics when pointer-rich Server types are copied on the CGo stack.
+	jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 	if err != nil {
-		return SendError(err)
+		return SendError(fmt.Errorf("error marshalling server: %v", err))
 	}
-	return C.CString(jsonStr)
+	if !ok {
+		return SendError(fmt.Errorf("error finding server with tag: %s", location.Lantern))
+	}
+	return C.CString(string(jsonBytes))
 }
 
 // startAutoLocationListener starts the auto location listener.

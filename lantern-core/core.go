@@ -61,6 +61,7 @@ type App interface {
 	GetAvailableServers() []byte
 	MyDeviceId() string
 	GetServerByTag(tag string) (servers.Server, bool)
+	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	StartBackgroundListeners()
@@ -349,7 +350,13 @@ func (lc *LanternCore) StopBackgroundListeners() {
 
 func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
 	return lc.serverManager.GetServerByTag(tag)
+}
 
+// GetServerByTagJSON returns the server for a given tag as pre-marshalled JSON.
+// This is safe to call from CGo callback stacks because the pointer-rich Server
+// types are marshalled here rather than being returned to the caller.
+func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
+	return lc.serverManager.GetServerByTagJSON(tag)
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
@@ -394,21 +401,14 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	// Use RunOnGoStack to avoid GC write barrier panics when called from a
-	// CGo callback stack (gomobile). See utils.RunOnGoStack for details.
-	jsonBytes, err := utils.RunOnGoStack(func() ([]byte, error) {
-		serversList := lc.rad.ServerManager().Servers()
-		b, err := json.Marshal(serversList)
-		if err != nil {
-			return nil, err
-		}
-		slog.Debug("Available servers JSON", "json", string(b))
-		return b, nil
-	})
+	// Use ServersJSON which marshals under the lock, avoiding GC write barrier
+	// panics when pointer-rich sing-box types are copied on a CGo callback stack.
+	jsonBytes, err := lc.rad.ServerManager().ServersJSON()
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
 		return nil
 	}
+	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 

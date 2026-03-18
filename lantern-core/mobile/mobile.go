@@ -237,20 +237,17 @@ func GetAutoLocation() (string, error) {
 		return "", err
 	}
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		// Use RunOnGoStack to avoid GC write barrier panics when marshalling
-		// pointer-rich Server types on the CGo callback stack.
-		return utils.RunOnGoStack(func() (string, error) {
-			servers, ok := c.GetServerByTag(location.Lantern)
-			if !ok {
-				return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
-			}
-			jsonBytes, err := json.Marshal(servers)
-			if err != nil {
-				return "", fmt.Errorf("error marshalling server: %v", err)
-			}
-			slog.Debug("Auto location server:", "server", string(jsonBytes))
-			return string(jsonBytes), nil
-		})
+		// Use GetServerByTagJSON which marshals internally, avoiding GC write
+		// barrier panics when pointer-rich Server types are copied on the CGo stack.
+		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
+		if err != nil {
+			return "", fmt.Errorf("error marshalling server: %v", err)
+		}
+		if !ok {
+			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
+		}
+		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		return string(jsonBytes), nil
 	})
 }
 
