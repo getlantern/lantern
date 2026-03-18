@@ -60,7 +60,6 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	MyDeviceId() string
-	GetServerByTag(tag string) (servers.Server, bool)
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
@@ -231,7 +230,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 func (lc *LanternCore) listeningServerLocationChanges() {
 	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
 		tag := evt.Selections.Lantern
-		servers, ok := lc.GetServerByTag(tag)
+		servers, ok := lc.serverManager.GetServerByTag(tag)
 		if !ok {
 			slog.Error("no server found with tag", "tag", tag)
 			return
@@ -346,10 +345,6 @@ func (lc *LanternCore) StopBackgroundListeners() {
 	listenerManager.cancel()
 	listenerManager.isRunning = false
 	slog.Info("Background listeners stopped")
-}
-
-func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
-	return lc.serverManager.GetServerByTag(tag)
 }
 
 // GetServerByTagJSON returns the server for a given tag as pre-marshalled JSON.
