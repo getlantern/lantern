@@ -408,7 +408,6 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 		slog.Error("Error marshalling servers", "error", err)
 		return nil
 	}
-	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 

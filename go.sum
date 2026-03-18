@@ -285,6 +285,8 @@ github.com/getlantern/radiance v0.0.0-20260318180422-c4fa02d17f13 h1:aynZRulA0EB
 github.com/getlantern/radiance v0.0.0-20260318180422-c4fa02d17f13/go.mod h1:QG9fHG/GresYdPa3Tr5gYeg8yDkE+crdyvg6KXChQdQ=
 github.com/getlantern/radiance v0.0.0-20260318180621-477c01daf997 h1:O0eL5UqFLdp5L3G48Ag0vqcbCkUmM+LdIWPkA/wc3Pk=
 github.com/getlantern/radiance v0.0.0-20260318180621-477c01daf997/go.mod h1:QG9fHG/GresYdPa3Tr5gYeg8yDkE+crdyvg6KXChQdQ=
+github.com/getlantern/radiance v0.0.0-20260318184445-405169da44a4 h1:G4fnbCbFzYnMTy/4EUs7INLcw6djuLwZ7n8PNmaANGM=
+github.com/getlantern/radiance v0.0.0-20260318184445-405169da44a4/go.mod h1:QG9fHG/GresYdPa3Tr5gYeg8yDkE+crdyvg6KXChQdQ=
 github.com/getlantern/samizdat v0.0.3-0.20260310125445-325cf1bd1b60 h1:m9eXjDK9vllbVH467+QXbrxUFFM9Yp7YJ90wZLw4dwU=
 github.com/getlantern/samizdat v0.0.3-0.20260310125445-325cf1bd1b60/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/sing v0.7.18-lantern h1:QKGgIUA3LwmKYP/7JlQTRkxj9jnP4cX2Q/B+nd8XEjo=
