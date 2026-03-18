@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime/debug"
 	"sync/atomic"
 
 	_ "golang.org/x/mobile/bind"
@@ -18,32 +17,6 @@ import (
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
-
-// runOffCgoStack executes fn on a new goroutine and returns its result.
-// Gomobile-exported functions run on a CGo callback stack whose memory isn't
-// covered by the GC heap bitmap. When the gomobile-generated wrapper copies Go
-// pointer-containing return values to the C thread stack, bulkBarrierPreWrite
-// can panic. Running the body on a real Go goroutine avoids this entirely.
-func runOffCgoStack[T any](fn func() (T, error)) (T, error) {
-	type result struct {
-		val T
-		err error
-	}
-	ch := make(chan result, 1)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				slog.Error("panic in runOffCgoStack", "panic", r, "stack", string(debug.Stack()))
-				var zero T
-				ch <- result{val: zero, err: fmt.Errorf("panic: %v", r)}
-			}
-		}()
-		v, err := fn()
-		ch <- result{val: v, err: err}
-	}()
-	r := <-ch
-	return r.val, r.err
-}
 
 var (
 	lanternCore        atomic.Value
@@ -249,7 +222,7 @@ func StopAutoLocationListener() error {
 // stack — the gomobile-generated wrapper copies Go pointer-containing return
 // values to the C thread stack, whose memory the GC heap bitmap doesn't cover.
 func GetAvailableServers() ([]byte, error) {
-	return runOffCgoStack(func() ([]byte, error) {
+	return common.RunOffCgoStack(func() ([]byte, error) {
 		return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 	})
 }
@@ -263,7 +236,7 @@ func GetSelectedServer() string {
 }
 
 func GetAutoLocation() (string, error) {
-	return runOffCgoStack(func() (string, error) {
+	return common.RunOffCgoStack(func() (string, error) {
 		location, err := vpn_tunnel.GetAutoLocation()
 		if err != nil {
 			return "", err
