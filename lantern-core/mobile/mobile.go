@@ -218,13 +218,8 @@ func StopAutoLocationListener() error {
 }
 
 // GetAvailableServers returns the available servers in JSON format.
-// Runs on a goroutine to avoid GC write barrier panics on the CGo callback
-// stack — the gomobile-generated wrapper copies Go pointer-containing return
-// values to the C thread stack, whose memory the GC heap bitmap doesn't cover.
 func GetAvailableServers() ([]byte, error) {
-	return common.RunOffCgoStack(func() ([]byte, error) {
-		return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
-	})
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
 
 func IsVPNConnected() bool {
@@ -236,22 +231,20 @@ func GetSelectedServer() string {
 }
 
 func GetAutoLocation() (string, error) {
-	return common.RunOffCgoStack(func() (string, error) {
-		location, err := vpn_tunnel.GetAutoLocation()
+	location, err := vpn_tunnel.GetAutoLocation()
+	if err != nil {
+		return "", err
+	}
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error marshalling server: %v", err)
 		}
-		return withCoreR(func(c lanterncore.Core) (string, error) {
-			jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
-			if err != nil {
-				return "", fmt.Errorf("error marshalling server: %v", err)
-			}
-			if !ok {
-				return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
-			}
-			slog.Debug("Auto location server:", "server", string(jsonBytes))
-			return string(jsonBytes), nil
-		})
+		if !ok {
+			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
+		}
+		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		return string(jsonBytes), nil
 	})
 }
 
