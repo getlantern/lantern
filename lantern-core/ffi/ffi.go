@@ -265,31 +265,23 @@ func getAutoLocation() *C.char {
 		return SendError(err)
 	}
 
-	// Run on a dedicated goroutine to avoid GC write barrier panics when
-	// marshalling pointer-rich Server types on the CGo callback stack.
-	type result struct {
-		json string
-		err  error
-	}
-	ch := make(chan result, 1)
-	go func() {
+	// Use RunOnGoStack to avoid GC write barrier panics when marshalling
+	// pointer-rich Server types on the CGo callback stack.
+	jsonStr, err := utils.RunOnGoStack(func() (string, error) {
 		servers, ok := c.GetServerByTag(location.Lantern)
 		if !ok {
-			ch <- result{err: fmt.Errorf("error finding server with tag: %s", location.Lantern)}
-			return
+			return "", fmt.Errorf("error finding server with tag: %s", location.Lantern)
 		}
 		jsonBytes, err := json.Marshal(servers)
 		if err != nil {
-			ch <- result{err: fmt.Errorf("error marshalling server: %v", err)}
-			return
+			return "", fmt.Errorf("error marshalling server: %v", err)
 		}
-		ch <- result{json: string(jsonBytes)}
-	}()
-	r := <-ch
-	if r.err != nil {
-		return SendError(r.err)
+		return string(jsonBytes), nil
+	})
+	if err != nil {
+		return SendError(err)
 	}
-	return C.CString(r.json)
+	return C.CString(jsonStr)
 }
 
 // startAutoLocationListener starts the auto location listener.

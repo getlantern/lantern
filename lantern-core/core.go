@@ -394,23 +394,22 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	// Run on a dedicated goroutine to avoid GC write barrier panics when this
-	// is called from a CGo callback stack (gomobile). The Servers() return
-	// value contains pointer-rich types whose copy triggers bulkBarrierPreWrite
-	// on the C stack, which the GC bitmap doesn't cover.
-	ch := make(chan []byte, 1)
-	go func() {
+	// Use RunOnGoStack to avoid GC write barrier panics when called from a
+	// CGo callback stack (gomobile). See utils.RunOnGoStack for details.
+	jsonBytes, err := utils.RunOnGoStack(func() ([]byte, error) {
 		serversList := lc.rad.ServerManager().Servers()
-		jsonBytes, err := json.Marshal(serversList)
+		b, err := json.Marshal(serversList)
 		if err != nil {
-			slog.Error("Error marshalling servers", "error", err)
-			ch <- nil
-			return
+			return nil, err
 		}
-		slog.Debug("Available servers JSON", "json", string(jsonBytes))
-		ch <- jsonBytes
-	}()
-	return <-ch
+		slog.Debug("Available servers JSON", "json", string(b))
+		return b, nil
+	})
+	if err != nil {
+		slog.Error("Error marshalling servers", "error", err)
+		return nil
+	}
+	return jsonBytes
 }
 
 // LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
