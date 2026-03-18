@@ -5,9 +5,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:ffi/ffi.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:win32/win32.dart';
-import 'package:ffi/ffi.dart';
 
 class PipeClient {
   PipeClient({

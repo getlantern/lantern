@@ -13,7 +13,7 @@ part of 'apps_notifier.dart';
 final splitTunnelingAppsProvider = SplitTunnelingAppsProvider._();
 
 final class SplitTunnelingAppsProvider
-    extends $NotifierProvider<SplitTunnelingApps, Set<AppData>> {
+    extends $AsyncNotifierProvider<SplitTunnelingApps, Set<AppData>> {
   SplitTunnelingAppsProvider._()
     : super(
         from: null,
@@ -31,30 +31,22 @@ final class SplitTunnelingAppsProvider
   @$internal
   @override
   SplitTunnelingApps create() => SplitTunnelingApps();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Set<AppData> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Set<AppData>>(value),
-    );
-  }
 }
 
 String _$splitTunnelingAppsHash() =>
-    r'5d1b87f4a0770f12c8858b1291eb69f6d4c40877';
+    r'1ac6edd52bfdfd089e6c5e557699f8170e3dc00a';
 
-abstract class _$SplitTunnelingApps extends $Notifier<Set<AppData>> {
-  Set<AppData> build();
+abstract class _$SplitTunnelingApps extends $AsyncNotifier<Set<AppData>> {
+  FutureOr<Set<AppData>> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<Set<AppData>, Set<AppData>>;
+    final ref = this.ref as $Ref<AsyncValue<Set<AppData>>, Set<AppData>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<Set<AppData>, Set<AppData>>,
-              Set<AppData>,
+              AnyNotifier<AsyncValue<Set<AppData>>, Set<AppData>>,
+              AsyncValue<Set<AppData>>,
               Object?,
               Object?
             >;

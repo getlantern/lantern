@@ -929,3 +929,79 @@ func isSmartRoutingEnabled() C.int {
 	}
 	return 0
 }
+
+//export getSplitTunnelState
+func getSplitTunnelState() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.GetSplitTunnelStateJSON()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export getSplitTunnelItems
+func getSplitTunnelItems(filterTypeC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	filterType := C.GoString(filterTypeC)
+	s, err := c.GetSplitTunnelItems(filterType)
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}
+
+//export deletePrivateServerByName
+func deletePrivateServerByName(_name *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	name := C.GoString(_name)
+	if err := c.DeleteServer(name); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export updatePrivateServerName
+func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	oldName := C.GoString(_oldName)
+	newName := C.GoString(_newName)
+	if err := c.UpdatePrivateServerName(oldName, newName); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export getAppDataDir
+func getAppDataDir() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(c.GetAppDataDir())
+}
+
+//export getEnabledApps
+func getEnabledApps() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	s, err := c.GetEnabledApps()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(s)
+}

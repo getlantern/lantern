@@ -90,7 +90,8 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
     AddServerBasedOnURLs("addServerBasedOnURLs"),
-
+    DeletePrivateServerByName("deletePrivateServerByName"),
+    UpdatePrivateServerName("updatePrivateServerName"),
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
@@ -103,6 +104,8 @@ enum class Methods(val method: String) {
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
     AddAllItems("addAllItems"),
     RemoveAllItems("removeAllItems"),
+    GetSplitTunnelItems("getSplitTunnelItems"),
+    GetSplitTunnelState("getSplitTunnelState"),
     InstalledApps("installedApps"),
     GetAppIcon("getAppIcon"),
 
@@ -930,6 +933,66 @@ class MethodHandler : FlutterPlugin,
                             e.localizedMessage ?: "Error while activating Digital Ocean",
                             e
                         )
+                    }
+                }
+            }
+
+            Methods.DeletePrivateServerByName.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val name = call.arguments as String? ?: error("Missing serverName")
+                        Mobile.deletePrivateServerByName(name)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DELETE_PRIVATE_SERVER_ERROR",
+                            e.localizedMessage ?: "Error deleting private server",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.UpdatePrivateServerName.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val oldName = call.argument<String>("oldName") ?: error("Missing oldName")
+                        val newName = call.argument<String>("newName") ?: error("Missing newName")
+                        Mobile.updatePrivateServerName(oldName, newName)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "UPDATE_PRIVATE_SERVER_NAME_ERROR",
+                            e.localizedMessage ?: "Error updating private server name",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.GetSplitTunnelItems.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val json = Mobile.getSplitTunnelItems(filterType)
+                        withContext(Dispatchers.Main) { success(json) }
+                    }.onFailure { e ->
+                        result.error("GET_SPLIT_TUNNEL_ITEMS_ERROR", e.localizedMessage ?: "Failed to get split tunnel items", e)
+                    }
+                }
+            }
+
+            Methods.GetSplitTunnelState.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val json = Mobile.getSplitTunnelStateJSON()
+                        withContext(Dispatchers.Main) { success(json) }
+                    }.onFailure { e ->
+                        result.error("GET_SPLIT_TUNNEL_STATE_ERROR", e.localizedMessage ?: "Failed to get split tunnel state", e)
                     }
                 }
             }

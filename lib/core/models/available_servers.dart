@@ -1,28 +1,37 @@
 class AvailableServers {
   Lantern lantern;
+  Lantern user;
 
   AvailableServers({
     required this.lantern,
+    required this.user,
   });
 
   factory AvailableServers.fromJson(Map<String, dynamic> json) =>
       AvailableServers(
         lantern: Lantern.fromJson(
             (json["lantern"] as Map<String, dynamic>?) ?? const {}),
+        user: Lantern.fromJson(
+            (json["user"] as Map<String, dynamic>?) ?? const {}),
       );
 
-  Map<String, dynamic> toJson() => {"lantern": lantern.toJson()};
+  Map<String, dynamic> toJson() => {
+        "lantern": lantern.toJson(),
+        "user": user.toJson(),
+      };
 }
 
 class Lantern {
   List<Endpoint> endpoints;
   List<Endpoint> outbounds;
   Map<String, Location_> locations;
+  Map<String, ServerCredential> credentials;
 
   Lantern({
     required this.endpoints,
     required this.outbounds,
     required this.locations,
+    required this.credentials,
   });
 
   factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
@@ -39,8 +48,18 @@ class Lantern {
             : Map<String, Location_>.from(
                 (json["locations"] as Map<String, dynamic>).map(
                   (k, v) => MapEntry(
-                    k as String,
+                    k,
                     Location_.fromJson(v as Map<String, dynamic>)..tag = k,
+                  ),
+                ),
+              ),
+        credentials: json["credentials"] == null
+            ? <String, ServerCredential>{}
+            : Map<String, ServerCredential>.from(
+                (json["credentials"] as Map<String, dynamic>).map(
+                  (k, v) => MapEntry(
+                    k,
+                    ServerCredential.fromJson(v as Map<String, dynamic>),
                   ),
                 ),
               ),
@@ -49,26 +68,60 @@ class Lantern {
   Map<String, dynamic> toJson() => {
         "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
         "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
+        "credentials": credentials.map((k, v) => MapEntry(k, v.toJson())),
+      };
+}
+
+class ServerCredential {
+  String accessToken;
+  bool isJoined;
+  String port;
+
+  ServerCredential({
+    required this.accessToken,
+    required this.isJoined,
+    required this.port,
+  });
+
+  factory ServerCredential.fromJson(Map<String, dynamic> json) =>
+      ServerCredential(
+        accessToken: json["access_token"] ?? '',
+        isJoined: json["isJoined"] ?? false,
+        port: json["port"]?.toString() ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        "access_token": accessToken,
+        "isJoined": isJoined,
+        "port": port,
       };
 }
 
 class Endpoint {
   String type;
   String tag;
+  String server;
+  String serverPort;
 
   Endpoint({
     required this.type,
     required this.tag,
+    required this.server,
+    required this.serverPort,
   });
 
   factory Endpoint.fromJson(Map<String, dynamic> json) => Endpoint(
-        type: json["type"],
-        tag: json["tag"],
-      );
+      type: json["type"],
+      tag: json["tag"],
+      server: json["server"] ?? '',
+      serverPort:
+          json["server_port"] == null ? "" : json["server_port"].toString());
 
   Map<String, dynamic> toJson() => {
         "type": type,
         "tag": tag,
+        "server": server,
+        "server_port": serverPort,
       };
 }
 

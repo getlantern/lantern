@@ -2,7 +2,6 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,10 +10,9 @@ import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
+import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -23,6 +21,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
+import '../services/local_storage_service.dart';
 import '../utils/store_utils.dart';
 
 export 'package:lantern/core/common/app_asset.dart';
@@ -51,8 +50,6 @@ export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/localization/i18n.dart';
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
-// DB
-export 'package:lantern/core/services/local_storage.dart';
 //Logger
 export 'package:lantern/core/services/logger_service.dart';
 export 'package:lantern/core/utils/failure.dart';
@@ -79,8 +76,10 @@ String generatePassword() {
   const allChars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789!@#\$%^&*()-=+{};:,<.>/?';
   final random = Random.secure();
-  return List.generate(8, (i) => allChars[random.nextInt(allChars.length)])
-      .join();
+  return List.generate(
+    8,
+    (i) => allChars[random.nextInt(allChars.length)],
+  ).join();
 }
 
 bool isStoreVersion() {
@@ -90,13 +89,17 @@ bool isStoreVersion() {
   if (PlatformUtils.isIOS) {
     return true;
   }
-  if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
-    final setting = sl<LocalStorageService>().getDeveloperSetting();
-    if (setting != null) {
-      return setting.testPlayPurchaseEnabled;
+  try {
+    if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
+      final devMode = sl<LocalStorageService>().getDeveloperMode();
+      return devMode?.testPlayPurchaseEnabled ??
+          !sl<StoreUtils>().isSideLoaded();
     }
+  } catch (e) {
+    appLogger.error("Error checking store version: $e");
     return !sl<StoreUtils>().isSideLoaded();
   }
+
   return !sl<StoreUtils>().isSideLoaded();
 }
 
@@ -119,7 +122,7 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
   final delays = [
     Duration(seconds: 1),
     Duration(seconds: 2),
-    Duration(seconds: 3)
+    Duration(seconds: 3),
   ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
@@ -153,13 +156,16 @@ void hideKeyboard() {
 }
 
 void sharePrivateAccessKey(
-    PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
+  PrivateServer server,
+  Map<String, dynamic> tokenPayload,
+) {
   final expirationDate = tokenPayload['exp'].toString();
   final aliasName = tokenPayload['sub'];
   final uri = Uri(
     scheme: 'https',
-    host: Uri.parse(AppUrls.lanternOfficial)
-        .host, // ensures host is parsed correctly
+    host: Uri.parse(
+      AppUrls.lanternOfficial,
+    ).host, // ensures host is parsed correctly
     path: '/private-server',
     queryParameters: {
       'ip': server.externalIp,
@@ -193,8 +199,8 @@ String getReferralMessage(String planId) {
 }
 
 /// Initial server location set to auto (fastest server)
-ServerLocationEntity initialServerLocation() {
-  return ServerLocationEntity(
+ServerLocation initialServerLocation() {
+  return ServerLocation(
     serverName: '',
     serverType: ServerLocationType.auto.name,
     country: '',
@@ -202,7 +208,7 @@ ServerLocationEntity initialServerLocation() {
     displayName: 'Smart Location',
     protocol: '',
     countryCode: '',
-    autoLocationParam: AutoLocationEntity(
+    autoLocation: AutoLocation(
       country: '',
       countryCode: '',
       displayName: ('fastest_server'.i18n),

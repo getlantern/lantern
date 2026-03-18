@@ -23,10 +23,6 @@ PODS:
   - mobile_scanner (7.0.0):
     - Flutter
     - FlutterMacOS
-  - ObjectBox (5.2.0)
-  - objectbox_flutter_libs (0.0.1):
-    - Flutter
-    - ObjectBox (= 5.2.0)
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
@@ -115,7 +111,6 @@ DEPENDENCIES:
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
-  - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -126,7 +121,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
-    - ObjectBox
     - OrderedSet
     - Sentry
     - Stripe
@@ -158,8 +152,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   mobile_scanner:
     :path: ".symlinks/plugins/mobile_scanner/darwin"
-  objectbox_flutter_libs:
-    :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   sentry_flutter:
@@ -185,8 +177,6 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  ObjectBox: 946c1e8586aaa61e21b6661bab4948d06fdd51c4
-  objectbox_flutter_libs: d9d54d064d119984b47add47fee13dab11ce1743
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7

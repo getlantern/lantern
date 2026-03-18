@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
@@ -25,10 +25,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
-    final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final allApps = (ref.watch(appsDataProvider).value ?? [])
 
-        // Only filter apps with icons on Android and iOS; Windows support may lack icons.
+    final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
+    final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
+
+    final allApps = (ref.watch(appsDataProvider).value ?? const <AppData>[])
         .where((a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
             : true)
@@ -43,6 +44,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledIds = enabledApps.map(stableAppId).toSet();
     final filteredEnabled = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.compareTo(b.name));
+
     final filteredDisabled = allApps
         .where((a) => !enabledIds.contains(stableAppId(a)))
         .where(matchesSearch)
@@ -205,7 +207,7 @@ class AppRow extends HookConsumerWidget {
     }
 
     return SizedBox(
-      height: 54.h,
+      height: 44.h,
       child: Row(
         children: [
           Expanded(

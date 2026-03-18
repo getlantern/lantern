@@ -5,8 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/app_setting_entity.dart';
-import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -17,49 +18,48 @@ part 'app_setting_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
-  late final LocalStorageService _db;
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   AppSetting build() {
-    _db = sl<LocalStorageService>();
-    final setting = _db.getAppSetting();
-
-    if (setting != null && setting.locale.isNotEmpty) {
-      updateToolbarThemeMode();
-      return setting;
-    }
-    // First-time user → use device locale
-    // First-time user or DB was wiped after env switch → use device locale
-    final fallback = _detectDeviceLocale();
-    final initial = AppSetting(locale: fallback.toString());
-    _db.updateAppSetting(initial);
-    updateToolbarThemeMode();
-    _detectEnvironmentFromFile();
-    return initial;
+    final settings = _fetchStoredSettings();
+    unawaited(_applyDesktopBrightness(resolveThemeMode(settings.themeMode)));
+    unawaited(_detectEnvironmentFromFile());
+    return settings;
   }
 
-  void updateToolbarThemeMode() {
-    final setting = _db.getAppSetting();
-    final mode = setting?.themeMode ?? 'system';
-    unawaited(_applyDesktopBrightness(resolveThemeMode(mode)));
+  /// Reads app settings from local storage. Returns stored settings if found
+  /// and valid, otherwise initializes and returns defaults.
+  AppSetting _fetchStoredSettings() {
+    final fallback = AppSetting(locale: _detectDeviceLocale().toString());
+    final settings = _storage.getAppSettings();
+
+    if (settings == null) {
+      appLogger.info(
+          'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}');
+      unawaited(_storage.saveAppSettings(fallback));
+      return fallback;
+    }
+
+    appLogger
+        .info('Loaded stored app settings: ${_settingsLogFields(settings)}');
+    return settings;
   }
 
   Future<void> update(AppSetting updated) async {
+    appLogger.info('Updating app settings: ${_settingsLogFields(updated)}');
     state = updated;
-    _db.updateAppSetting(updated);
+    await _storage.saveAppSettings(updated);
   }
 
-  void togglePro(bool value) {
-    update(state.copyWith(newPro: value));
-  }
+  void togglePro(bool value) => update(state.copyWith(newPro: value));
 
   void setLocale(String locale) {
     update(state.copyWith(newLocale: locale));
   }
 
-  void toggleSplitTunneling(bool value) {
-    update(state.copyWith(newIsSpiltTunnelingOn: value));
-  }
+  void toggleSplitTunneling(bool value) =>
+      update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
     final prev = state.routingModeRaw;
@@ -77,21 +77,17 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return res;
   }
 
-  void setUserLoggedIn(bool value) {
-    update(state.copyWith(userLoggedIn: value));
-  }
+  void setUserLoggedIn(bool value) =>
+      update(state.copyWith(userLoggedIn: value));
 
   void setOAuthTokenAndProvider(String token, String provider) {
     update(state.copyWith(oAuthToken: token, oAuthLoginProvider: provider));
   }
 
-  void setEmail(String email) {
-    update(state.copyWith(email: email));
-  }
+  void setEmail(String email) => update(state.copyWith(email: email));
 
-  void setSuccessfulConnection(bool value) {
-    update(state.copyWith(successfulConnection: value));
-  }
+  void setSuccessfulConnection(bool value) =>
+      update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
     final prev = state.blockAds;
@@ -111,21 +107,17 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     updateTelemetryConsent(value);
   }
 
-  void updateDataCapThreshold(String threshold) {
-    update(state.copyWith(dataCapThreshold: threshold));
-  }
+  void updateDataCapThreshold(String threshold) =>
+      update(state.copyWith(dataCapThreshold: threshold));
 
-  void setSplashScreen(bool value) {
-    update(state.copyWith(showSplashScreen: value));
-  }
+  void setSplashScreen(bool value) =>
+      update(state.copyWith(showSplashScreen: value));
 
-  void setShowTelemetryDialog(bool value) {
-    update(state.copyWith(showTelemetryDialog: value));
-  }
+  void setShowTelemetryDialog(bool value) =>
+      update(state.copyWith(showTelemetryDialog: value));
 
-  void setOnboardingCompleted(bool value) {
-    update(state.copyWith(onboardingCompleted: value));
-  }
+  void setOnboardingCompleted(bool value) =>
+      update(state.copyWith(onboardingCompleted: value));
 
   void setThemeMode(String mode) {
     update(state.copyWith(themeMode: mode));
@@ -134,6 +126,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void syncDesktopBrightnessFromCurrentTheme() {
     unawaited(_applyDesktopBrightness(resolveThemeMode(state.themeMode)));
+  }
+
+  Locale _detectDeviceLocale() {
+    final deviceLocale = PlatformDispatcher.instance.locale;
+    return deviceLocale.languageCode == 'en'
+        ? const Locale('en', 'US')
+        : deviceLocale;
   }
 
   Future<void> _applyDesktopBrightness(ThemeMode mode) async {
@@ -157,38 +156,26 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   Future<void> setEnvironment(bool isStaging) async {
     final env = isStaging ? 'stage' : 'prod';
     update(state.copyWith(environment: env));
-    final dir = await AppStorageUtils.getAppDirectory();
-    sl<LocalStorageService>().close();
 
-    /// Delete and recreate the directory
+    final dir = await AppStorageUtils.getAppDirectory();
     if (dir.existsSync()) {
       await dir.delete(recursive: true);
     }
     await dir.create(recursive: true);
+    sl<LocalStorageService>().deleteAll();
 
-    /// Create .radiance_env file only in staging
     if (isStaging) {
       final file = File('${dir.path}/.radiance_env');
       await file.create();
     }
+    appLogger.info('Environment set to: $env');
   }
 
-  /// Check if .radiance_env file exists in the app directory.
-  /// This file survives the directory wipe because setEnvironment
-  /// recreates it after deleting the directory.
   Future<void> _detectEnvironmentFromFile() async {
     final dir = await AppStorageUtils.getAppDirectory();
     final envFile = File('${dir.path}/.radiance_env');
     final env = envFile.existsSync() ? 'stage' : 'prod';
-    appLogger.info('Detected environment from file: $env');
     update(state.copyWith(environment: env));
-  }
-
-  Locale _detectDeviceLocale() {
-    final deviceLocale = PlatformDispatcher.instance.locale;
-    return deviceLocale.languageCode == 'en'
-        ? const Locale('en', 'US')
-        : deviceLocale;
   }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
@@ -210,40 +197,32 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     result.fold(
       (err) {
-        ///if fail revert the state
-        update(state.copyWith(telemetryConsent: consent ? false : true));
+        /// if fail revert the state
+        update(state.copyWith(telemetryConsent: !consent));
         appLogger.error('updateTelemetryEvents failed: ${err.error}');
       },
       (_) {
         appLogger.info('Telemetry consent updated: $consent');
-        if (Platform.isWindows) {
-          appLogger.info("No need to create telemetry file on Windows");
-          return;
-        }
-        if (consent) {
-          enableTelemetry();
-        } else {
-          disableTelemetry();
-        }
       },
     );
   }
 
-  ///Internal method to create a file that indicates telemetry is enabled
-  Future<void> enableTelemetry() async {
-    final dir = await AppStorageUtils.getAppDirectory();
-    final file = File('${dir.path}/.telemetry_enabled');
-    if (!file.existsSync()) {
-      await file.create(recursive: true);
-    }
-  }
-
-  ///Internal method to delete the file that indicates telemetry is disabled
-  Future<void> disableTelemetry() async {
-    final dir = await AppStorageUtils.getAppDirectory();
-    final file = File('${dir.path}/.telemetry_enabled');
-    if (file.existsSync()) {
-      await file.delete();
-    }
-  }
+  Map<String, Object> _settingsLogFields(AppSetting setting) => {
+        'isPro': setting.isPro,
+        'isSplitTunnelingOn': setting.isSplitTunnelingOn,
+        'themeMode': setting.themeMode,
+        'environment': setting.environment,
+        'locale': setting.locale,
+        'userLoggedIn': setting.userLoggedIn,
+        'blockAds': setting.blockAds,
+        'showSplashScreen': setting.showSplashScreen,
+        'telemetryDialogDismissed': setting.telemetryDialogDismissed,
+        'telemetryConsent': setting.telemetryConsent,
+        'successfulConnection': setting.successfulConnection,
+        'routingModeRaw': setting.routingModeRaw,
+        'dataCapThreshold': setting.dataCapThreshold,
+        'onboardingCompleted': setting.onboardingCompleted,
+        'hasOAuthToken': setting.oAuthToken.isNotEmpty,
+        'hasEmail': setting.email.isNotEmpty,
+      };
 }

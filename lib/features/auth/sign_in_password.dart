@@ -47,8 +47,8 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               SizedBox(height: defaultSize),
               AppTextField(
                 hintText: '',
-                autofocus: true,
                 controller: passwordController,
+                autofocus: true,
                 autofillHints: [AutofillHints.password],
                 prefixIcon: AppImagePaths.lock,
                 label: 'enter_password'.i18n,

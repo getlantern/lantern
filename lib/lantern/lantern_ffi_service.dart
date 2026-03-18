@@ -8,15 +8,15 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
-import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -29,7 +29,6 @@ import 'package:path/path.dart' as p;
 import '../core/models/available_servers.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
-import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -182,10 +181,7 @@ class LanternFFIService implements LanternCoreService {
       int consent = 0;
       String env = await _radianceEnv();
       try {
-        final appSetting = sl<LocalStorageService>().getAppSetting();
-        if (appSetting != null) {
-          consent = appSetting.telemetryConsent ? 1 : 0;
-        }
+        // Telemetry consent can be forwarded here when needed.
       } catch (_) {
         appLogger.warning(
           'No app setting found, defaulting telemetry consent to false',
@@ -320,8 +316,10 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<List<AppData>> appsDataStream() async* {
     try {
-      final String dataDir = (await AppStorageUtils.getAppDirectory()).path;
-      final String json = await runInBackground<String>(() async {
+      // Installed apps still loaded from Go (already is)
+      final String dataDir = (_ffiService.getAppDataDir().toDartString());
+
+      final String jsonApps = await runInBackground<String>(() async {
         final ptr = dataDir.toNativeUtf8();
         try {
           return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
@@ -330,43 +328,41 @@ class LanternFFIService implements LanternCoreService {
         }
       });
 
-      if (json.isEmpty) {
-        appLogger.debug("No installed apps found");
+      if (jsonApps.isEmpty) {
         yield [];
         return;
       }
 
-      appLogger.debug("Loaded installed apps");
-      final decoded = jsonDecode(json) as List<dynamic>;
-      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+      // Enabled apps from Go (NOT LocalStorage)
+      final enabledJson = await runInBackground<String>(() async {
+        return _ffiService.getEnabledApps().toDartString();
+      });
+      checkAPIError(enabledJson);
+
+      final enabledKeys =
+          (jsonDecode(enabledJson) as List).cast<String>().toSet();
+
+      final decoded = jsonDecode(jsonApps) as List<dynamic>;
       final rawApps = decoded.cast<Map<String, dynamic>>();
-      yield _mapToAppData(rawApps, enabled);
+
+      yield rawApps.map((raw) {
+        final name = (raw["name"] as String? ?? "").trim();
+        final bundleId = (raw["bundleId"] as String? ?? "").trim();
+        final key = bundleId.isNotEmpty ? bundleId : name;
+
+        return AppData(
+          name: name,
+          bundleId: bundleId,
+          appPath: raw["appPath"] as String? ?? '',
+          iconPath: raw["iconPath"] as String? ?? '',
+          iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+          isEnabled: enabledKeys.contains(key),
+        );
+      }).toList();
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];
     }
-  }
-
-  List<AppData> _mapToAppData(
-    Iterable<Map<String, dynamic>> rawApps,
-    EnabledAppsSnapshot enabled,
-  ) {
-    return rawApps.map((raw) {
-      final name = (raw["name"] as String? ?? "").trim();
-      final bundleId = (raw["bundleId"] as String? ?? "").trim();
-
-      final key = bundleId.isNotEmpty ? bundleId : name;
-      final isEnabled = enabled.contains(key: key, name: name);
-
-      return AppData(
-        name: name,
-        bundleId: bundleId,
-        appPath: raw["appPath"] as String? ?? '',
-        iconPath: raw["iconPath"] as String? ?? '',
-        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
-        isEnabled: isEnabled,
-      );
-    }).toList();
   }
 
   // Split tunneling
@@ -737,6 +733,16 @@ class LanternFFIService implements LanternCoreService {
       return right(connected);
     } catch (e) {
       return Left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> _okOrFailureFromString(String result) async {
+    try {
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('FFI call returned error', e, st);
+      return left(e.toFailure());
     }
   }
 
@@ -1310,6 +1316,55 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
+    try {
+      final namePtr = name.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .deletePrivateServerByName(namePtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(namePtr);
+      }
+    } catch (e, st) {
+      appLogger.error('deletePrivateServerByName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) async {
+    try {
+      final oldPtr = oldName.toNativeUtf8();
+      final newPtr = newName.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .updatePrivateServerName(oldPtr.cast<Char>(), newPtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(oldPtr);
+        malloc.free(newPtr);
+      }
+    } catch (e, st) {
+      appLogger.error('updatePrivateServerName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final result = await runInBackground<String>(() async {
@@ -1331,26 +1386,28 @@ class LanternFFIService implements LanternCoreService {
       });
       checkAPIError(result);
       final servers = AvailableServers.fromJson(jsonDecode(result));
-      final outboundsByTag = {
-        for (var outbound in servers.lantern.outbounds)
-          outbound.tag: outbound.type,
-      };
-
-      servers.lantern.locations.forEach((key, value) {
-        final protoValue = outboundsByTag[key];
-        if (protoValue != null) {
-          value.protocol = protoValue;
-        } else {
-          try {
-            // If not found, try to extract from tag.
-            value.protocol = value.tag.split('-').first;
-          } catch (_) {
-            // If anything goes wrong, just leave it blank.
-            value.protocol = '';
+      void applyProtocols(Lantern lantern) {
+        final outboundsByTag = {
+          for (var outbound in lantern.outbounds) outbound.tag: outbound.type,
+        };
+        lantern.locations.forEach((key, value) {
+          final protoValue = outboundsByTag[key];
+          if (protoValue != null) {
+            value.protocol = protoValue;
+          } else {
+            try {
+              // If not found, try to extract from tag.
+              value.protocol = value.tag.split('-').first;
+            } catch (_) {
+              // If anything goes wrong, just leave it blank.
+              value.protocol = '';
+            }
           }
-        }
-      });
+        });
+      }
 
+      applyProtocols(servers.lantern);
+      applyProtocols(servers.user);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error('Error getting available servers', e, stackTrace);
@@ -1510,6 +1567,40 @@ class LanternFFIService implements LanternCoreService {
   ) {
     // TODO: implement removeAllItems
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .getSplitTunnelItems(type.value.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+
+      if (result.trim().isEmpty) {
+        return right(<String>[]);
+      }
+
+      final decoded = jsonDecode(result);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
+
+      final items = decoded
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+
+      return right(items);
+    } catch (e, st) {
+      appLogger.error('getSplitTunnelItems failed', e, st);
+      return left(e.toFailure());
+    }
   }
 
   @override

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
@@ -21,8 +20,9 @@ class Account extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appSettings = ref.watch(appSettingProvider);
+
     return BaseScreen(
-      title: ''.i18n,
+      title: 'account'.i18n,
       appBar: CustomAppBar(
         title: Text(
           'account'.i18n,
@@ -41,12 +41,12 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user = sl<LocalStorageService>().getUser();
+    final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
     final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
     final isUserFree = !isExpired && !isPro;
-    final theme = Theme.of(buildContext).textTheme;
+    final theme = TextTheme.of(buildContext);
 
     return SafeArea(
       child: Column(
@@ -272,7 +272,7 @@ class Account extends HookConsumerWidget {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
-      final oldUser = sl<LocalStorageService>().getUser()!;
+      final oldUser = ref.read(homeProvider).value!;
       final lanternService = ref.read(lanternServiceProvider);
       final notifier = ref.read(homeProvider.notifier);
 
@@ -382,7 +382,7 @@ class Account extends HookConsumerWidget {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: context.textSecondary,
+              color: context.textPrimary,
             ),
           ),
         ],

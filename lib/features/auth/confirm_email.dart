@@ -4,8 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide BackButton;
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -42,9 +40,7 @@ class ConfirmEmail extends HookConsumerWidget {
         title: '',
         appBar: CustomAppBar(
           title: Text('confirm_email'.i18n),
-          leading: BackButton(
-            onPressed: () => onBackPresses(ref, context),
-          ),
+          leading: BackButton(onPressed: () => onBackPresses(ref, context)),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +50,7 @@ class ConfirmEmail extends HookConsumerWidget {
               child: Text(
                 'confirm_email_code'.i18n,
                 style: textTheme.labelLarge?.copyWith(
-                  color: context.textSecondary,
+                  color: context.textPrimary,
                   fontSize: 14.sp,
                 ),
               ),
@@ -90,10 +86,9 @@ class ConfirmEmail extends HookConsumerWidget {
             Center(
               child: AppTextButton(
                 label: 'resend_email'.i18n,
-                textColor: context.textPrimary,
                 onPressed: () => onResendEmail(context, ref),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -118,10 +113,13 @@ class ConfirmEmail extends HookConsumerWidget {
       appRouter.pop();
       return;
     }
-    appLogger
-        .info('Back button pressed in ConfirmEmail screen Deleting account');
-    assert(password != null,
-        'Password must be provided to delete account on back press');
+    appLogger.info(
+      'Back button pressed in ConfirmEmail screen Deleting account',
+    );
+    assert(
+      password != null,
+      'Password must be provided to delete account on back press',
+    );
     context.showLoadingDialog();
 
     /// This back-press deletion is part of the email/password signup flow,
@@ -162,13 +160,15 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         completeChangeEmail(context, ref, code);
       case AuthFlow.renewSubscription:
-        // TODO: Handle this case.
         throw UnimplementedError();
     }
   }
 
   Future<void> completeChangeEmail(
-      BuildContext context, WidgetRef ref, String code) async {
+    BuildContext context,
+    WidgetRef ref,
+    String code,
+  ) async {
     context.showLoadingDialog();
     final result = await ref
         .read(authProvider.notifier)
@@ -196,10 +196,14 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> validateCode(
-      BuildContext context, WidgetRef ref, String code) async {
+    BuildContext context,
+    WidgetRef ref,
+    String code,
+  ) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).validateRecoveryCode(email, code);
+    final result = await ref
+        .read(authProvider.notifier)
+        .validateRecoveryCode(email, code);
 
     result.fold(
       (failure) {
@@ -208,33 +212,37 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(code);
+        navigateRoute(ref, code);
       },
     );
   }
 
-  void navigateRoute(String code) {
+  void navigateRoute(WidgetRef ref, String code) {
     switch (authFlow) {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
-        final isStoreUser = PlatformUtils.isMobile && isStoreVersion();
-        final isPro = sl<LocalStorageService>().getUser()?.isPro() ?? false;
 
-        /// For store user already paid so send them to create password screen directly
-        /// if user is already pro no need to show payment method screen just send them to create password screen
-        if (isStoreUser || isPro) {
+        /// If user is from store version no need to check anything
+        /// send them to create password directly
+        if (PlatformUtils.isMobile && isStoreVersion()) {
           appRouter.push(
-            CreatePassword(
-              email: email,
-              authFlow: authFlow,
-              code: code,
-            ),
+            CreatePassword(email: email, authFlow: authFlow, code: code),
+          );
+          return;
+        }
+
+        /// Check if user is pro or not
+        final isPro = ref.read(isUserProProvider);
+        if (isPro) {
+          appRouter.push(
+            CreatePassword(email: email, authFlow: authFlow, code: code),
           );
           return;
         }
         appRouter.push(
-            ChoosePaymentMethod(email: email, authFlow: authFlow, code: code));
+          ChoosePaymentMethod(email: email, authFlow: authFlow, code: code),
+        );
         break;
       case AuthFlow.lanternProLicense:
         appRouter.push(LanternProLicense(email: email, code: code));
@@ -289,8 +297,9 @@ class ConfirmEmail extends HookConsumerWidget {
 
   void onResendCode(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
+    final result = await ref
+        .read(authProvider.notifier)
+        .startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

@@ -4,15 +4,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart'
-    show AppDataEventType, AppDataEvent;
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -78,6 +76,8 @@ class LanternPlatformService implements LanternCoreService {
           .map((event) =>
               MacOSExtensionState.fromString(event['status'].toString()));
     }
+
+    await _refreshEnabledAppsSnapshot();
   }
 
   @override
@@ -293,7 +293,9 @@ class LanternPlatformService implements LanternCoreService {
         }
         final decoded = jsonDecode(json) as List<dynamic>;
         final rawApps = decoded.cast<Map<String, dynamic>>();
-        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
+
         for (final a in _mapToAppData(rawApps, enabled: enabled)) {
           _androidAppCache[a.bundleId] = a;
         }
@@ -309,7 +311,8 @@ class LanternPlatformService implements LanternCoreService {
       await for (final ev in nativeStream) {
         if (ev is! Map) continue;
         final e = AppDataEvent.fromMap(ev);
-        final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
         _applyAppDataEvent(
           type: e.type,
           items: e.items.map((a) {
@@ -386,7 +389,8 @@ class LanternPlatformService implements LanternCoreService {
         await for (final ev in nativeStream) {
           if (ev is! Map) continue;
           final e = AppDataEvent.fromMap(ev);
-          final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+          await _refreshEnabledAppsSnapshot();
+          final enabled = enabledAppsSnapshot;
 
           for (final id in e.removed) {
             cache.remove(id);
@@ -422,7 +426,8 @@ class LanternPlatformService implements LanternCoreService {
         return;
       }
       final decoded = jsonDecode(json) as List<dynamic>;
-      final enabled = EnabledApps(sl<LocalStorageService>()).snapshot();
+      await _refreshEnabledAppsSnapshot();
+      final enabled = enabledAppsSnapshot;
       final rawApps = decoded.cast<Map<String, dynamic>>();
       yield _mapToAppData(rawApps, enabled: enabled);
     } catch (e, st) {
@@ -440,6 +445,7 @@ class LanternPlatformService implements LanternCoreService {
         'filterType': type.value,
         'value': value,
       });
+      await _refreshEnabledAppsSnapshot();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -454,6 +460,7 @@ class LanternPlatformService implements LanternCoreService {
         'filterType': type.value,
         'value': value,
       });
+      await _refreshEnabledAppsSnapshot();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -667,27 +674,10 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) async {
     try {
-      final data =
-          await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
+      await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
         'purchaseToken': purchaseToken,
         'planId': planId,
       });
-
-      if (data != null) {
-        appLogger.info(
-            "User already bought subscription from same apple/google id before, switching user data");
-        try {
-          /// If data is not empty, it means got the subscription data with userid and token and update the local storage, so that user can use the subscription immediately without restart the app
-          final userData = UserResponse.fromBuffer(data);
-          appLogger.debug(
-            "Got user data after acknowledging in-app purchase: ${userData.legacyUserData.userId}",
-          );
-          sl<LocalStorageService>().saveUser(userData.toEntity());
-        } catch (e) {
-          appLogger.error(
-              "Error parsing user data after acknowledging in-app purchase", e);
-        }
-      }
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
@@ -1186,29 +1176,43 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod('getLanternAvailableServers');
       final servers = AvailableServers.fromJson(jsonDecode(result));
 
-      final outboundsByTag = {
-        for (var outbound in servers.lantern.outbounds)
-          outbound.tag: outbound.type
-      };
-
-      servers.lantern.locations.forEach((key, value) {
-        final protoValue = outboundsByTag[key];
-        if (protoValue != null) {
-          value.protocol = protoValue;
-        } else {
-          try {
-            //if not found, try to extract from tag
-            value.protocol = value.tag.split('-').first;
-          } catch (e) {
-            //if any error, set to empty
-            value.protocol = '';
+      void applyProtocols(Lantern lantern) {
+        final outboundsByTag = {
+          for (var outbound in lantern.outbounds) outbound.tag: outbound.type
+        };
+        lantern.locations.forEach((key, value) {
+          final protoValue = outboundsByTag[key];
+          if (protoValue != null) {
+            value.protocol = protoValue;
+          } else {
+            try {
+              value.protocol = value.tag.split('-').first;
+            } catch (e) {
+              value.protocol = '';
+            }
           }
-        }
-      });
+        });
+      }
+
+      applyProtocols(servers.lantern);
+      applyProtocols(servers.user);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(
           'Error fetching Lantern available servers', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(
+      String serverName) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+          'deletePrivateServerByName', serverName);
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting private server', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1275,6 +1279,82 @@ class LanternPlatformService implements LanternCoreService {
       return right(result!);
     } catch (e, stackTrace) {
       appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  EnabledAppsSnapshot _enabledApps = const EnabledAppsSnapshot.empty();
+
+  EnabledAppsSnapshot get enabledAppsSnapshot => _enabledApps;
+
+  /// Pull enabled apps from native/Go
+  Future<void> _refreshEnabledAppsSnapshot() async {
+    final keys = <String>{};
+
+    Future<void> collect(SplitTunnelFilterType type) async {
+      final result = await getSplitTunnelItems(type);
+      result.match(
+        (_) {},
+        (items) {
+          for (final item in items) {
+            final normalized = item.trim();
+            if (normalized.isNotEmpty) {
+              keys.add(normalized);
+            }
+          }
+        },
+      );
+    }
+
+    await Future.wait([
+      collect(SplitTunnelFilterType.packageName),
+      collect(SplitTunnelFilterType.processPath),
+      collect(SplitTunnelFilterType.processPathRegex),
+    ]);
+
+    _enabledApps = EnabledAppsSnapshot(keys: keys, names: const <String>{});
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+      SplitTunnelFilterType type) async {
+    try {
+      final itemsJson =
+          await _methodChannel.invokeMethod<String>('getSplitTunnelItems', {
+        'filterType': type.value,
+      });
+
+      if (itemsJson == null || itemsJson.trim().isEmpty) {
+        return right(<String>[]);
+      }
+
+      final decoded = jsonDecode(itemsJson);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
+
+      final list = decoded
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+      return right(list);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+      String oldName, String newName) async {
+    try {
+      await _methodChannel.invokeMethod<String>('updatePrivateServerName', {
+        'oldName': oldName,
+        'newName': newName,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error updating private server name', e, stackTrace);
       return Left(e.toFailure());
     }
   }

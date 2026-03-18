@@ -457,14 +457,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  flat_buffers:
-    dependency: transitive
-    description:
-      name: flat_buffers
-      sha256: "7c1de2d6eb5f3e61e5c50040841109f509deaaf2b12ec0d57b92456d9ea50345"
-      url: "https://pub.dev"
-    source: hosted
-    version: "25.9.23"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -824,7 +816,7 @@ packages:
     source: hosted
     version: "3.2.3"
   in_app_purchase_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: in_app_purchase_android
       sha256: abb254ae159a5a9d4f867795ecb076864faeba59ce015ab81d4cca380f23df45
@@ -840,7 +832,7 @@ packages:
     source: hosted
     version: "1.4.0"
   in_app_purchase_storekit:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: in_app_purchase_storekit
       sha256: "1d512809edd9f12ff88fce4596a13a18134e2499013f4d6a8894b04699363c93"
@@ -1044,30 +1036,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
-  objectbox:
-    dependency: "direct main"
-    description:
-      name: objectbox
-      sha256: ac1e1ef852f60ea0af01fddb28811c8aa169f2b1ae9284e91e7b822abe5ed603
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
-  objectbox_flutter_libs:
-    dependency: "direct main"
-    description:
-      name: objectbox_flutter_libs
-      sha256: "928aeabb2c246db225866cd931f2fea6c7684cc7046d54c02355a7b227ae5ba5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
-  objectbox_generator:
-    dependency: "direct dev"
-    description:
-      name: objectbox_generator
-      sha256: "28628fa65d4fe8ade868cd50aa323ecdfd6d435fcda2cc7484071b84031f8c5e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
   objective_c:
     dependency: transitive
     description:
@@ -1196,14 +1164,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
-  pointycastle:
-    dependency: transitive
-    description:
-      name: pointycastle
-      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -1365,7 +1325,7 @@ packages:
     source: hosted
     version: "6.1.0"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences
       sha256: "2939ae520c9024cb197fc20dee269cd8cdbf564c8b5746374ec6cacdc5169e64"
@@ -1876,4 +1836,4 @@ packages:
     version: "2.2.4"
 sdks:
   dart: ">=3.11.0 <4.0.0"
-  flutter: ">=3.41.0"
+  flutter: ">=3.41.0 <4.0.0"

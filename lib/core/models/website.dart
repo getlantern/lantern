@@ -1,11 +1,8 @@
-import 'package:objectbox/objectbox.dart';
-
-@Entity()
 class Website {
-  int id;
+  final int id;
   final String domain;
 
-  Website({
+  const Website({
     this.id = 0,
     required this.domain,
   });
@@ -13,7 +10,6 @@ class Website {
   Website copyWith({
     int? id,
     String? domain,
-    bool? isEnabled,
   }) {
     return Website(
       id: id ?? this.id,
@@ -23,18 +19,23 @@ class Website {
 
   factory Website.fromJson(Map<String, dynamic> json) {
     return Website(
-      id: json['id'] ?? '',
-      domain: json['domain'] ?? '',
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      domain: (json['domain'] ?? '').toString(),
     );
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'domain': domain,
+      };
+
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Website &&
-          runtimeType == other.runtimeType &&
-          domain == other.domain;
+      identical(this, other) || other is Website && other.domain == domain;
 
   @override
   int get hashCode => domain.hashCode;
+
+  @override
+  String toString() => 'Website(id: $id, domain: $domain)';
 }

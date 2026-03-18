@@ -4,13 +4,15 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 
-import '../../core/services/injection_container.dart';
+import '../../core/services/injection_container.dart' show sl;
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -23,14 +25,16 @@ class DeveloperMode extends StatefulHookConsumerWidget {
 class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
-    final user = sl<LocalStorageService>().getUser();
-    appLogger.info('User info: $user');
+    final user = ref.watch(homeProvider).value;
+
     final developerMode = ref.watch(developerModeProvider);
-    final devNotifier = ref.watch(developerModeProvider.notifier);
+    appLogger.info('Developer Mode settings: ${developerMode.toJson()}');
+    final devNotifier = ref.read(developerModeProvider.notifier);
     final appSetting = ref.watch(appSettingProvider);
     final appSettingNotifier = ref.watch(appSettingProvider.notifier);
     final isStaging = appSetting.environment == 'stage' ||
         appSetting.environment == 'staging';
+
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
@@ -120,9 +124,11 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   Future<void> resetAppData(BuildContext context) async {
     final appDir = await AppStorageUtils.getAppDirectory();
     appDir.delete(recursive: true);
+    sl<LocalStorageService>().deleteAll();
     AppDialog.errorDialog(
-        context: context,
-        title: 'Reset',
-        content: 'Restart app to see changes.');
+      context: context,
+      title: 'Reset',
+      content: 'Restart app to see changes.',
+    );
   }
 }

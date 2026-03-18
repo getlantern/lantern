@@ -96,10 +96,10 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@master
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
+        uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version-file: .github/flutter-version.yaml
           cache: true
 
       - name: Install dependencies

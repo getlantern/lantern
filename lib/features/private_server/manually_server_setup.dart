@@ -1,14 +1,10 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
-
-import '../../core/services/injection_container.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
 @RoutePage(name: 'ManuallyServerSetup')
 class ManuallyServerSetup extends StatefulHookConsumerWidget {
@@ -33,9 +29,9 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
-          final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServerEntity.fromJson(data);
-          sl<LocalStorageService>().savePrivateServer(serverData);
+          ref
+              .read(availableServersProvider.notifier)
+              .forceFetchAvailableServers();
           showSuccessDialog();
         });
       }
@@ -61,6 +57,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 SizedBox(height: 16),
                 PrimaryButton(
                   icon: AppImagePaths.github,
+                  iconColor: AppColors.white,
                   isTaller: true,
                   label: 'view_instructions_github'.i18n,
                   onPressed: () {
@@ -97,7 +94,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   child: Text(
                     "how_server_appears".i18n,
                     style: textTheme.labelMedium!.copyWith(
-                      color: context.textDisabled,
+                      color: AppColors.gray6,
                     ),
                   ),
                 ),
@@ -223,7 +220,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           onPressed: () {
             appRouter.popUntilRoot();
           },
-          textColor: context.textDisabled,
+          textColor: AppColors.gray6,
         ),
         AppTextButton(
           label: "connect_now".i18n,

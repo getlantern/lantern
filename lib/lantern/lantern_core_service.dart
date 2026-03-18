@@ -1,9 +1,9 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -76,8 +76,6 @@ abstract class LanternCoreService {
   });
 
   Future<Either<Failure, Unit>> showManageSubscriptions();
-
-  Future<Either<Failure, PlansData>> plans();
 
   /// Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
@@ -221,4 +219,16 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> isSystemExtensionInstalled();
 
   Stream<MacOSExtensionState> watchSystemExtensionStatus();
+
+  /// Plans (remote)
+  Future<Either<Failure, PlansData>> plans();
+
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName);
+
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+      String oldName, String newName);
+
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  );
 }

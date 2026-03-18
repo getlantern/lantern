@@ -485,7 +485,6 @@ func SelectAccount(account string) error {
 }
 
 func SelectProject(project string) error {
-
 	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 
@@ -515,6 +514,28 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
 		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	})
+}
+
+func DeletePrivateServerByName(tag string) error {
+	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
+}
+
+func UpdatePrivateServerName(oldTag, newTag string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdatePrivateServerName(oldTag, newTag)
+	})
+}
+
+func GetSplitTunnelItems(filterType string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelItems(filterType)
+	})
+}
+
+func GetSplitTunnelStateJSON() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelStateJSON()
 	})
 }
 

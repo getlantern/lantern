@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
-import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -20,15 +20,16 @@ Future<void> injectServices() async {
   sl.registerLazySingleton<Updater>(() => Updater());
 
   try {
-    sl.registerSingletonAsync<StoreUtils>(() async {
-      appLogger.info("Initializing StoreUtils");
-      final storeUtils = StoreUtils();
-      await storeUtils.init();
-      return storeUtils;
-    });
+    appLogger.info("Initializing LocalStorageService");
+    final storage = LocalStorageService();
+    await storage.init();
+    sl.registerSingleton<LocalStorageService>(storage);
 
-    sl.registerLazySingleton(() => LocalStorageService());
-    await sl<LocalStorageService>().init();
+    appLogger.info("Initializing StoreUtils");
+    final storeUtils = StoreUtils();
+    await storeUtils.init();
+    sl.registerSingleton<StoreUtils>(storeUtils);
+
     sl.registerLazySingleton(() => AppRouter());
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();

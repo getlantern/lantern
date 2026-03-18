@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
 
 import '../common/app_image_paths.dart';
 
@@ -26,6 +27,7 @@ class ExpansionChevron extends StatelessWidget {
       turns: isExpanded ? expandedTurns : collapsedTurns,
       child: AppImage(
         path: AppImagePaths.arrowForward,
+        color: context.textPrimary,
         height: size,
       ),
     );

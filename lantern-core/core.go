@@ -34,6 +34,8 @@ const (
 	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
+
+	plansCacheFile = "plans-cache.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -64,6 +66,8 @@ type App interface {
 	StartBackgroundListeners()
 	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
+	GetAppDataDir() string
+	GetEnabledApps() (string, error)
 }
 
 type User interface {
@@ -99,6 +103,8 @@ type PrivateServer interface {
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
 	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
+	DeleteServer(tag string) error
+	UpdatePrivateServerName(oldTag, newTag string) error
 }
 
 type Payment interface {
@@ -121,6 +127,8 @@ type SplitTunnel interface {
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
+	GetSplitTunnelStateJSON() (string, error)
+	GetSplitTunnelItems(filterType string) (string, error)
 }
 
 type Ads interface {
@@ -277,8 +285,7 @@ func (lc *LanternCore) GetSmartRoutingMode() bool {
 
 // Internal methods
 // notifyFlutter sends an event to the Flutter frontend via the event emitter.
-// For mobile it will use EventChannel to send events.
-// For desktop it will use FFI
+// On mobile we use EventChannel; on desktop this goes over the FFI event port
 func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	slog.Debug("Notifying Flutter")
 	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
@@ -388,8 +395,6 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 
 func (lc *LanternCore) GetAvailableServers() []byte {
 	serversList := lc.rad.ServerManager().Servers()
-	slog.Debug("Available servers", "servers", serversList)
-
 	jsonBytes, err := json.Marshal(serversList)
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
@@ -761,7 +766,7 @@ func (lc *LanternCore) SelectProject(project string) error {
 }
 
 func (lc *LanternCore) StartDeployment(location, serverName string) error {
-	return privateserver.StartDepolyment(location, serverName)
+	return privateserver.StartDeployment(location, serverName)
 }
 
 func (lc *LanternCore) CancelDeployment() error {
@@ -772,8 +777,11 @@ func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag strin
 	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.serverManager, events)
 }
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
-	portInt, _ := strconv.Atoi(port)
-	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, lc.serverManager)
+	portInt, err := parsePort(port)
+	if err != nil {
+		return "", err
+	}
+	accessToken, err = lc.serverManager.InviteToPrivateServer(ip, portInt, accessToken, inviteName)
 	if err != nil {
 		return "", fmt.Errorf("error inviting to server manager instance: %w", err)
 	}
@@ -782,9 +790,82 @@ func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, invi
 }
 
 func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteName string) error {
-	portInt, _ := strconv.Atoi(port)
+	portInt, err := parsePort(port)
+	if err != nil {
+		return err
+	}
 	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
-	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, lc.serverManager)
+	return lc.serverManager.RevokePrivateServerInvite(ip, portInt, accessToken, inviteName)
+}
+
+func (lc *LanternCore) DeleteServer(tag string) error {
+	slog.Debug("Deleting server with tag: ", "tag", tag)
+	return lc.serverManager.RemoveServer(tag)
+}
+
+func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
+	if oldTag == "" || newTag == "" {
+		return fmt.Errorf("old and new server names must be non-empty")
+	}
+	if oldTag == newTag {
+		return nil
+	}
+
+	// Ensure the source exists in user servers.
+	userServers := lc.serverManager.Servers()[servers.SGUser]
+	sourceExists := false
+	for _, ep := range userServers.Endpoints {
+		if ep.Tag == oldTag {
+			sourceExists = true
+			break
+		}
+	}
+	if !sourceExists {
+		for _, out := range userServers.Outbounds {
+			if out.Tag == oldTag {
+				sourceExists = true
+				break
+			}
+		}
+	}
+	if !sourceExists {
+		return fmt.Errorf("server with tag %q not found", oldTag)
+	}
+
+	// Prevent collisions against any existing server tag.
+	if _, exists := lc.serverManager.GetServerByTag(newTag); exists {
+		return fmt.Errorf("server with tag %q already exists", newTag)
+	}
+
+	for i, ep := range userServers.Endpoints {
+		if ep.Tag == oldTag {
+			userServers.Endpoints[i].Tag = newTag
+		}
+	}
+	for i, out := range userServers.Outbounds {
+		if out.Tag == oldTag {
+			userServers.Outbounds[i].Tag = newTag
+		}
+	}
+	if loc, ok := userServers.Locations[oldTag]; ok {
+		delete(userServers.Locations, oldTag)
+		userServers.Locations[newTag] = loc
+	}
+	if err := lc.serverManager.SetServers(servers.SGUser, userServers); err != nil {
+		return fmt.Errorf("failed to rename private server %q to %q: %w", oldTag, newTag, err)
+	}
+	return nil
+}
+
+func parsePort(port string) (int, error) {
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return 0, fmt.Errorf("invalid port %q: %w", port, err)
+	}
+	if portInt <= 0 || portInt > 65535 {
+		return 0, fmt.Errorf("invalid port %d: must be between 1 and 65535", portInt)
+	}
+	return portInt, nil
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
@@ -830,4 +911,171 @@ func splitCSVClean(s string) []string {
 		out = append(out, it)
 	}
 	return out
+}
+
+func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return `{}`, nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return `{}`, nil
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) splitTunnelHandler() (*vpn.SplitTunnel, error) {
+	if lc.splitTunnel != nil {
+		return lc.splitTunnel, nil
+	}
+	st, err := vpn.NewSplitTunnelHandler()
+	if err != nil {
+		return nil, err
+	}
+	lc.splitTunnel = st
+	return st, nil
+}
+
+func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
+	st, err := lc.splitTunnelHandler()
+	if err != nil {
+		return "", err
+	}
+
+	f := st.Filters()
+
+	var items []string
+	switch filterType {
+	case vpn.TypeDomain:
+		items = f.Domain
+	case vpn.TypeDomainSuffix:
+		items = f.DomainSuffix
+	case vpn.TypeDomainKeyword:
+		items = f.DomainKeyword
+	case vpn.TypeDomainRegex:
+		items = f.DomainRegex
+	case vpn.TypeProcessName:
+		items = f.ProcessName
+	case vpn.TypeProcessPath:
+		items = f.ProcessPath
+	case vpn.TypeProcessPathRegex:
+		items = f.ProcessPathRegex
+	case vpn.TypePackageName:
+		items = f.PackageName
+	default:
+		return "", fmt.Errorf("unsupported filter type: %s", filterType)
+	}
+
+	b, err := json.Marshal(items)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func jsonNumberToIntString(f float64) string {
+	// ports are integral; safe enough here
+	return string([]byte((func() string {
+		n := int(f)
+		return itoa(n)
+	})()))
+}
+
+// tiny local itoa to avoid importing strconv in this file (optional)
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	neg := n < 0
+	if neg {
+		n = -n
+	}
+	buf := make([]byte, 0, 12)
+	for n > 0 {
+		d := n % 10
+		buf = append(buf, byte('0'+d))
+		n /= 10
+	}
+	if neg {
+		buf = append(buf, '-')
+	}
+	// reverse
+	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+	return string(buf)
+}
+
+func (lc *LanternCore) GetAppDataDir() string {
+	return settings.GetString(settings.DataPathKey)
+}
+
+func (lc *LanternCore) GetEnabledApps() (string, error) {
+	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "[]", nil
+		}
+		return "", err
+	}
+	if len(b) == 0 {
+		return "[]", nil
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal(b, &m); err != nil {
+		return "", err
+	}
+
+	candidateKeys := []string{
+		"processPathRegex",
+		"processPath",
+		"packageName",
+		"bundleId",
+		"bundleID",
+		"enabledApps",
+		"apps",
+	}
+
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 16)
+
+	addList := func(v any) {
+		arr, ok := v.([]any)
+		if !ok {
+			return
+		}
+		for _, it := range arr {
+			s, ok := it.(string)
+			if !ok {
+				continue
+			}
+			s = strings.TrimSpace(s)
+			if s == "" {
+				continue
+			}
+			if common.IsWindows() {
+				s = strings.ToLower(s)
+			}
+			if _, exists := seen[s]; exists {
+				continue
+			}
+			seen[s] = struct{}{}
+			out = append(out, s)
+		}
+	}
+
+	for _, k := range candidateKeys {
+		if v, ok := m[k]; ok {
+			addList(v)
+		}
+	}
+
+	encoded, _ := json.Marshal(out)
+	return string(encoded), nil
 }
