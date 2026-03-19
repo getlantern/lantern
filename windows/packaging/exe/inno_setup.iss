@@ -318,7 +318,7 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
-function ServiceExecutablePath(Param: String): String;
+function ServiceExecutablePath(_Param: String): String;
 var
   Arm64ServicePath: String;
 begin

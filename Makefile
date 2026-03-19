@@ -68,7 +68,6 @@ WINDOWS_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
 WINDOWS_SERVICE_BUILD_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME)
 WINDOWS_SERVICE_BUILD_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_SERVICE_NAME)
 WINDOWS_SERVICE_BUILD := $(WINDOWS_SERVICE_BUILD_AMD64)
-WINDOWS_SERVICE_BUILD_ARM64_RELEASE = $(WINDOWS_RELEASE_DIR)/arm64/$(WINDOWS_SERVICE_NAME)
 WINDOWS_SERVICE_CGO_ENABLED ?= 0
 
 WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
@@ -77,6 +76,7 @@ WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
+WINDOWS_SERVICE_BUILD_ARM64_RELEASE := $(WINDOWS_RELEASE_DIR)/arm64/$(WINDOWS_SERVICE_NAME)
 WINTUN_VERSION ?= 0.14.1
 WINTUN_BASE_URL := https://wwW.wintun.net
 WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
@@ -417,12 +417,12 @@ $(WINTUN_DLL_AMD64):
 	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
 	  echo "Using Wintun $$ver"; \
 	  curl -fsSL -o "$$zip" "$$url"; \
-	  mkdir -p '$(WINTUN_OUT_DIR_AMD64)/_unz'; \
+	  $(call MKDIR_P,$(WINTUN_OUT_DIR_AMD64)/_unz); \
 	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_AMD64)/_unz" "wintun/bin/amd64/wintun.dll" \
-	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_AMD64)/_unz'"; \
-	  cp -f "$(WINTUN_OUT_DIR_AMD64)/_unz/wintun/bin/amd64/wintun.dll" "$(WINTUN_DLL_AMD64)"; \
-	  rm -rf "$(WINTUN_OUT_DIR_AMD64)/_unz"; \
-	  echo "Installed: $(WINTUN_DLL_AMD64)";
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_AMD64)/_unz'";
+	$(call COPY_FILE,$(WINTUN_OUT_DIR_AMD64)/_unz/wintun/bin/amd64/wintun.dll,$(WINTUN_DLL_AMD64))
+	$(call RM_RF,$(WINTUN_OUT_DIR_AMD64)/_unz)
+	@echo "Installed: $(WINTUN_DLL_AMD64)";
 
 $(WINTUN_DLL_ARM64):
 	$(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64))
@@ -431,12 +431,12 @@ $(WINTUN_DLL_ARM64):
 	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
 	  echo "Using Wintun $$ver"; \
 	  curl -fsSL -o "$$zip" "$$url"; \
-	  mkdir -p '$(WINTUN_OUT_DIR_ARM64)/_unz'; \
+	  $(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64)/_unz); \
 	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_ARM64)/_unz" "wintun/bin/arm64/wintun.dll" \
-	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_ARM64)/_unz'"; \
-	  cp -f "$(WINTUN_OUT_DIR_ARM64)/_unz/wintun/bin/arm64/wintun.dll" "$(WINTUN_DLL_ARM64)"; \
-	  rm -rf "$(WINTUN_OUT_DIR_ARM64)/_unz"; \
-	  echo "Installed: $(WINTUN_DLL_ARM64)";
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_ARM64)/_unz'";
+	$(call COPY_FILE,$(WINTUN_OUT_DIR_ARM64)/_unz/wintun/bin/arm64/wintun.dll,$(WINTUN_DLL_ARM64))
+	$(call RM_RF,$(WINTUN_OUT_DIR_ARM64)/_unz)
+	@echo "Installed: $(WINTUN_DLL_ARM64)";
 
 .PHONY: copy-wintun-release copy-wintun-debug
 copy-wintun-release: $(WINTUN_DLL_AMD64)
