@@ -235,7 +235,6 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
 
   build-windows:
     needs: [set-metadata, release-create, release-approval]
@@ -251,6 +250,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
 
   build-linux:
     needs: [set-metadata, release-create, release-approval]
