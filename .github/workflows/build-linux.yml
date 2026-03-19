@@ -21,13 +21,7 @@ jobs:
   build-linux:
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-latest
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-    if: ${{ inputs.linux_arch == 'all' || inputs.linux_arch == matrix.arch }}
+      matrix: ${{ fromJSON(inputs.linux_arch == 'arm64' && '{"include":[{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}' || inputs.linux_arch == 'amd64' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}' || '{"include":[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}') }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
