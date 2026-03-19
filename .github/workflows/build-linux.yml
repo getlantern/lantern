@@ -17,6 +17,9 @@ on:
         type: string
         default: all
 
+permissions:
+  contents: "read"
+
 jobs:
   build-linux:
     strategy:
