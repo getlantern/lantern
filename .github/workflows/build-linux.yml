@@ -104,12 +104,33 @@ jobs:
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
 
-      - name: Install Flutter
+      - name: Load Flutter version
+        shell: bash
+        run: |
+          set -euo pipefail
+          FLUTTER_VERSION=$(grep -E '^[[:space:]]*flutter:' .github/flutter-version.yaml | sed -E 's/.*"([^"]+)".*/\1/')
+          if [[ -z "$FLUTTER_VERSION" ]]; then
+            echo "Failed to parse Flutter version from .github/flutter-version.yaml" >&2
+            exit 1
+          fi
+          echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Flutter (amd64)
         uses: subosito/flutter-action@v2.22.0
+        if: ${{ matrix.arch == 'amd64' }}
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
           cache: true
+
+      - name: Install Flutter (arm64 fallback)
+        if: ${{ matrix.arch == 'arm64' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$HOME/flutter"
+          echo "$HOME/flutter/bin" >> "$GITHUB_PATH"
+          flutter --version
 
       - name: Install dependencies
         run: make install-linux-deps
