@@ -116,6 +116,7 @@ class LanternFFIService implements LanternCoreService {
     return candidates.first;
   }
 
+  @override
   Future<void> init() async {
     // Set safe defaults up front so callers always have something to listen to.
     _status = _defaultStatusStream();
@@ -1694,4 +1695,7 @@ class FfiPlatformPaths {
   }
 }
 
-class MockLanternFFIService extends LanternFFIService {}
+class MockLanternFFIService extends LanternFFIService {
+  @override
+  Future<void> init() async {}
+}
