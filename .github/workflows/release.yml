@@ -59,7 +59,6 @@ jobs:
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
       linux_arch: ${{ steps.meta.outputs.linux_arch }}
-      linux_matrix_json: ${{ steps.meta.outputs.linux_matrix_json }}
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
     steps:
       - name: Checkout repo
@@ -156,18 +155,6 @@ jobs:
               ;;
           esac
 
-          case "$LINUX_ARCH" in
-            all)
-              LINUX_MATRIX_JSON='{"include":[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}'
-              ;;
-            arm64)
-              LINUX_MATRIX_JSON='{"include":[{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}'
-              ;;
-            amd64|*)
-              LINUX_MATRIX_JSON='{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}'
-              ;;
-          esac
-
           # Installer base name - Makefile will append build type
           INSTALLER_BASE_NAME="lantern-installer"
 
@@ -178,7 +165,6 @@ jobs:
           echo "  Version:       $VERSION"
           echo "  Platform:      $PLATFORM"
           echo "  Linux Arch:    $LINUX_ARCH"
-          echo "  Linux Matrix:  $LINUX_MATRIX_JSON"
           echo "  Installer:     $INSTALLER_BASE_NAME"
 
           # Test run: workflow_dispatch from non-default branch
@@ -196,7 +182,6 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           echo "linux_arch=$LINUX_ARCH" >> $GITHUB_OUTPUT
-          echo "linux_matrix_json=$LINUX_MATRIX_JSON" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
 
@@ -300,7 +285,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      linux_matrix_json: ${{ needs.set-metadata.outputs.linux_matrix_json }}
+      linux_arch: ${{ needs.set-metadata.outputs.linux_arch }}
 
   build-ios:
     needs: [set-metadata, release-create, release-approval]

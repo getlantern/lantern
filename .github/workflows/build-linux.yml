@@ -12,16 +12,22 @@ on:
       installer_base_name:
         required: true
         type: string
-      linux_matrix_json:
+      linux_arch:
         required: false
         type: string
-        default: '{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}'
+        default: all
 
 jobs:
   build-linux:
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(inputs.linux_matrix_json) }}
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    if: ${{ inputs.linux_arch == 'all' || inputs.linux_arch == matrix.arch }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
