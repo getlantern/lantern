@@ -47,18 +47,21 @@ class Updater {
 
       // Background check after startup (avoid modal immediately on launch)
       const firstPromptDelay = Duration(seconds: 45);
-      unawaited(Future<void>.delayed(firstPromptDelay, () async {
-        try {
-          await updater.checkForUpdates(inBackground: true);
-        } catch (e, st) {
-          appLogger.error('Failed to check for auto-updates: $e', st);
-        }
-      }));
+      unawaited(
+        Future<void>.delayed(firstPromptDelay, () async {
+          try {
+            await updater.checkForUpdates(inBackground: true);
+          } catch (e, st) {
+            appLogger.error('Failed to check for auto-updates', e, st);
+          }
+        }),
+      );
 
-      appLogger
-          .info('autoUpdater configured. buildType=$buildType url=$feedUrl');
+      appLogger.info(
+        'autoUpdater configured. buildType=$buildType url=$feedUrl',
+      );
     } catch (e, st) {
-      appLogger.error('Failed to configure autoUpdater: $e', st);
+      appLogger.error('Failed to configure autoUpdater:', e, st);
     }
   }
 
