@@ -222,9 +222,21 @@ jobs:
           if [[ "${TARGET_ARCH}" == "amd64" ]]; then
             ENABLE_IP_CHECK=true
           fi
-          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          set +e
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          SMOKE_EXIT=$?
+          set -e
 
           sudo journalctl -u lanternd.service --since "$TEST_START_UTC" --no-pager > /tmp/lanternd-journal-ui-smoke.log
+          if [[ "$SMOKE_EXIT" -eq 124 ]]; then
+            echo "Linux UI connect/disconnect smoke timed out after 8m"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
+          if [[ "$SMOKE_EXIT" -ne 0 ]]; then
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit "$SMOKE_EXIT"
+          fi
 
           if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
             echo "Missing /service/start IPC request in lanternd journal"
