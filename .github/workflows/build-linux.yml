@@ -12,13 +12,22 @@ on:
       installer_base_name:
         required: true
         type: string
+      linux_arch:
+        required: false
+        type: string
+        default: amd64
 
 jobs:
   build-linux:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.linux_arch == 'all' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}' || inputs.linux_arch == 'arm64' && '{"include":[{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}' || '{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}') }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-    runs-on: ubuntu-latest
+      TARGET_ARCH: ${{ matrix.arch }}
+      FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}${{ matrix.arch == 'arm64' && '-arm64' || '' }}
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,9 +61,9 @@ jobs:
         continue-on-error: true
         with:
           path: ~/.cache/apt/archives
-          key: ${{ runner.os }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
           restore-keys: |
-            ${{ runner.os }}-apt-archives-v1-
+            ${{ runner.os }}-${{ matrix.arch }}-apt-archives-v1-
 
       - name: Install Linux dependencies
         run: |
@@ -122,16 +131,19 @@ jobs:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          LINUX_TARGET_ARCH: ${{ matrix.arch }}
+          LINUX_CC_AMD64: gcc
+          LINUX_CC_ARM64: gcc
 
       - name: Verify Linux package contents
         run: |
-          ./scripts/ci/verify_linux_package.sh "${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+          ./scripts/ci/verify_linux_package.sh "./${{ env.FULL_INSTALLER_NAME }}.deb" "${{ matrix.arch }}"
 
       - name: Install .deb and verify postinst started daemon
         shell: bash
         run: |
           set -euxo pipefail
-          deb="./${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+          deb="./${{ env.FULL_INSTALLER_NAME }}.deb"
           test -f "$deb"
           sudo apt-get install -y "$deb"
 
@@ -199,13 +211,13 @@ jobs:
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-installer-rpm
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.rpm
+          name: lantern-installer-rpm-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.rpm
           retention-days: 2
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-installer-deb
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb
+          name: lantern-installer-deb-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.deb
           retention-days: 2
