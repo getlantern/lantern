@@ -10,7 +10,7 @@ const _enableIpCheck =
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Linux VPN connect/disconnect smoke', (tester) async {
+  testWidgets('Windows VPN connect/disconnect smoke', (tester) async {
     app.main();
     await runConnectSmokeHarness(tester, enableIpCheck: _enableIpCheck);
   });
