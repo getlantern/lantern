@@ -55,8 +55,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          fetch-depth: 0
-          fetch-tags: true
+          fetch-depth: ${{ github.event_name == 'push' && 1 || 0 }}
+          fetch-tags: ${{ github.event_name != 'push' }}
 
       - id: meta
         shell: bash
