@@ -56,7 +56,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: ${{ github.event_name == 'push' && 1 || 0 }}
-          fetch-tags: ${{ github.event_name != 'push' }}
+          fetch-tags: true
 
       - id: meta
         shell: bash
