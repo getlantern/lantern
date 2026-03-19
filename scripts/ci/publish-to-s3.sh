@@ -26,6 +26,14 @@ PLATFORMS="${4:?Platforms required}"
 BUCKET="${BUCKET:?BUCKET environment variable required}"
 LINUX_ARCH="${LINUX_ARCH:-all}"
 
+case "$LINUX_ARCH" in
+  amd64|arm64|all)
+    ;;
+  *)
+    echo "✗ Invalid LINUX_ARCH value: '$LINUX_ARCH'. Expected 'amd64', 'arm64', or 'all'." >&2
+    exit 1
+    ;;
+esac
 # All builds use the same path structure: releases/{build_type}/{version}/
 VERSION_PREFIX="releases/${BUILD_TYPE}/${VERSION}"
 LATEST_PREFIX="releases/${BUILD_TYPE}/latest"
