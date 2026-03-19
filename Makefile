@@ -108,7 +108,7 @@ IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_conntrack,with_dhcp,with_acme,with_tailscale
 
-WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread $(EXTRA_LDFLAGS)
+WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
