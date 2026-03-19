@@ -148,10 +148,10 @@ jobs:
                 *) VERSION="${VERSION%-$PLATFORM}" ;;
               esac
 
-          case "$PLATFORM" in
-            all|linux) LINUX_ARCH="all" ;;
-            *) LINUX_ARCH="amd64" ;;
-          esac
+              case "$PLATFORM" in
+                all|linux) LINUX_ARCH="all" ;;
+                *) LINUX_ARCH="amd64" ;;
+              esac
               ;;
           esac
 

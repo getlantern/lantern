@@ -320,10 +320,14 @@ linux-release-ci: linux pubget gen
 	flutter build linux --release $(DART_DEFINES)
 	$(MAKE) stage-linux-service
 
-	@if [ -d "$(LINUX_BUNDLE_DIR_ARM64)" ] && [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
+	@if [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
 	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_ARM64)"; \
 	else \
 	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_X64)"; \
+	fi; \
+	if [ ! -d "$$BUNDLE_DIR" ]; then \
+	  echo "Expected Linux bundle dir not found: $$BUNDLE_DIR"; \
+	  exit 1; \
 	fi; \
 	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
 	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
