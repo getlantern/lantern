@@ -15,6 +15,9 @@ RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(VERSION)'
 
+# Build type suffix for installer filenames (e.g., "-beta" for beta, empty for production)
+BUILD_TYPE_SUFFIX := $(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))
+
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
@@ -24,7 +27,7 @@ DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
-MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).dmg
+MACOS_INSTALLER := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).dmg
 MACOS_DIR := macos/
 MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
@@ -39,9 +42,9 @@ LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
-LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).deb
-LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).rpm
-LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).pkg.tar.zst
+LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).deb
+LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).rpm
+LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).pkg.tar.zst
 LINUX_SERVICE_NAME := lanternd
 LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
 LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
@@ -91,15 +94,15 @@ ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64
-ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
-ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
+ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).apk
+ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
 
-IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
+IOS_INSTALLER := $(INSTALLER_NAME)$(BUILD_TYPE_SUFFIX).ipa
 IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
@@ -120,6 +123,9 @@ GOMOBILE_REPOS = \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
+# Common env prefix for gomobile commands
+GOMOBILE_ENV = GOMOBILECACHE="$(GOMOBILECACHE)" GOTOOLCHAIN=$(GO_VERSION)
+
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 UNAME_S := $(shell uname -s)
@@ -138,15 +144,16 @@ APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g
 
 INSTALLER_RESOURCES := installer-resources
 
-# Missing and Guards
+# Common nfpm env vars for Linux packaging
+NFPM_ENV = VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
+	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME)
+
+# Guards
 guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
-
-require-gomobile:
-	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
 .PHONY: require-appdmg
 require-appdmg:
@@ -188,7 +195,7 @@ macos: $(MACOS_FRAMEWORK_BUILD)
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
+	$(GOMOBILE_ENV) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
@@ -229,14 +236,7 @@ notarize-darwin: require-ac-username require-ac-password
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
-
-.PHONY: notarize-log
-notarize-log:
-	xcrun notarytool log 3036c6b2-8f99-44d7-8c3e-6c9c007b2524 \
-		--apple-id $$AC_USERNAME \
-		--team-id "ACZRKC3LQ9" \
-		--password $$AC_PASSWORD
-	    --output-format json > notary_log.json
+.PHONY: sign-app
 sign-app:
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
@@ -315,15 +315,12 @@ linux-release-ci: linux pubget gen
 	patchelf --set-rpath '$$ORIGIN/lib' build/linux/x64/release/bundle/lantern || true
 
 	@echo "Packaging deb, rpm, and archlinux with nfpm..."
-	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
-			  nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB)
-	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
-			  nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM)
-	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/bin/$(LINUX_SERVICE_NAME) \
-			nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
+	$(NFPM_ENV) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB)
+	$(NFPM_ENV) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM)
+	$(NFPM_ENV) LANTERND_DST=/usr/bin/$(LINUX_SERVICE_NAME) \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
 
 .PHONY: verify-linux-package
 verify-linux-package:
@@ -342,16 +339,13 @@ windows: windows-amd64
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))
 	$(call COPY_FILE,$(WINDOWS_LIB_AMD64),$(WINDOWS_LIB_BUILD))
 
-windows-amd64: WINDOWS_GOOS := windows
-windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
-windows-arm64: WINDOWS_GOOS := windows
-windows-arm64: WINDOWS_GOARCH := arm64
+	$(MAKE) desktop-lib GOOS=windows GOARCH=amd64 LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+
 windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+	$(MAKE) desktop-lib GOOS=windows GOARCH=arm64 LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
 .PHONY: build-lanternsvc-windows
 build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
@@ -421,12 +415,12 @@ windows-release: clean windows pubget gen build-windows-release prepare-windows-
 
 .PHONY: install-gomobile
 install-gomobile:
-	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
-	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
+	$(GOMOBILE_ENV) go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
+	$(GOMOBILE_ENV) go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	@mkdir -p "$(GOMOBILECACHE)"
 	@if [ ! -f "$(GOMOBILECACHE)/.init-$(GO_VERSION)" ]; then \
 		echo "Running gomobile init (first time for $(GO_VERSION))..."; \
-		GOMOBILECACHE="$(GOMOBILECACHE)" GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
+		$(GOMOBILE_ENV) gomobile init; \
 		touch "$(GOMOBILECACHE)/.init-$(GO_VERSION)"; \
 	else \
 		echo "Skipping gomobile init (cached for $(GO_VERSION))"; \
@@ -447,8 +441,7 @@ build-android: check-gomobile
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
-	GOMOBILECACHE="$(GOMOBILECACHE)" \
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+	$(GOMOBILE_ENV) GOOS=android gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=lantern.io \
@@ -498,9 +491,6 @@ android-release-ci: android pubget gen android-apk-release android-aab-release
 
 install-ios-deps: install-gomobile
 	npm install -g appdmg
-
-.PHONY: ios
-ios: $(IOS_FRAMEWORK_BUILD)
 
 .PHONY: ios
 ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
@@ -606,8 +596,7 @@ clean:
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 
 
-#this will used to delete all Lantern data from the user's home directory
-PHONY: delete-data
+.PHONY: delete-data
 delete-data:
 	@echo "Deleting Lantern data..."
 	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
