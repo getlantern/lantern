@@ -188,6 +188,31 @@ jobs:
           sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
           grep '^version:' pubspec.yaml
 
+      - name: Commit updated pubspec.yaml
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+          rm -f pubspec.yaml.bak
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout "$DEFAULT_BRANCH"
+          # Re-apply the version update on the branch
+          RELEASE_TAG="${{ steps.meta.outputs.release_tag }}"
+          VERSION="${RELEASE_TAG#v}"
+          BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
+          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          BUILD_NUMBER=$((CURRENT_BUILD + 1))
+          FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
+          sed -i -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
+
+          git add pubspec.yaml
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: bump version to ${FULL_VERSION} [skip ci]"
+          git push origin "$DEFAULT_BRANCH"
+
       - name: Upload pubspec.yaml
         uses: actions/upload-artifact@v4
         with:
