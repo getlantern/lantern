@@ -50,18 +50,22 @@ Future<void> injectServices() async {
         : MockLanternFFIService(),
   );
 
-  try {
-    final lanternService = LanternService(
-      ffiService: sl<LanternFFIService>(),
-      platformService: sl<LanternPlatformService>(),
-      appPurchase: sl<AppPurchase>(),
-    );
-    await lanternService.init();
-    appLogger.debug('LanternService initialized');
-    sl.registerSingleton<LanternService>(lanternService);
-  } catch (e) {
-    appLogger.error('LanternService init failed', e);
-  }
+  sl.registerSingletonAsync<LanternService>(
+    () async {
+      final service = LanternService(
+        ffiService: sl<LanternFFIService>(),
+        platformService: sl<LanternPlatformService>(),
+        appPurchase: sl<AppPurchase>(),
+      );
+      try {
+        await service.init();
+        appLogger.debug('LanternService initialized');
+      } catch (e, st) {
+        appLogger.error('LanternService init failed', e, st);
+      }
+      return service;
+    },
+  );
 
   appLogger.debug('Initializing notification/Stripe services...');
   final notificationService = NotificationService();
@@ -83,5 +87,6 @@ Future<void> injectServices() async {
   sl.registerSingleton<NotificationService>(notificationService);
   appLogger.debug('NotificationService initialized');
 
+  await sl.allReady();
   appLogger.info('All services injected ✅');
 }
