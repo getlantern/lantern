@@ -27,11 +27,6 @@ PODS:
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
-  - Sentry/HybridSDK (8.56.2)
-  - sentry_flutter (9.14.0):
-    - Flutter
-    - FlutterMacOS
-    - Sentry/HybridSDK (= 8.56.2)
   - share_plus (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -60,7 +55,6 @@ DEPENDENCIES:
   - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
-  - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - Sparkle
@@ -72,7 +66,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - OrderedSet
-    - Sentry
     - Sparkle
 
 EXTERNAL SOURCES:
@@ -100,8 +93,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
-  sentry_flutter:
-    :path: Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos
   share_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   shared_preferences_foundation:
@@ -129,8 +120,6 @@ SPEC CHECKSUMS:
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
-  sentry_flutter: a9f60d84bfddcae9a0ebf834547702f8854766a1
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   Sparkle: a346a4341537c625955751ed3ae4b340b68551fa

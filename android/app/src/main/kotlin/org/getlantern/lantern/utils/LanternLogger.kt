@@ -51,9 +51,16 @@ object AppLogger {
         writeAsync("INFO", tag, message)
     }
 
-    fun w(tag: String, message: String, tr: Throwable? = null) {
-        Log.w(tag, message, tr)
-        writeAsync("WARN", tag, message)
+    fun w(tag: String, message: String, throwable: Throwable? = null) {
+        Log.w(tag, message, throwable)
+        val errorMessage = buildString {
+            append(message)
+            if (throwable != null) {
+                append("\n")
+                append(throwable.stackTraceToString())
+            }
+        }
+        writeAsync("WARN", tag, errorMessage)
     }
 
     fun e(tag: String, message: String, throwable: Throwable? = null) {

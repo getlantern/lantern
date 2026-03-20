@@ -26,11 +26,6 @@ PODS:
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
-  - Sentry/HybridSDK (8.56.2)
-  - sentry_flutter (9.14.0):
-    - Flutter
-    - FlutterMacOS
-    - Sentry/HybridSDK (= 8.56.2)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -112,7 +107,6 @@ DEPENDENCIES:
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - store_checker (from `.symlinks/plugins/store_checker/ios`)
@@ -122,7 +116,6 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - OrderedSet
-    - Sentry
     - Stripe
     - StripeApplePay
     - StripeCore
@@ -154,8 +147,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/mobile_scanner/darwin"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  sentry_flutter:
-    :path: ".symlinks/plugins/sentry_flutter/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
@@ -179,8 +170,6 @@ SPEC CHECKSUMS:
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
-  Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
-  sentry_flutter: a9f60d84bfddcae9a0ebf834547702f8854766a1
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   store_checker: a7be624ac44a4ba88e7917e71afe8433f197161e

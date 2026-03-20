@@ -265,13 +265,14 @@ func getAutoLocation() *C.char {
 		return SendError(err)
 	}
 
-	servers, ok := c.GetServerByTag(location.Lantern)
-	if !ok {
-		return SendError(fmt.Errorf("error finding server with tag: %s", location.Lantern))
-	}
-	jsonBytes, err := json.Marshal(servers)
+	// Use GetServerByTagJSON which marshals internally, avoiding GC write
+	// barrier panics when pointer-rich Server types are copied on the CGo stack.
+	jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 	if err != nil {
 		return SendError(fmt.Errorf("error marshalling server: %v", err))
+	}
+	if !ok {
+		return SendError(fmt.Errorf("error finding server with tag: %s", location.Lantern))
 	}
 	return C.CString(string(jsonBytes))
 }

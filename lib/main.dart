@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,94 +9,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
-import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern_app.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'core/common/app_secrets.dart';
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  appLogger.debug('Loading translations...');
+
+  // Timezone is only needed for notification scheduling (data-cap alerts),
+  // not for the first frame. Run it in the background from the very start.
+  unawaited(_configureLocalTimeZone());
+
   await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();
+
+  if (PlatformUtils.isMobile) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   try {
-    if (PlatformUtils.isMobile) {
-      /// Locking orientation to portrait only for mobile devices
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    }
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
-    await _configureLocalTimeZone();
-    appLogger.debug('Loading app secrets...');
+    unawaited(_logDeviceInfo());
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
     await injectServices();
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
-  final flags = await _loadFeatureFlags();
-  final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
-  await sl<Updater>().init(flags: flags);
 
-  FutureOr<void> runner() {
-    runApp(
-      ProviderScope(
-        retry: (retryCount, error) => null,
-        child: const LanternApp(),
-      ),
-    );
-  }
+  // Auto-updater is desktop-only (no-op on mobile) and already guarded
+  // internally by kDebugMode and platform checks.
+  await sl<Updater>().init();
 
-  if (sentryEnabled) {
-    await _setupSentry(runner: runner);
-  } else {
-    runner();
-  }
-}
-
-Future<Map<String, dynamic>> _loadFeatureFlags() async {
-  try {
-    final either = await sl<LanternService>().featureFlag();
-    return either.fold((_) => <String, dynamic>{}, (s) => json.decode(s));
-  } catch (_) {
-    return <String, dynamic>{};
-  }
-}
-
-Future<void> _setupSentry({required AppRunner runner}) async {
-  await SentryFlutter.init(
-    (options) {
-      options.tracesSampleRate = .8;
-      options.profilesSampleRate = .8;
-      options.attachThreads = true;
-      options.debug = false;
-      options.environment = kReleaseMode ? "production" : "development";
-      options.dsn = kReleaseMode ? AppSecrets.dnsConfig() : "";
-      options.enableNativeCrashHandling = true;
-      options.attachStacktrace = true;
-      options.enableAutoNativeBreadcrumbs = true;
-      options.enableNdkScopeSync = true;
-      options.dist = Platform.operatingSystem;
-    },
-    appRunner: runner,
+  runApp(
+    ProviderScope(
+      retry: (retryCount, error) => null,
+      child: const LanternApp(),
+    ),
   );
 }
 
 Future<void> _configureLocalTimeZone() async {
-  if (kIsWeb) {
-    return;
-  }
+  if (kIsWeb) return;
 
   tz.initializeTimeZones();
 
@@ -118,5 +80,67 @@ Future<void> _loadAppSecrets() async {
     appLogger.debug('App secrets loaded');
   } catch (e) {
     appLogger.error("Error loading app secrets: $e");
+  }
+}
+
+Future<void> _logDeviceInfo() async {
+  try {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final deviceInfo = DeviceInfoPlugin();
+
+    final Map<String, dynamic> info = {
+      'appName': packageInfo.appName,
+      'version': packageInfo.version,
+      'buildNumber': packageInfo.buildNumber,
+    };
+
+    if (PlatformUtils.isAndroid) {
+      final d = await deviceInfo.androidInfo;
+      info.addAll({
+        'platform': 'Android',
+        'model': d.model,
+        'manufacturer': d.manufacturer,
+        'osVersion': d.version.release,
+        'sdkInt': d.version.sdkInt,
+        'device': d.device,
+      });
+    } else if (PlatformUtils.isIOS) {
+      final d = await deviceInfo.iosInfo;
+      info.addAll({
+        'platform': 'iOS',
+        'model': d.model,
+        'name': d.name,
+        'systemVersion': d.systemVersion,
+      });
+    } else if (PlatformUtils.isMacOS) {
+      final d = await deviceInfo.macOsInfo;
+      info.addAll({
+        'platform': 'macOS',
+        'model': d.model,
+        'osRelease': d.osRelease,
+        'arch': d.arch,
+      });
+    } else if (PlatformUtils.isWindows) {
+      final d = await deviceInfo.windowsInfo;
+      info.addAll({
+        'platform': 'Windows',
+        'majorVersion': d.majorVersion,
+        'minorVersion': d.minorVersion,
+        'buildNumber': d.buildNumber,
+      });
+    } else if (PlatformUtils.isLinux) {
+      final d = await deviceInfo.linuxInfo;
+      info.addAll({
+        'platform': 'Linux',
+        'name': d.name,
+        'version': d.version,
+        'id': d.id,
+        'prettyName': d.prettyName,
+      });
+    }
+
+    appLogger.info('Device info: $info');
+  } catch (e) {
+    appLogger.warning('Failed to collect device info: $e');
   }
 }

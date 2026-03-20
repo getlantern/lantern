@@ -60,7 +60,7 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	MyDeviceId() string
-	GetServerByTag(tag string) (servers.Server, bool)
+	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	StartBackgroundListeners()
@@ -230,7 +230,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 func (lc *LanternCore) listeningServerLocationChanges() {
 	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
 		tag := evt.Selections.Lantern
-		servers, ok := lc.GetServerByTag(tag)
+		servers, ok := lc.serverManager.GetServerByTag(tag)
 		if !ok {
 			slog.Error("no server found with tag", "tag", tag)
 			return
@@ -347,9 +347,11 @@ func (lc *LanternCore) StopBackgroundListeners() {
 	slog.Info("Background listeners stopped")
 }
 
-func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
-	return lc.serverManager.GetServerByTag(tag)
-
+// GetServerByTagJSON returns the server for a given tag as pre-marshalled JSON.
+// This is safe to call from CGo callback stacks because the pointer-rich Server
+// types are marshalled here rather than being returned to the caller.
+func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
+	return lc.serverManager.GetServerByTagJSON(tag)
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
@@ -394,13 +396,13 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	serversList := lc.rad.ServerManager().Servers()
-	jsonBytes, err := json.Marshal(serversList)
+	// Use ServersJSON which marshals under the lock, avoiding GC write barrier
+	// panics when pointer-rich sing-box types are copied on a CGo callback stack.
+	jsonBytes, err := lc.rad.ServerManager().ServersJSON()
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
 		return nil
 	}
-	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 

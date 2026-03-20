@@ -82,7 +82,7 @@ class VpnStatus extends HookConsumerWidget {
 
   Color getStatusColor(VPNStatus vpnStatus, BuildContext context) {
     if (vpnStatus == VPNStatus.connected) {
-      return context.statusSuccessBorder;
+      return context.statusSuccessText;
     }
     return context.textPrimary;
   }
