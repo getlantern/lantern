@@ -155,6 +155,14 @@ jobs:
               ;;
           esac
 
+          case "$LINUX_ARCH" in
+            all|amd64|arm64) ;;
+            *)
+              echo "Error: Invalid linux_arch '$LINUX_ARCH' (expected: all, amd64, arm64)" >&2
+              exit 1
+              ;;
+          esac
+
           # Installer base name - Makefile will append build type
           INSTALLER_BASE_NAME="lantern-installer"
 

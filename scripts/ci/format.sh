@@ -23,6 +23,14 @@ BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
 GITHUB_REF_NAME="${GITHUB_REF_NAME:?GITHUB_REF_NAME required}"
 LINUX_ARCH="${LINUX_ARCH:-amd64}"
 
+case "$LINUX_ARCH" in
+amd64 | arm64 | all) ;;
+*)
+  echo "Error: Invalid LINUX_ARCH '$LINUX_ARCH' (expected: amd64, arm64, all)" >&2
+  exit 1
+  ;;
+esac
+
 # Strip 'v' prefix for S3 paths and version display
 VERSION="${RELEASE_TAG#v}"
 
