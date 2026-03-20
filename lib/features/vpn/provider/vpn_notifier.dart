@@ -42,15 +42,10 @@ class VpnNotifier extends _$VpnNotifier {
             /// Mark successful connection in app settings
             ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
-            /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(const Duration(seconds: 1), () {
-              if (!ref.mounted) {
-                return;
-              }
-              ref
-                  .read(serverLocationProvider.notifier)
-                  .ifNeededGetAutoServerLocation();
-            });
+            // Server location is updated via the "server-location" push event
+            // from the Go side (handled by AppEventNotifier), not by polling
+            // getAutoServerLocation here. This avoids a race where the NE
+            // reports "connected" before the Go tunnel is fully ready.
 
             sl<NotificationService>().showNotification(
               id: NotificationEvent.vpnConnected.id,
