@@ -85,8 +85,6 @@ dependencies:
   url_launcher: ^6.3.2
   # share
   share_plus: ^12.0.1
-  #native
-  sentry_flutter: ^9.14.0
   # Deeplink handling
   app_links: ^7.0.0
   # Desktop

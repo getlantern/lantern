@@ -192,7 +192,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
+		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
@@ -454,7 +454,7 @@ build-android: check-gomobile
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
@@ -516,7 +516,7 @@ build-ios:
 		-tags=$(TAGS),with_low_memory, -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
+		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
