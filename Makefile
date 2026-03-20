@@ -177,8 +177,8 @@ desktop-lib:
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
 
-# macOS build tool need to be installed when generating release builds,
-# but not necessarily for debug builds
+# macOS build tools need to be installed when generating release builds,
+# but are not necessarily required for debug builds
 .PHONY: install-macos-deps
 
 install-macos-deps: install-gomobile

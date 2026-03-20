@@ -1,11 +1,9 @@
 # Lantern — Developer Guide
 
-[![en](https://github.com/getlantern/.github/blob/main/resources/English.svg)](https://github.com/getlantern/.github/blob/main/profile/README.md)
-[![zh](https://github.com/getlantern/.github/blob/main/resources/Chinese.svg)](https://github.com/getlantern/.github/blob/main/profile/README.zh.md)
-[![ru](https://github.com/getlantern/.github/blob/main/resources/Russian.svg)](https://github.com/getlantern/.github/blob/main/profile/README.ru.md)
-[![ar](https://github.com/getlantern/.github/blob/main/resources/Arabic.svg)](https://github.com/getlantern/.github/blob/main/profile/README.ar.md)
-[![fa](https://github.com/getlantern/.github/blob/main/resources/Farsi.svg)](https://github.com/getlantern/.github/blob/main/profile/README.fa.md)
-[![my](https://github.com/getlantern/.github/blob/main/resources/Burmese.svg)](https://github.com/getlantern/.github/blob/main/profile/README.my.md)
+Censorship circumvention tool available for free download on any operating system
+
+![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
+
 
 ---
 
@@ -289,12 +287,6 @@ flutter run -d <deviceID>
 #### Debug build
 
 To build a debug APK directly:
-
-```bash
-make android-debug
-```
-
-Generates a Flutter debug APK for Android:
 
 ```bash
 make android-debug
