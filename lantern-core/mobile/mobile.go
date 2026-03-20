@@ -217,8 +217,7 @@ func StopAutoLocationListener() error {
 	})
 }
 
-// // GetAvailableServers returns the available servers in JSON format.
-// // This function retrieves the servers from lantern
+// GetAvailableServers returns the available servers in JSON format.
 func GetAvailableServers() ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
@@ -237,13 +236,12 @@ func GetAutoLocation() (string, error) {
 		return "", err
 	}
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		servers, ok := c.GetServerByTag(location.Lantern)
-		if !ok {
-			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
-		}
-		jsonBytes, err := json.Marshal(servers)
+		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 		if err != nil {
 			return "", fmt.Errorf("error marshalling server: %v", err)
+		}
+		if !ok {
+			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
 		}
 		slog.Debug("Auto location server:", "server", string(jsonBytes))
 		return string(jsonBytes), nil
@@ -324,19 +322,15 @@ func StripeBillingPortalUrl() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
-func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
-	return withCore(func(c lanterncore.Core) error { return c.AcknowledgeGooglePurchase(purchaseToken, planId) })
-}
-
-func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		var resp api.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
-			return "", fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
+			return nil, fmt.Errorf("error unmarshalling acknowledge google purchase response: %v", err)
 		}
 
 		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
@@ -347,12 +341,41 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 			settings.Set(settings.TokenKey, resp.ActualUserToken)
 			userData, err := FetchUserData()
 			if err != nil {
-				return "", err
+				return nil, err
 			}
-			return string(userData), nil
+			return userData, nil
 		}
-		/// Purchase was made on the same account, just return empty string to indicate success
-		return "", nil
+		/// Purchase was made on the same account, just return nil to indicate success
+		return nil, nil
+
+	})
+}
+
+func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+		if err != nil {
+			return nil, err
+		}
+		var resp api.VerifySubscriptionResponse
+		if err := json.Unmarshal([]byte(data), &resp); err != nil {
+			return nil, fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
+		}
+		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
+			/// This means the purchase was made on a different account and we need to switch to that account
+			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserId)
+			//reset all data
+			settings.Set(settings.UserIDKey, fmt.Sprintf("%d", resp.ActualUserId))
+			settings.Set(settings.TokenKey, resp.ActualUserToken)
+			userData, err := FetchUserData()
+			if err != nil {
+				return nil, err
+			}
+			slog.Debug("fetched user data after account switch", "userdata", string(userData))
+			return userData, nil
+		}
+		/// Purchase was made on the same account, just return nil to indicate success
+		return nil, nil
 
 	})
 }
@@ -433,8 +456,8 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
+func DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password, isOAuthUser) })
 }
 
 func ActivationCode(email, resellerCode string) error {
@@ -460,7 +483,6 @@ func SelectAccount(account string) error {
 }
 
 func SelectProject(project string) error {
-
 	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 
@@ -490,6 +512,28 @@ func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName str
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
 		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	})
+}
+
+func DeletePrivateServerByName(tag string) error {
+	return withCore(func(c lanterncore.Core) error { return c.DeleteServer(tag) })
+}
+
+func UpdatePrivateServerName(oldTag, newTag string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdatePrivateServerName(oldTag, newTag)
+	})
+}
+
+func GetSplitTunnelItems(filterType string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelItems(filterType)
+	})
+}
+
+func GetSplitTunnelStateJSON() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetSplitTunnelStateJSON()
 	})
 }
 

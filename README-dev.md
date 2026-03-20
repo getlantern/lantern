@@ -78,6 +78,48 @@ flutter run -d macos
 ```
 
 ---
+# Build and run the app on Linux (systemd daemon, no sudo)
+
+1. Build Linux artifacts
+
+```bash
+make linux-release
+```
+
+2. Install the `.deb` (requires root only for install)
+
+```bash
+sudo apt install ./lantern-installer-*.deb
+```
+
+3. Check daemon status
+
+```bash
+systemctl status lanternd.service
+```
+
+4. Run Lantern app as your normal user
+
+```bash
+flutter run -d linux
+```
+
+Troubleshooting:
+
+```bash
+journalctl -u lanternd.service -n 200 --no-pager
+```
+
+Uninstall / cleanup:
+
+```bash
+sudo systemctl disable --now lanternd.service
+sudo apt remove lantern
+sudo rm -f /usr/lib/systemd/system/lanternd.service /usr/lib/lantern/lanternd
+sudo systemctl daemon-reload
+```
+
+# Build and run the app on Windows
 
 ## Building for iOS
 
@@ -224,6 +266,11 @@ flutter test integration_test/private_server_flow_test.dart
 ```
 
 ---
+### Run Linux VPN connect/disconnect smoke test
+
+```bash
+flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=true
+```
 
 # Auto-Updater Integration
 

@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
-import '../models/plan_data.dart';
 import 'injection_container.dart' show sl;
+import 'local_storage_service.dart';
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
@@ -28,7 +29,7 @@ class AppPurchase {
   String? _pendingPlanId;
 
   void init() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop || _subscription != null) {
       return;
     }
 
@@ -38,8 +39,6 @@ class AppPurchase {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
-
-    unawaited(fetchSubscriptions());
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -56,12 +55,14 @@ class AppPurchase {
           '[AppPurchase] Fetching subscriptions, attempt: ${attempt + 1}/$maxAttempts',
         );
 
-        final response =
-            await _inAppPurchase.queryProductDetails(_subscriptionIds.toSet());
+        final response = await _inAppPurchase.queryProductDetails(
+          _subscriptionIds.toSet(),
+        );
 
         if (response.error != null) {
           appLogger.error(
-              '[AppPurchase] Error fetching subscriptions: ${response.error}');
+            '[AppPurchase] Error fetching subscriptions: ${response.error}',
+          );
         } else if (response.productDetails.isEmpty) {
           appLogger.error(
             '[AppPurchase] Fetched 0 subscriptions. notFoundIDs=${response.notFoundIDs}',
@@ -76,7 +77,8 @@ class AppPurchase {
             _productsLoadedCompleter?.complete();
           }
           appLogger.info(
-              '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items');
+            '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items',
+          );
           return;
         }
       } catch (e, st) {
@@ -89,29 +91,31 @@ class AppPurchase {
       }
     }
 
-    // All attempts exhausted without success.
-    _productsLoadedCompleter!.completeError(
-      StateError(
-          'Unable to load App Store products after $maxAttempts attempts'),
+    final error = StateError(
+      'Unable to load App Store products after $maxAttempts attempts',
     );
+    //  Safely complete the completer with an error, if it is still pending.
+    if (_productsLoadedCompleter != null &&
+        !_productsLoadedCompleter!.isCompleted) {
+      _productsLoadedCompleter!.completeError(error);
+    }
+    throw error;
   }
 
   /// Ensures products are available before starting a purchase.
-  ///
-  /// If products aren't loaded yet, waits for the in-flight fetch or kicks off
-  /// a new one. Times out to avoid hanging the UI forever.
   Future<void> _waitForProducts() async {
     if (_productsLoaded) return;
 
-    // If there's no active fetch (or it finished), start one
-    if (_productsLoadedCompleter == null ||
-        _productsLoadedCompleter!.isCompleted) {
-      _productsLoadedCompleter = Completer<void>();
-      unawaited(fetchSubscriptions());
+    // If a fetch is already in progress, piggy-back on it.
+    if (_productsLoadedCompleter != null &&
+        !_productsLoadedCompleter!.isCompleted) {
+      await _productsLoadedCompleter!.future;
+      return;
     }
 
-    // Wait for completion (or error)
-    await _productsLoadedCompleter!.future;
+    // No active fetch — reset so fetchSubscriptions creates a fresh completer.
+    _productsLoadedCompleter = null;
+    await fetchSubscriptions();
   }
 
   Future<bool> isAvailable() async {
@@ -144,10 +148,23 @@ class AppPurchase {
       return;
     }
 
-    final purchaseParam = PurchaseParam(productDetails: product);
+    final PurchaseParam purchaseParam;
+    if (Platform.isAndroid && product is GooglePlayProductDetails) {
+      purchaseParam = GooglePlayPurchaseParam(
+        productDetails: product,
+        offerToken: product.offerToken,
+      );
+    } else {
+      purchaseParam = PurchaseParam(productDetails: product);
+    }
+
     try {
-      final started =
-          await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      appLogger.info(
+        '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
+      );
+      final started = await _inAppPurchase.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
       if (!started) {
         _onError?.call("Failed to initiate purchase flow.");
       }
@@ -157,8 +174,9 @@ class AppPurchase {
   }
 
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
-    appLogger
-        .info('[AppPurchase] Received purchase updates: ${purchases.length}');
+    appLogger.info(
+      '[AppPurchase] Received purchase updates: ${purchases.length}',
+    );
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
@@ -181,18 +199,22 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.canceled) {
         /// User has cancelled the purchase
-        if (PlatformUtils.isIOS) {
-          /// iOS specific handling
-          await _inAppPurchase.completePurchase(purchaseDetails);
-        }
         _onError?.call("Purchase canceled");
+        return;
+      }
+      if (status == PurchaseStatus.pending) {
+        /// Purchase is pending (e.g. deferred payment method on Android).
+        /// Dismiss loading and inform the user — the purchase will complete
+        /// asynchronously when the payment is confirmed.
+        appLogger.info('[AppPurchase] Purchase is pending: ${purchaseDetails.productID}');
+        _onError?.call("Purchase is pending. You will be notified when it completes.");
         return;
       }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
-        if (_checkIfAlreadyPurchased()) {
+        if (await _checkIfAlreadyPurchased()) {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
@@ -203,14 +225,16 @@ class AppPurchase {
 
         try {
           appLogger.info(
-              '[AppPurchase] Purchase successful: ${purchaseDetails.productID}');
+            '[AppPurchase] Purchase successful: ${purchaseDetails.productID}',
+          );
           final lanternService = sl<LanternPlatformService>();
           final purchaseToken =
               purchaseDetails.verificationData.serverVerificationData;
           final planId = _resolvePlanId(purchaseDetails);
 
           appLogger.info(
-              '[AppPurchase] Acknowledging purchase with planId: $planId');
+            '[AppPurchase] Acknowledging purchase with planId: $planId',
+          );
           final ack = await lanternService.acknowledgeInAppPurchase(
             purchaseToken: purchaseToken,
             planId: planId,
@@ -233,7 +257,7 @@ class AppPurchase {
         return;
       }
     } catch (e) {
-      appLogger.error('[AppPurchase] Error handling purchase: $e');
+      appLogger.error('[AppPurchase] Error handling purchase: $e', e);
       _onError?.call(e.toString());
     }
   }
@@ -244,6 +268,8 @@ class AppPurchase {
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
       }
+    } catch (e) {
+      appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
       _pendingPlanId = null;
     }
@@ -277,46 +303,56 @@ class AppPurchase {
   /// Apple sends purchase updates for previously purchased items when the
   /// app starts. This function checks if the user has already purchased the
   /// subscription to avoid duplicate processing
-  bool _checkIfAlreadyPurchased() {
-    final user = sl<LocalStorageService>().getUser();
-    if (user?.legacyUserData != null) {
-      final legacyData = user!.legacyUserData;
-      final subscriptionStatus = legacyData.subscriptionData.status;
-      if (subscriptionStatus == 'active') {
-        return true;
-      }
+  Future<bool> _checkIfAlreadyPurchased() async {
+    final lanternService = sl<LanternPlatformService>();
+
+    final fetchResult = await lanternService.fetchUserData();
+    final fetchedUser = fetchResult.fold((failure) {
+      appLogger.warning(
+        '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.localizedErrorMessage}',
+      );
+      return null;
+    }, (user) => user);
+
+    final user = fetchedUser ??
+        (await lanternService.getUserData()).fold((failure) {
+          appLogger.warning(
+            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.localizedErrorMessage}',
+          );
+          return null;
+        }, (user) => user);
+
+    if (user == null) {
       return false;
     }
 
-    return false;
+    final userLevel = user.legacyUserData.userLevel.toLowerCase();
+    final subscriptionStatus = user.legacyUserData.hasSubscriptionData()
+        ? user.legacyUserData.subscriptionData.status.toLowerCase()
+        : '';
+
+    return userLevel == 'pro' || subscriptionStatus == 'active';
   }
 
   /// Determines the plan id to send to the backend for acknowledgment.
   ///
-  /// Prefers the exact plan the user selected. Falls back to cached plans,
-  /// then to a sensible default.
+  /// Prefers the exact plan the user selected, then falls back to a default.
   String _resolvePlanId(PurchaseDetails purchase) {
     if (_pendingPlanId != null && _pendingPlanId!.isNotEmpty) {
       return _pendingPlanId!;
     }
 
-    // Fallback: try to find a matching cached plan.
     final prefix = purchase.productID.split('_').first; // "1y" or "1m"
-    final localPlans = sl<LocalStorageService>().getPlans()?.toPlanData();
-
+    final localPlans = sl<LocalStorageService>().getPlans();
     if (localPlans != null) {
-      final match = localPlans.plans.cast<Plan?>().firstWhere(
-            (p) => (p?.id)?.startsWith('$prefix-') ?? false,
-            orElse: () => null,
-          );
-      if (match != null) {
-        appLogger.info(
-          '[AppPurchase] Resolved plan from cache: ${match.id}',
-        );
-        return match.id;
+      for (final plan in localPlans.plans) {
+        if (plan.id.startsWith('$prefix-')) {
+          appLogger.info('[AppPurchase] Resolved plan from cache: ${plan.id}');
+          return plan.id;
+        }
       }
     }
-    // Last resort fallback.
+
     appLogger.debug(
       '[AppPurchase] No cached plan for prefix=$prefix, using default',
     );

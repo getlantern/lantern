@@ -4,15 +4,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/feature_flags.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -39,10 +39,12 @@ class _HomeState extends ConsumerState<Home> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appSetting = ref.read(appSettingProvider);
+      final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
         appLogger.info(
             "User has not completed onboarding, navigating to Onboarding Screen");
         appRouter.push(const Onboarding());
+        appSettingNotifier.setOnboardingCompleted(true);
         return;
       }
 
@@ -56,7 +58,7 @@ class _HomeState extends ConsumerState<Home> {
           appRouter.push(const MacOSExtensionDialog());
           //User has seen dialog, do not show again
           appLogger.info("Setting showSplashScreen to false");
-          ref.read(appSettingProvider.notifier).setSplashScreen(false);
+          appSettingNotifier.setSplashScreen(false);
           return;
         }
       }
@@ -67,8 +69,10 @@ class _HomeState extends ConsumerState<Home> {
   Widget build(BuildContext context) {
     final isUserPro = ref.watch(isUserProProvider);
     final featureFlag = ref.watch(featureFlagProvider);
-    final appSetting = ref.read(appSettingProvider);
+    final userLoggedIn =
+        ref.watch(appSettingProvider.select((s) => s.userLoggedIn));
     useEffect(() {
+      final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
         appLogger.info(
           "User has successfully connected, checking if needs to show Help Lantern Dialog or not",
@@ -89,8 +93,12 @@ class _HomeState extends ConsumerState<Home> {
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(
+      key: const Key('home.screen'),
       appBar: AppBar(
-        title: LanternLogo(isPro: isUserPro,color: context.textPrimary,),
+        title: LanternLogo(
+          isPro: isUserPro,
+          color: context.textPrimary,
+        ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -107,21 +115,23 @@ class _HomeState extends ConsumerState<Home> {
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
-                final localUser = sl<LocalStorageService>().getUser()!;
-                final userSignedIn = ref.watch(
-                    appSettingProvider.select((value) => value.userLoggedIn));
-                final email = localUser.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro();
+                final localUser = ref.read(homeProvider).value;
+                final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
+                final email = localUser!.legacyUserData.email;
+                final isPro = localUser.legacyUserData.isPro;
                 if (isPro && !userSignedIn) {
                   // this means user has pro account but not signed in
                   await showProAccountFlowDialog(
-                      context: context, hasEmail: email.isNotEmpty);
+                    context: context,
+                    hasEmail: email.isNotEmpty,
+                  );
                   return;
                 }
+
                 appRouter.push(Account());
               },
             )
-          else if (!appSetting.userLoggedIn)
+          else if (!userLoggedIn)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () {
@@ -135,8 +145,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocation = ref.watch(serverLocationProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
+    final serverLocationAsync = ref.watch(serverLocationProvider);
+
+    // Choose a safe default while loading/error
+    final serverLocation = serverLocationAsync.value;
+    final serverType = (serverLocation?.serverType ?? '').toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -151,9 +165,9 @@ class _HomeState extends ConsumerState<Home> {
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(text: 'private_server_usage_message'.i18n)
                 else if (PlatformUtils.isIOS)
-                 const SizedBox.shrink()
+                  const SizedBox.shrink()
                 else
-                 const DataUsage(),
+                  const DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),
@@ -166,7 +180,10 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final setting = ref.watch(appSettingProvider);
+    final routingMode =
+        ref.watch(appSettingProvider.select((s) => s.routingMode));
+    final isSplitTunnelingOn =
+        ref.watch(appSettingProvider.select((s) => s.isSplitTunnelingOn));
 
     return Container(
       decoration: BoxDecoration(
@@ -192,7 +209,7 @@ class _HomeState extends ConsumerState<Home> {
               SettingTile(
                 label: 'routing_mode'.i18n,
                 icon: AppImagePaths.route,
-                value: setting.routingMode.label(),
+                value: routingMode.label(),
                 actions: [
                   IconButton(
                     onPressed: null,
@@ -215,9 +232,7 @@ class _HomeState extends ConsumerState<Home> {
               SettingTile(
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
-                value: setting.isSplitTunnelingOn
-                    ? 'enabled'.i18n
-                    : 'disabled'.i18n,
+                value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
                 actions: [
                   IconButton(
                     onPressed: null,
@@ -263,12 +278,14 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: 24),
           Text(
             'help_improve_lantern'.i18n,
-            style: textTheme!.headlineSmall!.copyWith(color: context.textPrimary),
+            style:
+                textTheme!.headlineSmall!.copyWith(color: context.textPrimary),
           ),
           SizedBox(height: defaultSize),
           Text(
             'share_anonymous_usage_data'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
           SizedBox(height: defaultSize),
           Text(
@@ -280,7 +297,8 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: defaultSize),
           Text(
             'you_can_change_anytime'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ],
       ),

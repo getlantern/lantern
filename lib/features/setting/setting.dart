@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
@@ -15,7 +15,6 @@ import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
 import '../../core/services/injection_container.dart';
-import '../../lantern/lantern_service_notifier.dart';
 
 enum _SettingType {
   account,
@@ -41,21 +40,22 @@ class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
+    final user = ref.watch(homeProvider).value;
+    final isUserPro = ref.watch(isUserProProvider);
+    final email = ref.watch(userEmailProvider);
+
     final appSetting = ref.watch(appSettingProvider);
-    final localUser = sl<LocalStorageService>().getUser();
-    final localIsPro = localUser?.legacyUserData.isPro() ?? false;
-    final hasProSession =
-        localIsPro && (localUser?.legacyUserData.unpassRegistered ?? false);
+
+    final hasProSession = (user?.legacyUserData.isPro ?? false) &&
+        (user?.legacyUserData.unpassRegistered ?? false);
+
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
+
     final locale = appSetting.locale;
     final themeMode = appSetting.themeMode;
     final textTheme = Theme.of(context).textTheme;
-    final isUserPro = ref.watch(isUserProProvider);
-    final user = ref.watch(homeProvider).value;
-    String email = '';
-    if (user != null) {
-      email = user.legacyUserData.email;
-    }
+    final userLoggedIn = appSetting.userLoggedIn;
+
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
@@ -75,9 +75,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (isUserPro ||
-              hasProSession ||
-              (isExpired && appSetting.userLoggedIn))
+          if (userLoggedIn || isUserPro)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -87,10 +85,11 @@ class _SettingState extends ConsumerState<Setting> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text('account'.i18n),
-                    SubscriptionTags(
-                        type: isUserPro
-                            ? SubscriptionTagType.pro
-                            : SubscriptionTagType.expired)
+                    if (isUserPro || isExpired)
+                      SubscriptionTags(
+                          type: isUserPro
+                              ? SubscriptionTagType.pro
+                              : SubscriptionTagType.expired)
                   ],
                 ),
                 icon: AppImagePaths.accountSetting,
@@ -180,16 +179,6 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (appSetting.userLoggedIn && !hasProSession) ...{
-            SizedBox(height: defaultSize),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                  label: 'logout'.i18n,
-                  icon: AppImagePaths.signIn,
-                  onPressed: () => logoutDialog(context, ref)),
-            ),
-          },
           if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             SizedBox(height: defaultSize),
             AppCard(
@@ -204,16 +193,6 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           },
           const SizedBox(height: defaultSize),
-          if (appSetting.userLoggedIn && !hasProSession) ...[
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                  label: 'logout'.i18n,
-                  icon: AppImagePaths.signIn,
-                  onPressed: () => logoutDialog(context, ref)),
-            ),
-            const SizedBox(height: defaultSize),
-          ],
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
@@ -275,16 +254,15 @@ class _SettingState extends ConsumerState<Setting> {
         break;
 
       case _SettingType.account:
-        final localUser = sl<LocalStorageService>().getUser();
-        if (localUser == null) {
-          /// This should not happen, but just in case.
-          /// If user is not account screen it mean user should have some data
+        final user = ref.read(homeProvider).value;
+        if (user == null) {
           appRouter.push(const SignInEmail());
           return;
         }
+
         final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-        final email = localUser.legacyUserData.email;
-        final isPro = localUser.legacyUserData.isPro();
+        final email = user.legacyUserData.email;
+        final isPro = user.legacyUserData.isPro;
         if (isPro && !userSignedIn) {
           await showProAccountFlowDialog(
               context: context, hasEmail: email.isNotEmpty);
@@ -313,67 +291,5 @@ class _SettingState extends ConsumerState<Setting> {
         content: e.localizedDescription,
       );
     }
-  }
-
-  void logoutDialog(BuildContext context, WidgetRef ref) {
-    final theme = TextTheme.of(context);
-    final isExpired = ref.read(isUserExpiredProvider);
-    AppDialog.customDialog(
-      context: context,
-      action: [
-        AppTextButton(
-          label: 'not_now'.i18n,
-          textColor: context.textSecondary,
-          onPressed: () {
-            appRouter.pop();
-          },
-        ),
-        AppTextButton(
-          label: 'logout'.i18n,
-          onPressed: () {
-            onLogout(context, ref);
-            appRouter.pop();
-          },
-        ),
-      ],
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          Text(
-            'logout'.i18n,
-            style: theme.headlineSmall,
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
-            style: theme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> onLogout(BuildContext context, WidgetRef ref) async {
-    context.showLoadingDialog();
-    final appSetting = ref.read(appSettingProvider);
-    final result =
-        await ref.read(lanternServiceProvider).logout(appSetting.email);
-    result.fold(
-      (l) {
-        context.hideLoadingDialog();
-        appLogger.error('Logout error: ${l.localizedErrorMessage}');
-      },
-      (user) {
-        context.hideLoadingDialog();
-        appRouter.popUntilRoot();
-        ref.read(homeProvider.notifier).clearLogoutData();
-        ref.read(homeProvider.notifier).updateUserData(user);
-
-        appLogger.info('Logout success: $user');
-      },
-    );
   }
 }

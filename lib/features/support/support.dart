@@ -39,15 +39,13 @@ class Support extends StatelessWidget {
                     label: 'report_an_issue'.i18n,
                     onPressed: () => safePush(context, ReportIssue()),
                   ),
-                  if (!PlatformUtils.isIOS) ...{
-                    const DividerSpace(
-                        padding: EdgeInsets.symmetric(horizontal: 16)),
-                    AppTile(
-                      icon: Icons.code_outlined,
-                      label: 'diagnostic_logs'.i18n,
-                      onPressed: () => safePush(context, Logs()),
-                    ),
-                  }
+                  const DividerSpace(
+                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                  AppTile(
+                    icon: Icons.code_outlined,
+                    label: 'diagnostic_logs'.i18n,
+                    onPressed: () => safePush(context, Logs()),
+                  ),
                 ],
               ),
             ),
@@ -134,7 +132,8 @@ class Support extends StatelessWidget {
     showAppBottomSheet(
       context: context,
       title: 'follow_us'.i18n,
-      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.39.h : 0.3.h,
+      scrollControlDisabledMaxHeightRatio:
+          context.isSmallDevice ? 0.39.h : 0.3.h,
       builder: (context, scrollController) {
         return Flexible(
           child: FollowUsListView(

@@ -10,20 +10,20 @@ part of 'server_location_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ServerLocationNotifier)
-const serverLocationProvider = ServerLocationNotifierProvider._();
+final serverLocationProvider = ServerLocationNotifierProvider._();
 
 final class ServerLocationNotifierProvider
-    extends $NotifierProvider<ServerLocationNotifier, ServerLocationEntity> {
-  const ServerLocationNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'serverLocationProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    extends $AsyncNotifierProvider<ServerLocationNotifier, ServerLocation> {
+  ServerLocationNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'serverLocationProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$serverLocationNotifierHash();
@@ -31,32 +31,25 @@ final class ServerLocationNotifierProvider
   @$internal
   @override
   ServerLocationNotifier create() => ServerLocationNotifier();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ServerLocationEntity value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ServerLocationEntity>(value),
-    );
-  }
 }
 
 String _$serverLocationNotifierHash() =>
-    r'71b86d628d428f7063c93f8b3d146d785e5235f7';
+    r'9b7c13306682f80e6ce31eea5a9f9a5e74baedbc';
 
-abstract class _$ServerLocationNotifier
-    extends $Notifier<ServerLocationEntity> {
-  ServerLocationEntity build();
+abstract class _$ServerLocationNotifier extends $AsyncNotifier<ServerLocation> {
+  FutureOr<ServerLocation> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
-    final ref = this.ref as $Ref<ServerLocationEntity, ServerLocationEntity>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ServerLocationEntity, ServerLocationEntity>,
-        ServerLocationEntity,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final ref = this.ref as $Ref<AsyncValue<ServerLocation>, ServerLocation>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<ServerLocation>, ServerLocation>,
+              AsyncValue<ServerLocation>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

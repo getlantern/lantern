@@ -13,7 +13,7 @@ part of 'app_event_notifier.dart';
 /// in one place.
 
 @ProviderFor(AppEventNotifier)
-const appEventProvider = AppEventNotifierProvider._();
+final appEventProvider = AppEventNotifierProvider._();
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
@@ -23,16 +23,16 @@ final class AppEventNotifierProvider
   /// Listens for application-wide events and triggers corresponding actions.
   /// This can be used for all listening to events that go sends and handling them
   /// in one place.
-  const AppEventNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'appEventProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AppEventNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appEventProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$appEventNotifierHash();
@@ -42,7 +42,7 @@ final class AppEventNotifierProvider
   AppEventNotifier create() => AppEventNotifier();
 }
 
-String _$appEventNotifierHash() => r'836d8ae705eb943827db277d28cb55fc1c4ac19d';
+String _$appEventNotifierHash() => r'eb7f00bfa36873512510aa2b787822df6c073b4d';
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
@@ -53,13 +53,15 @@ abstract class _$AppEventNotifier extends $AsyncNotifier<void> {
   @$mustCallSuper
   @override
   void runBuild() {
-    build();
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<void>, void>,
-        AsyncValue<void>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, null);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

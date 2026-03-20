@@ -16,7 +16,6 @@ on:
           - nightly
           - production
           - beta
-          - internal
         default: nightly
       platforms:
         description: "Platforms to build ('all', or 'macos,linux,android,ios,windows')"
@@ -39,6 +38,10 @@ concurrency:
 
 jobs:
   set-metadata:
+    # Allow tag-push releases, scheduled builds from default branch,
+    # and workflow_dispatch from any branch (non-main branches create
+    # draft releases that are immediately deleted for testing).
+    if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule' && github.ref_name == github.event.repository.default_branch) || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
@@ -46,6 +49,7 @@ jobs:
       version: ${{ steps.meta.outputs.version }}
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
+      is_test_run: ${{ steps.meta.outputs.is_test_run }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -76,7 +80,7 @@ jobs:
               PLATFORM="${{ github.event.inputs.platforms }}"
 
               case "$BUILD_TYPE" in
-                nightly|internal|beta)
+                nightly|beta)
                   VERSION=$(./scripts/ci/version.sh generate "$BUILD_TYPE")
                   RELEASE_TAG="v${VERSION}"
                   ;;
@@ -96,21 +100,19 @@ jobs:
               VERSION="${RELEASE_TAG#v}"
 
               case "$RELEASE_TAG" in
-                *-internal*)
-                  BUILD_TYPE="internal"
-                  ;;
                 *-beta*)
                   BUILD_TYPE="beta"
                   ;;
                 *)
-                  # Production builds require bare version tags
-                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                  # Production: bare version or version with platform suffix
+                  # e.g., v9.0.15 (all platforms) or v9.0.15-android (single platform)
+                  if [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(windows|macos|linux|android|ios))?$ ]]; then
                     BUILD_TYPE="production"
                   else
                     echo "Error: Invalid tag format for build" >&2
-                    echo "  Use 'v1.0.0' for production" >&2
+                    echo "  Use 'v1.0.0' for production (all platforms)" >&2
+                    echo "  Use 'v1.0.0-<platform>' for production (single platform)" >&2
                     echo "  Use 'v1.0.0-beta' for beta" >&2
-                    echo "  Use 'v1.0.0-internal' for internal" >&2
                     echo "Got: $RELEASE_TAG" >&2
                     exit 1
                   fi
@@ -127,6 +129,12 @@ jobs:
                 ios) PLATFORM="ios" ;;
                 *) PLATFORM="all" ;;
               esac
+
+              # Strip platform suffix from VERSION (platform is tracked separately)
+              case "$PLATFORM" in
+                all) ;;
+                *) VERSION="${VERSION%-$PLATFORM}" ;;
+              esac
               ;;
           esac
 
@@ -141,11 +149,22 @@ jobs:
           echo "  Platform:      $PLATFORM"
           echo "  Installer:     $INSTALLER_BASE_NAME"
 
+          # Test run: workflow_dispatch from non-default branch
+          IS_TEST_RUN="false"
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+            if [[ "${{ github.ref_name }}" != "$DEFAULT_BRANCH" ]]; then
+              IS_TEST_RUN="true"
+              echo "Test run: draft release will be deleted after build"
+            fi
+          fi
+
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
+          echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -155,7 +174,7 @@ jobs:
           # Strip 'v' prefix if present
           VERSION="${RELEASE_TAG#v}"
 
-          # Extract base semver (strip suffixes like -beta, -internal, -nightly-...)
+          # Extract base semver (strip suffixes like -beta, -nightly-...)
           BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
 
           CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
@@ -175,41 +194,104 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
+  release-notify:
+    needs: [set-metadata]
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "Production release v${{ needs.set-metadata.outputs.version }} awaiting approval before releasing on all platforms: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+
+  release-approval:
+    needs: [set-metadata]
+    if: |
+      needs.set-metadata.outputs.build_type == 'production' &&
+      needs.set-metadata.outputs.platform == 'all'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "Approved"
+
   build-macos:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos') }}
+    if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
+  build-windows:
+    needs: [set-metadata, release-create, release-approval]
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
+    with:
+      version: ${{ needs.set-metadata.outputs.version }}
+      build_type: ${{ needs.set-metadata.outputs.build_type }}
+      installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
+
   build-linux:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux') }}
+    if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-ios:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios') }}
+    if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: [set-metadata, release-create]
+    needs: [set-metadata, release-create, release-approval]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
-    if: ${{ needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android') }}
+    if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.release-create.result == 'success' &&
+      (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
+      (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
@@ -243,10 +325,6 @@ jobs:
               PRERELEASE_FLAG="--prerelease"
               TITLE="Beta $VERSION"
               ;;
-            internal)
-              PRERELEASE_FLAG="--prerelease"
-              TITLE="Internal $VERSION"
-              ;;
             nightly)
               PRERELEASE_FLAG="--prerelease"
               TITLE="Nightly $VERSION"
@@ -262,13 +340,25 @@ jobs:
             --notes "Build [in progress](${WORKFLOW_URL})..."
 
   upload-s3:
-    needs: [set-metadata, build-macos, build-linux, build-android, build-ios]
+    needs:
+      [
+        set-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+        build-ios,
+      ]
     if: |
       !cancelled() &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+       needs.build-ios.result == 'success')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -333,6 +423,7 @@ jobs:
         set-metadata,
         release-create,
         build-macos,
+        build-windows,
         build-linux,
         build-android,
         build-ios,
@@ -341,9 +432,13 @@ jobs:
       !cancelled() &&
       needs.release-create.result == 'success' &&
       (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
       (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
       (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped')
+      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+       needs.build-ios.result == 'success')
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -390,6 +485,7 @@ jobs:
           }
 
           upload_if_exists "lantern-installer-dmg/${FULL_NAME}.dmg"
+          upload_if_exists "lantern-installer-exe/${FULL_NAME}.exe"
           upload_if_exists "lantern-installer-apk/${FULL_NAME}.apk"
           upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
           upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
@@ -399,8 +495,11 @@ jobs:
   upload-google-play:
     needs: [set-metadata, build-android]
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-android.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
-      (needs.set-metadata.outputs.build_type == 'internal' || needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -425,9 +524,7 @@ jobs:
         id: track
         run: |
           bt="${{ needs.set-metadata.outputs.build_type }}"
-          if [ "$bt" = "internal" ]; then
-            echo "track=internal" >> "$GITHUB_OUTPUT"
-          elif [ "$bt" = "beta" ]; then
+          if [ "$bt" = "beta" ]; then
             echo "track=beta" >> "$GITHUB_OUTPUT"
           else
             echo "track=production" >> "$GITHUB_OUTPUT"
@@ -447,6 +544,9 @@ jobs:
   upload-testflight:
     needs: [set-metadata, build-ios]
     if: |
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.build-ios.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
       (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
     runs-on: macos-14
@@ -483,7 +583,6 @@ jobs:
        contains(needs.set-metadata.outputs.platform, 'macos') ||
        contains(needs.set-metadata.outputs.platform, 'windows') ||
        contains(needs.set-metadata.outputs.platform, 'linux')) &&
-      needs.set-metadata.outputs.build_type != 'internal' &&
       needs.set-metadata.outputs.build_type != 'nightly'
     runs-on: ubuntu-latest
     steps:
@@ -493,10 +592,10 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
+        uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version-file: .github/flutter-version.yaml
 
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
@@ -539,7 +638,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -548,6 +649,8 @@ jobs:
 
       - name: Publish release on success
         if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -558,26 +661,51 @@ jobs:
           echo "All steps succeeded - publishing draft release"
           gh release edit "$RELEASE_TAG" --draft=false
 
-      - name: Delete draft on failure (cleanup enabled)
+      - name: Delete draft release
         if: |
-          env.CLEANUP_ON_FAILURE == 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          env.IS_TEST_RUN == 'true' ||
+          env.BUILD_TYPE == 'nightly' ||
+          (env.CLEANUP_ON_FAILURE == 'true' &&
+           !(needs.upload-s3.result == 'success' &&
+             needs.upload-release-artifacts.result == 'success' &&
+             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Build failed or cancelled - cleaning up draft release"
-          gh release delete "$RELEASE_TAG" --cleanup-tag --yes || true
+          if [[ "$IS_TEST_RUN" == "true" ]]; then
+            echo "Test run from non-main branch - deleting draft release"
+          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
+            echo "Nightly build - deleting draft release"
+          else
+            echo "Build failed or cancelled - cleaning up draft release"
+          fi
+
+          attempt=0
+          max_retries=5
+          while [ "$attempt" -lt "$max_retries" ]; do
+            attempt=$((attempt + 1))
+            echo "Deleting release $RELEASE_TAG (attempt $attempt/$max_retries)..."
+            if gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>&1; then
+              echo "Release $RELEASE_TAG deleted"
+              break
+            fi
+            if [ "$attempt" -eq "$max_retries" ]; then
+              echo "Failed to delete release after $max_retries attempts"
+              exit 1
+            fi
+            sleep 3
+          done
 
       - name: Report failure (cleanup disabled)
         if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
           env.CLEANUP_ON_FAILURE != 'true' &&
-          (needs.upload-s3.result == 'failure' || needs.upload-s3.result == 'cancelled' ||
-           needs.upload-release-artifacts.result == 'failure' || needs.upload-release-artifacts.result == 'cancelled' ||
-           needs.upload-google-play.result == 'failure' || needs.upload-google-play.result == 'cancelled' ||
-           needs.upload-testflight.result == 'failure' || needs.upload-testflight.result == 'cancelled')
+          !(needs.upload-s3.result == 'success' &&
+            needs.upload-release-artifacts.result == 'success' &&
+            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         run: |
           echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"

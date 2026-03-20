@@ -1,29 +1,46 @@
-import 'package:lantern/core/common/app_eum.dart' show ServerLocationType;
-import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-import 'package:lantern/core/models/entity/server_location_entity.dart';
-import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/services/injection_container.dart';
-import '../../../core/services/local_storage.dart';
+import '../../../core/services/logger_service.dart';
 
 part 'manage_server_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class ManageServerNotifier extends _$ManageServerNotifier {
   @override
-  List<PrivateServerEntity> build() {
-    return sl<LocalStorageService>().getPrivateServer();
+  void build() {}
+
+  Future<void> refresh() async {
+    appLogger.debug(
+        'Force fetching available servers from Go after server management operation...');
+    await ref
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
   }
 
-  Future<void> deleteServer(String serverName) async {
-    await sl<LocalStorageService>().deletePrivateServer(serverName);
-    state = sl<LocalStorageService>().getPrivateServer();
-    if (state.isEmpty) {
-      ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(initialServerLocation());
-    }
+  Future<Either<Failure, Unit>> deleteServer(String serverName) async {
+    final res = await ref
+        .read(lanternServiceProvider)
+        .deletePrivateServerByName(serverName);
+    await res.fold(
+      (_) async {},
+      (_) async => refresh(),
+    );
+    return res;
+  }
+
+  Future<Either<Failure, Unit>> renameServer(
+      String oldName, String newName) async {
+    final res = await ref
+        .read(lanternServiceProvider)
+        .updatePrivateServerName(oldName, newName);
+    await res.fold(
+      (_) async {},
+      (_) async => refresh(),
+    );
+    return res;
   }
 }

@@ -34,7 +34,6 @@ class LanternLogo extends StatelessWidget {
       height: height,
       width: width,
       fit: BoxFit.contain,
-
     );
   }
 }
@@ -53,6 +52,7 @@ class LanternRoundedLogo extends StatelessWidget {
     return AppImage(
       height: height,
       width: width,
+      useThemeColor: false,
       path: AppImagePaths.lanternLogoRounded,
     );
   }

@@ -232,7 +232,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
     networkSettings = settings
     appLogger.info("Setting tunnel network settings to \(settings)...")
-    try self.setTunnelNetworkSettings(settings)
+    try await tunnel.setTunnelNetworkSettings(settings)
 
     appLogger.info("Accessing the socket file descriptor...")
     if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
@@ -502,23 +502,4 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     nil
   }
 
-  public func setTunnelNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings?) throws {
-    let sem = DispatchSemaphore(value: 0)
-    var systemErr: Error?
-
-    self.tunnel.setTunnelNetworkSettings(networkSettings) { error in
-      systemErr = error
-      sem.signal()
-    }
-
-    let result = sem.wait(timeout: .now() + 5)
-    if result == .timedOut {
-      appLogger.error("(lantern-tunnel) setTunnelNetworkSettings timed out after 5s")
-      throw NSError(
-        domain: "lantern-tunnel",
-        code: 1,
-        userInfo: [NSLocalizedDescriptionKey: "setTunnelNetworkSettings timed out"]
-      )
-    }
-  }
 }

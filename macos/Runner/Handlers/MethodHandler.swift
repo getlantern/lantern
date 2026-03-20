@@ -187,6 +187,23 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
+      case "deletePrivateServerByName":
+        guard let name = self.decodeValue(from: call.arguments, result: result) as String? else {
+          return
+        }
+        self.deletePrivateServerByName(result: result, name: name)
+
+      case "updatePrivateServerName":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updatePrivateServerName(result: result, data: data)
+
+      case "getSplitTunnelItems":
+        let filterType: String = requireArg(call: call, name: "filterType", result: result)!
+        self.getSplitTunnelItems(result: result, filterType: filterType)
+
+      case "getSplitTunnelState":
+        self.getSplitTunnelState(result: result)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -489,14 +506,14 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-     let data =  MobileAcknowledgeApplePurchase(token, planId, &error)
+      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
-        await MainActor.run {
-          result(data)
-        }
+      await MainActor.run {
+        result(data)
+      }
     }
   }
 
@@ -597,8 +614,9 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
+      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, &error)
+      let payload = MobileDeleteAccount(email, password, isSSO, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
@@ -838,7 +856,7 @@ class MethodHandler {
   func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let urls = data["urls"] as? String ?? ""
-      let skipVerification = data["skipVerification"] as? Bool ?? false
+      let skipVerification = data["skipValidation"] as? Bool ?? false
       let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
@@ -848,6 +866,56 @@ class MethodHandler {
         return
       }
       await self.replyOK(result)
+    }
+  }
+
+  func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
+    Task {
+      var error: NSError?
+      MobileDeletePrivateServerByName(name, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let oldName = data["oldName"] as? String ?? ""
+      let newName = data["newName"] as? String ?? ""
+      var error: NSError?
+      MobileUpdatePrivateServerName(oldName, newName, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func getSplitTunnelItems(result: @escaping FlutterResult, filterType: String) {
+    Task {
+      var error: NSError?
+      let json = MobileGetSplitTunnelItems(filterType, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SPLIT_TUNNEL_ITEMS_ERROR")
+        return
+      }
+      await MainActor.run { result(json) }
+    }
+  }
+
+  func getSplitTunnelState(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileGetSplitTunnelStateJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SPLIT_TUNNEL_STATE_ERROR")
+        return
+      }
+      await MainActor.run { result(json) }
     }
   }
 

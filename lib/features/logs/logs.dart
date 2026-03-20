@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -8,50 +9,50 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/logs/log_line.dart';
-import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
+import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
 import 'package:share_plus/share_plus.dart';
 
+const int _maxVisibleLogLines = 800;
+
 @RoutePage(name: 'Logs')
-class Logs extends HookConsumerWidget {
+class Logs extends ConsumerWidget {
   const Logs({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
-    final scrollController = useScrollController();
-
-    final pinnedToBottom = useState(true);
-
-    useEffect(() {
-      void listener() {
-        if (!scrollController.hasClients) return;
-        final pos = scrollController.position;
-
-        // Only treat as "near bottom" when there is meaningful scrollable content.
-        final canScrollMeaningfully = pos.maxScrollExtent > 64;
-        final nearBottom =
-            canScrollMeaningfully && (pos.maxScrollExtent - pos.pixels) < 64;
-        pinnedToBottom.value = nearBottom;
-      }
-
-      scrollController.addListener(listener);
-      return () => scrollController.removeListener(listener);
-    }, [scrollController]);
-
-    void maybeScrollToBottom() {
-      if (!pinnedToBottom.value) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!scrollController.hasClients) return;
-        scrollController.jumpTo(scrollController.position.maxScrollExtent);
-      });
-    }
+    final logAsyncValue = ref.watch(diagnosticLogProvider);
 
     Future<void> shareLogFile() async {
       try {
-        final logFile = await AppStorageUtils.appLogFile();
-        await Share.shareXFiles(
-          [XFile(logFile.path)],
-          text: 'logs_share_message'.i18n,
+        if (Platform.isIOS) {
+          final logFilesResult = await ref
+              .read(diagnosticLogProvider.notifier)
+              .diagnosticLogFilePath();
+
+          if (logFilesResult.isEmpty) {
+            appLogger.error("No log files found to share");
+            return;
+          }
+          final flutterLogFile = await AppStorageUtils.flutterLogFile();
+          logFilesResult.add(flutterLogFile.path);
+
+          await SharePlus.instance.share(
+            ShareParams(
+              title: 'logs'.i18n,
+              text: 'logs_share_message'.i18n,
+              files: logFilesResult.map(XFile.new).toList(growable: false),
+            ),
+          );
+          return;
+        }
+
+        final logFile = await AppStorageUtils.logsFilePaths();
+        await SharePlus.instance.share(
+          ShareParams(
+            title: 'logs'.i18n,
+            text: 'logs_share_message'.i18n,
+            files: logFile.map(XFile.new).toList(growable: false),
+          ),
         );
       } catch (e) {
         appLogger.error("Error sharing log file: $e");
@@ -82,19 +83,30 @@ class Logs extends HookConsumerWidget {
               decoration: ShapeDecoration(
                 color: context.bgElevated,
                 shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1,color: context.borderDefault),
+                  side: BorderSide(width: 1, color: context.borderDefault),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
               child: logAsyncValue.when(
                 data: (logs) {
-                  maybeScrollToBottom();
+                  final visibleLogs = latestLogsForDisplay(logs);
+                  if (visibleLogs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No logs yet',
+                        style: AppTextStyles.logTextStyle,
+                      ),
+                    );
+                  }
                   return ListView.builder(
-                    controller: scrollController,
+                    // Keep chronological order on screen while anchoring the viewport
+                    // at the newest entry by default.
+                    reverse: true,
                     padding: const EdgeInsets.all(8.0),
-                    itemCount: logs.length,
+                    itemCount: visibleLogs.length,
                     itemBuilder: (context, index) {
-                      return LogLineWidget(line: logs[index]);
+                      final reversedIndex = visibleLogs.length - 1 - index;
+                      return LogLineWidget(line: visibleLogs[reversedIndex]);
                     },
                   );
                 },
@@ -114,6 +126,14 @@ class Logs extends HookConsumerWidget {
       ),
     );
   }
+}
+
+@visibleForTesting
+List<String> latestLogsForDisplay(List<String> logs) {
+  if (logs.length <= _maxVisibleLogLines) {
+    return logs;
+  }
+  return logs.sublist(logs.length - _maxVisibleLogLines);
 }
 
 TextStyle getLogStyle(String logLine) {

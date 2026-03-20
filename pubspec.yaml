@@ -16,16 +16,15 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 9.0.3+91
+version: 9.0.15+94
 
 environment:
-  sdk: ^3.6.0
-  flutter: 3.35.6
-
+  sdk: ^3.11.0
+  flutter: ">=3.41.0 <4.0.0"
 
 dependency_overrides:
-  in_app_purchase_storekit: 0.3.22+1
-
+  in_app_purchase_storekit: 0.4.8+1
+  in_app_purchase_android: 0.4.0+8
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -45,7 +44,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^10.2.1
+  auto_route: ^11.1.0
   #UI Utils
   animated_toggle_switch: ^0.8.7
   animated_text_kit: ^4.3.0
@@ -53,7 +52,7 @@ dependencies:
   auto_size_text: ^3.0.0
 
   badges: ^3.1.2
-  pinput: ^5.0.2
+  pinput: ^6.0.2
   email_validator: ^3.0.0
   shimmer: ^3.0.0
   #Loading
@@ -66,33 +65,28 @@ dependencies:
   intl: ^0.20.2
 
   #Images
-  flutter_svg: ^2.2.2
+  flutter_svg: ^2.2.4
   # Logs
   flutter_loggy: ^2.0.3+1
   loggy: ^2.0.3
-  # Local DB
-  objectbox: ^5.0.0
-  objectbox_flutter_libs: ^5.0.0
   #FFI gen
-  ffi: ^2.1.4
+  ffi: ^2.2.0
   #State management
-  flutter_riverpod: ^3.0.3
-  hooks_riverpod: ^3.0.3
+  flutter_riverpod: ^3.3.1
+  hooks_riverpod: ^3.3.1
   flutter_hooks: ^0.21.3+1
-  riverpod_annotation: ^3.0.3
+  riverpod_annotation: ^4.0.2
   # dependency injection
-  get_it: ^9.0.5
+  get_it: ^9.2.1
   #fonts
-  google_fonts: ^6.3.2
+  google_fonts: ^8.0.2
   #env
   flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
   # share
   share_plus: ^12.0.1
-  #native
-  sentry_flutter: ^9.8.0
   # Deeplink handling
-  app_links: ^6.4.1
+  app_links: ^7.0.0
   # Desktop
   window_manager: ^0.5.1
   tray_manager:
@@ -104,28 +98,28 @@ dependencies:
   # Utils
   fpdart: ^1.2.0
   jwt_decoder: ^2.0.1
-  country_flags: ^4.1.0
-  mobile_scanner: ^7.1.3
-  installed_apps: ^2.0.0
-  device_info_plus: ^12.2.0
+  country_flags: ^4.1.2
+  mobile_scanner: ^7.2.0
+  device_info_plus: ^12.3.0
 
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
   in_app_purchase: ^3.2.3
-  flutter_stripe: ^12.1.0
+  flutter_stripe: ^12.4.0
   # protobuf
-  protobuf: ^5.1.0
+  protobuf: ^6.0.0
   # auto updates
   auto_updater: ^1.0.0
   # notifications
-  flutter_local_notifications: ^19.5.0
-  timezone: ^0.10.1
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
   flutter_timezone: ^5.0.1
   win32: ^5.15.0
   fixnum: ^1.1.1
   package_info_plus: ^9.0.0
+  shared_preferences: ^2.5.4
   flutter_carousel_widget: ^3.1.0
 
 dev_dependencies:
@@ -134,13 +128,12 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  auto_route_generator: ^10.2.6
-  build_runner: ^2.7.1
-  objectbox_generator: ^5.0.0
-  riverpod_generator: ^3.0.3
+  auto_route_generator: ^10.4.0
+  build_runner: ^2.12.2
+  riverpod_generator: ^4.0.3
 
-  riverpod_lint: ^3.0.3
-  ffigen: ^20.0.0
+  riverpod_lint: ^3.1.3
+  ffigen: ^20.1.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -158,13 +151,6 @@ flutter:
     - assets/images/flags/
     - assets/locales/
     - app.env
-
-objectbox:
-  output_dir: core/services/db
-  # Or optionally specify the lib and test output folder separately.
-  # output_dir:
-  #   lib: custom
-  #   test: other
 
 ffigen:
   name: "LanternBindings"

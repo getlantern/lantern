@@ -29,11 +29,10 @@ class VpnNotifier extends _$VpnNotifier {
             previousStatus != nextStatus) {
           if (previousStatus != VPNStatus.connecting &&
               nextStatus == VPNStatus.disconnected) {
-            sl<NotificationService>().scheduleNotification(
-              NotificationEvent.vpnDisconnected.id,
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnDisconnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_disconnected'.i18n,
-              delay: Duration(seconds: 2),
             );
           } else if (nextStatus == VPNStatus.connected) {
             if (PlatformUtils.isMobile) {
@@ -44,17 +43,19 @@ class VpnNotifier extends _$VpnNotifier {
             ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
             /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(Duration(seconds: 1), () {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (!ref.mounted) {
+                return;
+              }
               ref
                   .read(serverLocationProvider.notifier)
                   .ifNeededGetAutoServerLocation();
             });
 
-            sl<NotificationService>().scheduleNotification(
-              NotificationEvent.vpnConnected.id,
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
-              delay: Duration(seconds: 2),
             );
           }
         }
@@ -79,17 +80,22 @@ class VpnNotifier extends _$VpnNotifier {
   /// valid server location types are: auto,lanternLocation,privateServer
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
-    final serverLocation = sl<LocalStorageService>().getSavedServerLocations();
-    if (serverLocation.serverType.toServerLocationType ==
-            ServerLocationType.auto ||
-        force) {
-      appLogger.debug("Starting VPN with auto server location");
-      return ref.read(lanternServiceProvider).startVPN();
-    } else {
-      final serverType = serverLocation.serverType;
-      final tag = serverLocation.serverName;
-      return connectToServer(serverType.toServerLocationType, tag);
+    final lantern = ref.read(lanternServiceProvider);
+    final serverLocation = ref.read(serverLocationProvider).value;
+
+    if (serverLocation == null) {
+      appLogger.debug('No cached server location, starting VPN with auto');
+      return lantern.startVPN();
     }
+
+    final type = serverLocation.serverType.toServerLocationType;
+    if (type == ServerLocationType.auto || force) {
+      appLogger.debug(
+          'Got server location with type auto or force is true, starting VPN with auto');
+      return lantern.startVPN();
+    }
+
+    return connectToServer(type, serverLocation.serverName);
   }
 
   /// Connects to a specific server location.

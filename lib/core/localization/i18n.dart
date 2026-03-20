@@ -1,9 +1,9 @@
 import 'dart:collection';
-import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
 import 'package:lantern/core/utils/once.dart';
-import 'package:flutter/services.dart';
 
 extension Localization on String {
   static String defaultLocale = 'en_US';

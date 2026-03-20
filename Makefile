@@ -13,7 +13,7 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.constants.AppVersion=$(VERSION)'
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(VERSION)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -41,6 +41,16 @@ LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
 LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).rpm
+LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).pkg.tar.zst
+LINUX_SERVICE_NAME := lanternd
+LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
+LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
+LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
+LINUX_PKG_ROOT := linux/packaging
+LINUX_SERVICE_DST := $(LINUX_PKG_ROOT)/usr/sbin
+LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
+LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
+LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
@@ -89,6 +99,9 @@ ANDROID_NDK_VERSION          ?= 27.0.12077973
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
 ANDROID_PLATFORM             ?= android-35
+ANDROID_PAGE_SIZE ?= 16384
+# Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
+ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -172,20 +185,18 @@ install-macos-deps: install-gomobile
 	brew tap joshdk/tap
 	brew install joshdk/tap/retry
 	brew install imagemagick || true
-	dart pub global activate flutter_distributor
 
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
-	echo "RADIANCE_ENV $(RADIANCE_ENV)"
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
+		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
@@ -246,7 +257,8 @@ macos-release: clean macos pubget gen build-macos-release sign-app package-macos
 .PHONY: install-linux-deps
 
 install-linux-deps:
-	dart pub global activate flutter_distributor
+	@command -v nfpm >/dev/null 2>&1 || \
+		{ echo "Installing nfpm..."; go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.45.0; }
 
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
@@ -265,23 +277,61 @@ linux: linux-amd64
 	mkdir -p $(BIN_DIR)/linux
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
+.PHONY: linux-service-amd64 linux-service-arm64 stage-linux-service
+
+linux-service-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_AMD64)))
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
+	  go build -v -trimpath -tags "$(TAGS)" \
+	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
+	  -o $(LINUX_SERVICE_BUILD_AMD64) $(LINUX_SERVICE_SRC)
+	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_AMD64)"
+
+linux-service-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_ARM64)))
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+	  go build -v -trimpath -tags "$(TAGS)" \
+	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
+	  -o $(LINUX_SERVICE_BUILD_ARM64) $(LINUX_SERVICE_SRC)
+	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_ARM64)"
+
+stage-linux-service: linux-service-amd64
+	@echo "Staging systemd unit + service binary $(LINUX_PKG_ROOT)..."
+	$(call MKDIR_P,$(LINUX_SERVICE_DST))
+	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_AMD64),$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME))
+	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
+	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+
 .PHONY: linux-debug
 linux-debug:
 	@echo "Building Flutter app (debug) for Linux..."
 	flutter build linux --debug
 
-.PHONY: linux-release
-linux-release: clean linux pubget gen
+.PHONY: linux-release linux-release-ci
+linux-release: clean linux-release-ci
+
+linux-release-ci: linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
 
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
+	$(MAKE) stage-linux-service
+	patchelf --set-rpath '$$ORIGIN/lib' build/linux/x64/release/bundle/lantern || true
 
-	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
-  	--build-dart-define=VERSION=$(VERSION) --platform linux --targets "deb,rpm" --skip-clean
+	@echo "Packaging deb, rpm, and archlinux with nfpm..."
+	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
+	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+			  nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB)
+	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
+	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+			  nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM)
+	VERSION=$(APP_VERSION) SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
+	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/bin/$(LINUX_SERVICE_NAME) \
+			nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
 
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
+.PHONY: verify-linux-package
+verify-linux-package:
+	./scripts/ci/verify_linux_package.sh $(LINUX_INSTALLER_DEB)
 
 # Windows Build
 .PHONY: build-lanternsvc-windows windows-service-build \
@@ -368,7 +418,7 @@ windows-debug: windows
 .PHONY: build-windows-release
 build-windows-release:
 	@echo "Building Flutter app (release) for Windows..."
-	flutter build windows --release
+	flutter build windows --release --verbose
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release
@@ -418,7 +468,7 @@ build-android: check-gomobile
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="-checklinkname=0" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
@@ -462,7 +512,6 @@ android-release-ci: android pubget gen android-apk-release android-aab-release
 
 install-ios-deps: install-gomobile
 	npm install -g appdmg
-	dart pub global activate flutter_distributor
 
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
@@ -481,7 +530,7 @@ build-ios:
 		-tags=$(TAGS),with_low_memory, -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
+		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
@@ -585,4 +634,3 @@ delete-data:
 # You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
 protos:
 	@protoc --dart_out=lib/lantern/protos protos/auth.proto
-

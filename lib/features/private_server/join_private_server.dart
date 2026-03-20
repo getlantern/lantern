@@ -1,17 +1,12 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/entity/private_server_entity.dart';
-
-import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
 @RoutePage(name: 'JoinPrivateServer')
 class JoinPrivateServer extends StatefulHookConsumerWidget {
@@ -40,10 +35,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info("Private server deployment completed successfully.",
               serverState.data);
-          final data = jsonDecode(serverState.data!);
-          final serverData = PrivateServerEntity.fromJson(data);
-          sl<LocalStorageService>()
-              .savePrivateServer(serverData.copyWith(isJoined: true));
+
+          ref.read(availableServersProvider.notifier).fetchAvailableServers();
           showSuccessDialog(nameController.text);
         });
       }
@@ -58,11 +51,12 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           InfoRow(
             backgroundColor: context.bgPromo,
             showLeadingIcon: false,
+            padding: EdgeInsets.symmetric(horizontal: 8),
             text: '',
             child: Row(
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.only(right: 8),
                   child: AppImage(
                     path: AppImagePaths.warning,
                     width: 20,

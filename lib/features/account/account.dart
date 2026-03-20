@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
@@ -20,29 +19,52 @@ class Account extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appSettings = ref.watch(appSettingProvider);
+
     return BaseScreen(
       title: 'account'.i18n,
+      appBar: CustomAppBar(
+        title: Text(
+          'account'.i18n,
+        ),
+        actions: [
+          if (appSettings.userLoggedIn)
+            AppTextButton(
+              label: 'logout'.i18n,
+              textColor: context.textLink,
+              onPressed: () => logoutDialog(context, ref),
+            )
+        ],
+      ),
       body: _buildBody(context, ref),
     );
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user = sl<LocalStorageService>().getUser();
+    final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
+    final isPro = ref.watch(isUserProProvider);
     final appSettings = ref.watch(appSettingProvider);
-    final theme = Theme.of(buildContext).textTheme;
+    final isUserFree = !isExpired && !isPro;
+    final theme = TextTheme.of(buildContext);
 
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          if (isUserFree)
+            ProButton(
+              onPressed: () {
+                appRouter.push(const Plans());
+              },
+            ),
           if (isExpired) ...{
             InfoRow(
               minTileHeight: 40,
-              backgroundColor: AppColors.red1,
-              borderColor: AppColors.red2,
+              backgroundColor: buildContext.statusErrorBg,
+              borderColor: buildContext.statusErrorBorder,
               textStyle: theme.labelLarge!.copyWith(
-                color: buildContext.statusErrorBg,
+                color: buildContext.statusErrorText,
               ),
               text: 'pro_subscription_expired_message'.i18n,
             ),
@@ -58,7 +80,7 @@ class Account extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'lantern_pro_email'.i18n,
+              isUserFree ? 'lantern_email'.i18n : 'lantern_pro_email'.i18n,
               style: theme.labelLarge!.copyWith(
                 color: buildContext.textSecondary,
               ),
@@ -95,7 +117,7 @@ class Account extends HookConsumerWidget {
                 ),
               ),
             )
-          else
+          else if (isPro)
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
@@ -107,34 +129,29 @@ class Account extends HookConsumerWidget {
                 ),
               ),
             ),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: AppTile(
-                label: user!.legacyUserData.toDate(),
-                contentPadding: EdgeInsets.only(left: 16),
-                icon: AppImagePaths.autoRenew,
-                trailing: planTrailingWidget(user, buildContext, ref)),
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'lantern_pro_devices'.i18n,
-              style: theme.labelLarge!.copyWith(
-                color: buildContext.textSecondary,
-              ),
-            ),
-          ),
-          UserDevices(),
-          SizedBox(height: defaultSize),
-          if (appSettings.userLoggedIn)
+          if (!isUserFree)
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
-                  label: 'logout'.i18n,
-                  icon: AppImagePaths.signIn,
-                  onPressed: () => logoutDialog(buildContext, ref)),
+                  label: user!.legacyUserData.toDate(),
+                  contentPadding: EdgeInsets.only(left: 16),
+                  icon: AppImagePaths.autoRenew,
+                  trailing: planTrailingWidget(user, buildContext, ref)),
             ),
+          if (isPro && user!.legacyUserData.devices.toList().isNotEmpty) ...[
+            SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'lantern_pro_devices'.i18n,
+                style: theme.labelLarge!.copyWith(
+                  color: buildContext.textSecondary,
+                ),
+              ),
+            ),
+            UserDevices(),
+          ],
+          SizedBox(height: defaultSize),
           Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -149,6 +166,7 @@ class Account extends HookConsumerWidget {
             child: AppTile(
               contentPadding: EdgeInsets.only(left: 16),
               icon: AppImagePaths.delete,
+              iconUseThemeColor: false,
               label: 'delete_account'.i18n,
               trailing: AppTextButton(
                 label: 'delete'.i18n,
@@ -254,7 +272,7 @@ class Account extends HookConsumerWidget {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
-      final oldUser = sl<LocalStorageService>().getUser()!;
+      final oldUser = ref.read(homeProvider).value!;
       final lanternService = ref.read(lanternServiceProvider);
       final notifier = ref.read(homeProvider.notifier);
 
@@ -364,7 +382,7 @@ class Account extends HookConsumerWidget {
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
             style: theme.bodyMedium!.copyWith(
-              color: context.textSecondary,
+              color: context.textPrimary,
             ),
           ),
         ],

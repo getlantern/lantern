@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Usage:
 #   version.sh validate <version>    - Validate fails on semver violations
-#   version.sh generate <build-type> - Generate next version (nightly|internal|beta)
+#   version.sh generate <build-type> - Generate next version (nightly|beta)
 #   version.sh extract <version>     - Extract base semver (strips suffixes)
 #
 # All commands work with version strings (no 'v' prefix), but accept 'v' and strip it.
@@ -14,7 +14,6 @@ set -euo pipefail
 #   version.sh validate v1.2.3          → 1.2.3
 #   version.sh validate v1.2.3-beta     → 1.2.3-beta
 #   version.sh generate nightly         → 1.2.4-abc123-20260206T120000Z
-#   version.sh generate internal        → 1.2.4-internal
 #   version.sh extract 1.2.3-beta       → 1.2.3
 
 COMMAND="${1:?Command required: validate, generate, or extract}"
@@ -41,12 +40,8 @@ get_latest_version() {
 
   case "$type" in
   production)
-    # Match v9.0.11, v9.0.11-macos, etc. (but not v9.0.11-beta or v9.0.11-internal)
-    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' | grep -v -E -- '-(beta|internal)|T.*Z' | sort -V | tail -1)
-    ;;
-  internal)
-    # Match v9.0.11-internal, v9.0.11-internal-linux, etc. (but not nightly with timestamps)
-    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-internal' 'v[0-9]*\.[0-9]*\.[0-9]*-internal-*' | grep -v -E -- 'T.*Z' | sort -V | tail -1)
+    # Match v9.0.11, v9.0.11-macos, etc. (but not v9.0.11-beta)
+    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' | grep -v -E -- '-beta|T.*Z' | sort -V | tail -1)
     ;;
   beta)
     # Match v9.0.11-beta, v9.0.11-beta-macos, etc. (but not nightly with timestamps)
@@ -83,12 +78,10 @@ validate)
 
   # Get highest base version across all types
   PROD=$(get_latest_version production)
-  INTERNAL=$(get_latest_version internal)
   BETA=$(get_latest_version beta)
 
   HIGHEST="0.0.0"
   [[ -n "$PROD" ]] && HIGHEST=$(max_semver "$HIGHEST" "$PROD")
-  [[ -n "$INTERNAL" ]] && HIGHEST=$(max_semver "$HIGHEST" "$INTERNAL")
   [[ -n "$BETA" ]] && HIGHEST=$(max_semver "$HIGHEST" "$BETA")
 
   # Validate new version is >= highest
@@ -106,20 +99,20 @@ validate)
   ;;
 
 generate)
-  BUILD_TYPE="${1:?Build type required: nightly, internal, or beta}"
+  BUILD_TYPE="${1:?Build type required: nightly or beta}"
 
   case "$BUILD_TYPE" in
   nightly)
     PROD=$(get_latest_version production)
-    INTERNAL=$(get_latest_version internal)
+    BETA=$(get_latest_version beta)
 
-    if [[ -z "$PROD" && -z "$INTERNAL" ]]; then
-      echo "Error: No production or internal tags found" >&2
+    if [[ -z "$PROD" && -z "$BETA" ]]; then
+      echo "Error: No production or beta tags found" >&2
       echo "Error: Create an initial tag (e.g., v1.0.0)" >&2
       exit 1
     fi
 
-    BASELINE=$(max_semver "${PROD:-0.0.0}" "${INTERNAL:-0.0.0}")
+    BASELINE=$(max_semver "${PROD:-0.0.0}" "${BETA:-0.0.0}")
     NEXT=$(increment_patch "$BASELINE")
     SHA=$(git rev-parse --short=7 HEAD)
     TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
@@ -127,46 +120,23 @@ generate)
     echo "${NEXT}-${SHA}-${TIMESTAMP}"
     ;;
 
-  internal)
-    INTERNAL=$(get_latest_version internal)
-
-    if [[ -n "$INTERNAL" ]]; then
-      BASELINE="$INTERNAL"
-    else
-      PROD=$(get_latest_version production)
-      if [[ -z "$PROD" ]]; then
-        echo "Error: No production or internal tags found" >&2
-        exit 1
-      fi
-      BASELINE="$PROD"
-    fi
-
-    NEXT=$(increment_patch "$BASELINE")
-    echo "${NEXT}-internal"
-    ;;
-
   beta)
-    INTERNAL=$(get_latest_version internal)
     BETA=$(get_latest_version beta)
+    PROD=$(get_latest_version production)
 
-    if [[ -z "$INTERNAL" && -z "$BETA" ]]; then
-      PROD=$(get_latest_version production)
-      if [[ -z "$PROD" ]]; then
-        echo "Error: No tags found" >&2
-        exit 1
-      fi
-      BASELINE="$PROD"
-    else
-      BASELINE=$(max_semver "${INTERNAL:-0.0.0}" "${BETA:-0.0.0}")
+    if [[ -z "$BETA" && -z "$PROD" ]]; then
+      echo "Error: No tags found" >&2
+      exit 1
     fi
 
+    BASELINE=$(max_semver "${BETA:-0.0.0}" "${PROD:-0.0.0}")
     NEXT=$(increment_patch "$BASELINE")
     echo "${NEXT}-beta"
     ;;
 
   *)
     echo "Error: Invalid build type '$BUILD_TYPE'" >&2
-    echo "Usage: version.sh generate <nightly|internal|beta>" >&2
+    echo "Usage: version.sh generate <nightly|beta>" >&2
     exit 1
     ;;
   esac

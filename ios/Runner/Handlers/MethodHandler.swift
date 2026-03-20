@@ -181,6 +181,16 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.addServerBasedOnURLs(result: result, data: data)
 
+      case "deletePrivateServerByName":
+        guard let name: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.deletePrivateServerByName(result: result, name: name)
+
+      case "updatePrivateServerName":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updatePrivateServerName(result: result, data: data)
+
       // Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -200,6 +210,9 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.reportIssue(result: result, data: data)
 
+      case "diagnosticLogFiles":
+        self.diagnosticLogFiles(result: result)
+
       case "setBlockAdsEnabled":
         let data = call.arguments as? [String: Any]
         let enabled = data?["enabled"] as? Bool ?? false
@@ -214,6 +227,7 @@ class MethodHandler {
           return
         }
         self.setSmartRouteMode(mode: mode, result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -483,12 +497,14 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      MobileAcknowledgeApplePurchase(token, planId, &error)
+      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
-      await self.replyOK(result)
+      await MainActor.run {
+        result(data)
+      }
     }
   }
 
@@ -546,7 +562,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let payload = try MobileLogin(email, password, &error)
+      let payload = MobileLogin(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
         return
@@ -589,8 +605,9 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
+      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, &error)
+      let payload = MobileDeleteAccount(email, password, isSSO, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
@@ -830,13 +847,39 @@ class MethodHandler {
   func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let urls = data["urls"] as? String ?? ""
-      let skipVerification = data["skipVerification"] as? Bool ?? false
+      let skipVerification = data["skipValidation"] as? Bool ?? false
       let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
       MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
+    Task {
+      var error: NSError?
+      MobileDeletePrivateServerByName(name, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let oldName = data["oldName"] as? String ?? ""
+      let newName = data["newName"] as? String ?? ""
+      var error: NSError?
+      MobileUpdatePrivateServerName(oldName, newName, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
         return
       }
       await self.replyOK(result)
@@ -925,6 +968,48 @@ class MethodHandler {
     }
   }
 
+  func diagnosticLogFiles(result: @escaping FlutterResult) {
+    Task {
+      let logDirectory = FilePath.logsDirectory
+      let fileManager = FileManager.default
+
+      guard fileManager.fileExists(atPath: logDirectory.path) else {
+        await MainActor.run { result([String]()) }
+        return
+      }
+
+      do {
+        let entries = try fileManager.contentsOfDirectory(
+          at: logDirectory,
+          includingPropertiesForKeys: [.isRegularFileKey],
+          options: [.skipsHiddenFiles]
+        )
+
+        let files = try entries
+          .filter { entry in
+            let values = try entry.resourceValues(forKeys: [.isRegularFileKey])
+            return values.isRegularFile ?? false
+          }
+          .map(\.path)
+          .sorted()
+
+        await MainActor.run {
+          result(files)
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "DIAGNOSTIC_LOG_FILES_ERROR",
+              message: "Unable to read diagnostic logs",
+              details: error.localizedDescription
+            )
+          )
+        }
+      }
+    }
+  }
+
   func setBlockAdsEnabled(result: @escaping FlutterResult, enabled: Bool) {
     Task {
       var error: NSError?
@@ -966,6 +1051,30 @@ class MethodHandler {
       }
     }
 
+  }
+
+  // MARK: - Argument helpers
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
   }
 
   // MARK: - Utils

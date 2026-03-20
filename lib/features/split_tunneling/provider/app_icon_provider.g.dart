@@ -10,20 +10,20 @@ part of 'app_icon_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AppIconCache)
-const appIconCacheProvider = AppIconCacheProvider._();
+final appIconCacheProvider = AppIconCacheProvider._();
 
 final class AppIconCacheProvider
     extends $NotifierProvider<AppIconCache, Map<String, Uint8List>> {
-  const AppIconCacheProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'appIconCacheProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AppIconCacheProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appIconCacheProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$appIconCacheHash();
@@ -48,34 +48,41 @@ abstract class _$AppIconCache extends $Notifier<Map<String, Uint8List>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref as $Ref<Map<String, Uint8List>, Map<String, Uint8List>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Map<String, Uint8List>, Map<String, Uint8List>>,
-        Map<String, Uint8List>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<String, Uint8List>, Map<String, Uint8List>>,
+              Map<String, Uint8List>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(appIconBytes)
-const appIconBytesProvider = AppIconBytesFamily._();
+final appIconBytesProvider = AppIconBytesFamily._();
 
-final class AppIconBytesProvider extends $FunctionalProvider<
-        AsyncValue<Uint8List?>, Uint8List?, FutureOr<Uint8List?>>
+final class AppIconBytesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Uint8List?>,
+          Uint8List?,
+          FutureOr<Uint8List?>
+        >
     with $FutureModifier<Uint8List?>, $FutureProvider<Uint8List?> {
-  const AppIconBytesProvider._(
-      {required AppIconBytesFamily super.from,
-      required AppIconKey super.argument})
-      : super(
-          retry: null,
-          name: r'appIconBytesProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  AppIconBytesProvider._({
+    required AppIconBytesFamily super.from,
+    required AppIconKey super.argument,
+  }) : super(
+         retry: null,
+         name: r'appIconBytesProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$appIconBytesHash();
@@ -95,10 +102,7 @@ final class AppIconBytesProvider extends $FunctionalProvider<
   @override
   FutureOr<Uint8List?> create(Ref ref) {
     final argument = this.argument as AppIconKey;
-    return appIconBytes(
-      ref,
-      argument,
-    );
+    return appIconBytes(ref, argument);
   }
 
   @override
@@ -116,18 +120,16 @@ String _$appIconBytesHash() => r'583f5284e1ccc6aac98594cc04eaf80151cfd260';
 
 final class AppIconBytesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Uint8List?>, AppIconKey> {
-  const AppIconBytesFamily._()
-      : super(
-          retry: null,
-          name: r'appIconBytesProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: false,
-        );
+  AppIconBytesFamily._()
+    : super(
+        retry: null,
+        name: r'appIconBytesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: false,
+      );
 
-  AppIconBytesProvider call(
-    AppIconKey k,
-  ) =>
+  AppIconBytesProvider call(AppIconKey k) =>
       AppIconBytesProvider._(argument: k, from: this);
 
   @override

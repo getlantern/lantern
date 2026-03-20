@@ -1,13 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: protos/auth.proto
-//
+// Generated from protos/auth.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -22,8 +24,22 @@ const UserResponse$json = {
     {'1': 'id', '3': 3, '4': 1, '5': 9, '10': 'id'},
     {'1': 'emailConfirmed', '3': 4, '4': 1, '5': 8, '10': 'emailConfirmed'},
     {'1': 'Success', '3': 5, '4': 1, '5': 8, '10': 'Success'},
-    {'1': 'legacyUserData', '3': 6, '4': 1, '5': 11, '6': '.UserResponse.UserData', '10': 'legacyUserData'},
-    {'1': 'devices', '3': 7, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
+    {
+      '1': 'legacyUserData',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.UserResponse.UserData',
+      '10': 'legacyUserData'
+    },
+    {
+      '1': 'devices',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.UserResponse.Device',
+      '10': 'devices'
+    },
   ],
   '3': [UserResponse_Device$json, UserResponse_UserData$json],
 };
@@ -66,11 +82,31 @@ const UserResponse_UserData$json = {
     {'1': 'bonusMonths', '3': 15, '4': 1, '5': 9, '10': 'bonusMonths'},
     {'1': 'inviters', '3': 16, '4': 3, '5': 9, '10': 'inviters'},
     {'1': 'invitees', '3': 17, '4': 3, '5': 9, '10': 'invitees'},
-    {'1': 'devices', '3': 18, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
+    {
+      '1': 'devices',
+      '3': 18,
+      '4': 3,
+      '5': 11,
+      '6': '.UserResponse.Device',
+      '10': 'devices'
+    },
     {'1': 'yinbiEnabled', '3': 19, '4': 1, '5': 8, '10': 'yinbiEnabled'},
-    {'1': 'subscriptionData', '3': 20, '4': 1, '5': 11, '6': '.UserResponse.UserData.SubscriptionData', '10': 'subscriptionData'},
+    {
+      '1': 'subscriptionData',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.UserResponse.UserData.SubscriptionData',
+      '10': 'subscriptionData'
+    },
     {'1': 'deviceID', '3': 21, '4': 1, '5': 9, '10': 'deviceID'},
-    {'1': 'unpassRegistered', '3': 22, '4': 1, '5': 8, '10': 'unpassRegistered'},
+    {
+      '1': 'unpassRegistered',
+      '3': 22,
+      '4': 1,
+      '5': 8,
+      '10': 'unpassRegistered'
+    },
     {'1': 'lastExpiredOn', '3': 23, '4': 1, '5': 3, '10': 'lastExpiredOn'},
   ],
   '3': [UserResponse_UserData_SubscriptionData$json],
@@ -84,7 +120,13 @@ const UserResponse_UserData_SubscriptionData$json = {
     {'1': 'planID', '3': 2, '4': 1, '5': 9, '10': 'planID'},
     {'1': 'stripeCustomerID', '3': 3, '4': 1, '5': 9, '10': 'stripeCustomerID'},
     {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
-    {'1': 'cancellationReason', '3': 5, '4': 1, '5': 9, '10': 'cancellationReason'},
+    {
+      '1': 'cancellationReason',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '10': 'cancellationReason'
+    },
     {'1': 'createdAt', '3': 6, '4': 1, '5': 3, '10': 'createdAt'},
     {'1': 'startAt', '3': 7, '4': 1, '5': 3, '10': 'startAt'},
     {'1': 'endAt', '3': 8, '4': 1, '5': 3, '10': 'endAt'},
@@ -133,6 +175,5 @@ const Purchase$json = {
 };
 
 /// Descriptor for `Purchase`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List purchaseDescriptor = $convert.base64Decode(
-    'CghQdXJjaGFzZRISCgRwbGFuGAEgASgJUgRwbGFu');
-
+final $typed_data.Uint8List purchaseDescriptor =
+    $convert.base64Decode('CghQdXJjaGFzZRISCgRwbGFuGAEgASgJUgRwbGFu');

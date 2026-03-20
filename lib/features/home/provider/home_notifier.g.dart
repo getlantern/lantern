@@ -10,20 +10,20 @@ part of 'home_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(HomeNotifier)
-const homeProvider = HomeNotifierProvider._();
+final homeProvider = HomeNotifierProvider._();
 
 final class HomeNotifierProvider
     extends $AsyncNotifierProvider<HomeNotifier, UserResponse> {
-  const HomeNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'homeProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  HomeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$homeNotifierHash();
@@ -33,20 +33,22 @@ final class HomeNotifierProvider
   HomeNotifier create() => HomeNotifier();
 }
 
-String _$homeNotifierHash() => r'acb597e5a3f386fddf86e5b3f3af742ffa93e2c7';
+String _$homeNotifierHash() => r'008a819ad8ed52ef8483e4f8547f347620470f25';
 
 abstract class _$HomeNotifier extends $AsyncNotifier<UserResponse> {
   FutureOr<UserResponse> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<UserResponse>, UserResponse>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<UserResponse>, UserResponse>,
-        AsyncValue<UserResponse>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<UserResponse>, UserResponse>,
+              AsyncValue<UserResponse>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

@@ -10,20 +10,20 @@ part of 'referral_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ReferralNotifier)
-const referralProvider = ReferralNotifierProvider._();
+final referralProvider = ReferralNotifierProvider._();
 
 final class ReferralNotifierProvider
     extends $NotifierProvider<ReferralNotifier, bool> {
-  const ReferralNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'referralProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  ReferralNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'referralProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$referralNotifierHash();
@@ -48,10 +48,15 @@ abstract class _$ReferralNotifier extends $Notifier<bool> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<bool, bool>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<bool, bool>, bool, Object?, Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

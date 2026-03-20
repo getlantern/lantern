@@ -7,7 +7,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ReportIssue')
@@ -29,10 +28,10 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   final formKey = GlobalKey<FormState>();
 
   final issueOptions = <String>[
-    'cannot_access_blocked_sites'.i18n,
     'cannot_complete_purchase'.i18n,
     'cannot_sign_in'.i18n,
     'spinner_loads_endlessly'.i18n,
+    'cannot_access_blocked_sites'.i18n,
     'slow'.i18n,
     'cannot_link_devices'.i18n,
     'application_crashes'.i18n,
@@ -44,10 +43,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     final emailController = useTextEditingController();
     final descriptionController =
         useTextEditingController(text: widget.description);
-    final user = ref.read(homeProvider).value;
-    if (user != null) {
-      emailController.text = user.legacyUserData.email ?? '';
-    }
     String type = '';
     try {
       if (widget.type != null) {
@@ -190,9 +185,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     try {
       if (PlatformUtils.isIOS) {
         logFilePath = (await AppStorageUtils.flutterLogFile()).path;
-      } else {
-        logFilePath =
-            (await AppStorageUtils.appLogFile(createIfMissing: true)).path;
       }
     } catch (e, st) {
       // Don't block reporting if logs fail. Just report without logs

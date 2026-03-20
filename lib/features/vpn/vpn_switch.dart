@@ -59,6 +59,7 @@ class VPNSwitch extends HookConsumerWidget {
           );
         }
         return GestureDetector(
+          key: const Key('vpn.toggle'),
           onTap: () {
             appLogger.info('VPN Switch tapped');
             onVPNStateChange(ref, context);
@@ -73,6 +74,7 @@ class VPNSwitch extends HookConsumerWidget {
       },
       wrapperBuilder: (context, global, child) {
         return Container(
+          key: Key('vpn.switch.${vpnStatus.name}'),
           padding: EdgeInsets.all(5.r),
           decoration: BoxDecoration(
             color: _wrapperColor(vpnStatus, context),

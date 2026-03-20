@@ -10,20 +10,20 @@ part of 'vpn_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(VpnNotifier)
-const vpnProvider = VpnNotifierProvider._();
+final vpnProvider = VpnNotifierProvider._();
 
 final class VpnNotifierProvider
     extends $NotifierProvider<VpnNotifier, VPNStatus> {
-  const VpnNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'vpnProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  VpnNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vpnProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$vpnNotifierHash();
@@ -41,17 +41,22 @@ final class VpnNotifierProvider
   }
 }
 
-String _$vpnNotifierHash() => r'f3b6bf9f3983db709d8afeb6cb429b05533ff5f9';
+String _$vpnNotifierHash() => r'575b3455ebab8d413e060fc644b7ace6b36a2236';
 
 abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
   VPNStatus build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<VPNStatus, VPNStatus>, VPNStatus, Object?, Object?>;
-    element.handleValue(ref, created);
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<VPNStatus, VPNStatus>,
+              VPNStatus,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

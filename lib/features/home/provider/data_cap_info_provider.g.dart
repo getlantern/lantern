@@ -10,20 +10,20 @@ part of 'data_cap_info_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(DataCapInfoNotifier)
-const dataCapInfoProvider = DataCapInfoNotifierProvider._();
+final dataCapInfoProvider = DataCapInfoNotifierProvider._();
 
 final class DataCapInfoNotifierProvider
     extends $AsyncNotifierProvider<DataCapInfoNotifier, DataCapUsageResponse> {
-  const DataCapInfoNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'dataCapInfoProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  DataCapInfoNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dataCapInfoProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$dataCapInfoNotifierHash();
@@ -42,14 +42,20 @@ abstract class _$DataCapInfoNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
-    final ref = this.ref
-        as $Ref<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>,
-        AsyncValue<DataCapUsageResponse>,
-        Object?,
-        Object?>;
-    element.handleValue(ref, created);
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<DataCapUsageResponse>,
+                DataCapUsageResponse
+              >,
+              AsyncValue<DataCapUsageResponse>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

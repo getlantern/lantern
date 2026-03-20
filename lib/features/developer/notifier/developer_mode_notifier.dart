@@ -1,23 +1,20 @@
-import 'package:lantern/features/home/provider/local_storage_notifier.dart';
+import 'package:lantern/core/models/developer_mode.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-import '../../../core/models/entity/developer_mode_entity.dart';
 
 part 'developer_mode_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class DeveloperModeNotifier extends _$DeveloperModeNotifier {
-  @override
-  DeveloperModeEntity build() {
-    final devSetting = ref.read(localStorageProvider).getDeveloperSetting();
-    if (devSetting != null) {
-      return devSetting;
-    }
-    return DeveloperModeEntity.initial();
-  }
+  LocalStorageService get _storage => sl<LocalStorageService>();
 
-  void updateDeveloperSettings(DeveloperModeEntity dev) {
+  @override
+  DeveloperMode build() =>
+      _storage.getDeveloperMode() ?? DeveloperMode.initial();
+
+  Future<void> updateDeveloperSettings(DeveloperMode dev) async {
     state = dev;
-    ref.read(localStorageProvider).updateDeveloperSetting(state);
+    await _storage.saveDeveloperMode(dev);
   }
 }

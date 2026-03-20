@@ -9,7 +9,7 @@ set -euo pipefail
 #   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
 #   PLATFORM:             platforms built (all, or comma-separated)
 #   BUCKET:               S3 bucket name
-#   BUILD_TYPE:           production, beta, internal, or nightly
+#   BUILD_TYPE:           production, beta, or nightly
 #   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
 #   GITHUB_SHA:           commit SHA (required for release-notes)
 
@@ -46,9 +46,6 @@ release-notes)
   nightly)
     echo "This is an automated nightly build from commit \`${COMMIT_SHORT}\`."
     ;;
-  internal)
-    echo "This is an internal build from commit \`${COMMIT_SHORT}\`."
-    ;;
   beta)
     echo "This is a beta release from commit \`${COMMIT_SHORT}\`."
     ;;
@@ -63,6 +60,10 @@ release-notes)
 
   if should_include "macos"; then
     echo "- [macOS (.dmg)](${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg))"
+  fi
+
+  if should_include "windows"; then
+    echo "- [Windows (.exe)](${LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
   fi
 
   if should_include "android"; then
@@ -92,6 +93,10 @@ slack)
 
   if should_include "macos"; then
     text="${text}\n• macOS <${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg|${FULL_INSTALLER_NAME}.dmg> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg|permalink>)"
+  fi
+
+  if should_include "windows"; then
+    text="${text}\n• Windows <${LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
   fi
 
   if should_include "android"; then
