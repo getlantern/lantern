@@ -947,36 +947,7 @@ func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	f := st.Filters()
-
-	var items []string
-	switch filterType {
-	case vpn.TypeDomain:
-		items = f.Domain
-	case vpn.TypeDomainSuffix:
-		items = f.DomainSuffix
-	case vpn.TypeDomainKeyword:
-		items = f.DomainKeyword
-	case vpn.TypeDomainRegex:
-		items = f.DomainRegex
-	case vpn.TypeProcessName:
-		items = f.ProcessName
-	case vpn.TypeProcessPath:
-		items = f.ProcessPath
-	case vpn.TypeProcessPathRegex:
-		items = f.ProcessPathRegex
-	case vpn.TypePackageName:
-		items = f.PackageName
-	default:
-		return "", fmt.Errorf("unsupported filter type: %s", filterType)
-	}
-
-	b, err := json.Marshal(items)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return st.ItemsJSON(filterType)
 }
 
 func jsonNumberToIntString(f float64) string {
@@ -1017,67 +988,9 @@ func (lc *LanternCore) GetAppDataDir() string {
 }
 
 func (lc *LanternCore) GetEnabledApps() (string, error) {
-	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
-	b, err := os.ReadFile(path)
+	st, err := lc.splitTunnelHandler()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return "[]", nil
-		}
 		return "", err
 	}
-	if len(b) == 0 {
-		return "[]", nil
-	}
-
-	var m map[string]any
-	if err := json.Unmarshal(b, &m); err != nil {
-		return "", err
-	}
-
-	candidateKeys := []string{
-		"processPathRegex",
-		"processPath",
-		"packageName",
-		"bundleId",
-		"bundleID",
-		"enabledApps",
-		"apps",
-	}
-
-	seen := map[string]struct{}{}
-	out := make([]string, 0, 16)
-
-	addList := func(v any) {
-		arr, ok := v.([]any)
-		if !ok {
-			return
-		}
-		for _, it := range arr {
-			s, ok := it.(string)
-			if !ok {
-				continue
-			}
-			s = strings.TrimSpace(s)
-			if s == "" {
-				continue
-			}
-			if common.IsWindows() {
-				s = strings.ToLower(s)
-			}
-			if _, exists := seen[s]; exists {
-				continue
-			}
-			seen[s] = struct{}{}
-			out = append(out, s)
-		}
-	}
-
-	for _, k := range candidateKeys {
-		if v, ok := m[k]; ok {
-			addList(v)
-		}
-	}
-
-	encoded, _ := json.Marshal(out)
-	return string(encoded), nil
+	return st.EnabledAppsJSON()
 }
