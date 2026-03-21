@@ -210,7 +210,7 @@ jobs:
 
           git add pubspec.yaml
           git diff --cached --quiet && echo "No changes to commit" && exit 0
-          git commit -m "chore: bump version to ${FULL_VERSION} [skip ci]"
+          git commit -m "chore: bump version to ${FULL_VERSION}"
           git push origin "$DEFAULT_BRANCH"
 
       - name: Upload pubspec.yaml
