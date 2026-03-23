@@ -194,15 +194,12 @@ jobs:
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
-          $smokeArgs = @(
-            "-UseInstaller",
-            "-InstallerPath", "$env:FULL_INSTALLER_NAME.exe"
-          )
+          $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           if ("${{ inputs.enable_ip_check }}" -eq "true") {
-            $smokeArgs += "-EnableIpCheck"
+            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
+          } else {
+            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath
           }
-
-          ./.github/scripts/windows_connect_smoke.ps1 @smokeArgs
 
       - name: Sign installer
         shell: pwsh

@@ -170,6 +170,11 @@ jobs:
         shell: bash
         env:
           RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
+          # github.run_number is monotonically increasing across all workflow
+          # runs and never resets when the base version changes. This is
+          # critical for macOS system extensions, which compare CFBundleVersion
+          # numerically and refuse to upgrade to a lower build number.
+          BUILD_NUMBER: ${{ github.run_number }}
         run: |
           # Strip 'v' prefix if present
           VERSION="${RELEASE_TAG#v}"
@@ -177,13 +182,11 @@ jobs:
           # Extract base semver (strip suffixes like -beta, -nightly-...)
           BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
 
-          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
-          BUILD_NUMBER=$((CURRENT_BUILD + 1))
           FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
 
           echo "Setting pubspec version: $FULL_VERSION"
           echo "  Base version: $BASE_VERSION"
-          echo "  Build number: $BUILD_NUMBER"
+          echo "  Build number: $BUILD_NUMBER (github.run_number)"
 
           sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
           grep '^version:' pubspec.yaml

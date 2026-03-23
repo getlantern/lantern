@@ -95,6 +95,15 @@ ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+ANDROID_NDK_VERSION          ?= 28.2.13676358
+ANDROID_CMAKE_VERSION        ?= 3.22.1
+ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
+ANDROID_PLATFORM             ?= android-35
+ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
+ifeq ($(ANDROID_SDK_ROOT),)
+  $(error ANDROID_SDK_ROOT or ANDROID_HOME must be set. Export the path to your Android SDK directory.)
+endif
+SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
@@ -173,7 +182,8 @@ desktop-lib:
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
 
-# macOS Build
+# macOS build tools need to be installed when generating release builds,
+# but are not necessarily required for debug builds
 .PHONY: install-macos-deps
 
 install-macos-deps: install-gomobile
@@ -433,6 +443,16 @@ install-gomobile:
 	fi
 
 # Android Build
+.PHONY: install-android-sdk
+install-android-sdk:
+	$(SDKMANAGER) \
+		"platform-tools" \
+		"platforms;$(ANDROID_PLATFORM)" \
+		"build-tools;$(ANDROID_BUILD_TOOLS_VERSION)" \
+		"ndk;$(ANDROID_NDK_VERSION)" \
+		"cmake;$(ANDROID_CMAKE_VERSION)"
+	yes | $(SDKMANAGER) --licenses > /dev/null || true
+
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
 
