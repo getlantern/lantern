@@ -511,7 +511,11 @@ android-aab-release:
 android-release: clean android pubget gen android-apk-release
 
 .PHONY: android-release-ci
-android-release-ci: android pubget gen android-apk-release android-aab-release
+android-release-ci: android pubget gen
+	$(MAKE) android-apk-release
+	@if [ "$(BUILD_TYPE)" != "nightly" ]; then \
+	  $(MAKE) android-aab-release; \
+	fi
 
 # iOS Build
 .PHONY: install-ios-deps

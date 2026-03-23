@@ -166,6 +166,7 @@ jobs:
           retention-days: 2
 
       - name: Upload Android AAB
+        if: ${{ inputs.build_type != 'nightly' }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-aab
@@ -173,6 +174,7 @@ jobs:
           retention-days: 2
 
       - name: Upload mapping.txt
+        if: ${{ inputs.build_type != 'nightly' }}
         uses: actions/upload-artifact@v4
         with:
           name: play-mapping
@@ -180,6 +182,7 @@ jobs:
           retention-days: 7
 
       - name: Upload native debug symbols
+        if: ${{ inputs.build_type != 'nightly' }}
         uses: actions/upload-artifact@v4
         with:
           name: play-debug-symbols
