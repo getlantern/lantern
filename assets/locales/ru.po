@@ -1,22 +1,23 @@
-# 
 # Translators:
 # tx_e2f_ru c4 <tx_e2f_ru_c4@ate2f.com>, 2025
 # Helen Russel <coo@workogram.com>, 2025
 # Anna Evdokimova <anna.evdokimova@yahoo.com>, 2025
 # Tina T, 2025
 # krivtsovvasily <krivtsov.vasily@gmail.com>, 2025
-# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2025
 # Lowrider <pams@imail.ru>, 2025
 # e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # sayanvd <sayanvd@yandex.ru>, 2026
 # e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Russian (Russia) (https://app.transifex.com/lantern-1/teams/94371/ru_RU/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: ru_RU\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
@@ -286,6 +287,12 @@ msgstr "Режим"
 
 msgid "use_commas"
 msgstr "Используйте запятые для разделения нескольких URL"
+
+msgid "deep_link_expired"
+msgstr "Срок действия этой ссылки истёк. Пожалуйста, запросите новую."
+
+msgid "invalid_deep_link"
+msgstr "Эта ссылка недействительна. Пожалуйста, запросите новую."
 
 msgid "default_bypass"
 msgstr "Списки обхода по умолчанию"
@@ -648,8 +655,8 @@ msgstr "Ошибка"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Похоже, что-то пошло не так при регистрации. Попробуйте сбросить пароль, и "
-"если проблема не исчезнет, обратитесь в нашу службу поддержки"
+"Похоже, что-то пошло не так при регистрации. Пожалуйста, попробуйте снова "
+"или войдите, если у вас уже есть аккаунт"
 
 msgid "user_not_found"
 msgstr ""
@@ -965,6 +972,9 @@ msgstr "Подключено"
 
 msgid "status_off"
 msgstr "Отключено"
+
+msgid "select_location"
+msgstr "Выбрать расположение"
 
 msgid "select_your_server_location"
 msgstr "Выберите расположение вашего сервера"
@@ -1472,6 +1482,20 @@ msgstr "Приложения"
 msgid "websites"
 msgstr "Сайты"
 
+msgid "main_channel"
+msgstr "Основной канал"
+
+msgid "data_cap_channel"
+msgstr "Уведомления об использовании данных"
+
+msgid "mb_free_data_remaining"
+msgstr "%d МБ бесплатных данных осталось"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Ваши данные будут сброшены в %s. Перейдите на Pro для безлимитного "
+"высокоскоростного трафика."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Если вы ранее не устанавливали пароль для Lantern Pro, выберите опцию "
@@ -1511,3 +1535,117 @@ msgstr ""
 
 msgid "expired"
 msgstr "Истёк срок"
+
+msgid "lantern_pro_tagline"
+msgstr "Быстрый, надёжный и приватный доступ в интернет"
+
+msgid "what_makes_lantern_different"
+msgstr "Чем Lantern отличается"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Создан для конфиденциальности, скорости и свободы"
+
+msgid "smart_routing_mode"
+msgstr "Режим умной маршрутизации"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Правила для конкретных регионов направляют через VPN только то, что "
+"необходимо, сохраняя высокую скорость соединения."
+
+msgid "advanced_protocols"
+msgstr "Продвинутые протоколы"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Больше протоколов, чем у других VPN, для максимальной надёжности. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER и другие."
+
+msgid "private_servers_description"
+msgstr "Подключайте собственные серверы для полного контроля над соединением."
+
+msgid "nonprofit_mission"
+msgstr "Некоммерческая миссия"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Создан некоммерческой организацией с более чем 12-летним опытом продвижения "
+"свободы интернета"
+
+msgid "choose_your_routing_mode"
+msgstr "Выберите режим маршрутизации"
+
+msgid "fastest"
+msgstr "Самый быстрый"
+
+msgid "traditional_vpn_mode"
+msgstr "Традиционный режим VPN"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Направляет весь трафик через Lantern, независимо от необходимости."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Можно изменить в любое время в настройках режима маршрутизации"
+
+msgid "get_started"
+msgstr "Начать"
+
+msgid "skip_connect_now"
+msgstr "Пропустить — подключиться сейчас"
+
+msgid "renew_pro"
+msgstr "Продлить Pro"
+
+msgid "payment"
+msgstr "Оплата"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Похоже, что-то пошло не так. Если вы произвели оплату, но не видите активной"
+" подписки, подождите несколько часов и проверьте снова."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Ваш план Pro был приобретён через Google Play. Пожалуйста, управляйте "
+"подпиской в настройках вашего аккаунта Google Play."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Ваш план Pro был приобретён через Apple App Store. Пожалуйста, управляйте "
+"подпиской в настройках вашего Apple ID."
+
+msgid "create_account_error"
+msgstr "Ошибка создания аккаунта"
+
+msgid "appearance"
+msgstr "Появление"
+
+msgid "light"
+msgstr "Светлый"
+
+msgid "dark"
+msgstr "Тёмный"
+
+msgid "system"
+msgstr "Системная"
+
+msgid "lantern_email"
+msgstr "Адрес электронной почты Lantern"
+
+msgid "confirm_with_account"
+msgstr "Для подтверждения удаления подтвердите свой аккаунт %s ниже:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Аккаунт, с которым вы пытаетесь войти, не соответствует аккаунту, связанному"
+" с этим email. Пожалуйста, войдите с правильным аккаунтом или выберите "
+"другой email."
+
+msgid "account_deleted"
+msgstr "Аккаунт удален"
+
+msgid "account_deleted_message"
+msgstr "Вы не сможете его восстановить."
+
+msgid "verify_with"
+msgstr "Подтвердить через %s"

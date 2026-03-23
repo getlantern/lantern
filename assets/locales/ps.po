@@ -1,12 +1,13 @@
-# 
 # Translators:
-# Lantern, 2026
 # Derek F <derek@getlantern.org>, 2026
+# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Last-Translator: Lantern, 2026\n"
 "Language-Team: Pashto (https://app.transifex.com/lantern-1/teams/94371/ps/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: ps\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -100,7 +101,7 @@ msgid "delete_account_message_two"
 msgstr "د حساب د ړنګولو د تایید لپاره مهرباني وکړئ خپل پټنوم دننه کړئ"
 
 msgid "Submit Issue Report"
-msgstr "د ستونزې راپور وسپارئ"
+msgstr "د تایید لپاره پاسورډ ولیکئ"
 
 msgid "confirm_deletion"
 msgstr "ړنګول تایید کړئ"
@@ -168,9 +169,7 @@ msgstr "د 30 ورځو لپاره وړیا پرو ترلاسه کړئ"
 msgid "share_message_referral_code"
 msgstr ""
 "د Lantern Pro یوې وړیا میاشتې لپاره، دا حواله کوډ وکاروئ: %s ; تاسو کولی شئ "
-"دلته له ډاونلوډ کړئ: https://lantern.io/downloadد یوې وړیا میاشتې Lantern "
-"Pro لپاره، دا د راجع کولو کوډ وکاروئ: %s ; تاسو کولی شئ دلته له دې ځایه "
-"ډاونلوډ کړئ: https://lantern.io/download"
+"دلته ډاونلوډ کړئ: https://lantern.io/download"
 
 msgid "submit_issue_report"
 msgstr "د ستونزې راپور وسپارئ"
@@ -282,6 +281,12 @@ msgstr "حالت"
 msgid "use_commas"
 msgstr "د ډیرو URLونو د جلا کولو لپاره کاما وکاروئ"
 
+msgid "deep_link_expired"
+msgstr "د دې لینک مهلت پای ته رسیدلې ده. مهرباني وکړئ نوی یو غوښتنه وکړئ."
+
+msgid "invalid_deep_link"
+msgstr "دا لینک ناباوره دی. مهرباني وکړئ نوی یو غوښتنه وکړئ."
+
 msgid "default_bypass"
 msgstr "تلواله تیریدونکي لیستونه"
 
@@ -373,13 +378,13 @@ msgid "create_password"
 msgstr "پټنوم جوړ کړئ"
 
 msgid "sign_in_to_lantern_pro"
-msgstr ""
+msgstr "Lantern ته ننوتل"
 
 msgid "sign_in_with_email"
 msgstr "د بریښنالیک سره ننوځئ"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr ""
+msgstr "د خپل Lantern حساب توضیحات ولیکئ."
 
 msgid "email"
 msgstr "بریښنالیک"
@@ -394,7 +399,7 @@ msgid "reset_your_password"
 msgstr "خپل پټنوم بیا تنظیم کړئ"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr ""
+msgstr "د خپل Lantern حساب بریښنالیک ولیکئ."
 
 msgid "reset_password"
 msgstr "پټنوم بیا تنظیم کړئ"
@@ -481,7 +486,7 @@ msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro ته ښه راغلاست!"
 
 msgid "welcome_to_lantern"
-msgstr ""
+msgstr "Lantern ته ښه راغلاست!"
 
 msgid "lantern_pro_description"
 msgstr ""
@@ -544,7 +549,7 @@ msgstr ""
 " بیا لاسرسي لپاره، تاسو ته به اړتیا وي چې بیا ننوځئ."
 
 msgid "logout_message_expired"
-msgstr ""
+msgstr "ایا تاسو ډاډه یاست چې له خپل حساب څخه غواړئ ووتئ؟"
 
 msgid "not_now"
 msgstr "اوس نه"
@@ -595,8 +600,7 @@ msgstr "د DigitalOcean سره دوام ورکړئ"
 msgid "do_allows"
 msgstr ""
 "Digital Ocean تاسو ته اجازه درکوي چې د لاندې %d اختیارونو څخه د یوه سرور "
-"موقعیت غوره کړئDigitalOcean تاسو ته اجازه درکوي چې د لاندې %d اختیارونو څخه "
-"یو د سرور موقعیت غوره کړئ"
+"موقعیت غوره کړئ"
 
 msgid "server_setup_gcp_price"
 msgstr "یوازې د GCP له لارې میاشتې %s"
@@ -607,8 +611,7 @@ msgstr "د Google سره دوام ورکړئ"
 msgid "gcp_allows"
 msgstr ""
 "Google Cloud Platform تاسو ته اجازه درکوي چې د لاندې %d اختیارونو څخه د یوه "
-"سرور موقعیت غوره کړئ:Google Cloud Platform تاسو ته اجازه درکوي چې د لاندې %d"
-" اختیارونو څخه یو د سرور موقعیت غوره کړئ:"
+"سرور موقعیت غوره کړئ:"
 
 msgid "server_setup_aws"
 msgstr "په AWS کې یو شخصي سرور تنظیم کړئ"
@@ -651,11 +654,8 @@ msgstr "تېروتنه"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"داسې بریښي چې د ثبت نوم سره یو څه خرابي شوې. مهرباني وکړئ خپل پټنوم بیا "
-"تنظیم کړئ، او که ستونزه دوام ومومي، زموږ د ملاتړ ټیم سره اړیکه ونیسئداسې "
-"بریښي چې د ګډون په وخت کې یو څه تېروتنه شوې وي. مهرباني وکړئ د خپل پټنوم بیا"
-" تنظیم کولو هڅه وکړئ، او که ستونزه دوام لري، زموږ د ملاتړ ټیم سره اړیکه "
-"ونیسئ"
+"داسې ښکاري چې د نوم لیکنې پر مهال ستونزه رامنځته شوې. مهرباني وکړئ بیا هڅه "
+"وکړئ یا که حساب لرئ نو ننوتل وکړئ"
 
 msgid "user_not_found"
 msgstr ""
@@ -835,8 +835,7 @@ msgstr "شخصي سرور چمتو دی!"
 msgid "private_server_ready_message"
 msgstr ""
 "(%s) سرور جوړ شوی او ستاسو د سرور لیست ته اضافه شوی. تاسو د اتصال لپاره تیار"
-" یاست!(%s) سرور تنظیم او ستاسو د سرور لیست ته اضافه شوی دی. تاسو د وصل کولو "
-"لپاره چمتو یاست!"
+" یاست!"
 
 msgid "set_up_your_server"
 msgstr "خپل سرور تنظیم کړئ"
@@ -913,8 +912,7 @@ msgstr "سرور لرې کړئ؟"
 msgid "remove_server_message"
 msgstr ""
 "%s لرې کړئ؟ دا به یوازې ستاسو له ایپ څخه یې لرې کړي، دا به ستاسو د کلاؤډ "
-"چمتو کوونکي څخه سرور نه ړنګوي.%s لرې کړئ؟ دا یوازې ستاسو د اپلیکیشن څخه به "
-"یې لرې کړي، دا به سرور ستاسو د کلاوډ چمتو کوونکي څخه نه ړنګوي."
+"چمتو کوونکي څخه سرور نه ړنګوي."
 
 msgid "generate_access_key"
 msgstr "د لاسرسي کلید جوړ کړئ"
@@ -943,6 +941,8 @@ msgstr ""
 
 msgid "trust_server_operator_message_three"
 msgstr ""
+"که تاسو ډاډه نه یاست چې سرور څوک چلوي یا څنګه تنظیم شوی، موږ وړاندیز کوو چې "
+"ستاسو د سرور لیست کې شته یو له ډیفالټ Lantern سرورونو څخه وکاروئ."
 
 msgid "invalid_server_details"
 msgstr "ناسم د سرور جزئیات. مهرباني وکړئ د لاسرسي کلید وګورئ او بیا هڅه وکړئ."
@@ -982,6 +982,9 @@ msgstr "وصل شوی"
 
 msgid "status_off"
 msgstr "قطع شوی"
+
+msgid "select_location"
+msgstr "موقعیت وټاکئ"
 
 msgid "select_your_server_location"
 msgstr "د خپل سرور موقعیت غوره کړئ"
@@ -1232,9 +1235,7 @@ msgid "identity_changed"
 msgstr "د %s لپاره پیژندنه بدله شوې"
 
 msgid "identity_changed_message"
-msgstr ""
-"د %s امنیتي ګوتې نښان بدل شوی. دا ممکن د لاسوهنې یا غلط تنظیم نښه وي.د %s "
-"امنیتي ګوتې نښه بدله شوې ده. دا ممکن د مداخلې یا غلط تنظیم نښه وي."
+msgstr "د %s امنیتي ګوتې نښان بدل شوی. دا ممکن د لاسوهنې یا غلط تنظیم نښه وي."
 
 msgid "recommendation"
 msgstr "سپارښتنه:"
@@ -1243,9 +1244,7 @@ msgid "recommendation_message"
 msgstr ""
 "موږ وړاندیز کوو چې %s له Lantern څخه لرې کړئ او له خپل کلاؤډ چمتو کوونکي "
 "حساب څخه یې ړنګ کړئ، بیا یو نوی سرور جوړ کړئ ترڅو ډاډ ترلاسه کړئ چې ستاسو "
-"اتصال خوندي پاتې کیږي.موږ وړاندیز کوو چې %s د Lantern څخه لرې کړئ او د خپل "
-"کلاوډ چمتو کوونکي حساب څخه یې ړنګ کړئ، بیا یو نوی سرور تنظیم کړئ ترڅو ستاسو "
-"اتصال خوندي پاتې شي."
+"اتصال خوندي پاتې کیږي."
 
 msgid "remove_server"
 msgstr "سرور لرې کړئ"
@@ -1444,79 +1443,219 @@ msgid "continue_anyway"
 msgstr "په هره توګه دوام ورکړئ"
 
 msgid "routing_mode"
-msgstr ""
+msgstr "د روټینګ حالت"
 
 msgid "smart_routing"
-msgstr ""
+msgstr "سمارټ روټینګ"
 
 msgid "full_tunnel"
-msgstr ""
+msgstr "بشپړ تونل"
 
 msgid "region_optimized_routing"
-msgstr ""
+msgstr "ستاسو د سیمې لپاره د مقرراتو پر بنسټ غوره شوی روټینګ"
 
 msgid "all_traffic_through_vpn"
-msgstr ""
+msgstr "ټول ترافیک د VPN له لارې"
 
 msgid "smart_routing_description"
 msgstr ""
+"سمارټ روټینګ د سیمې ځانګړي مقررات کاروي ترڅو هغه ترافیک چې VPN ته اړتیا لري "
+"په اوتومات ډول د Lantern له لارې واستوي. نور ترافیک د چټکتیا او اعتبار لپاره"
+" مستقیم ځي."
 
 msgid "add_apps_websites_bypass_vpn"
-msgstr ""
+msgstr "د VPN څخه د تیریدو لپاره اپلیکیشنونه او ویبپاڼې اضافه کړئ"
 
 msgid "lantern_pro_license_applied"
-msgstr ""
+msgstr "ستاسو د Lantern Pro جواز به ستاسو موجوده حساب ته تطبیق شي"
 
 msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr ""
+msgstr "ستاسو پیرود به ستاسو موجوده حساب ته تطبیق شي"
 
 msgid "daily_data_cap_reached"
-msgstr ""
+msgstr "ورځنی د ډیټا حد ته رسیدلی"
 
 msgid "daily_data_cap_reached_message"
-msgstr ""
+msgstr "سرعت 128 kb/sec ته راکمه شوې - په %s بیا تنظیمیږي."
 
 msgid "subscription_renewal_info"
 msgstr ""
+"تادیه ستاسو Apple ID ته د پیرود پر مهال چارج کیږي. ګډون په اوتومات ډول نوی "
+"کیږي پرته لدې چې لږ تر لږه 24 ساعته مخکې لغوه شي. د App Store ترتیباتو کې "
+"اداره یا لغوه کړئ."
 
 msgid "failed_to_update_routing_mode"
-msgstr ""
+msgstr "د روټینګ حالت تازه کول ونشول. مهرباني وکړئ بیا هڅه وکړئ."
 
 msgid "apps"
-msgstr ""
+msgstr "اپلیکیشنونه"
 
 msgid "websites"
+msgstr "ویبپاڼې"
+
+msgid "main_channel"
+msgstr "اصلي چینل"
+
+msgid "data_cap_channel"
+msgstr "د ډیټا کارولو خبرتیاوې"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB وړیا ډیټا پاتې ده"
+
+msgid "daily_data_cap_reached_notification_message"
 msgstr ""
+"ستاسو ډیټا به په %s بیا تنظیم شي. د بې حده لوړ سرعت ډیټا لپاره Pro ته لوړ "
+"شئ."
 
 msgid "if_you_have_not_set_password"
 msgstr ""
+"که تاسو مخکې د Lantern Pro پاسورډ نه دی ټاکلی، لاندې د ‘پاسورډ مو هیر شوی؟’ "
+"اختیار وټاکئ."
 
 msgid "pro_subscription_expired"
-msgstr ""
+msgstr "ستاسو د Pro ګډون مهلت پای ته رسیدلې"
 
 msgid "renew_pro_subscription"
-msgstr ""
+msgstr "د Pro ګډون نوی کړئ"
 
 msgid "subscription_expired"
-msgstr ""
+msgstr "د ګډون مهلت پای ته ورسیده"
 
 msgid "pro"
-msgstr ""
+msgstr "Pro"
 
 msgid "pro_subscription_expired_message"
 msgstr ""
+"د Lantern Pro ګډون مهلت پای ته رسیدلې، د بې حده ډیټا او Pro ځانګړتیاوو بیرته"
+" راګرځولو لپاره نوی یې کړئ."
 
 msgid "last_subscription_renewal_date"
-msgstr ""
+msgstr "د ګډون وروستی نوي کولو نیټه"
 
 msgid "set_account_password"
-msgstr ""
+msgstr "د حساب پاسورډ وټاکئ"
 
 msgid "set_password"
-msgstr ""
+msgstr "پاسورډ وټاکئ"
 
 msgid "set_account_password_message"
 msgstr ""
+"د خپل حساب اداره کولو یا نورو وسیلو کې د ننوتلو لپاره، تاسو اوس اړتیا لرئ چې د خپل Lantern Pro حساب لپاره پاسورډ وټاکئ\n"
+"\n"
+"موږ به تاسو ته د تایید کوډ بریښنالیک واستوو."
 
 msgid "expired"
+msgstr "مهلت پای ته رسیدلې"
+
+msgid "lantern_pro_tagline"
+msgstr "چټک، اعتباري او شخصي انټرنیټ لاسرسی"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern څه توپیر لري"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "د محرمیت، سرعت او آزادۍ لپاره جوړ شوی"
+
+msgid "smart_routing_mode"
+msgstr "د سمارټ روټینګ حالت"
+
+msgid "region_specific_routing_description"
 msgstr ""
+"د سیمې ځانګړي مقررات یوازې هغه ترافیک روټ کوي چې VPN ته اړتیا لري، ستاسو "
+"اتصال چټک ساتي."
+
+msgid "advanced_protocols"
+msgstr "پرمختللي پروتوکولونه"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"د اعظمي اعتبار لپاره د نورو VPN په پرتله ډیر پروتوکولونه. AnyTLS, Hysteria2,"
+" VLESS, Kindling, WATER او نور."
+
+msgid "private_servers_description"
+msgstr "د خپل اتصال باندې بشپړ کنټرول لپاره خپل سرورونه وصل کړئ."
+
+msgid "nonprofit_mission"
+msgstr "غیر انتفاعي ماموریت"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"د انټرنیټ آزادي وده کې د ۱۲+ کلونو تجربې سره د غیر انتفاعي سازمان لخوا جوړ "
+"شوی"
+
+msgid "choose_your_routing_mode"
+msgstr "خپل د روټینګ حالت وټاکئ"
+
+msgid "fastest"
+msgstr "ترټولو ګړندی"
+
+msgid "traditional_vpn_mode"
+msgstr "دودیز VPN حالت"
+
+msgid "traditional_vpn_mode_description"
+msgstr "ټول ترافیک د Lantern له لارې روټ کوي، اړتیا ورته وي یا نه."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "د روټینګ حالت ترتیباتو کې هر وخت بدل کړئ"
+
+msgid "get_started"
+msgstr "پیل وکړئ"
+
+msgid "skip_connect_now"
+msgstr "تېر شئ - اوس وصل شئ"
+
+msgid "renew_pro"
+msgstr "Pro نوی کړئ"
+
+msgid "payment"
+msgstr "تادیه"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"داسې ښکاري چې یوه ستونزه رامنځته شوې. که تاسو تادیه کړې خو ګډون مو فعال نه "
+"ښکاري، مهرباني وکړئ څو ساعته صبر وکړئ او بیا وګورئ."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"ستاسو Pro پلان د Google Play له لارې اخیستل شوی. مهرباني وکړئ خپل ګډون د "
+"Google Play حساب ترتیباتو کې اداره کړئ."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"ستاسو Pro پلان د Apple App Store له لارې اخیستل شوی. مهرباني وکړئ خپل ګډون د"
+" Apple ID حساب ترتیباتو کې اداره کړئ."
+
+msgid "create_account_error"
+msgstr "د حساب جوړولو تېروتنه"
+
+msgid "appearance"
+msgstr "بڼه"
+
+msgid "light"
+msgstr "روښانه"
+
+msgid "dark"
+msgstr "تیاره"
+
+msgid "system"
+msgstr "سیسټم"
+
+msgid "lantern_email"
+msgstr "د Lantern بریښنالیک"
+
+msgid "confirm_with_account"
+msgstr "د حذف تایید لپاره مهرباني وکړئ لاندې د خپل %s حساب سره تایید وکړئ:"
+
+msgid "oauth_different_account"
+msgstr ""
+"هغه حساب چې تاسو ورسره د ننوتلو هڅه کوئ د دې بریښنالیک سره تړلي حساب سره "
+"سمون نه خوري. مهرباني وکړئ د سم حساب سره ننوتل وکړئ یا بل بریښنالیک وټاکئ."
+
+msgid "account_deleted"
+msgstr "حساب حذف شو"
+
+msgid "account_deleted_message"
+msgstr "ستاسو حساب د تل لپاره حذف شو."
+
+msgid "verify_with"
+msgstr "د %s سره تایید وکړئ"
