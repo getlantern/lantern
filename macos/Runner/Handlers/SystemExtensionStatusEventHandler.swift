@@ -26,8 +26,13 @@ public class SystemExtensionStatusEventHandler: NSObject, FlutterPlugin, Flutter
 
     cancellable = SystemExtensionManager.shared.$status
       .sink { sysStatus in
-        appLogger.info("SystemExtensionStatusEvent received status: \(sysStatus)")
-        events(["status": sysStatus])
+        appLogger.info(
+          "SystemExtensionStatusEvent received status: \(sysStatus.logDescription)")
+        var payload: [String: Any] = ["status": sysStatus.code]
+        if let details = sysStatus.details {
+          payload["details"] = details
+        }
+        events(payload)
       }
     return nil
   }

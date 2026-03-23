@@ -22,24 +22,27 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     final textTheme = Theme.of(context).textTheme;
     final systemExtensionStatus = ref.watch(macosExtensionProvider);
     appLogger.info(
-        "Current System Extension Status: ${systemExtensionStatus.status}");
+      "Current System Extension Status: ${systemExtensionStatus.status}",
+    );
     useEffect(() {
       if (systemExtensionStatus.status == SystemExtensionStatus.error) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.error(
-              "Error fetching System Extension Status: ${systemExtensionStatus.message}");
+            "Error fetching System Extension Status: ${systemExtensionStatus.message}",
+          );
           AppDialog.errorDialog(
-              context: context,
-              title: 'error'.i18n,
-              content: systemExtensionStatus.message ??
-                  'unknown_error_occurred'.i18n);
+            context: context,
+            title: 'error'.i18n,
+            content:
+                systemExtensionStatus.message ?? 'unknown_error_occurred'.i18n,
+          );
         });
       }
-      if (systemExtensionStatus.status == SystemExtensionStatus.installed ||
-          systemExtensionStatus.status == SystemExtensionStatus.activated) {
+      if (systemExtensionStatus.isReady) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info(
-              "System Extension is installed and activated. Closing dialog.");
+            "System Extension is installed and activated. Closing dialog.",
+          );
           appRouter.pop();
         });
       }
@@ -50,12 +53,8 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       title: '',
       appBar: CustomAppBar(
         leading: SizedBox(),
-        title: LanternLogo(
-          color: context.textPrimary,
-        ),
-        actions: [
-          CloseButton(),
-        ],
+        title: LanternLogo(color: context.textPrimary),
+        actions: [CloseButton()],
         backgroundColor: context.bgElevated,
       ),
       body: Column(
@@ -63,10 +62,13 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
         children: <Widget>[
           AppImage(path: AppImagePaths.sysDialog, useThemeColor: false),
           const SizedBox(height: 48.0),
-          Text('enable_network_extension'.i18n,
-              style: textTheme.headlineSmall!
-                  .copyWith(color: context.textSecondary),
-              textAlign: TextAlign.center),
+          Text(
+            'enable_network_extension'.i18n,
+            style: textTheme.headlineSmall!.copyWith(
+              color: context.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -77,6 +79,20 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
               ),
             ),
           ),
+          if (systemExtensionStatus.message != null &&
+              systemExtensionStatus.status != SystemExtensionStatus.error) ...[
+            const SizedBox(height: 12.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                systemExtensionStatus.message!,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: context.textTertiary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
           const SizedBox(height: 16.0),
           RichText(
             text: TextSpan(
@@ -97,7 +113,8 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
           ),
           SizedBox(height: 48.0),
           PrimaryButton(
-            label: systemExtensionStatus.status ==
+            label:
+                systemExtensionStatus.status ==
                     SystemExtensionStatus.requiresApproval
                 ? 'activate_extension'.i18n
                 : 'install_now'.i18n,
@@ -110,13 +127,24 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     );
   }
 
-  Future<void> onInstall(WidgetRef ref, BuildContext context,
-      MacOSExtensionState systemExtensionStatus) async {
+  Future<void> onInstall(
+    WidgetRef ref,
+    BuildContext context,
+    MacOSExtensionState systemExtensionStatus,
+  ) async {
     appLogger.info("Current System Extension Status: $systemExtensionStatus");
     if (systemExtensionStatus.status ==
         SystemExtensionStatus.requiresApproval) {
       ref.read(macosExtensionProvider.notifier).openSystemExtension();
       appLogger.info("Opening System Settings for Approval");
+      return;
+    }
+
+    if (systemExtensionStatus.status == SystemExtensionStatus.requiresReboot) {
+      context.showSnackBar(
+        systemExtensionStatus.message ??
+            'Restart macOS to finish updating the network extension.',
+      );
       return;
     }
 
@@ -129,9 +157,10 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       (failure) {
         appLogger.error("Failure: ${failure.localizedErrorMessage}");
         AppDialog.errorDialog(
-            context: context,
-            title: 'error'.i18n,
-            content: failure.localizedErrorMessage);
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
       },
       (result) {
         appLogger.info("System Extension Installation Triggered: $result");

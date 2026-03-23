@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -100,8 +99,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     /// Check if extension is installed and up to date before connecting
     if (PlatformUtils.isMacOS) {
       final systemExtensionStatus = ref.read(macosExtensionProvider);
-      if (systemExtensionStatus.status != SystemExtensionStatus.installed &&
-          systemExtensionStatus.status != SystemExtensionStatus.activated) {
+      if (!systemExtensionStatus.isReady) {
         windowManager.show();
         appRouter.push(const MacOSExtensionDialog());
         return;
