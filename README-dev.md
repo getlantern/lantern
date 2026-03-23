@@ -83,6 +83,10 @@ After cloning the repository, install Flutter package dependencies:
 flutter pub get
 ```
 
+
+> [!IMPORTANT]
+> The app requires an `app.env` file at the repo root to configure API keys and environment-specific settings. Obtain `app.env` from **1Password** and place it at the root of the repository before building.
+
 This resolves the Dart/Flutter packages declared in `pubspec.yaml` and writes dependency metadata to `.dart_tool/`. It must be run at least once before any build, and re-run whenever `pubspec.yaml` or `pubspec.lock` changes (e.g. after pulling commits that add or update packages).
 
 ---
