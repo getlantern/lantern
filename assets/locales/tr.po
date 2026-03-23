@@ -1,4 +1,3 @@
-# 
 # Translators:
 # e2f <projects@e2f.com>, 2025
 # Aşkın Özgür <askin@askin.ws>, 2025
@@ -6,8 +5,8 @@
 # Volkan Gezer <volkangezer@gmail.com>, 2025
 # Teo Westbrook, 2025
 # Emre Deniz, 2025
-# Derek F <derek@getlantern.org>, 2026
 # Zeynel Cebeci <cebeciz@gmail.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Lantern, 2026
 # 
@@ -15,6 +14,8 @@ msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Turkish (https://app.transifex.com/lantern-1/teams/94371/tr/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
@@ -104,7 +105,7 @@ msgid "delete_account_message_two"
 msgstr "Silme işlemini onaylamak için lütfen aşağıya şifrenizi girin"
 
 msgid "Submit Issue Report"
-msgstr "Sorun Raporu Gönder"
+msgstr "Onaylamak için şifrenizi girin"
 
 msgid "confirm_deletion"
 msgstr "Silmeyi Onayla"
@@ -281,6 +282,12 @@ msgstr "Mod"
 
 msgid "use_commas"
 msgstr "Birden fazla URL'yi ayırmak için virgül kullanın"
+
+msgid "deep_link_expired"
+msgstr "Bu bağlantının süresi doldu. Lütfen yeni bir tane talep edin."
+
+msgid "invalid_deep_link"
+msgstr "Bu bağlantı geçersiz. Lütfen yeni bir tane talep edin."
 
 msgid "default_bypass"
 msgstr "Varsayılan Atlama Listeleri"
@@ -640,8 +647,8 @@ msgstr "Hata"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Kayıt sırasında bir sorun oluştu gibi görünüyor. Lütfen şifrenizi "
-"sıfırlamayı deneyin ve sorun devam ederse destek ekibimizle iletişime geçin"
+"Kayıt sırasında bir sorun oluştu. Lütfen tekrar deneyin veya zaten bir "
+"hesabınız varsa giriş yapın"
 
 msgid "user_not_found"
 msgstr ""
@@ -955,6 +962,9 @@ msgstr "Bağlı"
 
 msgid "status_off"
 msgstr "Bağlantı Kesildi"
+
+msgid "select_location"
+msgstr "Konum Seç"
 
 msgid "select_your_server_location"
 msgstr "Sunucu konumunu seçin"
@@ -1452,6 +1462,20 @@ msgstr "Uygulamalar"
 msgid "websites"
 msgstr "Web Siteleri"
 
+msgid "main_channel"
+msgstr "Ana Kanal"
+
+msgid "data_cap_channel"
+msgstr "Veri Kullanım Uyarıları"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB ücretsiz veri kaldı"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Verileriniz %s tarihinde sıfırlanacak. Sınırsız yüksek hızlı veri için "
+"Pro'ya yükseltin."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Daha önce Lantern Pro şifresi belirlemediyseniz, aşağıdaki 'şifrenizi mi "
@@ -1491,3 +1515,118 @@ msgstr ""
 
 msgid "expired"
 msgstr "Süresi Doldu"
+
+msgid "lantern_pro_tagline"
+msgstr "Hızlı, güvenilir ve gizli internet erişimi"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern'ı farklı kılan nedir"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Gizlilik, hız ve özgürlük için tasarlandı"
+
+msgid "smart_routing_mode"
+msgstr "Akıllı Yönlendirme Modu"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Bölgeye özel kurallar yalnızca VPN gerektiren trafiği yönlendirir, "
+"bağlantınızı hızlı tutar."
+
+msgid "advanced_protocols"
+msgstr "Gelişmiş Protokoller"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Maksimum güvenilirlik için diğer VPN'lerden daha fazla protokol. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER ve daha fazlası."
+
+msgid "private_servers_description"
+msgstr "Bağlantınız üzerinde tam kontrol için kendi sunucularınızı bağlayın."
+
+msgid "nonprofit_mission"
+msgstr "Kâr Amacı Gütmeyen Misyon"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"12 yılı aşkın internet özgürlüğü deneyimine sahip kâr amacı gütmeyen bir "
+"kuruluş tarafından geliştirildi"
+
+msgid "choose_your_routing_mode"
+msgstr "Yönlendirme modunuzu seçin"
+
+msgid "fastest"
+msgstr "En Hızlı"
+
+msgid "traditional_vpn_mode"
+msgstr "Geleneksel VPN Modu"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"İhtiyacı olsun ya da olmasın tüm trafiği Lantern üzerinden yönlendirir."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Yönlendirme Modu Ayarlarından istediğiniz zaman değiştirin"
+
+msgid "get_started"
+msgstr "Başla"
+
+msgid "skip_connect_now"
+msgstr "Atla - Şimdi Bağlan"
+
+msgid "renew_pro"
+msgstr "Pro'yu Yenile"
+
+msgid "payment"
+msgstr "Ödeme"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Bir sorun oluşmuş gibi görünüyor. Ödeme yaptıysanız ancak aboneliğinizi "
+"aktif göremiyorsanız, lütfen birkaç saat bekleyip tekrar kontrol edin."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Pro planınız Google Play üzerinden satın alındı. Lütfen aboneliğinizi Google"
+" Play hesap ayarlarınızdan yönetin."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Pro planınız Apple App Store üzerinden satın alındı. Lütfen aboneliğinizi "
+"Apple ID hesap ayarlarınızdan yönetin."
+
+msgid "create_account_error"
+msgstr "Hesap Oluşturma Hatası"
+
+msgid "appearance"
+msgstr "Görünüm"
+
+msgid "light"
+msgstr "Aydınlık"
+
+msgid "dark"
+msgstr "Karanlık"
+
+msgid "system"
+msgstr "Sistem"
+
+msgid "lantern_email"
+msgstr "Lantern E-posta"
+
+msgid "confirm_with_account"
+msgstr ""
+"Silme işlemini onaylamak için lütfen aşağıdaki %s hesabınızla doğrulayın:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Giriş yapmaya çalıştığınız hesap, bu e-postayla ilişkili hesapla eşleşmiyor."
+" Lütfen doğru hesapla giriş yapın veya farklı bir e-posta seçin."
+
+msgid "account_deleted"
+msgstr "Hesap Silindi"
+
+msgid "account_deleted_message"
+msgstr "Hesabınız kalıcı olarak silindi."
+
+msgid "verify_with"
+msgstr "%s ile doğrula"

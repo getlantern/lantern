@@ -1,4 +1,3 @@
-# 
 # Translators:
 # Acclaro Thailand <bkk-project@acclaro.com>, 2025
 # Amazing Nev <nev@nevagency.com>, 2025
@@ -12,6 +11,8 @@ msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Thai (https://app.transifex.com/lantern-1/teams/94371/th/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: th\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -101,7 +102,7 @@ msgid "delete_account_message_two"
 msgstr "กรุณากรอกรหัสผ่านด้านล่างเพื่อยืนยันการลบ"
 
 msgid "Submit Issue Report"
-msgstr "ส่งรายงานปัญหา"
+msgstr "กรอกรหัสผ่านเพื่อยืนยัน"
 
 msgid "confirm_deletion"
 msgstr "ยืนยันการลบ"
@@ -278,6 +279,12 @@ msgstr "โหมด"
 
 msgid "use_commas"
 msgstr "ใช้เครื่องหมายจุลภาคเพื่อคั่น URL หลายรายการ"
+
+msgid "deep_link_expired"
+msgstr "ลิงก์นี้หมดอายุแล้ว กรุณาขอลิงก์ใหม่"
+
+msgid "invalid_deep_link"
+msgstr "ลิงก์นี้ไม่ถูกต้อง กรุณาขอลิงก์ใหม่"
 
 msgid "default_bypass"
 msgstr "รายการข้ามเริ่มต้น"
@@ -630,8 +637,8 @@ msgstr "ข้อผิดพลาด"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"ดูเหมือนว่ามีบางอย่างผิดพลาดกับการสมัคร กรุณาลองรีเซ็ตรหัสผ่านของคุณ "
-"และหากปัญหายังคงอยู่ กรุณาติดต่อทีมสนับสนุนของเรา"
+"ดูเหมือนมีข้อผิดพลาดในการสมัคร "
+"กรุณาลองอีกครั้งหรือเข้าสู่ระบบหากคุณมีบัญชีอยู่แล้ว"
 
 msgid "user_not_found"
 msgstr ""
@@ -942,6 +949,9 @@ msgstr "เชื่อมต่อแล้ว"
 
 msgid "status_off"
 msgstr "ยกเลิกการเชื่อมต่อแล้ว"
+
+msgid "select_location"
+msgstr "เลือกตำแหน่ง"
 
 msgid "select_your_server_location"
 msgstr "เลือกตำแหน่งเซิร์ฟเวอร์ของคุณ"
@@ -1428,6 +1438,20 @@ msgstr "แอป"
 msgid "websites"
 msgstr "เว็บไซต์"
 
+msgid "main_channel"
+msgstr "ช่องหลัก"
+
+msgid "data_cap_channel"
+msgstr "การแจ้งเตือนการใช้ข้อมูล"
+
+msgid "mb_free_data_remaining"
+msgstr "ข้อมูลฟรีเหลือ %d MB"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"ข้อมูลของคุณจะรีเซ็ตเมื่อ %s อัปเกรดเป็น Pro "
+"เพื่อรับข้อมูลความเร็วสูงไม่จำกัด"
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "หากคุณไม่เคยตั้งรหัสผ่าน Lantern Pro มาก่อน ให้เลือกตัวเลือก 'ลืมรหัสผ่าน?' "
@@ -1467,3 +1491,116 @@ msgstr ""
 
 msgid "expired"
 msgstr "หมดอายุ"
+
+msgid "lantern_pro_tagline"
+msgstr "การเข้าถึงอินเทอร์เน็ตที่รวดเร็ว เชื่อถือได้ และเป็นส่วนตัว"
+
+msgid "what_makes_lantern_different"
+msgstr "อะไรทำให้ Lantern แตกต่าง"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "สร้างขึ้นเพื่อความเป็นส่วนตัว ความเร็ว และเสรีภาพ"
+
+msgid "smart_routing_mode"
+msgstr "โหมดการกำหนดเส้นทางอัจฉริยะ"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"กฎเฉพาะภูมิภาคจะกำหนดเส้นทางเฉพาะทราฟฟิกที่ต้องใช้ VPN เท่านั้น "
+"ทำให้การเชื่อมต่อของคุณรวดเร็ว"
+
+msgid "advanced_protocols"
+msgstr "โปรโตคอลขั้นสูง"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"โปรโตคอลมากกว่า VPN อื่นๆ เพื่อความเชื่อถือได้สูงสุด AnyTLS, Hysteria2, "
+"VLESS, Kindling, WATER และอื่นๆ"
+
+msgid "private_servers_description"
+msgstr "เชื่อมต่อเซิร์ฟเวอร์ของคุณเองเพื่อควบคุมการเชื่อมต่อได้อย่างเต็มที่"
+
+msgid "nonprofit_mission"
+msgstr "ภารกิจองค์กรไม่แสวงหากำไร"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"สร้างโดยองค์กรไม่แสวงหากำไรที่มีประสบการณ์กว่า 12 "
+"ปีในการส่งเสริมเสรีภาพทางอินเทอร์เน็ต"
+
+msgid "choose_your_routing_mode"
+msgstr "เลือกโหมดการกำหนดเส้นทางของคุณ"
+
+msgid "fastest"
+msgstr "เร็วที่สุด"
+
+msgid "traditional_vpn_mode"
+msgstr "โหมด VPN แบบดั้งเดิม"
+
+msgid "traditional_vpn_mode_description"
+msgstr "กำหนดเส้นทางทราฟฟิกทั้งหมดผ่าน Lantern ไม่ว่าจะจำเป็นหรือไม่"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "เปลี่ยนได้ตลอดเวลาในการตั้งค่าโหมดการกำหนดเส้นทาง"
+
+msgid "get_started"
+msgstr "เริ่มต้นใช้งาน"
+
+msgid "skip_connect_now"
+msgstr "ข้าม - เชื่อมต่อเลย"
+
+msgid "renew_pro"
+msgstr "ต่ออายุ Pro"
+
+msgid "payment"
+msgstr "การชำระเงิน"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"ดูเหมือนมีข้อผิดพลาด หากคุณชำระเงินแล้วแต่ไม่เห็นการสมัครสมาชิกเปิดใช้งาน "
+"กรุณารอสักสองสามชั่วโมงแล้วตรวจสอบอีกครั้ง"
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"แพลน Pro ของคุณซื้อผ่าน Google Play "
+"กรุณาจัดการการสมัครสมาชิกจากการตั้งค่าบัญชี Google Play ของคุณ"
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"แพลน Pro ของคุณซื้อผ่าน Apple App Store "
+"กรุณาจัดการการสมัครสมาชิกจากการตั้งค่าบัญชี Apple ID ของคุณ"
+
+msgid "create_account_error"
+msgstr "เกิดข้อผิดพลาดในการสร้างบัญชี"
+
+msgid "appearance"
+msgstr "ธีม"
+
+msgid "light"
+msgstr "สว่าง"
+
+msgid "dark"
+msgstr "มืด"
+
+msgid "system"
+msgstr "ระบบ"
+
+msgid "lantern_email"
+msgstr "อีเมล Lantern"
+
+msgid "confirm_with_account"
+msgstr "เพื่อยืนยันการลบ กรุณายืนยันด้วยบัญชี %s ของคุณด้านล่าง:"
+
+msgid "oauth_different_account"
+msgstr ""
+"บัญชีที่คุณพยายามเข้าสู่ระบบไม่ตรงกับบัญชีที่เชื่อมโยงกับอีเมลนี้ "
+"กรุณาเข้าสู่ระบบด้วยบัญชีที่ถูกต้องหรือเลือกอีเมลอื่น"
+
+msgid "account_deleted"
+msgstr "บัญชีถูกลบแล้ว"
+
+msgid "account_deleted_message"
+msgstr "บัญชีของคุณถูกลบอย่างถาวรแล้ว"
+
+msgid "verify_with"
+msgstr "ยืนยันด้วย %s"
