@@ -13,6 +13,9 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
+## APP_VERSION is the version defined in pubspec.yaml
+APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
+VERSION ?= $(APP_VERSION)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(VERSION)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
@@ -141,9 +144,6 @@ get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which
 APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
-
-## APP_VERSION is the version defined in pubspec.yaml
-APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
 INSTALLER_RESOURCES := installer-resources
 
