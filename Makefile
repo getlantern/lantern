@@ -13,10 +13,11 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
+## App version without number
+APP_VERSION_WITHOUT_BUILD := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
 ## APP_VERSION is the version defined in pubspec.yaml
-APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
-VERSION ?= $(APP_VERSION)
-EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(VERSION)'
+APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_WITHOUT_BUILD)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
