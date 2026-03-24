@@ -351,11 +351,11 @@ internal struct SystemExtensionDescriptor: Equatable {
       bundleIdentifier: properties.bundleIdentifier,
       bundleShortVersion: properties.bundleShortVersion,
       bundleVersion: properties.bundleVersion,
-      contentHash: SystemExtensionBundleHasher.hashBundle(at: properties.URL),
+      contentHash: SystemExtensionBundleHasher.hashBundle(at: properties.url),
       isEnabled: properties.isEnabled,
       isAwaitingUserApproval: properties.isAwaitingUserApproval,
       isUninstalling: properties.isUninstalling,
-      url: properties.URL
+      url: properties.url
     )
   }
 

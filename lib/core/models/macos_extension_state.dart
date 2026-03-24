@@ -22,12 +22,20 @@ class MacOSExtensionState {
       status == SystemExtensionStatus.installed ||
       status == SystemExtensionStatus.activated;
 
-  factory MacOSExtensionState.fromEvent(dynamic event) {
-    if (event is Map) {
+  factory MacOSExtensionState.fromEvent(Object? event) {
+    if (event case final Map<Object?, Object?> payload) {
       return _fromStatusFields(
-        event['status']?.toString(),
-        event['details']?.toString(),
+        _stringField(payload, 'status'),
+        _stringField(payload, 'details'),
       );
+    }
+
+    if (event is String) {
+      return MacOSExtensionState.fromString(event);
+    }
+
+    if (event == null) {
+      return const MacOSExtensionState(SystemExtensionStatus.unknown);
     }
 
     return MacOSExtensionState.fromString(event.toString());
@@ -92,5 +100,13 @@ class MacOSExtensionState {
       default:
         return const MacOSExtensionState(SystemExtensionStatus.unknown);
     }
+  }
+
+  static String? _stringField(Map<Object?, Object?> payload, String key) {
+    final value = payload[key];
+    if (value == null) {
+      return null;
+    }
+    return value.toString();
   }
 }
