@@ -228,6 +228,12 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			if app == nil {
 				continue
 			}
+			if runtime.GOOS == "windows" &&
+				len(app.IconBytes) == 0 &&
+				strings.TrimSpace(app.IconPath) == "" {
+				// Skip iconless Windows cache entries so a fresh scan restores icons.
+				continue
+			}
 			if cb != nil {
 				cb(app)
 			}
