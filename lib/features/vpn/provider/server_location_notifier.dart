@@ -40,14 +40,15 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       final result = await ref
           .read(lanternServiceProvider)
           .getAutoServerLocation();
-      result.fold(
-        (error) =>
-            appLogger.error("Failed to fetch auto server location: $error"),
-        (autoLocation) {
+      await result.fold(
+        (error) async {
+          appLogger.error("Failed to fetch auto server location: $error");
+        },
+        (autoLocation) async {
           final countryName = autoLocation.location!.country;
           final cityName = autoLocation.location!.city;
 
-          updateServerLocation(
+          await updateServerLocation(
             ServerLocation(
               serverType: ServerLocationType.auto.name,
               serverName: '',
