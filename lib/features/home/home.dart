@@ -145,11 +145,9 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocationAsync = ref.watch(serverLocationProvider);
+    final serverLocation = ref.watch(serverLocationProvider);
 
-    // Choose a safe default while loading/error
-    final serverLocation = serverLocationAsync.value;
-    final serverType = (serverLocation?.serverType ?? '').toServerLocationType;
+    final serverType = serverLocation.serverType.toServerLocationType;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),

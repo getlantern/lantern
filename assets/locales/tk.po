@@ -1,4 +1,3 @@
-# 
 # Translators:
 # Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
@@ -7,6 +6,8 @@ msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Turkmen (https://app.transifex.com/lantern-1/teams/94371/tk/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: tk\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -96,7 +97,7 @@ msgid "delete_account_message_two"
 msgstr "Pozulmagyny tassyklamak üçin parolyňyzy giriziň"
 
 msgid "Submit Issue Report"
-msgstr "Mesele hasabatyny iber"
+msgstr "Tassyklamak üçin paroly giriziň"
 
 msgid "confirm_deletion"
 msgstr "Pozulmagyny tassykla"
@@ -274,6 +275,12 @@ msgstr "Tertip"
 
 msgid "use_commas"
 msgstr "Birnäçe URL-leri bölmek üçin vergül ulanyň"
+
+msgid "deep_link_expired"
+msgstr "Bu baglanyşygyň möhleti gutardy. Täzesini haýyş ediň."
+
+msgid "invalid_deep_link"
+msgstr "Bu baglanyşyk nädogry. Täzesini haýyş ediň."
 
 msgid "default_bypass"
 msgstr "Deslapky geçme sanawlary"
@@ -631,8 +638,8 @@ msgstr "Ýalňyşlyk"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Hasaba ýazylmakda bir zat nädogry boldy. Parolyňyzy täzeden diklemäge "
-"synanyň we mesele dowam etse, goldaw toparymyz bilen habarlaşyň"
+"Hasaba durma wagtynda näsazlyk ýüze çykdy öýdýän. Gaýtadan synanyşyň ýa-da "
+"hasabyňyz bar bolsa giriň"
 
 msgid "user_not_found"
 msgstr ""
@@ -943,6 +950,9 @@ msgstr "Birikdirildi"
 
 msgid "status_off"
 msgstr "Aýryldy"
+
+msgid "select_location"
+msgstr "Ýerleşýän ýeri saýlaň"
 
 msgid "select_your_server_location"
 msgstr "Serwer ýerleşişiňizi saýlaň"
@@ -1439,6 +1449,20 @@ msgstr "Programmalar"
 msgid "websites"
 msgstr "Web sahypalar"
 
+msgid "main_channel"
+msgstr "Esasy kanal"
+
+msgid "data_cap_channel"
+msgstr "Maglumat ulanylşy barada duýduryşlar"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB mugt maglumat galdy"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Maglumatlaryňyz %s-de täzeden düzüler. Çäklendirilmedik ýokary tizlikli "
+"maglumat üçin Pro-a geçiň."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Öňki wagtda Lantern Pro parolyny sazlamadyk bolsaňyz, aşakdaky 'parolyňyzy "
@@ -1478,3 +1502,118 @@ msgstr ""
 
 msgid "expired"
 msgstr "Möhleti gutardy"
+
+msgid "lantern_pro_tagline"
+msgstr "Çalt, ygtybarly we gizlin internet elýeterliligi"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern-i näme tapawutlandyrýar"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Gizlinlik, tizlik we erkinlik üçin döredildi"
+
+msgid "smart_routing_mode"
+msgstr "Akylly ugrukdyryş tertibi"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Sebite mahsus düzgünler diňe VPN gerek bolan traffigi ugrukdyrýar, "
+"baglanyşygyňyzy çalt saklaýar."
+
+msgid "advanced_protocols"
+msgstr "Ösen protokollar"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Iň ýokary ygtybarlylyk üçin beýleki VPN-lerden has köp protokol. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER we başgalar."
+
+msgid "private_servers_description"
+msgstr ""
+"Baglanyşygyňyza doly gözegçilik etmek üçin öz serwerleriňizi birikdiriň."
+
+msgid "nonprofit_mission"
+msgstr "Täjirçilik däl wezipe"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Internet erkinligini ösdürmekde 12+ ýyl tejribesi bolan täjirçilik däl "
+"gurama tarapyndan döredildi"
+
+msgid "choose_your_routing_mode"
+msgstr "Ugrukdyryş tertibiňizi saýlaň"
+
+msgid "fastest"
+msgstr "Iň çalt"
+
+msgid "traditional_vpn_mode"
+msgstr "Adaty VPN tertibi"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"Zerur bolsun ýa-da bolmasyn, ähli traffigi Lantern arkaly ugrukdyrýar."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Ugrukdyryş tertibi sazlamalarynda islendik wagt üýtgedip bilersiňiz"
+
+msgid "get_started"
+msgstr "Başlaň"
+
+msgid "skip_connect_now"
+msgstr "Geçiň - Häzir birikdiriň"
+
+msgid "renew_pro"
+msgstr "Pro-ny täzeläň"
+
+msgid "payment"
+msgstr "Töleg"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Näsazlyk ýüze çykan ýaly. Töleg eden bolsaňyz, ýöne abunalygyňyz işjeň "
+"görünmeýän bolsa, birnäçe sagat garaşyp, gaýtadan barlaň."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Pro meýilnamaňyz Google Play arkaly satyn alyndy. Abunalygyňyzy Google Play "
+"hasaby sazlamalaryndan dolandyryň."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Pro meýilnamaňyz Apple App Store arkaly satyn alyndy. Abunalygyňyzy Apple ID"
+" hasaby sazlamalaryndan dolandyryň."
+
+msgid "create_account_error"
+msgstr "Hasap döretmekde ýalňyşlyk"
+
+msgid "appearance"
+msgstr "Daşky görnüş"
+
+msgid "light"
+msgstr "Açyk"
+
+msgid "dark"
+msgstr "Garaňky"
+
+msgid "system"
+msgstr "Ulgam"
+
+msgid "lantern_email"
+msgstr "Lantern e-poçtasy"
+
+msgid "confirm_with_account"
+msgstr "Pozmagy tassyklamak üçin aşakdaky %s hasabyňyz bilen tassyklaň:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Girmäge synanyşýan hasabyňyz bu e-poçta bilen baglanyşykly hasaba gabat "
+"gelmeýär. Dogry hasap bilen giriň ýa-da başga e-poçta saýlaň."
+
+msgid "account_deleted"
+msgstr "Hasap pozuldy"
+
+msgid "account_deleted_message"
+msgstr "Hasabyňyz hemişelik pozuldy."
+
+msgid "verify_with"
+msgstr "%s bilen tassyklaň"

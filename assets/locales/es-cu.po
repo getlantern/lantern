@@ -1,21 +1,22 @@
-# 
 # Translators:
 # e2f_es r3 <tx_e2f_es_r3@ate2f.com>, 2025
 # e2f_es r1 <tx_e2f_es_r1@ate2f.com>, 2025
-# tx_e2f_es t35 <tx_e2f_es_t35@ate2f.com>, 2025
 # e2f <projects@e2f.com>, 2025
 # tx_e2f_es t1 <tx_e2f_es_t1@ate2f.com>, 2025
 # Katherine Mojena, 2025
 # Aimara pena, 2026
-# Derek F <derek@getlantern.org>, 2026
-# strel, 2026
 # e2f_es r2 <tx_e2f_es_r2@ate2f.com>, 2026
+# tx_e2f_es t35 <tx_e2f_es_t35@ate2f.com>, 2026
+# strel, 2026
+# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Spanish (Cuba) (https://app.transifex.com/lantern-1/teams/94371/es_CU/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: es_CU\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
@@ -287,6 +288,12 @@ msgstr "Modo"
 
 msgid "use_commas"
 msgstr "Usa comas para separar múltiples URLs"
+
+msgid "deep_link_expired"
+msgstr "Este enlace ha expirado. Por favor, solicita uno nuevo."
+
+msgid "invalid_deep_link"
+msgstr "Este enlace no es válido. Por favor, solicita uno nuevo."
 
 msgid "default_bypass"
 msgstr "Listas de Exclusión Predeterminadas"
@@ -648,9 +655,8 @@ msgstr "Error"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Parece que algo salió mal con el registro. Por favor, intenta restablecer tu"
-" contraseña, y si el problema persiste, comunícate con nuestro equipo de "
-"soporte. "
+"Parece que algo salió mal con el registro. Por favor, inténtalo de nuevo o "
+"inicia sesión si ya tienes una cuenta"
 
 msgid "user_not_found"
 msgstr ""
@@ -973,6 +979,9 @@ msgstr "Conectado"
 
 msgid "status_off"
 msgstr "Desconectado"
+
+msgid "select_location"
+msgstr "Seleccionar ubicación"
 
 msgid "select_your_server_location"
 msgstr "Selecciona la ubicación de tu servidor"
@@ -1478,6 +1487,20 @@ msgstr "Aplicaciones"
 msgid "websites"
 msgstr "Sitios Web"
 
+msgid "main_channel"
+msgstr "Canal principal"
+
+msgid "data_cap_channel"
+msgstr "Alertas de uso de datos"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB de datos gratuitos restantes"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Tus datos se restablecerán a las %s. Actualiza a Pro para obtener datos de "
+"alta velocidad ilimitados."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Si no has establecido una contraseña de Lantern Pro anteriormente, "
@@ -1517,3 +1540,120 @@ msgstr ""
 
 msgid "expired"
 msgstr "Caducado"
+
+msgid "lantern_pro_tagline"
+msgstr "Acceso a internet rápido, confiable y privado"
+
+msgid "what_makes_lantern_different"
+msgstr "Qué hace diferente a Lantern"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Diseñado para la privacidad, la velocidad y la libertad"
+
+msgid "smart_routing_mode"
+msgstr "Modo de enrutamiento inteligente"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Las reglas específicas por región enrutan solo lo que necesita la VPN, "
+"manteniendo tu conexión rápida."
+
+msgid "advanced_protocols"
+msgstr "Protocolos avanzados"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Más protocolos que otras VPN para máxima confiabilidad. AnyTLS, Hysteria2, "
+"VLESS, Kindling, WATER y más."
+
+msgid "private_servers_description"
+msgstr ""
+"Conecta tus propios servidores para tener control total sobre tu conexión."
+
+msgid "nonprofit_mission"
+msgstr "Misión sin fines de lucro"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Creado por una organización sin fines de lucro con más de 12 años de "
+"experiencia promoviendo la libertad en internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Elige tu modo de enrutamiento"
+
+msgid "fastest"
+msgstr "El más rápido"
+
+msgid "traditional_vpn_mode"
+msgstr "Modo VPN tradicional"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Enruta todo el tráfico a través de Lantern, lo necesite o no."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr ""
+"Cámbialo en cualquier momento en la configuración del modo de enrutamiento"
+
+msgid "get_started"
+msgstr "Comenzar"
+
+msgid "skip_connect_now"
+msgstr "Omitir - Conectar ahora"
+
+msgid "renew_pro"
+msgstr "Renovar Pro"
+
+msgid "payment"
+msgstr "Pago"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Parece que algo salió mal. Si realizaste un pago pero no ves tu suscripción "
+"activa, espera unas horas y vuelve a verificar."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Tu plan Pro fue adquirido a través de Google Play. Por favor, administra tu "
+"suscripción desde la configuración de tu cuenta de Google Play."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Tu plan Pro fue adquirido a través de la Apple App Store. Por favor, "
+"administra tu suscripción desde la configuración de tu cuenta de Apple ID."
+
+msgid "create_account_error"
+msgstr "Error al crear la cuenta"
+
+msgid "appearance"
+msgstr "Apariencia"
+
+msgid "light"
+msgstr "Claro"
+
+msgid "dark"
+msgstr "Oscuro"
+
+msgid "system"
+msgstr "Sistema"
+
+msgid "lantern_email"
+msgstr "Correo electrónico de Lantern"
+
+msgid "confirm_with_account"
+msgstr ""
+"Para confirmar la eliminación, verifica con tu cuenta de %s a continuación:"
+
+msgid "oauth_different_account"
+msgstr ""
+"La cuenta con la que intentas iniciar sesión no coincide con la cuenta "
+"asociada a este correo electrónico. Por favor, inicia sesión con la cuenta "
+"correcta o elige un correo electrónico diferente."
+
+msgid "account_deleted"
+msgstr "Cuenta Eliminada "
+
+msgid "account_deleted_message"
+msgstr "Tu cuenta ha sido eliminada permanentemente. "
+
+msgid "verify_with"
+msgstr "Verificar con %s"
