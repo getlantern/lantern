@@ -1,21 +1,22 @@
-# 
 # Translators:
 # Lamine Kacimi <k_lamine27@yahoo.fr>, 2025
 # Rima Sghaier, 2025
 # Abed Abedd <abderrahman.younis@gmail.com>, 2025
 # Amin Jobran, 2025
 # dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2025
-# tx_e2f_ar_r5 tx_e2f_ar_r5, 2025
 # Mhawesh, 2025
-# Derek F <derek@getlantern.org>, 2025
 # e2f <projects@e2f.com>, 2026
 # 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# tx_e2f_ar_r5 tx_e2f_ar_r5, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Arabic (https://app.transifex.com/lantern-1/teams/94371/ar/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: ar\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
@@ -105,7 +106,7 @@ msgid "delete_account_message_two"
 msgstr "لتأكيد الحذف، يرجى إدخال كلمة المرور أدناه"
 
 msgid "Submit Issue Report"
-msgstr "إرسال تقرير المشكلة"
+msgstr "أدخل كلمة المرور للتأكيد"
 
 msgid "confirm_deletion"
 msgstr "تأكيد الحذف"
@@ -282,6 +283,12 @@ msgstr "الوضع"
 
 msgid "use_commas"
 msgstr "استخدم الفواصل لفصل روابط متعددة"
+
+msgid "deep_link_expired"
+msgstr "انتهت صلاحية هذا الرابط. يرجى طلب رابط جديد."
+
+msgid "invalid_deep_link"
+msgstr "هذا الرابط غير صالح. يرجى طلب رابط جديد."
 
 msgid "default_bypass"
 msgstr "قوائم التجاوز الافتراضية"
@@ -629,8 +636,8 @@ msgstr "خطأ"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"يبدو أن هناك خطأ ما في التسجيل. يرجى محاولة إعادة تعيين كلمة المرور، وإذا "
-"استمرت المشكلة، تواصل مع فريق الدعم لدينا"
+"يبدو أن هناك خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى أو تسجيل الدخول إذا "
+"كان لديك حساب بالفعل"
 
 msgid "user_not_found"
 msgstr ""
@@ -939,6 +946,9 @@ msgstr "متصل"
 
 msgid "status_off"
 msgstr "غير متصل"
+
+msgid "select_location"
+msgstr "اختر الموقع"
 
 msgid "select_your_server_location"
 msgstr "اختر موقع خادمك"
@@ -1423,6 +1433,20 @@ msgstr "تطبيقات"
 msgid "websites"
 msgstr "المواقع الإلكترونية"
 
+msgid "main_channel"
+msgstr "القناة الرئيسية"
+
+msgid "data_cap_channel"
+msgstr "تنبيهات استخدام البيانات"
+
+msgid "mb_free_data_remaining"
+msgstr "%d ميجابايت متبقية من البيانات المجانية"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"ستتم إعادة تعيين بياناتك في %s. قم بالترقية إلى Pro للحصول على بيانات عالية "
+"السرعة بلا حدود."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "إذا لم تكن قد قمت بتعيين كلمة مرور Lantern Pro من قبل، فحدد خيار «هل نسيت "
@@ -1462,3 +1486,113 @@ msgstr ""
 
 msgid "expired"
 msgstr "منتهي الصلاحية"
+
+msgid "lantern_pro_tagline"
+msgstr "وصول سريع وموثوق وخاص إلى الإنترنت"
+
+msgid "what_makes_lantern_different"
+msgstr "ما الذي يميّز Lantern"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "مصمّم للخصوصية والسرعة والحرية"
+
+msgid "smart_routing_mode"
+msgstr "وضع التوجيه الذكي"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"قواعد خاصة بكل منطقة توجّه فقط ما يحتاج إلى VPN، مما يحافظ على سرعة اتصالك."
+
+msgid "advanced_protocols"
+msgstr "بروتوكولات متقدمة"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"بروتوكولات أكثر من شبكات VPN الأخرى لأقصى موثوقية. AnyTLS وHysteria2 وVLESS "
+"وKindling وWATER والمزيد."
+
+msgid "private_servers_description"
+msgstr "اربط خوادمك الخاصة للتحكم الكامل في اتصالك."
+
+msgid "nonprofit_mission"
+msgstr "مهمة غير ربحية"
+
+msgid "built_by_nonprofit"
+msgstr "أنشأته منظمة غير ربحية بخبرة تزيد عن 12 عامًا في تعزيز حرية الإنترنت"
+
+msgid "choose_your_routing_mode"
+msgstr "اختر وضع التوجيه"
+
+msgid "fastest"
+msgstr "الأسرع"
+
+msgid "traditional_vpn_mode"
+msgstr "وضع VPN التقليدي"
+
+msgid "traditional_vpn_mode_description"
+msgstr "يوجّه كل حركة المرور عبر Lantern، سواء كانت بحاجة لذلك أم لا."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "يمكنك التغيير في أي وقت من إعدادات وضع التوجيه"
+
+msgid "get_started"
+msgstr "ابدأ الآن"
+
+msgid "skip_connect_now"
+msgstr "تخطي - اتصل الآن"
+
+msgid "renew_pro"
+msgstr "تجديد Pro"
+
+msgid "payment"
+msgstr "الدفع"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"يبدو أن هناك خطأ ما. إذا قمت بالدفع ولكن لا ترى اشتراكك نشطًا، يرجى الانتظار"
+" بضع ساعات والتحقق مرة أخرى."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"تم شراء خطة Pro الخاصة بك عبر Google Play. يرجى إدارة اشتراكك من إعدادات "
+"حساب Google Play."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"تم شراء خطة Pro الخاصة بك عبر Apple App Store. يرجى إدارة اشتراكك من إعدادات"
+" حساب Apple ID."
+
+msgid "create_account_error"
+msgstr "خطأ في إنشاء الحساب"
+
+msgid "appearance"
+msgstr "المظهر"
+
+msgid "light"
+msgstr "فاتح"
+
+msgid "dark"
+msgstr "داكن"
+
+msgid "system"
+msgstr "النظام"
+
+msgid "lantern_email"
+msgstr "البريد الإلكتروني الخاص بـ Lantern"
+
+msgid "confirm_with_account"
+msgstr "لتأكيد الحذف، يرجى التحقق من حساب %s الخاص بك أدناه:"
+
+msgid "oauth_different_account"
+msgstr ""
+"الحساب الذي تحاول تسجيل الدخول به لا يتطابق مع الحساب المرتبط بهذا البريد "
+"الإلكتروني. يرجى تسجيل الدخول بالحساب الصحيح أو اختيار بريد إلكتروني آخر."
+
+msgid "account_deleted"
+msgstr "تم حذف الحساب"
+
+msgid "account_deleted_message"
+msgstr "تم حذف حسابك بشكل دائم."
+
+msgid "verify_with"
+msgstr "التحقق عبر %s"

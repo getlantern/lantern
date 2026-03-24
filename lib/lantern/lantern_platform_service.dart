@@ -138,6 +138,16 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>('isTagAvailable', tag);
+      return result ?? true;
+    } catch (e) {
+      appLogger.error('Error checking if tag is available', e);
+      return true;
+    }
+  }
+
   Future<Either<Failure, String>> stopVPN() async {
     try {
       final _ = await _methodChannel.invokeMethod<String>('stopVPN');

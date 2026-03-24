@@ -148,7 +148,11 @@ flutter:
   assets:
     - assets/
     - assets/images/
-    - assets/images/flags/
+    - path: assets/images/flags/
+      platforms:
+        - windows
+        - macos
+        - linux
     - assets/locales/
     - app.env
 

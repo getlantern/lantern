@@ -1,20 +1,21 @@
-# 
 # Translators:
 # Vaseto Nora <n.nouri67@gmail.com>, 2025
 # Amir Moezzi <amirreza.mz@yahoo.com>, 2025
 # Chip Stehr <chip@getlantern.org>, 2025
 # NoProfile, 2025
-# Mokah <unfilternet@getlantern.org>, 2025
 # Mersen M, 2025
-# Derek F <derek@getlantern.org>, 2025
-# Evan <alireza.firoozi68@gmail.com>, 2026
 # e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2026
+# Evan <alireza.firoozi68@gmail.com>, 2026
+# Mokah <unfilternet@getlantern.org>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Persian (Iran) (https://app.transifex.com/lantern-1/teams/94371/fa_IR/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: fa_IR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
@@ -282,6 +283,12 @@ msgstr "حالت"
 
 msgid "use_commas"
 msgstr "برای جدا کردن چند آدرس، از ویرگول یا کاما استفاده کنید"
+
+msgid "deep_link_expired"
+msgstr "این لینک منقضی شده است. لطفاً لینک جدیدی درخواست کنید."
+
+msgid "invalid_deep_link"
+msgstr "این لینک نامعتبر است. لطفاً لینک جدیدی درخواست کنید."
 
 msgid "default_bypass"
 msgstr "فهرست‌های دور زدن پیش‌فرض"
@@ -641,8 +648,8 @@ msgstr "خطا"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"به نظر می‌رسد در نام‌نویسی مشکلی پیش آمده. لطفاً رمز عبور خود را بازنشانی "
-"کنید یا با پشتیبانی تماس بگیرید."
+"به نظر می‌رسد مشکلی در ثبت‌نام پیش آمده است. لطفاً دوباره تلاش کنید یا اگر "
+"حساب دارید وارد شوید"
 
 msgid "user_not_found"
 msgstr ""
@@ -957,6 +964,9 @@ msgstr "متصل"
 
 msgid "status_off"
 msgstr "قطع شده"
+
+msgid "select_location"
+msgstr "انتخاب موقعیت"
 
 msgid "select_your_server_location"
 msgstr "مکان سرور خود را انتخاب کنید"
@@ -1453,6 +1463,20 @@ msgstr "برنامه‌ها"
 msgid "websites"
 msgstr "وب‌سایت‌ها"
 
+msgid "main_channel"
+msgstr "کانال اصلی"
+
+msgid "data_cap_channel"
+msgstr "هشدارهای مصرف داده"
+
+msgid "mb_free_data_remaining"
+msgstr "%d مگابایت داده رایگان باقی‌مانده"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"داده‌های شما در %s بازنشانی می‌شود. برای داده پرسرعت نامحدود به Pro ارتقا "
+"دهید."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "اگر قبلاً رمز عبور Lantern Pro تنظیم نکرده‌اید، گزینه «رمز عبور خود را "
@@ -1492,3 +1516,117 @@ msgstr ""
 
 msgid "expired"
 msgstr "منقضی شده"
+
+msgid "lantern_pro_tagline"
+msgstr "دسترسی سریع، قابل اعتماد و خصوصی به اینترنت"
+
+msgid "what_makes_lantern_different"
+msgstr "چه چیزی Lantern را متفاوت می‌کند"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "طراحی شده برای حریم خصوصی، سرعت و آزادی"
+
+msgid "smart_routing_mode"
+msgstr "حالت مسیریابی هوشمند"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"قوانین مخصوص هر منطقه فقط ترافیکی که به VPN نیاز دارد را مسیریابی می‌کنند و "
+"اتصال شما را سریع نگه می‌دارند."
+
+msgid "advanced_protocols"
+msgstr "پروتکل‌های پیشرفته"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"پروتکل‌های بیشتر از سایر VPNها برای حداکثر قابلیت اطمینان. AnyTLS، "
+"Hysteria2، VLESS، Kindling، WATER و موارد دیگر."
+
+msgid "private_servers_description"
+msgstr "سرورهای خود را متصل کنید تا کنترل کامل بر اتصالتان داشته باشید."
+
+msgid "nonprofit_mission"
+msgstr "مأموریت غیرانتفاعی"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"ساخته شده توسط یک سازمان غیرانتفاعی با بیش از ۱۲ سال تجربه در پیشبرد آزادی "
+"اینترنت"
+
+msgid "choose_your_routing_mode"
+msgstr "حالت مسیریابی خود را انتخاب کنید"
+
+msgid "fastest"
+msgstr "سریع‌ترین"
+
+msgid "traditional_vpn_mode"
+msgstr "حالت VPN سنتی"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"تمام ترافیک را از طریق Lantern مسیریابی می‌کند، چه نیاز باشد چه نباشد."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "هر زمان در تنظیمات حالت مسیریابی قابل تغییر است"
+
+msgid "get_started"
+msgstr "شروع کنید"
+
+msgid "skip_connect_now"
+msgstr "رد شدن - اتصال فوری"
+
+msgid "renew_pro"
+msgstr "تمدید Pro"
+
+msgid "payment"
+msgstr "پرداخت"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"به نظر می‌رسد مشکلی پیش آمده است. اگر پرداخت انجام داده‌اید اما اشتراکتان "
+"فعال نیست، لطفاً چند ساعت صبر کنید و دوباره بررسی کنید."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"اشتراک Pro شما از طریق Google Play خریداری شده است. لطفاً اشتراک خود را از "
+"تنظیمات حساب Google Play مدیریت کنید."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"اشتراک Pro شما از طریق Apple App Store خریداری شده است. لطفاً اشتراک خود را "
+"از تنظیمات حساب Apple ID مدیریت کنید."
+
+msgid "create_account_error"
+msgstr "خطا در ایجاد حساب"
+
+msgid "appearance"
+msgstr "ظاهر"
+
+msgid "light"
+msgstr "روشن"
+
+msgid "dark"
+msgstr "تیره"
+
+msgid "system"
+msgstr "سیستم"
+
+msgid "lantern_email"
+msgstr "ایمیل Lantern"
+
+msgid "confirm_with_account"
+msgstr "برای تأیید حذف، لطفاً با حساب %s خود در زیر تأیید کنید:"
+
+msgid "oauth_different_account"
+msgstr ""
+"حسابی که می‌خواهید با آن وارد شوید با حساب مرتبط با این ایمیل مطابقت ندارد. "
+"لطفاً با حساب صحیح وارد شوید یا ایمیل دیگری انتخاب کنید."
+
+msgid "account_deleted"
+msgstr "حساب حذف شد"
+
+msgid "account_deleted_message"
+msgstr "حساب شما به طور دائمی حذف شده است."
+
+msgid "verify_with"
+msgstr "تأیید با %s"

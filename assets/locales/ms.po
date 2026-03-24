@@ -1,17 +1,18 @@
-# 
 # Translators:
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
-# e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2025
 # Alyssa Chung <lisiachung7@gmail.com>, 2025
 # e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2026
+# e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Malay (https://app.transifex.com/lantern-1/teams/94371/ms/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: ms\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -102,7 +103,7 @@ msgid "delete_account_message_two"
 msgstr "Untuk mengesahkan pemadaman, sila masukkan kata laluan anda di bawah"
 
 msgid "Submit Issue Report"
-msgstr "Hantar Laporan Masalah"
+msgstr "Masukkan Kata Laluan untuk Mengesahkan"
 
 msgid "confirm_deletion"
 msgstr "Sahkan Pemadaman"
@@ -281,6 +282,12 @@ msgstr "Mod"
 
 msgid "use_commas"
 msgstr "Gunakan koma untuk memisahkan berbilang URL"
+
+msgid "deep_link_expired"
+msgstr "Pautan ini telah tamat tempoh. Sila minta pautan baru."
+
+msgid "invalid_deep_link"
+msgstr "Pautan ini tidak sah. Sila minta pautan baru."
 
 msgid "default_bypass"
 msgstr "Senarai Lepasan Lalai"
@@ -647,8 +654,8 @@ msgstr "Ralat"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Nampaknya ada masalah dengan pendaftaran. Sila cuba set semula kata laluan "
-"anda, dan jika masalah berterusan, hubungi pasukan sokongan kami"
+"Nampaknya terdapat masalah dengan pendaftaran. Sila cuba lagi atau log masuk"
+" jika anda sudah mempunyai akaun"
 
 msgid "user_not_found"
 msgstr ""
@@ -965,6 +972,9 @@ msgstr "Disambungkan"
 
 msgid "status_off"
 msgstr "Diputuskan"
+
+msgid "select_location"
+msgstr "Pilih Lokasi"
 
 msgid "select_your_server_location"
 msgstr "Pilih lokasi pelayan anda"
@@ -1463,6 +1473,20 @@ msgstr "Aplikasi"
 msgid "websites"
 msgstr "Laman Web"
 
+msgid "main_channel"
+msgstr "Saluran Utama"
+
+msgid "data_cap_channel"
+msgstr "Amaran Penggunaan Data"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB data percuma berbaki"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Data anda akan ditetapkan semula pada %s. Naik taraf ke Pro untuk data "
+"berkelajuan tinggi tanpa had."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Jika anda tidak pernah menetapkan kata laluan Lantern Pro sebelum ini, pilih"
@@ -1502,3 +1526,119 @@ msgstr ""
 
 msgid "expired"
 msgstr "Tamat Tempoh"
+
+msgid "lantern_pro_tagline"
+msgstr "Akses internet yang pantas, boleh dipercayai dan peribadi"
+
+msgid "what_makes_lantern_different"
+msgstr "Apa yang membezakan Lantern"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Dibina untuk privasi, kelajuan dan kebebasan"
+
+msgid "smart_routing_mode"
+msgstr "Mod Penghalaan Pintar"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Peraturan khusus wilayah menghalakan hanya trafik yang memerlukan VPN, "
+"mengekalkan sambungan anda pantas."
+
+msgid "advanced_protocols"
+msgstr "Protokol Lanjutan"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Lebih banyak protokol berbanding VPN lain untuk kebolehpercayaan maksimum. "
+"AnyTLS, Hysteria2, VLESS, Kindling, WATER dan banyak lagi."
+
+msgid "private_servers_description"
+msgstr ""
+"Sambungkan pelayan anda sendiri untuk kawalan penuh ke atas sambungan anda."
+
+msgid "nonprofit_mission"
+msgstr "Misi Bukan Untung"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Dibina oleh organisasi bukan untung dengan pengalaman 12+ tahun memajukan "
+"kebebasan internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Pilih mod penghalaan anda"
+
+msgid "fastest"
+msgstr "Terpantas"
+
+msgid "traditional_vpn_mode"
+msgstr "Mod VPN Tradisional"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Menghalakan semua trafik melalui Lantern, sama ada perlu atau tidak."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Boleh ditukar pada bila-bila masa dalam Tetapan Mod Penghalaan"
+
+msgid "get_started"
+msgstr "Mula"
+
+msgid "skip_connect_now"
+msgstr "Langkau - Sambung Sekarang"
+
+msgid "renew_pro"
+msgstr "Perbaharui Pro"
+
+msgid "payment"
+msgstr "Pembayaran"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Nampaknya terdapat masalah. Jika anda telah membuat pembayaran tetapi tidak "
+"melihat langganan anda aktif, sila tunggu beberapa jam dan semak semula."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Pelan Pro anda telah dibeli melalui Google Play. Sila urus langganan anda "
+"daripada tetapan akaun Google Play anda."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Pelan Pro anda telah dibeli melalui Apple App Store. Sila urus langganan "
+"anda daripada tetapan akaun Apple ID anda."
+
+msgid "create_account_error"
+msgstr "Ralat Cipta Akaun"
+
+msgid "appearance"
+msgstr "Rupa"
+
+msgid "light"
+msgstr "Cerah"
+
+msgid "dark"
+msgstr "Gelap"
+
+msgid "system"
+msgstr "Sistem"
+
+msgid "lantern_email"
+msgstr "E-mel Lantern"
+
+msgid "confirm_with_account"
+msgstr ""
+"Untuk mengesahkan pemadaman, sila sahkan dengan akaun %s anda di bawah:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Akaun yang anda cuba gunakan untuk log masuk tidak sepadan dengan akaun yang"
+" dikaitkan dengan e-mel ini. Sila log masuk dengan akaun yang betul atau "
+"pilih e-mel lain."
+
+msgid "account_deleted"
+msgstr "Akaun Dipadamkan "
+
+msgid "account_deleted_message"
+msgstr "Akaun anda telah dipadamkan secara kekal. "
+
+msgid "verify_with"
+msgstr "Sahkan dengan %s"

@@ -1,4 +1,3 @@
-# 
 # Translators:
 # Aki, 2025
 # Derek F <derek@getlantern.org>, 2025
@@ -10,6 +9,8 @@ msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Chinese Simplified (https://app.transifex.com/lantern-1/teams/94371/zh-Hans/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: zh-Hans\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -95,7 +96,7 @@ msgid "delete_account_message_two"
 msgstr "请在下方输入您的密码以确认删除"
 
 msgid "Submit Issue Report"
-msgstr "提交问题报告"
+msgstr "输入密码以确认"
 
 msgid "confirm_deletion"
 msgstr "确认删除"
@@ -270,6 +271,12 @@ msgstr "模式"
 
 msgid "use_commas"
 msgstr "使用逗号分隔多个 URL"
+
+msgid "deep_link_expired"
+msgstr "此链接已过期，请重新获取。"
+
+msgid "invalid_deep_link"
+msgstr "此链接无效，请重新获取。"
 
 msgid "default_bypass"
 msgstr "默认直连列表"
@@ -599,7 +606,7 @@ msgid "error"
 msgstr "错误"
 
 msgid "signup_error_user_exists"
-msgstr "注册时似乎出了问题。请尝试重置密码,如果问题仍然存在,请联系我们的支持团队"
+msgstr "注册时出现问题，请重试，或者如果您已有账户请直接登录"
 
 msgid "user_not_found"
 msgstr "无法识别用户。请检查您的凭据并重试。如果您继续遇到问题,请联系我们的支持团队寻求帮助。"
@@ -882,6 +889,9 @@ msgstr "已连接"
 
 msgid "status_off"
 msgstr "已断开"
+
+msgid "select_location"
+msgstr "选择位置"
 
 msgid "select_your_server_location"
 msgstr "选择您的服务器位置"
@@ -1340,6 +1350,18 @@ msgstr "应用"
 msgid "websites"
 msgstr "网站"
 
+msgid "main_channel"
+msgstr "主频道"
+
+msgid "data_cap_channel"
+msgstr "流量使用提醒"
+
+msgid "mb_free_data_remaining"
+msgstr "剩余 %d MB 免费流量"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr "您的流量将在 %s 重置。升级至 Pro 可享受无限高速流量。"
+
 msgid "if_you_have_not_set_password"
 msgstr "如果您之前没有设置蓝灯 Pro 密码，请选择下方的\"忘记密码？\"选项。"
 
@@ -1375,3 +1397,102 @@ msgstr ""
 
 msgid "expired"
 msgstr "已过期"
+
+msgid "lantern_pro_tagline"
+msgstr "快速、可靠且私密的互联网访问"
+
+msgid "what_makes_lantern_different"
+msgstr "蓝灯有何不同"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "为隐私、速度和自由而生"
+
+msgid "smart_routing_mode"
+msgstr "智能路由模式"
+
+msgid "region_specific_routing_description"
+msgstr "针对各地区的规则仅对需要 VPN 的流量进行路由，保持连接快速。"
+
+msgid "advanced_protocols"
+msgstr "先进协议"
+
+msgid "advanced_protocols_description"
+msgstr "比其他 VPN 支持更多协议，确保最大可靠性。AnyTLS、Hysteria2、VLESS、Kindling、WATER 等。"
+
+msgid "private_servers_description"
+msgstr "连接您自己的服务器，完全掌控您的连接。"
+
+msgid "nonprofit_mission"
+msgstr "非营利使命"
+
+msgid "built_by_nonprofit"
+msgstr "由一家拥有 12 年以上推动互联网自由经验的非营利组织打造"
+
+msgid "choose_your_routing_mode"
+msgstr "选择您的路由模式"
+
+msgid "fastest"
+msgstr "最快"
+
+msgid "traditional_vpn_mode"
+msgstr "传统 VPN 模式"
+
+msgid "traditional_vpn_mode_description"
+msgstr "将所有流量通过蓝灯路由，无论是否需要。"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "可随时在路由模式设置中更改"
+
+msgid "get_started"
+msgstr "开始使用"
+
+msgid "skip_connect_now"
+msgstr "跳过 - 立即连接"
+
+msgid "renew_pro"
+msgstr "续订 Pro"
+
+msgid "payment"
+msgstr "付款"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr "似乎出现了问题。如果您已付款但未看到订阅激活，请等待几小时后再查看。"
+
+msgid "manage_subscription_google_play"
+msgstr "您的 Pro 计划通过 Google Play 购买。请在 Google Play 账户设置中管理您的订阅。"
+
+msgid "manage_subscription_apple_app_store"
+msgstr "您的 Pro 计划通过 Apple App Store 购买。请在 Apple ID 账户设置中管理您的订阅。"
+
+msgid "create_account_error"
+msgstr "创建账户出错"
+
+msgid "appearance"
+msgstr "外观"
+
+msgid "light"
+msgstr "浅色"
+
+msgid "dark"
+msgstr "深色"
+
+msgid "system"
+msgstr "跟随系统"
+
+msgid "lantern_email"
+msgstr "蓝灯电子邮件"
+
+msgid "confirm_with_account"
+msgstr "要确认删除，请在下方使用您的 %s 账户进行验证："
+
+msgid "oauth_different_account"
+msgstr "您尝试登录的账户与此邮箱关联的账户不匹配。请使用正确的账户登录或选择其他邮箱。"
+
+msgid "account_deleted"
+msgstr "账户已删除"
+
+msgid "account_deleted_message"
+msgstr "您的账户已永久删除。"
+
+msgid "verify_with"
+msgstr "通过 %s 验证"

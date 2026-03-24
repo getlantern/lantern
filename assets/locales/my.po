@@ -1,15 +1,16 @@
-# 
 # Translators:
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
-# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
 # e2f <projects@e2f.com>, 2026
+# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Burmese (https://app.transifex.com/lantern-1/teams/94371/my/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: my\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -279,6 +280,12 @@ msgstr "မုဒ်"
 
 msgid "use_commas"
 msgstr "URL များစွာကို ခွဲခြားရန် ကော်မာ အသုံးပြုပါ"
+
+msgid "deep_link_expired"
+msgstr "ဤလင့်ခ်သည် သက်တမ်းကုန်သွားပါပြီ။ ကျေးဇူးပြု၍ အသစ်တစ်ခု တောင်းဆိုပါ။"
+
+msgid "invalid_deep_link"
+msgstr "ဤလင့်ခ်သည် မမှန်ကန်ပါ။ ကျေးဇူးပြု၍ အသစ်တစ်ခု တောင်းဆိုပါ။"
 
 msgid "default_bypass"
 msgstr "မူလ ကျော်သွားမည့် စာရင်းများ"
@@ -651,9 +658,8 @@ msgstr "အမှားအယွင်း"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"စာရင်းသွင်းမှုနှင့် တစ်ခုခု မှားယွင်းနေသည်ဟု ထင်ပါသည်။ ကျေးဇူးပြု၍ "
-"သင့်စကားဝှက်ကို ပြန်လည်သတ်မှတ်ကြည့်ပါ၊ ပြဿနာ ဆက်ရှိနေလျှင်၊ ကျွန်ုပ်တို့၏ "
-"ပံ့ပိုးမှုအဖွဲ့ကို ဆက်သွယ်ပါ"
+"အကောင့်ဖွင့်ရာတွင် တစ်ခုခုမှားယွင်းသွားပုံရပါသည်။ ကျေးဇူးပြု၍ ထပ်စမ်းကြည့်ပါ"
+" သို့မဟုတ် အကောင့်ရှိပြီးသားဖြစ်ပါက ဝင်ရောက်ပါ"
 
 msgid "user_not_found"
 msgstr ""
@@ -977,6 +983,9 @@ msgstr "ချိတ်ဆက်ထားသည်"
 
 msgid "status_off"
 msgstr "ချိတ်ဆက်မှု ဖြုတ်ထားသည်"
+
+msgid "select_location"
+msgstr "တည်နေရာ ရွေးချယ်ပါ"
 
 msgid "select_your_server_location"
 msgstr "သင့်ဆာဗာ တည်နေရာကို ရွေးချယ်ပါ"
@@ -1365,7 +1374,7 @@ msgid "an_error_occurred"
 msgstr "အမှားအယွင်း တစ်ခု ဖြစ်ပွားခဲ့သည်။ နောက်မှ ထပ်စမ်းကြည့်ပါ။"
 
 msgid "developer_mode"
-msgstr "Developer Mode"
+msgstr "ဆော့ဖ်ဝဲရေးသားသူ မုဒ်"
 
 msgid "developer_mode_note"
 msgstr ""
@@ -1488,6 +1497,20 @@ msgstr "အက်ပလီကေးရှင်းများ"
 msgid "websites"
 msgstr "ဝဘ်ဆိုဒ်များ"
 
+msgid "main_channel"
+msgstr "ပင်မချန်နယ်"
+
+msgid "data_cap_channel"
+msgstr "ဒေတာအသုံးပြုမှု သတိပေးချက်များ"
+
+msgid "mb_free_data_remaining"
+msgstr "အခမဲ့ဒေတာ %d MB ကျန်ရှိပါသည်"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"သင့်ဒေတာသည် %s တွင် ပြန်လည်သတ်မှတ်ပါမည်။ အကန့်အသတ်မဲ့ "
+"အမြန်နှုန်းမြင့်ဒေတာအတွက် Pro သို့ အဆင့်မြှင့်ပါ။"
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "အကယ်၍ သင်သည် ယခင်က Lantern Pro စကားဝှက် သတ်မှတ်ထားခြင်း မရှိပါက၊ အောက်ပါ "
@@ -1527,3 +1550,125 @@ msgstr ""
 
 msgid "expired"
 msgstr "သက်တမ်းကုန်ပြီ"
+
+msgid "lantern_pro_tagline"
+msgstr "မြန်ဆန်၊ ယုံကြည်စိတ်ချရပြီး ကိုယ်ရေးကိုယ်တာ အင်တာနက်အသုံးပြုခွင့်"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern ကို ဘာက ကွဲပြားစေသလဲ"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "ကိုယ်ရေးကိုယ်တာ၊ အမြန်နှုန်းနှင့် လွတ်လပ်မှုအတွက် တည်ဆောက်ထားသည်"
+
+msgid "smart_routing_mode"
+msgstr "စမတ် လမ်းကြောင်းရွေးချယ်မှု မုဒ်"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"ဒေသအလိုက် စည်းမျဉ်းများသည် VPN လိုအပ်သည့်အရာများကိုသာ လမ်းကြောင်းရွေးပေးပြီး"
+" သင့်ချိတ်ဆက်မှုကို မြန်ဆန်စေပါသည်။"
+
+msgid "advanced_protocols"
+msgstr "အဆင့်မြင့် ပရိုတိုကောများ"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"အမြင့်ဆုံး ယုံကြည်စိတ်ချရမှုအတွက် အခြား VPN များထက် ပရိုတိုကော "
+"ပိုမိုများပြားသည်။ AnyTLS, Hysteria2, VLESS, Kindling, WATER နှင့် "
+"အခြားများစွာ။"
+
+msgid "private_servers_description"
+msgstr ""
+"သင့်ချိတ်ဆက်မှုကို အပြည့်အဝ ထိန်းချုပ်ရန် သင့်ကိုယ်ပိုင် ဆာဗာများကို "
+"ချိတ်ဆက်ပါ။"
+
+msgid "nonprofit_mission"
+msgstr "အကျိုးအမြတ်မယူသော ရည်မှန်းချက်"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"အင်တာနက်လွတ်လပ်မှုကို မြှင့်တင်ရာတွင် နှစ် ၁၂ နှစ်ကျော် အတွေ့အကြုံရှိသော "
+"အကျိုးအမြတ်မယူသော အဖွဲ့အစည်းမှ တည်ဆောက်ထားသည်"
+
+msgid "choose_your_routing_mode"
+msgstr "သင့်လမ်းကြောင်းရွေးချယ်မှု မုဒ်ကို ရွေးပါ"
+
+msgid "fastest"
+msgstr "အမြန်ဆုံး"
+
+msgid "traditional_vpn_mode"
+msgstr "ရိုးရာ VPN မုဒ်"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"လိုအပ်သည်ဖြစ်စေ မလိုအပ်သည်ဖြစ်စေ အသွားအလာအားလုံးကို Lantern မှတစ်ဆင့် "
+"လမ်းကြောင်းရွေးပေးသည်။"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr ""
+"လမ်းကြောင်းရွေးချယ်မှု မုဒ် ဆက်တင်များတွင် အချိန်မရွေး ပြောင်းလဲနိုင်ပါသည်"
+
+msgid "get_started"
+msgstr "စတင်ပါ"
+
+msgid "skip_connect_now"
+msgstr "ကျော်ပါ - ယခုချိတ်ဆက်ပါ"
+
+msgid "renew_pro"
+msgstr "Pro သက်တမ်းတိုးပါ"
+
+msgid "payment"
+msgstr "ငွေပေးချေမှု"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"တစ်ခုခုမှားယွင်းသွားပုံရပါသည်။ ငွေပေးချေပြီးသော်လည်း စာရင်းသွင်းမှု "
+"အသက်ဝင်မနေပါက နာရီအနည်းငယ် စောင့်ပြီး ပြန်စစ်ဆေးပါ။"
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"သင့် Pro အစီအစဉ်ကို Google Play မှတစ်ဆင့် ဝယ်ယူထားပါသည်။ ကျေးဇူးပြု၍ သင့် "
+"Google Play အကောင့် ဆက်တင်များမှ စာရင်းသွင်းမှုကို စီမံပါ။"
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"သင့် Pro အစီအစဉ်ကို Apple App Store မှတစ်ဆင့် ဝယ်ယူထားပါသည်။ ကျေးဇူးပြု၍ "
+"သင့် Apple ID အကောင့် ဆက်တင်များမှ စာရင်းသွင်းမှုကို စီမံပါ။"
+
+msgid "create_account_error"
+msgstr "အကောင့်ဖန်တီးမှု အမှား"
+
+msgid "appearance"
+msgstr "အသွင်အပြင်"
+
+msgid "light"
+msgstr "အလင်း"
+
+msgid "dark"
+msgstr "အမှောင်"
+
+msgid "system"
+msgstr "စနစ်"
+
+msgid "lantern_email"
+msgstr "Lantern အီးမေး"
+
+msgid "confirm_with_account"
+msgstr ""
+"ဖျက်သိမ်းမှုကို အတည်ပြုရန် ကျေးဇူးပြု၍ အောက်ပါ သင့် %s အကောင့်ဖြင့် "
+"အတည်ပြုပါ:"
+
+msgid "oauth_different_account"
+msgstr ""
+"သင်ဝင်ရောက်ရန် ကြိုးစားနေသော အကောင့်သည် ဤအီးမေးလ်နှင့် ချိတ်ဆက်ထားသော "
+"အကောင့်နှင့် မကိုက်ညီပါ။ ကျေးဇူးပြု၍ မှန်ကန်သော အကောင့်ဖြင့် ဝင်ရောက်ပါ "
+"သို့မဟုတ် အခြားအီးမေးလ် ရွေးချယ်ပါ။"
+
+msgid "account_deleted"
+msgstr "အကောင့် ဖျက်လိုက်ပြီ"
+
+msgid "account_deleted_message"
+msgstr "သင့်အကောင့်ကို အပြီးတိုင်ဖျက်လိုက်ပါပြီ။"
+
+msgid "verify_with"
+msgstr "%s ဖြင့် အတည်ပြုပါ"
