@@ -220,7 +220,7 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	flutter build macos --debug
 
 .PHONY: macos-unit-tests
-macos-unit-tests:
+macos-unit-tests: $(MACOS_FRAMEWORK_BUILD)
 	@echo "Preparing macOS test project..."
 	flutter build macos --debug --config-only
 	@echo "Running macOS Runner unit tests..."
