@@ -559,14 +559,6 @@ class LanternService implements LanternCoreService {
     );
   }
 
-  @override
-  Future<bool> isTagAvailable(String tag) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isTagAvailable(tag);
-    }
-    return _platformService.isTagAvailable(tag);
-  }
-
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
   /// requires location and tag

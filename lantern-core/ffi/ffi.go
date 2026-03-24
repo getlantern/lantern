@@ -287,6 +287,7 @@ func isTagAvailable(_tag *C.char) *C.char {
 	c, errStr := requireCore()
 	if errStr != nil {
 		slog.Warn("Unable to check tag availability (core not ready), assuming available", "tag", tag)
+		C.free(unsafe.Pointer(errStr))
 		return C.CString("true")
 	}
 	_, found, err := c.GetServerByTagJSON(tag)
