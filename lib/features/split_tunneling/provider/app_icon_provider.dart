@@ -2,19 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lantern/core/models/app_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_icon_provider.g.dart';
 
 const _channelPrefix = 'org.getlantern.lantern';
 const MethodChannel _methodChannel = MethodChannel('$_channelPrefix/method');
-
-String stableAppId(AppData a) {
-  if (Platform.isWindows) return a.appPath.toLowerCase();
-  if (Platform.isMacOS) return a.appPath;
-  return a.bundleId;
-}
 
 @immutable
 class AppIconKey {

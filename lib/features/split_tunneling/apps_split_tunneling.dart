@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -15,6 +14,7 @@ import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_app_utils.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -29,27 +29,25 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
 
-    final allApps = _dedupeAndSortApps(
-      (ref.watch(appsDataProvider).value ?? const <AppData>[])
-          .where(
-            (a) => Platform.isAndroid || Platform.isIOS
-                ? (a.iconPath.isNotEmpty || a.iconBytes != null)
-                : true,
-          )
-          .where((a) => !_isLanternApp(a)),
+    final allApps = dedupeAndSortSplitTunnelApps(
+      (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
+        (a) => Platform.isAndroid || Platform.isIOS
+            ? (a.iconPath.isNotEmpty || a.iconBytes != null)
+            : true,
+      ),
     );
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final enabledIds = enabledApps.map(_normalizedStableAppId).toSet();
-    final filteredEnabled = _dedupeAndSortApps(
+    final enabledIds = enabledApps.map(splitTunnelNormalizedAppId).toSet();
+    final filteredEnabled = dedupeAndSortSplitTunnelApps(
       enabledApps.where(matchesSearch),
     );
 
     final filteredDisabled = allApps
-        .where((a) => !enabledIds.contains(_normalizedStableAppId(a)))
+        .where((a) => !enabledIds.contains(splitTunnelNormalizedAppId(a)))
         .where(matchesSearch)
         .toList();
 
@@ -177,7 +175,7 @@ class AppRow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final key = AppIconKey(
-      id: _normalizedStableAppId(app),
+      id: splitTunnelNormalizedAppId(app),
       iconPath: app.iconPath,
       appPath: app.appPath,
       existingBytes: app.iconBytes,
@@ -238,65 +236,4 @@ class AppRow extends HookConsumerWidget {
       ),
     );
   }
-}
-
-String _normalizedStableAppId(AppData app) {
-  final id = stableAppId(app).trim();
-  if (Platform.isWindows) {
-    return id.toLowerCase();
-  }
-  return id;
-}
-
-bool _isLanternApp(AppData app) {
-  final packageName = AppSecrets.lanternPackageName.toLowerCase();
-  final bundleId = app.bundleId.trim().toLowerCase();
-  final appName = app.name.trim().toLowerCase();
-  final appPath = app.appPath.trim().toLowerCase();
-  final appExe = appPath.split(RegExp(r'[\\/]+')).last;
-
-  return bundleId == packageName ||
-      appName == 'lantern' ||
-      appExe == 'lantern' ||
-      appExe == 'lantern.exe';
-}
-
-AppData _preferRicherApp(AppData? current, AppData candidate) {
-  if (current == null) {
-    return candidate;
-  }
-
-  final currentHasIcon =
-      (current.iconBytes?.isNotEmpty ?? false) || current.iconPath.isNotEmpty;
-  final candidateHasIcon =
-      (candidate.iconBytes?.isNotEmpty ?? false) ||
-      candidate.iconPath.isNotEmpty;
-
-  if (candidateHasIcon && !currentHasIcon) {
-    return candidate;
-  }
-  if (currentHasIcon && !candidateHasIcon) {
-    return current;
-  }
-  if (candidate.lastUpdateTime > current.lastUpdateTime) {
-    return candidate;
-  }
-  if (current.name.trim().isEmpty && candidate.name.trim().isNotEmpty) {
-    return candidate;
-  }
-  return current;
-}
-
-List<AppData> _dedupeAndSortApps(Iterable<AppData> apps) {
-  final byId = <String, AppData>{};
-  for (final app in apps) {
-    final id = _normalizedStableAppId(app);
-    if (id.isEmpty) {
-      continue;
-    }
-    byId[id] = _preferRicherApp(byId[id], app);
-  }
-
-  final out = byId.values.toList()..sort((a, b) => a.name.compareTo(b.name));
-  return out;
 }

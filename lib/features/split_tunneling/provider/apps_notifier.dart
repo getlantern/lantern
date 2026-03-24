@@ -1,8 +1,8 @@
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_app_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,7 +25,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    final filtered = _dedupeApps(installed);
+    final filtered = dedupeAndSortSplitTunnelApps(installed);
 
     if (filtered.isEmpty) return <AppData>{};
 
@@ -47,77 +47,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
             .toSet();
       },
     );
-  }
-
-  // Stable identity per platform
-  String _id(AppData a) {
-    if (PlatformUtils.isWindows) return a.appPath;
-    if (PlatformUtils.isMacOS) return a.appPath;
-    return a.bundleId;
-  }
-
-  String _normalizedId(AppData a) {
-    final id = _id(a).trim();
-    if (PlatformUtils.isWindows) {
-      return id.toLowerCase();
-    }
-    return id;
-  }
-
-  bool _isLanternApp(AppData app) {
-    final packageName = AppSecrets.lanternPackageName.toLowerCase();
-    final bundleId = app.bundleId.trim().toLowerCase();
-    final appName = app.name.trim().toLowerCase();
-    final appPath = app.appPath.trim().toLowerCase();
-    final appExe = appPath.split(RegExp(r'[\\/]+')).last;
-
-    return bundleId == packageName ||
-        appName == 'lantern' ||
-        appExe == 'lantern' ||
-        appExe == 'lantern.exe';
-  }
-
-  AppData _preferRicherApp(AppData? current, AppData candidate) {
-    if (current == null) {
-      return candidate;
-    }
-
-    final currentHasIcon =
-        (current.iconBytes?.isNotEmpty ?? false) || current.iconPath.isNotEmpty;
-    final candidateHasIcon =
-        (candidate.iconBytes?.isNotEmpty ?? false) ||
-        candidate.iconPath.isNotEmpty;
-
-    if (candidateHasIcon && !currentHasIcon) {
-      return candidate;
-    }
-    if (currentHasIcon && !candidateHasIcon) {
-      return current;
-    }
-    if (candidate.lastUpdateTime > current.lastUpdateTime) {
-      return candidate;
-    }
-    if (current.name.trim().isEmpty && candidate.name.trim().isNotEmpty) {
-      return candidate;
-    }
-    return current;
-  }
-
-  List<AppData> _dedupeApps(Iterable<AppData> apps) {
-    final byId = <String, AppData>{};
-    for (final app in apps) {
-      if (_isLanternApp(app)) {
-        continue;
-      }
-      final id = _normalizedId(app);
-      if (id.isEmpty) {
-        continue;
-      }
-      byId[id] = _preferRicherApp(byId[id], app);
-    }
-
-    final out = byId.values.toList()..sort((a, b) => a.name.compareTo(b.name));
-    return out;
   }
 
   /// Only called by macOS and Android
@@ -155,17 +84,17 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    return _dedupeApps(allApps);
+    return dedupeAndSortSplitTunnelApps(allApps);
   }
 
   Set<AppData> _current() => state.value ?? <AppData>{};
 
-  Set<String> _stateIds() => _current().map(_normalizedId).toSet();
+  Set<String> _stateIds() => _current().map(splitTunnelNormalizedAppId).toSet();
 
   Future<void> toggleApp(AppData app) async {
-    final id = _normalizedId(app);
+    final id = splitTunnelNormalizedAppId(app);
     final current = _current();
-    final isEnabled = current.any((a) => _normalizedId(a) == id);
+    final isEnabled = current.any((a) => splitTunnelNormalizedAppId(a) == id);
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
@@ -186,7 +115,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       (_) async {
         // Optional optimistic UI update
         final next = isEnabled
-            ? current.where((a) => _normalizedId(a) != id).toSet()
+            ? current.where((a) => splitTunnelNormalizedAppId(a) != id).toSet()
             : {...current, app.copyWith(isEnabled: true)};
 
         state = AsyncData(next);
@@ -202,7 +131,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final current = _current();
     final currentIds = _stateIds();
     final toAdd = apps
-        .where((a) => !currentIds.contains(_normalizedId(a)))
+        .where((a) => !currentIds.contains(splitTunnelNormalizedAppId(a)))
         .toList();
     if (toAdd.isEmpty) return;
 
@@ -226,7 +155,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final current = _current();
     final currentIds = _stateIds();
     final toRemove = apps
-        .where((a) => currentIds.contains(_normalizedId(a)))
+        .where((a) => currentIds.contains(splitTunnelNormalizedAppId(a)))
         .toList();
     if (toRemove.isEmpty) return;
 
@@ -236,9 +165,11 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     await result.match(
       (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
       (_) async {
-        final removeIds = toRemove.map(_normalizedId).toSet();
+        final removeIds = toRemove.map(splitTunnelNormalizedAppId).toSet();
         state = AsyncData(
-          current.where((a) => !removeIds.contains(_normalizedId(a))).toSet(),
+          current
+              .where((a) => !removeIds.contains(splitTunnelNormalizedAppId(a)))
+              .toSet(),
         );
 
         ref.invalidateSelf();
