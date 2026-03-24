@@ -13,7 +13,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
-  Future<ServerLocation> build() async {
+  ServerLocation build() {
     return _storage.getServerLocation() ?? _defaultLocation();
   }
 
@@ -38,8 +38,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     if (status == VPNStatus.connected &&
         current != null &&
         current.serverType.toServerLocationType == ServerLocationType.auto) {
-      final result =
-          await ref.read(lanternServiceProvider).getAutoServerLocation();
+      final result = await ref
+          .read(lanternServiceProvider)
+          .getAutoServerLocation();
       result.fold(
         (error) =>
             appLogger.error("Failed to fetch auto server location: $error"),
@@ -47,29 +48,31 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           final countryName = autoLocation.location!.country;
           final cityName = autoLocation.location!.city;
 
-          updateServerLocation(ServerLocation(
-            serverType: ServerLocationType.auto.name,
-            serverName: '',
-            displayName: '',
-            protocol: '',
-            city: cityName,
-            autoLocation: AutoLocation(
-              countryCode: autoLocation.location!.countryCode,
-              country: countryName,
-              displayName: '$countryName - $cityName',
-              tag: autoLocation.tag,
+          updateServerLocation(
+            ServerLocation(
+              serverType: ServerLocationType.auto.name,
+              serverName: '',
+              displayName: '',
+              protocol: '',
+              city: cityName,
+              autoLocation: AutoLocation(
+                countryCode: autoLocation.location!.countryCode,
+                country: countryName,
+                displayName: '$countryName - $cityName',
+                tag: autoLocation.tag,
+              ),
             ),
-          ));
+          );
         },
       );
     }
   }
 
   static ServerLocation _defaultLocation() => ServerLocation(
-        serverType: ServerLocationType.auto.name,
-        serverName: '',
-        displayName: '',
-        protocol: '',
-        city: '',
-      );
+    serverType: ServerLocationType.auto.name,
+    serverName: '',
+    displayName: '',
+    protocol: '',
+    city: '',
+  );
 }
