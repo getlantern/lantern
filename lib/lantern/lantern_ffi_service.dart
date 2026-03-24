@@ -623,11 +623,28 @@ class LanternFFIService implements LanternCoreService {
   Future<bool> isTagAvailable(String tag) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.isTagAvailable(tag.toCharPtr).toDartString();
+        final tagPtr = tag.toCharPtr;
+        try {
+          final resultPtr = _ffiService.isTagAvailable(tagPtr);
+          if (resultPtr == nullptr) {
+            return 'true';
+          }
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(tagPtr);
+        }
       });
       return result == 'true';
     } catch (e, st) {
-      appLogger.error('Error checking tag availability, assuming available', e, st);
+      appLogger.error(
+        'Error checking tag availability, assuming available',
+        e,
+        st,
+      );
       return true;
     }
   }

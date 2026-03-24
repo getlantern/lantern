@@ -198,14 +198,17 @@ class MethodHandler : FlutterPlugin,
 
             Methods.IsTagAvailable.method -> {
                 scope.launch {
-                    runCatching {
-                        val tag = call.arguments as String? ?: ""
+                    try {
+                        val tag = call.arguments as? String
+                            ?: throw IllegalArgumentException("Missing or invalid tag")
                         val available = Mobile.isTagAvailable(tag)
                         withContext(Dispatchers.Main) {
                             result.success(available)
                         }
-                    }.onFailure { e ->
-                        result.error("tag_check_failed", e.localizedMessage ?: "Error", e)
+                    } catch (e: Throwable) {
+                        withContext(Dispatchers.Main) {
+                            result.error("tag_check_failed", e.localizedMessage ?: "Error", e)
+                        }
                     }
                 }
             }
