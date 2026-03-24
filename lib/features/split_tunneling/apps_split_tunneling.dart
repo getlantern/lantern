@@ -29,27 +29,29 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
 
-    final allApps = (ref.watch(appsDataProvider).value ?? const <AppData>[])
-        .where((a) => Platform.isAndroid || Platform.isIOS
-            ? (a.iconPath.isNotEmpty || a.iconBytes != null)
-            : true)
-        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final allApps = _dedupeAndSortApps(
+      (ref.watch(appsDataProvider).value ?? const <AppData>[])
+          .where(
+            (a) => Platform.isAndroid || Platform.isIOS
+                ? (a.iconPath.isNotEmpty || a.iconBytes != null)
+                : true,
+          )
+          .where((a) => !_isLanternApp(a)),
+    );
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final enabledIds = enabledApps.map(stableAppId).toSet();
-    final filteredEnabled = enabledApps.where(matchesSearch).toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final enabledIds = enabledApps.map(_normalizedStableAppId).toSet();
+    final filteredEnabled = _dedupeAndSortApps(
+      enabledApps.where(matchesSearch),
+    );
 
     final filteredDisabled = allApps
-        .where((a) => !enabledIds.contains(stableAppId(a)))
+        .where((a) => !enabledIds.contains(_normalizedStableAppId(a)))
         .where(matchesSearch)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+        .toList();
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
@@ -74,9 +76,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.all(0),
-                child: AppTile(
-                  label: 'no_apps_selected'.i18n,
-                ),
+                child: AppTile(label: 'no_apps_selected'.i18n),
               ),
             )
           else
@@ -87,7 +87,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: filteredEnabled.length + 1,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, separatorIndex) =>
                       DividerSpace(padding: EdgeInsets.zero),
                   itemBuilder: (ctx, i) {
                     if (i == 0) {
@@ -129,7 +129,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filteredDisabled.length + 1,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, separatorIndex) =>
                                 DividerSpace(padding: EdgeInsets.zero),
                             itemBuilder: (ctx, i) {
                               if (i == 0) {
@@ -177,7 +177,7 @@ class AppRow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final key = AppIconKey(
-      id: stableAppId(app),
+      id: _normalizedStableAppId(app),
       iconPath: app.iconPath,
       appPath: app.appPath,
       existingBytes: app.iconBytes,
@@ -238,4 +238,65 @@ class AppRow extends HookConsumerWidget {
       ),
     );
   }
+}
+
+String _normalizedStableAppId(AppData app) {
+  final id = stableAppId(app).trim();
+  if (Platform.isWindows) {
+    return id.toLowerCase();
+  }
+  return id;
+}
+
+bool _isLanternApp(AppData app) {
+  final packageName = AppSecrets.lanternPackageName.toLowerCase();
+  final bundleId = app.bundleId.trim().toLowerCase();
+  final appName = app.name.trim().toLowerCase();
+  final appPath = app.appPath.trim().toLowerCase();
+  final appExe = appPath.split(RegExp(r'[\\/]+')).last;
+
+  return bundleId == packageName ||
+      appName == 'lantern' ||
+      appExe == 'lantern' ||
+      appExe == 'lantern.exe';
+}
+
+AppData _preferRicherApp(AppData? current, AppData candidate) {
+  if (current == null) {
+    return candidate;
+  }
+
+  final currentHasIcon =
+      (current.iconBytes?.isNotEmpty ?? false) || current.iconPath.isNotEmpty;
+  final candidateHasIcon =
+      (candidate.iconBytes?.isNotEmpty ?? false) ||
+      candidate.iconPath.isNotEmpty;
+
+  if (candidateHasIcon && !currentHasIcon) {
+    return candidate;
+  }
+  if (currentHasIcon && !candidateHasIcon) {
+    return current;
+  }
+  if (candidate.lastUpdateTime > current.lastUpdateTime) {
+    return candidate;
+  }
+  if (current.name.trim().isEmpty && candidate.name.trim().isNotEmpty) {
+    return candidate;
+  }
+  return current;
+}
+
+List<AppData> _dedupeAndSortApps(Iterable<AppData> apps) {
+  final byId = <String, AppData>{};
+  for (final app in apps) {
+    final id = _normalizedStableAppId(app);
+    if (id.isEmpty) {
+      continue;
+    }
+    byId[id] = _preferRicherApp(byId[id], app);
+  }
+
+  final out = byId.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+  return out;
 }
