@@ -467,13 +467,13 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   : Text(
                       loc.protocol.capitalize,
                       maxLines: 1,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelMedium!.copyWith(color: AppColors.gray7),
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                        color: context.textSecondary,
+                      ),
                     ),
               tileTextStyle: Theme.of(
                 context,
-              ).textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
+              ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
               onPressed: () => _onLocationSelected(context, loc),
             );
           }).toList(),
