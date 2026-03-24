@@ -47,6 +47,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<bool> isTagAvailable(String tag) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isTagAvailable(tag);
+    }
+    return _platformService.isTagAvailable(tag);
+  }
+
+  @override
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stopVPN();

@@ -10,95 +10,66 @@ class LocationSetting extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final serverLocationAsync = ref.watch(serverLocationProvider);
+    final serverLocation = ref.watch(serverLocationProvider);
+    final serverType = serverLocation.serverType.toServerLocationType;
 
-    return serverLocationAsync.when(
-      loading: () => SettingTile(
-        label: 'selected_location'.i18n,
-        value: 'loading'.i18n,
-        subtitle: '',
-        icon: AppImage(path: AppImagePaths.location),
-        actions: const [],
-        onTap: null,
-      ),
-      error: (err, stack) => SettingTile(
-        label: 'selected_location'.i18n,
-        value: 'error'.i18n,
-        subtitle: '',
-        icon: AppImage(path: AppImagePaths.location),
-        actions: [
-          IconButton(
-            onPressed: () => appRouter.push(const ServerSelection()),
-            icon: AppImage(path: AppImagePaths.arrowForward),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
+    String title = '';
+    String value = '';
+    String flag = '';
+    String protocol = '';
+
+    switch (serverType) {
+      case ServerLocationType.auto:
+        title = 'smart_location'.i18n;
+        final autoLoc = serverLocation.autoLocation;
+
+        value = autoLoc != null && autoLoc.displayName.isNotEmpty
+            ? autoLoc.displayName
+            : 'fastest_server'.i18n;
+
+        flag = autoLoc?.countryCode ?? '';
+        protocol = autoLoc?.protocol ?? '';
+        break;
+
+      case ServerLocationType.lanternLocation:
+        title = 'selected_location'.i18n;
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
+        break;
+
+      case ServerLocationType.privateServer:
+        title = serverLocation.serverName;
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
+        break;
+    }
+
+    return SettingTile(
+      label: title,
+      value: value.i18n,
+      subtitle: protocol,
+      icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
+      actions: [
+        if (serverType == ServerLocationType.auto)
+          AppImage(
+            path: AppImagePaths.blot,
+            useThemeColor: false,
           ),
-        ],
-        onTap: () => appRouter.push(const ServerSelection()),
-      ),
-      data: (serverLocation) {
-        final serverType = serverLocation.serverType.toServerLocationType;
-
-        String title = '';
-        String value = '';
-        String flag = '';
-        String protocol = '';
-
-        switch (serverType) {
-          case ServerLocationType.auto:
-            title = 'smart_location'.i18n;
-            final autoLoc = serverLocation.autoLocation;
-
-            value = autoLoc != null && autoLoc.displayName.isNotEmpty
-                ? autoLoc.displayName
-                : 'fastest_server'.i18n;
-
-            flag = autoLoc?.countryCode ?? '';
-            protocol = autoLoc?.protocol ?? '';
-            break;
-
-          case ServerLocationType.lanternLocation:
-            title = 'selected_location'.i18n;
-            value = serverLocation.displayName;
-            flag = serverLocation.countryCode;
-            protocol = serverLocation.protocol;
-            break;
-
-          case ServerLocationType.privateServer:
-            title = serverLocation.serverName;
-            value = serverLocation.displayName;
-            flag = serverLocation.countryCode;
-            protocol = serverLocation.protocol;
-            break;
-        }
-
-        return SettingTile(
-          label: title,
-          value: value.i18n,
-          subtitle: protocol,
-          icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
-          actions: [
-            if (serverType == ServerLocationType.auto)
-              AppImage(
-                path: AppImagePaths.blot,
-                useThemeColor: false,
-              ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: () => appRouter.push(const ServerSelection()),
-              style: ElevatedButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              icon: AppImage(path: AppImagePaths.arrowForward),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-            ),
-          ],
-          onTap: () => appRouter.push(const ServerSelection()),
-        );
-      },
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: () => appRouter.push(const ServerSelection()),
+          style: ElevatedButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          icon: AppImage(path: AppImagePaths.arrowForward),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+      onTap: () => appRouter.push(const ServerSelection()),
     );
   }
 }

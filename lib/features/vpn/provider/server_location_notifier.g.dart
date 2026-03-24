@@ -13,7 +13,7 @@ part of 'server_location_notifier.dart';
 final serverLocationProvider = ServerLocationNotifierProvider._();
 
 final class ServerLocationNotifierProvider
-    extends $AsyncNotifierProvider<ServerLocationNotifier, ServerLocation> {
+    extends $NotifierProvider<ServerLocationNotifier, ServerLocation> {
   ServerLocationNotifierProvider._()
     : super(
         from: null,
@@ -31,22 +31,30 @@ final class ServerLocationNotifierProvider
   @$internal
   @override
   ServerLocationNotifier create() => ServerLocationNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ServerLocation value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ServerLocation>(value),
+    );
+  }
 }
 
 String _$serverLocationNotifierHash() =>
-    r'9b7c13306682f80e6ce31eea5a9f9a5e74baedbc';
+    r'cf58012d44d48e3d21c9a56c90c4ae80d724aec6';
 
-abstract class _$ServerLocationNotifier extends $AsyncNotifier<ServerLocation> {
-  FutureOr<ServerLocation> build();
+abstract class _$ServerLocationNotifier extends $Notifier<ServerLocation> {
+  ServerLocation build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<ServerLocation>, ServerLocation>;
+    final ref = this.ref as $Ref<ServerLocation, ServerLocation>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<ServerLocation>, ServerLocation>,
-              AsyncValue<ServerLocation>,
+              AnyNotifier<ServerLocation, ServerLocation>,
+              ServerLocation,
               Object?,
               Object?
             >;

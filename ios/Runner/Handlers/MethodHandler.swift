@@ -33,8 +33,7 @@ class MethodHandler {
         self.startVPN(result: result)
 
       case "isTagAvailable":
-        guard let tag = call.arguments as? String else {
-          result(true)
+        guard let tag: String = self.decodeValue(from: call.arguments, result: result) else {
           return
         }
         self.isTagAvailable(result: result, tag: tag)
