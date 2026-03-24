@@ -18,25 +18,24 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   Future<void> updateServerLocation(ServerLocation entity) async {
-    final current = state.value;
+    final current = state;
     if (entity.serverType != ServerLocationType.auto.name) {
       //Preserve auto location metadata when switching to a non-auto server,
       // so we can show user smart location
-      final updated = entity.copyWith(autoLocation: current?.autoLocation);
-      state = AsyncData(updated);
+      final updated = entity.copyWith(autoLocation: current.autoLocation);
+      state = updated;
       await _storage.saveServerLocation(updated);
     } else {
-      state = AsyncData(entity);
+      state = entity;
       await _storage.saveServerLocation(entity);
     }
   }
 
   Future<void> ifNeededGetAutoServerLocation() async {
     final status = ref.read(vpnProvider);
-    final current = state.value;
+    final current = state;
 
     if (status == VPNStatus.connected &&
-        current != null &&
         current.serverType.toServerLocationType == ServerLocationType.auto) {
       final result = await ref
           .read(lanternServiceProvider)

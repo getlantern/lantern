@@ -3312,6 +3312,19 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> isTagAvailable(
+    ffi.Pointer<ffi.Char> _tag,
+  ) {
+    return _isTagAvailable(_tag);
+  }
+
+  late final _isTagAvailablePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('isTagAvailable');
+  late final _isTagAvailable = _isTagAvailablePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> stopVPN() {
     return _stopVPN();
   }

@@ -48,7 +48,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       ],
     );
 
-    if (selected.isLoading || availableServers.isLoading) {
+    if (availableServers.isLoading) {
       return BaseScreen(
         title: '',
         appBar: appBar,
@@ -56,7 +56,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       );
     }
 
-    final err = selected.asError ?? availableServers.asError;
+    final err = availableServers.asError;
     if (err != null) {
       return BaseScreen(
         title: '',
@@ -67,7 +67,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       );
     }
 
-    final selectedServer = selected.requireValue;
+    final selectedServer = selected;
     final isPrivateServerFound =
         availableServers.requireValue.user.outbounds.isNotEmpty;
 
@@ -269,10 +269,7 @@ class _ServerLocationListViewState
 
     const verticalSpacing = 12.0;
 
-    final selectedTag = selected.maybeWhen(
-      data: (s) => (s.serverName).toString(),
-      orElse: () => '',
-    );
+    final selectedTag = selected.serverName;
 
     return SafeArea(
       child: Column(
@@ -553,11 +550,11 @@ class _PrivateServerLocationListViewState
     final availableServers = ref.watch(availableServersProvider);
     final selected = ref.watch(serverLocationProvider);
 
-    if (availableServers.isLoading || selected.isLoading) {
+    if (availableServers.isLoading) {
       return const Center(child: Spinner());
     }
 
-    final err = availableServers.asError ?? selected.asError;
+    final err = availableServers.asError;
     if (err != null) {
       return Center(
         child: Text(err.error.toString(), textAlign: TextAlign.center),
@@ -567,7 +564,7 @@ class _PrivateServerLocationListViewState
     final userLocations = availableServers.requireValue.user.locations.values
         .toList();
 
-    final selectedTag = selected.requireValue.serverName;
+    final selectedTag = selected.serverName;
 
     if (userLocations.isEmpty) {
       return Column(

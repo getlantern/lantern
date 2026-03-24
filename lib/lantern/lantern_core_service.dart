@@ -35,6 +35,8 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> connectToServer(String location, String tag);
 
+  Future<bool> isTagAvailable(String tag);
+
   Stream<LanternStatus> watchVPNStatus();
 
   Stream<List<String>> watchLogs(String path);
