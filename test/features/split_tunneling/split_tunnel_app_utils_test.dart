@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 AppData _app({
   required String name,
@@ -63,57 +63,51 @@ void main() {
     },
   );
 
-  test(
-    'dedupeAndSortSplitTunnelApps excludes Lantern and keeps richer duplicate',
-    () {
-      final apps = [
-        _app(
-          name: 'Beta',
-          bundleId: 'com.example.beta',
-          appPath: '/Applications/Beta.app',
-          lastUpdateTime: 10,
-        ),
-        _app(
-          name: 'Beta',
-          bundleId: 'com.example.beta',
-          appPath: '/Applications/Beta.app',
-          iconPath: '/Applications/Beta.app/icon.png',
-          lastUpdateTime: 11,
-        ),
-        _app(
-          name: 'Lantern',
-          bundleId: 'org.getlantern.lantern',
-          appPath: '/Applications/Lantern.app',
-        ),
-        _app(
-          name: 'Alpha',
-          bundleId: 'com.example.alpha',
-          appPath: '/Applications/Alpha.app',
-        ),
-      ];
+  test('dedupeAndSortApps excludes Lantern and keeps richer duplicate', () {
+    final apps = [
+      _app(
+        name: 'Beta',
+        bundleId: 'com.example.beta',
+        appPath: '/Applications/Beta.app',
+        lastUpdateTime: 10,
+      ),
+      _app(
+        name: 'Beta',
+        bundleId: 'com.example.beta',
+        appPath: '/Applications/Beta.app',
+        iconPath: '/Applications/Beta.app/icon.png',
+        lastUpdateTime: 11,
+      ),
+      _app(
+        name: 'Lantern',
+        bundleId: 'org.getlantern.lantern',
+        appPath: '/Applications/Lantern.app',
+      ),
+      _app(
+        name: 'Alpha',
+        bundleId: 'com.example.alpha',
+        appPath: '/Applications/Alpha.app',
+      ),
+    ];
 
-      final deduped = dedupeAndSortSplitTunnelApps(apps);
+    final deduped = dedupeAndSortApps(apps);
 
-      expect(deduped.map((a) => a.name).toList(), ['Alpha', 'Beta']);
-      expect(deduped[1].iconPath, isNotEmpty);
-    },
-  );
+    expect(deduped.map((a) => a.name).toList(), ['Alpha', 'Beta']);
+    expect(deduped[1].iconPath, isNotEmpty);
+  });
 
-  test(
-    'dedupeAndSortSplitTunnelApps can keep Lantern entries when requested',
-    () {
-      final apps = [
-        _app(
-          name: 'Lantern',
-          bundleId: 'org.getlantern.lantern',
-          appPath: '/Applications/Lantern.app',
-        ),
-      ];
+  test('dedupeAndSortApps can keep Lantern entries when requested', () {
+    final apps = [
+      _app(
+        name: 'Lantern',
+        bundleId: 'org.getlantern.lantern',
+        appPath: '/Applications/Lantern.app',
+      ),
+    ];
 
-      final deduped = dedupeAndSortSplitTunnelApps(apps, excludeLantern: false);
+    final deduped = dedupeAndSortApps(apps, excludeLantern: false);
 
-      expect(deduped, hasLength(1));
-      expect(deduped.single.name, 'Lantern');
-    },
-  );
+    expect(deduped, hasLength(1));
+    expect(deduped.single.name, 'Lantern');
+  });
 }

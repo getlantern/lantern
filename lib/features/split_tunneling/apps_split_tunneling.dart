@@ -14,7 +14,7 @@ import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -29,7 +29,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
 
-    final allApps = dedupeAndSortSplitTunnelApps(
+    final allApps = dedupeAndSortApps(
       (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
         (a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
@@ -41,13 +41,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final enabledIds = enabledApps.map(splitTunnelNormalizedAppId).toSet();
-    final filteredEnabled = dedupeAndSortSplitTunnelApps(
-      enabledApps.where(matchesSearch),
-    );
+    final enabledIds = enabledApps.map(normalizedAppId).toSet();
+    final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
 
     final filteredDisabled = allApps
-        .where((a) => !enabledIds.contains(splitTunnelNormalizedAppId(a)))
+        .where((a) => !enabledIds.contains(normalizedAppId(a)))
         .where(matchesSearch)
         .toList();
 
@@ -175,7 +173,7 @@ class AppRow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final key = AppIconKey(
-      id: splitTunnelNormalizedAppId(app),
+      id: normalizedAppId(app),
       iconPath: app.iconPath,
       appPath: app.appPath,
       existingBytes: app.iconBytes,

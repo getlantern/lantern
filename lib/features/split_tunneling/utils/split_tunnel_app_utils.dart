@@ -3,22 +3,22 @@ import 'dart:io';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 
-String splitTunnelStableAppId(AppData app) {
+String stableAppId(AppData app) {
   if (Platform.isWindows || Platform.isMacOS) {
     return app.appPath;
   }
   return app.bundleId;
 }
 
-String splitTunnelNormalizedAppId(AppData app) {
-  final id = splitTunnelStableAppId(app).trim();
+String normalizedAppId(AppData app) {
+  final id = stableAppId(app).trim();
   if (Platform.isWindows) {
     return id.toLowerCase();
   }
   return id;
 }
 
-bool isLanternSplitTunnelApp(AppData app) {
+bool isLanternApp(AppData app) {
   final packageName = AppSecrets.lanternPackageName.toLowerCase();
   final bundleId = app.bundleId.trim().toLowerCase();
   final appName = app.name.trim().toLowerCase();
@@ -57,18 +57,18 @@ AppData pickPreferredAppEntry(AppData? current, AppData candidate) {
   return current;
 }
 
-List<AppData> dedupeAndSortSplitTunnelApps(
+List<AppData> dedupeAndSortApps(
   Iterable<AppData> apps, {
   bool excludeLantern = true,
 }) {
   final byId = <String, AppData>{};
 
   for (final app in apps) {
-    if (excludeLantern && isLanternSplitTunnelApp(app)) {
+    if (excludeLantern && isLanternApp(app)) {
       continue;
     }
 
-    final id = splitTunnelNormalizedAppId(app);
+    final id = normalizedAppId(app);
     if (id.isEmpty) {
       continue;
     }

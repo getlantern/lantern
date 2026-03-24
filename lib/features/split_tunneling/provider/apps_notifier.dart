@@ -2,7 +2,7 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,7 +25,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    final filtered = dedupeAndSortSplitTunnelApps(installed);
+    final filtered = dedupeAndSortApps(installed);
 
     if (filtered.isEmpty) return <AppData>{};
 
@@ -84,17 +84,17 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    return dedupeAndSortSplitTunnelApps(allApps);
+    return dedupeAndSortApps(allApps);
   }
 
   Set<AppData> _current() => state.value ?? <AppData>{};
 
-  Set<String> _stateIds() => _current().map(splitTunnelNormalizedAppId).toSet();
+  Set<String> _stateIds() => _current().map(normalizedAppId).toSet();
 
   Future<void> toggleApp(AppData app) async {
-    final id = splitTunnelNormalizedAppId(app);
+    final id = normalizedAppId(app);
     final current = _current();
-    final isEnabled = current.any((a) => splitTunnelNormalizedAppId(a) == id);
+    final isEnabled = current.any((a) => normalizedAppId(a) == id);
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
@@ -115,7 +115,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       (_) async {
         // Optional optimistic UI update
         final next = isEnabled
-            ? current.where((a) => splitTunnelNormalizedAppId(a) != id).toSet()
+            ? current.where((a) => normalizedAppId(a) != id).toSet()
             : {...current, app.copyWith(isEnabled: true)};
 
         state = AsyncData(next);
@@ -131,7 +131,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final current = _current();
     final currentIds = _stateIds();
     final toAdd = apps
-        .where((a) => !currentIds.contains(splitTunnelNormalizedAppId(a)))
+        .where((a) => !currentIds.contains(normalizedAppId(a)))
         .toList();
     if (toAdd.isEmpty) return;
 
@@ -155,7 +155,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final current = _current();
     final currentIds = _stateIds();
     final toRemove = apps
-        .where((a) => currentIds.contains(splitTunnelNormalizedAppId(a)))
+        .where((a) => currentIds.contains(normalizedAppId(a)))
         .toList();
     if (toRemove.isEmpty) return;
 
@@ -165,11 +165,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     await result.match(
       (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
       (_) async {
-        final removeIds = toRemove.map(splitTunnelNormalizedAppId).toSet();
+        final removeIds = toRemove.map(normalizedAppId).toSet();
         state = AsyncData(
-          current
-              .where((a) => !removeIds.contains(splitTunnelNormalizedAppId(a)))
-              .toSet(),
+          current.where((a) => !removeIds.contains(normalizedAppId(a))).toSet(),
         );
 
         ref.invalidateSelf();
