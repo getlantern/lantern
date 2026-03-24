@@ -1,6 +1,7 @@
 package mobile
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 
 	_ "golang.org/x/mobile/bind"
 
-	"github.com/getlantern/radiance/api"
+	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
 
@@ -141,39 +142,36 @@ func IsRadianceConnected() bool {
 
 func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("Starting VPN")
-	err := vpn_tunnel.StartVPN(platform, opts)
-	if err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener
-	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
-
-	if !common.IsMacOS() && !common.IsIOS() {
-		slog.Info("Starting auto location listener on non-iOS/macOS platform")
-		return withCore(func(c lanterncore.Core) error {
+	return withCore(func(c lanterncore.Core) error {
+		err := vpn_tunnel.StartVPN(c.Client())
+		if err != nil {
+			return err
+		}
+		// On non-iOS/macOS platforms, start the auto location listener
+		// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+		if !common.IsMacOS() && !common.IsIOS() {
+			slog.Info("Starting auto location listener on non-iOS/macOS platform")
 			c.StartBackgroundListeners()
-			return nil
-		})
-	}
-	return nil
+		}
+		return nil
+	})
 }
 
 func StopVPN() error {
 	slog.Info("Stopping VPN")
-	err := vpn_tunnel.StopVPN()
-	if err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener since radiance is still running
-	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
-	if !common.IsMacOS() && !common.IsIOS() {
-		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-		return withCore(func(c lanterncore.Core) error {
+	return withCore(func(c lanterncore.Core) error {
+		err := vpn_tunnel.StopVPN(c.Client())
+		if err != nil {
+			return err
+		}
+		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running
+		// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+		if !common.IsMacOS() && !common.IsIOS() {
+			slog.Info("Stopping auto location listener on non-iOS/macOS platform")
 			c.StopBackgroundListeners()
-			return nil
-		})
-	}
-	return nil
+		}
+		return nil
+	})
 }
 
 func CloseIPC() error {
@@ -183,20 +181,19 @@ func CloseIPC() error {
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
-	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
-	if err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener since radiance is still running
-	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
-	if !common.IsMacOS() && !common.IsIOS() {
-		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-		return withCore(func(c lanterncore.Core) error {
+	return withCore(func(c lanterncore.Core) error {
+		err := vpn_tunnel.ConnectToServer(c.Client(), locationType, tag)
+		if err != nil {
+			return err
+		}
+		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running
+		// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+		if !common.IsMacOS() && !common.IsIOS() {
+			slog.Info("Stopping auto location listener on non-iOS/macOS platform")
 			c.StopBackgroundListeners()
-			return nil
-		})
-	}
-	return nil
+		}
+		return nil
+	})
 }
 
 // StartAutoLocationListener starts the auto location listener in the core.
@@ -223,25 +220,34 @@ func GetAvailableServers() ([]byte, error) {
 }
 
 func IsVPNConnected() bool {
-	return vpn_tunnel.IsVPNRunning()
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return vpn_tunnel.IsVPNRunning(c.Client()), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
 }
 
 func GetSelectedServer() string {
-	return vpn_tunnel.GetSelectedServer()
+	s, err := withCoreR(func(c lanterncore.Core) (string, error) {
+		return vpn_tunnel.GetSelectedServer(c.Client()), nil
+	})
+	if err != nil {
+		return ""
+	}
+	return s
 }
 
 func GetAutoLocation() (string, error) {
-	location, err := vpn_tunnel.GetAutoLocation()
-	if err != nil {
-		return "", err
-	}
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
+		server, err := vpn_tunnel.GetAutoLocation(c.Client())
+		if err != nil {
+			return "", err
+		}
+		jsonBytes, err := json.Marshal(server)
 		if err != nil {
 			return "", fmt.Errorf("error marshalling server: %v", err)
-		}
-		if !ok {
-			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
 		}
 		slog.Debug("Auto location server:", "server", string(jsonBytes))
 		return string(jsonBytes), nil
@@ -328,17 +334,23 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		var resp api.VerifySubscriptionResponse
+		var resp account.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
 			return nil, fmt.Errorf("error unmarshalling acknowledge google purchase response: %v", err)
 		}
 
-		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
+		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
 			/// This means the purchase was made on a different account and we need to switch to that account
-			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserId)
+			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
 			//reset all data
-			settings.Set(settings.UserIDKey, fmt.Sprintf("%d", resp.ActualUserId))
-			settings.Set(settings.TokenKey, resp.ActualUserToken)
+			ctx := context.Background()
+			_, err := c.Client().PatchSettings(ctx, settings.Settings{
+				settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
+				settings.TokenKey:  resp.ActualUserToken,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error updating settings after account switch: %v", err)
+			}
 			userData, err := FetchUserData()
 			if err != nil {
 				return nil, err
@@ -357,16 +369,22 @@ func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		var resp api.VerifySubscriptionResponse
+		var resp account.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
 			return nil, fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
 		}
-		if resp.ActualUserId != 0 && resp.ActualUserToken != "" {
+		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
 			/// This means the purchase was made on a different account and we need to switch to that account
-			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserId)
+			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
 			//reset all data
-			settings.Set(settings.UserIDKey, fmt.Sprintf("%d", resp.ActualUserId))
-			settings.Set(settings.TokenKey, resp.ActualUserToken)
+			ctx := context.Background()
+			_, err := c.Client().PatchSettings(ctx, settings.Settings{
+				settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
+				settings.TokenKey:  resp.ActualUserToken,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error updating settings after account switch: %v", err)
+			}
 			userData, err := FetchUserData()
 			if err != nil {
 				return nil, err

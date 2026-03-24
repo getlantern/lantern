@@ -260,19 +260,14 @@ func getAutoLocation() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	location, err := vpn_tunnel.GetAutoLocation()
+	server, err := vpn_tunnel.GetAutoLocation(c.Client())
 	if err != nil {
 		return SendError(err)
 	}
 
-	// Use GetServerByTagJSON which marshals internally, avoiding GC write
-	// barrier panics when pointer-rich Server types are copied on the CGo stack.
-	jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
+	jsonBytes, err := json.Marshal(server)
 	if err != nil {
 		return SendError(fmt.Errorf("error marshalling server: %v", err))
-	}
-	if !ok {
-		return SendError(fmt.Errorf("error finding server with tag: %s", location.Lantern))
 	}
 	return C.CString(string(jsonBytes))
 }

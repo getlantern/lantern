@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/getlantern/radiance/vpn/ipc"
 )
 
 const (
@@ -29,6 +29,7 @@ const (
 )
 
 var (
+	linuxClient       = ipc.NewClient()
 	linuxStatusOnce   sync.Once
 	linuxLastStatusMu sync.Mutex
 	linuxLastStatus   string
@@ -38,8 +39,8 @@ func requireLanternServiceAvailable() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 
-	st, err := ipc.GetStatus(ctx)
-	if err == nil && st != "" {
+	_, err := linuxClient.VPNStatus(ctx)
+	if err == nil {
 		return nil
 	}
 
@@ -91,10 +92,10 @@ func startLinuxStatusPoller() {
 				}
 
 				ctx, cancel := context.WithTimeout(context.Background(), 400*time.Millisecond)
-				st, err := ipc.GetStatus(ctx)
+				status, err := linuxClient.VPNStatus(ctx)
 				cancel()
 
-				ui := mapIPCStateToUIStatus(st, err)
+				ui := mapVPNStatusToUI(status, err)
 
 				linuxLastStatusMu.Lock()
 				changed := ui != linuxLastStatus
@@ -111,18 +112,18 @@ func startLinuxStatusPoller() {
 	})
 }
 
-func mapIPCStateToUIStatus(state ipc.VPNStatus, err error) string {
+func mapVPNStatusToUI(status vpn.VPNStatus, err error) string {
 	if err != nil {
 		return string(Disconnected)
 	}
-	switch state {
-	case ipc.Connected:
+	switch status {
+	case vpn.Connected:
 		return string(Connected)
-	case ipc.Connecting:
+	case vpn.Connecting:
 		return string(Connecting)
-	case ipc.Disconnecting:
+	case vpn.Disconnecting:
 		return string(Disconnecting)
-	case ipc.Disconnected:
+	case vpn.Disconnected:
 		return string(Disconnected)
 	default:
 		return string(Disconnected)
@@ -152,7 +153,9 @@ func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 		return C.CString(err.Error())
 	}
 
-	if err := vpn.AutoConnect(""); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+	ctx := context.Background()
+	if err := linuxClient.ConnectVPN(ctx, ""); err != nil &&
+		!errors.Is(err, ipc.ErrServiceIsNotReady) {
 		sendStatusToPort(Error)
 		if errors.Is(err, ipc.ErrIPCNotRunning) {
 			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
@@ -173,7 +176,7 @@ func stopVPN() *C.char {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := ipc.StopService(ctx); err != nil {
+	if err := linuxClient.DisconnectVPN(ctx); err != nil {
 		sendStatusToPort(Disconnected)
 		return C.CString(fmt.Sprintf("stop service failed: %v", err))
 	}
@@ -186,7 +189,7 @@ func stopVPN() *C.char {
 func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
 	locationType := C.GoString(_location)
 	tag := C.GoString(_tag)
-	group := normalizeIPCGroup(locationType)
+	_ = normalizeIPCGroup(locationType)
 
 	startLinuxStatusPoller()
 
@@ -194,7 +197,13 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 		return SendError(err)
 	}
 
-	if err := vpn.Connect(group, tag); err != nil && !errors.Is(err, ipc.ErrServiceIsNotReady) {
+	ctx := context.Background()
+	connectTag := tag
+	if connectTag == "" {
+		connectTag = "" // auto-select
+	}
+	if err := linuxClient.ConnectVPN(ctx, connectTag); err != nil &&
+		!errors.Is(err, ipc.ErrServiceIsNotReady) {
 		if errors.Is(err, ipc.ErrIPCNotRunning) {
 			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
 				return SendError(diagErr)
@@ -211,8 +220,8 @@ func isVPNConnected() C.int {
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
 	defer cancel()
 
-	st, err := ipc.GetStatus(ctx)
-	ui := mapIPCStateToUIStatus(st, err)
+	status, err := linuxClient.VPNStatus(ctx)
+	ui := mapVPNStatusToUI(status, err)
 
 	sendStatusToPort(VPNStatus(ui))
 

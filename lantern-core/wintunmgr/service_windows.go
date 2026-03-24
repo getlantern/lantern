@@ -20,11 +20,12 @@ import (
 	"time"
 
 	"github.com/Microsoft/go-winio"
-	"github.com/getlantern/lantern/lantern-core/common"
-	"github.com/getlantern/lantern/lantern-core/utils"
-	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/events"
-	"github.com/getlantern/radiance/vpn/ipc"
+	"github.com/getlantern/radiance/ipc"
+	"github.com/getlantern/radiance/vpn"
+
+	"github.com/getlantern/lantern/lantern-core/common"
+	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
 type ServiceOptions struct {
@@ -38,9 +39,10 @@ type ServiceOptions struct {
 // Service hosts the command server and manages LanternCore
 // It proxies privileged commands and interacts with Radiance IPC when available
 type Service struct {
-	opts   ServiceOptions
-	wtmgr  *Manager
-	cancel context.CancelFunc
+	opts      ServiceOptions
+	wtmgr     *Manager
+	cancel    context.CancelFunc
+	ipcClient *ipc.Client
 }
 
 type statusEvent struct {
@@ -71,8 +73,9 @@ func (ce *concurrentEncoder) Encode(v any) error {
 
 func NewService(opts ServiceOptions, wt *Manager) *Service {
 	return &Service{
-		opts:  opts,
-		wtmgr: wt,
+		opts:      opts,
+		wtmgr:     wt,
+		ipcClient: ipc.NewClient(),
 	}
 }
 
@@ -154,11 +157,11 @@ func (s *Service) Start(ctx context.Context) error {
 }
 
 func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder) {
-	sub := events.Subscribe(func(evt ipc.StatusUpdateEvent) {
-		slog.Debug("Sending status event", "state", evt.Status.String(), "error", evt.Error)
-		se := statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()}
-		if evt.Error != nil {
-			se.Error = evt.Error.Error()
+	sub := events.Subscribe(func(evt vpn.StatusUpdateEvent) {
+		slog.Debug("Sending status event", "state", string(evt.Status), "error", evt.Error)
+		se := statusEvent{Event: "Status", State: string(evt.Status), Ts: time.Now().Unix()}
+		if evt.Error != "" {
+			se.Error = evt.Error
 		}
 		_ = enc.Encode(se)
 	})
@@ -342,35 +345,35 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 
 	case common.CmdStartTunnel:
 		go func() {
-			events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connecting})
-			if err := vpn_tunnel.StartVPN(nil, &utils.Opts{LogLevel: "trace"}); err != nil {
+			events.Emit(vpn.StatusUpdateEvent{Status: vpn.Connecting})
+			if err := s.ipcClient.ConnectVPN(context.Background(), vpn.AutoSelectTag); err != nil {
 				slog.Error("Error starting service", "error", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.ErrorStatus, Error: err.Error()})
 			} else {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connected})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.Connected})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
 		go func() {
-			events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnecting})
-			if err := vpn_tunnel.StopVPN(); err != nil {
+			events.Emit(vpn.StatusUpdateEvent{Status: vpn.Disconnecting})
+			if err := s.ipcClient.DisconnectVPN(context.Background()); err != nil {
 				slog.Error("Error stopping service", "error", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.ErrorStatus, Error: err.Error()})
 			} else {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnected})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.Disconnected})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
-		running := vpn_tunnel.IsVPNRunning()
+		running := vpn_tunnel.IsVPNRunning(s.ipcClient)
 		go func() {
 			if running {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connected})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.Connected})
 			} else {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Disconnected})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.Disconnected})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"running": running}}
@@ -385,12 +388,12 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		group := strings.TrimSpace(p.Location)
 		go func(group, tag string) {
-			events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connecting})
-			if err := vpn_tunnel.ConnectToServer(group, p.Tag, nil, &utils.Opts{LogLevel: "trace"}); err != nil {
+			events.Emit(vpn.StatusUpdateEvent{Status: vpn.Connecting})
+			if err := s.ipcClient.ConnectVPN(context.Background(), tag); err != nil {
 				slog.Error("Error connecting to server", "error", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.ErrorStatus, Error: err})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.ErrorStatus, Error: err.Error()})
 			} else {
-				events.Emit(ipc.StatusUpdateEvent{Status: ipc.Connected})
+				events.Emit(vpn.StatusUpdateEvent{Status: vpn.Connected})
 			}
 		}(group, p.Tag)
 		return &Response{ID: r.ID, Result: "ok"}
