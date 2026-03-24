@@ -1098,6 +1098,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<bool>('isTagAvailable', tag);
+      return result ?? true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {

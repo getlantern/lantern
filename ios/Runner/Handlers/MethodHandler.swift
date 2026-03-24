@@ -32,6 +32,13 @@ class MethodHandler {
       case "startVPN":
         self.startVPN(result: result)
 
+      case "isTagAvailable":
+        guard let tag = call.arguments as? String else {
+          result(true)
+          return
+        }
+        self.isTagAvailable(result: result, tag: tag)
+
       case "connectToServer":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.connectToServer(result: result, data: data)
@@ -299,6 +306,11 @@ class MethodHandler {
         }
       }
     }
+  }
+
+  private func isTagAvailable(result: @escaping FlutterResult, tag: String) {
+    let available = MobileIsTagAvailable(tag)
+    result(available)
   }
 
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {

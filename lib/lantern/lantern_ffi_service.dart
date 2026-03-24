@@ -619,6 +619,19 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.isTagAvailable(tag.toCharPtr).toDartString();
+      });
+      return result == 'true';
+    } catch (e, st) {
+      appLogger.error('Error checking tag availability, assuming available', e, st);
+      return true;
+    }
+  }
+
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
   /// requires location and tag

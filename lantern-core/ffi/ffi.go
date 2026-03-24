@@ -277,6 +277,29 @@ func getAutoLocation() *C.char {
 	return C.CString(string(jsonBytes))
 }
 
+// isTagAvailable checks if a server with the given tag exists in the server list.
+// Returns "true" if found, "false" if not found, or "true" when the check cannot be
+// performed (fail-open: allows connection attempts to proceed normally).
+//
+//export isTagAvailable
+func isTagAvailable(_tag *C.char) *C.char {
+	tag := C.GoString(_tag)
+	c, errStr := requireCore()
+	if errStr != nil {
+		slog.Warn("Unable to check tag availability (core not ready), assuming available", "tag", tag)
+		return C.CString("true")
+	}
+	_, found, err := c.GetServerByTagJSON(tag)
+	if err != nil {
+		slog.Warn("Error checking tag availability, assuming available", "tag", tag, "error", err)
+		return C.CString("true")
+	}
+	if found {
+		return C.CString("true")
+	}
+	return C.CString("false")
+}
+
 // startAutoLocationListener starts the auto location listener.
 //
 //export startAutoLocationListener
