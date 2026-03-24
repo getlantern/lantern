@@ -925,7 +925,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lantern";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lantern";
 			};
 			name = Debug;
 		};
@@ -941,7 +941,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lantern";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lantern";
 			};
 			name = Release;
 		};
@@ -957,7 +957,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lantern";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lantern.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lantern";
 			};
 			name = Profile;
 		};
