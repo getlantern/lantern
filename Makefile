@@ -103,9 +103,6 @@ ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
 ANDROID_PLATFORM             ?= android-35
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
-ifeq ($(ANDROID_SDK_ROOT),)
-  $(error ANDROID_SDK_ROOT or ANDROID_HOME must be set. Export the path to your Android SDK directory.)
-endif
 SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
@@ -443,8 +440,14 @@ install-gomobile:
 	fi
 
 # Android Build
+.PHONY: check-android-sdk
+check-android-sdk:
+ifeq ($(ANDROID_SDK_ROOT),)
+	$(error ANDROID_SDK_ROOT or ANDROID_HOME must be set. Export the path to your Android SDK directory.)
+endif
+
 .PHONY: install-android-sdk
-install-android-sdk:
+install-android-sdk: check-android-sdk
 	$(SDKMANAGER) \
 		"platform-tools" \
 		"platforms;$(ANDROID_PLATFORM)" \
@@ -457,12 +460,12 @@ install-android-sdk:
 install-android-deps: install-gomobile
 
 .PHONY: android
-android: check-gomobile $(ANDROID_LIB_BUILD)
+android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) build-android
 
-build-android: check-gomobile
+build-android: check-android-sdk check-gomobile
 	@echo "Building Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)

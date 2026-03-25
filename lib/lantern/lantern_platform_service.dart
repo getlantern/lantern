@@ -138,6 +138,21 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
+    try {
+      await _methodChannel.invokeMethod('connectToServer', {
+        'location': location,
+        'serverName': tag,
+      });
+      return Right("ok");
+    } catch (e) {
+      appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<bool> isTagAvailable(String tag) async {
     try {
       final result = await _methodChannel.invokeMethod<bool>('isTagAvailable', tag);
@@ -1107,20 +1122,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
-    try {
-      await _methodChannel.invokeMethod('connectToServer', {
-        'location': location,
-        'serverName': tag,
-      });
-      return Right("ok");
-    } catch (e) {
-      appLogger.debug('Error setting private server');
-      return Left(e.toFailure());
-    }
-  }
+
 
   @override
   Future<Either<Failure, String>> inviteToServerManagerInstance(
