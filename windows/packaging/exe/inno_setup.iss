@@ -389,10 +389,7 @@ begin
   if Result then begin
     Log('sc.exe ' + Parameters + ' (exit=' + IntToStr(ExitCode) + ')');
   end else begin
-    Log(
-      'failed to launch sc.exe ' + Parameters +
-      ' (error=' + IntToStr(GetLastError) + ')'
-    );
+    Log('failed to launch sc.exe ' + Parameters);
   end;
 end;
 
