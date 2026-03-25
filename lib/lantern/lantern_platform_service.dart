@@ -1218,6 +1218,19 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, List<dynamic>>> getServerLocations() async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod('getServerLocations');
+      final locations = jsonDecode(result) as List<dynamic>;
+      return Right(locations);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching server locations', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> deletePrivateServerByName(
       String serverName) async {
     try {

@@ -2632,6 +2632,16 @@ class LanternBindings {
   late final _getAvailableServers =
       _getAvailableServersPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> getServerLocations() {
+    return _getServerLocations();
+  }
+
+  late final _getServerLocationsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getServerLocations');
+  late final _getServerLocations =
+      _getServerLocationsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> getUserData() {
     return _getUserData();
   }

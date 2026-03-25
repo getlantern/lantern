@@ -633,6 +633,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, List<dynamic>>> getServerLocations() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getServerLocations();
+    }
+    return _platformService.getServerLocations();
+  }
+
+  @override
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.deviceRemove(deviceId: deviceId);

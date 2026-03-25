@@ -1430,6 +1430,21 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, List<dynamic>>> getServerLocations() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getServerLocations().toDartString();
+      });
+      checkAPIError(result);
+      final locations = jsonDecode(result) as List<dynamic>;
+      return Right(locations);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting server locations', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> deviceRemove({
     required String deviceId,
   }) async {

@@ -215,6 +215,11 @@ abstract class LanternCoreService {
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 
+  /// Returns all available server locations from the config response.
+  /// Unlike getLanternAvailableServers (which returns active outbounds),
+  /// this returns every location the user can select.
+  Future<Either<Failure, List<dynamic>>> getServerLocations();
+
   ///MacOS System Extension methods
   Future<Either<Failure, String>> triggerSystemExtension();
 
