@@ -367,10 +367,9 @@ begin
   end;
 
   Log(
-    Format(
-      'Removing stale uninstall entry at root=%s key=%s (missing uninstaller: %s)',
-      [RootName, UninstallRegSubKey, UninstallExePath]
-    )
+    'Removing stale uninstall entry at root=' + RootName +
+    ' key=' + UninstallRegSubKey +
+    ' (missing uninstaller: ' + UninstallExePath + ')'
   );
   if not RegDeleteKeyIncludingSubkeys(RootKey, UninstallRegSubKey) then begin
     Log('Failed to remove stale uninstall entry');
@@ -388,9 +387,12 @@ begin
     ExitCode
   );
   if Result then begin
-    Log(Format('sc.exe %s (exit=%d)', [Parameters, ExitCode]));
+    Log('sc.exe ' + Parameters + ' (exit=' + IntToStr(ExitCode) + ')');
   end else begin
-    Log(Format('failed to launch sc.exe %s (error=%d)', [Parameters, GetLastError]));
+    Log(
+      'failed to launch sc.exe ' + Parameters +
+      ' (error=' + IntToStr(GetLastError) + ')'
+    );
   end;
 end;
 
