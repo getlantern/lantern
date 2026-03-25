@@ -214,6 +214,18 @@ class MethodHandler {
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
 
+      case "getServerLocations":
+        self.getServerLocations(result: result)
+
+      case "setPreferredServerLocation":
+        if let args = call.arguments as? [String: Any] {
+          let country = args["country"] as? String ?? ""
+          let city = args["city"] as? String ?? ""
+          self.setPreferredServerLocation(result: result, country: country, city: city)
+        } else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing country/city", details: nil))
+        }
+
       case "getAutoServerLocation":
         self.getAutoServerLocation(result: result)
 
@@ -974,6 +986,36 @@ class MethodHandler {
       await MainActor.run {
         result(String(data: servers, encoding: .utf8))
       }
+    }
+  }
+
+  func getServerLocations(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let locations = MobileGetServerLocations(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SERVER_LOCATIONS_ERROR")
+        return
+      }
+      guard let locations else {
+        await MainActor.run { result("[]") }
+        return
+      }
+      await MainActor.run {
+        result(String(data: locations, encoding: .utf8))
+      }
+    }
+  }
+
+  func setPreferredServerLocation(result: @escaping FlutterResult, country: String, city: String) {
+    Task {
+      var error: NSError?
+      MobileSetPreferredServerLocation(country, city, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PREFERRED_LOCATION_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
     }
   }
 
