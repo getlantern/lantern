@@ -372,7 +372,7 @@ func fetchUserData() *C.char {
 		slog.Debug("Getting user data")
 		bytes, err := c.FetchUserData()
 		if err != nil {
-			return SendError(fmt.Errorf("error marshalling user data: %v", err))
+			return SendError(fmt.Errorf("error fetching user data: %v", err))
 		}
 		encoded := base64.StdEncoding.EncodeToString(bytes)
 		return C.CString(encoded)
