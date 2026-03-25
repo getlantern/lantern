@@ -59,6 +59,7 @@ type App interface {
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
+	GetServerLocations() ([]byte, error)
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
@@ -404,6 +405,23 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 		return nil
 	}
 	return jsonBytes
+}
+
+// GetServerLocations returns the list of all available server locations from
+// the config response. Unlike GetAvailableServers (which returns active
+// outbounds), this returns every location the user can select — including
+// ones that don't have routes yet (the server will provision them on demand
+// when the user selects the location via SetPreferredServer).
+func (lc *LanternCore) GetServerLocations() ([]byte, error) {
+	locations, err := lc.rad.ServerLocations()
+	if err != nil {
+		return nil, fmt.Errorf("getting server locations: %w", err)
+	}
+	data, err := json.Marshal(locations)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling server locations: %w", err)
+	}
+	return data, nil
 }
 
 // LoadInstalledApps fetches the app list or rescans if needed using common macOS locations

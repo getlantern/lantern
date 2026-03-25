@@ -325,6 +325,21 @@ func getAvailableServers() *C.char {
 	return C.CString(string(c.GetAvailableServers()))
 }
 
+//export getServerLocations
+func getServerLocations() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		data, err := c.GetServerLocations()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(data))
+	})
+}
+
 func sendStatusToPort(status VPNStatus) {
 	slog.Debug("sendStatusToPort called", "status", status)
 	if statusPort == 0 {
