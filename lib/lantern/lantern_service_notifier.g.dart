@@ -48,4 +48,4 @@ final class LanternServiceProvider
   }
 }
 
-String _$lanternServiceHash() => r'3adf724e5fa29199106b8e0999b9fc21c0c9f721';
+String _$lanternServiceHash() => r'3e4ab1e15ccf41a3d913e21f1dd6414a29c8a840';

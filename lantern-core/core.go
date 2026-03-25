@@ -63,7 +63,6 @@ type App interface {
 type User interface {
 	UserData() ([]byte, error)
 	DataCapInfo() (string, error)
-	DataCapStream(ctx context.Context) error
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -232,8 +231,8 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 }
 
 func (lc *LanternCore) listenDataCapEvents() {
-	err := lc.client.DataCapStream(lc.ctx, func(evt account.DataCapChangeEvent) {
-		jsonBytes, err := json.Marshal(evt)
+	err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
+		jsonBytes, err := json.Marshal(info)
 		if err != nil {
 			slog.Error("Error marshalling DataCap event", "error", err)
 			return
@@ -560,17 +559,15 @@ func parseIssueType(s string) issue.IssueType {
 /////////////////
 
 func (lc *LanternCore) DataCapInfo() (string, error) {
-	return lc.client.DataCapInfo(lc.ctx)
-}
-
-func (lc *LanternCore) DataCapStream(ctx context.Context) error {
-	return lc.client.DataCapStream(ctx, func(evt account.DataCapChangeEvent) {
-		jsonBytes, err := json.Marshal(evt)
-		if err != nil {
-			return
-		}
-		lc.notifyFlutter("data-cap-event", string(jsonBytes))
-	})
+	info, err := lc.client.DataCapInfo(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	jsonBytes, err := json.Marshal(info)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling DataCapInfo: %w", err)
+	}
+	return string(jsonBytes), nil
 }
 
 func (lc *LanternCore) UserData() ([]byte, error) {
