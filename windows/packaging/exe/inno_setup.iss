@@ -368,7 +368,7 @@ begin
 
   Log(
     Format(
-      'Removing stale uninstall entry at %s\%s (missing uninstaller: %s)',
+      'Removing stale uninstall entry at root=%s key=%s (missing uninstaller: %s)',
       [RootName, UninstallRegSubKey, UninstallExePath]
     )
   );
