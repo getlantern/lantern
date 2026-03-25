@@ -48,32 +48,22 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install WebView2 Runtime
+      - name: Set up MinGW
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
-          Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
-
-      - name: Set up MinGW
-        run: choco install mingw -y
+          $gcc = Get-Command gcc -ErrorAction SilentlyContinue
+          if ($null -ne $gcc) {
+            Write-Host "gcc already available at $($gcc.Source); skipping MinGW install."
+          } else {
+            choco install mingw -y --no-progress
+          }
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
+          cache: true
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -86,17 +76,14 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      - name: Cache Dart pub global cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-dart-pub-cache-
-
       - name: Install Inno Setup 6
         shell: pwsh
-        run: choco install -y innosetup
+        run: |
+          if (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe") {
+            Write-Host "Inno Setup already installed; skipping."
+          } else {
+            choco install -y innosetup --no-progress
+          }
 
       - name: Read app version from pubspec.yaml
         shell: pwsh
@@ -111,7 +98,13 @@ jobs:
       - name: Build Windows binaries
         shell: pwsh
         run: |
-          dart pub global activate flutter_distributor
+          $distributor = Get-Command flutter_distributor -ErrorAction SilentlyContinue
+          if ($null -eq $distributor) {
+            dart pub global activate flutter_distributor
+          } else {
+            Write-Host "Using cached flutter_distributor at $($distributor.Source)"
+            flutter_distributor --version
+          }
           make windows-release
           if ($LASTEXITCODE -ne 0) {
             Write-Error "make windows-release failed with exit code $LASTEXITCODE"
@@ -194,6 +187,17 @@ jobs:
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
+          $runtime = Get-ChildItem `
+            -Path "C:\Program Files (x86)\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", `
+                  "C:\Program Files\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" `
+            -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -eq $runtime) {
+            Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
+            Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+          } else {
+            Write-Host "WebView2 runtime already installed at $($runtime.FullName); skipping install."
+          }
+
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           if ("${{ inputs.enable_ip_check }}" -eq "true") {
             ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
