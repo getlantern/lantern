@@ -980,15 +980,6 @@ func updatePrivateServerName(_oldName, _newName *C.char) *C.char {
 	return C.CString("ok")
 }
 
-//export getAppDataDir
-func getAppDataDir() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	return C.CString(c.GetAppDataDir())
-}
-
 //export getEnabledApps
 func getEnabledApps() *C.char {
 	c, errStr := requireCore()

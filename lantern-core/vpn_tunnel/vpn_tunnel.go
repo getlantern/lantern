@@ -35,14 +35,7 @@ func StopVPN(client *ipc.Client) error {
 func ConnectToServer(client *ipc.Client, _, tag string) error {
 	ctx := context.Background()
 	slog.Debug("Connecting to VPN server", "tag", tag)
-	if tag == "" {
-		return client.ConnectVPN(ctx, vpn.AutoSelectTag)
-	}
-	// Select the specific server then connect
-	if err := client.SelectServer(ctx, tag); err != nil {
-		return fmt.Errorf("failed to select server: %w", err)
-	}
-	return client.ConnectVPN(ctx, tag)
+	return client.SelectServer(ctx, tag)
 }
 
 func IsVPNRunning(client *ipc.Client) bool {
@@ -62,11 +55,6 @@ func GetSelectedServer(client *ipc.Client) string {
 		return ""
 	}
 	return server.Tag
-}
-
-func CloseIPC() error {
-	// No-op: IPC client manages its own lifecycle
-	return nil
 }
 
 func GetAutoLocation(client *ipc.Client) (*servers.Server, error) {

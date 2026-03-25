@@ -26,7 +26,6 @@ import (
 type EventType = string
 
 const (
-	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
 	DefaultLogLevel                   = "trace"
 )
@@ -58,7 +57,6 @@ type App interface {
 	StartBackgroundListeners()
 	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
-	GetAppDataDir() string
 	GetEnabledApps() (string, error)
 }
 
@@ -374,16 +372,6 @@ func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
 	return jsonBytes, true, nil
 }
 
-// TODO: this should not be available. client should not be able to get the daemon directory
-func (lc *LanternCore) GetAppDataDir() string {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return ""
-	}
-	v, _ := s[settings.DataPathKey].(string)
-	return v
-}
-
 /////////////////////
 // Background      //
 /////////////////////
@@ -434,6 +422,7 @@ func (lc *LanternCore) StopBackgroundListeners() {
 // Split Tunnel //
 /////////////////
 
+// TODO: ??? not sure what to do about this one. it can't access dataDir
 func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	appsList := []*apps.AppData{}
 	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
@@ -682,7 +671,7 @@ func (lc *LanternCore) Plans(channel string) (string, error) {
 }
 
 func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
-	return lc.client.StripeBillingPortalURL(lc.ctx, "", "", "")
+	return lc.client.StripeBillingPortalURL(lc.ctx)
 }
 
 func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
