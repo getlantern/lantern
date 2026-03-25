@@ -1232,7 +1232,11 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final result =
           await _methodChannel.invokeMethod('getServerLocations');
-      final locations = jsonDecode(result) as List<dynamic>;
+      if (result == null || result == 'null' || result == '') {
+        return const Right([]);
+      }
+      final decoded = jsonDecode(result);
+      final locations = (decoded is List) ? decoded : <dynamic>[];
       return Right(locations);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching server locations', e, stackTrace);

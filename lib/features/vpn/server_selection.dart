@@ -274,9 +274,10 @@ class _ServerLocationListViewState
 
     final selectedTag = selected.serverName;
 
-    // Pro users see all available locations from the config response.
-    // Free users see locations from active outbounds.
-    final locationsAsync = widget.userPro
+    // All users see all available locations from the config response.
+    // Free users see them but can't select them (overlay prevents taps).
+    // Fall back to outbound-based locations if server locations aren't available yet.
+    final locationsAsync = allLocations.hasValue && allLocations.requireValue.isNotEmpty
         ? allLocations
         : availableServers.whenData((data) => data.lantern.locations.values.toList());
 

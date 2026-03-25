@@ -1462,7 +1462,11 @@ class LanternFFIService implements LanternCoreService {
         return _ffiService.getServerLocations().toDartString();
       });
       checkAPIError(result);
-      final locations = jsonDecode(result) as List<dynamic>;
+      if (result.isEmpty || result == 'null') {
+        return const Right([]);
+      }
+      final decoded = jsonDecode(result);
+      final locations = (decoded is List) ? decoded : <dynamic>[];
       return Right(locations);
     } catch (e, stackTrace) {
       appLogger.error('Error getting server locations', e, stackTrace);
