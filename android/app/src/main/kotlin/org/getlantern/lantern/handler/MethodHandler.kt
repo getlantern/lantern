@@ -36,6 +36,7 @@ enum class Methods(val method: String) {
     Stop("stopVPN"),
     ConnectToServer("connectToServer"),
     IsVpnConnected("isVPNConnected"),
+    IsTagAvailable("isTagAvailable"),
 
     //Payment methods
     StripeSubscription("stripeSubscription"),
@@ -191,6 +192,23 @@ class MethodHandler : FlutterPlugin,
                             e.localizedMessage ?: "Please try again",
                             e
                         )
+                    }
+                }
+            }
+
+            Methods.IsTagAvailable.method -> {
+                scope.launch {
+                    try {
+                        val tag = call.arguments as? String
+                            ?: throw IllegalArgumentException("Missing or invalid tag")
+                        val available = Mobile.isTagAvailable(tag)
+                        withContext(Dispatchers.Main) {
+                            result.success(available)
+                        }
+                    } catch (e: Throwable) {
+                        withContext(Dispatchers.Main) {
+                            result.error("tag_check_failed", e.localizedMessage ?: "Error", e)
+                        }
                     }
                 }
             }
