@@ -31,9 +31,13 @@ import (
 // by the GC heap bitmap. Allocating Go pointers (like C.CString or base64
 // encoding) on that stack triggers bulkBarrierPreWrite panics.
 func runOnGoStack(fn func() *C.char) *C.char {
-	result, _ := common.RunOffCgoStack(func() (*C.char, error) {
+	result, err := common.RunOffCgoStack(func() (*C.char, error) {
 		return fn(), nil
 	})
+	if err != nil {
+		slog.Error("RunOffCgoStack failed", "error", err)
+		return SendError(err)
+	}
 	return result
 }
 
@@ -494,8 +498,8 @@ func oauthLoginUrl(_provider *C.char) *C.char {
 
 //export oAuthLoginCallback
 func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
-	oAuthToken := C.GoString(_oAuthToken)
 	return runOnGoStack(func() *C.char {
+		oAuthToken := C.GoString(_oAuthToken)
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
@@ -514,8 +518,8 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 //
 //export login
 func login(_email, _password *C.char) *C.char {
-	email, password := C.GoString(_email), C.GoString(_password)
 	return runOnGoStack(func() *C.char {
+		email, password := C.GoString(_email), C.GoString(_password)
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
@@ -530,8 +534,8 @@ func login(_email, _password *C.char) *C.char {
 
 //export signup
 func signup(_email, _password *C.char) *C.char {
-	email, password := C.GoString(_email), C.GoString(_password)
 	return runOnGoStack(func() *C.char {
+		email, password := C.GoString(_email), C.GoString(_password)
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
@@ -545,8 +549,8 @@ func signup(_email, _password *C.char) *C.char {
 
 //export logout
 func logout(_email *C.char) *C.char {
-	email := C.GoString(_email)
 	return runOnGoStack(func() *C.char {
+		email := C.GoString(_email)
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
@@ -665,8 +669,8 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 //
 //export deleteAccount
 func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
-	email, password, isSSO := C.GoString(_email), C.GoString(_password), _isSSO != 0
 	return runOnGoStack(func() *C.char {
+		email, password, isSSO := C.GoString(_email), C.GoString(_password), _isSSO != 0
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
