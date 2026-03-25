@@ -237,6 +237,19 @@ func GetAvailableServers() ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
 
+// GetServerLocations returns all available server locations from the config response.
+func GetServerLocations() ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetServerLocations() })
+}
+
+// SetPreferredServerLocation sets the preferred server location for the next config fetch.
+func SetPreferredServerLocation(country, city string) error {
+	return withCore(func(c lanterncore.Core) error {
+		c.SetPreferredServerLocation(country, city)
+		return nil
+	})
+}
+
 func IsVPNConnected() bool {
 	return vpn_tunnel.IsVPNRunning()
 }

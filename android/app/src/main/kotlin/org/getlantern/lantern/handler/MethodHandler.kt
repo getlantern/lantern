@@ -96,6 +96,8 @@ enum class Methods(val method: String) {
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
+    GetServerLocations("getServerLocations"),
+    SetPreferredServerLocation("setPreferredServerLocation"),
     GetAutoServerLocation("getAutoServerLocation"),
 
     //Split Tunnel methods
@@ -1084,6 +1086,42 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "GetAvailableServers",
                             e.localizedMessage ?: "Error while fetching available servers",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.GetServerLocations.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getServerLocations()
+                        withContext(Dispatchers.Main) {
+                            success(String(data))
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "GetServerLocations",
+                            e.localizedMessage ?: "Error while fetching server locations",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.SetPreferredServerLocation.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val country = call.argument<String>("country") ?: ""
+                        val city = call.argument<String>("city") ?: ""
+                        Mobile.setPreferredServerLocation(country, city)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "SetPreferredServerLocation",
+                            e.localizedMessage ?: "Error setting preferred server location",
                             e
                         )
                     }
