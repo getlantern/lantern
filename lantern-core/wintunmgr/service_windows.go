@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/Microsoft/go-winio"
+	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
@@ -43,6 +44,7 @@ type Service struct {
 	wtmgr     *Manager
 	cancel    context.CancelFunc
 	ipcClient *ipc.Client
+	ipcServer *ipc.Server
 }
 
 type statusEvent struct {
@@ -117,6 +119,20 @@ func (s *Service) Start(ctx context.Context) error {
 	slog.Info("Starting Windows service", "pipe", s.opts.PipeName, "data_dir",
 		s.opts.DataDir, "log_dir", s.opts.LogDir, "token_path", s.opts.TokenPath)
 
+	bopts := backend.Options{
+		DataDir:  s.opts.DataDir,
+		LogDir:   s.opts.LogDir,
+		Locale:   s.opts.Locale,
+		LogLevel: "trace",
+	}
+	be, err := backend.NewLocalBackend(context.Background(), bopts)
+	if err != nil {
+		return fmt.Errorf("initializing ipc server backend: %w", err)
+	}
+	s.ipcServer = ipc.NewServer(be, true)
+	if err := s.ipcServer.Start(); err != nil {
+		return fmt.Errorf("starting ipc server: %w", err)
+	}
 	token, err := s.getToken()
 	if err != nil {
 		return fmt.Errorf("token: %w", err)
