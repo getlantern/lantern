@@ -2632,6 +2632,22 @@ class LanternBindings {
   late final _getAvailableServers =
       _getAvailableServersPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  void setPreferredServerLocation(
+    ffi.Pointer<ffi.Char> country,
+    ffi.Pointer<ffi.Char> city,
+  ) {
+    return _setPreferredServerLocation(country, city);
+  }
+
+  late final _setPreferredServerLocationPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>(
+      'setPreferredServerLocation');
+  late final _setPreferredServerLocation =
+      _setPreferredServerLocationPtr.asFunction<
+          void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> getServerLocations() {
     return _getServerLocations();
   }

@@ -325,6 +325,16 @@ func getAvailableServers() *C.char {
 	return C.CString(string(c.GetAvailableServers()))
 }
 
+//export setPreferredServerLocation
+func setPreferredServerLocation(_country, _city *C.char) {
+	country, city := C.GoString(_country), C.GoString(_city)
+	c, errStr := requireCore()
+	if errStr != nil {
+		return
+	}
+	c.SetPreferredServerLocation(country, city)
+}
+
 //export getServerLocations
 func getServerLocations() *C.char {
 	return runOnGoStack(func() *C.char {

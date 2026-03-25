@@ -215,6 +215,10 @@ abstract class LanternCoreService {
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 
+  /// Sets the preferred server location. The next config fetch will include
+  /// routes for this region. Pass empty strings for auto/smart location.
+  void setPreferredServerLocation(String country, String city);
+
   /// Returns all available server locations from the config response.
   /// Unlike getLanternAvailableServers (which returns active outbounds),
   /// this returns every location the user can select.

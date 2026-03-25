@@ -633,6 +633,15 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  void setPreferredServerLocation(String country, String city) {
+    if (PlatformUtils.isFFISupported) {
+      _ffiService.setPreferredServerLocation(country, city);
+    } else {
+      _platformService.setPreferredServerLocation(country, city);
+    }
+  }
+
+  @override
   Future<Either<Failure, List<dynamic>>> getServerLocations() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getServerLocations();

@@ -12,7 +12,9 @@ import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/server_locations_provider.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
@@ -265,11 +267,18 @@ class _ServerLocationListViewState
   @override
   Widget build(BuildContext context) {
     final availableServers = ref.watch(availableServersProvider);
+    final allLocations = ref.watch(serverLocationsProvider);
     final selected = ref.watch(serverLocationProvider);
 
     const verticalSpacing = 12.0;
 
     final selectedTag = selected.serverName;
+
+    // Pro users see all available locations from the config response.
+    // Free users see locations from active outbounds.
+    final locationsAsync = widget.userPro
+        ? allLocations
+        : availableServers.whenData((data) => data.lantern.locations.values.toList());
 
     return SafeArea(
       child: Column(
@@ -286,9 +295,8 @@ class _ServerLocationListViewState
           Flexible(
             child: AppCard(
               padding: EdgeInsets.zero,
-              child: availableServers.when(
-                data: (data) {
-                  final locations = data.lantern.locations.values.toList();
+              child: locationsAsync.when(
+                data: (locations) {
 
                   if (locations.isEmpty) {
                     return const Center(child: Text("No locations available"));
@@ -366,6 +374,18 @@ class _ServerLocationListViewState
         appRouter.push(const MacOSExtensionDialog());
         return;
       }
+    }
+
+    // For pro users selecting a location (from getServerLocations),
+    // set the preferred server location first so the next config
+    // fetch includes routes for that region.
+    if (widget.userPro &&
+        selectedServer.country.isNotEmpty &&
+        selectedServer.city.isNotEmpty) {
+      ref.read(lanternServiceProvider).setPreferredServerLocation(
+            selectedServer.country,
+            selectedServer.city,
+          );
     }
 
     final result = await ref

@@ -1430,6 +1430,11 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  void setPreferredServerLocation(String country, String city) {
+    _ffiService.setPreferredServerLocation(country.toCharPtr, city.toCharPtr);
+  }
+
+  @override
   Future<Either<Failure, List<dynamic>>> getServerLocations() async {
     try {
       final result = await runInBackground<String>(() async {

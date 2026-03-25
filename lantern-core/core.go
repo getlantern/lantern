@@ -60,6 +60,7 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	GetServerLocations() ([]byte, error)
+	SetPreferredServerLocation(country, city string)
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
@@ -422,6 +423,12 @@ func (lc *LanternCore) GetServerLocations() ([]byte, error) {
 		return nil, fmt.Errorf("marshalling server locations: %w", err)
 	}
 	return data, nil
+}
+
+// SetPreferredServerLocation sets the preferred server location. The next config
+// fetch will include routes for this region. Pass empty strings to reset to auto.
+func (lc *LanternCore) SetPreferredServerLocation(country, city string) {
+	lc.rad.SetPreferredServer(context.Background(), country, city)
 }
 
 // LoadInstalledApps fetches the app list or rescans if needed using common macOS locations

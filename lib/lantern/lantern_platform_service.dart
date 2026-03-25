@@ -1218,6 +1218,14 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  void setPreferredServerLocation(String country, String city) {
+    _methodChannel.invokeMethod('setPreferredServerLocation', {
+      'country': country,
+      'city': city,
+    });
+  }
+
+  @override
   Future<Either<Failure, List<dynamic>>> getServerLocations() async {
     try {
       final result =
