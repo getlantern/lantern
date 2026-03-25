@@ -14,9 +14,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"runtime/debug"
 	"sync/atomic"
 	"unsafe"
+
+	"github.com/getlantern/radiance/common"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
@@ -25,23 +26,15 @@ import (
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
-// runOnGoStack executes fn on a real Go goroutine and returns its result.
+// runOnGoStack wraps common.RunOffCgoStack for FFI functions that return *C.char.
 // CGo-exported functions run on a callback stack whose memory isn't tracked
 // by the GC heap bitmap. Allocating Go pointers (like C.CString or base64
-// encoding) on that stack triggers bulkBarrierPreWrite panics. Running the
-// entire function body on a real goroutine avoids this.
+// encoding) on that stack triggers bulkBarrierPreWrite panics.
 func runOnGoStack(fn func() *C.char) *C.char {
-	ch := make(chan *C.char, 1)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				slog.Error("panic in FFI call", "panic", r, "stack", string(debug.Stack()))
-				ch <- C.CString(fmt.Sprintf(`{"error": "panic: %v"}`, r))
-			}
-		}()
-		ch <- fn()
-	}()
-	return <-ch
+	result, _ := common.RunOffCgoStack(func() (*C.char, error) {
+		return fn(), nil
+	})
+	return result
 }
 
 type VPNStatus string
