@@ -180,6 +180,21 @@ func CloseIPC() error {
 	return vpn_tunnel.CloseIPC()
 }
 
+// IsTagAvailable checks if a server with the given tag exists in the server list.
+// Returns true if the tag is found. Returns true when the check cannot be performed
+// (fail-open: allows connection attempts to proceed normally).
+func IsTagAvailable(tag string) bool {
+	found, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		_, ok, err := c.GetServerByTagJSON(tag)
+		return ok, err
+	})
+	if err != nil {
+		slog.Warn("Unable to check tag availability, assuming available", "tag", tag, "error", err)
+		return true
+	}
+	return found
+}
+
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
@@ -217,8 +232,7 @@ func StopAutoLocationListener() error {
 	})
 }
 
-// // GetAvailableServers returns the available servers in JSON format.
-// // This function retrieves the servers from lantern
+// GetAvailableServers returns the available servers in JSON format.
 func GetAvailableServers() ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
@@ -237,13 +251,12 @@ func GetAutoLocation() (string, error) {
 		return "", err
 	}
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		servers, ok := c.GetServerByTag(location.Lantern)
-		if !ok {
-			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
-		}
-		jsonBytes, err := json.Marshal(servers)
+		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 		if err != nil {
 			return "", fmt.Errorf("error marshalling server: %v", err)
+		}
+		if !ok {
+			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
 		}
 		slog.Debug("Auto location server:", "server", string(jsonBytes))
 		return string(jsonBytes), nil

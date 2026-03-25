@@ -237,7 +237,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
                 // List of supported languages
                 routerConfig: globalRouter.config(
                   deepLinkBuilder: (deepLink) {
-                    appLogger.debug("Building route for deepLink: $deepLink");
                     return DeepLink
                         .defaultPath; // We handle deep links manually, so return null to use the default route
                   },

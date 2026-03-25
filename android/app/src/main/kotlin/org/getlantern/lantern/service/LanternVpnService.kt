@@ -20,6 +20,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
+import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -146,8 +147,20 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
-            runCatching { Mobile.stopVPN() }
-                .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+            // Only call stopVPN if Radiance IPC is actually running; calling it before
+            // setup completes results in a misleading "IPC not running" error.
+            if (Mobile.isRadianceConnected()) {
+                runCatching { Mobile.stopVPN() }
+                    .onFailure { e ->
+                        AppLogger.e(
+                            TAG,
+                            "Mobile.stopVPN() failed during destroy",
+                            e
+                        )
+                    }
+            } else {
+                AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
+            }
             runCatching {
                 runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
             }.onFailure { e ->
@@ -263,6 +276,14 @@ class LanternVpnService :
         // VPN service starts, replaced by connected notification on success.
         notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
         runCatching {
+            // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
+            // service it may have been killed by the OS before setup completed.
+            // Re-run setup here under the foreground notification so it is guaranteed
+            // to finish before we attempt to start the VPN tunnel.
+            if (!Mobile.isRadianceConnected()) {
+                AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
+                Mobile.setupRadiance(opts(), flutterEventListener)
+            }
             DefaultNetworkMonitor.start()
             connect()
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
@@ -296,7 +317,13 @@ class LanternVpnService :
     private suspend fun stopVPNTunnel() {
         try {
             closeTunInterface()
-            runCatching { Mobile.stopVPN() }
+            runCatching {
+                if (!Mobile.isVPNConnected()) {
+                    AppLogger.d(TAG, "VPN is not connected, skipping stopVPN")
+                    return@runCatching
+                }
+                Mobile.stopVPN()
+            }
                 .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
             runCatching { DefaultNetworkMonitor.stop() }

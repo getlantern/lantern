@@ -60,7 +60,7 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	MyDeviceId() string
-	GetServerByTag(tag string) (servers.Server, bool)
+	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	StartBackgroundListeners()
@@ -230,7 +230,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 func (lc *LanternCore) listeningServerLocationChanges() {
 	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
 		tag := evt.Selections.Lantern
-		servers, ok := lc.GetServerByTag(tag)
+		servers, ok := lc.serverManager.GetServerByTag(tag)
 		if !ok {
 			slog.Error("no server found with tag", "tag", tag)
 			return
@@ -347,9 +347,11 @@ func (lc *LanternCore) StopBackgroundListeners() {
 	slog.Info("Background listeners stopped")
 }
 
-func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
-	return lc.serverManager.GetServerByTag(tag)
-
+// GetServerByTagJSON returns the server for a given tag as pre-marshalled JSON.
+// This is safe to call from CGo callback stacks because the pointer-rich Server
+// types are marshalled here rather than being returned to the caller.
+func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
+	return lc.serverManager.GetServerByTagJSON(tag)
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
@@ -394,13 +396,13 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	serversList := lc.rad.ServerManager().Servers()
-	jsonBytes, err := json.Marshal(serversList)
+	// Use ServersJSON which marshals under the lock, avoiding GC write barrier
+	// panics when pointer-rich sing-box types are copied on a CGo callback stack.
+	jsonBytes, err := lc.rad.ServerManager().ServersJSON()
 	if err != nil {
 		slog.Error("Error marshalling servers", "error", err)
 		return nil
 	}
-	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 
@@ -945,36 +947,7 @@ func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	f := st.Filters()
-
-	var items []string
-	switch filterType {
-	case vpn.TypeDomain:
-		items = f.Domain
-	case vpn.TypeDomainSuffix:
-		items = f.DomainSuffix
-	case vpn.TypeDomainKeyword:
-		items = f.DomainKeyword
-	case vpn.TypeDomainRegex:
-		items = f.DomainRegex
-	case vpn.TypeProcessName:
-		items = f.ProcessName
-	case vpn.TypeProcessPath:
-		items = f.ProcessPath
-	case vpn.TypeProcessPathRegex:
-		items = f.ProcessPathRegex
-	case vpn.TypePackageName:
-		items = f.PackageName
-	default:
-		return "", fmt.Errorf("unsupported filter type: %s", filterType)
-	}
-
-	b, err := json.Marshal(items)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return st.ItemsJSON(filterType)
 }
 
 func jsonNumberToIntString(f float64) string {
@@ -1015,67 +988,9 @@ func (lc *LanternCore) GetAppDataDir() string {
 }
 
 func (lc *LanternCore) GetEnabledApps() (string, error) {
-	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
-	b, err := os.ReadFile(path)
+	st, err := lc.splitTunnelHandler()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return "[]", nil
-		}
 		return "", err
 	}
-	if len(b) == 0 {
-		return "[]", nil
-	}
-
-	var m map[string]any
-	if err := json.Unmarshal(b, &m); err != nil {
-		return "", err
-	}
-
-	candidateKeys := []string{
-		"processPathRegex",
-		"processPath",
-		"packageName",
-		"bundleId",
-		"bundleID",
-		"enabledApps",
-		"apps",
-	}
-
-	seen := map[string]struct{}{}
-	out := make([]string, 0, 16)
-
-	addList := func(v any) {
-		arr, ok := v.([]any)
-		if !ok {
-			return
-		}
-		for _, it := range arr {
-			s, ok := it.(string)
-			if !ok {
-				continue
-			}
-			s = strings.TrimSpace(s)
-			if s == "" {
-				continue
-			}
-			if common.IsWindows() {
-				s = strings.ToLower(s)
-			}
-			if _, exists := seen[s]; exists {
-				continue
-			}
-			seen[s] = struct{}{}
-			out = append(out, s)
-		}
-	}
-
-	for _, k := range candidateKeys {
-		if v, ok := m[k]; ok {
-			addList(v)
-		}
-	}
-
-	encoded, _ := json.Marshal(out)
-	return string(encoded), nil
+	return st.EnabledAppsJSON()
 }

@@ -14,6 +14,8 @@ import '../core/services/app_purchase.dart';
 
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService {
+  Future<void> init();
+
   ///App Methods
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
@@ -32,6 +34,8 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> stopVPN();
 
   Future<Either<Failure, String>> connectToServer(String location, String tag);
+
+  Future<bool> isTagAvailable(String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 

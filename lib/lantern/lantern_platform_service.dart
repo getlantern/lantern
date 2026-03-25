@@ -57,6 +57,7 @@ class LanternPlatformService implements LanternCoreService {
 
   final Map<String, AppData> _androidAppCache = <String, AppData>{};
 
+  @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
     _status = statusChannel
@@ -76,8 +77,10 @@ class LanternPlatformService implements LanternCoreService {
           .map((event) =>
               MacOSExtensionState.fromString(event['status'].toString()));
     }
-
-    await _refreshEnabledAppsSnapshot();
+    // _enabledApps starts as EnabledAppsSnapshot.empty() and is refreshed
+    // lazily inside installedAppsStream / addSplitTunnelItem / etc.
+    // Loading it here would block service init with 3 platform calls before
+    // the first frame is drawn.
   }
 
   @override
@@ -135,6 +138,31 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
+    try {
+      await _methodChannel.invokeMethod('connectToServer', {
+        'location': location,
+        'serverName': tag,
+      });
+      return Right("ok");
+    } catch (e) {
+      appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>('isTagAvailable', tag);
+      return result ?? true;
+    } catch (e) {
+      appLogger.error('Error checking if tag is available', e);
+      return true;
+    }
+  }
+
   Future<Either<Failure, String>> stopVPN() async {
     try {
       final _ = await _methodChannel.invokeMethod<String>('stopVPN');
@@ -1094,20 +1122,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
-    try {
-      await _methodChannel.invokeMethod('connectToServer', {
-        'location': location,
-        'serverName': tag,
-      });
-      return Right("ok");
-    } catch (e) {
-      appLogger.debug('Error setting private server');
-      return Left(e.toFailure());
-    }
-  }
+
 
   @override
   Future<Either<Failure, String>> inviteToServerManagerInstance(
