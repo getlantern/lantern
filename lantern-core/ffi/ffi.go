@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"runtime/debug"
 	"sync/atomic"
 	"unsafe"
 
@@ -23,6 +24,25 @@ import (
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
+
+// runOnGoStack executes fn on a real Go goroutine and returns its result.
+// CGo-exported functions run on a callback stack whose memory isn't tracked
+// by the GC heap bitmap. Allocating Go pointers (like C.CString or base64
+// encoding) on that stack triggers bulkBarrierPreWrite panics. Running the
+// entire function body on a real goroutine avoids this.
+func runOnGoStack(fn func() *C.char) *C.char {
+	ch := make(chan *C.char, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("panic in FFI call", "panic", r, "stack", string(debug.Stack()))
+				ch <- C.CString(fmt.Sprintf(`{"error": "panic: %v"}`, r))
+			}
+		}()
+		ch <- fn()
+	}()
+	return <-ch
+}
 
 type VPNStatus string
 
@@ -332,34 +352,38 @@ func sendStatusToPort(status VPNStatus) {
 //
 //export getUserData
 func getUserData() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	slog.Debug("Getting user data locally")
-	bytes, err := c.UserData()
-	if err != nil {
-		return SendError(err)
-	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		slog.Debug("Getting user data locally")
+		bytes, err := c.UserData()
+		if err != nil {
+			return SendError(err)
+		}
+		encoded := base64.StdEncoding.EncodeToString(bytes)
+		return C.CString(encoded)
+	})
 }
 
 // Get user data from the server
 //
 //export fetchUserData
 func fetchUserData() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	slog.Debug("Getting user data")
-	bytes, err := c.FetchUserData()
-	if err != nil {
-		return SendError(fmt.Errorf("error marshalling user data: %v", err))
-	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		slog.Debug("Getting user data")
+		bytes, err := c.FetchUserData()
+		if err != nil {
+			return SendError(fmt.Errorf("error marshalling user data: %v", err))
+		}
+		encoded := base64.StdEncoding.EncodeToString(bytes)
+		return C.CString(encoded)
+	})
 }
 
 // Fetch stipe subscription payment redirect link
@@ -452,15 +476,18 @@ func oauthLoginUrl(_provider *C.char) *C.char {
 
 //export oAuthLoginCallback
 func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.OAuthLoginCallback(C.GoString(_oAuthToken))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	oAuthToken := C.GoString(_oAuthToken)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.OAuthLoginCallback(oAuthToken)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // User management
@@ -469,40 +496,49 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 //
 //export login
 func login(_email, _password *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.Login(C.GoString(_email), C.GoString(_password))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.Login(email, password)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 //export signup
 func signup(_email, _password *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.SignUp(C.GoString(_email), C.GoString(_password)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SignUp(email, password); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
 }
 
 //export logout
 func logout(_email *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.Logout(C.GoString(_email))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email := C.GoString(_email)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.Logout(email)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // startRecoveryByEmail will send recovery code to the email
@@ -611,15 +647,18 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 //
 //export deleteAccount
 func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password), _isSSO != 0)
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email, password, isSSO := C.GoString(_email), C.GoString(_password), _isSSO != 0
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.DeleteAccount(email, password, isSSO)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // activationCode create subscription using activation code
