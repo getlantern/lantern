@@ -7,7 +7,6 @@ import (
 
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/ipc"
-	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
@@ -20,9 +19,6 @@ func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
 		LogLevel:         opts.LogLevel,
 		Locale:           opts.Locale,
 		TelemetryConsent: opts.TelemetryConsent,
-	}
-	if opts.Platform != nil {
-		backendOpts.PlatformInterface = opts.Platform.(vpn.PlatformInterface)
 	}
 	return ipc.NewClient(ctx, backendOpts)
 }

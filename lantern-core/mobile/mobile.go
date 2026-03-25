@@ -6,13 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"sync/atomic"
 
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/account"
+	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/ipc"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
@@ -22,6 +25,10 @@ import (
 var (
 	lanternCore        atomic.Value
 	errLanternNotReady = errors.New("radiance not initialized")
+
+	ipcServer *ipc.Server
+	ipcMu     sync.Mutex
+	ipcOnce   sync.Once
 )
 
 func getCore() (lanterncore.Core, error) {
@@ -174,8 +181,36 @@ func StopVPN() error {
 	})
 }
 
-func CloseIPC() error {
-	return vpn_tunnel.CloseIPC()
+func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
+	ipcMu.Lock()
+	defer ipcMu.Unlock()
+	if ipcServer != nil {
+		return nil
+	}
+	bopts := backend.Options{
+		DataDir:           opts.DataDir,
+		LogDir:            opts.LogDir,
+		Locale:            opts.Locale,
+		LogLevel:          opts.LogLevel,
+		DeviceID:          opts.Deviceid,
+		TelemetryConsent:  opts.TelemetryConsent,
+		PlatformInterface: platform,
+	}
+	be, err := backend.NewLocalBackend(context.Background(), bopts)
+	if err != nil {
+		return fmt.Errorf("error creating backend for IPC server: %v", err)
+	}
+	ipcServer = ipc.NewServer(be, !common.IsMobile())
+	return ipcServer.Start()
+}
+
+func CloseIPCServer() error {
+	ipcMu.Lock()
+	defer ipcMu.Unlock()
+	if ipcServer != nil {
+		ipcServer.Close()
+	}
+	return nil
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.

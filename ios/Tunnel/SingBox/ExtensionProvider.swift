@@ -29,6 +29,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
     }
+
+    // Start the IPC server before any VPN operations
+    var ipcError: NSError?
+    MobileStartIPCServer(platformInterface, opts(), &ipcError)
+    if let ipcError {
+      appLogger.error("error starting IPC server: \(ipcError.localizedDescription)")
+      throw ipcError
+    }
+
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
     case "Lantern":
@@ -89,9 +98,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
     var error: NSError?
-    MobileCloseIPC(&error)
+    MobileCloseIPCServer(&error)
     if error != nil {
-      appLogger.log("error closing IPC \(error?.localizedDescription ?? "")")
+      appLogger.log("error closing IPC server \(error?.localizedDescription ?? "")")
     }
     let elapsed = Date().timeIntervalSince(startTime)
     appLogger.log("(lantern-tunnel) stopTunnel completed in \(elapsed) seconds")
