@@ -288,7 +288,7 @@ linux: linux-amd64
 linux-service-amd64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
-	  go build -v -trimpath -tags "$(TAGS)" \
+	  go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
 	  -o $(LINUX_SERVICE_BUILD_AMD64) $(LINUX_SERVICE_SRC)
 	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_AMD64)"
@@ -296,7 +296,7 @@ linux-service-amd64: $(GO_SOURCES)
 linux-service-arm64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
-	  go build -v -trimpath -tags "$(TAGS)" \
+	  go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
 	  -o $(LINUX_SERVICE_BUILD_ARM64) $(LINUX_SERVICE_SRC)
 	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_ARM64)"
