@@ -11,6 +11,7 @@ class SingleCityServerView extends StatefulWidget {
   final OnServerSelected onServerSelected;
   final bool isSelected;
   final bool nested;
+  final bool showSmartProtocol;
 
   const SingleCityServerView({
     super.key,
@@ -18,6 +19,7 @@ class SingleCityServerView extends StatefulWidget {
     required this.location,
     this.isSelected = false,
     this.nested = false,
+    this.showSmartProtocol = false,
   });
 
   @override
@@ -33,18 +35,27 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? widget.location.city
           : '${widget.location.country} - ${widget.location.city}',
       selected: widget.isSelected,
-      subtitle: widget.location.protocol.isEmpty
-          ? null
-          : Text(
-              widget.location.protocol.capitalize,
-              style: textTheme.labelMedium!.copyWith(
-                color: context.textTertiary,
-              ),
-            ),
+      subtitle: _protocolSubtitle(textTheme),
       icon: Flag(countryCode: widget.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.location);
       },
+    );
+  }
+
+  Widget? _protocolSubtitle(TextTheme textTheme) {
+    final protocol = widget.location.protocol;
+    final label = protocol.isNotEmpty
+        ? protocol.capitalize
+        : widget.showSmartProtocol
+            ? 'smart_protocol'.i18n
+            : null;
+    if (label == null) return null;
+    return Text(
+      label,
+      style: textTheme.labelMedium!.copyWith(
+        color: context.textTertiary,
+      ),
     );
   }
 }

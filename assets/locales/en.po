@@ -120,6 +120,9 @@ msgstr "Server Selection"
 msgid "smart_location"
 msgstr "Smart Location"
 
+msgid "smart_protocol"
+msgstr "Smart Protocol"
+
 msgid "automatically_chooses_fastest_location"
 msgstr "Automatically chooses fastest location"
 

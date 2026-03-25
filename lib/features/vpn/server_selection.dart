@@ -329,6 +329,7 @@ class _ServerLocationListViewState
                                 onServerSelected: onServerSelected,
                                 location: serverData,
                                 isSelected: selectedTag == serverData.tag,
+                                showSmartProtocol: widget.userPro,
                               );
                             }
 
@@ -337,6 +338,7 @@ class _ServerLocationListViewState
                               locations: countryLocations,
                               selectedServerTag: selectedTag,
                               onServerSelected: onServerSelected,
+                              showSmartProtocol: widget.userPro,
                             );
                           },
                         ),
@@ -433,12 +435,14 @@ class _CountryCityListView extends StatefulWidget {
   final List<Location_> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
+  final bool showSmartProtocol;
 
   const _CountryCityListView({
     required this.country,
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
+    this.showSmartProtocol = false,
     super.key,
   });
 
@@ -482,10 +486,10 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: loc.city,
-              subtitle: loc.protocol.isEmpty
+              subtitle: _protocolLabel(loc) == null
                   ? null
                   : Text(
-                      loc.protocol.capitalize,
+                      _protocolLabel(loc)!,
                       maxLines: 1,
                       style: Theme.of(
                         context,
@@ -513,6 +517,12 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     );
   }
 
+  String? _protocolLabel(Location_ loc) {
+    if (loc.protocol.isNotEmpty) return loc.protocol.capitalize;
+    if (widget.showSmartProtocol) return 'smart_protocol'.i18n;
+    return null;
+  }
+
   void _onLocationSelected(BuildContext context, Location_ location) {
     widget.onServerSelected(location);
   }
@@ -536,6 +546,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
 
               return SingleCityServerView(
                 nested: true,
+                showSmartProtocol: widget.showSmartProtocol,
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
