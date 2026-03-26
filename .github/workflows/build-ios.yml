@@ -75,11 +75,6 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      - name: Install node on macOS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
       - name: Install the Apple certificate and provisioning profile IOS
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
@@ -138,7 +133,7 @@ jobs:
             ${{ runner.os }}-gomobile-
 
       - name: Install dependencies
-        run: make install-ios-deps
+        run: make install-gomobile
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
