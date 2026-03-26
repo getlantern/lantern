@@ -1,8 +1,8 @@
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,10 +25,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    final filtered = installed
-        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final filtered = dedupeAndSortApps(installed);
 
     if (filtered.isEmpty) return <AppData>{};
 
@@ -37,8 +34,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final enabledItemsEither = await _lanternService.getSplitTunnelItems(type);
     return enabledItemsEither.match(
       (f) {
-        appLogger
-            .error('Failed to load enabled split-tunnel items: ${f.error}');
+        appLogger.error(
+          'Failed to load enabled split-tunnel items: ${f.error}',
+        );
         return <AppData>{};
       },
       (items) {
@@ -49,13 +47,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
             .toSet();
       },
     );
-  }
-
-  // Stable identity per platform
-  String _id(AppData a) {
-    if (PlatformUtils.isWindows) return a.appPath;
-    if (PlatformUtils.isMacOS) return a.appPath;
-    return a.bundleId;
   }
 
   /// Only called by macOS and Android
@@ -93,26 +84,27 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    return allApps
-        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    return dedupeAndSortApps(allApps);
   }
 
   Set<AppData> _current() => state.value ?? <AppData>{};
 
-  Set<String> _stateIds() => _current().map(_id).toSet();
+  Set<String> _stateIds() => _current().map(normalizedAppId).toSet();
 
   Future<void> toggleApp(AppData app) async {
-    final id = _id(app);
+    final id = normalizedAppId(app);
     final current = _current();
-    final isEnabled = current.any((a) => _id(a) == id);
+    final isEnabled = current.any((a) => normalizedAppId(a) == id);
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
-            getFilterType(), appPath(app))
+            getFilterType(),
+            appPath(app),
+          )
         : await _lanternService.addSplitTunnelItem(
-            getFilterType(), appPath(app));
+            getFilterType(),
+            appPath(app),
+          );
 
     await result.match(
       (failure) async {
@@ -123,7 +115,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       (_) async {
         // Optional optimistic UI update
         final next = isEnabled
-            ? current.where((a) => _id(a) != id).toSet()
+            ? current.where((a) => normalizedAppId(a) != id).toSet()
             : {...current, app.copyWith(isEnabled: true)};
 
         state = AsyncData(next);
@@ -138,7 +130,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   Future<void> selectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
-    final toAdd = apps.where((a) => !currentIds.contains(_id(a))).toList();
+    final toAdd = apps
+        .where((a) => !currentIds.contains(normalizedAppId(a)))
+        .toList();
     if (toAdd.isEmpty) return;
 
     final paths = toAdd.map(appPath).toList();
@@ -160,7 +154,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   Future<void> deselectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
-    final toRemove = apps.where((a) => currentIds.contains(_id(a))).toList();
+    final toRemove = apps
+        .where((a) => currentIds.contains(normalizedAppId(a)))
+        .toList();
     if (toRemove.isEmpty) return;
 
     final paths = toRemove.map(appPath).toList();
@@ -169,9 +165,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     await result.match(
       (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
       (_) async {
-        final removeIds = toRemove.map(_id).toSet();
+        final removeIds = toRemove.map(normalizedAppId).toSet();
         state = AsyncData(
-          current.where((a) => !removeIds.contains(_id(a))).toSet(),
+          current.where((a) => !removeIds.contains(normalizedAppId(a))).toSet(),
         );
 
         ref.invalidateSelf();

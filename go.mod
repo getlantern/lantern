@@ -169,10 +169,10 @@ require (
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/common v1.2.1-0.20260224184656-5aefb9c21c85 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
-	github.com/getlantern/fronted v0.0.0-20260319225233-cf2160f85053 // indirect
+	github.com/getlantern/fronted v0.0.0-20260325003030-cb5041ba1538 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae // indirect
 	github.com/getlantern/kindling v0.0.0-20260319225424-4736208dd171 // indirect
-	github.com/getlantern/lantern-box v0.0.50 // indirect
+	github.com/getlantern/lantern-box v0.0.51 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260317143726-e0ee64a11d90 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect

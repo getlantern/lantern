@@ -17,12 +17,25 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/getlantern/radiance/common"
+
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
+
+// runOnGoStack wraps common.RunOffCgoStack for FFI functions that return *C.char.
+// CGo-exported functions run on a callback stack whose memory isn't tracked
+// by the GC heap bitmap. Allocating Go pointers (like C.CString or base64
+// encoding) on that stack triggers bulkBarrierPreWrite panics.
+func runOnGoStack(fn func() *C.char) *C.char {
+	result, _ := common.RunOffCgoStack(func() (*C.char, error) {
+		return fn(), nil
+	})
+	return result
+}
 
 type VPNStatus string
 
@@ -272,6 +285,30 @@ func getAutoLocation() *C.char {
 	return C.CString(string(jsonBytes))
 }
 
+// isTagAvailable checks if a server with the given tag exists in the server list.
+// Returns "true" if found, "false" if not found, or "true" when the check cannot be
+// performed (fail-open: allows connection attempts to proceed normally).
+//
+//export isTagAvailable
+func isTagAvailable(_tag *C.char) *C.char {
+	tag := C.GoString(_tag)
+	c, errStr := requireCore()
+	if errStr != nil {
+		slog.Warn("Unable to check tag availability (core not ready), assuming available", "tag", tag)
+		C.free(unsafe.Pointer(errStr))
+		return C.CString("true")
+	}
+	_, found, err := c.GetServerByTagJSON(tag)
+	if err != nil {
+		slog.Warn("Error checking tag availability, assuming available", "tag", tag, "error", err)
+		return C.CString("true")
+	}
+	if found {
+		return C.CString("true")
+	}
+	return C.CString("false")
+}
+
 // startAutoLocationListener starts the auto location listener.
 //
 //export startAutoLocationListener
@@ -327,34 +364,38 @@ func sendStatusToPort(status VPNStatus) {
 //
 //export getUserData
 func getUserData() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	slog.Debug("Getting user data locally")
-	bytes, err := c.UserData()
-	if err != nil {
-		return SendError(err)
-	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		slog.Debug("Getting user data locally")
+		bytes, err := c.UserData()
+		if err != nil {
+			return SendError(err)
+		}
+		encoded := base64.StdEncoding.EncodeToString(bytes)
+		return C.CString(encoded)
+	})
 }
 
 // Get user data from the server
 //
 //export fetchUserData
 func fetchUserData() *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	slog.Debug("Getting user data")
-	bytes, err := c.FetchUserData()
-	if err != nil {
-		return SendError(fmt.Errorf("error marshalling user data: %v", err))
-	}
-	encoded := base64.StdEncoding.EncodeToString(bytes)
-	return C.CString(encoded)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		slog.Debug("Getting user data")
+		bytes, err := c.FetchUserData()
+		if err != nil {
+			return SendError(fmt.Errorf("error fetching user data: %v", err))
+		}
+		encoded := base64.StdEncoding.EncodeToString(bytes)
+		return C.CString(encoded)
+	})
 }
 
 // Fetch stipe subscription payment redirect link
@@ -447,15 +488,18 @@ func oauthLoginUrl(_provider *C.char) *C.char {
 
 //export oAuthLoginCallback
 func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.OAuthLoginCallback(C.GoString(_oAuthToken))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	oAuthToken := C.GoString(_oAuthToken)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.OAuthLoginCallback(oAuthToken)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // User management
@@ -464,40 +508,49 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 //
 //export login
 func login(_email, _password *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.Login(C.GoString(_email), C.GoString(_password))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.Login(email, password)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 //export signup
 func signup(_email, _password *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	if err := c.SignUp(C.GoString(_email), C.GoString(_password)); err != nil {
-		return SendError(err)
-	}
-	return C.CString("ok")
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SignUp(email, password); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
 }
 
 //export logout
 func logout(_email *C.char) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.Logout(C.GoString(_email))
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email := C.GoString(_email)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.Logout(email)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // startRecoveryByEmail will send recovery code to the email
@@ -606,15 +659,18 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 //
 //export deleteAccount
 func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
-	c, errStr := requireCore()
-	if errStr != nil {
-		return errStr
-	}
-	bytes, err := c.DeleteAccount(C.GoString(_email), C.GoString(_password), _isSSO != 0)
-	if err != nil {
-		return SendError(err)
-	}
-	return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	email, password, isSSO := C.GoString(_email), C.GoString(_password), _isSSO != 0
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.DeleteAccount(email, password, isSSO)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+	})
 }
 
 // activationCode create subscription using activation code

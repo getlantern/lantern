@@ -235,8 +235,8 @@ github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d h1:TrauJ2jdJqOAHy
 github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d/go.mod h1:LA7cwZQtgXxBJdSJDj2ZgQNo/UY3Qa7nxNxzOuMMIyw=
 github.com/getlantern/errors v1.0.4 h1:i2iR1M9GKj4WuingpNqJ+XQEw6i6dnAgKAmLj6ZB3X0=
 github.com/getlantern/errors v1.0.4/go.mod h1:/Foq8jtSDGP8GOXzAjeslsC4Ar/3kB+UiQH+WyV4pzY=
-github.com/getlantern/fronted v0.0.0-20260319225233-cf2160f85053 h1:bq5D3qSjLg2PVBPOqhLE5nQCJpfYHYu8MYavHfPJC78=
-github.com/getlantern/fronted v0.0.0-20260319225233-cf2160f85053/go.mod h1:2miS+mgq6csnGAUvW3w+VUODRAeo08rohkpkR99YGyM=
+github.com/getlantern/fronted v0.0.0-20260325003030-cb5041ba1538 h1:MjJ7DAHwiWCfP7sK/crqkUn9LlBs9bmJhwzVrVpS8pY=
+github.com/getlantern/fronted v0.0.0-20260325003030-cb5041ba1538/go.mod h1:2miS+mgq6csnGAUvW3w+VUODRAeo08rohkpkR99YGyM=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 h1:NlQedYmPI3pRAXJb+hLVVDGqfvvXGRPV8vp7XOjKAZ0=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65/go.mod h1:+ZU1h+iOVqWReBpky6d5Y2WL0sF2Llxu+QcxJFs2+OU=
 github.com/getlantern/hex v0.0.0-20220104173244-ad7e4b9194dc h1:sue+aeVx7JF5v36H1HfvcGFImLpSD5goj8d+MitovDU=
@@ -247,8 +247,8 @@ github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae h1:NMq3K7h3
 github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae/go.mod h1:ag5g9aWUw2FJcX5RVRpJ9EBQBy5yJuy2WXDouIn/m4w=
 github.com/getlantern/kindling v0.0.0-20260319225424-4736208dd171 h1:UEjX+Gg+T6oGVUbzHJ4JfLhlsIh8Wl8PmTXZYWGS43A=
 github.com/getlantern/kindling v0.0.0-20260319225424-4736208dd171/go.mod h1:c5cFjpNrqX8wQ0PUE2blHrO7knAlRCVx3j1/G6zaVlY=
-github.com/getlantern/lantern-box v0.0.50 h1:WKmw56+IClysCIg6VB7P4Hti1Vc7tEC405xbV6I7dwA=
-github.com/getlantern/lantern-box v0.0.50/go.mod h1:Luj0rLyuokADHg2B+eXlAdxVXYO+T5Reeds+hKuQkZA=
+github.com/getlantern/lantern-box v0.0.51 h1:ahneSAcd75m8jHqx9k85dghmboEhLp6NpjMtp1/zBcM=
+github.com/getlantern/lantern-box v0.0.51/go.mod h1:Luj0rLyuokADHg2B+eXlAdxVXYO+T5Reeds+hKuQkZA=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9 h1:6seyD2f9tz2am0YQd/Qn+q7LFiiQgnmxgwWFnVceGZw=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9/go.mod h1:s0VKrlJf/z+M0U8IKHFL2hfuflocRw3SINmMacrTlMA=
 github.com/getlantern/lantern-water v0.0.0-20260317143726-e0ee64a11d90 h1:P9JX1yAu2uq3b5YiT0sLtHkTrkZuttV8gPZh81nUuag=
