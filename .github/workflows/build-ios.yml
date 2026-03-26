@@ -28,9 +28,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Select Xcode 26
-        run: sudo xcode-select -s /Applications/Xcode_26.2.app
-
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
@@ -55,7 +52,6 @@ jobs:
         continue-on-error: true
         with:
           path: |
-            ~/.pub-cache
             .dart_tool
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
