@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: "linux"
+      sign_windows:
+        description: "Sign Windows binaries (nightly skips signing by default)"
+        required: false
+        type: boolean
+        default: true
       cleanup_on_failure:
         description: "Delete draft release on failure"
         required: false
@@ -254,6 +259,7 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
+      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.event.inputs.sign_windows != 'true' }}
 
   build-linux:
     needs: [set-metadata, release-create, release-approval]
