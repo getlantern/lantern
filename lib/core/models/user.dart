@@ -1,22 +1,25 @@
 class UserResponseModel {
+  final String id;
   final int legacyID;
   final String legacyToken;
   final bool emailConfirmed;
   final bool success;
-  final UserDataModel? legacyUserData;
+  final UserDataModel legacyUserData;
   final List<DeviceModel> devices;
 
   const UserResponseModel({
+    this.id = '',
     required this.legacyID,
     required this.legacyToken,
     required this.emailConfirmed,
     required this.success,
-    this.legacyUserData,
+    this.legacyUserData = const UserDataModel(),
     this.devices = const [],
   });
 
   factory UserResponseModel.fromJson(Map<String, dynamic> json) =>
       UserResponseModel(
+        id: (json['id'] ?? '').toString(),
         legacyID: (json['legacyID'] as num?)?.toInt() ?? 0,
         legacyToken: (json['legacyToken'] ?? '').toString(),
         emailConfirmed: json['emailConfirmed'] == true,
@@ -25,7 +28,7 @@ class UserResponseModel {
             ? UserDataModel.fromJson(
                 Map<String, dynamic>.from(json['legacyUserData'] as Map),
               )
-            : null,
+            : const UserDataModel(),
         devices: ((json['devices'] as List?) ?? const [])
             .whereType<Map>()
             .map((m) => DeviceModel.fromJson(Map<String, dynamic>.from(m)))
@@ -33,11 +36,12 @@ class UserResponseModel {
       );
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'legacyID': legacyID,
         'legacyToken': legacyToken,
         'emailConfirmed': emailConfirmed,
         'success': success,
-        'legacyUserData': legacyUserData?.toJson(),
+        'legacyUserData': legacyUserData.toJson(),
         'devices': devices.map((d) => d.toJson()).toList(),
       };
 }
@@ -85,36 +89,36 @@ class UserDataModel {
   final String inviters;
   final String invitees;
   final List<DeviceModel> devices;
-  final String purchases; // consider List<PurchaseModel> instead
-  final SubscriptionDataModel? subscriptionData;
+  final String purchases;
+  final SubscriptionDataModel subscriptionData;
   final String deviceID;
   final bool unpassRegistered;
   final int lastExpiredOn;
 
   const UserDataModel({
-    required this.userId,
-    required this.code,
-    required this.token,
-    required this.referral,
-    required this.phone,
-    required this.email,
-    required this.userStatus,
-    required this.userLevel,
-    required this.locale,
-    required this.expiration,
-    required this.subscription,
-    required this.bonusDays,
-    required this.bonusMonths,
-    required this.yinbiEnabled,
-    required this.servers,
-    required this.inviters,
-    required this.invitees,
-    required this.purchases,
-    required this.deviceID,
-    required this.unpassRegistered,
-    required this.lastExpiredOn,
+    this.userId = 0,
+    this.code = '',
+    this.token = '',
+    this.referral = '',
+    this.phone = '',
+    this.email = '',
+    this.userStatus = '',
+    this.userLevel = '',
+    this.locale = '',
+    this.expiration = 0,
+    this.subscription = '',
+    this.bonusDays = '',
+    this.bonusMonths = '',
+    this.yinbiEnabled = false,
+    this.servers = '',
+    this.inviters = '',
+    this.invitees = '',
+    this.purchases = '',
+    this.deviceID = '',
+    this.unpassRegistered = false,
+    this.lastExpiredOn = 0,
     this.devices = const [],
-    this.subscriptionData,
+    this.subscriptionData = const SubscriptionDataModel(),
   });
 
   factory UserDataModel.fromJson(Map<String, dynamic> json) => UserDataModel(
@@ -147,7 +151,7 @@ class UserDataModel {
             ? SubscriptionDataModel.fromJson(
                 Map<String, dynamic>.from(json['subscriptionData'] as Map),
               )
-            : null,
+            : const SubscriptionDataModel(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -170,7 +174,7 @@ class UserDataModel {
         'invitees': invitees,
         'devices': devices.map((d) => d.toJson()).toList(),
         'purchases': purchases,
-        'subscriptionData': subscriptionData?.toJson(),
+        'subscriptionData': subscriptionData.toJson(),
         'deviceID': deviceID,
         'unpassRegistered': unpassRegistered,
         'lastExpiredOn': lastExpiredOn,
@@ -180,40 +184,40 @@ class UserDataModel {
 class SubscriptionDataModel {
   final String planID;
   final String stripeCustomerID;
-  final String startAt;
-  final String cancelledAt;
+  final int startAt;
+  final int cancelledAt;
   final bool autoRenew;
   final String subscriptionID;
   final String status;
   final String provider;
-  final String createdAt;
-  final String endAt;
+  final int createdAt;
+  final int endAt;
 
   const SubscriptionDataModel({
-    required this.planID,
-    required this.stripeCustomerID,
-    required this.startAt,
-    required this.cancelledAt,
-    required this.autoRenew,
-    required this.subscriptionID,
-    required this.status,
-    required this.provider,
-    required this.createdAt,
-    required this.endAt,
+    this.planID = '',
+    this.stripeCustomerID = '',
+    this.startAt = 0,
+    this.cancelledAt = 0,
+    this.autoRenew = false,
+    this.subscriptionID = '',
+    this.status = '',
+    this.provider = '',
+    this.createdAt = 0,
+    this.endAt = 0,
   });
 
   factory SubscriptionDataModel.fromJson(Map<String, dynamic> json) =>
       SubscriptionDataModel(
         planID: (json['planID'] ?? '').toString(),
         stripeCustomerID: (json['stripeCustomerID'] ?? '').toString(),
-        startAt: (json['startAt'] ?? '').toString(),
-        cancelledAt: (json['cancelledAt'] ?? '').toString(),
+        startAt: (json['startAt'] as num?)?.toInt() ?? 0,
+        cancelledAt: (json['cancelledAt'] as num?)?.toInt() ?? 0,
         autoRenew: json['autoRenew'] == true,
         subscriptionID: (json['subscriptionID'] ?? '').toString(),
         status: (json['status'] ?? '').toString(),
         provider: (json['provider'] ?? '').toString(),
-        createdAt: (json['createdAt'] ?? '').toString(),
-        endAt: (json['endAt'] ?? '').toString(),
+        createdAt: (json['createdAt'] as num?)?.toInt() ?? 0,
+        endAt: (json['endAt'] as num?)?.toInt() ?? 0,
       );
 
   Map<String, dynamic> toJson() => {

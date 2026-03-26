@@ -23,7 +23,7 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_windows_service.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
@@ -861,13 +861,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error oauth callback', e, stackTrace);
@@ -876,16 +877,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> getUserData() async {
-    // if (Platform.isWindows) {
-    //   return _windowsService.getUserData();
-    // }
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.getUserData().toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error getting user data', e, stackTrace);
@@ -899,13 +898,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.fetchUserData().toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error fetchUser data', e, stackTrace);
@@ -945,14 +945,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.logout(email.toCharPtr).toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error while logout', e, stackTrace);
@@ -961,7 +961,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) async {
@@ -972,8 +972,8 @@ class LanternFFIService implements LanternCoreService {
             .toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error while login', e, stackTrace);
@@ -1058,7 +1058,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,
@@ -1070,8 +1070,8 @@ class LanternFFIService implements LanternCoreService {
             .toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error deleting account', e, stackTrace);

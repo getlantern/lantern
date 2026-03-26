@@ -19,7 +19,7 @@ import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -702,11 +702,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) async {
     try {
-      final bytes =
-          await _methodChannel.invokeMethod('oauthLoginCallback', token);
-      return Right(UserResponse.fromBuffer(bytes));
+      final result =
+          await _methodChannel.invokeMethod<String>('oauthLoginCallback', token);
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e, stackTrace) {
       appLogger.error('Error handling OAuth login callback', e, stackTrace);
       return Left(Failure(
@@ -719,10 +720,11 @@ class LanternPlatformService implements LanternCoreService {
   ///
   /// Get user data from local storage
   @override
-  Future<Either<Failure, UserResponse>> getUserData() async {
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
     try {
-      final bytes = await _methodChannel.invokeMethod('getUserData');
-      return Right(UserResponse.fromBuffer(bytes));
+      final result = await _methodChannel.invokeMethod<String>('getUserData');
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e, stackTrace) {
       appLogger.error('Error while getUserData user data', e, stackTrace);
       return Left(Failure(
@@ -733,10 +735,11 @@ class LanternPlatformService implements LanternCoreService {
 
   /// Fetch user data from server
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
     try {
-      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
-      return Right(UserResponse.fromBuffer(userBytes));
+      final result = await _methodChannel.invokeMethod<String>('fetchUserData');
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e, stackTrace) {
       appLogger.error("error fetching user data", e, stackTrace);
       return Left(Failure(
@@ -826,14 +829,15 @@ class LanternPlatformService implements LanternCoreService {
 
   /// Authentication methods
   @override
-  Future<Either<Failure, UserResponse>> login(
+  Future<Either<Failure, UserResponseModel>> login(
       {required String email, required String password}) async {
     try {
-      final bytes = await _methodChannel.invokeMethod('login', {
+      final result = await _methodChannel.invokeMethod<String>('login', {
         'email': email,
         'password': password,
       });
-      return Right(UserResponse.fromBuffer(bytes));
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e) {
       appLogger.error('Error logging', e);
       return Left(e.toFailure());
@@ -841,10 +845,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
     try {
-      final bytes = await _methodChannel.invokeMethod('logout', email);
-      return Right(UserResponse.fromBuffer(bytes));
+      final result = await _methodChannel.invokeMethod<String>('logout', email);
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e, stackTrace) {
       appLogger.error('Error logging out', e, stackTrace);
       return Left(e.toFailure());
@@ -915,17 +920,18 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount(
+  Future<Either<Failure, UserResponseModel>> deleteAccount(
       {required String email,
       required String password,
       bool isSSO = false}) async {
     try {
-      final bytes = await _methodChannel.invokeMethod('deleteAccount', {
+      final result = await _methodChannel.invokeMethod<String>('deleteAccount', {
         'email': email,
         'password': password,
         'isSSO': isSSO,
       });
-      return Right(UserResponse.fromBuffer(bytes));
+      final map = jsonDecode(result!) as Map<String, dynamic>;
+      return Right(UserResponseModel.fromJson(map));
     } catch (e, stackTrace) {
       appLogger.error('Error deleting account', e, stackTrace);
       return Left(e.toFailure());

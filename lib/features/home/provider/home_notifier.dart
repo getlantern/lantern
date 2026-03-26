@@ -4,7 +4,7 @@ import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,7 +13,7 @@ part 'home_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class HomeNotifier extends _$HomeNotifier {
   @override
-  Future<UserResponse> build() async {
+  Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
     /// If yes, load it first to avoid delay in UI
     final result = await ref.read(lanternServiceProvider).getUserData();
@@ -68,22 +68,17 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// Updates the user data in state and local storage.
   /// notifies UI about changes.
-  void updateUserData(UserResponse userData) {
+  void updateUserData(UserResponseModel userData) {
     _applyUserData(userData);
   }
 
-  void _applyUserData(UserResponse userData) {
+  void _applyUserData(UserResponseModel userData) {
     state = AsyncValue.data(userData);
 
     if (!userData.legacyUserData.isPro) {
       resetServerLocation();
     }
-    String email;
-    if (userData.legacyUserData.email.isEmpty) {
-      email = userData.id;
-    } else {
-      email = userData.legacyUserData.email;
-    }
+    final email = userData.legacyUserData.email;
     ref.read(appSettingProvider.notifier).setEmail(email);
     checkIfUserProAndDeviceIsAdded();
   }
@@ -132,7 +127,7 @@ class HomeNotifier extends _$HomeNotifier {
     _checkIfUserProAndDeviceIsAdded(user);
   }
 
-  void _checkIfUserProAndDeviceIsAdded(UserResponse user) {
+  void _checkIfUserProAndDeviceIsAdded(UserResponseModel user) {
     if (!user.legacyUserData.isPro) {
       appLogger.info("User is not Pro. Skipping device check.");
       return;
@@ -144,7 +139,7 @@ class HomeNotifier extends _$HomeNotifier {
     }
     final userDeviceId = user.legacyUserData.deviceID;
     final isDeviceAdded =
-        user.legacyUserData.devices.any((device) => device.id == userDeviceId);
+        user.legacyUserData.devices.any((device) => device.deviceId == userDeviceId);
     appLogger
         .info("current device added for user ${user.legacyUserData.email}: "
             "$isDeviceAdded");

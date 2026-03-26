@@ -327,9 +327,8 @@ class AppPurchase {
     }
 
     final userLevel = user.legacyUserData.userLevel.toLowerCase();
-    final subscriptionStatus = user.legacyUserData.hasSubscriptionData()
-        ? user.legacyUserData.subscriptionData.status.toLowerCase()
-        : '';
+    final subscriptionStatus =
+        user.legacyUserData.subscriptionData.status.toLowerCase();
 
     return userLevel == 'pro' || subscriptionStatus == 'active';
   }

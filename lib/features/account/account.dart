@@ -11,7 +11,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'Account')
 class Account extends HookConsumerWidget {
@@ -182,7 +182,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget? planTrailingWidget(
-      UserResponse user, BuildContext buildContext, WidgetRef ref) {
+      UserResponseModel user, BuildContext buildContext, WidgetRef ref) {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
     final isUserExpired = user.legacyUserData.userLevel == 'expired';
 
@@ -201,7 +201,7 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onManageSubscriptionTap(
-      WidgetRef ref, BuildContext buildContext, UserResponse user) async {
+      WidgetRef ref, BuildContext buildContext, UserResponseModel user) async {
     final provider = user.legacyUserData.subscriptionData.provider;
     switch (provider) {
       case 'apple':
@@ -290,7 +290,7 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> _handleSubscriptionChange(
-      {required UserResponse oldUser,
+      {required UserResponseModel oldUser,
       required LanternService lanternService,
       required HomeNotifier notifier,
       required BuildContext context}) async {

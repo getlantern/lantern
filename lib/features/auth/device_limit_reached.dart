@@ -5,11 +5,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 
-import '../../lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'DeviceLimitReached')
 class DeviceLimitReached extends HookConsumerWidget {
-  final List<UserResponse_Device> devices;
+  final List<DeviceModel> devices;
 
   const DeviceLimitReached({
     super.key,
@@ -19,7 +19,7 @@ class DeviceLimitReached extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final selectedDevice = useState<UserResponse_Device?>(null);
+    final selectedDevice = useState<DeviceModel?>(null);
     return BaseScreen(
       title: 'device_limit_reached'.i18n,
       body: Column(
@@ -52,7 +52,7 @@ class DeviceLimitReached extends HookConsumerWidget {
                   AppTile(
                     contentPadding: EdgeInsets.zero,
                     label: device.name,
-                    trailing: AppRadioButton<UserResponse_Device>(
+                    trailing: AppRadioButton<DeviceModel>(
                       value: device,
                       groupValue: selectedDevice.value,
                       onChanged: (value) {
@@ -73,7 +73,7 @@ class DeviceLimitReached extends HookConsumerWidget {
             isTaller: true,
             enabled: selectedDevice.value != null,
             onPressed: () =>
-                removeDeviceAndLogin(ref, selectedDevice.value!.id, context),
+                removeDeviceAndLogin(ref, selectedDevice.value!.deviceId, context),
           ),
           SizedBox(height: 30.0),
           Center(

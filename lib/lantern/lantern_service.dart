@@ -11,7 +11,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 import '../core/common/common.dart' hide DeveloperMode;
 import '../core/models/available_servers.dart';
@@ -258,7 +258,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.oAuthLoginCallback(token);
     }
@@ -266,7 +266,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> getUserData() {
+  Future<Either<Failure, UserResponseModel>> getUserData() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getUserData();
     }
@@ -290,7 +290,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.fetchUserData();
     }
@@ -315,7 +315,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) {
+  Future<Either<Failure, UserResponseModel>> logout(String email) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.logout(email);
     }
@@ -343,7 +343,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) {
@@ -404,7 +404,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,

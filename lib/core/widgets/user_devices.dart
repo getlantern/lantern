@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 import '../common/common.dart';
 
 class UserDevices extends HookConsumerWidget {
-  // final List<UserResponse_Device> userDevices;
+  // final List<DeviceModel> userDevices;
   // final String myDeviceId;
 
   const UserDevices({
@@ -21,7 +21,7 @@ class UserDevices extends HookConsumerWidget {
       return const SizedBox();
     }
     final userDevices = user.legacyUserData.devices.toList();
-    final myDeviceId = user.legacyUserData.deviceID ?? '';
+    final myDeviceId = user.legacyUserData.deviceID;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -39,7 +39,7 @@ class UserDevices extends HookConsumerWidget {
     );
   }
 
-  Widget _buildRow(UserResponse_Device e, WidgetRef ref, BuildContext context,
+  Widget _buildRow(DeviceModel e, WidgetRef ref, BuildContext context,
       bool isMyDevice) {
     return AppTile(
       label: e.name,
@@ -54,10 +54,10 @@ class UserDevices extends HookConsumerWidget {
   }
 
   Future<void> _removeDevice(
-      UserResponse_Device device, WidgetRef ref, BuildContext context) async {
+      DeviceModel device, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
     final result =
-        await ref.read(authProvider.notifier).deviceRemove(device.id);
+        await ref.read(authProvider.notifier).deviceRemove(device.deviceId);
 
     result.fold((failure) {
       context.showSnackBar(failure.localizedErrorMessage);

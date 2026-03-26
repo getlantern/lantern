@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_notifier.g.dart';
@@ -17,12 +17,12 @@ class AuthNotifier extends _$AuthNotifier {
     return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
   }
 
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
       String authToken) async {
     return ref.read(lanternServiceProvider).oAuthLoginCallback(authToken);
   }
 
-  Future<Either<Failure, UserResponse>> signInWithEmail(
+  Future<Either<Failure, UserResponseModel>> signInWithEmail(
       String email, String password) async {
     return ref.read(lanternServiceProvider).login(
           email: email,
@@ -73,7 +73,7 @@ class AuthNotifier extends _$AuthNotifier {
         newEmail: newEmail, password: password, code: code);
   }
 
-  Future<Either<Failure, UserResponse>> deleteAccount(
+  Future<Either<Failure, UserResponseModel>> deleteAccount(
       String email, String password, bool isSSO) async {
     return ref
         .read(lanternServiceProvider)

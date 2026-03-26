@@ -7,7 +7,7 @@ import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
@@ -159,7 +159,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     );
   }
 
-  void startDeviceFlow(List<UserResponse_Device> devices, String password,
+  void startDeviceFlow(List<DeviceModel> devices, String password,
       BuildContext context) {
     appRouter.push(DeviceLimitReached(devices: devices)).then(
       (value) {

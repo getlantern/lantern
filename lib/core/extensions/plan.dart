@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/utils/currency_utils.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 final _ddmmyyFormatter = DateFormat('dd/MM/yy');
 final _mmddyyFormatter = DateFormat('MM/dd/yy');
@@ -31,11 +31,10 @@ extension PlanExtension on Plan {
   }
 }
 
-extension IsoDateFormatter on UserResponse_UserData {
+extension IsoDateFormatter on UserDataModel {
   String toDate() {
     try {
       if (userLevel == 'expired') {
-        final lastExpiredOn = this.lastExpiredOn.toInt();
         if (lastExpiredOn <= 0) {
           return "N/A";
         }
@@ -48,19 +47,18 @@ extension IsoDateFormatter on UserResponse_UserData {
       }
 
       final autoRenew = subscriptionData.autoRenew;
-      final endAt = subscriptionData.endAt.toInt();
+      final endAt = subscriptionData.endAt;
       // Validate expiration exists
       if (expiration <= 0) {
         return "N/A";
       }
       if (autoRenew && endAt != 0) {
         // Active subscription case
-        final endAtTimestamp = subscriptionData.endAt.toInt();
-        if (endAtTimestamp <= 0) {
+        if (endAt <= 0) {
           return "N/A";
         }
         final dateTime = DateTime.fromMillisecondsSinceEpoch(
-          endAtTimestamp * 1000,
+          endAt * 1000,
           isUtc: true,
         ).toLocal();
 
@@ -68,7 +66,7 @@ extension IsoDateFormatter on UserResponse_UserData {
       }
       // Non-subscription plan case
       final expirationDate = DateTime.fromMillisecondsSinceEpoch(
-        expiration.toInt() * 1000,
+        expiration * 1000,
         isUtc: true,
       ).toLocal();
       final formattedDate = _formatDate(expirationDate);
