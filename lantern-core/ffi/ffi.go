@@ -346,9 +346,13 @@ func getServerLocations() *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		data, err := c.GetServerLocations()
+		data, err := c.GetAllLocations()
 		if err != nil {
-			return SendError(err)
+			// Fall back to old method if AllLocations not available
+			data, err = c.GetServerLocations()
+			if err != nil {
+				return SendError(err)
+			}
 		}
 		return C.CString(string(data))
 	})

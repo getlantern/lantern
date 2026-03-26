@@ -8,24 +8,21 @@ part of 'server_locations_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provides all available server locations from the config response.
-/// Unlike availableServersProvider (which returns active outbounds),
-/// this returns every location the user can select — including ones
-/// without current routes. Used by the pro location picker.
+/// Provides a unified list of all server locations from radiance's AllLocations().
+/// Each location includes active status and protocol info — radiance handles the
+/// merge logic so the client doesn't need to juggle multiple data sources.
 
 @ProviderFor(ServerLocationsNotifier)
 final serverLocationsProvider = ServerLocationsNotifierProvider._();
 
-/// Provides all available server locations from the config response.
-/// Unlike availableServersProvider (which returns active outbounds),
-/// this returns every location the user can select — including ones
-/// without current routes. Used by the pro location picker.
+/// Provides a unified list of all server locations from radiance's AllLocations().
+/// Each location includes active status and protocol info — radiance handles the
+/// merge logic so the client doesn't need to juggle multiple data sources.
 final class ServerLocationsNotifierProvider
     extends $AsyncNotifierProvider<ServerLocationsNotifier, List<Location_>> {
-  /// Provides all available server locations from the config response.
-  /// Unlike availableServersProvider (which returns active outbounds),
-  /// this returns every location the user can select — including ones
-  /// without current routes. Used by the pro location picker.
+  /// Provides a unified list of all server locations from radiance's AllLocations().
+  /// Each location includes active status and protocol info — radiance handles the
+  /// merge logic so the client doesn't need to juggle multiple data sources.
   ServerLocationsNotifierProvider._()
     : super(
         from: null,
@@ -46,12 +43,11 @@ final class ServerLocationsNotifierProvider
 }
 
 String _$serverLocationsNotifierHash() =>
-    r'd9ea7a6cbd0fe7bbe2ea0e3213c685bd4cfc4931';
+    r'edd93c18fb6438cf8b9e295bd2aa6e7eca12d9f5';
 
-/// Provides all available server locations from the config response.
-/// Unlike availableServersProvider (which returns active outbounds),
-/// this returns every location the user can select — including ones
-/// without current routes. Used by the pro location picker.
+/// Provides a unified list of all server locations from radiance's AllLocations().
+/// Each location includes active status and protocol info — radiance handles the
+/// merge logic so the client doesn't need to juggle multiple data sources.
 
 abstract class _$ServerLocationsNotifier
     extends $AsyncNotifier<List<Location_>> {

@@ -5,10 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'server_locations_provider.g.dart';
 
-/// Provides all available server locations from the config response.
-/// Unlike availableServersProvider (which returns active outbounds),
-/// this returns every location the user can select — including ones
-/// without current routes. Used by the pro location picker.
+/// Provides a unified list of all server locations from radiance's AllLocations().
+/// Each location includes active status and protocol info — radiance handles the
+/// merge logic so the client doesn't need to juggle multiple data sources.
 @Riverpod(keepAlive: true)
 class ServerLocationsNotifier extends _$ServerLocationsNotifier {
   @override
@@ -20,17 +19,7 @@ class ServerLocationsNotifier extends _$ServerLocationsNotifier {
             'Error getting server locations: ${failure.localizedErrorMessage}');
         throw Exception('Failed to get server locations');
       },
-      (locations) {
-        return locations.map((loc) {
-          final l = Location_.fromJson(loc as Map<String, dynamic>);
-          // Generate a tag from city+country for location-based selection.
-          // This tag is used by the UI to track selection state.
-          if (l.tag.isEmpty) {
-            l.tag = '${l.city}-${l.countryCode}'.toLowerCase().replaceAll(' ', '-');
-          }
-          return l;
-        }).toList();
-      },
+      (locations) => _parseLocations(locations),
     );
   }
 
@@ -42,12 +31,27 @@ class ServerLocationsNotifier extends _$ServerLocationsNotifier {
             'Error refreshing server locations: ${failure.localizedErrorMessage}');
       },
       (locations) {
-        state = AsyncValue.data(
-          locations
-              .map((loc) => Location_.fromJson(loc as Map<String, dynamic>))
-              .toList(),
-        );
+        state = AsyncValue.data(_parseLocations(locations));
       },
     );
+  }
+
+  List<Location_> _parseLocations(List<dynamic> locations) {
+    return locations.map((loc) {
+      final map = loc as Map<String, dynamic>;
+      final l = Location_.fromJson(map);
+      // Radiance's AllLocations() provides tag and protocol directly.
+      // Use tag from response if present, otherwise generate from city+country.
+      if (l.tag.isEmpty) {
+        l.tag = '${l.city}-${l.countryCode}'.toLowerCase().replaceAll(' ', '-');
+      }
+      // Protocol comes from the active outbound type (e.g., "samizdat", "hysteria2").
+      // Empty if the location has no active routes.
+      final protocol = map['protocol'] as String? ?? '';
+      if (protocol.isNotEmpty) {
+        l.protocol = protocol;
+      }
+      return l;
+    }).toList();
   }
 }

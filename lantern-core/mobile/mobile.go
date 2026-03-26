@@ -237,9 +237,15 @@ func GetAvailableServers() ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
 
-// GetServerLocations returns all available server locations from the config response.
+// GetServerLocations returns a unified list of all server locations with active status.
 func GetServerLocations() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetServerLocations() })
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+		data, err := c.GetAllLocations()
+		if err != nil {
+			return c.GetServerLocations()
+		}
+		return data, nil
+	})
 }
 
 // SetPreferredServerLocation sets the preferred server location for the next config fetch.

@@ -60,6 +60,7 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	GetServerLocations() ([]byte, error)
+	GetAllLocations() ([]byte, error)
 	SetPreferredServerLocation(country, city string)
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
@@ -421,6 +422,21 @@ func (lc *LanternCore) GetServerLocations() ([]byte, error) {
 	data, err := json.Marshal(locations)
 	if err != nil {
 		return nil, fmt.Errorf("marshalling server locations: %w", err)
+	}
+	return data, nil
+}
+
+// GetAllLocations returns a unified list of all server locations, combining
+// available locations from the config response with active outbound details.
+// Each location indicates whether it's active and its protocol.
+func (lc *LanternCore) GetAllLocations() ([]byte, error) {
+	locations, err := lc.rad.AllLocations()
+	if err != nil {
+		return nil, fmt.Errorf("getting all locations: %w", err)
+	}
+	data, err := json.Marshal(locations)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling all locations: %w", err)
 	}
 	return data, nil
 }
