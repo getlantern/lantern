@@ -689,8 +689,14 @@ jobs:
           while [ "$attempt" -lt "$max_retries" ]; do
             attempt=$((attempt + 1))
             echo "Deleting release $RELEASE_TAG (attempt $attempt/$max_retries)..."
-            if gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>&1; then
+            if delete_output="$(gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>&1)"; then
+              echo "$delete_output"
               echo "Release $RELEASE_TAG deleted"
+              break
+            fi
+            echo "$delete_output"
+            if echo "$delete_output" | grep -qiE "Reference does not exist|release not found"; then
+              echo "Release cleanup already complete"
               break
             fi
             if [ "$attempt" -eq "$max_retries" ]; then
