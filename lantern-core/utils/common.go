@@ -31,7 +31,6 @@ type FlutterEventEmitter interface {
 	SendEvent(event *FlutterEvent)
 }
 
-
 type PlatformInterface interface {
 	libbox.PlatformInterface
 	RestartService() error

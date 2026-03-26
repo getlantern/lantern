@@ -41,7 +41,7 @@ final class VpnNotifierProvider
   }
 }
 
-String _$vpnNotifierHash() => r'9d5685dcb24bd12386049fdbc1f7aea0db2ebe46';
+String _$vpnNotifierHash() => r'26dafc14cc29a89664e1f411b344da9a008e6cbb';
 
 abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
   VPNStatus build();

@@ -34,7 +34,7 @@ final class SplitTunnelingAppsProvider
 }
 
 String _$splitTunnelingAppsHash() =>
-    r'1ac6edd52bfdfd089e6c5e557699f8170e3dc00a';
+    r'20d67a407455e04072d6b8636e1d951dad6ebac4';
 
 abstract class _$SplitTunnelingApps extends $AsyncNotifier<Set<AppData>> {
   FutureOr<Set<AppData>> build();
