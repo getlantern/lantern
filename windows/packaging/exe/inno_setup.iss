@@ -265,8 +265,8 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible arm64
+ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
 UninstallLogging=yes
 CloseApplications=yes
@@ -295,7 +295,7 @@ Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}";
 [Run]
 ; Create service
 Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= ""{app}\lanternsvc.exe"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+  Parameters: "create ""{#SvcName}"" binPath= ""{code:ServiceExecutablePath}"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
@@ -432,6 +432,17 @@ begin
   if not WaitForServiceDelete(ServiceStopTimeoutMs) then begin
     Log('Timed out waiting for service deletion; continuing install');
   end;
+end;
+
+function ServiceExecutablePath(_Param: String): String;
+var
+  Arm64ServicePath: String;
+begin
+  Arm64ServicePath := ExpandConstant('{app}\arm64\lanternsvc.exe');
+  if IsArm64 and FileExists(Arm64ServicePath) then
+    Result := Arm64ServicePath
+  else
+    Result := ExpandConstant('{app}\lanternsvc.exe');
 end;
 
 function InitializeSetup: Boolean;

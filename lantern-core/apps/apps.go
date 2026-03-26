@@ -222,10 +222,18 @@ func LoadInstalledApps(dataDir string, cb Callback) {
 // then newly discovered ones. It returns the count of newly discovered apps
 func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []string, cb Callback) (int, error) {
 	seen := make(map[string]bool)
+	var deferredWindowsCache []*AppData
 
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
 		for _, app := range cached {
 			if app == nil {
+				continue
+			}
+			if runtime.GOOS == "windows" &&
+				len(app.IconBytes) == 0 &&
+				strings.TrimSpace(app.IconPath) == "" {
+				// Re-add only if scan doesn't rediscover them with richer metadata.
+				deferredWindowsCache = append(deferredWindowsCache, app)
 				continue
 			}
 			if cb != nil {
@@ -245,6 +253,44 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 	}
 
 	found := loadInstalledAppsPlatform(appDirs, seen, excludeDirs, cb)
+	if runtime.GOOS == "windows" {
+		for _, app := range deferredWindowsCache {
+			if app == nil {
+				continue
+			}
+
+			keyID := normalizeKey(app.BundleID)
+			keyPath := normalizeKey(app.AppPath)
+			keyName := normalizeKey(app.Name)
+			if (keyID != "" && seen[keyID]) ||
+				(keyPath != "" && seen[keyPath]) ||
+				(keyName != "" && seen[keyName]) {
+				continue
+			}
+
+			// Best-effort refresh of missing icon bytes for cache-only entries.
+			if len(app.IconBytes) == 0 && strings.TrimSpace(app.AppPath) != "" {
+				if b, err := getIconBytes(app.AppPath); err == nil {
+					app.IconBytes = b
+				}
+			}
+
+			if cb != nil {
+				cb(app)
+			}
+			found = append(found, app)
+
+			if keyID != "" {
+				seen[keyID] = true
+			}
+			if keyPath != "" {
+				seen[keyPath] = true
+			}
+			if keyName != "" {
+				seen[keyName] = true
+			}
+		}
+	}
 
 	if err := saveCacheToFile(dataDir, found...); err != nil {
 		slog.Error("unable to save apps cache", "error", err)

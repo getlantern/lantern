@@ -68,7 +68,10 @@ endif
 
 WINDOWS_SERVICE_NAME := lanternsvc.exe
 WINDOWS_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
-WINDOWS_SERVICE_BUILD := $(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME)
+WINDOWS_SERVICE_BUILD_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME)
+WINDOWS_SERVICE_BUILD_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_SERVICE_NAME)
+WINDOWS_SERVICE_BUILD := $(WINDOWS_SERVICE_BUILD_AMD64)
+WINDOWS_SERVICE_CGO_ENABLED ?= 0
 
 WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
@@ -76,13 +79,17 @@ WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
-WINTUN_ARCH ?= amd64
+WINDOWS_SERVICE_BUILD_ARM64_RELEASE := $(WINDOWS_RELEASE_DIR)/arm64/$(WINDOWS_SERVICE_NAME)
 WINTUN_VERSION ?= 0.14.1
 WINTUN_BASE_URL := https://wwW.wintun.net
 WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
-WINTUN_OUT_DIR     ?= windows/third_party/wintun/bin/$(WINTUN_ARCH)
-WINTUN_DLL         := $(WINTUN_OUT_DIR)/wintun.dll
+WINTUN_OUT_DIR_AMD64 := windows/third_party/wintun/bin/amd64
+WINTUN_OUT_DIR_ARM64 := windows/third_party/wintun/bin/arm64
+WINTUN_DLL_AMD64     := $(WINTUN_OUT_DIR_AMD64)/wintun.dll
+WINTUN_DLL_ARM64     := $(WINTUN_OUT_DIR_ARM64)/wintun.dll
+WINTUN_DLL           := $(WINTUN_DLL_AMD64)
 WINTUN_DLL_RELEASE := $(WINDOWS_RELEASE_DIR)/wintun.dll
+WINTUN_DLL_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/wintun.dll
 WINTUN_DLL_DEBUG   := $(WINDOWS_DEBUG_DIR)/wintun.dll
 
 
@@ -337,9 +344,11 @@ verify-linux-package:
 	./scripts/ci/verify_linux_package.sh $(LINUX_INSTALLER_DEB)
 
 # Windows Build
-.PHONY: build-lanternsvc-windows windows-service-build \
-        copy-lanternsvc-release copy-lanternsvc-debug \
-        wintun clean-wintun copy-wintun-release copy-wintun-debug
+.PHONY: build-lanternsvc-windows build-lanternsvc-windows-arm64 \
+        windows-service-build windows-service-build-amd64 windows-service-build-arm64 \
+        copy-lanternsvc-release copy-lanternsvc-release-arm64 copy-lanternsvc-debug \
+        wintun wintun-amd64 wintun-arm64 clean-wintun \
+        copy-wintun-release copy-wintun-release-arm64 copy-wintun-debug
 
 .PHONY: install-windows-deps
 install-windows-deps:
@@ -361,57 +370,100 @@ windows-arm64:
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
 .PHONY: build-lanternsvc-windows
-build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
+build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD_AMD64)
 
-$(WINDOWS_SERVICE_BUILD): windows-service-build
+.PHONY: build-lanternsvc-windows-arm64
+build-lanternsvc-windows-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
 
-windows-service-build:
-	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -v -trimpath -tags "$(TAGS)" \
+windows-service-build: windows-service-build-amd64
+
+windows-service-build-amd64: $(WINDOWS_SERVICE_BUILD_AMD64)
+
+windows-service-build-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
+
+$(WINDOWS_SERVICE_BUILD_AMD64):
+	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_AMD64)))
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=$(WINDOWS_SERVICE_CGO_ENABLED) go build -v -trimpath -tags "$(TAGS)" \
 		-ldflags "$(EXTRA_LDFLAGS)" \
-		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
-	@echo "Built Windows service: $(WINDOWS_SERVICE_BUILD)"
+		-o $(WINDOWS_SERVICE_BUILD_AMD64) $(WINDOWS_SERVICE_SRC)
+	@echo "Built Windows service (amd64): $(WINDOWS_SERVICE_BUILD_AMD64)"
 
-copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD)
+$(WINDOWS_SERVICE_BUILD_ARM64):
+	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_ARM64)))
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=$(WINDOWS_SERVICE_CGO_ENABLED) go build -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(EXTRA_LDFLAGS)" \
+		-o $(WINDOWS_SERVICE_BUILD_ARM64) $(WINDOWS_SERVICE_SRC)
+	@echo "Built Windows service (arm64): $(WINDOWS_SERVICE_BUILD_ARM64)"
+
+copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD_AMD64)
 	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
-	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD),$(WINDOWS_RELEASE_DIR)/$(WINDOWS_SERVICE_NAME))
+	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_AMD64),$(WINDOWS_RELEASE_DIR)/$(WINDOWS_SERVICE_NAME))
 
-copy-lanternsvc-debug: $(WINDOWS_SERVICE_BUILD)
+copy-lanternsvc-release-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
+	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_ARM64_RELEASE)))
+	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_ARM64),$(WINDOWS_SERVICE_BUILD_ARM64_RELEASE))
+
+copy-lanternsvc-debug: $(WINDOWS_SERVICE_BUILD_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
-	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD),$(WINDOWS_DEBUG_DIR)/$(WINDOWS_SERVICE_NAME))
+	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_AMD64),$(WINDOWS_DEBUG_DIR)/$(WINDOWS_SERVICE_NAME))
 
-wintun: $(WINTUN_DLL)
+wintun: wintun-amd64
+
+wintun-amd64: $(WINTUN_DLL_AMD64)
+
+wintun-arm64: $(WINTUN_DLL_ARM64)
 
 clean-wintun:
-	@$(call RM_RF,$(WINTUN_OUT_DIR))
+	@$(call RM_RF,$(WINTUN_OUT_DIR_AMD64))
+	@$(call RM_RF,$(WINTUN_OUT_DIR_ARM64))
 
-$(WINTUN_DLL):
-	$(call MKDIR_P,$(WINTUN_OUT_DIR))
+$(WINTUN_DLL_AMD64):
+	$(call MKDIR_P,$(WINTUN_OUT_DIR_AMD64))
 	@ver='$(WINTUN_VERSION)'; \
-	  zip='$(WINTUN_OUT_DIR)/wintun-'$$ver'.zip'; \
+	  zip='$(WINTUN_OUT_DIR_AMD64)/wintun-'$$ver'.zip'; \
 	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
 	  echo "Using Wintun $$ver"; \
 	  curl -fsSL -o "$$zip" "$$url"; \
-	  mkdir -p '$(WINTUN_OUT_DIR)/_unz'; \
-	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR)/_unz" "wintun/bin/$(WINTUN_ARCH)/wintun.dll" \
-	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR)/_unz'"; \
-	  cp -f "$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll" "$(WINTUN_DLL)"; \
-	  rm -rf "$(WINTUN_OUT_DIR)/_unz"; \
-	  echo "Installed: $(WINTUN_DLL)";
+	  $(call MKDIR_P,$(WINTUN_OUT_DIR_AMD64)/_unz); \
+	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_AMD64)/_unz" "wintun/bin/amd64/wintun.dll" \
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_AMD64)/_unz'";
+	$(call COPY_FILE,$(WINTUN_OUT_DIR_AMD64)/_unz/wintun/bin/amd64/wintun.dll,$(WINTUN_DLL_AMD64))
+	$(call RM_RF,$(WINTUN_OUT_DIR_AMD64)/_unz)
+	@echo "Installed: $(WINTUN_DLL_AMD64)";
+
+$(WINTUN_DLL_ARM64):
+	$(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64))
+	@ver='$(WINTUN_VERSION)'; \
+	  zip='$(WINTUN_OUT_DIR_ARM64)/wintun-'$$ver'.zip'; \
+	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
+	  echo "Using Wintun $$ver"; \
+	  curl -fsSL -o "$$zip" "$$url"; \
+	  $(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64)/_unz); \
+	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_ARM64)/_unz" "wintun/bin/arm64/wintun.dll" \
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_ARM64)/_unz'";
+	$(call COPY_FILE,$(WINTUN_OUT_DIR_ARM64)/_unz/wintun/bin/arm64/wintun.dll,$(WINTUN_DLL_ARM64))
+	$(call RM_RF,$(WINTUN_OUT_DIR_ARM64)/_unz)
+	@echo "Installed: $(WINTUN_DLL_ARM64)";
 
 .PHONY: copy-wintun-release copy-wintun-debug
-copy-wintun-release: $(WINTUN_DLL)
+copy-wintun-release: $(WINTUN_DLL_AMD64)
 	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
-	$(call COPY_FILE,$(WINTUN_DLL),$(WINTUN_DLL_RELEASE))
+	$(call COPY_FILE,$(WINTUN_DLL_AMD64),$(WINTUN_DLL_RELEASE))
 
-copy-wintun-debug: $(WINTUN_DLL)
+copy-wintun-release-arm64: $(WINTUN_DLL_ARM64)
+	$(call MKDIR_P,$(dir $(WINTUN_DLL_RELEASE_ARM64)))
+	$(call COPY_FILE,$(WINTUN_DLL_ARM64),$(WINTUN_DLL_RELEASE_ARM64))
+
+copy-wintun-debug: $(WINTUN_DLL_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
-	$(call COPY_FILE,$(WINTUN_DLL),$(WINTUN_DLL_DEBUG))
+	$(call COPY_FILE,$(WINTUN_DLL_AMD64),$(WINTUN_DLL_DEBUG))
 
 .PHONY: prepare-windows-release
-prepare-windows-release: build-lanternsvc-windows wintun
+prepare-windows-release: build-lanternsvc-windows build-lanternsvc-windows-arm64 wintun-amd64 wintun-arm64
 	$(MAKE) copy-lanternsvc-release
+	$(MAKE) copy-lanternsvc-release-arm64
 	$(MAKE) copy-wintun-release
+	$(MAKE) copy-wintun-release-arm64
 
 .PHONY: windows-debug
 windows-debug: windows

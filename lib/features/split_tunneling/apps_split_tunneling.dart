@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -15,6 +14,7 @@ import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -29,27 +29,25 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
 
-    final allApps = (ref.watch(appsDataProvider).value ?? const <AppData>[])
-        .where((a) => Platform.isAndroid || Platform.isIOS
+    final allApps = dedupeAndSortApps(
+      (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
+        (a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
-            : true)
-        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+            : true,
+      ),
+    );
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
         a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final enabledIds = enabledApps.map(stableAppId).toSet();
-    final filteredEnabled = enabledApps.where(matchesSearch).toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final enabledIds = enabledApps.map(normalizedAppId).toSet();
+    final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
 
     final filteredDisabled = allApps
-        .where((a) => !enabledIds.contains(stableAppId(a)))
+        .where((a) => !enabledIds.contains(normalizedAppId(a)))
         .where(matchesSearch)
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+        .toList();
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
@@ -74,9 +72,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.all(0),
-                child: AppTile(
-                  label: 'no_apps_selected'.i18n,
-                ),
+                child: AppTile(label: 'no_apps_selected'.i18n),
               ),
             )
           else
@@ -87,7 +83,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: filteredEnabled.length + 1,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, separatorIndex) =>
                       DividerSpace(padding: EdgeInsets.zero),
                   itemBuilder: (ctx, i) {
                     if (i == 0) {
@@ -99,7 +95,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                           label: 'deselect_all'.i18n,
                           fontSize: 14,
                           onPressed: () async {
-                            await notifier.deselectAllApps();
+                            await notifier.deselectApps(filteredEnabled);
                           },
                         ),
                       );
@@ -129,7 +125,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filteredDisabled.length + 1,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, separatorIndex) =>
                                 DividerSpace(padding: EdgeInsets.zero),
                             itemBuilder: (ctx, i) {
                               if (i == 0) {
@@ -140,8 +136,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
                                   trailing: AppTextButton(
                                     label: 'select_all'.i18n,
                                     fontSize: 14,
-                                    onPressed: () {
-                                      notifier.selectAllApps();
+                                    onPressed: () async {
+                                      await notifier.selectApps(
+                                        filteredDisabled,
+                                      );
                                     },
                                   ),
                                 );
@@ -177,7 +175,7 @@ class AppRow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final key = AppIconKey(
-      id: stableAppId(app),
+      id: normalizedAppId(app),
       iconPath: app.iconPath,
       appPath: app.appPath,
       existingBytes: app.iconBytes,
