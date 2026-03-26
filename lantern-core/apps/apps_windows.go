@@ -295,6 +295,11 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 					app.IconBytes = b
 				}
 			}
+			if len(app.IconBytes) == 0 {
+				if b, err := getIconBytesFromLocation(exePath, 0); err == nil {
+					app.IconBytes = b
+				}
+			}
 
 			if cb != nil {
 				cb(app)

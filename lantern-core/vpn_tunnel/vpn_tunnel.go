@@ -35,7 +35,7 @@ func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
 	}
 	// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
-	err := vpn.QuickConnect("", platform)
+	err := vpn.AutoConnect("")
 	if err != nil {
 		return fmt.Errorf("failed to start VPN: %w", err)
 	}

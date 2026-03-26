@@ -12,7 +12,6 @@ import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -192,7 +191,8 @@ class LanternFFIService implements LanternCoreService {
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
       appLogger.info(
-          "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent");
+        "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent",
+      );
 
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
@@ -218,10 +218,7 @@ class LanternFFIService implements LanternCoreService {
 
       checkAPIError(result);
       if (result != 'ok' && result != 'true') {
-        throw PlatformException(
-          code: 'radiance_setup_failed',
-          message: result,
-        );
+        throw PlatformException(code: 'radiance_setup_failed', message: result);
       }
       return right(unit);
     } catch (e, st) {
@@ -340,8 +337,9 @@ class LanternFFIService implements LanternCoreService {
       });
       checkAPIError(enabledJson);
 
-      final enabledKeys =
-          (jsonDecode(enabledJson) as List).cast<String>().toSet();
+      final enabledKeys = (jsonDecode(enabledJson) as List)
+          .cast<String>()
+          .toSet();
 
       final decoded = jsonDecode(jsonApps) as List<dynamic>;
       final rawApps = decoded.cast<Map<String, dynamic>>();
@@ -429,7 +427,8 @@ class LanternFFIService implements LanternCoreService {
       return left(
         Failure(
           error: result['error'] ?? 'Unknown error',
-          localizedErrorMessage: result['localizedErrorMessage'] ??
+          localizedErrorMessage:
+              result['localizedErrorMessage'] ??
               result['error'] ??
               'Unknown error',
         ),
@@ -525,8 +524,9 @@ class LanternFFIService implements LanternCoreService {
       return left(
         Failure(
           error: e.toString(),
-          localizedErrorMessage:
-              (e is Exception) ? e.localizedDescription : e.toString(),
+          localizedErrorMessage: (e is Exception)
+              ? e.localizedDescription
+              : e.toString(),
         ),
       );
     } finally {
@@ -623,11 +623,28 @@ class LanternFFIService implements LanternCoreService {
   Future<bool> isTagAvailable(String tag) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.isTagAvailable(tag.toCharPtr).toDartString();
+        final tagPtr = tag.toCharPtr;
+        try {
+          final resultPtr = _ffiService.isTagAvailable(tagPtr);
+          if (resultPtr == nullptr) {
+            return 'true';
+          }
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(tagPtr);
+        }
       });
       return result == 'true';
     } catch (e, st) {
-      appLogger.error('Error checking tag availability, assuming available', e, st);
+      appLogger.error(
+        'Error checking tag availability, assuming available',
+        e,
+        st,
+      );
       return true;
     }
   }
@@ -1253,19 +1270,21 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs(
-      {required String urls,
-      required bool skipCertVerification,
-      required String serverName}) async {
+  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+    required String urls,
+    required bool skipCertVerification,
+    required String serverName,
+  }) async {
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .addServerBasedOnURLs(urls.toCharPtr,
-                  skipCertVerification ? 1 : 0, serverName.toCharPtr)
-              .toDartString();
-        },
-      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .addServerBasedOnURLs(
+              urls.toCharPtr,
+              skipCertVerification ? 1 : 0,
+              serverName.toCharPtr,
+            )
+            .toDartString();
+      });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
@@ -1275,11 +1294,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String inviteName}) async {
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
@@ -1569,18 +1589,42 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> addAllItems(
     SplitTunnelFilterType type,
     List<String> value,
-  ) {
-    // TODO: implement addAllItems
-    throw UnimplementedError();
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await addSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
   }
 
   @override
   Future<Either<Failure, Unit>> removeAllItems(
     SplitTunnelFilterType type,
     List<String> value,
-  ) {
-    // TODO: implement removeAllItems
-    throw UnimplementedError();
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await removeSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
   }
 
   @override
