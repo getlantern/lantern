@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/features/vpn/provider/vpn_transition_origin_tracker.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,10 +22,9 @@ class VpnNotifier extends _$VpnNotifier {
     ref.listen(vPNStatusProvider, (previous, next) {
       final previousStatus = previous?.value?.status;
       final nextStatus = next.value!.status;
+      final nextOrigin = next.value!.origin;
       final suppressConnectionNotifications =
-          ref
-              .read(vpnTransitionOriginTrackerProvider)
-              .isInSettingsMutationWindow &&
+          nextOrigin == VPNStatusOrigin.settingsMutation &&
           (nextStatus == VPNStatus.connected ||
               nextStatus == VPNStatus.disconnected);
 
@@ -42,7 +41,7 @@ class VpnNotifier extends _$VpnNotifier {
             );
           } else {
             appLogger.debug(
-              'Suppressed vpn_disconnected notification (settings-driven reconnect)',
+              'Suppressed vpn_disconnected notification (origin=$nextOrigin)',
             );
           }
         } else if (nextStatus == VPNStatus.connected) {
@@ -66,7 +65,7 @@ class VpnNotifier extends _$VpnNotifier {
             );
           } else {
             appLogger.debug(
-              'Suppressed vpn_connected notification (settings-driven reconnect)',
+              'Suppressed vpn_connected notification (origin=$nextOrigin)',
             );
           }
         }

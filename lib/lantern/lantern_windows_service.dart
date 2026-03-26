@@ -9,11 +9,17 @@ import 'package:lantern/core/windows/pipe_commands.dart';
 class LanternServiceWindows {
   LanternServiceWindows(this._rpcPipe);
 
+  static const Duration _statusOriginTtl = Duration(seconds: 15);
+
   final PipeClient _rpcPipe;
 
   // dedicated streaming pipes
   PipeClient? _statusPipe;
   PipeClient? _logsPipe;
+  VPNStatusOrigin _pendingStatusOrigin = VPNStatusOrigin.unknown;
+  DateTime _pendingStatusOriginExpiresAt = DateTime.fromMillisecondsSinceEpoch(
+    0,
+  );
 
   Future<void> init() async {
     try {
@@ -58,7 +64,9 @@ class LanternServiceWindows {
   }
 
   Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
+    String location,
+    String tag,
+  ) async {
     try {
       await _rpcPipe.call(ServiceCommand.connectToServer.wire, {
         'location': location,
@@ -67,7 +75,9 @@ class LanternServiceWindows {
       return right('ok');
     } catch (e) {
       appLogger.error(
-          '[WS] connectToServer() failed for location=$location, tag=$tag', e);
+        '[WS] connectToServer() failed for location=$location, tag=$tag',
+        e,
+      );
       return Left(e.toFailure());
     }
   }
@@ -82,17 +92,68 @@ class LanternServiceWindows {
     }
   }
 
+  void setNextStatusOrigin(VPNStatusOrigin origin) {
+    _pendingStatusOrigin = origin;
+    _pendingStatusOriginExpiresAt = DateTime.now().add(_statusOriginTtl);
+  }
+
   Stream<LanternStatus> watchVPNStatus() {
     _statusPipe ??= PipeClient(token: _rpcPipe.token);
-    return _statusPipe!.watchStatus().map((evt) {
-      final data = evt;
-      final raw = data['state'] as String? ?? 'Disconnected';
-      final error = data['error'];
-      return LanternStatus.fromJson(
-          {'status': raw.toLowerCase(), 'error': error});
-    }).handleError((error, st) {
-      appLogger.error('[WS] watchStatus() stream error', error, st);
-    });
+    return _statusPipe!
+        .watchStatus()
+        .map((evt) {
+          final data = evt;
+          final raw = data['state'] as String? ?? 'Disconnected';
+          final error = data['error'];
+          final origin = _resolveStatusOrigin(data['origin']);
+          final status = LanternStatus.fromJson({
+            'status': raw.toLowerCase(),
+            'error': error,
+            'origin': origin,
+          });
+
+          final terminal =
+              status.status == VPNStatus.connected ||
+              status.status == VPNStatus.disconnected ||
+              status.status == VPNStatus.error;
+          if (_pendingStatusOrigin != VPNStatusOrigin.unknown && terminal) {
+            _clearPendingStatusOrigin();
+          }
+
+          return status;
+        })
+        .handleError((error, st) {
+          appLogger.error('[WS] watchStatus() stream error', error, st);
+        });
+  }
+
+  String _resolveStatusOrigin(dynamic originFromEvent) {
+    if (originFromEvent is String && originFromEvent.isNotEmpty) {
+      return originFromEvent;
+    }
+
+    if (DateTime.now().isAfter(_pendingStatusOriginExpiresAt)) {
+      _clearPendingStatusOrigin();
+    }
+    return _originToWireValue(_pendingStatusOrigin);
+  }
+
+  void _clearPendingStatusOrigin() {
+    _pendingStatusOrigin = VPNStatusOrigin.unknown;
+    _pendingStatusOriginExpiresAt = DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  static String _originToWireValue(VPNStatusOrigin origin) {
+    switch (origin) {
+      case VPNStatusOrigin.userAction:
+        return 'user_action';
+      case VPNStatusOrigin.settingsMutation:
+        return 'settings_mutation';
+      case VPNStatusOrigin.system:
+        return 'system';
+      case VPNStatusOrigin.unknown:
+        return 'unknown';
+    }
   }
 
   Stream<List<String>> watchLogs() {

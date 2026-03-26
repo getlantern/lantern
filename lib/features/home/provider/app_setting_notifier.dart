@@ -11,7 +11,6 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/features/vpn/provider/vpn_transition_origin_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -86,10 +85,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     try {
       final lantern = ref.read(lanternServiceProvider);
-      final tracker = ref.read(vpnTransitionOriginTrackerProvider);
-      final res = await tracker.runAsSettingsMutation(
-        () => lantern.setRoutingMode(mode == RoutingMode.smart),
-      );
+      final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
 
       await res.match((f) async {
         appLogger.error('Failed to set routing mode', f);
@@ -135,10 +131,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     try {
       final svc = ref.read(lanternServiceProvider);
-      final tracker = ref.read(vpnTransitionOriginTrackerProvider);
-      final res = await tracker.runAsSettingsMutation(
-        () => svc.setBlockAdsEnabled(value),
-      );
+      final res = await svc.setBlockAdsEnabled(value);
 
       await res.match((err) async {
         appLogger.error('setBlockAdsEnabled failed: ${err.error}');
