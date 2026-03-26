@@ -310,6 +310,17 @@ class _PlansState extends ConsumerState<Plans> {
     final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     appLogger.info(
         'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}');
+
+    final appSetting = ref.read(appSettingProvider);
+    final isPro = ref.read(isUserProProvider);
+
+    // Pro user coming to renew — send directly to payment screen by platform
+    if (appSetting.userLoggedIn && isPro) {
+      appLogger.info('Pro user renewal flow, routing by platform');
+      _renewalFlowByPlatform(userSelectedPlan);
+      return;
+    }
+
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {
@@ -328,6 +339,35 @@ class _PlansState extends ConsumerState<Plans> {
       default:
         signUpFlow();
     }
+  }
+
+  void _renewalFlowByPlatform(Plan plan) {
+    switch (Platform.operatingSystem) {
+      case 'ios':
+        appLogger.info('Pro renewal: starting in-app purchase flow for iOS');
+        startInAppPurchaseFlow(plan);
+        break;
+      case 'android':
+        if (isStoreVersion()) {
+          appLogger.info(
+              'Pro renewal: starting in-app purchase flow for Android store');
+          startInAppPurchaseFlow(plan);
+          return;
+        }
+        appLogger.info('Pro renewal: routing to payment method screen');
+        _pushRenewalPaymentScreen();
+        break;
+      default:
+        appLogger.info('Pro renewal: routing to payment method screen');
+        _pushRenewalPaymentScreen();
+    }
+  }
+
+  void _pushRenewalPaymentScreen() {
+    final user = ref.read(homeProvider).value;
+    final email = user!.legacyUserData.email;
+    appRouter.push(
+        ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription));
   }
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
