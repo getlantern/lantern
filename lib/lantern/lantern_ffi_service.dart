@@ -1539,10 +1539,12 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
     try {
-      final result = _ffiService
-          .setBlockAdsEnabled(enabled ? 1 : 0)
-          .cast<Utf8>()
-          .toDartString();
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setBlockAdsEnabled(enabled ? 1 : 0)
+            .cast<Utf8>()
+            .toDartString();
+      });
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {

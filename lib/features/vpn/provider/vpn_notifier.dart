@@ -7,6 +7,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_transition_origin_tracker.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,17 +22,29 @@ class VpnNotifier extends _$VpnNotifier {
     ref.listen(vPNStatusProvider, (previous, next) {
       final previousStatus = previous?.value?.status;
       final nextStatus = next.value!.status;
+      final suppressConnectionNotifications =
+          ref
+              .read(vpnTransitionOriginTrackerProvider)
+              .isInSettingsMutationWindow &&
+          (nextStatus == VPNStatus.connected ||
+              nextStatus == VPNStatus.disconnected);
 
       if (previous != null &&
           previous.value != null &&
           previousStatus != nextStatus) {
         if (previousStatus != VPNStatus.connecting &&
             nextStatus == VPNStatus.disconnected) {
-          sl<NotificationService>().showNotification(
-            id: NotificationEvent.vpnDisconnected.id,
-            title: 'app_name'.i18n,
-            body: 'vpn_disconnected'.i18n,
-          );
+          if (!suppressConnectionNotifications) {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnDisconnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_disconnected'.i18n,
+            );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_disconnected notification (settings-driven reconnect)',
+            );
+          }
         } else if (nextStatus == VPNStatus.connected) {
           if (PlatformUtils.isMobile) {
             HapticFeedback.mediumImpact();
@@ -45,11 +58,17 @@ class VpnNotifier extends _$VpnNotifier {
           // getAutoServerLocation here. This avoids a race where the NE
           // reports "connected" before the Go tunnel is fully ready.
 
-          sl<NotificationService>().showNotification(
-            id: NotificationEvent.vpnConnected.id,
-            title: 'app_name'.i18n,
-            body: 'vpn_connected'.i18n,
-          );
+          if (!suppressConnectionNotifications) {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnConnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_connected'.i18n,
+            );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_connected notification (settings-driven reconnect)',
+            );
+          }
         }
       }
       state = nextStatus;

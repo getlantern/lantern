@@ -11,6 +11,7 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_transition_origin_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -19,6 +20,8 @@ part 'app_setting_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
+  bool _isRoutingModeUpdateInFlight = false;
+  bool _isBlockAdsUpdateInFlight = false;
 
   @override
   AppSetting build() {
@@ -36,13 +39,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     if (settings == null) {
       appLogger.info(
-          'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}');
+        'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}',
+      );
       unawaited(_storage.saveAppSettings(fallback));
       return fallback;
     }
 
-    appLogger
-        .info('Loaded stored app settings: ${_settingsLogFields(settings)}');
+    appLogger.info(
+      'Loaded stored app settings: ${_settingsLogFields(settings)}',
+    );
     return settings;
   }
 
@@ -62,19 +67,38 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
+    if (state.routingMode == mode) {
+      return right(unit);
+    }
+
+    if (_isRoutingModeUpdateInFlight) {
+      appLogger.info(
+        'Routing mode update already in progress. Ignoring duplicate request.',
+      );
+      return right(unit);
+    }
+
+    _isRoutingModeUpdateInFlight = true;
     final prev = state.routingModeRaw;
 
     appLogger.info('Setting routing mode to: ${mode.key}');
-    update(state.copyWith(routingModeRaw: mode.key));
+    await update(state.copyWith(routingModeRaw: mode.key));
 
-    final lantern = ref.read(lanternServiceProvider);
-    final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
+    try {
+      final lantern = ref.read(lanternServiceProvider);
+      final tracker = ref.read(vpnTransitionOriginTrackerProvider);
+      final res = await tracker.runAsSettingsMutation(
+        () => lantern.setRoutingMode(mode == RoutingMode.smart),
+      );
 
-    res.fold((f) {
-      appLogger.error('Failed to set routing mode', f);
-      update(state.copyWith(routingModeRaw: prev));
-    }, (_) {});
-    return res;
+      await res.match((f) async {
+        appLogger.error('Failed to set routing mode', f);
+        await update(state.copyWith(routingModeRaw: prev));
+      }, (_) async {});
+      return res;
+    } finally {
+      _isRoutingModeUpdateInFlight = false;
+    }
   }
 
   void setUserLoggedIn(bool value) =>
@@ -90,16 +114,39 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
-    final prev = state.blockAds;
-    update(state.copyWith(blockAds: value));
+    unawaited(_setBlockAds(value));
+  }
 
-    final svc = ref.read(lanternServiceProvider);
-    svc.setBlockAdsEnabled(value).then((res) {
-      res.match((err) {
+  Future<void> _setBlockAds(bool value) async {
+    if (state.blockAds == value) {
+      return;
+    }
+
+    if (_isBlockAdsUpdateInFlight) {
+      appLogger.info(
+        'Block ads update already in progress. Ignoring duplicate request.',
+      );
+      return;
+    }
+
+    _isBlockAdsUpdateInFlight = true;
+    final prev = state.blockAds;
+    await update(state.copyWith(blockAds: value));
+
+    try {
+      final svc = ref.read(lanternServiceProvider);
+      final tracker = ref.read(vpnTransitionOriginTrackerProvider);
+      final res = await tracker.runAsSettingsMutation(
+        () => svc.setBlockAdsEnabled(value),
+      );
+
+      await res.match((err) async {
         appLogger.error('setBlockAdsEnabled failed: ${err.error}');
-        update(state.copyWith(blockAds: prev));
-      }, (_) {});
-    });
+        await update(state.copyWith(blockAds: prev));
+      }, (_) async {});
+    } finally {
+      _isBlockAdsUpdateInFlight = false;
+    }
   }
 
   void updateAnonymousDataConsent(bool value) {
@@ -192,8 +239,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> updateTelemetryConsent(bool consent) async {
-    final result =
-        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
+    final result = await ref
+        .read(lanternServiceProvider)
+        .updateTelemetryEvents(consent);
 
     result.fold(
       (err) {
@@ -208,21 +256,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Map<String, Object> _settingsLogFields(AppSetting setting) => {
-        'isPro': setting.isPro,
-        'isSplitTunnelingOn': setting.isSplitTunnelingOn,
-        'themeMode': setting.themeMode,
-        'environment': setting.environment,
-        'locale': setting.locale,
-        'userLoggedIn': setting.userLoggedIn,
-        'blockAds': setting.blockAds,
-        'showSplashScreen': setting.showSplashScreen,
-        'telemetryDialogDismissed': setting.telemetryDialogDismissed,
-        'telemetryConsent': setting.telemetryConsent,
-        'successfulConnection': setting.successfulConnection,
-        'routingModeRaw': setting.routingModeRaw,
-        'dataCapThreshold': setting.dataCapThreshold,
-        'onboardingCompleted': setting.onboardingCompleted,
-        'hasOAuthToken': setting.oAuthToken.isNotEmpty,
-        'hasEmail': setting.email.isNotEmpty,
-      };
+    'isPro': setting.isPro,
+    'isSplitTunnelingOn': setting.isSplitTunnelingOn,
+    'themeMode': setting.themeMode,
+    'environment': setting.environment,
+    'locale': setting.locale,
+    'userLoggedIn': setting.userLoggedIn,
+    'blockAds': setting.blockAds,
+    'showSplashScreen': setting.showSplashScreen,
+    'telemetryDialogDismissed': setting.telemetryDialogDismissed,
+    'telemetryConsent': setting.telemetryConsent,
+    'successfulConnection': setting.successfulConnection,
+    'routingModeRaw': setting.routingModeRaw,
+    'dataCapThreshold': setting.dataCapThreshold,
+    'onboardingCompleted': setting.onboardingCompleted,
+    'hasOAuthToken': setting.oAuthToken.isNotEmpty,
+    'hasEmail': setting.email.isNotEmpty,
+  };
 }
