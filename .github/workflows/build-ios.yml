@@ -21,10 +21,15 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -42,6 +47,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
+          cache: true
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
