@@ -95,43 +95,41 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   void showRferralCodeDialog(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     AppDialog.customDialog(
-        context: context,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(height: size24),
-            AppImage(path: AppImagePaths.star, height: 40),
-            SizedBox(height: defaultSize),
-            Text(
-              'referral_code'.i18n,
-              style: textTheme.headlineSmall,
-            ),
-            SizedBox(height: defaultSize),
-            AppTextField(
-              label: 'referral_code'.i18n,
-              hintText: 'XXXXXX',
-              prefixIcon: AppImagePaths.star,
-            ),
-          ],
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: size24),
+          AppImage(path: AppImagePaths.star, height: 40),
+          SizedBox(height: defaultSize),
+          Text('referral_code'.i18n, style: textTheme.headlineSmall),
+          SizedBox(height: defaultSize),
+          AppTextField(
+            label: 'referral_code'.i18n,
+            hintText: 'XXXXXX',
+            prefixIcon: AppImagePaths.star,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel'.i18n,
+          textColor: context.textDisabled,
+          underLine: false,
+          onPressed: () {
+            appRouter.pop();
+          },
         ),
-        action: [
-          AppTextButton(
-            label: 'cancel'.i18n,
-            textColor: AppColors.gray8,
-            underLine: false,
-            onPressed: () {
-              appRouter.pop();
-            },
-          ),
-          AppTextButton(
-            label: 'continue'.i18n,
-            onPressed: () {},
-          ),
-        ]);
+        AppTextButton(label: 'continue'.i18n, onPressed: () {}),
+      ],
+    );
   }
 
   Future<void> onSubscribe(
-      Android provider, WidgetRef ref, BuildContext context) async {
+    Android provider,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     final isDesktop = PlatformUtils.isDesktop;
     final isAndroid = PlatformUtils.isAndroid;
     final isAndroidSideload = isAndroid && !isStoreVersion();
@@ -160,7 +158,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   Future<void> androidStripeSubscription(
-      Android provider, WidgetRef ref, BuildContext context) async {
+    Android provider,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     final payments = ref.read(paymentProvider.notifier);
     context.showLoadingDialog();
@@ -189,7 +190,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             appLogger.error('Error subscribing to plan: $error');
             if (error is StripeException) {
               context.showSnackBar(
-                  error.error.localizedMessage ?? error.localizedDescription);
+                error.error.localizedMessage ?? error.localizedDescription,
+              );
               return;
             }
             context.showSnackBar(error.toString());
@@ -200,7 +202,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   Future<void> desktopPurchaseFlow(
-      Android provider, WidgetRef ref, BuildContext context) async {
+    Android provider,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     try {
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
@@ -244,20 +249,22 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   Future<void> paymentRedirectFlow(
-      String provider, WidgetRef ref, BuildContext context) async {
+    String provider,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     context.showLoadingDialog();
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
-    final result = await ref.read(paymentProvider.notifier).paymentRedirect(
-          provider: provider,
-          planId: userPlan.id,
-          email: email,
-        );
+    final result = await ref
+        .read(paymentProvider.notifier)
+        .paymentRedirect(provider: provider, planId: userPlan.id, email: email);
 
     result.fold(
       (failure) {
         context.hideLoadingDialog();
         appLogger.error(
-            'Error redirecting to payment: ${failure.localizedErrorMessage}');
+          'Error redirecting to payment: ${failure.localizedErrorMessage}',
+        );
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (url) {
@@ -268,7 +275,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   Future<void> onPurchaseResult(
-      bool purchased, BuildContext context, WidgetRef ref) async {
+    bool purchased,
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
       return;
@@ -287,7 +297,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     switch (authFlow) {
       case AuthFlow.signUp:
         appRouter.push(
-            CreatePassword(email: email, authFlow: authFlow, code: code!));
+          CreatePassword(email: email, authFlow: authFlow, code: code!)
+        );
         break;
       case AuthFlow.oauth:
         AppDialog.showLanternProDialog(
@@ -343,34 +354,32 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
             initiallyExpanded: index == 0,
-            backgroundColor: AppColors.white,
-            collapsedBackgroundColor: AppColors.white,
+            backgroundColor: context.bgElevated,
+            collapsedBackgroundColor: context.bgElevated,
             collapsedShape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: AppColors.gray3,
-                width: 1,
-              ),
+              side: BorderSide(color: context.borderInput, width: 1),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: AppColors.gray3,
-                width: 1,
-              ),
+              side: BorderSide(color: context.borderInput, width: 1),
             ),
-            tilePadding:
-                EdgeInsets.symmetric(horizontal: defaultSize, vertical: 2),
+            tilePadding: EdgeInsets.symmetric(
+              horizontal: defaultSize,
+              vertical: 2,
+            ),
             childrenPadding: EdgeInsets.symmetric(
-                horizontal: defaultSize, vertical: defaultSize),
+              horizontal: defaultSize,
+              vertical: defaultSize,
+            ),
             title: Row(
               children: [
-                Text(method.method.replaceAll('-', " ").toTitleCase(),
-                    style: theme.titleMedium),
-                SizedBox(width: defaultSize),
-                LogsPath(
-                  logoPaths: method.providers.icons,
+                Text(
+                  method.method.replaceAll('-', " ").toTitleCase(),
+                  style: theme.titleMedium,
                 ),
+                SizedBox(width: defaultSize),
+                LogsPath(logoPaths: method.providers.icons),
               ],
             ),
             children: [
@@ -380,9 +389,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   Text(userPlan.description, style: theme.bodyMedium),
                   Text(
                     '${userPlan.formattedMonthlyPrice}/month',
-                    style: theme.bodyMedium!.copyWith(
-                      color: AppColors.gray6,
-                    ),
+                    style: theme.bodyMedium!.copyWith(color: context.textDisabled),
                   ),
                 ],
               ),
@@ -392,15 +399,14 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                        getReferralMessage(userPlan.id)
-                            .replaceAll('free', '')
-                            .toTitleCase(),
-                        style: theme.bodyMedium),
+                      getReferralMessage(
+                        userPlan.id,
+                      ).replaceAll('free', '').toTitleCase(),
+                      style: theme.bodyMedium,
+                    ),
                     Text(
                       'free'.i18n,
-                      style: theme.bodyMedium!.copyWith(
-                        color: AppColors.gray6,
-                      ),
+                      style: theme.bodyMedium!.copyWith(color: context.textDisabled),
                     ),
                   ],
                 ),
@@ -409,15 +415,13 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Order Total:',
-                      style: theme.titleSmall!.copyWith(
-                        color: AppColors.gray9,
-                      )),
+                  Text(
+                    'Order Total:',
+                    style: theme.titleSmall!.copyWith(color: context.textPrimary),
+                  ),
                   Text(
                     userPlan.formattedYearlyPrice,
-                    style: theme.titleSmall!.copyWith(
-                      color: AppColors.blue10,
-                    ),
+                    style: theme.titleSmall!.copyWith(color: context.actionPrimaryBg),
                   ),
                 ],
               ),
@@ -427,9 +431,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 method.providers.supportSubscription
                     ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
                     : 'billed_once'.i18n.capitalize,
-                style: theme.bodySmall!.copyWith(
-                  color: AppColors.gray6,
-                ),
+                style: theme.bodySmall!.copyWith(color: context.textDisabled),
               ),
               SizedBox(height: defaultSize),
               PrimaryButton(
@@ -439,7 +441,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 onPressed: () {
                   onSubscribe.call(method);
                 },
-              )
+              ),
             ],
           ),
         );
