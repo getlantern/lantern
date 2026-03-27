@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/latest_async_queue.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -19,10 +20,15 @@ part 'app_setting_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
-  bool _isRoutingModeUpdateInFlight = false;
-  bool _isBlockAdsUpdateInFlight = false;
-  RoutingMode? _pendingRoutingMode;
-  bool? _pendingBlockAds;
+  late final LatestAsyncQueue<RoutingMode, Either<Failure, Unit>>
+  _routingModeQueue = LatestAsyncQueue(
+    worker: _applyRoutingMode,
+    defaultResult: right(unit),
+  );
+  late final LatestAsyncQueue<bool, Unit> _blockAdsQueue = LatestAsyncQueue(
+    worker: _applyBlockAds,
+    defaultResult: unit,
+  );
 
   @override
   AppSetting build() {
@@ -68,43 +74,42 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
-    _pendingRoutingMode = mode;
-    if (_isRoutingModeUpdateInFlight) {
+    if (_routingModeQueue.isRunning) {
       appLogger.info(
         'Routing mode update in progress. Queued latest request: ${mode.key}',
       );
+    }
+
+    try {
+      return await _routingModeQueue.enqueue(mode);
+    } catch (e, st) {
+      appLogger.error('Unexpected routing mode update failure', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> _applyRoutingMode(RoutingMode mode) async {
+    if (state.routingMode == mode) {
       return right(unit);
     }
 
-    _isRoutingModeUpdateInFlight = true;
-    Failure? lastFailure;
+    final prev = state.routingModeRaw;
+    appLogger.info('Setting routing mode to: ${mode.key}');
+    await update(state.copyWith(routingModeRaw: mode.key));
+
     final lantern = ref.read(lanternServiceProvider);
-
     try {
-      while (_pendingRoutingMode != null) {
-        final nextMode = _pendingRoutingMode!;
-        _pendingRoutingMode = null;
-
-        if (state.routingMode == nextMode) {
-          continue;
-        }
-
-        final prev = state.routingModeRaw;
-        appLogger.info('Setting routing mode to: ${nextMode.key}');
-        await update(state.copyWith(routingModeRaw: nextMode.key));
-
-        final res = await lantern.setRoutingMode(nextMode == RoutingMode.smart);
-        await res.match((f) async {
-          lastFailure = f;
-          appLogger.error('Failed to set routing mode', f);
-          await update(state.copyWith(routingModeRaw: prev));
-        }, (_) async {});
-      }
-    } finally {
-      _isRoutingModeUpdateInFlight = false;
+      final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
+      return await res.match((f) async {
+        appLogger.error('Failed to set routing mode', f);
+        await update(state.copyWith(routingModeRaw: prev));
+        return left(f);
+      }, (_) async => right(unit));
+    } catch (e, st) {
+      appLogger.error('Unexpected setRoutingMode error', e, st);
+      await update(state.copyWith(routingModeRaw: prev));
+      return left(e.toFailure());
     }
-
-    return lastFailure != null ? left(lastFailure!) : right(unit);
   }
 
   void setUserLoggedIn(bool value) =>
@@ -120,41 +125,42 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
-    _pendingBlockAds = value;
-    unawaited(_setBlockAds());
+    if (_blockAdsQueue.isRunning) {
+      appLogger.info(
+        'Block ads update in progress. Queued latest request: $value',
+      );
+    }
+    unawaited(_enqueueBlockAds(value));
   }
 
-  Future<void> _setBlockAds() async {
-    if (_isBlockAdsUpdateInFlight) {
-      appLogger.info(
-        'Block ads update in progress. Queued latest request: $_pendingBlockAds',
-      );
-      return;
-    }
-
-    _isBlockAdsUpdateInFlight = true;
-    final svc = ref.read(lanternServiceProvider);
+  Future<void> _enqueueBlockAds(bool value) async {
     try {
-      while (_pendingBlockAds != null) {
-        final nextValue = _pendingBlockAds!;
-        _pendingBlockAds = null;
-
-        if (state.blockAds == nextValue) {
-          continue;
-        }
-
-        final prev = state.blockAds;
-        await update(state.copyWith(blockAds: nextValue));
-
-        final res = await svc.setBlockAdsEnabled(nextValue);
-        await res.match((err) async {
-          appLogger.error('setBlockAdsEnabled failed: ${err.error}');
-          await update(state.copyWith(blockAds: prev));
-        }, (_) async {});
-      }
-    } finally {
-      _isBlockAdsUpdateInFlight = false;
+      await _blockAdsQueue.enqueue(value);
+    } catch (e, st) {
+      appLogger.error('Unexpected setBlockAdsEnabled error', e, st);
     }
+  }
+
+  Future<Unit> _applyBlockAds(bool value) async {
+    if (state.blockAds == value) {
+      return unit;
+    }
+
+    final svc = ref.read(lanternServiceProvider);
+    final prev = state.blockAds;
+    await update(state.copyWith(blockAds: value));
+
+    try {
+      final res = await svc.setBlockAdsEnabled(value);
+      await res.match((err) async {
+        appLogger.error('setBlockAdsEnabled failed: ${err.error}');
+        await update(state.copyWith(blockAds: prev));
+      }, (_) async {});
+    } catch (e, st) {
+      appLogger.error('Unexpected setBlockAdsEnabled failure', e, st);
+      await update(state.copyWith(blockAds: prev));
+    }
+    return unit;
   }
 
   void updateAnonymousDataConsent(bool value) {
