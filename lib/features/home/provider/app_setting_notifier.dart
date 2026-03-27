@@ -21,6 +21,8 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
   bool _isRoutingModeUpdateInFlight = false;
   bool _isBlockAdsUpdateInFlight = false;
+  RoutingMode? _pendingRoutingMode;
+  bool? _pendingBlockAds;
 
   @override
   AppSetting build() {
@@ -66,35 +68,43 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
-    if (state.routingMode == mode) {
-      return right(unit);
-    }
-
+    _pendingRoutingMode = mode;
     if (_isRoutingModeUpdateInFlight) {
       appLogger.info(
-        'Routing mode update already in progress. Ignoring duplicate request.',
+        'Routing mode update in progress. Queued latest request: ${mode.key}',
       );
       return right(unit);
     }
 
     _isRoutingModeUpdateInFlight = true;
-    final prev = state.routingModeRaw;
-
-    appLogger.info('Setting routing mode to: ${mode.key}');
-    await update(state.copyWith(routingModeRaw: mode.key));
+    Failure? lastFailure;
+    final lantern = ref.read(lanternServiceProvider);
 
     try {
-      final lantern = ref.read(lanternServiceProvider);
-      final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
+      while (_pendingRoutingMode != null) {
+        final nextMode = _pendingRoutingMode!;
+        _pendingRoutingMode = null;
 
-      await res.match((f) async {
-        appLogger.error('Failed to set routing mode', f);
-        await update(state.copyWith(routingModeRaw: prev));
-      }, (_) async {});
-      return res;
+        if (state.routingMode == nextMode) {
+          continue;
+        }
+
+        final prev = state.routingModeRaw;
+        appLogger.info('Setting routing mode to: ${nextMode.key}');
+        await update(state.copyWith(routingModeRaw: nextMode.key));
+
+        final res = await lantern.setRoutingMode(nextMode == RoutingMode.smart);
+        await res.match((f) async {
+          lastFailure = f;
+          appLogger.error('Failed to set routing mode', f);
+          await update(state.copyWith(routingModeRaw: prev));
+        }, (_) async {});
+      }
     } finally {
       _isRoutingModeUpdateInFlight = false;
     }
+
+    return lastFailure != null ? left(lastFailure!) : right(unit);
   }
 
   void setUserLoggedIn(bool value) =>
@@ -110,33 +120,38 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
-    unawaited(_setBlockAds(value));
+    _pendingBlockAds = value;
+    unawaited(_setBlockAds());
   }
 
-  Future<void> _setBlockAds(bool value) async {
-    if (state.blockAds == value) {
-      return;
-    }
-
+  Future<void> _setBlockAds() async {
     if (_isBlockAdsUpdateInFlight) {
       appLogger.info(
-        'Block ads update already in progress. Ignoring duplicate request.',
+        'Block ads update in progress. Queued latest request: $_pendingBlockAds',
       );
       return;
     }
 
     _isBlockAdsUpdateInFlight = true;
-    final prev = state.blockAds;
-    await update(state.copyWith(blockAds: value));
-
+    final svc = ref.read(lanternServiceProvider);
     try {
-      final svc = ref.read(lanternServiceProvider);
-      final res = await svc.setBlockAdsEnabled(value);
+      while (_pendingBlockAds != null) {
+        final nextValue = _pendingBlockAds!;
+        _pendingBlockAds = null;
 
-      await res.match((err) async {
-        appLogger.error('setBlockAdsEnabled failed: ${err.error}');
-        await update(state.copyWith(blockAds: prev));
-      }, (_) async {});
+        if (state.blockAds == nextValue) {
+          continue;
+        }
+
+        final prev = state.blockAds;
+        await update(state.copyWith(blockAds: nextValue));
+
+        final res = await svc.setBlockAdsEnabled(nextValue);
+        await res.match((err) async {
+          appLogger.error('setBlockAdsEnabled failed: ${err.error}');
+          await update(state.copyWith(blockAds: prev));
+        }, (_) async {});
+      }
     } finally {
       _isBlockAdsUpdateInFlight = false;
     }

@@ -135,25 +135,12 @@ class LanternServiceWindows {
     if (DateTime.now().isAfter(_pendingStatusOriginExpiresAt)) {
       _clearPendingStatusOrigin();
     }
-    return _originToWireValue(_pendingStatusOrigin);
+    return _pendingStatusOrigin.wireValue;
   }
 
   void _clearPendingStatusOrigin() {
     _pendingStatusOrigin = VPNStatusOrigin.unknown;
     _pendingStatusOriginExpiresAt = DateTime.fromMillisecondsSinceEpoch(0);
-  }
-
-  static String _originToWireValue(VPNStatusOrigin origin) {
-    switch (origin) {
-      case VPNStatusOrigin.userAction:
-        return 'user_action';
-      case VPNStatusOrigin.settingsMutation:
-        return 'settings_mutation';
-      case VPNStatusOrigin.system:
-        return 'system';
-      case VPNStatusOrigin.unknown:
-        return 'unknown';
-    }
   }
 
   Stream<List<String>> watchLogs() {
