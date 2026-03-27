@@ -369,6 +369,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
+    context.showLoadingDialog();
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
@@ -418,7 +419,7 @@ class _PlansState extends ConsumerState<Plans> {
       final user = ref.read(homeProvider).value;
       final email = user!.legacyUserData.email;
 
-      /// 1User is logged in but not pro — account created but purchase not completed or plan expired
+      /// User is logged in but not pro — account created but purchase not completed or plan expired
       appRouter.push(
         ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription),
       );

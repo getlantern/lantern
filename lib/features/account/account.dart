@@ -202,10 +202,7 @@ class Account extends HookConsumerWidget {
       );
     }
     if (isUserPro && !autoRenew) {
-      return AppTextButton(
-        label: 'renew'.i18n.capitalize,
-        onPressed: () => onRenewTap(ref, buildContext),
-      );
+      return AppTextButton(label: 'renew'.i18n, onPressed: onRenewTap);
     }
 
     return null;
@@ -254,9 +251,9 @@ class Account extends HookConsumerWidget {
     }
   }
 
-  void onRenewTap(WidgetRef ref, BuildContext buildContext) {
-    /// All or most of the user true tries to renew are all one time purchase
-    /// Send user to plans plage
+  void onRenewTap() {
+    /// Most user renewal attempts are one-time purchases.
+    /// Send the user to the plans page.
     appRouter.push(const Plans());
   }
 
