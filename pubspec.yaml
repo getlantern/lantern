@@ -89,6 +89,7 @@ dependencies:
   app_links: ^7.0.0
   # Desktop
   window_manager: ^0.5.1
+  screen_retriever: ^0.2.0
   tray_manager:
     git:
       url: https://github.com/getlantern/tray_manager.git

@@ -12,7 +12,6 @@ import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -1590,18 +1589,42 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> addAllItems(
     SplitTunnelFilterType type,
     List<String> value,
-  ) {
-    // TODO: implement addAllItems
-    throw UnimplementedError();
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await addSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
   }
 
   @override
   Future<Either<Failure, Unit>> removeAllItems(
     SplitTunnelFilterType type,
     List<String> value,
-  ) {
-    // TODO: implement removeAllItems
-    throw UnimplementedError();
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await removeSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
   }
 
   @override
