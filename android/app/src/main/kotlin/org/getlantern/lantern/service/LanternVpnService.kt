@@ -147,20 +147,22 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
-            // Only call stopVPN if Radiance IPC is actually running; calling it before
-            // setup completes results in a misleading "IPC not running" error.
-            if (Mobile.isRadianceConnected()) {
-                runCatching { Mobile.stopVPN() }
-                    .onFailure { e ->
-                        AppLogger.e(
-                            TAG,
-                            "Mobile.stopVPN() failed during destroy",
-                            e
-                        )
-                    }
-            } else {
+            val radianceConnected = Mobile.isRadianceConnected()
+            val vpnConnected = Mobile.isVPNConnected()
+            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
+            if (!radianceConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
+                return@try
             }
+            if (!vpnConnected) {
+                AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
+                return@try
+            }
+            runCatching { Mobile.stopVPN() }
+                .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
+                .onFailure { e ->
+                    AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
+                }
             runCatching {
                 runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
             }.onFailure { e ->
