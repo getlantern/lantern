@@ -116,7 +116,9 @@ class LanternServiceWindows {
               status.status == VPNStatus.connected ||
               status.status == VPNStatus.disconnected ||
               status.status == VPNStatus.error;
-          if (_pendingStatusOrigin != VPNStatusOrigin.unknown && terminal) {
+          if (_pendingStatusOrigin != VPNStatusOrigin.unknown &&
+              terminal &&
+              _shouldClearPendingOrigin(status.status)) {
             _clearPendingStatusOrigin();
           }
 
@@ -141,6 +143,16 @@ class LanternServiceWindows {
   void _clearPendingStatusOrigin() {
     _pendingStatusOrigin = VPNStatusOrigin.unknown;
     _pendingStatusOriginExpiresAt = DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  bool _shouldClearPendingOrigin(VPNStatus status) {
+    if (_pendingStatusOrigin == VPNStatusOrigin.settingsMutation &&
+        status == VPNStatus.disconnected) {
+      // Settings changes can trigger a reconnect sequence where disconnected
+      // is transient before connected. Keep origin until the sequence settles.
+      return false;
+    }
+    return true;
   }
 
   Stream<List<String>> watchLogs() {
