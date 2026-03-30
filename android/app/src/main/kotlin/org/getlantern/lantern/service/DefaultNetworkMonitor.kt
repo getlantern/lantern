@@ -19,7 +19,7 @@ object DefaultNetworkMonitor {
 
     /**
      * Register a callback that fires whenever the default network changes.
-     * Used by [LanternVpnService] to call [VpnService.setUnderlyingNetworks].
+     * Used by [LanternVpnService] to call [android.net.VpnService.setUnderlyingNetworks].
      */
     fun setNetworkChangeCallback(callback: ((Network?) -> Unit)?) {
         networkChangeCallback = callback
@@ -39,6 +39,7 @@ object DefaultNetworkMonitor {
     }
 
     suspend fun stop() {
+        networkChangeCallback = null
         DefaultNetworkListener.stop(this)
     }
 

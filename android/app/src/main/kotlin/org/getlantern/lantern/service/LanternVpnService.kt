@@ -299,6 +299,11 @@ class LanternVpnService :
             }
         }.onFailure { e ->
             AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
+            // Clear the network change callback to avoid leaking this service
+            // instance through the static DefaultNetworkMonitor singleton.
+            DefaultNetworkMonitor.setNetworkChangeCallback(null)
+            runCatching { runBlocking { DefaultNetworkMonitor.stop() } }
+                .onFailure { stopErr -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", stopErr) }
             VpnStatusManager.postVPNError(
                 errorCode = errorCode,
                 errorMessage = "Error in VPN operation",
@@ -332,10 +337,7 @@ class LanternVpnService :
             }
                 .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
-            runCatching {
-                DefaultNetworkMonitor.setNetworkChangeCallback(null)
-                DefaultNetworkMonitor.stop()
-            }
+            runCatching { DefaultNetworkMonitor.stop() }
                 .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error tearing down VPN tunnel", e)
