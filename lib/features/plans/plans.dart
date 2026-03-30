@@ -381,16 +381,12 @@ class _PlansState extends ConsumerState<Plans> {
         context.hideLoadingDialog();
       },
     );
-    result.fold(
-      (error) {
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-      },
-      (_) {
-        // Flow started successfully — show loading until onSuccess/onError fires
-        context.showLoadingDialog();
-      },
-    );
+    if (!mounted) return;
+    result.fold((error) {
+      context.hideLoadingDialog();
+      context.showSnackBar(error.localizedErrorMessage);
+      appLogger.error('Error subscribing to plan: $error');
+    }, (_) {});
   }
 
   Future<void> processPurchase(PurchaseDetails purchase, Plan plan) async {

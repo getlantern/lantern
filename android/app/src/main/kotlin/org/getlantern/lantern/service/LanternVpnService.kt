@@ -152,17 +152,15 @@ class LanternVpnService :
             AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
             if (!radianceConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-                return
-            }
-            if (!vpnConnected) {
+            } else if (!vpnConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
-                return
+            } else {
+                runCatching { Mobile.stopVPN() }
+                    .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
+                    .onFailure { e ->
+                        AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
+                    }
             }
-            runCatching { Mobile.stopVPN() }
-                .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
-                .onFailure { e ->
-                    AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
-                }
             runCatching {
                 runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
             }.onFailure { e ->
