@@ -23,7 +23,10 @@ Future<void> _tapFinder(
 
   final target = finder.hitTestable();
   if (target.evaluate().isEmpty) {
-    fail('$reason: widget was present but not tappable');
+    fail(
+      '$reason: widget was present but not tappable. '
+      'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
+    );
   }
 
   await tester.tap(target.first);
@@ -128,7 +131,10 @@ Future<void> _returnToServerSelection(
     await tester.pump(const Duration(milliseconds: 250));
   }
 
-  fail('Failed to return to server selection after joining server');
+  fail(
+    'Failed to return to server selection after joining server. '
+    'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
+  );
 }
 
 Future<void> _returnToHome(
@@ -155,13 +161,17 @@ Future<void> _returnToHome(
     await tester.pump(const Duration(milliseconds: 250));
   }
 
-  fail('Failed to return to home screen');
+  fail(
+    'Failed to return to home screen. '
+    'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
+  );
 }
 
 Future<bool> _tapJoinedServerFromServerSelection(
   WidgetTester tester, {
   required Finder serverSelectionScreen,
   required Finder privateServersTab,
+  required Finder joinedServerTileByKey,
   required String configServerName,
   required Duration timeout,
 }) async {
@@ -177,9 +187,9 @@ Future<bool> _tapJoinedServerFromServerSelection(
       await tester.pump(const Duration(milliseconds: 250));
     }
 
-    final serverTile = find.text(configServerName).hitTestable();
-    if (serverTile.evaluate().isNotEmpty) {
-      await tester.tap(serverTile.first);
+    final keyedTile = joinedServerTileByKey.hitTestable();
+    if (keyedTile.evaluate().isNotEmpty) {
+      await tester.tap(keyedTile.first);
       await tester.pump(const Duration(milliseconds: 250));
       return true;
     }
@@ -241,6 +251,9 @@ Future<void> runConfigUrlConnectSmokeHarness(
   final joinPrivateServerSubmit = find.byKey(
     const Key('join_private_server.submit'),
   );
+  final joinedServerTileByKey = find.byKey(
+    Key('server_selection.private_server.$configServerName'),
+  );
 
   await waitForHomeReadyForVpnSmoke(tester, finders: finders);
 
@@ -250,10 +263,16 @@ Future<void> runConfigUrlConnectSmokeHarness(
     vpnStateFinders: vpnStateFinders,
   );
   if (state == VPNStatus.error) {
-    fail('VPN reported error before config URL smoke');
+    fail(
+      'VPN reported error before config URL smoke. '
+      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
+    );
   }
   if (state == VPNStatus.missingPermission) {
-    fail('VPN reported missing permission before config URL smoke');
+    fail(
+      'VPN reported missing permission before config URL smoke. '
+      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
+    );
   }
   if (state == VPNStatus.connected) {
     await tester.tap(finders.vpnToggle);
@@ -268,7 +287,8 @@ Future<void> runConfigUrlConnectSmokeHarness(
 
   if (state != VPNStatus.disconnected) {
     fail(
-      'Expected disconnected state before config URL smoke, got ${state.name}',
+      'Expected disconnected state before config URL smoke, got ${state.name}. '
+      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
     );
   }
 
@@ -317,6 +337,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
     tester,
     serverSelectionScreen: serverSelectionScreen,
     privateServersTab: serverSelectionPrivateTab,
+    joinedServerTileByKey: joinedServerTileByKey,
     configServerName: configServerName,
     timeout: const Duration(seconds: 75),
   );
@@ -333,6 +354,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
       tester,
       serverSelectionScreen: serverSelectionScreen,
       privateServersTab: serverSelectionPrivateTab,
+      joinedServerTileByKey: joinedServerTileByKey,
       configServerName: configServerName,
       timeout: const Duration(seconds: 45),
     );
@@ -341,7 +363,8 @@ Future<void> runConfigUrlConnectSmokeHarness(
   if (!selected) {
     fail(
       'Joined private server "$configServerName" was not visible in server '
-      'selection after submitting Join Server form.',
+      'selection after submitting Join Server form. '
+      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
     );
   }
 

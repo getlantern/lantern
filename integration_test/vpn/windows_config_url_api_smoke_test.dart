@@ -2,15 +2,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/main.dart' as app;
 
-import 'config_url_connect_smoke_harness.dart';
+import 'config_url_api_smoke_harness.dart';
 import 'config_url_test_env.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Windows config URL connect/disconnect smoke', (tester) async {
+  testWidgets('Windows config URL API connect/disconnect smoke', (
+    tester,
+  ) async {
     app.main();
-    await runConfigUrlConnectSmokeHarness(
+    await runConfigUrlApiConnectSmokeHarness(
       tester,
       configUrls: requiredConfigUrls(),
       configServerName: configServerName(),

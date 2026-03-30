@@ -613,6 +613,7 @@ class _PrivateServerLocationListViewState
               final loc = userLocations[index];
               final isSelected = selectedTag == loc.tag;
               return AppTile(
+                tileKey: Key('server_selection.private_server.${loc.tag}'),
                 onPressed: () {
                   if (isSelected) {
                     appLogger.debug('Already selected this server');

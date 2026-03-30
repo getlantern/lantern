@@ -84,28 +84,34 @@ class VpnStateFinders {
     if (state != null) {
       return state;
     }
-
-    final debugKeys =
-        tester.allWidgets
-            .map((w) => w.key)
-            .whereType<Key>()
-            .map((k) => k.toString())
-            .where(
-              (k) =>
-                  k.contains('vpn.') ||
-                  k.contains('onboarding.') ||
-                  k.contains('server_selection.') ||
-                  k.contains('join_private_server.'),
-            )
-            .toSet()
-            .toList()
-          ..sort();
-
-    fail(
-      '$reason. Last observed: ${current()?.name ?? 'unknown'}. '
-      'Visible keyed widgets: $debugKeys',
-    );
+    fail('$reason. ${buildVpnDebugSnapshot(tester, this)}');
   }
+}
+
+String buildVpnDebugSnapshot(
+  WidgetTester tester,
+  VpnStateFinders vpnStateFinders,
+) {
+  final debugKeys = collectVisibleSmokeDebugKeys(tester);
+  return 'Last observed VPN state: ${vpnStateFinders.current()?.name ?? 'unknown'}. '
+      'Visible keyed widgets: $debugKeys';
+}
+
+List<String> collectVisibleSmokeDebugKeys(WidgetTester tester) {
+  return tester.allWidgets
+      .map((w) => w.key)
+      .whereType<Key>()
+      .map((k) => k.toString())
+      .where(
+        (k) =>
+            k.contains('vpn.') ||
+            k.contains('onboarding.') ||
+            k.contains('server_selection.') ||
+            k.contains('join_private_server.'),
+      )
+      .toSet()
+      .toList()
+    ..sort();
 }
 
 Future<void> waitForVpnToggleWithOnboardingHandling(

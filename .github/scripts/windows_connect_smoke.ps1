@@ -4,7 +4,8 @@ param(
   [string]$InstallerPath = "",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
-  [string]$ConfigUrlTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
+  [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
+  [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
   [int]$WaitSeconds = 30,
   [int]$InstallerTimeoutSeconds = 180,
@@ -247,25 +248,43 @@ try {
       $runAttempt = if ([string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ATTEMPT)) { "1" } else { $env:GITHUB_RUN_ATTEMPT }
       $generatedDefaultConfigServerName = "ci-config-url-smoke-$($env:GITHUB_RUN_ID)-$runAttempt"
     }
-    if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SERVER_NAME)) {
-      $env:JOIN_SERVER_CONFIG_SERVER_NAME = $generatedDefaultConfigServerName
+    $configServerBaseName = $env:JOIN_SERVER_CONFIG_SERVER_NAME
+    if ([string]::IsNullOrWhiteSpace($configServerBaseName)) {
+      $configServerBaseName = $generatedDefaultConfigServerName
     }
     if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION)) {
       $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
     }
 
-    $configArgs = @(
+    # Rollout phase: run API smoke and UI smoke with unique names to avoid collisions.
+    $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
+    $configApiArgs = @(
       "test",
-      $ConfigUrlTestPath,
+      $ConfigUrlApiTestPath,
       "-d",
       "windows",
       "--reporter=expanded",
       "--dart-define=DISABLE_SYSTEM_TRAY=true"
     )
-    Write-Step ("Running Windows config URL smoke test: flutter {0}" -f ($configArgs -join " "))
-    & flutter @configArgs
+    Write-Step ("Running Windows config URL API smoke test: flutter {0}" -f ($configApiArgs -join " "))
+    & flutter @configApiArgs
     if ($LASTEXITCODE -ne 0) {
-      throw "Windows config URL smoke test failed with exit code $LASTEXITCODE"
+      throw "Windows config URL API smoke test failed with exit code $LASTEXITCODE"
+    }
+
+    $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-ui"
+    $configUiArgs = @(
+      "test",
+      $ConfigUrlUiTestPath,
+      "-d",
+      "windows",
+      "--reporter=expanded",
+      "--dart-define=DISABLE_SYSTEM_TRAY=true"
+    )
+    Write-Step ("Running Windows config URL UI smoke test: flutter {0}" -f ($configUiArgs -join " "))
+    & flutter @configUiArgs
+    if ($LASTEXITCODE -ne 0) {
+      throw "Windows config URL UI smoke test failed with exit code $LASTEXITCODE"
     }
   }
 }
