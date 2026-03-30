@@ -4,6 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 const defaultConfigServerName = 'ci-config-url-smoke';
 
+List<String> splitConfigUrls(String urls) {
+  return urls
+      .split(RegExp(r'[\s,]+'))
+      .map((value) => value.trim())
+      .where((value) => value.isNotEmpty)
+      .toList();
+}
+
 String requiredConfigUrls() {
   final urls = Platform.environment['JOIN_SERVER_CONFIG_URLS']?.trim() ?? '';
   if (urls.isNotEmpty) {
@@ -26,6 +34,17 @@ String requiredConfigUrls() {
     'JOIN_SERVER_CONFIG_URLS or JOIN_SERVER_CONFIG_URLS_FILE is not set for '
     'config URL smoke test',
   );
+}
+
+String requiredSingleConfigUrl() {
+  final urls = splitConfigUrls(requiredConfigUrls());
+  if (urls.length != 1) {
+    fail(
+      'Config URL smoke tests require exactly one URL, but received '
+      '${urls.length}. Set JOIN_SERVER_CONFIG_URLS to a single URL value.',
+    );
+  }
+  return urls.single;
 }
 
 String configServerName() {

@@ -3,6 +3,7 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
+import 'config_url_test_env.dart';
 import 'vpn_smoke_helpers.dart';
 
 Never _failWithFailure(
@@ -16,14 +17,18 @@ Never _failWithFailure(
 
 Future<void> runConfigUrlApiConnectSmokeHarness(
   WidgetTester tester, {
-  required String configUrls,
+  required String configUrl,
   required String configServerName,
   required bool skipCertVerification,
 }) async {
-  final urls = configUrls.trim();
-  if (urls.isEmpty) {
-    fail('JOIN_SERVER_CONFIG_URLS is required for config URL API smoke test');
+  final urls = splitConfigUrls(configUrl);
+  if (urls.length != 1) {
+    fail(
+      'Config URL API smoke requires exactly one URL, but got '
+      '${urls.length}.',
+    );
   }
+  final url = urls.single;
   if (configServerName.trim().isEmpty) {
     fail(
       'JOIN_SERVER_CONFIG_SERVER_NAME must not be empty for config URL API smoke test',
@@ -84,7 +89,7 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
   }
 
   final addServerResult = await lantern.addServerBasedOnURLs(
-    urls: urls,
+    urls: url,
     skipCertVerification: skipCertVerification,
     serverName: configServerName,
   );

@@ -14,7 +14,7 @@ void main() {
     app.main();
     await runConfigUrlApiConnectSmokeHarness(
       tester,
-      configUrls: requiredConfigUrls(),
+      configUrl: requiredSingleConfigUrl(),
       configServerName: configServerName(),
       skipCertVerification: skipCertVerification(),
     );

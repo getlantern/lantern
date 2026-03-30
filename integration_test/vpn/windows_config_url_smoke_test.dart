@@ -12,7 +12,7 @@ void main() {
     app.main();
     await runConfigUrlConnectSmokeHarness(
       tester,
-      configUrls: requiredConfigUrls(),
+      configUrl: requiredSingleConfigUrl(),
       configServerName: configServerName(),
       skipCertVerification: skipCertVerification(),
     );

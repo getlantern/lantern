@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
 
+import 'config_url_test_env.dart';
 import '../utils/widget_wait_utils.dart';
 import 'vpn_smoke_helpers.dart';
 
@@ -172,7 +173,6 @@ Future<bool> _tapJoinedServerFromServerSelection(
   required Finder serverSelectionScreen,
   required Finder privateServersTab,
   required Finder joinedServerTileByKey,
-  required String configServerName,
   required Duration timeout,
 }) async {
   final end = DateTime.now().add(timeout);
@@ -202,14 +202,17 @@ Future<bool> _tapJoinedServerFromServerSelection(
 
 Future<void> runConfigUrlConnectSmokeHarness(
   WidgetTester tester, {
-  required String configUrls,
+  required String configUrl,
   required String configServerName,
   required bool skipCertVerification,
 }) async {
-  final urls = configUrls.trim();
-  if (urls.isEmpty) {
-    fail('JOIN_SERVER_CONFIG_URLS is required for config URL smoke test');
+  final urls = splitConfigUrls(configUrl);
+  if (urls.length != 1) {
+    fail(
+      'Config URL UI smoke requires exactly one URL, but got ${urls.length}.',
+    );
   }
+  final url = urls.single;
 
   if (configServerName.trim().isEmpty) {
     fail(
@@ -314,7 +317,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
   await _enterTextField(
     tester,
     field: joinPrivateServerUrlsField,
-    value: urls,
+    value: url,
     reason: 'Join private server URL field was not available',
   );
 
@@ -338,7 +341,6 @@ Future<void> runConfigUrlConnectSmokeHarness(
     serverSelectionScreen: serverSelectionScreen,
     privateServersTab: serverSelectionPrivateTab,
     joinedServerTileByKey: joinedServerTileByKey,
-    configServerName: configServerName,
     timeout: const Duration(seconds: 75),
   );
 
@@ -355,7 +357,6 @@ Future<void> runConfigUrlConnectSmokeHarness(
       serverSelectionScreen: serverSelectionScreen,
       privateServersTab: serverSelectionPrivateTab,
       joinedServerTileByKey: joinedServerTileByKey,
-      configServerName: configServerName,
       timeout: const Duration(seconds: 45),
     );
   }
