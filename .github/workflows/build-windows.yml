@@ -22,6 +22,11 @@ on:
         required: false
         type: boolean
         default: false
+      skip_signing:
+        description: "Skip code signing for this run"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -126,6 +131,7 @@ jobs:
           }
 
       - name: Sign embedded binaries
+        if: ${{ !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -168,6 +174,12 @@ jobs:
 
           Write-Host "All binaries signed successfully"
 
+      - name: Signing disabled for this run
+        if: ${{ inputs.skip_signing }}
+        shell: pwsh
+        run: |
+          Write-Host "Skipping embedded and installer signing for this run."
+
       - name: Package installer
         shell: pwsh
         env:
@@ -202,6 +214,7 @@ jobs:
           }
 
       - name: Sign installer
+        if: ${{ !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
