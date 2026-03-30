@@ -284,7 +284,13 @@ class LanternVpnService :
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
+            DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
             DefaultNetworkMonitor.start()
+            // Tell Android which physical network underlies our VPN so that
+            // ConnectivityManager.getAllNetworks() returns it alongside the VPN.
+            // Without this, some Android 10+ devices report only the VPN network,
+            // causing sing-box to see no physical interface and blocking all traffic.
+            updateUnderlyingNetworks()
             connect()
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -326,7 +332,10 @@ class LanternVpnService :
             }
                 .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
-            runCatching { DefaultNetworkMonitor.stop() }
+            runCatching {
+                DefaultNetworkMonitor.setNetworkChangeCallback(null)
+                DefaultNetworkMonitor.stop()
+            }
                 .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error tearing down VPN tunnel", e)
@@ -355,6 +364,23 @@ class LanternVpnService :
                 errorCode = "stop_vpn",
                 errorMessage = "Error stopping VPN service",
             )
+        }
+    }
+
+    /**
+     * Informs the OS which physical networks underlie our VPN. This ensures
+     * ConnectivityManager.getAllNetworks() returns the physical network alongside
+     * the VPN, which sing-box needs to bind outbound connections to the real
+     * interface. Without this, some devices (notably Android 10) only see the VPN
+     * network and sing-box's direct outbound fails with "no available network interface".
+     */
+    private fun updateUnderlyingNetworks() {
+        val network = DefaultNetworkMonitor.defaultNetwork
+        if (network != null) {
+            setUnderlyingNetworks(arrayOf(network))
+        } else {
+            // null tells Android to use the system default
+            setUnderlyingNetworks(null)
         }
     }
 

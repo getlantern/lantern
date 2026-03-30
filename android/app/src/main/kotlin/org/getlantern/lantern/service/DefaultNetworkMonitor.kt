@@ -15,10 +15,20 @@ object DefaultNetworkMonitor {
 
     var defaultNetwork: Network? = null
     private var listener: InterfaceUpdateListener? = null
+    private var networkChangeCallback: ((Network?) -> Unit)? = null
+
+    /**
+     * Register a callback that fires whenever the default network changes.
+     * Used by [LanternVpnService] to call [VpnService.setUnderlyingNetworks].
+     */
+    fun setNetworkChangeCallback(callback: ((Network?) -> Unit)?) {
+        networkChangeCallback = callback
+    }
 
     suspend fun start() {
         DefaultNetworkListener.start(this) {
             defaultNetwork = it
+            networkChangeCallback?.invoke(it)
             checkDefaultInterfaceUpdate(it)
         }
         defaultNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -67,6 +77,7 @@ object DefaultNetworkMonitor {
                 } else {
                     listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
                 }
+                return // successfully notified, don't retry
             }
         } else {
             if (Bugs.fixAndroidStack) {
