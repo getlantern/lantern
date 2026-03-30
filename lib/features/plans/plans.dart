@@ -381,6 +381,7 @@ class _PlansState extends ConsumerState<Plans> {
         context.hideLoadingDialog();
       },
     );
+    if (!mounted) return;
     result.fold((error) {
       context.hideLoadingDialog();
       context.showSnackBar(error.localizedErrorMessage);
