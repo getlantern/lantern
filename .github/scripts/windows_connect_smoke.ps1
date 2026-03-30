@@ -4,6 +4,8 @@ param(
   [string]$InstallerPath = "",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
+  [string]$ConfigUrlTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
+  [string]$DefaultConfigServerName = "ci-config-url-smoke",
   [int]$WaitSeconds = 30,
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
@@ -234,6 +236,37 @@ try {
   & flutter @flutterArgs
   if ($LASTEXITCODE -ne 0) {
     throw "Windows connect smoke test failed with exit code $LASTEXITCODE"
+  }
+
+  $configUrls = $env:JOIN_SERVER_CONFIG_URLS
+  if ([string]::IsNullOrWhiteSpace($configUrls)) {
+    Write-Step "Skipping config URL smoke test (JOIN_SERVER_CONFIG_URLS is not set)."
+  } else {
+    $generatedDefaultConfigServerName = $DefaultConfigServerName
+    if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ID)) {
+      $runAttempt = if ([string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ATTEMPT)) { "1" } else { $env:GITHUB_RUN_ATTEMPT }
+      $generatedDefaultConfigServerName = "ci-config-url-smoke-$($env:GITHUB_RUN_ID)-$runAttempt"
+    }
+    if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SERVER_NAME)) {
+      $env:JOIN_SERVER_CONFIG_SERVER_NAME = $generatedDefaultConfigServerName
+    }
+    if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION)) {
+      $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
+    }
+
+    $configArgs = @(
+      "test",
+      $ConfigUrlTestPath,
+      "-d",
+      "windows",
+      "--reporter=expanded",
+      "--dart-define=DISABLE_SYSTEM_TRAY=true"
+    )
+    Write-Step ("Running Windows config URL smoke test: flutter {0}" -f ($configArgs -join " "))
+    & flutter @configArgs
+    if ($LASTEXITCODE -ne 0) {
+      throw "Windows config URL smoke test failed with exit code $LASTEXITCODE"
+    }
   }
 }
 finally {

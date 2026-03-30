@@ -177,6 +177,9 @@ jobs:
         env:
           LANG: en_US.UTF-8
           LC_ALL: en_US.UTF-8
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
+          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
@@ -194,6 +197,20 @@ jobs:
             echo "Missing /service/stop IPC request in lanternd journal"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
+          fi
+
+          if [[ -n "${JOIN_SERVER_CONFIG_URLS:-}" ]]; then
+            set +x
+            CONFIG_URLS_FILE="$(mktemp)"
+            printf '%s' "$JOIN_SERVER_CONFIG_URLS" > "$CONFIG_URLS_FILE"
+            chmod 600 "$CONFIG_URLS_FILE"
+            set -x
+            CONFIG_SERVER_NAME="${JOIN_SERVER_CONFIG_SERVER_NAME:-ci-config-url-smoke-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}}"
+            CONFIG_SKIP_CERT="${JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION:-true}"
+            sg lantern -c "env PATH=$PATH HOME=$HOME JOIN_SERVER_CONFIG_URLS_FILE=\"$CONFIG_URLS_FILE\" JOIN_SERVER_CONFIG_SERVER_NAME=\"$CONFIG_SERVER_NAME\" JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION=\"$CONFIG_SKIP_CERT\" xvfb-run -a flutter test integration_test/vpn/linux_config_url_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true"
+            rm -f "$CONFIG_URLS_FILE"
+          else
+            echo "Skipping Linux config URL smoke test (JOIN_SERVER_CONFIG_URLS is not set)."
           fi
 
       - name: Upload Linux build
