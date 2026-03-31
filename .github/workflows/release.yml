@@ -456,9 +456,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
+
+      - name: Generate AI release notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          BUILD_TYPE: ${{ env.BUILD_TYPE }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          # Generate AI-powered changelog from commit history
+          ./scripts/ci/generate-release-notes.sh > ai_notes.md 2>ai_notes_err.log || true
+          if [ -s ai_notes.md ]; then
+            echo "AI release notes generated successfully"
+          else
+            echo "AI notes empty, will use format.sh fallback"
+            cat ai_notes_err.log >&2 || true
+          fi
 
       - name: Update release notes
         env:
@@ -466,11 +484,22 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
         run: |
-          # Generate release notes
+          # Generate download links and metadata
           ./scripts/ci/format.sh release-notes > release_notes.md
 
-          # Update the draft release with proper notes
-          gh release edit "$RELEASE_TAG" --notes-file release_notes.md
+          # Prepend AI changelog if available
+          if [ -s ai_notes.md ]; then
+            cat ai_notes.md > final_notes.md
+            echo "" >> final_notes.md
+            echo "---" >> final_notes.md
+            echo "" >> final_notes.md
+            cat release_notes.md >> final_notes.md
+          else
+            cp release_notes.md final_notes.md
+          fi
+
+          # Update the draft release with combined notes
+          gh release edit "$RELEASE_TAG" --notes-file final_notes.md
 
       - name: Upload artifacts to GitHub Release
         env:

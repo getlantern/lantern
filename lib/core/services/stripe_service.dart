@@ -14,9 +14,7 @@ class StripeService {
       } else {
         publishableKey = AppSecrets.stripePublishableKey;
         if (publishableKey.isEmpty) {
-          throw StateError(
-            'Missing STRIPE_PUBLISHABLE_KEY',
-          );
+          throw StateError('Missing STRIPE_PUBLISHABLE_KEY');
         }
       }
       Stripe.publishableKey = publishableKey;
@@ -38,8 +36,9 @@ class StripeService {
     try {
       // Extract all context-dependent values before any async gap
       final brightness = Theme.of(context).brightness;
-      final style =
-          brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+      final style = brightness == Brightness.dark
+          ? ThemeMode.dark
+          : ThemeMode.light;
       final sheetColors = PaymentSheetAppearanceColors(
         background: context.bgSurface,
         componentBackground: context.bgElevated,
@@ -53,6 +52,9 @@ class StripeService {
         error: AppColors.red4,
         placeholderText: context.textDisabled,
       );
+      if (options.clientSecret.isEmpty) {
+        throw Exception('Missing client secret for Stripe payment sheet');
+      }
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
@@ -64,9 +66,7 @@ class StripeService {
       /// before proceeding
       if ((options.publishableKey != null && options.publishableKey!.isEmpty) ||
           Stripe.publishableKey.isEmpty) {
-        throw StateError(
-          'Missing STRIPE_PUBLISHABLE_KEY',
-        );
+        throw StateError('Missing STRIPE_PUBLISHABLE_KEY');
       }
 
       await Stripe.instance.initPaymentSheet(
