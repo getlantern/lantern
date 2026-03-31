@@ -36,11 +36,6 @@ const (
 	DefaultLogLevel                   = "trace"
 
 	plansCacheFile = "plans-cache.json"
-
-	// settingsFileName and settingsFilePathKey mirror unexported constants in the radiance
-	// settings package. They are needed to fix a stale "file_path" after iOS migration.
-	settingsFileName    = "local.json"
-	settingsFilePathKey = "file_path"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.

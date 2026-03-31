@@ -49,7 +49,12 @@ import flutter_local_notifications
     // Set up the file system on a background thread, then start the Go backend.
     // setupRadiance must not run until the file system (including migration) is ready.
     Task {
-      await setupFileSystem()
+      do {
+        try await setupFileSystem()
+      } catch {
+        appLogger.error("File system setup failed, aborting backend startup: \(error.localizedDescription)")
+        return
+      }
       setupRadiance()
     }
 
@@ -90,19 +95,16 @@ import flutter_local_notifications
   }
 
   /// Prepares the file system directories for use.
+  /// Throws if directories cannot be created — callers must not proceed to setupRadiance on failure.
   /// Runs on a background thread to avoid blocking app launch.
-  private func setupFileSystem() async {
-    await Task.detached(priority: .userInitiated) {
+  private func setupFileSystem() async throws {
+    try await Task.detached(priority: .userInitiated) {
       let fm = FileManager.default
-      do {
-        // withIntermediateDirectories:true creates sharedDirectory implicitly.
-        try fm.createDirectory(at: FilePath.logsDirectory, withIntermediateDirectories: true)
-        appLogger.info("Logs directory: \(FilePath.logsDirectory.path)")
-        try fm.createDirectory(at: FilePath.dataDirectory, withIntermediateDirectories: true)
-        appLogger.info("Data directory: \(FilePath.dataDirectory.path)")
-      } catch {
-        appLogger.error("Failed to create directories: \(error.localizedDescription)")
-      }
+      // withIntermediateDirectories:true creates sharedDirectory implicitly.
+      try fm.createDirectory(at: FilePath.logsDirectory, withIntermediateDirectories: true)
+      appLogger.info("Logs directory: \(FilePath.logsDirectory.path)")
+      try fm.createDirectory(at: FilePath.dataDirectory, withIntermediateDirectories: true)
+      appLogger.info("Data directory: \(FilePath.dataDirectory.path)")
       self.migrateDataDirectory()
     }.value
   }
@@ -133,7 +135,11 @@ import flutter_local_notifications
       let src = FilePath.sharedDirectory.appendingPathComponent(fileName)
       let dst = FilePath.dataDirectory.appendingPathComponent(fileName)
       guard fm.fileExists(atPath: src.path) else { continue }
-      guard !fm.fileExists(atPath: dst.path) else { continue }
+      if fm.fileExists(atPath: dst.path) {
+        // dst already exists — remove the legacy src so the sentinel can clear
+        try? fm.removeItem(at: src)
+        continue
+      }
       do {
         try fm.moveItem(at: src, to: dst)
         appLogger.info("Migrated \(fileName) to data directory")
