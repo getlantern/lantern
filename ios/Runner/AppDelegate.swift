@@ -110,16 +110,9 @@ import flutter_local_notifications
   }
 
   /// Moves legacy data files from the App Group root into the data subdirectory.
-  /// Uses local.json as a sentinel — if it's no longer at the root, migration is done.
+  /// Checks whether any legacy file still exists at the root — if none do, migration is done.
   private func migrateDataDirectory() {
     let fm = FileManager.default
-    let sentinel = FilePath.sharedDirectory.appendingPathComponent("local.json")
-    guard fm.fileExists(atPath: sentinel.path) else {
-      appLogger.info("Data directory migration: already migrated or new install, skipping")
-      return
-    }
-    appLogger.info("Data directory migration: starting")
-
     let legacyFiles = [
       "local.json",
       "config.json",
@@ -131,13 +124,23 @@ import flutter_local_notifications
       "apps_cache.json",
       "url_test_history.json",
     ]
+    guard legacyFiles.contains(where: { fm.fileExists(atPath: FilePath.sharedDirectory.appendingPathComponent($0).path) }) else {
+      appLogger.info("Data directory migration: already migrated or new install, skipping")
+      return
+    }
+    appLogger.info("Data directory migration: starting")
+
     for fileName in legacyFiles {
       let src = FilePath.sharedDirectory.appendingPathComponent(fileName)
       let dst = FilePath.dataDirectory.appendingPathComponent(fileName)
       guard fm.fileExists(atPath: src.path) else { continue }
       if fm.fileExists(atPath: dst.path) {
         // dst already exists — remove the legacy src so the sentinel can clear
-        try? fm.removeItem(at: src)
+        do {
+          try fm.removeItem(at: src)
+        } catch {
+          appLogger.error("Data directory migration: failed to remove legacy \(fileName): \(error.localizedDescription)")
+        }
         continue
       }
       do {
