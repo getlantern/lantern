@@ -36,6 +36,11 @@ const (
 	DefaultLogLevel                   = "trace"
 
 	plansCacheFile = "plans-cache.json"
+
+	// settingsFileName and settingsFilePathKey mirror unexported constants in the radiance
+	// settings package. They are needed to fix a stale "file_path" after iOS migration.
+	settingsFileName    = "local.json"
+	settingsFilePathKey = "file_path"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -198,6 +203,21 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
 	}
 	slog.Debug("Paths:", "logs", settings.GetString(settings.LogPathKey), "data", settings.GetString(settings.DataPathKey))
+
+	// Fix stale "file_path" in local.json after iOS migration from AppGroup root to data/.
+	// The radiance settings watcher reads "file_path" from local.json to determine which
+	// directory to watch. If it still points to the AppGroup root, fsnotify fails to lstat
+	// .com.apple.mobile_container_manager.metadata.plist (operation not permitted in the
+	// Network Extension sandbox), causing the tunnel to fail to start.
+	// This runs in non-read-only (main app) context so settings.Set persists the fix to disk
+	// before the tunnel process starts.
+	expectedSettingsPath := filepath.Join(opts.DataDir, "local.json")
+	if current := settings.GetString("file_path"); current != "" && current != expectedSettingsPath {
+		slog.Info("Fixing stale file_path in settings", "from", current, "to", expectedSettingsPath)
+		if err := settings.Set("file_path", expectedSettingsPath); err != nil {
+			slog.Warn("Failed to fix file_path in settings", "error", err)
+		}
+	}
 
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {

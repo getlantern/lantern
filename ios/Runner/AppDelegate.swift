@@ -46,11 +46,12 @@ import flutter_local_notifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
 
-    // Initialize directories and working paths (no engine / window needed).
-    setupFileSystem()
-
-    // Start the Go backend.
-    setupRadiance()
+    // Set up the file system on a background thread, then start the Go backend.
+    // setupRadiance must not run until the file system (including migration) is ready.
+    Task {
+      await setupFileSystem()
+      setupRadiance()
+    }
 
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
@@ -89,27 +90,57 @@ import flutter_local_notifications
   }
 
   /// Prepares the file system directories for use.
-  private func setupFileSystem() {
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.sharedDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create directory: \(error.localizedDescription)")
-    }
+  /// Runs on a background thread to avoid blocking app launch.
+  private func setupFileSystem() async {
+    await Task.detached(priority: .userInitiated) {
+      let fm = FileManager.default
+      do {
+        // withIntermediateDirectories:true creates sharedDirectory implicitly.
+        try fm.createDirectory(at: FilePath.logsDirectory, withIntermediateDirectories: true)
+        appLogger.info("Logs directory: \(FilePath.logsDirectory.path)")
+        try fm.createDirectory(at: FilePath.dataDirectory, withIntermediateDirectories: true)
+        appLogger.info("Data directory: \(FilePath.dataDirectory.path)")
+      } catch {
+        appLogger.error("Failed to create directories: \(error.localizedDescription)")
+      }
+      self.migrateDataDirectory()
+    }.value
+  }
 
-    guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
-      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+  /// Moves legacy data files from the App Group root into the data subdirectory.
+  /// Uses local.json as a sentinel — if it's no longer at the root, migration is done.
+  private func migrateDataDirectory() {
+    let fm = FileManager.default
+    let sentinel = FilePath.sharedDirectory.appendingPathComponent("local.json")
+    guard fm.fileExists(atPath: sentinel.path) else {
+      appLogger.info("Data directory migration: already migrated or new install, skipping")
       return
     }
-    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
+    appLogger.info("Data directory migration: starting")
+
+    let legacyFiles = [
+      "local.json",
+      "config.json",
+      "servers.json",
+      "wg.key",
+      ".salt",
+      "fronted_cache.json",
+      "dnstt.yml.gz",
+      "apps_cache.json",
+      "url_test_history.json",
+    ]
+    for fileName in legacyFiles {
+      let src = FilePath.sharedDirectory.appendingPathComponent(fileName)
+      let dst = FilePath.dataDirectory.appendingPathComponent(fileName)
+      guard fm.fileExists(atPath: src.path) else { continue }
+      guard !fm.fileExists(atPath: dst.path) else { continue }
+      do {
+        try fm.moveItem(at: src, to: dst)
+        appLogger.info("Migrated \(fileName) to data directory")
+      } catch {
+        appLogger.error("Failed to migrate \(fileName): \(error.localizedDescription)")
+      }
+    }
   }
 
   /// Configures the Flutter local notifications plugin with the background isolate.
@@ -128,10 +159,8 @@ import flutter_local_notifications
 
   /// Calls API handler setup.
   private func setupRadiance() {
-    appLogger.info("absoluteString Paths... \(FilePath.sharedDirectory.absoluteString)")
-    appLogger.info("relativePath Paths... \(FilePath.sharedDirectory.relativePath)")
     Task {
-      let baseDir = FilePath.sharedDirectory.relativePath
+      let baseDir = FilePath.dataDirectory.relativePath
       let opts = UtilsOpts()
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.relativePath
