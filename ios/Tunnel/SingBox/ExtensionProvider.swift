@@ -99,7 +99,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   func opts() -> UtilsOpts {
     let opts = UtilsOpts()
-    opts.dataDir = FilePath.sharedDirectory.relativePath
+    opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = DeviceIdentifier.getUDID()
     opts.logLevel = "trace"

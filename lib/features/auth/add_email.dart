@@ -132,6 +132,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   SizedBox(height: defaultSize),
                   OAuthLogin(
                     methodType: SignUpMethodType.apple,
+                    foregroundColor: context.textPrimary,
                     onResult: (token) =>
                         onOAuthResult(token, SignUpMethodType.apple),
                   ),
