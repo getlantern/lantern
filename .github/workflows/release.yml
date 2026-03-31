@@ -456,6 +456,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4

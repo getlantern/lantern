@@ -17,6 +17,15 @@ RELEASE_TAG="${RELEASE_TAG:?RELEASE_TAG required}"
 BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
 GITHUB_SHA="${GITHUB_SHA:?GITHUB_SHA required}"
 
+# Verify jq is available (needed for JSON construction and response parsing)
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Warning: jq not found, generating basic changelog" >&2
+  echo "## Changes"
+  echo ""
+  git log --oneline -50 | while read -r line; do echo "- $line"; done
+  exit 0
+fi
+
 # Find the previous release tag to determine the commit range
 find_previous_tag() {
   local current_tag="$1"
@@ -24,16 +33,16 @@ find_previous_tag() {
 
   case "$build_type" in
     production)
-      # Previous production tag (no suffix)
-      git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${current_tag}$" | head -1
+      # Previous production tag, optionally with platform suffix
+      git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-(windows|macos|linux|android|ios))?$' | grep -Fvx "$current_tag" | head -1
       ;;
     beta)
-      # Previous beta or production tag
-      git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-beta)?$' | grep -v "^${current_tag}$" | head -1
+      # Previous beta or production tag, including optional platform suffix
+      git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-beta[0-9A-Za-z._-]*)?(-(windows|macos|linux|android|ios))?$' | grep -Fvx "$current_tag" | head -1
       ;;
     nightly)
       # Previous nightly, beta, or production tag
-      git tag --sort=-version:refname | grep -v "^${current_tag}$" | head -1
+      git tag --sort=-version:refname | grep -Fvx "$current_tag" | head -1
       ;;
   esac
 }
@@ -42,16 +51,10 @@ PREV_TAG=$(find_previous_tag "$RELEASE_TAG" "$BUILD_TYPE")
 if [[ -z "$PREV_TAG" ]]; then
   echo "Warning: No previous tag found, using last 50 commits" >&2
   GIT_LOG=$(git log --oneline -50)
-  COMMIT_RANGE="last 50 commits"
 else
   GIT_LOG=$(git log --oneline "${PREV_TAG}..${GITHUB_SHA}")
-  COMMIT_RANGE="${PREV_TAG}..${RELEASE_TAG}"
 fi
 
-# Get PR titles for richer context (merge commits reference PRs)
-PR_LIST=$(echo "$GIT_LOG" | grep -oE '#[0-9]+' | sort -u | head -20 || true)
-
-# Build the commit summary
 COMMIT_COUNT=$(echo "$GIT_LOG" | wc -l | tr -d ' ')
 
 # Collect dependency changes from sub-repos (radiance, lantern-box, etc.)
