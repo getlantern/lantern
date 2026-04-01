@@ -660,7 +660,90 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<bool> checkVpnConflict() async => false;
+  Future<bool> checkVpnConflict() async {
+    if (!Platform.isWindows) return false;
+    return _isAnotherVpnActiveWindows();
+  }
+
+  /// Checks whether a non-Lantern VPN adapter is currently up on Windows.
+  ///
+  /// Uses [GetAdaptersAddresses] from iphlpapi.dll to walk every network
+  /// adapter and looks for an operationally-up interface whose type is
+  /// either [IF_TYPE_PPP] (23 — classic dial-up / VPN) or
+  /// [IF_TYPE_TUNNEL] (131 — WireGuard, OpenVPN TAP, etc.).
+  ///
+  /// Struct offsets assume 64-bit Windows (IP_ADAPTER_ADDRESSES_LH):
+  ///   +8   Next pointer
+  ///   +100 IfType  (ULONG)
+  ///   +104 OperStatus (IF_OPER_STATUS)
+  bool _isAnotherVpnActiveWindows() {
+    const int afUnspec = 0;
+    const int gaaFlagSkipAnycast = 0x0002;
+    const int gaaFlagSkipMulticast = 0x0004;
+    const int gaaFlagSkipDnsServer = 0x0008;
+    const int errorBufferOverflow = 111;
+    const int ifTypePpp = 23;
+    const int ifTypeTunnel = 131;
+    const int ifOperStatusUp = 1;
+    const int offsetNext = 8;
+    const int offsetIfType = 100;
+    const int offsetOperStatus = 104;
+
+    final flags =
+        gaaFlagSkipAnycast | gaaFlagSkipMulticast | gaaFlagSkipDnsServer;
+
+    try {
+      final iphlpapi = DynamicLibrary.open('iphlpapi.dll');
+      final getAdaptersAddresses = iphlpapi.lookupFunction<
+          Uint32 Function(Uint32, Uint32, Pointer<Void>, Pointer<Uint8>,
+              Pointer<Uint32>),
+          int Function(int, int, Pointer<Void>, Pointer<Uint8>,
+              Pointer<Uint32>)>('GetAdaptersAddresses');
+
+      final pSize = malloc<Uint32>();
+      pSize.value = 15000;
+      var pBuf = malloc<Uint8>(pSize.value);
+
+      try {
+        var ret = getAdaptersAddresses(
+            afUnspec, flags, nullptr, pBuf, pSize);
+
+        if (ret == errorBufferOverflow) {
+          malloc.free(pBuf);
+          pBuf = malloc<Uint8>(pSize.value);
+          ret = getAdaptersAddresses(afUnspec, flags, nullptr, pBuf, pSize);
+        }
+
+        if (ret != 0) return false;
+
+        var current = pBuf;
+        while (current.address != 0) {
+          final ifType =
+              (current + offsetIfType).cast<Uint32>().value;
+          final operStatus =
+              (current + offsetOperStatus).cast<Uint32>().value;
+
+          if ((ifType == ifTypePpp || ifType == ifTypeTunnel) &&
+              operStatus == ifOperStatusUp) {
+            return true;
+          }
+
+          final nextAddr =
+              (current + offsetNext).cast<IntPtr>().value;
+          if (nextAddr == 0) break;
+          current = Pointer<Uint8>.fromAddress(nextAddr);
+        }
+
+        return false;
+      } finally {
+        malloc.free(pBuf);
+        malloc.free(pSize);
+      }
+    } catch (e, st) {
+      appLogger.error('Windows VPN conflict check failed', e, st);
+      return false;
+    }
+  }
 
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
