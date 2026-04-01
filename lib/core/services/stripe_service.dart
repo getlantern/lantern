@@ -52,8 +52,10 @@ class StripeService {
         error: AppColors.red4,
         placeholderText: context.textDisabled,
       );
-      if (options.clientSecret.isEmpty) {
-        throw Exception('Missing client secret for Stripe payment sheet');
+      if (options.clientSecret.isEmpty && options.pendingSetupIntent.isEmpty) {
+        throw Exception(
+          'Please try again after some time. If the issue persists, contact support.',
+        );
       }
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
@@ -71,7 +73,12 @@ class StripeService {
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: options.clientSecret,
+          paymentIntentClientSecret: options.clientSecret.isEmpty
+              ? null
+              : options.clientSecret,
+          setupIntentClientSecret: options.pendingSetupIntent.isEmpty
+              ? null
+              : options.pendingSetupIntent,
           customerId: options.customerId,
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
@@ -100,12 +107,14 @@ class StripeService {
 class StripeOptions {
   final String? publishableKey;
   final String clientSecret;
+  final String pendingSetupIntent;
   final String customerId;
   final String subscriptionId;
 
   StripeOptions({
     this.publishableKey,
     required this.clientSecret,
+    required this.pendingSetupIntent,
     required this.customerId,
     required this.subscriptionId,
   });
@@ -114,6 +123,7 @@ class StripeOptions {
     return StripeOptions(
       publishableKey: json['publishableKey'],
       clientSecret: json['clientSecret'],
+      pendingSetupIntent: json['pending_secret'],
       customerId: json['customerId'],
       subscriptionId: json['subscriptionId'],
     );
