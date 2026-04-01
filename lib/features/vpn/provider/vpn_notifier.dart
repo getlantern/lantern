@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -91,6 +93,13 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
+
+    /// Android check
+    if (Platform.isAndroid) {
+      final hasConflict = await lantern.checkVpnConflict();
+      if (hasConflict) return Left(VpnConflictFailure());
+    }
+
     final serverLocation = ref.read(serverLocationProvider);
 
     final type = serverLocation.serverType.toServerLocationType;
@@ -118,6 +127,14 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag,
   ) async {
+    /// Android check
+    if (PlatformUtils.isAndroid) {
+      final hasConflict = await ref
+          .read(lanternServiceProvider)
+          .checkVpnConflict();
+      if (hasConflict) return Left(VpnConflictFailure());
+    }
+
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)

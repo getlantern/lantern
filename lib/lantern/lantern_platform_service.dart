@@ -251,6 +251,19 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<bool> checkVpnConflict() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      final result =
+          await _methodChannel.invokeMethod<bool>('checkVpnConflict');
+      return result ?? false;
+    } catch (e, stackTrace) {
+      appLogger.error('checkVpnConflict failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
     try {
       await _methodChannel

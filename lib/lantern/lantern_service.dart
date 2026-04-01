@@ -793,4 +793,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.diagnosticLogFiles();
   }
+
+  @override
+  Future<bool> checkVpnConflict() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.checkVpnConflict();
+    }
+    return _platformService.checkVpnConflict();
+  }
 }

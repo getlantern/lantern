@@ -1510,3 +1510,13 @@ msgstr "Renew"
 
 
 
+
+
+msgid "vpn_conflict_title"
+msgstr "VPN conflict detected"
+
+msgid "vpn_conflict_body"
+msgstr "Another VPN is running on your device. Lantern works best as your only active VPN. For the best results, please disconnect it before using Lantern."
+
+msgid "vpn_conflict_dismiss"
+msgstr "Got it"
