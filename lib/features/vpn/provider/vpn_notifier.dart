@@ -127,11 +127,12 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag,
   ) async {
-    /// Android check
-    if (PlatformUtils.isAndroid) {
-      final hasConflict = await ref
-          .read(lanternServiceProvider)
-          .checkVpnConflict();
+    // On Android, check for a conflicting VPN before initiating a new connection.
+    // The native side guards against false positives by returning false when
+    // Lantern's own VPN is already active (e.g. server switching while connected).
+    if (Platform.isAndroid) {
+      final hasConflict =
+          await ref.read(lanternServiceProvider).checkVpnConflict();
       if (hasConflict) return Left(VpnConflictFailure());
     }
 

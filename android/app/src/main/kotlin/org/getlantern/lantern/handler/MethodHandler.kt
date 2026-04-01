@@ -1149,6 +1149,10 @@ class MethodHandler : FlutterPlugin,
     }
 
     private fun isAnotherVpnActive(context: Context): Boolean {
+        // If Lantern's own VPN is already connected, there is no external conflict.
+        // This avoids false positives when this method is called while Lantern is active.
+        if (Mobile.isVPNConnected()) return false
+
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in cm.allNetworks) {
             val capabilities = cm.getNetworkCapabilities(network) ?: continue
