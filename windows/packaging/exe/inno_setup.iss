@@ -321,17 +321,25 @@ const
   ServicePollIntervalMs = 250;
   UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
 
+function IsAbsoluteWindowsPath(const Path: String): Boolean;
+begin
+  Result :=
+    ((Length(Path) >= 3) and (Path[2] = ':') and (Path[3] = '\')) or
+    ((Length(Path) >= 2) and (Copy(Path, 1, 2) = '\\'));
+end;
+
 function ExtractExecutablePath(const CommandLine: String): String;
 var
   S: String;
+  Candidate: String;
   LowerS: String;
   ExePos: Integer;
   EndQuote: Integer;
   FirstSpace: Integer;
 begin
+  Result := '';
   S := Trim(CommandLine);
   if S = '' then begin
-    Result := '';
     exit;
   end;
 
@@ -343,23 +351,35 @@ begin
     end else begin
       Result := S;
     end;
+    if not IsAbsoluteWindowsPath(Result) then begin
+      Result := '';
+    end;
     exit;
   end;
 
   // UninstallString can be unquoted even when the path contains spaces.
-  // Prefer extracting through ".exe" to avoid truncating to "C:\Program".
+  // Extract through ".exe" and only trust absolute paths.
   LowerS := LowerCase(S);
   ExePos := Pos('.exe', LowerS);
   if ExePos > 0 then begin
-    Result := Copy(S, 1, ExePos + 3);
-    exit;
+    if (Length(S) = ExePos + 3) or (S[ExePos + 4] = ' ') then begin
+      Candidate := Copy(S, 1, ExePos + 3);
+      if IsAbsoluteWindowsPath(Candidate) then begin
+        Result := Candidate;
+        exit;
+      end;
+    end;
   end;
 
   FirstSpace := Pos(' ', S);
   if FirstSpace > 0 then begin
-    Result := Copy(S, 1, FirstSpace - 1);
+    Candidate := Copy(S, 1, FirstSpace - 1);
   end else begin
-    Result := S;
+    Candidate := S;
+  end;
+
+  if IsAbsoluteWindowsPath(Candidate) then begin
+    Result := Candidate;
   end;
 end;
 
