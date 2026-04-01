@@ -142,8 +142,10 @@ jobs:
           )
 
           # Discover all EXEs and DLLs, excluding third-party signed binaries
-          $binaries = Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
-            Where-Object { $thirdParty -notcontains $_.Name }
+          $binaries = @(
+            Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
+              Where-Object { $thirdParty -notcontains $_.Name }
+          )
 
           if ($binaries.Count -eq 0) {
             Write-Error "No binaries found to sign"
@@ -181,8 +183,36 @@ jobs:
 
           # Extract signed binaries back over originals
           Expand-Archive -Path $zipPath -DestinationPath $buildDir -Force
+
+          # Verify each target binary has a valid Authenticode signature
+          $failedSigs = @()
+          foreach ($bin in $binaries) {
+            if (-not (Test-Path $bin.FullName)) {
+              Write-Error ("Signed binary not found after extraction: {0}" -f $bin.FullName)
+              $failedSigs += $bin.FullName
+              continue
+            }
+
+            $sig = Get-AuthenticodeSignature -FilePath $bin.FullName
+            if ($sig.Status -ne 'Valid') {
+              Write-Error ("Signature verification failed for {0}: Status={1}" -f $bin.FullName, $sig.Status)
+              $failedSigs += $bin.FullName
+            }
+          }
+
+          if ($failedSigs.Count -gt 0) {
+            Write-Error ("One or more binaries failed Authenticode verification after signing:`n{0}" -f ($failedSigs -join "`n"))
+            exit 1
+          }
+
           Remove-Item -Recurse -Force $stage, $zipPath
           Write-Host "All binaries signed successfully"
+
+      - name: Signing disabled for this run
+        if: ${{ inputs.skip_signing }}
+        shell: pwsh
+        run: |
+          Write-Host "Skipping embedded and installer signing for this run."
 
       - name: Package installer
         shell: pwsh

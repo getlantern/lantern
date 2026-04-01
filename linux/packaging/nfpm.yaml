@@ -12,9 +12,10 @@ priority: optional
 
 contents:
   # Flutter release bundle
-  - src: build/linux/x64/release/bundle/
+  - src: "${LINUX_BUNDLE_SRC}"
     dst: /usr/lib/lantern
     type: tree
+    expand: true
 
   # lanternd service binary
   - src: "${LANTERND_SRC}"

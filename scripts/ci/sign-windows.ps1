@@ -82,6 +82,13 @@ if (-not (Test-Path $FilePath)) {
 }
 
 $fileName = Split-Path $FilePath -Leaf
+$ext = [System.IO.Path]::GetExtension($FilePath).ToLowerInvariant()
+$archiveExtensions = @('.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.bz2')
+
+if (($archiveExtensions -contains $ext) -and [string]::IsNullOrWhiteSpace($ArtifactConfigurationSlug)) {
+    Write-Error "ArtifactConfigurationSlug is required when signing archive artifacts ($ext): $fileName"
+}
+
 Write-Host "=== SignPath Signing ==="
 Write-Host "File: $fileName"
 Write-Host "Policy: $SigningPolicy"
@@ -154,7 +161,6 @@ Move-Item -Force $tempFile $FilePath
 Write-Host "Downloaded signed artifact to: $FilePath"
 
 # Verify signature (only for PE files, not archives)
-$ext = [System.IO.Path]::GetExtension($FilePath).ToLower()
 if ($ext -in @('.exe', '.dll', '.sys', '.msi')) {
     $sig = Get-AuthenticodeSignature -FilePath $FilePath
     Write-Host "=== Signature Verification ==="

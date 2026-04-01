@@ -11,7 +11,6 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
-import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
@@ -42,10 +41,7 @@ class _PlansState extends ConsumerState<Plans> {
       appBar: CustomAppBar(
         title: SizedBox(
           height: 20.h,
-          child: LanternLogo(
-            color: context.textPrimary,
-            isPro: true,
-          ),
+          child: LanternLogo(color: context.textPrimary, isPro: true),
         ),
         backgroundColor: context.bgElevated,
         leading: IconButton(
@@ -55,17 +51,11 @@ class _PlansState extends ConsumerState<Plans> {
           },
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: onMenuTap,
-          ),
+          IconButton(icon: Icon(Icons.more_vert), onPressed: onMenuTap),
         ],
       ),
       title: "",
-      body: SafeArea(
-        bottom: !PlatformUtils.isIOS,
-        child: _buildBody(),
-      ),
+      body: SafeArea(bottom: !PlatformUtils.isIOS, child: _buildBody()),
     );
   }
 
@@ -77,8 +67,9 @@ class _PlansState extends ConsumerState<Plans> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
-            height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.39,
+            height: context.isSmallDevice
+                ? size.height * 0.4
+                : size.height * 0.39,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -88,23 +79,23 @@ class _PlansState extends ConsumerState<Plans> {
           child: Container(
             color: context.bgSurface,
             padding: EdgeInsets.symmetric(
-                horizontal: context.isSmallDevice ? 0 : defaultSize),
+              horizontal: context.isSmallDevice ? 0 : defaultSize,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 SizedBox(height: 10),
                 Padding(
-                  padding:
-                      EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
+                  padding: EdgeInsets.only(
+                    left: context.isSmallDevice ? 16 : 0,
+                  ),
                   child: plansState.when(
                     data: (data) {
                       return PlansListView(data: data);
                     },
                     loading: () {
-                      return Center(
-                        child: LoadingIndicator(),
-                      );
+                      return Center(child: LoadingIndicator());
                     },
                     error: (error, stackTrace) {
                       return Column(
@@ -127,7 +118,8 @@ class _PlansState extends ConsumerState<Plans> {
                 SizedBox(height: 24),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: context.isSmallDevice ? defaultSize : 0),
+                    horizontal: context.isSmallDevice ? defaultSize : 0,
+                  ),
                   child: PrimaryButton(
                     label: 'get_lantern_pro'.i18n,
                     isTaller: true,
@@ -155,22 +147,21 @@ class _PlansState extends ConsumerState<Plans> {
                           textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
-                                AppUrls.privacyPolicy);
+                              AppUrls.privacyPolicy,
+                            );
                           },
                         ),
-                        VerticalDivider(
-                          indent: 10,
-                          endIndent: 10,
-                        ),
+                        VerticalDivider(indent: 10, endIndent: 10),
                         AppTextButton(
                           label: 'terms_of_service'.i18n,
                           fontSize: 12,
                           textColor: context.textTertiary,
                           onPressed: () {
                             UrlUtils.openWithSystemBrowser(
-                                AppUrls.termsOfService);
+                              AppUrls.termsOfService,
+                            );
                           },
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -211,8 +202,9 @@ class _PlansState extends ConsumerState<Plans> {
               icon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
               onPressed: () {
-                appRouter
-                    .popAndPush(AddEmail(authFlow: AuthFlow.lanternProLicense));
+                appRouter.popAndPush(
+                  AddEmail(authFlow: AuthFlow.lanternProLicense),
+                );
               },
             ),
             DividerSpace(),
@@ -222,7 +214,7 @@ class _PlansState extends ConsumerState<Plans> {
               onPressed: () {
                 appRouter.popAndPush(SignInEmail());
               },
-            )
+            ),
           ],
         );
       },
@@ -239,20 +231,20 @@ class _PlansState extends ConsumerState<Plans> {
           SizedBox(height: 24),
           AppImage(path: AppImagePaths.star, height: 48),
           SizedBox(height: defaultSize),
-          Text('referral_code'.i18n,
-              style: textTheme.headlineSmall!.copyWith(
-                color: context.textPrimary,
-              )),
+          Text(
+            'referral_code'.i18n,
+            style: textTheme.headlineSmall!.copyWith(
+              color: context.textPrimary,
+            ),
+          ),
           SizedBox(height: 24),
           AppTextField(
             label: 'referral_code'.i18n,
             controller: referralCodeController,
-            inputFormatters: [
-              UpperCaseTextFormatter(),
-            ],
+            inputFormatters: [UpperCaseTextFormatter()],
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
-          )
+          ),
         ],
       ),
       action: [
@@ -267,8 +259,9 @@ class _PlansState extends ConsumerState<Plans> {
         AppTextButton(
           label: 'continue'.i18n,
           onPressed: () => onReferralCodeContinue(
-              referralCodeController.text.toUpperCase().trim()),
-        )
+            referralCodeController.text.toUpperCase().trim(),
+          ),
+        ),
       ],
     );
   }
@@ -280,8 +273,9 @@ class _PlansState extends ConsumerState<Plans> {
     }
     appRouter.pop();
     context.showLoadingDialog();
-    final result =
-        await ref.read(referralProvider.notifier).applyReferralCode(code);
+    final result = await ref
+        .read(referralProvider.notifier)
+        .applyReferralCode(code);
 
     result.fold(
       (error) {
@@ -291,9 +285,10 @@ class _PlansState extends ConsumerState<Plans> {
         appLogger.error('Error applying referral code: $error');
         context.hideLoadingDialog();
         AppDialog.errorDialog(
-            context: context,
-            title: 'error'.i18n,
-            content: error.localizedErrorMessage);
+          context: context,
+          title: 'error'.i18n,
+          content: error.localizedErrorMessage,
+        );
       },
       (success) {
         if (!mounted) {
@@ -309,7 +304,19 @@ class _PlansState extends ConsumerState<Plans> {
   void onGetLanternProTap() {
     final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     appLogger.info(
-        'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}');
+      'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}',
+    );
+
+    final appSetting = ref.read(appSettingProvider);
+    final isPro = ref.read(isUserProProvider);
+
+    /// Pro user coming to renew — send directly to payment screen by platform
+    if (appSetting.userLoggedIn && isPro) {
+      appLogger.info('Pro user renewal flow, routing by platform');
+      _renewalFlowByPlatform(userSelectedPlan);
+      return;
+    }
+
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {
@@ -330,6 +337,37 @@ class _PlansState extends ConsumerState<Plans> {
     }
   }
 
+  void _renewalFlowByPlatform(Plan plan) {
+    switch (Platform.operatingSystem) {
+      case 'ios':
+        appLogger.info('Pro renewal: starting in-app purchase flow for iOS');
+        startInAppPurchaseFlow(plan);
+        break;
+      case 'android':
+        if (isStoreVersion()) {
+          appLogger.info(
+            'Pro renewal: starting in-app purchase flow for Android store',
+          );
+          startInAppPurchaseFlow(plan);
+          return;
+        }
+        appLogger.info('Pro renewal: routing to payment method screen');
+        _pushRenewalPaymentScreen();
+        break;
+      default:
+        appLogger.info('Pro renewal: routing to payment method screen');
+        _pushRenewalPaymentScreen();
+    }
+  }
+
+  void _pushRenewalPaymentScreen() {
+    final user = ref.read(homeProvider).value;
+    final email = user!.legacyUserData.email;
+    appRouter.push(
+      ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription),
+    );
+  }
+
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
     final payments = ref.read(paymentProvider.notifier);
@@ -337,25 +375,18 @@ class _PlansState extends ConsumerState<Plans> {
       planId: plan.id,
       onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
-        if (!mounted) {
-          return;
-        }
-
-        ///Error while subscribing
+        if (!mounted) return;
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
     );
-    // Check if got any error while starting subscription flow
-    result.fold(
-      (error) {
-        context.hideLoadingDialog();
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-      },
-      (_) {},
-    );
+    if (!mounted) return;
+    result.fold((error) {
+      context.hideLoadingDialog();
+      context.showSnackBar(error.localizedErrorMessage);
+      appLogger.error('Error subscribing to plan: $error');
+    }, (_) {});
   }
 
   Future<void> processPurchase(PurchaseDetails purchase, Plan plan) async {
@@ -375,25 +406,19 @@ class _PlansState extends ConsumerState<Plans> {
       userRenewalFlow();
       return;
     }
-    await signUpFlow();
+    signUpFlow();
   }
 
-  Future<void> signUpFlow() async {
+  void signUpFlow() {
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
-      /// Check if user is pro or not
-      final isPro = ref.read(isUserProProvider);
-      if (isPro) {
-        appLogger.info('User is already Pro, sending to Pro flow');
-        useProFlow();
-        return;
-      }
       final user = ref.read(homeProvider).value;
       final email = user!.legacyUserData.email;
 
-      /// User is logged but not pro, this can be because user has created account but did not complete purchase flow or user has created account and their plan is expired
-      appRouter.push(ChoosePaymentMethod(
-          email: email, authFlow: AuthFlow.renewSubscription));
+      /// User is logged in but not pro — account created but purchase not completed or plan expired
+      appRouter.push(
+        ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription),
+      );
       return;
     }
     appLogger.debug('Sending user to AddEmail screen for sign up');
@@ -401,7 +426,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Future<void> userRenewalFlow() async {
-    appLogger.info('User account is expired/free, sending to Pro flow');
+    appLogger.info('Purchase successful, verifying account status with server');
     context.showLoadingDialog();
     appLogger.debug("Checking user account status");
     final isPro = await checkUserAccountStatus(ref, context);
@@ -417,7 +442,8 @@ class _PlansState extends ConsumerState<Plans> {
       return;
     } else {
       appLogger.debug(
-          "User has made purchase is not reflected in account status, showing Lantern Pro dialog just to avoid blocking flow");
+        "User has made purchase is not reflected in account status, showing Lantern Pro dialog just to avoid blocking flow",
+      );
       AppDialog.dialog(
         context: context,
         title: "payment".i18n,
@@ -429,57 +455,5 @@ class _PlansState extends ConsumerState<Plans> {
         },
       );
     }
-  }
-
-  //This will be used for user has signed and there plan is expired
-  Future<void> useProFlow() async {
-    if (!mounted) {
-      return;
-    }
-    context.showLoadingDialog();
-    appLogger.debug("Checking user account status");
-    final isPro = await checkUserAccountStatus(ref, context);
-    context.hideLoadingDialog();
-    if (isPro) {
-      /// User should not reach here if they are pro, but just in case show them the dialog
-      /// This just to avoid confusion
-      /// BUT USER SHOULD NOT REACH HERE IF THEY ARE PRO
-      appLogger.debug("User is Pro, showing Lantern Pro dialog");
-      AppDialog.showLanternProDialog(
-        context: context,
-        onPressed: () {
-          appRouter.popUntilRoot();
-        },
-      );
-      return;
-    }
-
-    /// User is here because they are not pro but user has created an account
-    /// There can be few reason for this
-    /// 1. App crashed before completing the purchase flow
-    /// 2. User cancelled the purchase flow while signing up
-
-    /// In both case send user to confirm email screen
-    /// Once done send user to subscription screen
-    /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
-    context.showLoadingDialog();
-    final appSetting = ref.read(appSettingProvider);
-    final email = appSetting.email;
-    final result =
-        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (_) {
-        context.hideLoadingDialog();
-        appLogger.debug(
-            'User has created account but is not Pro. Sending to Confirm Email screen to verification '
-            'this is just avoid user from blocking flow.');
-
-        appRouter.push(ConfirmEmail(email: email, authFlow: AuthFlow.signUp));
-      },
-    );
   }
 }
