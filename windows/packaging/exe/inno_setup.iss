@@ -317,13 +317,15 @@ Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
 const
-  ServiceStopTimeoutMs = 20000;
+  ServiceDeleteTimeoutMs = 20000;
   ServicePollIntervalMs = 250;
   UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
 
 function ExtractExecutablePath(const CommandLine: String): String;
 var
   S: String;
+  LowerS: String;
+  ExePos: Integer;
   EndQuote: Integer;
   FirstSpace: Integer;
 begin
@@ -341,6 +343,15 @@ begin
     end else begin
       Result := S;
     end;
+    exit;
+  end;
+
+  // UninstallString can be unquoted even when the path contains spaces.
+  // Prefer extracting through ".exe" to avoid truncating to "C:\Program".
+  LowerS := LowerCase(S);
+  ExePos := Pos('.exe', LowerS);
+  if ExePos > 0 then begin
+    Result := Copy(S, 1, ExePos + 3);
     exit;
   end;
 
@@ -429,7 +440,7 @@ begin
 
   Log('Pre-install service cleanup started');
   StopAndDeleteService;
-  if not WaitForServiceDelete(ServiceStopTimeoutMs) then begin
+  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
     Log('Timed out waiting for service deletion; continuing install');
   end;
 end;
