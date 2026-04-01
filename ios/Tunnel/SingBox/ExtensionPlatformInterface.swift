@@ -346,7 +346,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func includeAllNetworks() -> Bool {
-    return false
+    return true
   }
 
   public func clearDNSCache() {
