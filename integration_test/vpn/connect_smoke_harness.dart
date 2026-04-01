@@ -6,10 +6,7 @@ import 'package:lantern/core/common/app_eum.dart';
 
 import '../utils/widget_wait_utils.dart';
 
-const _vpnStateKeyPrefixes = <String>[
-  'vpn.switch.',
-  'vpn.status.',
-];
+const _vpnStateKeyPrefixes = <String>['vpn.switch.', 'vpn.status.'];
 
 const _observableStates = <VPNStatus>[
   VPNStatus.connected,
@@ -47,8 +44,9 @@ Future<String?> _fetchPublicIpOnce() async {
       return null;
     }
 
-    final body =
-        await response.transform(const SystemEncoding().decoder).join();
+    final body = await response
+        .transform(const SystemEncoding().decoder)
+        .join();
     final ip = body.trim();
     if (ip.isNotEmpty && InternetAddress.tryParse(ip) != null) {
       return ip;
@@ -77,17 +75,17 @@ Future<String> _fetchPublicIpWithRetry({
   fail('Failed to fetch public IP: $reason');
 }
 
-Future<void> _assertPublicIpChangesFromBaseline(String baselineIp) async {
+Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
   final deadline = DateTime.now().add(const Duration(seconds: 60));
   while (DateTime.now().isBefore(deadline)) {
     final current = await _fetchPublicIpOnce();
     if (current != null && current.isNotEmpty && current != baselineIp) {
       debugPrint('IP check: detected public IP change after connect');
-      return;
+      return true;
     }
     await Future<void>.delayed(const Duration(seconds: 3));
   }
-  fail('Public IP did not change after VPN connected (baseline: $baselineIp)');
+  return false;
 }
 
 class _VpnStateFinders {
@@ -140,14 +138,15 @@ class _VpnStateFinders {
       return state;
     }
 
-    final debugKeys = tester.allWidgets
-        .map((w) => w.key)
-        .whereType<Key>()
-        .map((k) => k.toString())
-        .where((k) => k.contains('vpn.') || k.contains('onboarding.'))
-        .toSet()
-        .toList()
-      ..sort();
+    final debugKeys =
+        tester.allWidgets
+            .map((w) => w.key)
+            .whereType<Key>()
+            .map((k) => k.toString())
+            .where((k) => k.contains('vpn.') || k.contains('onboarding.'))
+            .toSet()
+            .toList()
+          ..sort();
     fail(
       '${reason ?? 'Timed out waiting for VPN state'}. Last observed: ${current()?.name ?? 'unknown'}. '
       'Visible keyed widgets: $debugKeys',
@@ -182,6 +181,34 @@ Future<void> _waitForVpnToggleWithOnboardingHandling(
     await tester.pump(const Duration(milliseconds: 300));
   }
   fail('VPN toggle not visible');
+}
+
+Future<void> _disconnectVpn(
+  WidgetTester tester, {
+  required Finder vpnToggle,
+  required _VpnStateFinders vpnStateFinders,
+}) async {
+  final currentState = vpnStateFinders.current();
+  if (currentState != VPNStatus.connected &&
+      currentState != VPNStatus.connecting) {
+    return;
+  }
+
+  await WidgetWaitUtils.waitForFinder(
+    tester,
+    vpnToggle,
+    timeout: const Duration(seconds: 15),
+    reason: 'VPN toggle not available for disconnect',
+  );
+  await tester.tap(vpnToggle);
+  await tester.pump(const Duration(milliseconds: 200));
+
+  await vpnStateFinders.waitFor(
+    tester,
+    expected: const [VPNStatus.disconnected],
+    timeout: const Duration(seconds: 45),
+    reason: 'VPN did not return to disconnected state within 45 seconds',
+  );
 }
 
 Future<void> runConnectSmokeHarness(
@@ -303,36 +330,37 @@ Future<void> runConnectSmokeHarness(
     );
   }
 
-  await tester.tap(vpnToggle);
-  await tester.pump(const Duration(milliseconds: 200));
+  bool ipChanged = true;
+  try {
+    await tester.tap(vpnToggle);
+    await tester.pump(const Duration(milliseconds: 200));
 
-  await vpnStateFinders.waitFor(
-    tester,
-    expected: const [VPNStatus.connected],
-    timeout: const Duration(seconds: 45),
-    reason: 'VPN did not reach connected state within 45 seconds',
-  );
+    await vpnStateFinders.waitFor(
+      tester,
+      expected: const [VPNStatus.connected],
+      timeout: const Duration(seconds: 45),
+      reason: 'VPN did not reach connected state within 45 seconds',
+    );
 
-  if (enableIpCheck && baselinePublicIp != null) {
-    debugPrint('IP check: waiting for IP change after connect');
-    await Future<void>.delayed(const Duration(seconds: 3));
-    await _assertPublicIpChangesFromBaseline(baselinePublicIp);
-    debugPrint('IP check: passed');
+    if (enableIpCheck && baselinePublicIp != null) {
+      debugPrint('IP check: waiting for IP change after connect');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      ipChanged = await _didPublicIpChangeFromBaseline(baselinePublicIp);
+      if (ipChanged) {
+        debugPrint('IP check: passed');
+      }
+    }
+  } finally {
+    await _disconnectVpn(
+      tester,
+      vpnToggle: vpnToggle,
+      vpnStateFinders: vpnStateFinders,
+    );
   }
 
-  await WidgetWaitUtils.waitForFinder(
-    tester,
-    vpnToggle,
-    timeout: const Duration(seconds: 15),
-    reason: 'VPN toggle not available for disconnect',
-  );
-  await tester.tap(vpnToggle);
-  await tester.pump(const Duration(milliseconds: 200));
-
-  await vpnStateFinders.waitFor(
-    tester,
-    expected: const [VPNStatus.disconnected],
-    timeout: const Duration(seconds: 45),
-    reason: 'VPN did not return to disconnected state within 45 seconds',
-  );
+  if (enableIpCheck && baselinePublicIp != null && !ipChanged) {
+    fail(
+      'Public IP did not change after VPN connected (baseline: $baselinePublicIp)',
+    );
+  }
 }

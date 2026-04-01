@@ -1500,6 +1500,9 @@ msgstr "Your account has been permanently deleted."
 msgid "verify_with"
 msgstr "Verify with %s"
 
+msgid "renew"
+msgstr "Renew"
+
 
 
 

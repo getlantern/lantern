@@ -75,16 +75,20 @@ class HomeNotifier extends _$HomeNotifier {
   void _applyUserData(UserResponse userData) {
     state = AsyncValue.data(userData);
 
-    if (!userData.legacyUserData.isPro) {
+    // Step 1: Sync all user fields to app settings first before any other logic.
+    final isPro = userData.legacyUserData.isPro;
+    final email = userData.legacyUserData.email.isEmpty
+        ? userData.id
+        : userData.legacyUserData.email;
+    appLogger.info('Syncing user data to app settings — isPro=$isPro email=$email');
+    ref.read(appSettingProvider.notifier)
+      ..togglePro(isPro)
+      ..setEmail(email);
+
+    // Step 2: Now run derived logic that depends on the stored settings.
+    if (!isPro) {
       resetServerLocation();
     }
-    String email;
-    if (userData.legacyUserData.email.isEmpty) {
-      email = userData.id;
-    } else {
-      email = userData.legacyUserData.email;
-    }
-    ref.read(appSettingProvider.notifier).setEmail(email);
     checkIfUserProAndDeviceIsAdded();
   }
 
@@ -143,9 +147,7 @@ class HomeNotifier extends _$HomeNotifier {
         .info("current device added for user ${user.legacyUserData.email}: "
             "$isDeviceAdded");
     if (isDeviceAdded) {
-      ref.read(appSettingProvider.notifier)
-        ..setUserLoggedIn(true)
-        ..setEmail(user.legacyUserData.email);
+      ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
       appLogger.info(
         "User is Pro and device is added. Logging in automatically.",
       );

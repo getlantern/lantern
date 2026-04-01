@@ -12,13 +12,25 @@ on:
       installer_base_name:
         required: true
         type: string
+      linux_arch:
+        required: false
+        type: string
+        default: all
+
+permissions:
+  contents: "read"
 
 jobs:
   build-linux:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.linux_arch == 'arm64' && '{"include":[{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}' || inputs.linux_arch == 'amd64' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}' || inputs.linux_arch == 'all' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}') }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-    runs-on: ubuntu-latest
+      TARGET_ARCH: ${{ matrix.arch }}
+      FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}${{ matrix.arch == 'arm64' && '-arm64' || '' }}
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,9 +64,9 @@ jobs:
         continue-on-error: true
         with:
           path: ~/.cache/apt/archives
-          key: ${{ runner.os }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-apt-archives-v1-${{ hashFiles('.github/workflows/build-linux.yml') }}
           restore-keys: |
-            ${{ runner.os }}-apt-archives-v1-
+            ${{ runner.os }}-${{ matrix.arch }}-apt-archives-v1-
 
       - name: Install Linux dependencies
         run: |
@@ -95,12 +107,35 @@ jobs:
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
 
-      - name: Install Flutter
+      - name: Load Flutter version
+        shell: bash
+        run: |
+          set -euo pipefail
+          FLUTTER_VERSION=$(grep -E '^[[:space:]]*flutter:' .github/flutter-version.yaml | sed -E 's/.*"([^"]+)".*/\1/')
+          if [[ -z "$FLUTTER_VERSION" ]]; then
+            echo "Failed to parse Flutter version from .github/flutter-version.yaml" >&2
+            exit 1
+          fi
+          echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Flutter (amd64)
         uses: subosito/flutter-action@v2.22.0
+        if: ${{ matrix.arch == 'amd64' }}
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
           cache: true
+
+      - name: Install Flutter (arm64 fallback)
+        if: ${{ matrix.arch == 'arm64' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FLUTTER_HOME="$HOME/flutter"
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+          echo "$FLUTTER_HOME/bin" >> "$GITHUB_PATH"
+          export PATH="$FLUTTER_HOME/bin:$PATH"
+          flutter --version
 
       - name: Install dependencies
         run: make install-linux-deps
@@ -122,16 +157,19 @@ jobs:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          LINUX_TARGET_ARCH: ${{ matrix.arch }}
+          LINUX_CC_AMD64: gcc
+          LINUX_CC_ARM64: gcc
 
       - name: Verify Linux package contents
         run: |
-          ./scripts/ci/verify_linux_package.sh "${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+          ./scripts/ci/verify_linux_package.sh "./${{ env.FULL_INSTALLER_NAME }}.deb" "${{ matrix.arch }}"
 
       - name: Install .deb and verify postinst started daemon
         shell: bash
         run: |
           set -euxo pipefail
-          deb="./${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb"
+          deb="./${{ env.FULL_INSTALLER_NAME }}.deb"
           test -f "$deb"
           sudo apt-get install -y "$deb"
 
@@ -180,9 +218,25 @@ jobs:
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
-          sg lantern -c "env PATH=$PATH HOME=$HOME xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=true"
+          ENABLE_IP_CHECK=false
+          if [[ "${TARGET_ARCH}" == "amd64" ]]; then
+            ENABLE_IP_CHECK=true
+          fi
+          set +e
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          SMOKE_EXIT=$?
+          set -e
 
           sudo journalctl -u lanternd.service --since "$TEST_START_UTC" --no-pager > /tmp/lanternd-journal-ui-smoke.log
+          if [[ "$SMOKE_EXIT" -eq 124 ]]; then
+            echo "Linux UI connect/disconnect smoke timed out after 8m"
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit 1
+          fi
+          if [[ "$SMOKE_EXIT" -ne 0 ]]; then
+            tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
+            exit "$SMOKE_EXIT"
+          fi
 
           if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
             echo "Missing /service/start IPC request in lanternd journal"
@@ -199,13 +253,13 @@ jobs:
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-installer-rpm
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.rpm
+          name: lantern-installer-rpm-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.rpm
           retention-days: 2
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-installer-deb
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.deb
+          name: lantern-installer-deb-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.deb
           retention-days: 2

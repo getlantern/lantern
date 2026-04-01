@@ -12,6 +12,7 @@ set -euo pipefail
 #   BUILD_TYPE:           production, beta, or nightly
 #   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
 #   GITHUB_SHA:           commit SHA (required for release-notes)
+#   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
 
 FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
 RELEASE_TAG="${RELEASE_TAG:?RELEASE_TAG required}"
@@ -20,6 +21,15 @@ PLATFORM="${PLATFORM:?PLATFORM required}"
 BUCKET="${BUCKET:?BUCKET required}"
 BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
 GITHUB_REF_NAME="${GITHUB_REF_NAME:?GITHUB_REF_NAME required}"
+LINUX_ARCH="${LINUX_ARCH:-amd64}"
+
+case "$LINUX_ARCH" in
+amd64 | arm64 | all) ;;
+*)
+  echo "Error: Invalid LINUX_ARCH '$LINUX_ARCH' (expected: amd64, arm64, all)" >&2
+  exit 1
+  ;;
+esac
 
 # Strip 'v' prefix for S3 paths and version display
 VERSION="${RELEASE_TAG#v}"
@@ -35,6 +45,14 @@ LATEST_URL="https://${BUCKET}.s3.amazonaws.com/releases/${BUILD_TYPE}/latest"
 should_include() {
   local platform="$1"
   [[ "$PLATFORM" == "all" ]] || [[ "$PLATFORM" == *"$platform"* ]]
+}
+
+include_linux_amd64() {
+  [[ "$LINUX_ARCH" == "amd64" || "$LINUX_ARCH" == "all" ]]
+}
+
+include_linux_arm64() {
+  [[ "$LINUX_ARCH" == "arm64" || "$LINUX_ARCH" == "all" ]]
 }
 
 case "$FORMAT" in
@@ -71,8 +89,14 @@ release-notes)
   fi
 
   if should_include "linux"; then
-    echo "- [Linux (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb))"
-    echo "- [Linux (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm))"
+    if include_linux_amd64; then
+      echo "- [Linux AMD64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb))"
+      echo "- [Linux AMD64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm))"
+    fi
+    if include_linux_arm64; then
+      echo "- [Linux ARM64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb))"
+      echo "- [Linux ARM64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm))"
+    fi
   fi
 
   if should_include "ios" && [[ "$BUILD_TYPE" == "beta" || "$BUILD_TYPE" == "production" ]]; then
@@ -104,8 +128,14 @@ slack)
   fi
 
   if should_include "linux"; then
-    text="${text}\n• Linux <${LATEST_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|permalink>)"
-    text="${text}\n• Linux <${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|permalink>)"
+    if include_linux_amd64; then
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|permalink>)"
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|permalink>)"
+    fi
+    if include_linux_arm64; then
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb|${FULL_INSTALLER_NAME}-arm64.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb|permalink>)"
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|${FULL_INSTALLER_NAME}-arm64.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|permalink>)"
+    fi
   fi
 
   if should_include "ios" && [[ "$BUILD_TYPE" == "beta" || "$BUILD_TYPE" == "production" ]]; then

@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/latest_async_queue.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -19,6 +20,15 @@ part 'app_setting_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
+  late final LatestAsyncQueue<RoutingMode, Either<Failure, Unit>>
+  _routingModeQueue = LatestAsyncQueue(
+    worker: _applyRoutingMode,
+    defaultResult: right(unit),
+  );
+  late final LatestAsyncQueue<bool, Unit> _blockAdsQueue = LatestAsyncQueue(
+    worker: _applyBlockAds,
+    defaultResult: unit,
+  );
 
   @override
   AppSetting build() {
@@ -36,13 +46,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     if (settings == null) {
       appLogger.info(
-          'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}');
+        'No stored settings found, saving defaults: ${_settingsLogFields(fallback)}',
+      );
       unawaited(_storage.saveAppSettings(fallback));
       return fallback;
     }
 
-    appLogger
-        .info('Loaded stored app settings: ${_settingsLogFields(settings)}');
+    appLogger.info(
+      'Loaded stored app settings: ${_settingsLogFields(settings)}',
+    );
     return settings;
   }
 
@@ -62,19 +74,42 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(newIsSpiltTunnelingOn: value));
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
-    final prev = state.routingModeRaw;
+    if (_routingModeQueue.isRunning) {
+      appLogger.info(
+        'Routing mode update in progress. Queued latest request: ${mode.key}',
+      );
+    }
 
+    try {
+      return await _routingModeQueue.enqueue(mode);
+    } catch (e, st) {
+      appLogger.error('Unexpected routing mode update failure', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> _applyRoutingMode(RoutingMode mode) async {
+    if (state.routingMode == mode) {
+      return right(unit);
+    }
+
+    final prev = state.routingModeRaw;
     appLogger.info('Setting routing mode to: ${mode.key}');
-    update(state.copyWith(routingModeRaw: mode.key));
+    await update(state.copyWith(routingModeRaw: mode.key));
 
     final lantern = ref.read(lanternServiceProvider);
-    final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
-
-    res.fold((f) {
-      appLogger.error('Failed to set routing mode', f);
-      update(state.copyWith(routingModeRaw: prev));
-    }, (_) {});
-    return res;
+    try {
+      final res = await lantern.setRoutingMode(mode == RoutingMode.smart);
+      return await res.match((f) async {
+        appLogger.error('Failed to set routing mode', f);
+        await update(state.copyWith(routingModeRaw: prev));
+        return left(f);
+      }, (_) async => right(unit));
+    } catch (e, st) {
+      appLogger.error('Unexpected setRoutingMode error', e, st);
+      await update(state.copyWith(routingModeRaw: prev));
+      return left(e.toFailure());
+    }
   }
 
   void setUserLoggedIn(bool value) =>
@@ -90,16 +125,42 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       update(state.copyWith(successfulConnection: value));
 
   void setBlockAds(bool value) {
-    final prev = state.blockAds;
-    update(state.copyWith(blockAds: value));
+    if (_blockAdsQueue.isRunning) {
+      appLogger.info(
+        'Block ads update in progress. Queued latest request: $value',
+      );
+    }
+    unawaited(_enqueueBlockAds(value));
+  }
+
+  Future<void> _enqueueBlockAds(bool value) async {
+    try {
+      await _blockAdsQueue.enqueue(value);
+    } catch (e, st) {
+      appLogger.error('Unexpected setBlockAdsEnabled error', e, st);
+    }
+  }
+
+  Future<Unit> _applyBlockAds(bool value) async {
+    if (state.blockAds == value) {
+      return unit;
+    }
 
     final svc = ref.read(lanternServiceProvider);
-    svc.setBlockAdsEnabled(value).then((res) {
-      res.match((err) {
+    final prev = state.blockAds;
+    await update(state.copyWith(blockAds: value));
+
+    try {
+      final res = await svc.setBlockAdsEnabled(value);
+      await res.match((err) async {
         appLogger.error('setBlockAdsEnabled failed: ${err.error}');
-        update(state.copyWith(blockAds: prev));
-      }, (_) {});
-    });
+        await update(state.copyWith(blockAds: prev));
+      }, (_) async {});
+    } catch (e, st) {
+      appLogger.error('Unexpected setBlockAdsEnabled failure', e, st);
+      await update(state.copyWith(blockAds: prev));
+    }
+    return unit;
   }
 
   void updateAnonymousDataConsent(bool value) {
@@ -192,8 +253,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> updateTelemetryConsent(bool consent) async {
-    final result =
-        await ref.read(lanternServiceProvider).updateTelemetryEvents(consent);
+    final result = await ref
+        .read(lanternServiceProvider)
+        .updateTelemetryEvents(consent);
 
     result.fold(
       (err) {
@@ -208,21 +270,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Map<String, Object> _settingsLogFields(AppSetting setting) => {
-        'isPro': setting.isPro,
-        'isSplitTunnelingOn': setting.isSplitTunnelingOn,
-        'themeMode': setting.themeMode,
-        'environment': setting.environment,
-        'locale': setting.locale,
-        'userLoggedIn': setting.userLoggedIn,
-        'blockAds': setting.blockAds,
-        'showSplashScreen': setting.showSplashScreen,
-        'telemetryDialogDismissed': setting.telemetryDialogDismissed,
-        'telemetryConsent': setting.telemetryConsent,
-        'successfulConnection': setting.successfulConnection,
-        'routingModeRaw': setting.routingModeRaw,
-        'dataCapThreshold': setting.dataCapThreshold,
-        'onboardingCompleted': setting.onboardingCompleted,
-        'hasOAuthToken': setting.oAuthToken.isNotEmpty,
-        'hasEmail': setting.email.isNotEmpty,
-      };
+    'isPro': setting.isPro,
+    'isSplitTunnelingOn': setting.isSplitTunnelingOn,
+    'themeMode': setting.themeMode,
+    'environment': setting.environment,
+    'locale': setting.locale,
+    'userLoggedIn': setting.userLoggedIn,
+    'blockAds': setting.blockAds,
+    'showSplashScreen': setting.showSplashScreen,
+    'telemetryDialogDismissed': setting.telemetryDialogDismissed,
+    'telemetryConsent': setting.telemetryConsent,
+    'successfulConnection': setting.successfulConnection,
+    'routingModeRaw': setting.routingModeRaw,
+    'dataCapThreshold': setting.dataCapThreshold,
+    'onboardingCompleted': setting.onboardingCompleted,
+    'hasOAuthToken': setting.oAuthToken.isNotEmpty,
+    'hasEmail': setting.email.isNotEmpty,
+  };
 }
