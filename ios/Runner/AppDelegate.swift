@@ -46,11 +46,17 @@ import flutter_local_notifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
 
-    // Initialize directories and working paths (no engine / window needed).
-    setupFileSystem()
-
-    // Start the Go backend.
-    setupRadiance()
+    // Set up the file system on a background thread, then start the Go backend.
+    // setupRadiance must not run until the file system (including migration) is ready.
+    Task {
+      do {
+        try await setupFileSystem()
+      } catch {
+        appLogger.error("File system setup failed, aborting backend startup: \(error.localizedDescription)")
+        return
+      }
+      setupRadiance()
+    }
 
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
@@ -89,27 +95,61 @@ import flutter_local_notifications
   }
 
   /// Prepares the file system directories for use.
-  private func setupFileSystem() {
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.sharedDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create directory: \(error.localizedDescription)")
-    }
+  /// Throws if directories cannot be created — callers must not proceed to setupRadiance on failure.
+  /// Runs on a background thread to avoid blocking app launch.
+  private func setupFileSystem() async throws {
+    try await Task.detached(priority: .userInitiated) {
+      let fm = FileManager.default
+      // withIntermediateDirectories:true creates sharedDirectory implicitly.
+      try fm.createDirectory(at: FilePath.logsDirectory, withIntermediateDirectories: true)
+      appLogger.info("Logs directory: \(FilePath.logsDirectory.path)")
+      try fm.createDirectory(at: FilePath.dataDirectory, withIntermediateDirectories: true)
+      appLogger.info("Data directory: \(FilePath.dataDirectory.path)")
+      self.migrateDataDirectory()
+    }.value
+  }
 
-    guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
-      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+  /// Moves legacy data files from the App Group root into the data subdirectory.
+  /// Checks whether any legacy file still exists at the root — if none do, migration is done.
+  private func migrateDataDirectory() {
+    let fm = FileManager.default
+    let legacyFiles = [
+      "local.json",
+      "config.json",
+      "servers.json",
+      "wg.key",
+      ".salt",
+      "fronted_cache.json",
+      "dnstt.yml.gz",
+      "apps_cache.json",
+      "url_test_history.json",
+    ]
+    guard legacyFiles.contains(where: { fm.fileExists(atPath: FilePath.sharedDirectory.appendingPathComponent($0).path) }) else {
+      appLogger.info("Data directory migration: already migrated or new install, skipping")
       return
     }
-    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
+    appLogger.info("Data directory migration: starting")
+
+    for fileName in legacyFiles {
+      let src = FilePath.sharedDirectory.appendingPathComponent(fileName)
+      let dst = FilePath.dataDirectory.appendingPathComponent(fileName)
+      guard fm.fileExists(atPath: src.path) else { continue }
+      if fm.fileExists(atPath: dst.path) {
+        // dst already exists — remove the legacy src so the sentinel can clear
+        do {
+          try fm.removeItem(at: src)
+        } catch {
+          appLogger.error("Data directory migration: failed to remove legacy \(fileName): \(error.localizedDescription)")
+        }
+        continue
+      }
+      do {
+        try fm.moveItem(at: src, to: dst)
+        appLogger.info("Migrated \(fileName) to data directory")
+      } catch {
+        appLogger.error("Failed to migrate \(fileName): \(error.localizedDescription)")
+      }
+    }
   }
 
   /// Configures the Flutter local notifications plugin with the background isolate.
@@ -128,10 +168,8 @@ import flutter_local_notifications
 
   /// Calls API handler setup.
   private func setupRadiance() {
-    appLogger.info("absoluteString Paths... \(FilePath.sharedDirectory.absoluteString)")
-    appLogger.info("relativePath Paths... \(FilePath.sharedDirectory.relativePath)")
     Task {
-      let baseDir = FilePath.sharedDirectory.relativePath
+      let baseDir = FilePath.dataDirectory.relativePath
       let opts = UtilsOpts()
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.relativePath

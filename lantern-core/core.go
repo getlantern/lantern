@@ -199,6 +199,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 	slog.Debug("Paths:", "logs", settings.GetString(settings.LogPathKey), "data", settings.GetString(settings.DataPathKey))
 
+	fixStaleSettingsFilePath(opts.DataDir)
+
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
@@ -993,4 +995,25 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 		return "", err
 	}
 	return st.EnabledAppsJSON()
+}
+
+// fixStaleSettingsFilePath corrects a stale "file_path" entry in local.json that can
+// occur after the iOS migration from the App Group root to the data/ subdirectory.
+// The radiance settings watcher reads "file_path" from local.json to decide which
+// directory to watch via fsnotify. If it still points to the App Group root, the
+// Network Extension sandbox blocks lstat on
+// .com.apple.mobile_container_manager.metadata.plist, causing the tunnel to fail.
+// The main app always runs before the tunnel (user must tap Connect), so this fix
+// is guaranteed to persist to disk before the tunnel process starts.
+func fixStaleSettingsFilePath(dataDir string) {
+	// "file_path" and "local.json" mirror unexported constants in the radiance settings package.
+	expected := filepath.Join(dataDir, "local.json")
+	current := settings.GetString("file_path")
+	if current == "" || current == expected {
+		return
+	}
+	slog.Info("Fixing stale file_path in settings", "from", current, "to", expected)
+	if err := settings.Set("file_path", expected); err != nil {
+		slog.Warn("Failed to fix file_path in settings", "error", err)
+	}
 }

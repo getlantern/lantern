@@ -269,6 +269,8 @@ ArchitecturesAllowed=x64compatible arm64
 ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
 UninstallLogging=yes
+CloseApplications=yes
+RestartApplications=no
 
 [Languages]
 {% for locale in LOCALES %}
@@ -291,10 +293,6 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Run]
-; Stop/delete any existing service
-Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
-
 ; Create service
 Filename: "{sys}\sc.exe"; \
   Parameters: "create ""{#SvcName}"" binPath= ""{code:ServiceExecutablePath}"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
@@ -318,6 +316,155 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
+const
+  ServiceDeleteTimeoutMs = 20000;
+  ServicePollIntervalMs = 250;
+  UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
+
+function IsAbsoluteWindowsPath(const Path: String): Boolean;
+begin
+  Result :=
+    ((Length(Path) >= 3) and (Path[2] = ':') and (Path[3] = '\')) or
+    ((Length(Path) >= 2) and (Copy(Path, 1, 2) = '\\'));
+end;
+
+function ExtractExecutablePath(const CommandLine: String): String;
+var
+  S: String;
+  Candidate: String;
+  LowerS: String;
+  ExePos: Integer;
+  EndQuote: Integer;
+  FirstSpace: Integer;
+begin
+  Result := '';
+  S := Trim(CommandLine);
+  if S = '' then begin
+    exit;
+  end;
+
+  if S[1] = '"' then begin
+    Delete(S, 1, 1);
+    EndQuote := Pos('"', S);
+    if EndQuote > 0 then begin
+      Result := Copy(S, 1, EndQuote - 1);
+    end else begin
+      Result := S;
+    end;
+    if not IsAbsoluteWindowsPath(Result) then begin
+      Result := '';
+    end;
+    exit;
+  end;
+
+  // UninstallString can be unquoted even when the path contains spaces.
+  // Extract through ".exe" and only trust absolute paths.
+  LowerS := LowerCase(S);
+  ExePos := Pos('.exe', LowerS);
+  if ExePos > 0 then begin
+    if (Length(S) = ExePos + 3) or (S[ExePos + 4] = ' ') then begin
+      Candidate := Copy(S, 1, ExePos + 3);
+      if IsAbsoluteWindowsPath(Candidate) then begin
+        Result := Candidate;
+        exit;
+      end;
+    end;
+  end;
+
+  FirstSpace := Pos(' ', S);
+  if FirstSpace > 0 then begin
+    Candidate := Copy(S, 1, FirstSpace - 1);
+  end else begin
+    Candidate := S;
+  end;
+
+  if IsAbsoluteWindowsPath(Candidate) then begin
+    Result := Candidate;
+  end;
+end;
+
+procedure RemoveStaleUninstallEntry(const RootKey: Integer; const RootName: String);
+var
+  UninstallString: String;
+  UninstallExePath: String;
+begin
+  if not RegQueryStringValue(RootKey, UninstallRegSubKey, 'UninstallString', UninstallString) then begin
+    exit;
+  end;
+
+  UninstallExePath := ExtractExecutablePath(UninstallString);
+  if (UninstallExePath = '') or FileExists(UninstallExePath) then begin
+    exit;
+  end;
+
+  Log(
+    'Removing stale uninstall entry at root=' + RootName +
+    ' key=' + UninstallRegSubKey +
+    ' (missing uninstaller: ' + UninstallExePath + ')'
+  );
+  if not RegDeleteKeyIncludingSubkeys(RootKey, UninstallRegSubKey) then begin
+    Log('Failed to remove stale uninstall entry');
+  end;
+end;
+
+function ExecSc(const Parameters: String; var ExitCode: Integer): Boolean;
+begin
+  Result := Exec(
+    ExpandConstant('{sys}\sc.exe'),
+    Parameters,
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ExitCode
+  );
+  if Result then begin
+    Log('sc.exe ' + Parameters + ' (exit=' + IntToStr(ExitCode) + ')');
+  end else begin
+    Log('failed to launch sc.exe ' + Parameters);
+  end;
+end;
+
+procedure StopAndDeleteService;
+var
+  ExitCode: Integer;
+begin
+  ExecSc('stop "{#SvcName}"', ExitCode);
+  ExecSc('delete "{#SvcName}"', ExitCode);
+end;
+
+function WaitForServiceDelete(const TimeoutMs: Integer): Boolean;
+var
+  ExitCode: Integer;
+  ElapsedMs: Integer;
+begin
+  ElapsedMs := 0;
+  while ElapsedMs <= TimeoutMs do begin
+    if ExecSc('query "{#SvcName}"', ExitCode) then begin
+      // SERVICE_DOES_NOT_EXIST
+      if ExitCode = 1060 then begin
+        Result := True;
+        exit;
+      end;
+    end;
+    Sleep(ServicePollIntervalMs);
+    ElapsedMs := ElapsedMs + ServicePollIntervalMs;
+  end;
+  Result := False;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep <> ssInstall then begin
+    exit;
+  end;
+
+  Log('Pre-install service cleanup started');
+  StopAndDeleteService;
+  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
+    Log('Timed out waiting for service deletion; continuing install');
+  end;
+end;
+
 function ServiceExecutablePath(_Param: String): String;
 var
   Arm64ServicePath: String;
@@ -331,6 +478,9 @@ end;
 
 function InitializeSetup: Boolean;
 begin
+  RemoveStaleUninstallEntry(HKLM, 'HKLM');
+  RemoveStaleUninstallEntry(HKCU, 'HKCU');
+
   Dependency_AddWebView2;
   Dependency_AddVC2015To2022;
   Result := True;

@@ -21,10 +21,12 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -42,6 +44,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
+          cache: true
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
@@ -49,7 +52,6 @@ jobs:
         continue-on-error: true
         with:
           path: |
-            ~/.pub-cache
             .dart_tool
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
@@ -72,11 +74,6 @@ jobs:
           fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
-
-      - name: Install node on macOS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
 
       - name: Install the Apple certificate and provisioning profile IOS
         env:
@@ -136,7 +133,7 @@ jobs:
             ${{ runner.os }}-gomobile-
 
       - name: Install dependencies
-        run: make install-ios-deps
+        run: make install-gomobile
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 

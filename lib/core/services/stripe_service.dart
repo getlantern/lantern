@@ -14,9 +14,7 @@ class StripeService {
       } else {
         publishableKey = AppSecrets.stripePublishableKey;
         if (publishableKey.isEmpty) {
-          throw StateError(
-            'Missing STRIPE_PUBLISHABLE_KEY',
-          );
+          throw StateError('Missing STRIPE_PUBLISHABLE_KEY');
         }
       }
       Stripe.publishableKey = publishableKey;
@@ -38,8 +36,9 @@ class StripeService {
     try {
       // Extract all context-dependent values before any async gap
       final brightness = Theme.of(context).brightness;
-      final style =
-          brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+      final style = brightness == Brightness.dark
+          ? ThemeMode.dark
+          : ThemeMode.light;
       final sheetColors = PaymentSheetAppearanceColors(
         background: context.bgSurface,
         componentBackground: context.bgElevated,
@@ -53,6 +52,12 @@ class StripeService {
         error: AppColors.red4,
         placeholderText: context.textDisabled,
       );
+      if (options.clientSecret.isEmpty &&
+          options.setupIntentClientSecret.isEmpty) {
+        throw Exception(
+          'Please try again after some time. If the issue persists, contact support.',
+        );
+      }
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
@@ -64,14 +69,17 @@ class StripeService {
       /// before proceeding
       if ((options.publishableKey != null && options.publishableKey!.isEmpty) ||
           Stripe.publishableKey.isEmpty) {
-        throw StateError(
-          'Missing STRIPE_PUBLISHABLE_KEY',
-        );
+        throw StateError('Missing STRIPE_PUBLISHABLE_KEY');
       }
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: options.clientSecret,
+          paymentIntentClientSecret: options.clientSecret.isEmpty
+              ? null
+              : options.clientSecret,
+          setupIntentClientSecret: options.setupIntentClientSecret.isEmpty
+              ? null
+              : options.setupIntentClientSecret,
           customerId: options.customerId,
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
@@ -100,22 +108,25 @@ class StripeService {
 class StripeOptions {
   final String? publishableKey;
   final String clientSecret;
+  final String setupIntentClientSecret;
   final String customerId;
   final String subscriptionId;
 
   StripeOptions({
     this.publishableKey,
     required this.clientSecret,
+    required this.setupIntentClientSecret,
     required this.customerId,
     required this.subscriptionId,
   });
 
   factory StripeOptions.fromJson(Map<String, dynamic> json) {
     return StripeOptions(
-      publishableKey: json['publishableKey'],
-      clientSecret: json['clientSecret'],
-      customerId: json['customerId'],
-      subscriptionId: json['subscriptionId'],
+      publishableKey: json['publishableKey'] ?? '',
+      clientSecret: json['clientSecret'] ?? '',
+      setupIntentClientSecret: json['pending_secret'] ?? '',
+      customerId: json['customerId'] ?? '',
+      subscriptionId: json['subscriptionId'] ?? '',
     );
   }
 }

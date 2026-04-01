@@ -25,6 +25,15 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
+  // Subdirectory for all Go backend data files.
+  // Using a subdirectory (not the App Group root) prevents the file watcher
+  // from trying to lstat system-managed files like
+  // .com.apple.mobile_container_manager.metadata.plist, which the Network
+  // Extension sandbox cannot access.
+  public static let dataDirectory =
+    sharedDirectory
+    .appendingPathComponent("data", isDirectory: true)
+
   // DO NOT CHANGE THIS
   // This is used to identify the VPN profile created by Lantern in iOS VPN settings
   // if this is changed, existing installations of Lantern will not be able to find profile
