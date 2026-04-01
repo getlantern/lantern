@@ -52,7 +52,8 @@ class StripeService {
         error: AppColors.red4,
         placeholderText: context.textDisabled,
       );
-      if (options.clientSecret.isEmpty && options.pendingSetupIntent.isEmpty) {
+      if (options.clientSecret.isEmpty &&
+          options.setupIntentClientSecret.isEmpty) {
         throw Exception(
           'Please try again after some time. If the issue persists, contact support.',
         );
@@ -76,9 +77,9 @@ class StripeService {
           paymentIntentClientSecret: options.clientSecret.isEmpty
               ? null
               : options.clientSecret,
-          setupIntentClientSecret: options.pendingSetupIntent.isEmpty
+          setupIntentClientSecret: options.setupIntentClientSecret.isEmpty
               ? null
-              : options.pendingSetupIntent,
+              : options.setupIntentClientSecret,
           customerId: options.customerId,
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
@@ -107,25 +108,25 @@ class StripeService {
 class StripeOptions {
   final String? publishableKey;
   final String clientSecret;
-  final String pendingSetupIntent;
+  final String setupIntentClientSecret;
   final String customerId;
   final String subscriptionId;
 
   StripeOptions({
     this.publishableKey,
     required this.clientSecret,
-    required this.pendingSetupIntent,
+    required this.setupIntentClientSecret,
     required this.customerId,
     required this.subscriptionId,
   });
 
   factory StripeOptions.fromJson(Map<String, dynamic> json) {
     return StripeOptions(
-      publishableKey: json['publishableKey'],
-      clientSecret: json['clientSecret'],
-      pendingSetupIntent: json['pending_secret'],
-      customerId: json['customerId'],
-      subscriptionId: json['subscriptionId'],
+      publishableKey: json['publishableKey'] ?? '',
+      clientSecret: json['clientSecret'] ?? '',
+      setupIntentClientSecret: json['pending_secret'] ?? '',
+      customerId: json['customerId'] ?? '',
+      subscriptionId: json['subscriptionId'] ?? '',
     );
   }
 }
