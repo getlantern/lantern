@@ -94,11 +94,8 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
 
-    /// Android check
-    if (Platform.isAndroid) {
-      final hasConflict = await lantern.checkVpnConflict();
-      if (hasConflict) return Left(VpnConflictFailure());
-    }
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
 
     final serverLocation = ref.read(serverLocationProvider);
 
@@ -127,20 +124,25 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag,
   ) async {
-    // On Android, check for a conflicting VPN before initiating a new connection.
+    // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
-    if (Platform.isAndroid) {
-      final hasConflict =
-          await ref.read(lanternServiceProvider).checkVpnConflict();
-      if (hasConflict) return Left(VpnConflictFailure());
-    }
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)
         .connectToServer(location.name, tag);
     return result;
+  }
+
+  Future<Left<Failure, String>?> _checkVpnConflict() async {
+    if (!Platform.isAndroid && !Platform.isMacOS) return null;
+    final hasConflict = await ref
+        .read(lanternServiceProvider)
+        .checkVpnConflict();
+    return hasConflict ? Left(VpnConflictFailure()) : null;
   }
 
   Future<Either<Failure, String>> stopVPN() async {
