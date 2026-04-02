@@ -52,8 +52,11 @@ class StripeService {
         error: AppColors.red4,
         placeholderText: context.textDisabled,
       );
-      if (options.clientSecret.isEmpty) {
-        throw Exception('Missing client secret for Stripe payment sheet');
+      if (options.clientSecret.isEmpty &&
+          options.setupIntentClientSecret.isEmpty) {
+        throw Exception(
+          'Please try again after some time. If the issue persists, contact support.',
+        );
       }
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
@@ -71,7 +74,12 @@ class StripeService {
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: options.clientSecret,
+          paymentIntentClientSecret: options.clientSecret.isEmpty
+              ? null
+              : options.clientSecret,
+          setupIntentClientSecret: options.setupIntentClientSecret.isEmpty
+              ? null
+              : options.setupIntentClientSecret,
           customerId: options.customerId,
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
@@ -100,22 +108,25 @@ class StripeService {
 class StripeOptions {
   final String? publishableKey;
   final String clientSecret;
+  final String setupIntentClientSecret;
   final String customerId;
   final String subscriptionId;
 
   StripeOptions({
     this.publishableKey,
     required this.clientSecret,
+    required this.setupIntentClientSecret,
     required this.customerId,
     required this.subscriptionId,
   });
 
   factory StripeOptions.fromJson(Map<String, dynamic> json) {
     return StripeOptions(
-      publishableKey: json['publishableKey'],
-      clientSecret: json['clientSecret'],
-      customerId: json['customerId'],
-      subscriptionId: json['subscriptionId'],
+      publishableKey: json['publishableKey'] ?? '',
+      clientSecret: json['clientSecret'] ?? '',
+      setupIntentClientSecret: json['pending_secret'] ?? '',
+      customerId: json['customerId'] ?? '',
+      subscriptionId: json['subscriptionId'] ?? '',
     );
   }
 }

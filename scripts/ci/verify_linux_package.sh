@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-	echo "usage: $0 <path-to-deb>"
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+	echo "usage: $0 <path-to-deb> [expected-arch]"
 	exit 2
 fi
 
 DEB_PATH="$1"
+EXPECTED_ARCH="${2:-}"
 if [[ ! -f "$DEB_PATH" ]]; then
 	echo "deb package not found: $DEB_PATH"
 	exit 1
+fi
+
+if [[ -n "$EXPECTED_ARCH" ]]; then
+	PKG_ARCH="$(dpkg-deb -f "$DEB_PATH" Architecture)"
+	if [[ "$PKG_ARCH" != "$EXPECTED_ARCH" ]]; then
+		echo "package architecture mismatch: expected '$EXPECTED_ARCH', got '$PKG_ARCH'"
+		exit 1
+	fi
 fi
 
 TMP_DIR="$(mktemp -d)"

@@ -345,8 +345,11 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     true
   }
 
+  // Lantern override: must be true so DNS goes through the VPN tunnel on cellular.
+  // Without this, iOS 26.4+ bypasses the TUN fakeip resolver on mobile data,
+  // causing "no internet" in Safari/Chrome. See getlantern/engineering#3128.
   public func includeAllNetworks() -> Bool {
-    return false
+    return true
   }
 
   public func clearDNSCache() {

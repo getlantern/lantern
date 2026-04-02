@@ -16,6 +16,7 @@ set -euo pipefail
 #   BUCKET:                  S3 bucket name (required)
 #   AWS_ACCESS_KEY_ID:       AWS credentials (required)
 #   AWS_SECRET_ACCESS_KEY:   AWS credentials (required)
+#   LINUX_ARCH:              amd64, arm64, or all (optional, defaults to all)
 
 BUILD_TYPE="${1:?Build type required}"
 VERSION="${2:?Version required}"
@@ -23,7 +24,16 @@ INSTALLER_BASE_NAME="${3:?Installer base name required}"
 PLATFORMS="${4:?Platforms required}"
 
 BUCKET="${BUCKET:?BUCKET environment variable required}"
+LINUX_ARCH="${LINUX_ARCH:-all}"
 
+case "$LINUX_ARCH" in
+  amd64|arm64|all)
+    ;;
+  *)
+    echo "✗ Invalid LINUX_ARCH value: '$LINUX_ARCH'. Expected 'amd64', 'arm64', or 'all'." >&2
+    exit 1
+    ;;
+esac
 # All builds use the same path structure: releases/{build_type}/{version}/
 VERSION_PREFIX="releases/${BUILD_TYPE}/${VERSION}"
 LATEST_PREFIX="releases/${BUILD_TYPE}/latest"
@@ -44,25 +54,14 @@ should_upload() {
   [[ "$PLATFORMS" == "all" ]] || [[ "$PLATFORMS" == *"$platform"* ]]
 }
 
-# Upload a single artifact if it exists
-# Returns: 0=success, 1=not found, 2=upload failed
-upload_artifact() {
+# Upload a single file
+# Returns: 0=success, 2=upload failed
+upload_file() {
   local platform="$1"
-  local extension="$2"
-  local artifact_dir="lantern-installer-${extension}"
-  # Construct full filename with build type (Makefile appends it)
-  local filename="${INSTALLER_BASE_NAME}"
-  [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && filename="${filename}-${BUILD_TYPE}"
-  filename="${filename}.${extension}"
-  local filepath="${artifact_dir}/${filename}"
-
-  if [[ ! -f "$filepath" ]]; then
-    echo "⊘ Skipping $platform ($filename not found)"
-    return 1
-  fi
-
+  local filepath="$2"
+  local filename
+  filename="$(basename "$filepath")"
   echo "↑ Uploading $platform: $filename"
-
   # Upload to versioned path
   if ! aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" --acl public-read; then
     echo "✗ Failed to upload $filename to versioned path" >&2
@@ -81,29 +80,73 @@ upload_artifact() {
   return 0
 }
 
-# platform:extension
+# Upload an artifact from known directories/naming
+# Returns: 0=success, 1=not found, 2=upload failed
+upload_artifact() {
+  local platform="$1"
+  local extension="$2"
+  local arch="${3:-}"
+
+  local base_name="${INSTALLER_BASE_NAME}"
+  [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && base_name="${base_name}-${BUILD_TYPE}"
+
+  local filename
+  local -a candidate_dirs=()
+  if [[ "$arch" == "arm64" ]]; then
+    filename="${base_name}-arm64.${extension}"
+    candidate_dirs=("lantern-installer-${extension}-arm64")
+  elif [[ "$arch" == "amd64" ]]; then
+    filename="${base_name}.${extension}"
+    candidate_dirs=("lantern-installer-${extension}-amd64" "lantern-installer-${extension}")
+  else
+    filename="${base_name}.${extension}"
+    candidate_dirs=("lantern-installer-${extension}")
+  fi
+
+  local filepath=""
+  for dir in "${candidate_dirs[@]}"; do
+    local candidate="${dir}/${filename}"
+    if [[ -f "$candidate" ]]; then
+      filepath="$candidate"
+      break
+    fi
+  done
+
+  if [[ -z "$filepath" ]]; then
+    echo "⊘ Skipping $platform ($filename not found)"
+    return 1
+  fi
+
+  upload_file "$platform" "$filepath"
+}
+
+# platform:extension:arch(optional)
 declare -a artifacts=(
-  "macos:dmg"
-  "windows:exe"
-  "android:apk"
-  "linux:deb"
-  "linux:rpm"
-  "ios:ipa"
+  "macos:dmg:"
+  "windows:exe:"
+  "android:apk:"
+  "ios:ipa:"
 )
+
+if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
+  artifacts+=("linux:deb:amd64" "linux:rpm:amd64")
+fi
+if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
+  artifacts+=("linux:deb:arm64" "linux:rpm:arm64")
+fi
 
 uploaded=0
 skipped=0
 failed=0
 
 for artifact in "${artifacts[@]}"; do
-  platform="${artifact%%:*}"
-  extension="${artifact##*:}"
+  IFS=':' read -r platform extension arch <<<"$artifact"
 
   if ! should_upload "$platform"; then
     continue
   fi
 
-  upload_artifact "$platform" "$extension"
+  upload_artifact "$platform" "$extension" "${arch:-}"
   result=$?
 
   case $result in
