@@ -1,17 +1,18 @@
-# 
 # Translators:
 # Kalyan Dikshit <dikshitrocks93@gmail.com>, 2025
 # tx_e2f_hi c3 <tx_e2f_hi_c3@ate2f.com>, 2025
 # tx_e2f_hi_r3 tx_e2f_hi_r3 <tx_e2f_hi_r3@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
-# e2f <projects@e2f.com>, 2026
 # E2F_HI T1 <tx_e2f_hi_t1@ate2f.com>, 2026
+# e2f <projects@e2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Hindi (India) (https://app.transifex.com/lantern-1/teams/94371/hi_IN/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: hi_IN\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -280,6 +281,12 @@ msgstr "मोड"
 
 msgid "use_commas"
 msgstr "कई URL को अलग करने के लिए कॉमा का उपयोग करें"
+
+msgid "deep_link_expired"
+msgstr "इस लिंक की समय सीमा समाप्त हो गई है। कृपया नया लिंक अनुरोध करें।"
+
+msgid "invalid_deep_link"
+msgstr "यह लिंक अमान्य है। कृपया नया लिंक अनुरोध करें।"
 
 msgid "default_bypass"
 msgstr "डिफ़ॉल्ट बायपास सूचियां"
@@ -642,8 +649,8 @@ msgstr "त्रुटि"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"ऐसा लगता है कि साइन-अप में कुछ गड़बड़ी हुई। कृपया अपना पासवर्ड रीसेट करने का"
-" प्रयास करें, और यदि समस्या जारी रहती है, तो हमारी सहायता टीम से संपर्क करें"
+"साइन अप में कुछ गड़बड़ हुई लगती है। कृपया पुनः प्रयास करें या यदि आपका पहले "
+"से खाता है तो साइन इन करें"
 
 msgid "user_not_found"
 msgstr ""
@@ -958,6 +965,9 @@ msgstr "कनेक्टेड"
 
 msgid "status_off"
 msgstr "डिस्कनेक्टेड"
+
+msgid "select_location"
+msgstr "स्थान चुनें"
 
 msgid "select_your_server_location"
 msgstr "अपना सर्वर स्थान चुनें"
@@ -1456,6 +1466,20 @@ msgstr "ऐप्स"
 msgid "websites"
 msgstr "वेबसाइट"
 
+msgid "main_channel"
+msgstr "मुख्य चैनल"
+
+msgid "data_cap_channel"
+msgstr "डेटा उपयोग अलर्ट"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB मुफ़्त डेटा शेष"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"आपका डेटा %s पर रीसेट होगा। असीमित हाई-स्पीड डेटा के लिए Pro में अपग्रेड "
+"करें।"
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "यदि आपने पहले Lantern Pro पासवर्ड सेट नहीं किया है, तो नीचे 'अपना पासवर्ड "
@@ -1495,3 +1519,116 @@ msgstr ""
 
 msgid "expired"
 msgstr "समाप्त"
+
+msgid "lantern_pro_tagline"
+msgstr "तेज़, विश्वसनीय और निजी इंटरनेट एक्सेस"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern को क्या अलग बनाता है"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "गोपनीयता, गति और स्वतंत्रता के लिए बनाया गया"
+
+msgid "smart_routing_mode"
+msgstr "स्मार्ट रूटिंग मोड"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"क्षेत्र-विशिष्ट नियम केवल वही ट्रैफ़िक रूट करते हैं जिसे VPN की ज़रूरत है, "
+"आपका कनेक्शन तेज़ बनाए रखते हैं।"
+
+msgid "advanced_protocols"
+msgstr "उन्नत प्रोटोकॉल"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"अधिकतम विश्वसनीयता के लिए अन्य VPN से अधिक प्रोटोकॉल। AnyTLS, Hysteria2, "
+"VLESS, Kindling, WATER और भी बहुत कुछ।"
+
+msgid "private_servers_description"
+msgstr "अपने कनेक्शन पर पूर्ण नियंत्रण के लिए अपने सर्वर कनेक्ट करें।"
+
+msgid "nonprofit_mission"
+msgstr "गैर-लाभकारी मिशन"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"इंटरनेट स्वतंत्रता को बढ़ावा देने में 12+ वर्षों के अनुभव वाली गैर-लाभकारी "
+"संस्था द्वारा निर्मित"
+
+msgid "choose_your_routing_mode"
+msgstr "अपना रूटिंग मोड चुनें"
+
+msgid "fastest"
+msgstr "सबसे तेज़"
+
+msgid "traditional_vpn_mode"
+msgstr "पारंपरिक VPN मोड"
+
+msgid "traditional_vpn_mode_description"
+msgstr "सभी ट्रैफ़िक को Lantern के ज़रिए रूट करता है, चाहे ज़रूरत हो या न हो।"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "रूटिंग मोड सेटिंग्स में कभी भी बदलें"
+
+msgid "get_started"
+msgstr "शुरू करें"
+
+msgid "skip_connect_now"
+msgstr "छोड़ें - अभी कनेक्ट करें"
+
+msgid "renew_pro"
+msgstr "Pro नवीनीकरण करें"
+
+msgid "payment"
+msgstr "भुगतान"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"कुछ गड़बड़ हुई लगती है। यदि आपने भुगतान किया है लेकिन सब्सक्रिप्शन सक्रिय "
+"नहीं दिख रहा, तो कृपया कुछ घंटे प्रतीक्षा करें और फिर जाँचें।"
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"आपका Pro प्लान Google Play से खरीदा गया था। कृपया अपनी सब्सक्रिप्शन Google "
+"Play खाता सेटिंग्स से प्रबंधित करें।"
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"आपका Pro प्लान Apple App Store से खरीदा गया था। कृपया अपनी सब्सक्रिप्शन "
+"Apple ID खाता सेटिंग्स से प्रबंधित करें।"
+
+msgid "create_account_error"
+msgstr "खाता बनाने में त्रुटि"
+
+msgid "appearance"
+msgstr "दिखावट"
+
+msgid "light"
+msgstr "लाइट"
+
+msgid "dark"
+msgstr "डार्क"
+
+msgid "system"
+msgstr "सिस्टम"
+
+msgid "lantern_email"
+msgstr "लालटेन ईमेल"
+
+msgid "confirm_with_account"
+msgstr "हटाने की पुष्टि के लिए कृपया नीचे अपने %s खाते से सत्यापित करें:"
+
+msgid "oauth_different_account"
+msgstr ""
+"जिस खाते से आप साइन इन करने का प्रयास कर रहे हैं वह इस ईमेल से जुड़े खाते से"
+" मेल नहीं खाता। कृपया सही खाते से साइन इन करें या कोई अलग ईमेल चुनें।"
+
+msgid "account_deleted"
+msgstr "खाता हटाया गया "
+
+msgid "account_deleted_message"
+msgstr "आपका खाता स्थायी रूप से हटा दिया गया है। "
+
+msgid "verify_with"
+msgstr "%s से सत्यापित करें"

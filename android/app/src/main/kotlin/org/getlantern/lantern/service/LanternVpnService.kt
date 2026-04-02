@@ -20,6 +20,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
+import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -146,8 +147,20 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
-            runCatching { Mobile.stopVPN() }
-                .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+            val radianceConnected = Mobile.isRadianceConnected()
+            val vpnConnected = Mobile.isVPNConnected()
+            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
+            if (!radianceConnected) {
+                AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
+            } else if (!vpnConnected) {
+                AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
+            } else {
+                runCatching { Mobile.stopVPN() }
+                    .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
+                    .onFailure { e ->
+                        AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
+                    }
+            }
             runCatching {
                 runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
             }.onFailure { e ->
@@ -263,7 +276,21 @@ class LanternVpnService :
         // VPN service starts, replaced by connected notification on success.
         notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
         runCatching {
+            // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
+            // service it may have been killed by the OS before setup completed.
+            // Re-run setup here under the foreground notification so it is guaranteed
+            // to finish before we attempt to start the VPN tunnel.
+            if (!Mobile.isRadianceConnected()) {
+                AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
+                Mobile.setupRadiance(opts(), flutterEventListener)
+            }
+            DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
             DefaultNetworkMonitor.start()
+            // Tell Android which physical network underlies our VPN so that
+            // ConnectivityManager.getAllNetworks() returns it alongside the VPN.
+            // Without this, some Android 10+ devices report only the VPN network,
+            // causing sing-box to see no physical interface and blocking all traffic.
+            updateUnderlyingNetworks()
             connect()
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -272,6 +299,11 @@ class LanternVpnService :
             }
         }.onFailure { e ->
             AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
+            // Clear the network change callback to avoid leaking this service
+            // instance through the static DefaultNetworkMonitor singleton.
+            DefaultNetworkMonitor.setNetworkChangeCallback(null)
+            runCatching { runBlocking { DefaultNetworkMonitor.stop() } }
+                .onFailure { stopErr -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", stopErr) }
             VpnStatusManager.postVPNError(
                 errorCode = errorCode,
                 errorMessage = "Error in VPN operation",
@@ -296,7 +328,13 @@ class LanternVpnService :
     private suspend fun stopVPNTunnel() {
         try {
             closeTunInterface()
-            runCatching { Mobile.stopVPN() }
+            runCatching {
+                if (!Mobile.isVPNConnected()) {
+                    AppLogger.d(TAG, "VPN is not connected, skipping stopVPN")
+                    return@runCatching
+                }
+                Mobile.stopVPN()
+            }
                 .onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed", e) }
 
             runCatching { DefaultNetworkMonitor.stop() }
@@ -328,6 +366,23 @@ class LanternVpnService :
                 errorCode = "stop_vpn",
                 errorMessage = "Error stopping VPN service",
             )
+        }
+    }
+
+    /**
+     * Informs the OS which physical networks underlie our VPN. This ensures
+     * ConnectivityManager.getAllNetworks() returns the physical network alongside
+     * the VPN, which sing-box needs to bind outbound connections to the real
+     * interface. Without this, some devices (notably Android 10) only see the VPN
+     * network and sing-box's direct outbound fails with "no available network interface".
+     */
+    private fun updateUnderlyingNetworks() {
+        val network = DefaultNetworkMonitor.defaultNetwork
+        if (network != null) {
+            setUnderlyingNetworks(arrayOf(network))
+        } else {
+            // null tells Android to use the system default
+            setUnderlyingNetworks(null)
         }
     }
 

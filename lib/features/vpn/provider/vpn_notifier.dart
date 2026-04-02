@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -18,50 +19,59 @@ class VpnNotifier extends _$VpnNotifier {
   @override
   VPNStatus build() {
     ref.read(lanternServiceProvider).isVPNConnected();
-    ref.listen(
-      vPNStatusProvider,
-      (previous, next) {
-        final previousStatus = previous?.value?.status;
-        final nextStatus = next.value!.status;
+    ref.listen(vPNStatusProvider, (previous, next) {
+      final previousStatus = previous?.value?.status;
+      final nextStatus = next.value!.status;
+      final nextOrigin = next.value!.origin;
+      final suppressConnectionNotifications =
+          nextOrigin == VPNStatusOrigin.settingsMutation &&
+          (nextStatus == VPNStatus.connected ||
+              nextStatus == VPNStatus.disconnected);
 
-        if (previous != null &&
-            previous.value != null &&
-            previousStatus != nextStatus) {
-          if (previousStatus != VPNStatus.connecting &&
-              nextStatus == VPNStatus.disconnected) {
+      if (previous != null &&
+          previous.value != null &&
+          previousStatus != nextStatus) {
+        if (previousStatus != VPNStatus.connecting &&
+            nextStatus == VPNStatus.disconnected) {
+          if (!suppressConnectionNotifications) {
             sl<NotificationService>().showNotification(
               id: NotificationEvent.vpnDisconnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_disconnected'.i18n,
             );
-          } else if (nextStatus == VPNStatus.connected) {
-            if (PlatformUtils.isMobile) {
-              HapticFeedback.mediumImpact();
-            }
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_disconnected notification (origin=$nextOrigin)',
+            );
+          }
+        } else if (nextStatus == VPNStatus.connected) {
+          if (PlatformUtils.isMobile) {
+            HapticFeedback.mediumImpact();
+          }
 
-            /// Mark successful connection in app settings
-            ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
+          /// Mark successful connection in app settings
+          ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
-            /// Fetch auto server location after a delay to ensure VPN is fully connected
-            Future.delayed(const Duration(seconds: 1), () {
-              if (!ref.mounted) {
-                return;
-              }
-              ref
-                  .read(serverLocationProvider.notifier)
-                  .ifNeededGetAutoServerLocation();
-            });
+          // Server location is updated via the "server-location" push event
+          // from the Go side (handled by AppEventNotifier), not by polling
+          // getAutoServerLocation here. This avoids a race where the NE
+          // reports "connected" before the Go tunnel is fully ready.
 
+          if (!suppressConnectionNotifications) {
             sl<NotificationService>().showNotification(
               id: NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
               body: 'vpn_connected'.i18n,
             );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_connected notification (origin=$nextOrigin)',
+            );
           }
         }
-        state = nextStatus;
-      },
-    );
+      }
+      state = nextStatus;
+    });
     return VPNStatus.disconnected;
   }
 
@@ -81,27 +91,33 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
-    final serverLocation = ref.read(serverLocationProvider).value;
-
-    if (serverLocation == null) {
-      appLogger.debug('No cached server location, starting VPN with auto');
-      return lantern.startVPN();
-    }
+    final serverLocation = ref.read(serverLocationProvider);
 
     final type = serverLocation.serverType.toServerLocationType;
     if (type == ServerLocationType.auto || force) {
       appLogger.debug(
-          'Got server location with type auto or force is true, starting VPN with auto');
+        'Got server location with type auto or force is true, starting VPN with auto',
+      );
       return lantern.startVPN();
     }
 
-    return connectToServer(type, serverLocation.serverName);
+    final tag = serverLocation.serverName;
+    final tagAvailable = await lantern.isTagAvailable(tag);
+    if (!tagAvailable) {
+      appLogger.debug(
+        'Server tag "$tag" not available, falling back to auto VPN',
+      );
+      return lantern.startVPN();
+    }
+    return connectToServer(type, tag);
   }
 
   /// Connects to a specific server location.
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
-      ServerLocationType location, String tag) async {
+    ServerLocationType location,
+    String tag,
+  ) async {
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)

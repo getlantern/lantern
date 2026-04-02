@@ -21,6 +21,9 @@
 .PARAMETER ApiToken
     SignPath API token.
 
+.PARAMETER ArtifactConfigurationSlug
+    Optional SignPath artifact configuration slug (required for zip bundles).
+
 .PARAMETER Description
     Optional description for the signing request.
 
@@ -56,6 +59,9 @@ param(
     [string]$ApiToken,
 
     [Parameter(Mandatory = $false)]
+    [string]$ArtifactConfigurationSlug = "",
+
+    [Parameter(Mandatory = $false)]
     [string]$Description = "",
 
     [Parameter(Mandatory = $false)]
@@ -76,6 +82,13 @@ if (-not (Test-Path $FilePath)) {
 }
 
 $fileName = Split-Path $FilePath -Leaf
+$ext = [System.IO.Path]::GetExtension($FilePath).ToLowerInvariant()
+$archiveExtensions = @('.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.bz2')
+
+if (($archiveExtensions -contains $ext) -and [string]::IsNullOrWhiteSpace($ArtifactConfigurationSlug)) {
+    Write-Error "ArtifactConfigurationSlug is required when signing archive artifacts ($ext): $fileName"
+}
+
 Write-Host "=== SignPath Signing ==="
 Write-Host "File: $fileName"
 Write-Host "Policy: $SigningPolicy"
@@ -84,16 +97,21 @@ Write-Host "========================"
 # Submit signing request
 Write-Host "Submitting signing request..."
 
+$form = @{
+    "ProjectSlug"      = $ProjectSlug
+    "SigningPolicySlug" = $SigningPolicy
+    "Artifact"         = Get-Item $FilePath
+    "Description"      = if ($Description) { $Description } else { "Signing $fileName" }
+}
+if ($ArtifactConfigurationSlug) {
+    $form["ArtifactConfigurationSlug"] = $ArtifactConfigurationSlug
+}
+
 $response = Invoke-WebRequest -Method POST `
     -Uri "https://app.signpath.io/API/v1/$OrganizationId/SigningRequests" `
     -Headers @{ "Authorization" = "Bearer $ApiToken" } `
     -SkipHttpErrorCheck `
-    -Form @{
-        "ProjectSlug" = $ProjectSlug
-        "SigningPolicySlug" = $SigningPolicy
-        "Artifact" = Get-Item $FilePath
-        "Description" = if ($Description) { $Description } else { "Signing $fileName" }
-    }
+    -Form $form
 
 if ($response.StatusCode -ne 201) {
     Write-Error "Failed to submit signing request: HTTP $($response.StatusCode) - $($response.Content)"
@@ -142,34 +160,38 @@ Invoke-WebRequest -Method GET `
 Move-Item -Force $tempFile $FilePath
 Write-Host "Downloaded signed artifact to: $FilePath"
 
-# Verify signature
-$sig = Get-AuthenticodeSignature -FilePath $FilePath
-Write-Host "=== Signature Verification ==="
-Write-Host "Status: $($sig.Status)"
-Write-Host "Signer: $($sig.SignerCertificate.Subject)"
-Write-Host "Thumbprint: $($sig.SignerCertificate.Thumbprint)"
-Write-Host "=============================="
+# Verify signature (only for PE files, not archives)
+if ($ext -in @('.exe', '.dll', '.sys', '.msi')) {
+    $sig = Get-AuthenticodeSignature -FilePath $FilePath
+    Write-Host "=== Signature Verification ==="
+    Write-Host "Status: $($sig.Status)"
+    Write-Host "Signer: $($sig.SignerCertificate.Subject)"
+    Write-Host "Thumbprint: $($sig.SignerCertificate.Thumbprint)"
+    Write-Host "=============================="
 
-if ($sig.Status -ne "Valid") {
-    $isSelfSignedFlow = $IsTestCertificate
+    if ($sig.Status -ne "Valid") {
+        $isSelfSignedFlow = $IsTestCertificate
 
-    # Always fail on HashMismatch regardless of policy.
-    if ($sig.Status -eq "HashMismatch") {
-        Write-Error "Signature verification failed (hash mismatch): $($sig.Status) for policy '$SigningPolicy'"
+        # Always fail on HashMismatch regardless of policy.
+        if ($sig.Status -eq "HashMismatch") {
+            Write-Error "Signature verification failed (hash mismatch): $($sig.Status) for policy '$SigningPolicy'"
+        }
+
+        if (-not $isSelfSignedFlow) {
+            # For production/EV signing, require a strictly valid signature.
+            Write-Error "Signature verification failed for policy '$SigningPolicy': $($sig.Status)"
+        }
+
+        # For self-signed/test policies, allow only a narrow set of expected statuses.
+        $allowedSelfSignedStatuses = @("Valid", "UnknownError")
+        if ($allowedSelfSignedStatuses -notcontains $sig.Status) {
+            Write-Error "Signature verification failed for self-signed/test policy '$SigningPolicy': $($sig.Status)"
+        }
+
+        Write-Warning "Signature status is $($sig.Status) for self-signed/test policy '$SigningPolicy' - this may be expected for self-signed certificates"
     }
-
-    if (-not $isSelfSignedFlow) {
-        # For production/EV signing, require a strictly valid signature.
-        Write-Error "Signature verification failed for policy '$SigningPolicy': $($sig.Status)"
-    }
-
-    # For self-signed/test policies, allow only a narrow set of expected statuses.
-    $allowedSelfSignedStatuses = @("Valid", "UnknownError")
-    if ($allowedSelfSignedStatuses -notcontains $sig.Status) {
-        Write-Error "Signature verification failed for self-signed/test policy '$SigningPolicy': $($sig.Status)"
-    }
-
-    Write-Warning "Signature status is $($sig.Status) for self-signed/test policy '$SigningPolicy' - this may be expected for self-signed certificates"
+} else {
+    Write-Host "Skipping authenticode verification for non-PE file: $fileName"
 }
 
 Write-Host "Signing complete: $fileName"

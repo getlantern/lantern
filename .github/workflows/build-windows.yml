@@ -12,18 +12,23 @@ on:
       installer_base_name:
         required: true
         type: string
-      use_self_signed_cert:
-        description: "Use self-signed code signing certificate"
+      skip_signing:
+        description: "Skip code signing (e.g. for nightly builds)"
         required: false
         type: boolean
-        default: false # when true, uses self-signed certificate
+        default: false
+      enable_ip_check:
+        description: "Enable public IP change validation in Windows smoke test"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-      SIGNPATH_SIGNING_POLICY: ${{ inputs.use_self_signed_cert && vars.SIGNPATH_SIGNING_POLICY_SLUG_TEST || vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_SIGNING_POLICY: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
     permissions:
       contents: "read"
       id-token: "write"
@@ -121,12 +126,12 @@ jobs:
           }
 
       - name: Sign embedded binaries
+        if: ${{ !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
-          $buildDir = "build/windows/x64/runner/Release"
-          $signScript = "./scripts/ci/sign-windows.ps1"
+          $buildDir = Resolve-Path "build/windows/x64/runner/Release"
 
           # Third-party binaries that are already signed by their vendors
           $thirdParty = @(
@@ -137,31 +142,77 @@ jobs:
           )
 
           # Discover all EXEs and DLLs, excluding third-party signed binaries
-          $binaries = Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
-            Where-Object { $thirdParty -notcontains $_.Name } |
-            Select-Object -ExpandProperty FullName
-          # Sign each binary
-          foreach ($binary in $binaries) {
-            if (Test-Path $binary) {
-              Write-Host "Signing $binary..."
-              & $signScript `
-                -FilePath $binary `
-                -SigningPolicy "${{ env.SIGNPATH_SIGNING_POLICY }}" `
-                -OrganizationId "${{ vars.SIGNPATH_ORG_ID }}" `
-                -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
-                -ApiToken $env:SIGNPATH_API_TOKEN `
-                -Description "GitHub Actions build ${{ inputs.version }}"
+          $binaries = @(
+            Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
+              Where-Object { $thirdParty -notcontains $_.Name }
+          )
 
-              if ($LASTEXITCODE -ne 0) {
-                Write-Error "Failed to sign $binary"
-                exit 1
-              }
-            } else {
-              Write-Warning "Binary not found, skipping: $binary"
+          if ($binaries.Count -eq 0) {
+            Write-Error "No binaries found to sign"
+            exit 1
+          }
+
+          # Stage binaries into a zip preserving relative paths (single signing request)
+          $stage = "$env:GITHUB_WORKSPACE\sign-stage"
+          foreach ($bin in $binaries) {
+            $rel = $bin.FullName.Substring($buildDir.Path.Length).TrimStart('\', '/')
+            $dest = Join-Path $stage $rel
+            New-Item -ItemType Directory -Path (Split-Path $dest) -Force | Out-Null
+            Copy-Item $bin.FullName $dest
+            Write-Host "  staged: $rel"
+          }
+
+          $zipPath = "$env:GITHUB_WORKSPACE\binaries-to-sign.zip"
+          Compress-Archive -Path "$stage\*" -DestinationPath $zipPath -Force
+          Write-Host "Bundled $($binaries.Count) binaries into zip"
+
+          # Sign the zip as a single request
+          & ./scripts/ci/sign-windows.ps1 `
+            -FilePath $zipPath `
+            -SigningPolicy "${{ env.SIGNPATH_SIGNING_POLICY }}" `
+            -OrganizationId "${{ vars.SIGNPATH_ORG_ID }}" `
+            -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -ArtifactConfigurationSlug "zip-bundle" `
+            -Description "GitHub Actions build ${{ inputs.version }}"
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to sign binaries bundle"
+            exit 1
+          }
+
+          # Extract signed binaries back over originals
+          Expand-Archive -Path $zipPath -DestinationPath $buildDir -Force
+
+          # Verify each target binary has a valid Authenticode signature
+          $failedSigs = @()
+          foreach ($bin in $binaries) {
+            if (-not (Test-Path $bin.FullName)) {
+              Write-Error ("Signed binary not found after extraction: {0}" -f $bin.FullName)
+              $failedSigs += $bin.FullName
+              continue
+            }
+
+            $sig = Get-AuthenticodeSignature -FilePath $bin.FullName
+            if ($sig.Status -ne 'Valid') {
+              Write-Error ("Signature verification failed for {0}: Status={1}" -f $bin.FullName, $sig.Status)
+              $failedSigs += $bin.FullName
             }
           }
 
+          if ($failedSigs.Count -gt 0) {
+            Write-Error ("One or more binaries failed Authenticode verification after signing:`n{0}" -f ($failedSigs -join "`n"))
+            exit 1
+          }
+
+          Remove-Item -Recurse -Force $stage, $zipPath
           Write-Host "All binaries signed successfully"
+
+      - name: Signing disabled for this run
+        if: ${{ inputs.skip_signing }}
+        shell: pwsh
+        run: |
+          Write-Host "Skipping embedded and installer signing for this run."
 
       - name: Package installer
         shell: pwsh
@@ -183,7 +234,21 @@ jobs:
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
+      - name: Windows installer + UI connect/disconnect integration
+        shell: pwsh
+        timeout-minutes: 20
+        env:
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          $installerPath = "$env:FULL_INSTALLER_NAME.exe"
+          if ("${{ inputs.enable_ip_check }}" -eq "true") {
+            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
+          } else {
+            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath
+          }
+
       - name: Sign installer
+        if: ${{ !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}

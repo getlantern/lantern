@@ -29,11 +29,14 @@ class DataUsage extends ConsumerWidget {
         final int remainingBytes = totalBytes - usedBytes;
         final isDataCapReached = usedBytes >= totalBytes;
         appLogger.debug(
-            "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes");
-        final dataCapResetTime =
-            dataCapNotifier.formatDailyResetTime(dataCap.allotmentEndTime);
-        String dataCapMessage =
-            "daily_data_cap_reached_message".i18n.fill([dataCapResetTime]);
+          "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes",
+        );
+        final dataCapResetTime = dataCapNotifier.formatDailyResetTime(
+          dataCap.allotmentEndTime,
+        );
+        String dataCapMessage = "daily_data_cap_reached_message".i18n.fill([
+          dataCapResetTime,
+        ]);
 
         ///If parsing fails and returns empty string
         ///do not show time
@@ -44,8 +47,9 @@ class DataUsage extends ConsumerWidget {
         /// Convert to MB only for display
         final int totalData = (totalBytes.toMB).round();
         final int remainingData = (remainingBytes.toMB).round();
-        final int usedData =
-            usedBytes == 0 ? 0 : max(1, usedBytes.toMB.round());
+        final int usedData = usedBytes == 0
+            ? 0
+            : max(1, usedBytes.toMB.round());
         appLogger.debug(
           "Data Usage - Total: $totalData MB, Used: $usedData MB, Remaining: $remainingData MB",
         );
@@ -85,7 +89,7 @@ class DataUsage extends ConsumerWidget {
                             : 'daily_data_usage'.i18n,
                         style: textTheme.labelLarge!.copyWith(
                           color: isDataCapReached
-                              ? context.statusErrorBg
+                              ? context.statusErrorText
                               : context.textTertiary,
                         ),
                       ),
@@ -108,7 +112,7 @@ class DataUsage extends ConsumerWidget {
                         maxFontSize: 12,
                         maxLines: 1,
                         style: textTheme.bodySmall!.copyWith(
-                          color: context.statusErrorBg,
+                          color: context.statusErrorText,
                         ),
                       ),
                     ),
@@ -128,19 +132,19 @@ class DataUsage extends ConsumerWidget {
                       curve: Curves.easeInOut,
                       builder: (context, value, child) =>
                           LinearProgressIndicator(
-                        value: value,
-                        minHeight: 9,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(defaultSize),
-                        ),
-                        trackGap: 10,
-                        backgroundColor: context.bgSurface,
-                        valueColor: AlwaysStoppedAnimation(
-                          isDataCapReached
-                              ? context.borderError
-                              : AppColors.yellow3,
-                        ),
-                      ),
+                            value: value,
+                            minHeight: 9,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(defaultSize),
+                            ),
+                            trackGap: 10,
+                            backgroundColor: context.bgSurface,
+                            valueColor: AlwaysStoppedAnimation(
+                              isDataCapReached
+                                  ? context.borderError
+                                  : AppColors.yellow3,
+                            ),
+                          ),
                     ),
                   ),
                 ],

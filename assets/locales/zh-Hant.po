@@ -1,4 +1,3 @@
-# 
 # Translators:
 # Chi-Hsun Tsai, 2025
 # YFdyh000 <yfdyh000@gmail.com>, 2025
@@ -12,6 +11,8 @@ msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Chinese Traditional (https://app.transifex.com/lantern-1/teams/94371/zh-Hant/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: zh-Hant\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -76,7 +77,7 @@ msgid "add_device"
 msgstr "新增裝置"
 
 msgid "danger_zone"
-msgstr "⚠️ 危險區域"
+msgstr "危險區域"
 
 msgid "delete_account"
 msgstr "刪除帳號"
@@ -97,7 +98,7 @@ msgid "delete_account_message_two"
 msgstr "請在下方輸入你的密碼以確認刪除"
 
 msgid "Submit Issue Report"
-msgstr "提交問題回報"
+msgstr "輸入密碼以確認"
 
 msgid "confirm_deletion"
 msgstr "確認刪除"
@@ -272,6 +273,12 @@ msgstr "模式"
 
 msgid "use_commas"
 msgstr "使用逗號分隔多個網址"
+
+msgid "deep_link_expired"
+msgstr "此連結已過期，請重新取得。"
+
+msgid "invalid_deep_link"
+msgstr "此連結無效，請重新取得。"
 
 msgid "default_bypass"
 msgstr "預設繞過清單"
@@ -601,7 +608,7 @@ msgid "error"
 msgstr "錯誤"
 
 msgid "signup_error_user_exists"
-msgstr "註冊時似乎出現問題。請嘗試重設你的密碼,如果問題持續發生,請聯絡我們的支援團隊"
+msgstr "註冊時似乎發生問題，請再試一次，或者如果您已有帳戶請直接登入"
 
 msgid "user_not_found"
 msgstr "無法識別使用者。請檢查你的憑證後重試。如果問題持續發生,請聯絡我們的支援團隊尋求協助。"
@@ -884,6 +891,9 @@ msgstr "已連線"
 
 msgid "status_off"
 msgstr "已中斷連線"
+
+msgid "select_location"
+msgstr "選擇位置"
 
 msgid "select_your_server_location"
 msgstr "選擇你的伺服器位置"
@@ -1342,6 +1352,18 @@ msgstr "應用程式"
 msgid "websites"
 msgstr "網站"
 
+msgid "main_channel"
+msgstr "主要頻道"
+
+msgid "data_cap_channel"
+msgstr "流量使用提醒"
+
+msgid "mb_free_data_remaining"
+msgstr "剩餘 %d MB 免費流量"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr "您的流量將於 %s 重置。升級至 Pro 可享有無限高速流量。"
+
 msgid "if_you_have_not_set_password"
 msgstr "如果您之前沒有設定 Lantern Pro 密碼，請選擇下方的「忘記密碼？」選項。"
 
@@ -1377,3 +1399,102 @@ msgstr ""
 
 msgid "expired"
 msgstr "已過期"
+
+msgid "lantern_pro_tagline"
+msgstr "快速、可靠且私密的網路存取"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern 有何不同"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "為隱私、速度和自由而打造"
+
+msgid "smart_routing_mode"
+msgstr "智慧路由模式"
+
+msgid "region_specific_routing_description"
+msgstr "依各地區的規則僅對需要 VPN 的流量進行路由，維持快速連線。"
+
+msgid "advanced_protocols"
+msgstr "進階協定"
+
+msgid "advanced_protocols_description"
+msgstr "比其他 VPN 支援更多協定，確保最高可靠性。AnyTLS、Hysteria2、VLESS、Kindling、WATER 等。"
+
+msgid "private_servers_description"
+msgstr "連接您自己的伺服器，完全掌控您的連線。"
+
+msgid "nonprofit_mission"
+msgstr "非營利使命"
+
+msgid "built_by_nonprofit"
+msgstr "由一個擁有超過 12 年推動網路自由經驗的非營利組織打造"
+
+msgid "choose_your_routing_mode"
+msgstr "選擇您的路由模式"
+
+msgid "fastest"
+msgstr "最快"
+
+msgid "traditional_vpn_mode"
+msgstr "傳統 VPN 模式"
+
+msgid "traditional_vpn_mode_description"
+msgstr "將所有流量透過 Lantern 路由，無論是否需要。"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "可隨時在路由模式設定中變更"
+
+msgid "get_started"
+msgstr "開始使用"
+
+msgid "skip_connect_now"
+msgstr "略過 - 立即連線"
+
+msgid "renew_pro"
+msgstr "續訂 Pro"
+
+msgid "payment"
+msgstr "付款"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr "似乎發生了問題。如果您已付款但未看到訂閱啟用，請等待數小時後再查看。"
+
+msgid "manage_subscription_google_play"
+msgstr "您的 Pro 方案是透過 Google Play 購買的。請在 Google Play 帳戶設定中管理您的訂閱。"
+
+msgid "manage_subscription_apple_app_store"
+msgstr "您的 Pro 方案是透過 Apple App Store 購買的。請在 Apple ID 帳戶設定中管理您的訂閱。"
+
+msgid "create_account_error"
+msgstr "建立帳戶時發生錯誤"
+
+msgid "appearance"
+msgstr "外觀"
+
+msgid "light"
+msgstr "淺色"
+
+msgid "dark"
+msgstr "深色"
+
+msgid "system"
+msgstr "跟隨系統"
+
+msgid "lantern_email"
+msgstr "Lantern 電子郵件"
+
+msgid "confirm_with_account"
+msgstr "若要確認刪除，請在下方使用您的 %s 帳戶進行驗證："
+
+msgid "oauth_different_account"
+msgstr "您嘗試登入的帳戶與此電子郵件關聯的帳戶不符。請使用正確的帳戶登入或選擇其他電子郵件。"
+
+msgid "account_deleted"
+msgstr "帳戶已刪除"
+
+msgid "account_deleted_message"
+msgstr "您的帳戶已永久刪除。"
+
+msgid "verify_with"
+msgstr "透過 %s 驗證"

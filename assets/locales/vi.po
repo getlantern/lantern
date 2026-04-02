@@ -1,18 +1,19 @@
-# 
 # Translators:
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
 # Yen Le Van <yenlevanbk@gmail.com>, 2025
 # Anh Phan <vietnamesel10n@gmail.com>, 2025
+# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # e2f <projects@e2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
-# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # Lantern, 2026
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Lantern, 2026\n"
 "Language-Team: Vietnamese (https://app.transifex.com/lantern-1/teams/94371/vi/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
@@ -103,7 +104,7 @@ msgid "delete_account_message_two"
 msgstr "Để xác nhận xóa, vui lòng nhập mật khẩu của bạn bên dưới"
 
 msgid "Submit Issue Report"
-msgstr "Gửi báo cáo sự cố"
+msgstr "Nhập mật khẩu để xác nhận"
 
 msgid "confirm_deletion"
 msgstr "Xác nhận xóa"
@@ -282,6 +283,12 @@ msgstr "Chế độ"
 
 msgid "use_commas"
 msgstr "Sử dụng dấu phẩy để phân tách nhiều URL"
+
+msgid "deep_link_expired"
+msgstr "Liên kết này đã hết hạn. Vui lòng yêu cầu liên kết mới."
+
+msgid "invalid_deep_link"
+msgstr "Liên kết này không hợp lệ. Vui lòng yêu cầu liên kết mới."
 
 msgid "default_bypass"
 msgstr "Danh sách bỏ qua mặc định"
@@ -643,8 +650,8 @@ msgstr "Lỗi"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Có vẻ như có lỗi xảy ra khi đăng ký. Vui lòng thử đặt lại mật khẩu và nếu "
-"vấn đề vẫn tiếp tục, hãy liên hệ nhóm hỗ trợ của chúng tôi"
+"Có vẻ đã xảy ra lỗi khi đăng ký. Vui lòng thử lại hoặc đăng nhập nếu bạn đã "
+"có tài khoản"
 
 msgid "user_not_found"
 msgstr ""
@@ -961,6 +968,9 @@ msgstr "Đã kết nối"
 
 msgid "status_off"
 msgstr "Đã ngắt kết nối"
+
+msgid "select_location"
+msgstr "Chọn vị trí"
 
 msgid "select_your_server_location"
 msgstr "Chọn vị trí máy chủ của bạn"
@@ -1458,6 +1468,20 @@ msgstr "Ứng dụng"
 msgid "websites"
 msgstr "Trang web"
 
+msgid "main_channel"
+msgstr "Kênh chính"
+
+msgid "data_cap_channel"
+msgstr "Cảnh báo sử dụng dữ liệu"
+
+msgid "mb_free_data_remaining"
+msgstr "Còn %d MB dữ liệu miễn phí"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Dữ liệu của bạn sẽ được đặt lại lúc %s. Nâng cấp lên Pro để có dữ liệu tốc "
+"độ cao không giới hạn."
+
 msgid "if_you_have_not_set_password"
 msgstr ""
 "Nếu bạn chưa từng đặt mật khẩu Lantern Pro trước đây, hãy chọn tùy chọn "
@@ -1497,3 +1521,117 @@ msgstr ""
 
 msgid "expired"
 msgstr "Đã hết hạn"
+
+msgid "lantern_pro_tagline"
+msgstr "Truy cập internet nhanh, đáng tin cậy và riêng tư"
+
+msgid "what_makes_lantern_different"
+msgstr "Điều gì làm Lantern khác biệt"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Được xây dựng cho quyền riêng tư, tốc độ và tự do"
+
+msgid "smart_routing_mode"
+msgstr "Chế độ định tuyến thông minh"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Các quy tắc theo vùng chỉ định tuyến những gì cần VPN, giữ kết nối của bạn "
+"luôn nhanh."
+
+msgid "advanced_protocols"
+msgstr "Giao thức nâng cao"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Nhiều giao thức hơn các VPN khác để đạt độ tin cậy tối đa. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER và nhiều hơn nữa."
+
+msgid "private_servers_description"
+msgstr "Kết nối máy chủ riêng của bạn để kiểm soát hoàn toàn kết nối."
+
+msgid "nonprofit_mission"
+msgstr "Sứ mệnh phi lợi nhuận"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Được xây dựng bởi tổ chức phi lợi nhuận với hơn 12 năm kinh nghiệm thúc đẩy "
+"tự do internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Chọn chế độ định tuyến"
+
+msgid "fastest"
+msgstr "Nhanh nhất"
+
+msgid "traditional_vpn_mode"
+msgstr "Chế độ VPN truyền thống"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Định tuyến tất cả lưu lượng qua Lantern, dù cần thiết hay không."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Thay đổi bất cứ lúc nào trong Cài đặt chế độ định tuyến"
+
+msgid "get_started"
+msgstr "Bắt đầu"
+
+msgid "skip_connect_now"
+msgstr "Bỏ qua - Kết nối ngay"
+
+msgid "renew_pro"
+msgstr "Gia hạn Pro"
+
+msgid "payment"
+msgstr "Thanh toán"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Có vẻ đã xảy ra lỗi. Nếu bạn đã thanh toán nhưng không thấy gói đăng ký được"
+" kích hoạt, vui lòng đợi vài giờ và kiểm tra lại."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Gói Pro của bạn được mua qua Google Play. Vui lòng quản lý đăng ký từ cài "
+"đặt tài khoản Google Play của bạn."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Gói Pro của bạn được mua qua Apple App Store. Vui lòng quản lý đăng ký từ "
+"cài đặt tài khoản Apple ID của bạn."
+
+msgid "create_account_error"
+msgstr "Lỗi tạo tài khoản"
+
+msgid "appearance"
+msgstr "Giao diện"
+
+msgid "light"
+msgstr "Sáng"
+
+msgid "dark"
+msgstr "Tối"
+
+msgid "system"
+msgstr "Hệ thống"
+
+msgid "lantern_email"
+msgstr "Email của Lantern"
+
+msgid "confirm_with_account"
+msgstr ""
+"Để xác nhận xóa, vui lòng xác minh bằng tài khoản %s của bạn bên dưới:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Tài khoản bạn đang cố đăng nhập không khớp với tài khoản liên kết với email "
+"này. Vui lòng đăng nhập bằng tài khoản đúng hoặc chọn email khác."
+
+msgid "account_deleted"
+msgstr "Tài khoản đã Xóa "
+
+msgid "account_deleted_message"
+msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
+
+msgid "verify_with"
+msgstr "Xác minh với %s"
