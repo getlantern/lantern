@@ -247,6 +247,13 @@ jobs:
             ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath
           }
 
+      # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
+      - name: Windows UI auth smoke integration
+        shell: pwsh
+        timeout-minutes: 15
+        run: |
+          flutter test integration_test/auth/windows_auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
+
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}
         shell: pwsh
