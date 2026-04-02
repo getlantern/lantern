@@ -1604,3 +1604,12 @@ msgstr "บัญชีของคุณถูกลบอย่างถาว
 
 msgid "verify_with"
 msgstr "ยืนยันด้วย %s"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

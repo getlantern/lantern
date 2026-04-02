@@ -1672,3 +1672,12 @@ msgstr "သင့်အကောင့်ကို အပြီးတိုင�
 
 msgid "verify_with"
 msgstr "%s ဖြင့် အတည်ပြုပါ"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

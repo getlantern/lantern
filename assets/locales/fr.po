@@ -1516,3 +1516,12 @@ msgstr ""
 
 msgid "expired"
 msgstr "Expiré"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

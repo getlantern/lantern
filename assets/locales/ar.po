@@ -1596,3 +1596,12 @@ msgstr "تم حذف حسابك بشكل دائم."
 
 msgid "verify_with"
 msgstr "التحقق عبر %s"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

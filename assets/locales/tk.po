@@ -1617,3 +1617,12 @@ msgstr "Hasabyňyz hemişelik pozuldy."
 
 msgid "verify_with"
 msgstr "%s bilen tassyklaň"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

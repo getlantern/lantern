@@ -1496,3 +1496,12 @@ msgstr "您的账户已永久删除。"
 
 msgid "verify_with"
 msgstr "通过 %s 验证"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""

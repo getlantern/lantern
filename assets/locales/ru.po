@@ -1649,3 +1649,12 @@ msgstr "Вы не сможете его восстановить."
 
 msgid "verify_with"
 msgstr "Подтвердить через %s"
+
+msgid "vpn_conflict_title"
+msgstr ""
+
+msgid "vpn_conflict_body"
+msgstr ""
+
+msgid "vpn_conflict_dismiss"
+msgstr ""
