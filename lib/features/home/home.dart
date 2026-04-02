@@ -42,7 +42,8 @@ class _HomeState extends ConsumerState<Home> {
       final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
         appLogger.info(
-            "User has not completed onboarding, navigating to Onboarding Screen");
+          "User has not completed onboarding, navigating to Onboarding Screen",
+        );
         appRouter.push(const Onboarding());
         appSettingNotifier.setOnboardingCompleted(true);
         return;
@@ -68,9 +69,12 @@ class _HomeState extends ConsumerState<Home> {
   @override
   Widget build(BuildContext context) {
     final isUserPro = ref.watch(isUserProProvider);
+    appLogger.info("Building Home Screen, isUserPro: $isUserPro");
     final featureFlag = ref.watch(featureFlagProvider);
-    final userLoggedIn =
-        ref.watch(appSettingProvider.select((s) => s.userLoggedIn));
+    final userLoggedIn = ref.watch(
+      appSettingProvider.select((s) => s.userLoggedIn),
+    );
+    appLogger.info("User logged in status: $userLoggedIn");
     useEffect(() {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
@@ -95,10 +99,7 @@ class _HomeState extends ConsumerState<Home> {
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
-        title: LanternLogo(
-          isPro: isUserPro,
-          color: context.textPrimary,
-        ),
+        title: LanternLogo(isPro: isUserPro, color: context.textPrimary),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
           child: DividerSpace(padding: EdgeInsets.zero),
@@ -137,7 +138,7 @@ class _HomeState extends ConsumerState<Home> {
               onPressed: () {
                 appRouter.push(const SignInEmail());
               },
-            )
+            ),
         ],
       ),
       body: SafeArea(child: _buildBody(ref, isUserPro)),
@@ -178,10 +179,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final routingMode =
-        ref.watch(appSettingProvider.select((s) => s.routingMode));
-    final isSplitTunnelingOn =
-        ref.watch(appSettingProvider.select((s) => s.isSplitTunnelingOn));
+    final routingMode = ref.watch(
+      appSettingProvider.select((s) => s.routingMode),
+    );
+    final isSplitTunnelingOn = ref.watch(
+      appSettingProvider.select((s) => s.isSplitTunnelingOn),
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -276,14 +279,16 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: 24),
           Text(
             'help_improve_lantern'.i18n,
-            style:
-                textTheme!.headlineSmall!.copyWith(color: context.textPrimary),
+            style: textTheme!.headlineSmall!.copyWith(
+              color: context.textPrimary,
+            ),
           ),
           SizedBox(height: defaultSize),
           Text(
             'share_anonymous_usage_data'.i18n,
-            style:
-                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style: textTheme!.bodyMedium!.copyWith(
+              color: context.textSecondary,
+            ),
           ),
           SizedBox(height: defaultSize),
           Text(
@@ -295,8 +300,9 @@ class _HomeState extends ConsumerState<Home> {
           SizedBox(height: defaultSize),
           Text(
             'you_can_change_anytime'.i18n,
-            style:
-                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+            style: textTheme!.bodyMedium!.copyWith(
+              color: context.textSecondary,
+            ),
           ),
         ],
       ),

@@ -23,7 +23,7 @@ class UserResponseModel {
         legacyID: (json['legacyID'] as num?)?.toInt() ?? 0,
         legacyToken: (json['legacyToken'] ?? '').toString(),
         emailConfirmed: json['emailConfirmed'] == true,
-        success: json['success'] == true,
+        success: (json['success'] == true || json['Success'] == true),
         legacyUserData: json['legacyUserData'] is Map
             ? UserDataModel.fromJson(
                 Map<String, dynamic>.from(json['legacyUserData'] as Map),
@@ -36,14 +36,14 @@ class UserResponseModel {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'legacyID': legacyID,
-        'legacyToken': legacyToken,
-        'emailConfirmed': emailConfirmed,
-        'success': success,
-        'legacyUserData': legacyUserData.toJson(),
-        'devices': devices.map((d) => d.toJson()).toList(),
-      };
+    'id': id,
+    'legacyID': legacyID,
+    'legacyToken': legacyToken,
+    'emailConfirmed': emailConfirmed,
+    'success': success,
+    'legacyUserData': legacyUserData.toJson(),
+    'devices': devices.map((d) => d.toJson()).toList(),
+  };
 }
 
 class DeviceModel {
@@ -58,16 +58,16 @@ class DeviceModel {
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) => DeviceModel(
-        deviceId: (json['deviceId'] ?? '').toString(),
-        name: (json['name'] ?? '').toString(),
-        created: (json['created'] as num?)?.toInt() ?? 0,
-      );
+    deviceId: (json['deviceId'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+    created: (json['created'] as num?)?.toInt() ?? 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'deviceId': deviceId,
-        'name': name,
-        'created': created,
-      };
+    'deviceId': deviceId,
+    'name': name,
+    'created': created,
+  };
 }
 
 class UserDataModel {
@@ -122,63 +122,63 @@ class UserDataModel {
   });
 
   factory UserDataModel.fromJson(Map<String, dynamic> json) => UserDataModel(
-        userId: (json['userId'] as num?)?.toInt() ?? 0,
-        code: (json['code'] ?? '').toString(),
-        token: (json['token'] ?? '').toString(),
-        referral: (json['referral'] ?? '').toString(),
-        phone: (json['phone'] ?? '').toString(),
-        email: (json['email'] ?? '').toString(),
-        userStatus: (json['userStatus'] ?? '').toString(),
-        userLevel: (json['userLevel'] ?? '').toString(),
-        locale: (json['locale'] ?? '').toString(),
-        expiration: (json['expiration'] as num?)?.toInt() ?? 0,
-        subscription: (json['subscription'] ?? '').toString(),
-        bonusDays: (json['bonusDays'] ?? '').toString(),
-        bonusMonths: (json['bonusMonths'] ?? '').toString(),
-        yinbiEnabled: json['yinbiEnabled'] == true,
-        servers: (json['servers'] ?? '').toString(),
-        inviters: (json['inviters'] ?? '').toString(),
-        invitees: (json['invitees'] ?? '').toString(),
-        purchases: (json['purchases'] ?? '').toString(),
-        deviceID: (json['deviceID'] ?? '').toString(),
-        unpassRegistered: json['unpassRegistered'] == true,
-        lastExpiredOn: (json['lastExpiredOn'] as num?)?.toInt() ?? 0,
-        devices: ((json['devices'] as List?) ?? const [])
-            .whereType<Map>()
-            .map((m) => DeviceModel.fromJson(Map<String, dynamic>.from(m)))
-            .toList(),
-        subscriptionData: json['subscriptionData'] is Map
-            ? SubscriptionDataModel.fromJson(
-                Map<String, dynamic>.from(json['subscriptionData'] as Map),
-              )
-            : const SubscriptionDataModel(),
-      );
+    userId: (json['userId'] as num?)?.toInt() ?? 0,
+    code: (json['code'] ?? '').toString(),
+    token: (json['token'] ?? '').toString(),
+    referral: (json['referral'] ?? '').toString(),
+    phone: (json['phone'] ?? '').toString(),
+    email: (json['email'] ?? '').toString(),
+    userStatus: (json['userStatus'] ?? '').toString(),
+    userLevel: (json['userLevel'] ?? '').toString(),
+    locale: (json['locale'] ?? '').toString(),
+    expiration: (json['expiration'] as num?)?.toInt() ?? 0,
+    subscription: (json['subscription'] ?? '').toString(),
+    bonusDays: (json['bonusDays'] ?? '').toString(),
+    bonusMonths: (json['bonusMonths'] ?? '').toString(),
+    yinbiEnabled: json['yinbiEnabled'] == true,
+    servers: (json['servers'] ?? '').toString(),
+    inviters: (json['inviters'] ?? '').toString(),
+    invitees: (json['invitees'] ?? '').toString(),
+    purchases: (json['purchases'] ?? '').toString(),
+    deviceID: (json['deviceID'] ?? '').toString(),
+    unpassRegistered: json['unpassRegistered'] == true,
+    lastExpiredOn: (json['lastExpiredOn'] as num?)?.toInt() ?? 0,
+    devices: ((json['devices'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((m) => DeviceModel.fromJson(Map<String, dynamic>.from(m)))
+        .toList(),
+    subscriptionData: json['subscriptionData'] is Map
+        ? SubscriptionDataModel.fromJson(
+            Map<String, dynamic>.from(json['subscriptionData'] as Map),
+          )
+        : const SubscriptionDataModel(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'code': code,
-        'token': token,
-        'referral': referral,
-        'phone': phone,
-        'email': email,
-        'userStatus': userStatus,
-        'userLevel': userLevel,
-        'locale': locale,
-        'expiration': expiration,
-        'subscription': subscription,
-        'bonusDays': bonusDays,
-        'bonusMonths': bonusMonths,
-        'yinbiEnabled': yinbiEnabled,
-        'servers': servers,
-        'inviters': inviters,
-        'invitees': invitees,
-        'devices': devices.map((d) => d.toJson()).toList(),
-        'purchases': purchases,
-        'subscriptionData': subscriptionData.toJson(),
-        'deviceID': deviceID,
-        'unpassRegistered': unpassRegistered,
-        'lastExpiredOn': lastExpiredOn,
-      };
+    'userId': userId,
+    'code': code,
+    'token': token,
+    'referral': referral,
+    'phone': phone,
+    'email': email,
+    'userStatus': userStatus,
+    'userLevel': userLevel,
+    'locale': locale,
+    'expiration': expiration,
+    'subscription': subscription,
+    'bonusDays': bonusDays,
+    'bonusMonths': bonusMonths,
+    'yinbiEnabled': yinbiEnabled,
+    'servers': servers,
+    'inviters': inviters,
+    'invitees': invitees,
+    'devices': devices.map((d) => d.toJson()).toList(),
+    'purchases': purchases,
+    'subscriptionData': subscriptionData.toJson(),
+    'deviceID': deviceID,
+    'unpassRegistered': unpassRegistered,
+    'lastExpiredOn': lastExpiredOn,
+  };
 }
 
 class SubscriptionDataModel {
@@ -221,15 +221,15 @@ class SubscriptionDataModel {
       );
 
   Map<String, dynamic> toJson() => {
-        'planID': planID,
-        'stripeCustomerID': stripeCustomerID,
-        'startAt': startAt,
-        'cancelledAt': cancelledAt,
-        'autoRenew': autoRenew,
-        'subscriptionID': subscriptionID,
-        'status': status,
-        'provider': provider,
-        'createdAt': createdAt,
-        'endAt': endAt,
-      };
+    'planID': planID,
+    'stripeCustomerID': stripeCustomerID,
+    'startAt': startAt,
+    'cancelledAt': cancelledAt,
+    'autoRenew': autoRenew,
+    'subscriptionID': subscriptionID,
+    'status': status,
+    'provider': provider,
+    'createdAt': createdAt,
+    'endAt': endAt,
+  };
 }

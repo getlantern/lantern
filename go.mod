@@ -24,7 +24,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260326173647-f4a826182215
+	github.com/getlantern/radiance v0.0.0-20260402131048-75d805fee4be
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.41.0
@@ -166,8 +166,7 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260305201851-782bc8045e58 // indirect
-	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
-	github.com/getlantern/common v1.2.1-0.20260224184656-5aefb9c21c85 // indirect
+	github.com/getlantern/common v1.2.1-0.20260325181816-33f69c725899 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
 	github.com/getlantern/fronted v0.0.0-20260325003030-cb5041ba1538 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae // indirect

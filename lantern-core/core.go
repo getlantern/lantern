@@ -587,7 +587,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 }
 
 func (lc *LanternCore) OAuthLoginUrl(provider string) (string, error) {
-	return lc.client.OAuthLoginUrl(lc.ctx, provider)
+	return lc.client.OAuthLoginURL(lc.ctx, provider)
 }
 
 func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
