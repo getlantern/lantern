@@ -150,8 +150,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   public func checkInstallationStatus() {
-    appLogger.info("Checking installation status for ID: \(tunnelBundleID)")
-    submitPropertiesRequest(context: .inspectStatus)
+    appLogger.info("Checking and reconciling installation status for ID: \(tunnelBundleID)")
+    submitPropertiesRequest(context: .reconcile)
   }
 
   private func submitPropertiesRequest(context: RequestContext) {
