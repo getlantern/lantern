@@ -57,6 +57,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
       dnsSettings.matchDomains = [""]
       dnsSettings.matchDomainsNoSearch = true
+      dnsSettings.allowFailover = false
       settings.dnsSettings = dnsSettings
 
       var ipv4Address: [String] = []
@@ -345,11 +346,14 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     true
   }
 
-  // Lantern override: must be true so DNS goes through the VPN tunnel on cellular.
-  // Without this, iOS 26.4+ bypasses the TUN fakeip resolver on mobile data,
-  // causing "no internet" in Safari/Chrome. See getlantern/engineering#3128.
+  // Return false so sing-tun uses the system/mixed TUN stack (not gvisor).
+  // gvisor caused TCP data transfer stalls on cellular (connections open but
+  // no data flows). includeAllNetworks is set at the VPN profile level in
+  // Profile.swift instead, which forces iOS to route all traffic through the
+  // tunnel without affecting the TUN stack choice.
+  // See getlantern/engineering#3128, getlantern/engineering#3133.
   public func includeAllNetworks() -> Bool {
-    return true
+    return false
   }
 
   public func clearDNSCache() {
