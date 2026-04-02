@@ -70,6 +70,14 @@ public class Profile {
     let proto = NETunnelProviderProtocol()
     proto.providerBundleIdentifier = "org.getlantern.lantern.Tunnel"
     proto.serverAddress = "0.0.0.0"
+    // Force iOS to route ALL traffic (including DNS) through the VPN tunnel,
+    // even on cellular. Without this, iOS 26.4+ may bypass the TUN's fakeip
+    // DNS resolver on mobile data, causing "no internet" in Safari/Chrome.
+    // This is set at the VPN profile level (not platformInterface level) so
+    // sing-tun can still use the system/mixed TUN stack instead of gvisor.
+    // See getlantern/engineering#3128, getlantern/engineering#3133.
+    proto.includeAllNetworks = true
+    proto.excludeLocalNetworks = true
 
     manager.protocolConfiguration = proto
     manager.localizedDescription = FilePath.vpnProfileName
@@ -101,6 +109,12 @@ public class Profile {
     // 1. VPN name changed (user may have old name)
     if manager.localizedDescription != "LanternVPN" {
       return true
+    }
+    // 2. includeAllNetworks not set (needed for iOS 26.4+ cellular DNS)
+    if let proto = manager.protocolConfiguration {
+      if !proto.includeAllNetworks {
+        return true
+      }
     }
     return false
   }
