@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
@@ -24,16 +25,14 @@ class Account extends HookConsumerWidget {
     return BaseScreen(
       title: 'account'.i18n,
       appBar: CustomAppBar(
-        title: Text(
-          'account'.i18n,
-        ),
+        title: Text('account'.i18n),
         actions: [
           if (appSettings.userLoggedIn)
             AppTextButton(
               label: 'logout'.i18n,
               textColor: context.textLink,
               onPressed: () => logoutDialog(context, ref),
-            )
+            ),
         ],
       ),
       body: _buildBody(context, ref),
@@ -100,8 +99,12 @@ class Account extends HookConsumerWidget {
               trailing: AppTextButton(
                 label: 'change_email'.i18n,
                 onPressed: () {
-                  appRouter.push(SignInPassword(
-                      email: appSettings.email, fromChangeEmail: true));
+                  appRouter.push(
+                    SignInPassword(
+                      email: appSettings.email,
+                      fromChangeEmail: true,
+                    ),
+                  );
                 },
               ),
             ),
@@ -133,10 +136,11 @@ class Account extends HookConsumerWidget {
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
-                  label: user!.legacyUserData.toDate(),
-                  contentPadding: EdgeInsets.only(left: 16),
-                  icon: AppImagePaths.autoRenew,
-                  trailing: planTrailingWidget(user, buildContext, ref)),
+                label: user!.legacyUserData.toDate(),
+                contentPadding: EdgeInsets.only(left: 16),
+                icon: AppImagePaths.autoRenew,
+                trailing: planTrailingWidget(user, buildContext, ref),
+              ),
             ),
           if (isPro && user!.legacyUserData.devices.toList().isNotEmpty) ...[
             SizedBox(height: defaultSize),
@@ -182,9 +186,13 @@ class Account extends HookConsumerWidget {
   }
 
   Widget? planTrailingWidget(
-      UserResponse user, BuildContext buildContext, WidgetRef ref) {
+    UserResponse user,
+    BuildContext buildContext,
+    WidgetRef ref,
+  ) {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
     final isUserExpired = user.legacyUserData.userLevel == 'expired';
+    final isUserPro = user.legacyUserData.isPro;
 
     ///User has an active subscription with auto-renew enabled
     if (!isUserExpired && autoRenew) {
@@ -193,6 +201,10 @@ class Account extends HookConsumerWidget {
         onPressed: () => onManageSubscriptionTap(ref, buildContext, user),
       );
     }
+    if (isUserPro && !autoRenew) {
+      return AppTextButton(label: 'renew'.i18n, onPressed: onRenewTap);
+    }
+
     return null;
   }
 
@@ -201,7 +213,10 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onManageSubscriptionTap(
-      WidgetRef ref, BuildContext buildContext, UserResponse user) async {
+    WidgetRef ref,
+    BuildContext buildContext,
+    UserResponse user,
+  ) async {
     final provider = user.legacyUserData.subscriptionData.provider;
     switch (provider) {
       case 'apple':
@@ -236,16 +251,25 @@ class Account extends HookConsumerWidget {
     }
   }
 
+  void onRenewTap() {
+    /// Most user renewal attempts are one-time purchases.
+    /// Send the user to the plans page.
+    appRouter.push(const Plans());
+  }
+
   Future<void> openGooglePlaySubscriptions() async {
     UrlUtils.openUrl("https://play.google.com/store/account/subscriptions");
   }
 
   Future<void> stripeBillingPortal(
-      WidgetRef ref, BuildContext buildContext) async {
+    WidgetRef ref,
+    BuildContext buildContext,
+  ) async {
     try {
       buildContext.showLoadingDialog();
-      final result =
-          await ref.read(lanternServiceProvider).stripeBillingPortal();
+      final result = await ref
+          .read(lanternServiceProvider)
+          .stripeBillingPortal();
       result.fold(
         (failure) {
           buildContext.hideLoadingDialog();
@@ -268,7 +292,9 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> checkSubscriptionAfterStripe(
-      WidgetRef ref, BuildContext context) async {
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     try {
       context.showLoadingDialog();
       appLogger.info('Checking subscription after stripe portal');
@@ -289,11 +315,12 @@ class Account extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleSubscriptionChange(
-      {required UserResponse oldUser,
-      required LanternService lanternService,
-      required HomeNotifier notifier,
-      required BuildContext context}) async {
+  Future<void> _handleSubscriptionChange({
+    required UserResponse oldUser,
+    required LanternService lanternService,
+    required HomeNotifier notifier,
+    required BuildContext context,
+  }) async {
     final delays = [Duration(seconds: 1), Duration(seconds: 2)];
     for (final delay in delays) {
       appLogger.info('Checking subscription with delay: $delay');
@@ -310,17 +337,19 @@ class Account extends HookConsumerWidget {
           final newPlanId = newUser.legacyUserData.subscriptionData.planID;
           final isPro = newUser.legacyUserData.userLevel == 'pro';
           final isPlanChanged = isPro && oldPlanId != newPlanId;
-          final isCancelled = !isPro ||
+          final isCancelled =
+              !isPro ||
               (oldUser.legacyUserData.subscriptionData.autoRenew &&
                   newUser.legacyUserData.subscriptionData.autoRenew == false);
 
           final isRenew =
               (oldUser.legacyUserData.subscriptionData.autoRenew == false &&
-                  newUser.legacyUserData.subscriptionData.autoRenew);
+              newUser.legacyUserData.subscriptionData.autoRenew);
 
           if (isRenew) {
-            appLogger
-                .info('User renewed subscription: $oldPlanId → $newPlanId');
+            appLogger.info(
+              'User renewed subscription: $oldPlanId → $newPlanId',
+            );
             notifier.updateUserData(newUser);
             context.showSnackBar('subscription_renewed'.i18n);
             return true;
@@ -334,8 +363,9 @@ class Account extends HookConsumerWidget {
           }
 
           if (isCancelled) {
-            appLogger
-                .info('User cancelled subscription. Previous plan: $oldPlanId');
+            appLogger.info(
+              'User cancelled subscription. Previous plan: $oldPlanId',
+            );
             notifier.updateUserData(newUser);
             context.showSnackBar('subscription_cancelled'.i18n);
             return true;
@@ -374,16 +404,11 @@ class Account extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: defaultSize),
-          Text(
-            'logout'.i18n,
-            style: theme.headlineSmall,
-          ),
+          Text('logout'.i18n, style: theme.headlineSmall),
           SizedBox(height: defaultSize),
           Text(
             isExpired ? 'logout_message_expired'.i18n : 'logout_message'.i18n,
-            style: theme.bodyMedium!.copyWith(
-              color: context.textPrimary,
-            ),
+            style: theme.bodyMedium!.copyWith(color: context.textPrimary),
           ),
         ],
       ),
@@ -393,8 +418,9 @@ class Account extends HookConsumerWidget {
   Future<void> onLogout(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
     final appSetting = ref.read(appSettingProvider);
-    final result =
-        await ref.read(lanternServiceProvider).logout(appSetting.email);
+    final result = await ref
+        .read(lanternServiceProvider)
+        .logout(appSetting.email);
     result.fold(
       (l) {
         context.hideLoadingDialog();
