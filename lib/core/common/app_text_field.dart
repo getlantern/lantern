@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
 
 class AppTextField extends StatelessWidget {
+  final Key? fieldKey;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -34,6 +35,7 @@ class AppTextField extends StatelessWidget {
 
   const AppTextField({
     super.key,
+    this.fieldKey,
     required this.hintText,
     this.validator,
     this.onChanged,
@@ -64,55 +66,60 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
-        autofocus: autofocus ?? false,
-        textAlign: TextAlign.start,
-        textAlignVertical: TextAlignVertical.center,
-        keyboardType: keyboardType,
-        autocorrect: autocorrect ?? !obscureText,
-        autofillHints: autofillHints,
-        enableSuggestions: enableSuggestions,
-        controller: controller,
-        maxLength: maxLength,
-        enabled: enable,
-        initialValue: initialValue,
-        inputFormatters: inputFormatters,
-        obscureText: obscureText,
-        onChanged: onChanged,
-        onFieldSubmitted: onSubmitted,
-        onEditingComplete: onEditingComplete,
-        readOnly: onTap != null,
-        onTap: onTap,
-        // cursorColor from textSelectionTheme
-        autovalidateMode: autovalidateMode,
-        validator: validator,
-        cursorRadius: Radius.circular(16),
-        cursorHeight: defaultSize,
-        cursorOpacityAnimates: true,
-        style: textTheme.bodyMedium!.copyWith(
-          // text color from colorScheme.onSurface via theme
-          fontSize: spCap(context, 14),
-        ),
-        textInputAction: textInputAction,
-        maxLines: maxLines,
-        buildCounter: (context,
-                {required currentLength,
-                required isFocused,
-                required maxLength}) =>
-            counter,
-        decoration: InputDecoration(
-          // borders, hintStyle, contentPadding come from inputDecorationTheme
-          filled: true,
-          fillColor: enable
-              ? context.bgElevated // bg.input = bg.elevated
-              : context.bgCallout, // bg.callout for disabled
-          hintText: hintText,
-          prefixIcon: prefixIcon != null
-              ? _buildFix(prefixIcon!, iconColor: context.textPrimary)
-              : null,
-          suffixIcon: suffixIcon != null
-              ? _buildFix(suffixIcon!, iconColor: context.textPrimary)
-              : null,
-        ));
+      key: fieldKey,
+      autofocus: autofocus ?? false,
+      textAlign: TextAlign.start,
+      textAlignVertical: TextAlignVertical.center,
+      keyboardType: keyboardType,
+      autocorrect: autocorrect ?? !obscureText,
+      autofillHints: autofillHints,
+      enableSuggestions: enableSuggestions,
+      controller: controller,
+      maxLength: maxLength,
+      enabled: enable,
+      initialValue: initialValue,
+      inputFormatters: inputFormatters,
+      obscureText: obscureText,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
+      readOnly: onTap != null,
+      onTap: onTap,
+      // cursorColor from textSelectionTheme
+      autovalidateMode: autovalidateMode,
+      validator: validator,
+      cursorRadius: Radius.circular(16),
+      cursorHeight: defaultSize,
+      cursorOpacityAnimates: true,
+      style: textTheme.bodyMedium!.copyWith(
+        // text color from colorScheme.onSurface via theme
+        fontSize: spCap(context, 14),
+      ),
+      textInputAction: textInputAction,
+      maxLines: maxLines,
+      buildCounter:
+          (
+            context, {
+            required currentLength,
+            required isFocused,
+            required maxLength,
+          }) => counter,
+      decoration: InputDecoration(
+        // borders, hintStyle, contentPadding come from inputDecorationTheme
+        filled: true,
+        fillColor: enable
+            ? context
+                  .bgElevated // bg.input = bg.elevated
+            : context.bgCallout, // bg.callout for disabled
+        hintText: hintText,
+        prefixIcon: prefixIcon != null
+            ? _buildFix(prefixIcon!, iconColor: context.textPrimary)
+            : null,
+        suffixIcon: suffixIcon != null
+            ? _buildFix(suffixIcon!, iconColor: context.textPrimary)
+            : null,
+      ),
+    );
 
     // If a label is provided, wrap the input field in a Column with a Text widget above.
     if (label != null) {
@@ -144,10 +151,7 @@ class AppTextField extends StatelessWidget {
     if (iconPath is IconData) {
       appAsset = Icon(iconPath, color: iconColor);
     } else if (iconPath is String) {
-      appAsset = AppImage(
-        path: iconPath,
-        color: iconColor,
-      );
+      appAsset = AppImage(path: iconPath, color: iconColor);
     } else if (iconPath is Widget) {
       appAsset = iconPath;
     }
