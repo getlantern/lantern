@@ -53,6 +53,18 @@ public class Profile {
     }
   }
 
+  /// Read-only load — never creates or migrates. Safe to call at app startup.
+  /// Returns nil if no profile exists yet.
+  func loadExistingManager() async -> NETunnelProviderManager? {
+    do {
+      let all = try await NETunnelProviderManager.loadAllFromPreferences()
+      return all.first
+    } catch {
+      appLogger.error("Failed to load existing VPN manager: \(error.localizedDescription)")
+      return nil
+    }
+  }
+
   func vpnManagerExists() async -> Bool {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
@@ -70,7 +82,14 @@ public class Profile {
     let proto = NETunnelProviderProtocol()
     proto.providerBundleIdentifier = "org.getlantern.lantern.Tunnel"
     proto.serverAddress = "0.0.0.0"
-
+    // Force iOS to route ALL traffic (including DNS) through the VPN tunnel,
+    // even on cellular. Without this, iOS 26.4+ may bypass the TUN's fakeip
+    // DNS resolver on mobile data, causing "no internet" in Safari/Chrome.
+    // This is set at the VPN profile level (not platformInterface level) so
+    // sing-tun can still use the system/mixed TUN stack instead of gvisor.
+    // See getlantern/engineering#3128, getlantern/engineering#3133.
+    proto.includeAllNetworks = true
+    proto.excludeLocalNetworks = true
     manager.protocolConfiguration = proto
     manager.localizedDescription = FilePath.vpnProfileName
     manager.isEnabled = true
@@ -101,6 +120,12 @@ public class Profile {
     // 1. VPN name changed (user may have old name)
     if manager.localizedDescription != "LanternVPN" {
       return true
+    }
+
+    if let proto = manager.protocolConfiguration {
+      if !proto.includeAllNetworks {
+        return true
+      }
     }
     return false
   }
