@@ -26,16 +26,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     required this.authFlow,
   });
 
-  String _normalizePaymentUrl(String url) => url.trim();
-
-  bool _isSupportedPaymentUrl(String url) {
-    final uri = Uri.tryParse(url);
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      return false;
-    }
-    return uri.scheme == 'http' || uri.scheme == 'https';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
@@ -235,9 +225,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         },
         (stripeUrl) async {
           // Handle success
-          final normalizedStripeUrl = _normalizePaymentUrl(stripeUrl);
-          if (!_isSupportedPaymentUrl(normalizedStripeUrl)) {
+          final normalizedStripeUrl = UrlUtils.normalizeWebviewUrl(stripeUrl);
+          if (normalizedStripeUrl.isEmpty) {
             context.showSnackBar('empty_url'.i18n);
+            appLogger.error('Error subscribing to plan: empty redirect URL');
+            context.hideLoadingDialog();
+            return;
+          }
+          if (!UrlUtils.isSupportedWebviewUrl(normalizedStripeUrl)) {
+            context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
             appLogger.error(
               'Error subscribing to plan: invalid redirect URL: $stripeUrl',
             );
@@ -282,8 +278,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       },
       (url) {
         context.hideLoadingDialog();
-        final normalizedUrl = _normalizePaymentUrl(url);
-        if (!_isSupportedPaymentUrl(normalizedUrl)) {
+        final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
+        if (normalizedUrl.isEmpty) {
+          context.showSnackBar('empty_url'.i18n);
+          appLogger.error('Empty payment redirect URL');
+          return;
+        }
+        if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
           context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
           appLogger.error('Invalid payment redirect URL: $url');
           return;

@@ -115,14 +115,16 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       },
       onLoadStart: (_, webUri) async {
         // Handle load start
-        ref.read(webViewLoadingProvider.notifier).state = true;
-        await _handleCompletionUrl(
+        final loading = ref.read(webViewLoadingProvider.notifier);
+        loading.start();
+        final handled = await _handleCompletionUrl(
           webUri == null ? null : Uri.tryParse(webUri.toString()),
         );
+        if (handled) return;
       },
       onLoadStop: (controller, webUri) async {
         // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).state = false;
+        ref.read(webViewLoadingProvider.notifier).stop();
         await _handleCompletionUrl(
           webUri == null ? null : Uri.tryParse(webUri.toString()),
         );
@@ -131,7 +133,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         // Handle received error
         appLogger.error("Received error: $error");
         // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).state = false;
+        ref.read(webViewLoadingProvider.notifier).stop();
         await _handleCompletionUrl(
           Uri.tryParse(webResourceRequest.url.toString()),
         );
@@ -172,8 +174,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return false;
     }
 
+    final loading = ref.read(webViewLoadingProvider.notifier);
+
     // User has completed private server setup.
     if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+      loading.stop();
       await appRouter.maybePop(true);
       return true;
     }
@@ -182,12 +187,14 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (uri.scheme == 'lantern' &&
         uri.host == 'auth' &&
         uri.queryParameters.containsKey('token')) {
+      loading.stop();
       await appRouter.maybePop(uri.queryParameters);
       return true;
     }
 
     final purchaseResult = _extractPurchaseResult(uri);
     if (purchaseResult != null && isLanternHost(uri.host)) {
+      loading.stop();
       await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
       return true;
     }
@@ -195,6 +202,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {
+      loading.stop();
       await appRouter.maybePop(uri.queryParameters);
       return true;
     }

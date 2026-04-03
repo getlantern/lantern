@@ -7,13 +7,21 @@ import 'package:lantern/core/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
-  static String _normalizeUrl(String url) => url.trim();
+  static String normalizeWebviewUrl(String url) => url.trim();
 
   static bool _isSupportedWebviewUri(Uri uri) {
     if (!uri.hasScheme || uri.host.isEmpty) {
       return false;
     }
     return uri.scheme == 'http' || uri.scheme == 'https';
+  }
+
+  static bool isSupportedWebviewUrl(String url) {
+    final uri = Uri.tryParse(normalizeWebviewUrl(url));
+    if (uri == null) {
+      return false;
+    }
+    return _isSupportedWebviewUri(uri);
   }
 
   static Future<void> openUrl(String url) async {
@@ -61,9 +69,8 @@ class UrlUtils {
     Function(T)? onWebviewResult,
   }) async {
     try {
-      final normalizedUrl = _normalizeUrl(url);
-      final parsedUri = Uri.tryParse(normalizedUrl);
-      if (parsedUri == null || !_isSupportedWebviewUri(parsedUri)) {
+      final normalizedUrl = normalizeWebviewUrl(url);
+      if (!isSupportedWebviewUrl(normalizedUrl)) {
         appLogger.error("Invalid webview URL: $url");
         return null;
       }
