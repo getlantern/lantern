@@ -301,6 +301,9 @@ class MethodHandler {
         let enable = self.decodeValue(from: call.arguments, result: result) as Bool?
         self.setRoutingMode(result: result, enable: enable ?? false)
 
+      case "checkVpnConflict":
+        self.checkVpnConflict(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -396,6 +399,48 @@ class MethodHandler {
     let status = vpnManager.connectionStatus
     let isConnected = status == .connected
     result(isConnected)
+  }
+
+  /// Returns true if a non-Lantern VPN interface is currently active.
+  /// Uses getifaddrs() to scan for any UP+RUNNING utun/ppp interface.
+  /// Guards against false positives by returning false when Lantern's
+  /// own tunnel is already connected.
+  private func checkVpnConflict(result: @escaping FlutterResult) {
+    if vpnManager.connectionStatus == .connected {
+      result(false)
+      return
+    }
+    result(isAnotherVpnActive())
+  }
+
+  private func isAnotherVpnActive() -> Bool {
+    var ifaddr: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&ifaddr) == 0 else { return false }
+    defer { freeifaddrs(ifaddr) }
+
+    var ptr = ifaddr
+    while let current = ptr {
+      let flags = current.pointee.ifa_flags
+      let isUp = (flags & UInt32(IFF_UP)) != 0
+      let isRunning = (flags & UInt32(IFF_RUNNING)) != 0
+
+      if isUp && isRunning,
+        let namePtr = current.pointee.ifa_name,
+        let addr = current.pointee.ifa_addr
+      {
+        let name = String(cString: namePtr)
+        // Require AF_INET (IPv4) to exclude the always-present system utun0
+        // which only carries an IPv6 link-local address (fe80::1).
+        // Active VPN tunnels (WireGuard, OpenVPN, IKEv2, etc.) always
+        // assign an IPv4 address to their tunnel interface.
+        let isIPv4 = addr.pointee.sa_family == UInt8(AF_INET)
+        if (name.hasPrefix("utun") || name.hasPrefix("ppp")) && isIPv4 {
+          return true
+        }
+      }
+      ptr = current.pointee.ifa_next
+    }
+    return false
   }
 
   // MARK: - Plans / OAuth / User data

@@ -37,6 +37,8 @@ abstract class LanternCoreService {
 
   Future<bool> isTagAvailable(String tag);
 
+  Future<bool> checkVpnConflict();
+
   Stream<LanternStatus> watchVPNStatus();
 
   Stream<List<String>> watchLogs(String path);

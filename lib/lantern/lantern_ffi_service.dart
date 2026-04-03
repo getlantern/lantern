@@ -659,6 +659,9 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<bool> checkVpnConflict() async => false;
+
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
   /// requires location and tag

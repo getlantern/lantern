@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -91,6 +93,10 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
+
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
+
     final serverLocation = ref.read(serverLocationProvider);
 
     final type = serverLocation.serverType.toServerLocationType;
@@ -118,11 +124,25 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag,
   ) async {
+    // Check for a conflicting VPN before initiating a new connection.
+    // The native side guards against false positives by returning false when
+    // Lantern's own VPN is already active (e.g. server switching while connected).
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
+
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)
         .connectToServer(location.name, tag);
     return result;
+  }
+
+  Future<Left<Failure, String>?> _checkVpnConflict() async {
+    if (!Platform.isAndroid && !Platform.isMacOS) return null;
+    final hasConflict = await ref
+        .read(lanternServiceProvider)
+        .checkVpnConflict();
+    return hasConflict ? Left(VpnConflictFailure()) : null;
   }
 
   Future<Either<Failure, String>> stopVPN() async {
