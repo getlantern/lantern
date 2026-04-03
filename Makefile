@@ -47,20 +47,16 @@ LINUX_PACKAGE_ARCH_SUFFIX := $(if $(filter amd64,$(LINUX_TARGET_ARCH)),,-$(LINUX
 LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).rpm
 LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
-LINUX_SERVICE_NAME := lanternd
-LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
-LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
-LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
-LINUX_SERVICE_BUILD_TARGET := $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_SERVICE_NAME)
+LANTERND := lanternd
+RADIANCE_DIR := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))
+LANTERND_SRC := $(RADIANCE_DIR)/cmd/lanternd
+LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
+LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
 LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
 LINUX_BUNDLE_DIR_ARM64 := build/linux/arm64/release/bundle
 LINUX_CC_AMD64 ?= x86_64-linux-gnu-gcc
 LINUX_CC_ARM64 ?= aarch64-linux-gnu-gcc
 LINUX_PKG_ROOT := linux/packaging
-LINUX_SERVICE_DST := $(LINUX_PKG_ROOT)/usr/sbin
-LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
-LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
@@ -294,32 +290,23 @@ linux: linux-$(LINUX_TARGET_ARCH)
 	mkdir -p $(BIN_DIR)/linux
 	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
 
-.PHONY: linux-service-amd64 linux-service-arm64 linux-service stage-linux-service
+.PHONY: lanternd-linux-amd64 lanternd-linux-arm64
 
-linux-service-amd64: $(GO_SOURCES)
-	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_AMD64)))
+lanternd-linux-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
 	  go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
-	  -o $(LINUX_SERVICE_BUILD_AMD64) $(LINUX_SERVICE_SRC)
-	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_AMD64)"
+	  -o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
-linux-service-arm64: $(GO_SOURCES)
-	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_ARM64)))
+lanternd-linux-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
 	  go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
-	  -o $(LINUX_SERVICE_BUILD_ARM64) $(LINUX_SERVICE_SRC)
-	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_ARM64)"
-
-linux-service: linux-service-$(LINUX_TARGET_ARCH)
-
-stage-linux-service: linux-service
-	@echo "Staging systemd unit + service binary $(LINUX_PKG_ROOT)..."
-	$(call MKDIR_P,$(LINUX_SERVICE_DST))
-	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_TARGET),$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME))
-	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+	  -o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
 .PHONY: linux-debug
 linux-debug:
@@ -332,7 +319,7 @@ linux-release: clean linux-release-ci
 linux-release-ci: linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
-	$(MAKE) stage-linux-service
+	$(MAKE) lanternd-linux-$(LINUX_TARGET_ARCH)
 
 	@if [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
 	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_ARM64)"; \
@@ -345,15 +332,13 @@ linux-release-ci: linux pubget gen
 	fi; \
 	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
 	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
+	cp "$(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LANTERND)" "$$BUNDLE_DIR"; \
 	patchelf --set-rpath '$$ORIGIN/lib' "$$BUNDLE_DIR/lantern" || true; \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB); \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM); \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/bin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
 
 .PHONY: verify-linux-package

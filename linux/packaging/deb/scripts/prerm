@@ -3,9 +3,7 @@ set -e
 
 case "$1" in
 remove | deconfigure)
-	if command -v systemctl >/dev/null 2>&1; then
-		systemctl stop lanternd.service >/dev/null 2>&1 || true
-	fi
+	/usr/lib/lantern/lanternd uninstall >/dev/null 2>&1 || true
 	;;
 esac
 
