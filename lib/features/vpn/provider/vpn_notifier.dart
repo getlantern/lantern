@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -21,17 +24,28 @@ class VpnNotifier extends _$VpnNotifier {
     ref.listen(vPNStatusProvider, (previous, next) {
       final previousStatus = previous?.value?.status;
       final nextStatus = next.value!.status;
+      final nextOrigin = next.value!.origin;
+      final suppressConnectionNotifications =
+          nextOrigin == VPNStatusOrigin.settingsMutation &&
+          (nextStatus == VPNStatus.connected ||
+              nextStatus == VPNStatus.disconnected);
 
       if (previous != null &&
           previous.value != null &&
           previousStatus != nextStatus) {
         if (previousStatus != VPNStatus.connecting &&
             nextStatus == VPNStatus.disconnected) {
-          sl<NotificationService>().showNotification(
-            id: NotificationEvent.vpnDisconnected.id,
-            title: 'app_name'.i18n,
-            body: 'vpn_disconnected'.i18n,
-          );
+          if (!suppressConnectionNotifications) {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnDisconnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_disconnected'.i18n,
+            );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_disconnected notification (origin=$nextOrigin)',
+            );
+          }
         } else if (nextStatus == VPNStatus.connected) {
           if (PlatformUtils.isMobile) {
             HapticFeedback.mediumImpact();
@@ -45,11 +59,17 @@ class VpnNotifier extends _$VpnNotifier {
           // getAutoServerLocation here. This avoids a race where the NE
           // reports "connected" before the Go tunnel is fully ready.
 
-          sl<NotificationService>().showNotification(
-            id: NotificationEvent.vpnConnected.id,
-            title: 'app_name'.i18n,
-            body: 'vpn_connected'.i18n,
-          );
+          if (!suppressConnectionNotifications) {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnConnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_connected'.i18n,
+            );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_connected notification (origin=$nextOrigin)',
+            );
+          }
         }
       }
       state = nextStatus;
@@ -73,6 +93,10 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final lantern = ref.read(lanternServiceProvider);
+
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
+
     final serverLocation = ref.read(serverLocationProvider);
 
     final type = serverLocation.serverType.toServerLocationType;
@@ -100,11 +124,25 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag,
   ) async {
+    // Check for a conflicting VPN before initiating a new connection.
+    // The native side guards against false positives by returning false when
+    // Lantern's own VPN is already active (e.g. server switching while connected).
+    final conflict = await _checkVpnConflict();
+    if (conflict != null) return conflict;
+
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)
         .connectToServer(location.name, tag);
     return result;
+  }
+
+  Future<Left<Failure, String>?> _checkVpnConflict() async {
+    if (!Platform.isAndroid && !Platform.isMacOS) return null;
+    final hasConflict = await ref
+        .read(lanternServiceProvider)
+        .checkVpnConflict();
+    return hasConflict ? Left(VpnConflictFailure()) : null;
   }
 
   Future<Either<Failure, String>> stopVPN() async {

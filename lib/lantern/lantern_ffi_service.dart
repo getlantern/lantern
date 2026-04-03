@@ -275,6 +275,14 @@ class LanternFFIService implements LanternCoreService {
     return initFuture;
   }
 
+  Future<void> _markWindowsStatusOrigin(VPNStatusOrigin origin) async {
+    if (!Platform.isWindows) {
+      return;
+    }
+    final ws = await _getOrInitWindowsService();
+    ws?.setNextStatusOrigin(origin);
+  }
+
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
@@ -299,6 +307,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
     try {
+      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
       final result = await runInBackground<String>(() async {
         return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
       });
@@ -592,6 +601,7 @@ class LanternFFIService implements LanternCoreService {
         );
       }
 
+      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
       return ws.connect();
     }
 
@@ -649,6 +659,9 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<bool> checkVpnConflict() async => false;
+
   /// connectToServer is used to connect to a server
   /// this will work with lantern customer and private server
   /// requires location and tag
@@ -681,6 +694,7 @@ class LanternFFIService implements LanternCoreService {
         );
       }
 
+      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
       return ws.connectToServer(location, tag);
     }
 
@@ -734,6 +748,7 @@ class LanternFFIService implements LanternCoreService {
           return right('ok');
         }
 
+        ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
         return ws.disconnect();
       }
 
@@ -1539,10 +1554,13 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
     try {
-      final result = _ffiService
-          .setBlockAdsEnabled(enabled ? 1 : 0)
-          .cast<Utf8>()
-          .toDartString();
+      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setBlockAdsEnabled(enabled ? 1 : 0)
+            .cast<Utf8>()
+            .toDartString();
+      });
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {

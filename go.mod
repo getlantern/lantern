@@ -166,16 +166,16 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260305201851-782bc8045e58 // indirect
-	github.com/getlantern/common v1.2.1-0.20260325181816-33f69c725899 // indirect
+	github.com/getlantern/common v1.2.1-0.20260326210434-cb69537aaf46 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260112160750-05100563bd0d // indirect
 	github.com/getlantern/fronted v0.0.0-20260325003030-cb5041ba1538 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260304213122-017d542145ae // indirect
-	github.com/getlantern/kindling v0.0.0-20260319225424-4736208dd171 // indirect
-	github.com/getlantern/lantern-box v0.0.51 // indirect
+	github.com/getlantern/kindling v0.0.0-20260329144042-b1825b9cb1bb // indirect
+	github.com/getlantern/lantern-box v0.0.55 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260317143726-e0ee64a11d90 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
-	github.com/getlantern/samizdat v0.0.3-0.20260310125445-325cf1bd1b60 // indirect
+	github.com/getlantern/samizdat v0.0.3-0.20260327203406-ef7323341974 // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250103232110-6a9a0fde9288 // indirect

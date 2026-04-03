@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -118,6 +120,9 @@ enum class Methods(val method: String) {
 
     // Smart routing
     SetRoutingMode("setRoutingMode"),
+
+    // VPN conflict detection
+    CheckVpnConflict("checkVpnConflict"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -1121,11 +1126,41 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.CheckVpnConflict.method -> {
+                scope.launch {
+                    runCatching {
+                        val hasConflict = isAnotherVpnActive(appContext)
+                        withContext(Dispatchers.Main) {
+                            result.success(hasConflict)
+                        }
+                    }.onFailure { e ->
+                        withContext(Dispatchers.Main) {
+                            result.error("check_vpn_conflict", e.localizedMessage ?: "Error", e)
+                        }
+                    }
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }
         }
 
+    }
+
+    private fun isAnotherVpnActive(context: Context): Boolean {
+        // If Lantern's own VPN is already connected, there is no external conflict.
+        // This avoids false positives when this method is called while Lantern is active.
+        if (Mobile.isVPNConnected()) return false
+
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        for (network in cm.allNetworks) {
+            val capabilities = cm.getNetworkCapabilities(network) ?: continue
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                return true
+            }
+        }
+        return false
     }
 }
 
