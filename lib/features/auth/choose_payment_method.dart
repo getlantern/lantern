@@ -26,6 +26,16 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     required this.authFlow,
   });
 
+  String _normalizePaymentUrl(String url) => url.trim();
+
+  bool _isSupportedPaymentUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return false;
+    }
+    return uri.scheme == 'http' || uri.scheme == 'https';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
@@ -225,9 +235,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         },
         (stripeUrl) async {
           // Handle success
-          if (stripeUrl.isEmpty) {
+          final normalizedStripeUrl = _normalizePaymentUrl(stripeUrl);
+          if (!_isSupportedPaymentUrl(normalizedStripeUrl)) {
             context.showSnackBar('empty_url'.i18n);
-            appLogger.error('Error subscribing to plan: empty url');
+            appLogger.error(
+              'Error subscribing to plan: invalid redirect URL: $stripeUrl',
+            );
             context.hideLoadingDialog();
             return;
           }
@@ -235,7 +248,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           context.hideLoadingDialog();
           await Future.delayed(const Duration(milliseconds: 300));
           UrlUtils.openWebview<bool>(
-            stripeUrl,
+            normalizedStripeUrl,
             title: 'stripe_payment'.i18n,
             onWebviewResult: (result) => onPurchaseResult(result, context, ref),
           );
@@ -269,7 +282,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       },
       (url) {
         context.hideLoadingDialog();
-        UrlUtils.openWebview(url);
+        final normalizedUrl = _normalizePaymentUrl(url);
+        if (!_isSupportedPaymentUrl(normalizedUrl)) {
+          context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+          appLogger.error('Invalid payment redirect URL: $url');
+          return;
+        }
+        UrlUtils.openWebview(normalizedUrl);
       },
     );
   }
@@ -297,7 +316,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     switch (authFlow) {
       case AuthFlow.signUp:
         appRouter.push(
-          CreatePassword(email: email, authFlow: authFlow, code: code!)
+          CreatePassword(email: email, authFlow: authFlow, code: code!),
         );
         break;
       case AuthFlow.oauth:
@@ -389,7 +408,9 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   Text(userPlan.description, style: theme.bodyMedium),
                   Text(
                     '${userPlan.formattedMonthlyPrice}/month',
-                    style: theme.bodyMedium!.copyWith(color: context.textDisabled),
+                    style: theme.bodyMedium!.copyWith(
+                      color: context.textDisabled,
+                    ),
                   ),
                 ],
               ),
@@ -406,7 +427,9 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ),
                     Text(
                       'free'.i18n,
-                      style: theme.bodyMedium!.copyWith(color: context.textDisabled),
+                      style: theme.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
                     ),
                   ],
                 ),
@@ -417,11 +440,15 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text(
                     'Order Total:',
-                    style: theme.titleSmall!.copyWith(color: context.textPrimary),
+                    style: theme.titleSmall!.copyWith(
+                      color: context.textPrimary,
+                    ),
                   ),
                   Text(
                     userPlan.formattedYearlyPrice,
-                    style: theme.titleSmall!.copyWith(color: context.actionPrimaryBg),
+                    style: theme.titleSmall!.copyWith(
+                      color: context.actionPrimaryBg,
+                    ),
                   ),
                 ],
               ),

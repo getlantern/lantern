@@ -7,6 +7,15 @@ import 'package:lantern/core/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
+  static String _normalizeUrl(String url) => url.trim();
+
+  static bool _isSupportedWebviewUri(Uri uri) {
+    if (!uri.hasScheme || uri.host.isEmpty) {
+      return false;
+    }
+    return uri.scheme == 'http' || uri.scheme == 'https';
+  }
+
   static Future<void> openUrl(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -29,15 +38,14 @@ class UrlUtils {
   }
 
   static Future<void> tryLaunchExternalUrl(
-      BuildContext context, Uri uri) async {
+    BuildContext context,
+    Uri uri,
+  ) async {
     try {
       if (!await canLaunchUrl(uri)) {
         throw 'Cannot open ${uri.toString()}';
       }
-      final ok = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!ok) throw 'Failed to open ${uri.toString()}';
     } catch (e, st) {
       appLogger.error('Unable to launch url', e, st);
@@ -53,13 +61,21 @@ class UrlUtils {
     Function(T)? onWebviewResult,
   }) async {
     try {
+      final normalizedUrl = _normalizeUrl(url);
+      final parsedUri = Uri.tryParse(normalizedUrl);
+      if (parsedUri == null || !_isSupportedWebviewUri(parsedUri)) {
+        appLogger.error("Invalid webview URL: $url");
+        return null;
+      }
+
       switch (Platform.operatingSystem) {
         case 'android':
         case 'ios':
         case 'macos':
         case 'windows':
-          final result =
-              await appRouter.push<T>(AppWebview(title: title ?? '', url: url));
+          final result = await appRouter.push<T>(
+            AppWebview(title: title ?? '', url: normalizedUrl),
+          );
           if (result != null) {
             onWebviewResult?.call(result);
           }
@@ -67,12 +83,13 @@ class UrlUtils {
 
         case 'linux':
           final webview = await WebviewWindow.create();
-          webview.launch(url);
+          webview.launch(normalizedUrl);
           return null;
 
         default:
           throw UnsupportedError(
-              'Platform ${Platform.operatingSystem} is not supported');
+            'Platform ${Platform.operatingSystem} is not supported',
+          );
       }
     } catch (e, st) {
       appLogger.error("Failed to open webview", e, st);
