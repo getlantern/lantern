@@ -595,13 +595,13 @@ func UpdatePrivateServerName(oldTag, newTag string) error {
 
 func GetSplitTunnelItems(filterType string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.GetSplitTunnelItems(filterType)
+		return c.GetSplitTunnelItemsFor(filterType)
 	})
 }
 
 func GetSplitTunnelStateJSON() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.GetSplitTunnelStateJSON()
+		return c.GetSplitTunnelItems()
 	})
 }
 

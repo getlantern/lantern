@@ -10,14 +10,11 @@ package main
 import "C"
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"unsafe"
-
-	"github.com/getlantern/radiance/common"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
@@ -26,12 +23,12 @@ import (
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
-// runOnGoStack wraps common.RunOffCgoStack for FFI functions that return *C.char.
+// runOnGoStack wraps utils.RunOffCgoStack for FFI functions that return *C.char.
 // CGo-exported functions run on a callback stack whose memory isn't tracked
-// by the GC heap bitmap. Allocating Go pointers (like C.CString or base64
-// encoding) on that stack triggers bulkBarrierPreWrite panics.
+// by the GC heap bitmap. Allocating Go pointers (like C.CString) on that stack
+// triggers bulkBarrierPreWrite panics.
 func runOnGoStack(fn func() *C.char) *C.char {
-	result, _ := common.RunOffCgoStack(func() (*C.char, error) {
+	result, _ := utils.RunOffCgoStack(func() (*C.char, error) {
 		return fn(), nil
 	})
 	return result
@@ -374,8 +371,7 @@ func getUserData() *C.char {
 		if err != nil {
 			return SendError(err)
 		}
-		encoded := base64.StdEncoding.EncodeToString(bytes)
-		return C.CString(encoded)
+		return C.CString(string(bytes))
 	})
 }
 
@@ -393,8 +389,7 @@ func fetchUserData() *C.char {
 		if err != nil {
 			return SendError(fmt.Errorf("error fetching user data: %v", err))
 		}
-		encoded := base64.StdEncoding.EncodeToString(bytes)
-		return C.CString(encoded)
+		return C.CString(string(bytes))
 	})
 }
 
@@ -498,7 +493,7 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
-		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+		return C.CString(string(bytes))
 	})
 }
 
@@ -518,7 +513,7 @@ func login(_email, _password *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
-		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+		return C.CString(string(bytes))
 	})
 }
 
@@ -549,7 +544,7 @@ func logout(_email *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
-		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+		return C.CString(string(bytes))
 	})
 }
 
@@ -669,7 +664,7 @@ func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
-		return C.CString(base64.StdEncoding.EncodeToString(bytes))
+		return C.CString(string(bytes))
 	})
 }
 
@@ -988,7 +983,7 @@ func getSplitTunnelState() *C.char {
 	if errStr != nil {
 		return errStr
 	}
-	s, err := c.GetSplitTunnelStateJSON()
+	s, err := c.GetSplitTunnelItems()
 	if err != nil {
 		return SendError(err)
 	}
@@ -1002,7 +997,7 @@ func getSplitTunnelItems(filterTypeC *C.char) *C.char {
 		return errStr
 	}
 	filterType := C.GoString(filterTypeC)
-	s, err := c.GetSplitTunnelItems(filterType)
+	s, err := c.GetSplitTunnelItemsFor(filterType)
 	if err != nil {
 		return SendError(err)
 	}

@@ -115,8 +115,8 @@ type SplitTunnel interface {
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
-	GetSplitTunnelStateJSON() (string, error)
-	GetSplitTunnelItems(filterType string) (string, error)
+	GetSplitTunnelItems() (string, error)
+	GetSplitTunnelItemsFor(filterType string) (string, error)
 }
 
 type Ads interface {
@@ -476,7 +476,7 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
 }
 
-func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
+func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
 	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "{}", nil
@@ -488,7 +488,7 @@ func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
 	return string(b), nil
 }
 
-func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
+func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error) {
 	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "", err
