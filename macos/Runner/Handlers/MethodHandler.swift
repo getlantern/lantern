@@ -304,6 +304,26 @@ class MethodHandler {
       case "checkVpnConflict":
         self.checkVpnConflict(result: result)
 
+      case "isSmartRoutingEnabled":
+        Task {
+          await MainActor.run { result(MobileIsSmartRoutingEnabled()) }
+        }
+
+      case "isTelemetryEnabled":
+        Task {
+          await MainActor.run { result(MobileIsTelemetryEnabled()) }
+        }
+
+      case "isOAuthLogin":
+        Task {
+          await MainActor.run { result(MobileIsOAuthLogin()) }
+        }
+
+      case "getOAuthProvider":
+        Task {
+          await MainActor.run { result(MobileGetOAuthProvider()) }
+        }
+
       default:
         result(FlutterMethodNotImplemented)
       }

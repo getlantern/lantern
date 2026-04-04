@@ -120,6 +120,14 @@ enum class Methods(val method: String) {
 
     // Smart routing
     SetRoutingMode("setRoutingMode"),
+    IsSmartRoutingEnabled("isSmartRoutingEnabled"),
+
+    // Telemetry
+    IsTelemetryEnabled("isTelemetryEnabled"),
+
+    // OAuth
+    IsOAuthLogin("isOAuthLogin"),
+    GetOAuthProvider("getOAuthProvider"),
 
     // VPN conflict detection
     CheckVpnConflict("checkVpnConflict"),
@@ -1123,6 +1131,30 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "SetRoutingMode") {
                     val enable = call.arguments as Boolean
                     Mobile.setSmartRoutingEnabled(enable)
+                }
+            }
+
+            Methods.IsSmartRoutingEnabled.method -> {
+                scope.handleValue(result, "is_smart_routing_enabled") {
+                    Mobile.isSmartRoutingEnabled()
+                }
+            }
+
+            Methods.IsTelemetryEnabled.method -> {
+                scope.handleValue(result, "is_telemetry_enabled") {
+                    Mobile.isTelemetryEnabled()
+                }
+            }
+
+            Methods.IsOAuthLogin.method -> {
+                scope.handleValue(result, "is_oauth_login") {
+                    Mobile.isOAuthLogin()
+                }
+            }
+
+            Methods.GetOAuthProvider.method -> {
+                scope.handleValue(result, "get_oauth_provider") {
+                    Mobile.getOAuthProvider()
                 }
             }
 
