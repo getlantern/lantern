@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 
 import '../home/provider/app_setting_notifier.dart';
+import '../home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'Onboarding')
 class Onboarding extends StatefulHookConsumerWidget {
@@ -257,16 +258,16 @@ class _OnboardingState extends ConsumerState<Onboarding> {
   Widget slide3(BuildContext context) {
     final textTheme = TextTheme.of(context);
     final routeMode =
-        ref.watch(appSettingProvider.select((value) => value.routingMode));
+        ref.watch(routingModeProvider).value ?? RoutingMode.full;
     useEffect(() {
       Future(() {
-        final routeMode =
-            ref.read(appSettingProvider.select((v) => v.routingMode));
+        final currentMode =
+            ref.read(routingModeProvider).value ?? RoutingMode.full;
 
-        if (routeMode == RoutingMode.full) {
+        if (currentMode == RoutingMode.full) {
           ref
-              .read(appSettingProvider.notifier)
-              .setRoutingMode(RoutingMode.smart);
+              .read(routingModeControllerProvider.notifier)
+              .set(RoutingMode.smart);
         }
       });
 
@@ -275,7 +276,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
 
     Future<void> onRouteChange(RoutingMode mode) async {
       final result =
-          await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+          await ref.read(routingModeControllerProvider.notifier).set(mode);
       result.fold(
         (failure) {
           context.showSnackBar('failed_to_update_routing_mode'.i18n);

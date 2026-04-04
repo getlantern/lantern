@@ -75,17 +75,7 @@ class HomeNotifier extends _$HomeNotifier {
   void _applyUserData(UserResponseModel userData) {
     state = AsyncValue.data(userData);
 
-    // Step 1: Sync all user fields to app settings first before any other logic.
     final isPro = userData.legacyUserData.isPro;
-    final email = userData.legacyUserData.email.isEmpty
-        ? userData.id
-        : userData.legacyUserData.email;
-    appLogger.info('Syncing user data to app settings — isPro=$isPro email=$email');
-    ref.read(appSettingProvider.notifier)
-      ..togglePro(isPro)
-      ..setEmail(email);
-
-    // Step 2: Now run derived logic that depends on the stored settings.
     if (!isPro) {
       resetServerLocation();
     }

@@ -6195,6 +6195,33 @@ class LanternBindings {
   late final _isSmartRoutingEnabled = _isSmartRoutingEnabledPtr
       .asFunction<int Function()>();
 
+  int isTelemetryEnabled() {
+    return _isTelemetryEnabled();
+  }
+
+  late final _isTelemetryEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isTelemetryEnabled');
+  late final _isTelemetryEnabled = _isTelemetryEnabledPtr
+      .asFunction<int Function()>();
+
+  int isOAuthLogin() {
+    return _isOAuthLogin();
+  }
+
+  late final _isOAuthLoginPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isOAuthLogin');
+  late final _isOAuthLogin = _isOAuthLoginPtr
+      .asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> getOAuthProvider() {
+    return _getOAuthProvider();
+  }
+
+  late final _getOAuthProviderPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('getOAuthProvider');
+  late final _getOAuthProvider = _getOAuthProviderPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> getSplitTunnelState() {
     return _getSplitTunnelState();
   }

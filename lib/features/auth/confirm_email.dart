@@ -8,6 +8,7 @@ import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -135,9 +136,7 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         ///reset login status
-        ref.read(appSettingProvider.notifier)
-          ..setEmail('')
-          ..setUserLoggedIn(false);
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
         context.hideLoadingDialog();
         appRouter.pop();
       },
@@ -180,8 +179,8 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        //update email in app settings
-        ref.read(appSettingProvider.notifier).setEmail(email);
+        //refresh user data to pick up the new email
+        ref.read(homeProvider.notifier).refreshUser();
         AppDialog.dialog(
           context: context,
           title: 'change_email'.i18n,

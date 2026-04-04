@@ -1581,6 +1581,50 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    try {
+      final res = _ffiService.isSmartRoutingEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isSmartRoutingEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    try {
+      final res = _ffiService.isTelemetryEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isTelemetryEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() async {
+    try {
+      final res = _ffiService.isOAuthLogin();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isOAuthLogin error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() async {
+    try {
+      final res = _ffiService.getOAuthProvider().toDartString();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getOAuthProvider error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }

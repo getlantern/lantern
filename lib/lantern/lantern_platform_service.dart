@@ -312,6 +312,53 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    try {
+      final res =
+          await _methodChannel.invokeMethod<bool>('isSmartRoutingEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isSmartRoutingEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    try {
+      final res =
+          await _methodChannel.invokeMethod<bool>('isTelemetryEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isTelemetryEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isOAuthLogin');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isOAuthLogin failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() async {
+    try {
+      final res =
+          await _methodChannel.invokeMethod<String>('getOAuthProvider');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getOAuthProvider failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
   List<AppData> _mapToAppData(
     Iterable<Map<String, dynamic>> rawApps, {
     required EnabledAppsSnapshot enabled,

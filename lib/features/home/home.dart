@@ -13,6 +13,7 @@ import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -79,7 +80,7 @@ class _HomeState extends ConsumerState<Home> {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
         appLogger.info(
-          "User has successfully connected, checking if needs to show Help Lantern Dialog or not",
+          "User has successfully connected, checking if need to show Help Lantern Dialog or not",
         );
         if (!appSetting.telemetryDialogDismissed &&
             (featureFlag.getBool(FeatureFlag.metrics) &&
@@ -179,12 +180,10 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final routingMode = ref.watch(
-      appSettingProvider.select((s) => s.routingMode),
-    );
-    final isSplitTunnelingOn = ref.watch(
-      appSettingProvider.select((s) => s.isSplitTunnelingOn),
-    );
+    final routingMode =
+        ref.watch(routingModeProvider).value ?? RoutingMode.full;
+    final isSplitTunnelingOn =
+        ref.watch(splitTunnelingEnabledProvider).value ?? false;
 
     return Container(
       decoration: BoxDecoration(
@@ -312,9 +311,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: context.textDisabled,
           onPressed: () {
             context.pop();
-            ref
-                .read(appSettingProvider.notifier)
-                .updateAnonymousDataConsent(false);
+            ref.read(telemetryControllerProvider.notifier).setConsent(false);
           },
         ),
         AppTextButton(
@@ -322,9 +319,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: AppColors.blue6,
           onPressed: () {
             context.pop();
-            ref
-                .read(appSettingProvider.notifier)
-                .updateAnonymousDataConsent(true);
+            ref.read(telemetryControllerProvider.notifier).setConsent(true);
           },
         ),
       ],

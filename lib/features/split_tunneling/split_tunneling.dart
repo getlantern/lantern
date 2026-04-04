@@ -6,7 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
@@ -16,9 +16,9 @@ class SplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appSettingProvider);
     final textTheme = Theme.of(context).textTheme;
-    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final splitTunnelingEnabled =
+        ref.watch(splitTunnelingEnabledProvider).value ?? false;
 
     final enabledApps =
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
@@ -27,10 +27,10 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledWebsites =
         (ref.watch(splitTunnelingWebsitesProvider)).toList(growable: false);
 
-    final notifier = ref.read(appSettingProvider.notifier);
-
     void toggleSplitTunneling() {
-      notifier.setSplitTunnelingEnabled(!splitTunnelingEnabled);
+      ref
+          .read(splitTunnelingControllerProvider.notifier)
+          .toggle(!splitTunnelingEnabled);
     }
 
     return BaseScreen(
@@ -63,10 +63,9 @@ class SplitTunneling extends HookConsumerWidget {
                   trailing: SwitchButton(
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
-                      final v = value ?? false;
                       ref
-                          .read(appSettingProvider.notifier)
-                          .setSplitTunnelingEnabled(v);
+                          .read(splitTunnelingControllerProvider.notifier)
+                          .toggle(value ?? false);
                     },
                     activeColor: AppColors.green5,
                   ),

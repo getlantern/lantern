@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/core/models/user.dart';
 
@@ -148,11 +149,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         /// save login state and user email
         /// update user data in home notifier
         /// fetch available servers
-        ref.read(appSettingProvider.notifier)
-          ..setUserLoggedIn(true)
-          ..setOAuthTokenAndProvider('', SignUpMethodType.email.name)
-          ..setEmail(widget.email);
-
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
       },

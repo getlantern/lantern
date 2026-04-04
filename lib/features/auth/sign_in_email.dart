@@ -7,6 +7,7 @@ import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
@@ -128,12 +129,7 @@ class SignInEmail extends HookConsumerWidget {
 
           appLogger.info(
               'OAuth login successful, updating app settings with token and user data provider: ${type.name}');
-          Map<String, dynamic> tokenData = JwtDecoder.decode(token);
-          ref.read(appSettingProvider.notifier)
-            ..setOAuthTokenAndProvider(token, type.name)
-            ..setEmail(tokenData['email'] ?? '')
-            ..setUserLoggedIn(true);
-
+          ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
           appRouter.popUntilRoot();
         },
       );

@@ -43,7 +43,7 @@ class Account extends HookConsumerWidget {
     final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
     final isPro = ref.watch(isUserProProvider);
-    final appSettings = ref.watch(appSettingProvider);
+    final email = ref.watch(userEmailProvider);
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
 
@@ -88,12 +88,12 @@ class Account extends HookConsumerWidget {
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: appSettings.email.toLowerCase(),
+              label: email.toLowerCase(),
               icon: AppImagePaths.email,
               contentPadding: EdgeInsets.only(left: 16),
               onPressed: kDebugMode
                   ? () {
-                      copyToClipboard(appSettings.email);
+                      copyToClipboard(email);
                     }
                   : null,
               trailing: AppTextButton(
@@ -101,7 +101,7 @@ class Account extends HookConsumerWidget {
                 onPressed: () {
                   appRouter.push(
                     SignInPassword(
-                      email: appSettings.email,
+                      email: email,
                       fromChangeEmail: true,
                     ),
                   );
@@ -417,10 +417,10 @@ class Account extends HookConsumerWidget {
 
   Future<void> onLogout(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final appSetting = ref.read(appSettingProvider);
+    final email = ref.read(userEmailProvider);
     final result = await ref
         .read(lanternServiceProvider)
-        .logout(appSetting.email);
+        .logout(email);
     result.fold(
       (l) {
         context.hideLoadingDialog();

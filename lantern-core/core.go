@@ -57,6 +57,9 @@ type App interface {
 	StartBackgroundListeners()
 	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
+	IsTelemetryEnabled() bool
+	IsOAuthLogin() bool
+	GetOAuthProvider() string
 	GetEnabledApps() (string, error)
 }
 
@@ -308,6 +311,41 @@ func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 	}
 	b, _ := v.(bool)
 	return b
+}
+
+func (lc *LanternCore) IsTelemetryEnabled() bool {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return false
+	}
+	v, ok := s[settings.TelemetryKey]
+	if !ok {
+		return false
+	}
+	b, _ := v.(bool)
+	return b
+}
+
+func (lc *LanternCore) IsOAuthLogin() bool {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return false
+	}
+	v, ok := s[settings.OAuthLoginKey]
+	if !ok {
+		return false
+	}
+	b, _ := v.(bool)
+	return b
+}
+
+func (lc *LanternCore) GetOAuthProvider() string {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return ""
+	}
+	v, _ := s[settings.OAuthProviderKey].(string)
+	return v
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {

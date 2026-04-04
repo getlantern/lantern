@@ -750,6 +750,38 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isSmartRoutingEnabled();
+    }
+    return _platformService.isSmartRoutingEnabled();
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isTelemetryEnabled();
+    }
+    return _platformService.isTelemetryEnabled();
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isOAuthLogin();
+    }
+    return _platformService.isOAuthLogin();
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getOAuthProvider();
+    }
+    return _platformService.getOAuthProvider();
+  }
+
+  @override
   Future<Either<Failure, String>> attachReferralCode(String code) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.attachReferralCode(code);

@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
@@ -50,7 +49,8 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   void _initializeState() {
     _currentStatus = ref.read(vpnProvider);
     _isUserPro = ref.read(isUserProProvider);
-    _currentRoutingMode = ref.read(appSettingProvider).routingMode;
+    _currentRoutingMode =
+        ref.read(routingModeProvider).value ?? RoutingMode.full;
     _serverLocation = ref.read(serverLocationProvider);
   }
 
@@ -100,9 +100,13 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   void _listenToRoutingMode() {
-    ref.listen<AppSetting>(appSettingProvider, (previous, next) async {
-      if (previous?.routingMode != next.routingMode) {
-        _currentRoutingMode = next.routingMode;
+    ref.listen<AsyncValue<RoutingMode>>(routingModeProvider, (
+      previous,
+      next,
+    ) async {
+      final mode = next.value;
+      if (mode != null && mode != _currentRoutingMode) {
+        _currentRoutingMode = mode;
         await updateTrayMenu();
       }
     });
@@ -147,7 +151,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   /// Handle routing mode selection from tray menu
   Future<void> _onRoutingModeSelected(RoutingMode mode) async {
-    await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+    await ref.read(routingModeControllerProvider.notifier).set(mode);
   }
 
   /// Returns true if OK to proceed, false if blocked by missing extension

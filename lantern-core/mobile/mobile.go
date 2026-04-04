@@ -85,6 +85,36 @@ func UpdateTelemetryConsent(consent bool) error {
 	})
 }
 
+func IsTelemetryEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsTelemetryEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+func IsOAuthLogin() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsOAuthLogin(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+func GetOAuthProvider() string {
+	provider, err := withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.GetOAuthProvider(), nil
+	})
+	if err != nil {
+		return ""
+	}
+	return provider
+}
+
 func SetBlockAdsEnabled(enabled bool) error {
 	slog.Info("adblock: SetBlockAdsEnabled", "enabled", enabled)
 	return withCore(func(c lanterncore.Core) error {

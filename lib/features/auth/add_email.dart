@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'AddEmail')
@@ -263,7 +264,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         //sign up successful
         //start forgot password flow
         context.hideLoadingDialog();
-        ref.read(appSettingProvider.notifier).setEmail(email);
         startForgotPasswordFlow(email, tempPassword);
       },
     );
@@ -304,11 +304,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           appLogger.debug(
               'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}');
 
-          Map<String, dynamic> tokenData = JwtDecoder.decode(token);
-          ref.read(appSettingProvider.notifier)
-            ..setOAuthTokenAndProvider(token, type.name)
-            ..setEmail(tokenData['email'] ?? response.id)
-            ..setUserLoggedIn(true);
+          ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
           navigateRoute(type, response.legacyUserData.email);
         },
       );

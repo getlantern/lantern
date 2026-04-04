@@ -51,6 +51,15 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
+  Future<Either<Failure, bool>> isSmartRoutingEnabled();
+
+  Future<Either<Failure, bool>> isTelemetryEnabled();
+
+  Future<Either<Failure, bool>> isOAuthLogin();
+
+  Future<Either<Failure, String>> getOAuthProvider();
+
+
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,

@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -22,12 +22,14 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
-    final preferences = ref.read(appSettingProvider);
-    final notifier = ref.read(appSettingProvider.notifier);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
     final splitTunnelingEnabled =
-        ref.read(appSettingProvider).isSplitTunnelingOn;
-    final routingMode = preferences.routingMode;
+        ref.watch(splitTunnelingEnabledProvider).value ?? false;
+    final routingMode =
+        ref.watch(routingModeProvider).value ?? RoutingMode.full;
+    final blockAds = ref.watch(blockAdsEnabledProvider).value ?? false;
+    final telemetryConsent =
+        ref.watch(telemetryConsentProvider).value ?? false;
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -87,14 +89,15 @@ class VPNSetting extends HookConsumerWidget {
             ),
             icon: AppImagePaths.blockAds,
             trailing: SwitchButton(
-              value: preferences.blockAds,
+              value: blockAds,
               onChanged: (bool? value) {
                 if (!isUserPro) {
                   appRouter.push(Plans());
                   return;
                 }
-                var newValue = value ?? false;
-                notifier.setBlockAds(newValue);
+                ref
+                    .read(blockAdsControllerProvider.notifier)
+                    .toggle(value ?? false);
               },
             ),
             onPressed: () {
@@ -102,8 +105,7 @@ class VPNSetting extends HookConsumerWidget {
                 appRouter.push(Plans());
                 return;
               }
-              var newValue = !preferences.blockAds;
-              notifier.setBlockAds(newValue);
+              ref.read(blockAdsControllerProvider.notifier).toggle(!blockAds);
             },
           ),
         ),
@@ -165,10 +167,10 @@ class VPNSetting extends HookConsumerWidget {
               ),
             ),
             trailing: SwitchButton(
-              value: preferences.telemetryConsent,
+              value: telemetryConsent,
               onChanged: (value) {
                 appLogger.info('Anonymous usage data consent changed: $value');
-                notifier.updateAnonymousDataConsent(value);
+                ref.read(telemetryControllerProvider.notifier).setConsent(value);
               },
             ),
           ),

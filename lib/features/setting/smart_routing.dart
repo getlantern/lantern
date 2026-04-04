@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-
-import '../home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'SmartRouting')
 class SmartRouting extends HookConsumerWidget {
@@ -13,12 +12,12 @@ class SmartRouting extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final appSetting = ref.watch(appSettingProvider);
-    final selected = appSetting.routingMode;
+    final selected =
+        ref.watch(routingModeProvider).value ?? RoutingMode.full;
 
     Future<void> select(RoutingMode mode) async {
       final result =
-          await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+          await ref.read(routingModeControllerProvider.notifier).set(mode);
       result.fold(
         (failure) {
           context.showSnackBar('failed_to_update_routing_mode'.i18n);

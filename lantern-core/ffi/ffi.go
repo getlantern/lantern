@@ -135,6 +135,33 @@ func updateTelemetryConsent(consent C.int) *C.char {
 	return C.CString("ok")
 }
 
+//export isTelemetryEnabled
+func isTelemetryEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsTelemetryEnabled() {
+		return 1
+	}
+	return 0
+}
+
+//export isOAuthLogin
+func isOAuthLogin() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsOAuthLogin() {
+		return 1
+	}
+	return 0
+}
+
+//export getOAuthProvider
+func getOAuthProvider() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(c.GetOAuthProvider())
+}
+
 // availableFeatures returns a list of available features in JSON format.
 //
 //export availableFeatures

@@ -8,6 +8,7 @@ import 'package:lantern/core/widgets/password_criteria.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
+
 @RoutePage(name: 'CreatePassword')
 class CreatePassword extends HookConsumerWidget {
   final String email;
@@ -102,9 +103,7 @@ class CreatePassword extends HookConsumerWidget {
       (success) {
         context.hideLoadingDialog();
         appLogger.info('Password created successfully');
-        ref.read(appSettingProvider.notifier)
-          ..setUserLoggedIn(true)
-          ..setOAuthTokenAndProvider('', SignUpMethodType.email.name);
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         resolveRoutes(context, ref);
       },
     );
