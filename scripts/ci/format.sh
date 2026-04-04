@@ -12,6 +12,7 @@ set -euo pipefail
 #   BUILD_TYPE:           production, beta, or nightly
 #   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
 #   GITHUB_SHA:           commit SHA (required for release-notes)
+#   WORKFLOW_URL:         workflow run URL (required for slack, used for nightly builds)
 #   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
 
 FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
@@ -111,7 +112,12 @@ job-summary)
   ;;
 
 slack)
-  text="Lantern $BUILD_TYPE <https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG|$RELEASE_TAG> is ready."
+  WORKFLOW_URL="${WORKFLOW_URL:?WORKFLOW_URL required for slack}"
+  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+    text="Lantern $BUILD_TYPE <${WORKFLOW_URL}|$RELEASE_TAG> is ready."
+  else
+    text="Lantern $BUILD_TYPE <https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG|$RELEASE_TAG> is ready."
+  fi
   text="${text}\n*Branch:* <https://github.com/getlantern/lantern/tree/$GITHUB_REF_NAME|$GITHUB_REF_NAME>"
   text="${text}\n*Downloads:*"
 
