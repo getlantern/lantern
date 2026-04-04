@@ -403,7 +403,7 @@ jobs:
       INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
       PLATFORM: ${{ needs.set-metadata.outputs.platform }}
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
       WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -486,7 +486,7 @@ jobs:
       INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
       PLATFORM: ${{ needs.set-metadata.outputs.platform }}
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
-      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout code
@@ -681,7 +681,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
-          BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
         run: |
           # Strip 'v' prefix for S3 paths
           VERSION="${RELEASE_TAG#v}"
