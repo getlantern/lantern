@@ -38,8 +38,8 @@ VERSION="${RELEASE_TAG#v}"
 FULL_INSTALLER_NAME="${INSTALLER_BASE_NAME}"
 [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_INSTALLER_NAME="${FULL_INSTALLER_NAME}-${BUILD_TYPE}"
 
-VERSION_URL="https://${BUCKET}.s3.amazonaws.com/releases/${BUILD_TYPE}/${VERSION}"
-LATEST_URL="https://${BUCKET}.s3.amazonaws.com/releases/${BUILD_TYPE}/latest"
+VERSION_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${VERSION}"
+LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
 
 # Check if a platform should be included
 should_include() {
