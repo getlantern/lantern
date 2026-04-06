@@ -3,7 +3,20 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 const defaultConfigServerName = 'ci-config-url-smoke';
-const _invisibleRunes = ['\uFEFF', '\u200B', '\u200C', '\u200D', '\u2060'];
+final _urlSeparatorPattern = RegExp(r'[\s,]+');
+const _invisibleCharacters = <String>{
+  '\uFEFF', // byte order mark (BOM)
+  '\u200B', // zero-width space
+  '\u200C', // zero-width non-joiner
+  '\u200D', // zero-width joiner
+  '\u2060', // word joiner
+};
+const _wrapperPairs = <String, String>{
+  '"': '"',
+  '\'': '\'',
+  '`': '`',
+  '<': '>',
+};
 const _supportedJoinServerSchemes = <String>{
   'ss',
   'shadowsocks',
@@ -17,7 +30,7 @@ const _supportedJoinServerSchemes = <String>{
 
 List<String> splitConfigUrls(String urls) {
   return urls
-      .split(RegExp(r'[\s,]+'))
+      .split(_urlSeparatorPattern)
       .map((value) => value.trim())
       .where((value) => value.isNotEmpty)
       .toList();
@@ -47,24 +60,29 @@ String requiredConfigUrls() {
   );
 }
 
-String _stripInvisibleAndWrapperCharacters(String value) {
+String _stripInvisibleCharacters(String value) {
   var normalized = value.trim();
-  for (final rune in _invisibleRunes) {
-    normalized = normalized.replaceAll(rune, '');
-  }
-  if (normalized.length >= 2) {
-    final startsWith = normalized[0];
-    final endsWith = normalized[normalized.length - 1];
-    final matchingWrapper =
-        (startsWith == '"' && endsWith == '"') ||
-        (startsWith == '\'' && endsWith == '\'') ||
-        (startsWith == '`' && endsWith == '`') ||
-        (startsWith == '<' && endsWith == '>');
-    if (matchingWrapper) {
-      normalized = normalized.substring(1, normalized.length - 1).trim();
-    }
+  for (final character in _invisibleCharacters) {
+    normalized = normalized.replaceAll(character, '');
   }
   return normalized;
+}
+
+String _stripOptionalWrappingCharacters(String value) {
+  if (value.length < 2) {
+    return value;
+  }
+  for (final entry in _wrapperPairs.entries) {
+    if (value.startsWith(entry.key) && value.endsWith(entry.value)) {
+      return value.substring(1, value.length - 1).trim();
+    }
+  }
+  return value;
+}
+
+String _sanitizeConfigUrlInput(String value) {
+  final withoutInvisible = _stripInvisibleCharacters(value);
+  return _stripOptionalWrappingCharacters(withoutInvisible);
 }
 
 String _normalizeConfigUrlForProvider(String value) {
@@ -73,18 +91,11 @@ String _normalizeConfigUrlForProvider(String value) {
   return value.contains(',') ? value.replaceAll(',', '%2C') : value;
 }
 
-String requiredSingleConfigUrl() {
-  final raw = _stripInvisibleAndWrapperCharacters(requiredConfigUrls());
-  final urls = splitConfigUrls(raw);
-  if (urls.length != 1) {
-    fail(
-      'Config URL smoke tests require exactly one URL, but received '
-      '${urls.length}. Set JOIN_SERVER_CONFIG_URLS to a single URL value.',
-    );
-  }
-  final normalized = _normalizeConfigUrlForProvider(urls.single.trim());
+String _validateAndReturnNormalizedSingleConfigUrl(String value) {
+  final normalized = _normalizeConfigUrlForProvider(value.trim());
   final parsed = Uri.tryParse(normalized);
   final scheme = parsed?.scheme.toLowerCase() ?? '';
+
   if (scheme.isEmpty) {
     fail(
       'Config URL smoke test input is malformed (missing scheme). '
@@ -98,6 +109,18 @@ String requiredSingleConfigUrl() {
     );
   }
   return normalized;
+}
+
+String requiredSingleConfigUrl() {
+  final raw = _sanitizeConfigUrlInput(requiredConfigUrls());
+  final urls = splitConfigUrls(raw);
+  if (urls.length != 1) {
+    fail(
+      'Config URL smoke tests require exactly one URL, but received '
+      '${urls.length}. Set JOIN_SERVER_CONFIG_URLS to a single URL value.',
+    );
+  }
+  return _validateAndReturnNormalizedSingleConfigUrl(urls.single);
 }
 
 String configServerName() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
 import 'config_url_test_env.dart';
 import '../utils/widget_wait_utils.dart';
@@ -51,6 +52,30 @@ Future<void> _enterTextField(
   await tester.pump(const Duration(milliseconds: 150));
   await tester.enterText(field.first, value);
   await tester.pump(const Duration(milliseconds: 150));
+}
+
+Future<bool> _tryGoBack(WidgetTester tester) async {
+  final customBack = find.byType(lantern_widgets.BackButton).hitTestable();
+  if (customBack.evaluate().isNotEmpty) {
+    await tester.tap(customBack.first);
+    await tester.pump(const Duration(milliseconds: 250));
+    return true;
+  }
+
+  final materialBack = find.byType(BackButton).hitTestable();
+  if (materialBack.evaluate().isNotEmpty) {
+    await tester.tap(materialBack.first);
+    await tester.pump(const Duration(milliseconds: 250));
+    return true;
+  }
+
+  try {
+    await tester.pageBack();
+    await tester.pump(const Duration(milliseconds: 250));
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 Future<void> _openServerSelectionFromHome(
@@ -116,16 +141,12 @@ Future<void> _returnToServerSelection(
       return;
     }
 
-    final backButton = find.byType(BackButton).hitTestable();
-    if (backButton.evaluate().isNotEmpty) {
-      await tester.tap(backButton.first);
-      await tester.pump(const Duration(milliseconds: 250));
+    if (joinPrivateServerScreen.evaluate().isNotEmpty) {
+      await _tryGoBack(tester);
       continue;
     }
 
-    if (joinPrivateServerScreen.evaluate().isNotEmpty) {
-      await tester.pageBack();
-      await tester.pump(const Duration(milliseconds: 250));
+    if (await _tryGoBack(tester)) {
       continue;
     }
 
@@ -152,10 +173,7 @@ Future<void> _returnToHome(
       return;
     }
 
-    final backButton = find.byType(BackButton).hitTestable();
-    if (backButton.evaluate().isNotEmpty) {
-      await tester.tap(backButton.first);
-      await tester.pump(const Duration(milliseconds: 250));
+    if (await _tryGoBack(tester)) {
       continue;
     }
 
