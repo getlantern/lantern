@@ -95,14 +95,25 @@ class VPNSwitch extends HookConsumerWidget {
         return;
       }
     }
+
     final result =
         await ref.read(vpnProvider.notifier).onVPNStateChange(context);
 
+    if (!context.mounted) return;
     result.fold(
       (failure) {
-        context.showSnackBar(failure.localizedErrorMessage);
-        appLogger.error(
-            "Error changing VPN state: ${failure.localizedErrorMessage}");
+        if (failure is VpnConflictFailure) {
+          AppDialog.dialog(
+            context: context,
+            title: 'vpn_conflict_title'.i18n,
+            content: 'vpn_conflict_body'.i18n,
+            action: 'vpn_conflict_dismiss'.i18n,
+          );
+        } else {
+          context.showSnackBar(failure.localizedErrorMessage);
+          appLogger.error(
+              "Error changing VPN state: ${failure.localizedErrorMessage}");
+        }
       },
       (_) => null,
     );
