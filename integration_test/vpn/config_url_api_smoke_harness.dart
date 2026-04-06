@@ -62,7 +62,7 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
   final vpnStateFinders = VpnStateFinders();
 
   final lantern = await _waitForLanternServiceReady(tester, vpnStateFinders);
-  await ensureVpnStartsDisconnectedForSmoke(
+  await prepareVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,

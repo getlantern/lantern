@@ -100,7 +100,7 @@ Future<void> runConnectSmokeHarness(
   final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
   String? baselinePublicIp;
 
-  await ensureVpnStartsDisconnectedForSmoke(
+  await prepareVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,

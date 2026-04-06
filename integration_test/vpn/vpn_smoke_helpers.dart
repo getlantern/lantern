@@ -245,7 +245,7 @@ Future<VPNStatus> resolveInitialStableVpnStateForSmoke(
   return vpnState;
 }
 
-Future<void> ensureVpnStartsDisconnectedForSmoke(
+Future<void> prepareVpnStartsDisconnectedForSmoke(
   WidgetTester tester, {
   required VpnSmokeFinders finders,
   required VpnStateFinders vpnStateFinders,

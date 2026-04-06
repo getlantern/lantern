@@ -258,7 +258,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
     Key('server_selection.private_server.$configServerName'),
   );
 
-  await ensureVpnStartsDisconnectedForSmoke(
+  await prepareVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,
