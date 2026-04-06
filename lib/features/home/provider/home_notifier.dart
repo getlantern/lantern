@@ -166,5 +166,6 @@ class HomeNotifier extends _$HomeNotifier {
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(appSettingProvider.notifier).clearAuthSessionData();
     resetServerLocation();
+    state = AsyncValue.data(UserResponse());
   }
 }

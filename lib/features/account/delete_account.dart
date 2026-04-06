@@ -16,7 +16,7 @@ class DeleteAccount extends StatefulHookConsumerWidget {
   const DeleteAccount({super.key});
 
   @override
-  _DeleteAccountState createState() => _DeleteAccountState();
+  ConsumerState<DeleteAccount> createState() => _DeleteAccountState();
 }
 
 class _DeleteAccountState extends ConsumerState<DeleteAccount> {
@@ -179,19 +179,24 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
     result.fold(
       (failure) {
+        if (!mounted) {
+          return;
+        }
         appLogger.error(
           'Account deletion failed: ${failure.localizedErrorMessage}',
         );
         context.hideLoadingDialog();
         context.showSnackBarError(failure.localizedErrorMessage);
       },
-      (userResponse) async {
+      (_) {
+        if (!mounted) {
+          return;
+        }
         context.hideLoadingDialog();
         ref.read(homeProvider.notifier).clearLogoutData();
         appLogger.info(
           'Account deletion successful, clearing user data and navigating to root',
         );
-        ref.read(homeProvider.notifier).updateUserData(userResponse);
         showAccountDeletionSuccessDialog();
       },
     );

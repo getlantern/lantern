@@ -560,10 +560,17 @@ Future<void> _runDeleteAccountClearsSessionScenario(WidgetTester tester) async {
   }
 }
 
-Future<void> runAuthSmokeHarness(WidgetTester tester) async {
-  await _runSignInSuccessScenario(tester);
-  await _runSignInFailureScenario(tester);
-  await _runSignUpSuccessScenario(tester);
-  await _runLogoutClearsSessionScenario(tester);
-  await _runDeleteAccountClearsSessionScenario(tester);
-}
+Future<void> runAuthSignInSuccessSmoke(WidgetTester tester) =>
+    _runSignInSuccessScenario(tester);
+
+Future<void> runAuthSignInFailureSmoke(WidgetTester tester) =>
+    _runSignInFailureScenario(tester);
+
+Future<void> runAuthSignUpSuccessSmoke(WidgetTester tester) =>
+    _runSignUpSuccessScenario(tester);
+
+Future<void> runAuthLogoutClearsSessionSmoke(WidgetTester tester) =>
+    _runLogoutClearsSessionScenario(tester);
+
+Future<void> runAuthDeleteAccountClearsSessionSmoke(WidgetTester tester) =>
+    _runDeleteAccountClearsSessionScenario(tester);

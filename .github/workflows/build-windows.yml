@@ -255,7 +255,7 @@ jobs:
         shell: pwsh
         timeout-minutes: 15
         run: |
-          flutter test integration_test/auth/windows_auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
+          flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}
