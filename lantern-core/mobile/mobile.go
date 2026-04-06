@@ -625,4 +625,3 @@ func GetSplitTunnelStateJSON() (string, error) {
 		return c.GetSplitTunnelItems()
 	})
 }
-
