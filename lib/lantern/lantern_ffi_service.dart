@@ -795,11 +795,15 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<List<String>> watchLogs(String path) {
     if (PlatformUtils.isWindows) {
-      final ws = _windowsService;
-      if (ws == null) {
-        return const Stream<List<String>>.empty();
-      }
-      return ws.watchLogs();
+      appLogger.info('[watchLogs] awaiting Windows service init');
+      return Stream.fromFuture(_getOrInitWindowsService()).asyncExpand((ws) {
+        if (ws == null) {
+          appLogger.error('[watchLogs] Windows service is null — returning empty stream');
+          return const Stream<List<String>>.empty();
+        }
+        appLogger.info('[watchLogs] Windows service ready, starting log pipe stream');
+        return accumulateLogBatches(ws.watchLogs());
+      });
     }
     throw UnimplementedError();
   }

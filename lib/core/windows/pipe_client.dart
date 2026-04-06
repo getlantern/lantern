@@ -286,17 +286,33 @@ class PipeClient {
   }
 
   Stream<List<String>> watchLogs() {
+    appLogger.info('[PipeClient] watchLogs() starting WatchLogs stream');
     return _watchRaw('WatchLogs').transform(
-      StreamTransformer.fromHandlers(handleData: (line, sink) {
-        try {
-          final obj = jsonDecode(line);
-          if (obj is Map && obj['event'] == 'Logs') {
-            final lines =
-                (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
-            if (lines.isNotEmpty) sink.add(lines);
+      StreamTransformer.fromHandlers(
+        handleData: (line, sink) {
+          try {
+            final obj = jsonDecode(line);
+            if (obj is Map && obj['event'] == 'Logs') {
+              final lines =
+                  (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
+              appLogger.info('[PipeClient] received ${lines.length} log lines from pipe');
+              if (lines.isNotEmpty) sink.add(lines);
+            } else {
+              appLogger.info('[PipeClient] received unknown pipe event: $obj');
+            }
+          } catch (e) {
+            appLogger.error('[PipeClient] failed to parse pipe line: $line', e);
           }
-        } catch (_) {}
-      }),
+        },
+        handleError: (e, st, sink) {
+          appLogger.error('[PipeClient] watchLogs stream error', e, st);
+          sink.addError(e, st);
+        },
+        handleDone: (sink) {
+          appLogger.info('[PipeClient] watchLogs stream done');
+          sink.close();
+        },
+      ),
     );
   }
 }

@@ -12,52 +12,83 @@ import 'package:lantern/features/logs/log_line.dart';
 import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
 import 'package:share_plus/share_plus.dart';
 
-const int _maxVisibleLogLines = 800;
+const int _maxVisibleLogLines = 500;
 
 @RoutePage(name: 'Logs')
-class Logs extends ConsumerWidget {
+class Logs extends ConsumerStatefulWidget {
   const Logs({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final logAsyncValue = ref.watch(diagnosticLogProvider);
+  ConsumerState<Logs> createState() => _LogsState();
+}
 
-    Future<void> shareLogFile() async {
-      try {
-        if (Platform.isIOS) {
-          final logFilesResult = await ref
-              .read(diagnosticLogProvider.notifier)
-              .diagnosticLogFilePath();
+class _LogsState extends ConsumerState<Logs> {
+  final ScrollController _scrollController = ScrollController();
 
-          if (logFilesResult.isEmpty) {
-            appLogger.error("No log files found to share");
-            return;
-          }
-          final flutterLogFile = await AppStorageUtils.flutterLogFile();
-          logFilesResult.add(flutterLogFile.path);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-          await SharePlus.instance.share(
-            ShareParams(
-              title: 'logs'.i18n,
-              text: 'logs_share_message'.i18n,
-              files: logFilesResult.map(XFile.new).toList(growable: false),
-            ),
-          );
+  bool get _isAtBottom {
+    if (!_scrollController.hasClients) return true;
+    return _scrollController.offset <=
+        _scrollController.position.minScrollExtent + 40;
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+    }
+  }
+
+  Future<void> _shareLogFile() async {
+    try {
+      if (Platform.isIOS) {
+        final logFilesResult = await ref
+            .read(diagnosticLogProvider.notifier)
+            .diagnosticLogFilePath();
+
+        if (logFilesResult.isEmpty) {
+          appLogger.error("No log files found to share");
           return;
         }
+        final flutterLogFile = await AppStorageUtils.flutterLogFile();
+        logFilesResult.add(flutterLogFile.path);
 
-        final logFile = await AppStorageUtils.logsFilePaths();
         await SharePlus.instance.share(
           ShareParams(
             title: 'logs'.i18n,
             text: 'logs_share_message'.i18n,
-            files: logFile.map(XFile.new).toList(growable: false),
+            files: logFilesResult.map(XFile.new).toList(growable: false),
           ),
         );
-      } catch (e) {
-        appLogger.error("Error sharing log file: $e");
+        return;
       }
+
+      final logFile = await AppStorageUtils.logsFilePaths();
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'logs'.i18n,
+          text: 'logs_share_message'.i18n,
+          files: logFile.map(XFile.new).toList(growable: false),
+        ),
+      );
+    } catch (e) {
+      appLogger.error("Error sharing log file: $e");
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<String>>>(diagnosticLogProvider, (_, next) {
+      if (next.hasValue && _isAtBottom) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    });
+
+    final logAsyncValue = ref.watch(diagnosticLogProvider);
 
     return BaseScreen(
       title: 'Diagnostic Logs'.i18n,
@@ -66,7 +97,7 @@ class Logs extends ConsumerWidget {
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
-            onPressed: shareLogFile,
+            onPressed: _shareLogFile,
             path: AppImagePaths.upArrow,
           ),
         ],
@@ -99,8 +130,7 @@ class Logs extends ConsumerWidget {
                     );
                   }
                   return ListView.builder(
-                    // Keep chronological order on screen while anchoring the viewport
-                    // at the newest entry by default.
+                    controller: _scrollController,
                     reverse: true,
                     padding: const EdgeInsets.all(8.0),
                     itemCount: visibleLogs.length,
@@ -136,13 +166,3 @@ List<String> latestLogsForDisplay(List<String> logs) {
   return logs.sublist(logs.length - _maxVisibleLogLines);
 }
 
-TextStyle getLogStyle(String logLine) {
-  final base = AppTextStyles.logTextStyle;
-  if (logLine.startsWith('DEBUG[')) return base.copyWith(color: Colors.teal);
-  if (logLine.startsWith('INFO[')) return base.copyWith(color: Colors.blue);
-  if (logLine.startsWith('WARN[')) return base.copyWith(color: Colors.orange);
-  if (logLine.startsWith('ERROR[')) {
-    return base.copyWith(color: Colors.redAccent);
-  }
-  return base;
-}
