@@ -5,6 +5,7 @@ import '../common/common.dart';
 typedef LinkOpener = Future<void> Function(String url);
 
 class AppTile extends StatelessWidget {
+  final Key? tileKey;
   final String label;
   final Widget? labelWidget;
   final Widget? subtitle;
@@ -37,6 +38,7 @@ class AppTile extends StatelessWidget {
 
   const AppTile({
     super.key,
+    this.tileKey,
     required this.label,
     this.labelWidget,
     this.onPressed,
@@ -133,6 +135,7 @@ class AppTile extends StatelessWidget {
         : trailing ?? (showChevron ? const Icon(Icons.chevron_right) : null);
 
     final tile = ListTile(
+      key: tileKey,
       enabled: enabled && !loading,
       minVerticalPadding: 0,
       selected: selected,

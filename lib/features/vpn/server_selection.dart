@@ -41,6 +41,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       title: Text('server_selection'.i18n),
       actions: [
         IconButton(
+          key: const Key('server_selection.more_options'),
           icon: const Icon(Icons.more_vert),
           onPressed: onOpenMoreOptions,
         ),
@@ -49,6 +50,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     if (availableServers.isLoading) {
       return BaseScreen(
+        key: const Key('server_selection.screen'),
         title: '',
         appBar: appBar,
         body: const Center(child: Spinner()),
@@ -58,6 +60,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final err = availableServers.asError;
     if (err != null) {
       return BaseScreen(
+        key: const Key('server_selection.screen'),
         title: '',
         appBar: appBar,
         body: Center(
@@ -71,6 +74,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         availableServers.requireValue.user.outbounds.isNotEmpty;
 
     return BaseScreen(
+      key: const Key('server_selection.screen'),
       title: '',
       appBar: appBar,
       body: isPrivateServerFound
@@ -130,7 +134,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               ),
               tabs: [
                 Tab(child: Text('lantern_servers'.i18n)),
-                Tab(child: Text('private_servers'.i18n)),
+                Tab(
+                  key: const Key('server_selection.private_servers_tab'),
+                  child: Text('private_servers'.i18n),
+                ),
               ],
             ),
           ),
@@ -223,6 +230,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           shrinkWrap: true,
           children: [
             AppTile(
+              tileKey: const Key('server_selection.setup_private_server'),
               label: 'setup_private_server'.i18n,
               onPressed: () {
                 context.pushRoute(PrivateServerSetup());
@@ -230,6 +238,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
             const DividerSpace(padding: EdgeInsets.zero),
             AppTile(
+              tileKey: const Key('server_selection.join_private_server'),
               label: 'join_a_private_server'.i18n,
               onPressed: () {
                 context.pushRoute(JoinPrivateServer());
@@ -237,6 +246,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
             const DividerSpace(padding: EdgeInsets.zero),
             AppTile(
+              tileKey: const Key('server_selection.manage_private_servers'),
               label: 'manage_private_servers'.i18n,
               onPressed: () {
                 context.pushRoute(ManagePrivateServer());
@@ -429,7 +439,6 @@ class _CountryCityListView extends StatefulWidget {
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
-    super.key,
   });
 
   @override
@@ -614,6 +623,7 @@ class _PrivateServerLocationListViewState
               final loc = userLocations[index];
               final isSelected = selectedTag == loc.tag;
               return AppTile(
+                tileKey: Key('server_selection.private_server.${loc.tag}'),
                 onPressed: () {
                   if (isSelected) {
                     appLogger.debug('Already selected this server');
