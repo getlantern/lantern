@@ -202,7 +202,7 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.change, .install)
   }
 
-  func testClassifyFallsBackToMismatchWhenSameVersionHashesAreUnavailable() {
+  func testClassifyFallsBackToVersionMatchWhenSameVersionHashesAreUnavailable() {
     let bundled = SystemExtensionDescriptor(
       bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
       bundleShortVersion: "9.0.18",
@@ -222,15 +222,9 @@ final class RunnerTests: XCTestCase {
       installed: [enabled]
     )
 
-    XCTAssertEqual(reconciliation.change, .mismatch)
-    assertUpdatePending(
-      reconciliation.status,
-      contains: "does not match the current app"
-    )
-    assertDeactivateThenActivate(
-      reconciliation.action,
-      contains: "refresh mismatched system extension"
-    )
+    XCTAssertEqual(reconciliation.change, .matched)
+    XCTAssertEqual(reconciliation.status, .activated)
+    XCTAssertEqual(reconciliation.action, .none)
   }
 
   private func makeDescriptor(

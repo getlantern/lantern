@@ -8,6 +8,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   static let shared = SystemExtensionManager()
   private let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
   private var requestContexts: [ObjectIdentifier: RequestContext] = [:]
+  private let reconciliationQueue = DispatchQueue(
+    label: "org.getlantern.lantern.SystemExtensionManager.reconciliation",
+    qos: .utility
+  )
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
 
@@ -114,21 +118,31 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     foundProperties properties: [OSSystemExtensionProperties]
   ) {
     let context = clearRequestContext(for: request) ?? .inspectStatus
-    let bundled = SystemExtensionDescriptor.bundled(bundleID: tunnelBundleID)
-    let installed = properties.map(SystemExtensionDescriptor.init(properties:))
-    let reconciliation = SystemExtensionReconciler.reconcile(bundled: bundled, installed: installed)
+    reconciliationQueue.async { [self] in
+      let bundled = SystemExtensionDescriptor.bundled(bundleID: self.tunnelBundleID)
+      let installed = properties.map(SystemExtensionDescriptor.init(properties:))
+      let reconciliation = SystemExtensionReconciler.reconcile(
+        bundled: bundled,
+        installed: installed
+      )
 
-    appLogger.info(
-      "System extension snapshot: context=\(context.logDescription) bundled=\(bundled?.debugSummary ?? "missing") installed=[\(installed.map { $0.debugSummary }.joined(separator: ", "))] status=\(reconciliation.status.logDescription) action=\(reconciliation.action.logDescription)"
-    )
+      Task { @MainActor [self] in
+        self.logSnapshot(
+          context: context,
+          bundled: bundled,
+          installed: installed,
+          reconciliation: reconciliation
+        )
 
-    updateStatus(reconciliation.status)
+        self.updateStatus(reconciliation.status)
 
-    guard context == .reconcile else {
-      return
+        guard context == .reconcile else {
+          return
+        }
+
+        self.perform(reconciliation.action)
+      }
     }
-
-    perform(reconciliation.action)
   }
 
   public func deactivateExtension(bundleID: String) {
@@ -209,6 +223,19 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       updateStatus(.updatePending(details: reason))
       submitDeactivationRequest(reason: reason, activateAfter: true)
     }
+  }
+
+  private func logSnapshot(
+    context: RequestContext,
+    bundled: SystemExtensionDescriptor?,
+    installed: [SystemExtensionDescriptor],
+    reconciliation: SystemExtensionReconciliation
+  ) {
+    let bundledSummary = bundled?.debugSummary ?? "missing"
+    let installedSummary = installed.map(\.debugSummary).joined(separator: ", ")
+    appLogger.info(
+      "System extension snapshot: context=\(context.logDescription) bundled=\(bundledSummary) installed=[\(installedSummary)] status=\(reconciliation.status.logDescription) action=\(reconciliation.action.logDescription)"
+    )
   }
 
   private func updateStatus(_ newStatus: ExtensionStatus) {
@@ -430,7 +457,9 @@ internal struct SystemExtensionDescriptor: Equatable {
 
   func matchesContent(_ other: SystemExtensionDescriptor) -> Bool {
     guard let contentHash, let otherHash = other.contentHash else {
-      return false
+      // If hashing fails for either side, we fall back to version matching
+      // instead of forcing a replacement based on incomplete data.
+      return true
     }
     return contentHash == otherHash
   }
@@ -557,7 +586,7 @@ internal enum SystemExtensionReconciler {
 
     if current.matchesVersion(desired) {
       guard let currentHash = current.contentHash, let desiredHash = desired.contentHash else {
-        return .mismatch
+        return .matched
       }
       return currentHash == desiredHash ? .matched : .contentChange
     }
@@ -583,6 +612,19 @@ internal enum SystemExtensionReconciler {
 }
 
 internal enum SystemExtensionBundleHasher {
+  private enum BundleEntryKind {
+    case regularFile
+    case symbolicLink
+  }
+
+  private struct BundleEntry {
+    let relativePath: String
+    let fileURL: URL
+    let kind: BundleEntryKind
+  }
+
+  private static let readChunkSize = 64 * 1024
+
   static func hashBundle(at url: URL) -> String? {
     let fileManager = FileManager.default
     guard let enumerator = fileManager.enumerator(
@@ -591,50 +633,86 @@ internal enum SystemExtensionBundleHasher {
       options: [],
       errorHandler: nil)
     else {
+      appLogger.error("Failed to enumerate system extension bundle for hashing at \(url.path)")
       return nil
     }
 
-    var fileURLs: [URL] = []
+    var entries: [BundleEntry] = []
     for case let fileURL as URL in enumerator {
-      fileURLs.append(fileURL)
+      let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+      let relativePath = relativePath(for: fileURL, under: url)
+
+      if values?.isSymbolicLink == true {
+        entries.append(
+          BundleEntry(relativePath: relativePath, fileURL: fileURL, kind: .symbolicLink)
+        )
+        continue
+      }
+
+      if values?.isRegularFile == true {
+        entries.append(
+          BundleEntry(relativePath: relativePath, fileURL: fileURL, kind: .regularFile)
+        )
+      }
     }
 
-    fileURLs.sort {
-      relativePath(for: $0, under: url) < relativePath(for: $1, under: url)
-    }
+    entries.sort { $0.relativePath < $1.relativePath }
 
     var hasher = SHA256()
 
-    for fileURL in fileURLs {
-      let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
-      let relative = relativePath(for: fileURL, under: url)
-
-      if values?.isSymbolicLink == true {
-        guard let destination = try? fileManager.destinationOfSymbolicLink(atPath: fileURL.path) else {
+    for entry in entries {
+      switch entry.kind {
+      case .symbolicLink:
+        guard let destination = try? fileManager.destinationOfSymbolicLink(atPath: entry.fileURL.path)
+        else {
+          appLogger.error("Failed to read symlink destination while hashing \(entry.fileURL.path)")
           return nil
         }
-        hasher.update(data: Data(relative.utf8))
-        hasher.update(data: Data([0]))
-        hasher.update(data: Data(destination.utf8))
-        hasher.update(data: Data([0]))
-        continue
+        update(&hasher, withRecordPath: entry.relativePath, data: Data(destination.utf8))
+      case .regularFile:
+        guard update(&hasher, withFileAt: entry.fileURL, relativePath: entry.relativePath) else {
+          appLogger.error("Failed to read file while hashing \(entry.fileURL.path)")
+          return nil
+        }
       }
-
-      guard values?.isRegularFile == true else {
-        continue
-      }
-
-      guard let data = try? Data(contentsOf: fileURL, options: [.mappedIfSafe]) else {
-        return nil
-      }
-
-      hasher.update(data: Data(relative.utf8))
-      hasher.update(data: Data([0]))
-      hasher.update(data: data)
-      hasher.update(data: Data([0]))
     }
 
     return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+  }
+
+  private static func update(_ hasher: inout SHA256, withRecordPath path: String, data: Data) {
+    hasher.update(data: Data(path.utf8))
+    hasher.update(data: Data([0]))
+    hasher.update(data: data)
+    hasher.update(data: Data([0]))
+  }
+
+  private static func update(
+    _ hasher: inout SHA256,
+    withFileAt fileURL: URL,
+    relativePath: String
+  ) -> Bool {
+    guard let fileHandle = try? FileHandle(forReadingFrom: fileURL) else {
+      return false
+    }
+
+    defer {
+      try? fileHandle.close()
+    }
+
+    hasher.update(data: Data(relativePath.utf8))
+    hasher.update(data: Data([0]))
+
+    do {
+      while let chunk = try fileHandle.read(upToCount: readChunkSize), !chunk.isEmpty {
+        hasher.update(data: chunk)
+      }
+    } catch {
+      return false
+    }
+
+    hasher.update(data: Data([0]))
+    return true
   }
 
   private static func relativePath(for fileURL: URL, under rootURL: URL) -> String {

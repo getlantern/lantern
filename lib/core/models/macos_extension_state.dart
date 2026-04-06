@@ -23,10 +23,10 @@ class MacOSExtensionState {
       status == SystemExtensionStatus.activated;
 
   factory MacOSExtensionState.fromEvent(Object? event) {
-    if (event case final Map<Object?, Object?> payload) {
+    if (event is Map) {
       return _fromStatusFields(
-        _stringField(payload, 'status'),
-        _stringField(payload, 'details'),
+        _stringField(event, 'status'),
+        _stringField(event, 'details'),
       );
     }
 
@@ -102,7 +102,7 @@ class MacOSExtensionState {
     }
   }
 
-  static String? _stringField(Map<Object?, Object?> payload, String key) {
+  static String? _stringField(Map payload, String key) {
     final value = payload[key];
     if (value == null) {
       return null;

@@ -3,6 +3,18 @@ import 'package:lantern/core/models/macos_extension_state.dart';
 
 void main() {
   group('MacOSExtensionState', () {
+    test('parses typed map payloads from event channel', () {
+      final payload = <String, dynamic>{
+        'status': 'updatePending',
+        'details': 'typed map payload',
+      };
+
+      final state = MacOSExtensionState.fromEvent(payload);
+
+      expect(state.status, SystemExtensionStatus.updatePending);
+      expect(state.message, 'typed map payload');
+    });
+
     test('parses structured status events', () {
       final state = MacOSExtensionState.fromEvent(const {
         'status': 'updatePending',
