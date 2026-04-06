@@ -76,7 +76,7 @@ type User interface {
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
-	DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error)
+	DeleteAccount(email, password string) ([]byte, error)
 	RemoveDevice(deviceId string) (*account.LinkResponse, error)
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
@@ -93,7 +93,7 @@ type PrivateServer interface {
 	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
-	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
+	AddServerBasedOnURLs(urls string, skipCertVerification bool) error
 	DeleteServer(tag string) error
 	UpdatePrivateServerName(oldTag, newTag string) error
 }
@@ -113,7 +113,7 @@ type Payment interface {
 type SplitTunnel interface {
 	LoadInstalledApps(dataDir string) (string, error)
 	IsSplitTunnelingEnabled() bool
-	SetSplitTunnelingEnabled(bool)
+	SetSplitTunnelingEnabled(bool) error
 	AddSplitTunnelItem(filterType, item string) error
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
@@ -275,6 +275,15 @@ func (lc *LanternCore) IsVPNRunning() (bool, error) {
 //  Settings   //
 /////////////////
 
+// settings returns the current settings from radiance.
+func (lc *LanternCore) settings() settings.Settings {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return settings.Settings{}
+	}
+	return s
+}
+
 func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
 	return lc.client.EnableTelemetry(lc.ctx, consent)
 }
@@ -284,15 +293,7 @@ func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
 }
 
 func (lc *LanternCore) IsBlockAdsEnabled() bool {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return false
-	}
-	v, ok := s[settings.AdBlockKey]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
+	b, _ := lc.settings()[settings.AdBlockKey].(bool)
 	return b
 }
 
@@ -301,50 +302,22 @@ func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
 }
 
 func (lc *LanternCore) IsSmartRoutingEnabled() bool {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return false
-	}
-	v, ok := s[settings.SmartRoutingKey]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
+	b, _ := lc.settings()[settings.SmartRoutingKey].(bool)
 	return b
 }
 
 func (lc *LanternCore) IsTelemetryEnabled() bool {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return false
-	}
-	v, ok := s[settings.TelemetryKey]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
+	b, _ := lc.settings()[settings.TelemetryKey].(bool)
 	return b
 }
 
 func (lc *LanternCore) IsOAuthLogin() bool {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return false
-	}
-	v, ok := s[settings.OAuthLoginKey]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
+	b, _ := lc.settings()[settings.OAuthLoginKey].(bool)
 	return b
 }
 
 func (lc *LanternCore) GetOAuthProvider() string {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return ""
-	}
-	v, _ := s[settings.OAuthProviderKey].(string)
+	v, _ := lc.settings()[settings.OAuthProviderKey].(string)
 	return v
 }
 
@@ -353,11 +326,7 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 }
 
 func (lc *LanternCore) MyDeviceId() string {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return ""
-	}
-	v, _ := s[settings.DeviceIDKey].(string)
+	v, _ := lc.settings()[settings.DeviceIDKey].(string)
 	return v
 }
 
@@ -473,22 +442,12 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	return string(b), nil
 }
 
-func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
-	if err := lc.client.EnableSplitTunneling(lc.ctx, enabled); err != nil {
-		slog.Error("Error setting split tunneling", "error", err)
-	}
+func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
 }
 
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
-	s, err := lc.client.Settings(lc.ctx)
-	if err != nil {
-		return false
-	}
-	v, ok := s[settings.SplitTunnelKey]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
+	b, _ := lc.settings()[settings.SplitTunnelKey].(bool)
 	return b
 }
 
@@ -669,7 +628,7 @@ func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) err
 	return lc.client.CompleteRecoveryByEmail(lc.ctx, email, password, code)
 }
 
-func (lc *LanternCore) DeleteAccount(email, password string, _ bool) ([]byte, error) {
+func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 	userData, err := lc.client.DeleteAccount(lc.ctx, email, password)
 	if err != nil {
 		return nil, err
@@ -890,7 +849,7 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	return nil
 }
 
-func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, _ string) error {
+func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
 	urlList := strings.Split(urls, ",")
 	for i, u := range urlList {
 		urlList[i] = strings.TrimSpace(u)

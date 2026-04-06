@@ -58,15 +58,6 @@ func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 	return fn(c)
 }
 
-// panicRecover is a helper function that recovers from panics and logs the error.
-func panicRecover() {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("Recovered from panic:", "error", r)
-		}
-	}()
-}
-
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Info("Setting up Radiance", "opts", opts)
 	// Initialize lantern core
@@ -352,7 +343,7 @@ func RemoveSplitTunnelItems(items string) error {
 }
 
 func SetSplitTunnelingEnabled(enabled bool) error {
-	return withCore(func(c lanterncore.Core) error { c.SetSplitTunnelingEnabled(enabled); return nil })
+	return withCore(func(c lanterncore.Core) error { return c.SetSplitTunnelingEnabled(enabled) })
 }
 
 func IsSplitTunnelingEnabled() bool {
@@ -554,8 +545,8 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password, isOAuthUser) })
+func DeleteAccount(email, password string, _ bool) ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
 }
 
 func ActivationCode(email, resellerCode string) error {
@@ -606,10 +597,10 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
 
-func AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
+func AddServerBasedOnURLs(urls string, skipCertVerification bool, _ string) error {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCore(func(c lanterncore.Core) error {
-		return c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+		return c.AddServerBasedOnURLs(urls, skipCertVerification)
 	})
 }
 
@@ -635,26 +626,3 @@ func GetSplitTunnelStateJSON() (string, error) {
 	})
 }
 
-// Smart Routing Methods
-
-// SetSmartRoutingMode sets the smart routing mode.
-func SetSmartRoutingMode(mode bool) error {
-	slog.Debug("mobile: SetSmartRoutingEnabled called", "mode", mode)
-	return withCore(func(c lanterncore.Core) error {
-		return c.SetSmartRoutingEnabled(mode)
-	})
-}
-
-// GetSmartRoutingEnabled gets the current smart routing enabled state.
-func GetSmartRoutingEnabled() bool {
-	slog.Debug("mobile: GetSmartRoutingEnabled called")
-	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		return c.IsSmartRoutingEnabled(), nil
-	})
-	if err != nil {
-		slog.Error("mobile: GetSmartRoutingEnableds error", "error", err)
-		return false
-	}
-	slog.Debug("mobile: GetSmartRoutingEnabled result", "mode", ok)
-	return ok
-}

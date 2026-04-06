@@ -25,13 +25,6 @@ func SendError(err error) *C.char {
 	})
 }
 
-func booltoCString(value bool) *C.char {
-	if value {
-		return C.CString(string("true"))
-	}
-	return C.CString(string("false"))
-}
-
 // create binary data from proto
 func CreateBinaryFile(name string, data protoreflect.ProtoMessage) error {
 	b, err := proto.Marshal(data)

@@ -194,10 +194,9 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	item := C.GoString(itemC)
 
 	if err := c.AddSplitTunnelItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error adding item: %v", err))
+		return SendError(err)
 	}
-	slog.Debug("added split tunneling item", "filterType", filterType, "item", item)
-	return nil
+	return C.CString("ok")
 }
 
 //export removeSplitTunnelItem
@@ -210,10 +209,9 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	item := C.GoString(itemC)
 
 	if err := c.RemoveSplitTunnelItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error removing item: %v", err))
+		return SendError(err)
 	}
-	slog.Debug("removed split tunneling item", "filterType", filterType, "item", item)
-	return nil
+	return C.CString("ok")
 }
 
 //export setSplitTunnelingEnabled
@@ -681,13 +679,13 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 //
 //export deleteAccount
 func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
-	email, password, isSSO := C.GoString(_email), C.GoString(_password), _isSSO != 0
+	email, password := C.GoString(_email), C.GoString(_password)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		bytes, err := c.DeleteAccount(email, password, isSSO)
+		bytes, err := c.DeleteAccount(email, password)
 		if err != nil {
 			return SendError(err)
 		}
@@ -952,9 +950,8 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverNam
 	}
 	urls := C.GoString(_urls)
 	skipCertVerification := _skipCertVerification != 0
-	serverName := C.GoString(_serverName)
 	slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
-	err := c.AddServerBasedOnURLs(urls, skipCertVerification, serverName)
+	err := c.AddServerBasedOnURLs(urls, skipCertVerification)
 	if err != nil {
 		return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
 	}
