@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide BackButton;
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
@@ -58,7 +58,7 @@ class ConfirmEmail extends HookConsumerWidget {
             ),
             const SizedBox(height: 8),
             AppPinField(
-              inputKey: AuthFlowTestKeys.confirmEmailCodeField,
+              inputKey: AuthKeys.confirmEmailCodeField,
               controller: codeController,
               onChanged: (String value) {
                 isPinCodeValid.value = value.length == 6;
@@ -79,7 +79,7 @@ class ConfirmEmail extends HookConsumerWidget {
             ),
             SizedBox(height: 32),
             PrimaryButton(
-              key: AuthFlowTestKeys.confirmEmailContinueButton,
+              key: AuthKeys.confirmEmailContinueButton,
               label: 'continue'.i18n,
               enabled: isPinCodeValid.value,
               isTaller: true,
@@ -88,7 +88,7 @@ class ConfirmEmail extends HookConsumerWidget {
             SizedBox(height: 24),
             Center(
               child: AppTextButton(
-                key: AuthFlowTestKeys.confirmEmailResendButton,
+                key: AuthKeys.confirmEmailResendButton,
                 label: 'resend_email'.i18n,
                 onPressed: () => onResendEmail(context, ref),
               ),

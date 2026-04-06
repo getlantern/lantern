@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -62,7 +62,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppTextField(
-                  fieldKey: AuthFlowTestKeys.signUpEmailField,
+                  fieldKey: AuthKeys.signUpEmailField,
                   enable: !isUserRegistered,
                   controller: emailController,
                   label: 'email'.i18n,
@@ -121,7 +121,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   ),
                 SizedBox(height: 32),
                 PrimaryButton(
-                  key: AuthFlowTestKeys.signUpContinueButton,
+                  key: AuthKeys.signUpContinueButton,
                   label: 'continue'.i18n,
                   enabled: emailController.text.isValidEmail(),
                   isTaller: true,
@@ -153,7 +153,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                     Center(
                       child: AppTextButton(
-                        key: AuthFlowTestKeys.signUpContinueWithoutEmailButton,
+                        key: AuthKeys.signUpContinueWithoutEmailButton,
                         label: 'continue_without_email'.i18n,
                         textColor: AppColors.gray9,
                         onPressed: () =>

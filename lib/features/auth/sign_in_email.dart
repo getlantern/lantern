@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -39,7 +39,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               AppTextField(
-                fieldKey: AuthFlowTestKeys.signInEmailField,
+                fieldKey: AuthKeys.signInEmailField,
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
                 autofillHints: [AutofillHints.email],
@@ -64,7 +64,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
-                key: AuthFlowTestKeys.signInEmailContinueButton,
+                key: AuthKeys.signInEmailContinueButton,
                 label: 'sign_in_with_email'.i18n,
                 enabled: emailController.text.isValidEmail(),
                 onPressed: () => signInWithEmail(emailController.text, context),
@@ -88,7 +88,7 @@ class SignInEmail extends HookConsumerWidget {
               DividerSpace(),
               SizedBox(height: 32),
               AppRichText(
-                key: AuthFlowTestKeys.signInCreateAccountCta,
+                key: AuthKeys.signInCreateAccountCta,
                 texts: '${'new_to_lantern_pro'.i18n} ',
                 boldTexts: 'create_an_account'.i18n,
                 boldUnderline: true,

@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -87,7 +87,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           if (!isSSOUser) ...[
             SizedBox(height: defaultSize),
             AppTextField(
-              fieldKey: AuthFlowTestKeys.deleteAccountPasswordField,
+              fieldKey: AuthKeys.deleteAccountPasswordField,
               hintText: '',
               label: 'enter_password_to_confirm'.i18n,
               obscureText: true,
@@ -112,7 +112,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             )
           else
             PrimaryButton(
-              key: AuthFlowTestKeys.deleteAccountConfirmButton,
+              key: AuthKeys.deleteAccountConfirmButton,
               label: 'confirm_deletion'.i18n,
               enabled: buttonEnabled.value,
               bgColor: AppColors.red7,
@@ -121,7 +121,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             ),
           SizedBox(height: defaultSize),
           SecondaryButton(
-            key: AuthFlowTestKeys.deleteAccountCancelButton,
+            key: AuthKeys.deleteAccountCancelButton,
             label: 'cancel'.i18n,
             isTaller: true,
             onPressed: () {

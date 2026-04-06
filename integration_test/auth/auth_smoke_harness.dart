@@ -9,7 +9,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/router/router.gr.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/failure.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -317,21 +317,21 @@ Future<void> _runSignInSuccessScenario(WidgetTester tester) async {
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.signInEmailField,
+      key: AuthKeys.signInEmailField,
       value: _existingUserEmail,
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.signInEmailContinueButton);
+    await _tapByKey(tester, key: AuthKeys.signInEmailContinueButton);
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.signInPasswordField,
+      key: AuthKeys.signInPasswordField,
       value: _existingUserPassword,
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.signInPasswordContinueButton);
+    await _tapByKey(tester, key: AuthKeys.signInPasswordContinueButton);
 
     await WidgetWaitUtils.waitForFinder(
       tester,
-      find.byKey(AuthFlowTestKeys.accountLogoutActionButton),
+      find.byKey(AuthKeys.accountLogoutActionButton),
       timeout: const Duration(seconds: 10),
       reason: 'Logout action not visible after successful sign-in',
     );
@@ -366,17 +366,17 @@ Future<void> _runSignInFailureScenario(WidgetTester tester) async {
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.signInEmailField,
+      key: AuthKeys.signInEmailField,
       value: _existingUserEmail,
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.signInEmailContinueButton);
+    await _tapByKey(tester, key: AuthKeys.signInEmailContinueButton);
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.signInPasswordField,
+      key: AuthKeys.signInPasswordField,
       value: 'WrongPass123!',
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.signInPasswordContinueButton);
+    await _tapByKey(tester, key: AuthKeys.signInPasswordContinueButton);
 
     await WidgetWaitUtils.waitForFinder(
       tester,
@@ -411,20 +411,20 @@ Future<void> _runSignUpSuccessScenario(WidgetTester tester) async {
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.signUpEmailField,
+      key: AuthKeys.signUpEmailField,
       value: _newUserEmail,
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.signUpContinueButton);
+    await _tapByKey(tester, key: AuthKeys.signUpContinueButton);
 
     await WidgetWaitUtils.waitForFinder(
       tester,
-      find.byKey(AuthFlowTestKeys.confirmEmailCodeField),
+      find.byKey(AuthKeys.confirmEmailCodeField),
       timeout: const Duration(seconds: 15),
       reason: 'Confirm email screen did not appear',
     );
 
     final pinEditable = find.descendant(
-      of: find.byKey(AuthFlowTestKeys.confirmEmailCodeField),
+      of: find.byKey(AuthKeys.confirmEmailCodeField),
       matching: find.byType(EditableText),
     );
     await WidgetWaitUtils.waitForFinder(
@@ -436,20 +436,17 @@ Future<void> _runSignUpSuccessScenario(WidgetTester tester) async {
     await tester.enterText(pinEditable.first, _recoveryCode);
     await tester.pumpAndSettle();
 
-    if (find
-        .byKey(AuthFlowTestKeys.confirmEmailContinueButton)
-        .evaluate()
-        .isNotEmpty) {
-      await _tapByKey(tester, key: AuthFlowTestKeys.confirmEmailContinueButton);
+    if (find.byKey(AuthKeys.confirmEmailContinueButton).evaluate().isNotEmpty) {
+      await _tapByKey(tester, key: AuthKeys.confirmEmailContinueButton);
     }
 
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.createPasswordField,
+      key: AuthKeys.createPasswordField,
       value: _newUserPassword,
       timeout: const Duration(seconds: 15),
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.createPasswordContinueButton);
+    await _tapByKey(tester, key: AuthKeys.createPasswordContinueButton);
 
     await WidgetWaitUtils.waitForFinder(
       tester,
@@ -490,12 +487,12 @@ Future<void> _runLogoutClearsSessionScenario(WidgetTester tester) async {
   try {
     await _showRoutes(tester, context.router, const [Account()]);
 
-    await _tapByKey(tester, key: AuthFlowTestKeys.accountLogoutActionButton);
-    await _tapByKey(tester, key: AuthFlowTestKeys.accountLogoutConfirmButton);
+    await _tapByKey(tester, key: AuthKeys.accountLogoutActionButton);
+    await _tapByKey(tester, key: AuthKeys.accountLogoutConfirmButton);
 
     await WidgetWaitUtils.waitForFinderToDisappear(
       tester,
-      find.byKey(AuthFlowTestKeys.accountLogoutActionButton),
+      find.byKey(AuthKeys.accountLogoutActionButton),
       timeout: const Duration(seconds: 10),
       reason: 'Logout action still visible after logout success',
     );
@@ -532,14 +529,14 @@ Future<void> _runDeleteAccountClearsSessionScenario(WidgetTester tester) async {
   try {
     await _showRoutes(tester, context.router, const [Account()]);
 
-    await _tapByKey(tester, key: AuthFlowTestKeys.accountDeleteActionButton);
+    await _tapByKey(tester, key: AuthKeys.accountDeleteActionButton);
     await _enterTextByKey(
       tester,
-      key: AuthFlowTestKeys.deleteAccountPasswordField,
+      key: AuthKeys.deleteAccountPasswordField,
       value: _deleteUserPassword,
       timeout: const Duration(seconds: 10),
     );
-    await _tapByKey(tester, key: AuthFlowTestKeys.deleteAccountConfirmButton);
+    await _tapByKey(tester, key: AuthKeys.deleteAccountConfirmButton);
 
     await WidgetWaitUtils.waitForFinder(
       tester,

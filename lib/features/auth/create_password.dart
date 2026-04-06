@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/core/widgets/password_criteria.dart';
-import 'package:lantern/features/auth/auth_flow_test_keys.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
@@ -42,7 +42,7 @@ class CreatePassword extends HookConsumerWidget {
               EmailTag(email: email),
               SizedBox(height: defaultSize),
               AppTextField(
-                fieldKey: AuthFlowTestKeys.createPasswordField,
+                fieldKey: AuthKeys.createPasswordField,
                 controller: passwordTextController,
                 hintText: '',
                 prefixIcon: AppImagePaths.lock,
@@ -60,7 +60,7 @@ class CreatePassword extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
-                key: AuthFlowTestKeys.createPasswordContinueButton,
+                key: AuthKeys.createPasswordContinueButton,
                 label: 'continue'.i18n,
                 isTaller: true,
                 enabled: passwordTextController.text.isPasswordValid(),
