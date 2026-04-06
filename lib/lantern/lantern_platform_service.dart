@@ -57,6 +57,7 @@ class LanternPlatformService implements LanternCoreService {
   late final Stream<PrivateServerStatus> _privateServerStatus;
   late final Stream<MacOSExtensionState> _systemExtensionStatus;
   late final Stream<AppEvent> _appEventStatus;
+  late final Stream<List<String>> _logs;
 
   final Map<String, AppData> _androidAppCache = <String, AppData>{};
 
@@ -72,6 +73,10 @@ class LanternPlatformService implements LanternCoreService {
 
     _appEventStatus = appEventStatusChannel.receiveBroadcastStream().map(
       (event) => AppEvent.fromJson(event),
+    );
+
+    _logs = accumulateLogBatches(
+      logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
     );
 
     if (PlatformUtils.isMacOS) {
@@ -195,12 +200,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) {
-    final batches = logsChannel
-        .receiveBroadcastStream()
-        .map(_coerceLogBatch);
-    return accumulateLogBatches(batches);
-  }
+  Stream<List<String>> watchLogs(String path) => _logs;
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {

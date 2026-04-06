@@ -45,38 +45,43 @@ class _LogsState extends ConsumerState<Logs> {
 
   Future<void> _shareLogFile() async {
     try {
+      List<String> filePaths;
       if (Platform.isIOS) {
-        final logFilesResult = await ref
+        filePaths = await ref
             .read(diagnosticLogProvider.notifier)
             .diagnosticLogFilePath();
-
-        if (logFilesResult.isEmpty) {
-          appLogger.error("No log files found to share");
-          return;
-        }
         final flutterLogFile = await AppStorageUtils.flutterLogFile();
-        logFilesResult.add(flutterLogFile.path);
+        filePaths.add(flutterLogFile.path);
+      } else {
+        filePaths = await AppStorageUtils.logsFilePaths();
+      }
 
-        await SharePlus.instance.share(
-          ShareParams(
-            title: 'logs'.i18n,
-            text: 'logs_share_message'.i18n,
-            files: logFilesResult.map(XFile.new).toList(growable: false),
-          ),
-        );
+      appLogger.debug('Sharing log files: $filePaths');
+
+      if (filePaths.isEmpty) {
+        appLogger.error('No log files found to share');
         return;
       }
 
-      final logFile = await AppStorageUtils.logsFilePaths();
+      final xFiles = await Future.wait(
+        filePaths.map((path) async {
+          final file = File(path);
+          final exists = await file.exists();
+          appLogger.debug('Log file $path exists=$exists size=${exists ? await file.length() : 0}');
+          return XFile(path);
+        }),
+      );
+
       await SharePlus.instance.share(
         ShareParams(
           title: 'logs'.i18n,
           text: 'logs_share_message'.i18n,
-          files: logFile.map(XFile.new).toList(growable: false),
+          files: xFiles,
+
         ),
       );
     } catch (e) {
-      appLogger.error("Error sharing log file: $e");
+      appLogger.error('Error sharing log file: $e');
     }
   }
 
