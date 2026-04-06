@@ -47,6 +47,7 @@ class LocationSetting extends HookConsumerWidget {
     }
 
     return SettingTile(
+      tileKey: const Key('home.location_setting'),
       label: title,
       value: value.i18n,
       subtitle: protocol,

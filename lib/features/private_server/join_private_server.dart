@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -44,6 +46,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
       return null;
     }, [serverState.status]);
     return BaseScreen(
+      key: const Key('join_private_server.screen'),
       title: 'join_private_server'.i18n,
       body: SingleChildScrollView(
         child: Column(children: <Widget>[
@@ -86,6 +89,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                 ),
                 SizedBox(height: 16),
                 AppTextField(
+                  fieldKey: const Key('join_private_server.server_name'),
                   label: 'server_nickname'.i18n,
                   hintText: "server_name".i18n,
                   controller: nameController,
@@ -119,6 +123,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                 ),
                 SizedBox(height: 16),
                 AppTextField(
+                  fieldKey: const Key('join_private_server.urls'),
                   hintText: "access_key".i18n,
                   label: 'access_key'.i18n,
                   controller: accessKeyController,
@@ -155,6 +160,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(
+                  buttonKey: const Key('join_private_server.submit'),
                   enabled: buttonValid.value,
                   label: 'join_server'.i18n,
                   onPressed: () => onJoinServer(
@@ -229,6 +235,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
             content: error.localizedErrorMessage);
       },
       (success) {
+        unawaited(ref.read(availableServersProvider.notifier).forceFetchAvailableServers());
         context.hideLoadingDialog();
         appLogger.info("Successfully started joining private server.");
       },
