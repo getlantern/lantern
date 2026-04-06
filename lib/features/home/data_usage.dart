@@ -141,7 +141,7 @@ class DataUsage extends ConsumerWidget {
                             backgroundColor: context.bgSurface,
                             valueColor: AlwaysStoppedAnimation(
                               isDataCapReached
-                                  ? context.borderError
+                                  ? context.statusErrorBgDot
                                   : AppColors.yellow3,
                             ),
                           ),
