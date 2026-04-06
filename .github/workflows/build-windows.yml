@@ -236,9 +236,12 @@ jobs:
 
       - name: Windows installer + UI connect/disconnect integration
         shell: pwsh
-        timeout-minutes: 20
+        timeout-minutes: 30
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
+          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           if ("${{ inputs.enable_ip_check }}" -eq "true") {

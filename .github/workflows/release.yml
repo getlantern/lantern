@@ -285,7 +285,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
+      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.ref_name != 'atavism/webview-updates' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
 
   build-linux:

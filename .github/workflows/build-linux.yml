@@ -215,6 +215,9 @@ jobs:
         env:
           LANG: en_US.UTF-8
           LC_ALL: en_US.UTF-8
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
+          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
@@ -249,6 +252,8 @@ jobs:
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
+
+          bash .github/scripts/linux_config_url_smoke.sh
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4

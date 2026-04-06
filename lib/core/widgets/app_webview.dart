@@ -5,8 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 
-final webViewLoadingProvider =
-    NotifierProvider<WebViewLoading, bool>(WebViewLoading.new);
+final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
+  WebViewLoading.new,
+);
 
 class WebViewLoading extends Notifier<bool> {
   @override
@@ -28,38 +29,37 @@ class AppWebView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(webViewLoadingProvider);
     return BaseScreen(
-        title: "",
-        padded: false,
-        appBar: AppBar(
-          title: Text(title),
-          centerTitle: true,
-          leading: SizedBox(),
-          backgroundColor: context.bgElevated,
-          iconTheme: IconThemeData(color: context.textPrimary),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                appRouter.maybePop();
-              },
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            _InnerWebView(url: url),
-            if (isLoading) Center(child: LoadingIndicator()),
-          ],
-        ));
+      title: "",
+      padded: false,
+      appBar: AppBar(
+        title: Text(title),
+        centerTitle: true,
+        leading: SizedBox(),
+        backgroundColor: context.bgElevated,
+        iconTheme: IconThemeData(color: context.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              appRouter.maybePop();
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          _InnerWebView(url: url),
+          if (isLoading) Center(child: LoadingIndicator()),
+        ],
+      ),
+    );
   }
 }
 
 class _InnerWebView extends StatefulHookConsumerWidget {
   final String url;
 
-  const _InnerWebView({
-    required this.url,
-  });
+  const _InnerWebView({required this.url});
 
   @override
   ConsumerState<_InnerWebView> createState() => _InnerWebViewState();
@@ -70,7 +70,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     javaScriptEnabled: true,
     javaScriptCanOpenWindowsAutomatically: true,
     supportMultipleWindows: true,
-    useShouldOverrideUrlLoading: true,
+    // On Windows, plugin-level URL interception can break complex payment flows.
+    // We still detect completion URLs in load callbacks.
+    useShouldOverrideUrlLoading: !PlatformUtils.isWindows,
     mediaPlaybackRequiresUserGesture: false,
     useOnDownloadStart: true,
     useOnLoadResource: true,
@@ -99,48 +101,114 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       onWebViewCreated: (controller) {},
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
+        if (PlatformUtils.isWindows) {
+          // On Windows, Stripe/Alipay flows may open popups with window.open.
+          // If we return true here without creating a real popup WebView,
+          // the navigation can hang and show a blank page.
+          return false;
+        }
         if (req.url != null) {
           await controller.loadUrl(urlRequest: req);
           return true;
         }
         return false;
       },
-      onLoadStart: (_, __) {
+      onLoadStart: (_, webUri) async {
         // Handle load start
-        ref.read(webViewLoadingProvider.notifier).state = true;
+        final loading = ref.read(webViewLoadingProvider.notifier);
+        loading.start();
+        final handled = await _handleCompletionUrl(
+          webUri == null ? null : Uri.tryParse(webUri.toString()),
+        );
+        if (handled) return;
       },
-      onLoadStop: (controller, webUri) {
+      onLoadStop: (controller, webUri) async {
         // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).state = false;
-        final url = webUri;
-
-        ///User has completed that private server setup
-        if (url?.host == 'localhost' || url?.host == '127.0.0.1') {
-          appRouter.maybePop(true);
-        }
+        ref.read(webViewLoadingProvider.notifier).stop();
+        await _handleCompletionUrl(
+          webUri == null ? null : Uri.tryParse(webUri.toString()),
+        );
       },
       onReceivedError: (_, webResourceRequest, error) async {
         // Handle received error
         appLogger.error("Received error: $error");
         // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).state = false;
-
-        final url = webResourceRequest.url;
-
-        ///User has completed that private server setup
-        if (url.host == 'localhost') {
-          appRouter.maybePop(true);
-        } else if (url.scheme == 'lantern' &&
-            url.host == 'auth' &&
-            url.queryParameters.containsKey('token')) {
-          await appRouter.maybePop(url.queryParameters);
-        }
+        ref.read(webViewLoadingProvider.notifier).stop();
+        await _handleCompletionUrl(
+          Uri.tryParse(webResourceRequest.url.toString()),
+        );
       },
     );
   }
 
   bool isLanternHost(String host) =>
       host == 'lantern.io' || host == 'www.lantern.io';
+
+  String? _extractPurchaseResult(Uri uri) {
+    var purchaseResult = uri.queryParameters['purchaseResult'];
+    if (purchaseResult != null) {
+      return purchaseResult;
+    }
+
+    if (uri.fragment.isEmpty) {
+      return null;
+    }
+
+    final frag = uri.fragment;
+    final normalized = frag.startsWith('/?')
+        ? frag.substring(2)
+        : frag.startsWith('?')
+        ? frag.substring(1)
+        : frag;
+
+    try {
+      final fragParams = Uri.splitQueryString(normalized);
+      return fragParams['purchaseResult'];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _handleCompletionUrl(Uri? uri) async {
+    if (uri == null) {
+      return false;
+    }
+
+    final loading = ref.read(webViewLoadingProvider.notifier);
+
+    // User has completed private server setup.
+    if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+      loading.stop();
+      await appRouter.maybePop(true);
+      return true;
+    }
+
+    // OAuth callback.
+    if (uri.scheme == 'lantern' &&
+        uri.host == 'auth' &&
+        uri.queryParameters.containsKey('token')) {
+      loading.stop();
+      await appRouter.maybePop(uri.queryParameters);
+      return true;
+    }
+
+    final purchaseResult = _extractPurchaseResult(uri);
+    if (purchaseResult != null && isLanternHost(uri.host)) {
+      loading.stop();
+      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
+      return true;
+    }
+
+    if (isLanternHost(uri.host) &&
+        uri.path == '/auth' &&
+        uri.queryParameters.containsKey('token')) {
+      loading.stop();
+      await appRouter.maybePop(uri.queryParameters);
+      return true;
+    }
+
+    return false;
+  }
 
   Future<NavigationActionPolicy?> shouldOverrideUrlLoading(
     InAppWebViewController controller,
@@ -149,41 +217,18 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     final uri = navigationAction.request.url;
     if (uri == null) return NavigationActionPolicy.ALLOW;
 
-    final u = Uri.parse(uri.toString());
-
-    // Collect purchaseResult from query
-    String? purchaseResult = u.queryParameters['purchaseResult'];
-
-    // Handle fragment like "#/?purchaseResult=true" or "#purchaseResult=true"
-    if (purchaseResult == null && u.fragment.isNotEmpty) {
-      final frag = u.fragment;
-
-      final normalized = frag.startsWith('/?')
-          ? frag.substring(2)
-          : frag.startsWith('?')
-              ? frag.substring(1)
-              : frag;
-
-      try {
-        final fragParams = Uri.splitQueryString(normalized);
-        purchaseResult = fragParams['purchaseResult'];
-      } catch (_) {}
+    final u = Uri.tryParse(uri.toString());
+    if (u == null) {
+      return NavigationActionPolicy.ALLOW;
     }
 
-    if (purchaseResult != null && isLanternHost(u.host)) {
-      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
+    final handled = await _handleCompletionUrl(u);
+    if (handled) {
       return NavigationActionPolicy.CANCEL;
     }
 
     if (isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
       return NavigationActionPolicy.ALLOW;
-    }
-
-    if (isLanternHost(u.host) &&
-        u.path == '/auth' &&
-        u.queryParameters.containsKey('token')) {
-      await appRouter.maybePop(u.queryParameters);
-      return NavigationActionPolicy.CANCEL;
     }
 
     appLogger.debug("shouldOverrideUrlLoading: $uri");
