@@ -15,6 +15,29 @@ Never _failWithFailure(
   fail('$message: $failure. ${buildVpnDebugSnapshot(tester, vpnStateFinders)}');
 }
 
+Future<LanternService> _waitForLanternServiceReady(
+  WidgetTester tester,
+  VpnStateFinders vpnStateFinders,
+) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 30));
+  while (DateTime.now().isBefore(deadline)) {
+    if (sl.isRegistered<LanternService>()) {
+      try {
+        await sl.isReady<LanternService>(timeout: const Duration(seconds: 15));
+        return sl<LanternService>();
+      } catch (_) {
+        // Keep waiting until async registration/initialization completes.
+      }
+    }
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+
+  fail(
+    'LanternService was not ready before config URL API smoke started. '
+    '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
+  );
+}
+
 Future<void> runConfigUrlApiConnectSmokeHarness(
   WidgetTester tester, {
   required String configUrl,
@@ -35,11 +58,11 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
     );
   }
 
-  final lantern = sl<LanternService>();
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders();
 
   await waitForHomeReadyForVpnSmoke(tester, finders: finders);
+  final lantern = await _waitForLanternServiceReady(tester, vpnStateFinders);
 
   var state = await resolveInitialStableVpnStateForSmoke(
     tester,

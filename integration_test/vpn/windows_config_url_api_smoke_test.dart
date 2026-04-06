@@ -11,7 +11,7 @@ void main() {
   testWidgets('Windows config URL API connect/disconnect smoke', (
     tester,
   ) async {
-    app.main();
+    await app.main();
     await runConfigUrlApiConnectSmokeHarness(
       tester,
       configUrl: requiredSingleConfigUrl(),
