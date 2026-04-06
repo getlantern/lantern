@@ -73,6 +73,7 @@ class BlockAdsController extends _$BlockAdsController {
   Future<void> toggle(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setBlockAdsEnabled(value);
+    if (!ref.mounted) return;
     result.fold(
       (err) => appLogger.error('setBlockAdsEnabled failed: ${err.error}'),
       (_) => ref.invalidate(blockAdsEnabledProvider),
@@ -89,6 +90,7 @@ class RoutingModeController extends _$RoutingModeController {
   Future<Either<Failure, Unit>> set(RoutingMode mode) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setRoutingMode(mode == RoutingMode.smart);
+    if (!ref.mounted) return right(unit);
     return result.fold(
       (err) {
         appLogger.error('setRoutingMode failed: ${err.error}');
@@ -111,6 +113,7 @@ class SplitTunnelingController extends _$SplitTunnelingController {
   Future<void> toggle(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setSplitTunnelingEnabled(value);
+    if (!ref.mounted) return;
     result.fold(
       (err) =>
           appLogger.error('setSplitTunnelingEnabled failed: ${err.error}'),
@@ -128,10 +131,10 @@ class TelemetryController extends _$TelemetryController {
   Future<void> setConsent(bool consent) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.updateTelemetryEvents(consent);
+    if (!ref.mounted) return;
     result.fold(
       (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
       (_) => ref.invalidate(telemetryConsentProvider),
     );
   }
 }
-

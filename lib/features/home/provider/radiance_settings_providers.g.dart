@@ -310,7 +310,7 @@ final class BlockAdsControllerProvider
 }
 
 String _$blockAdsControllerHash() =>
-    r'9fc5bd1db85364eb53b670ed9856ca924af28562';
+    r'2aef524ba0f94910b2e7ab47cd3ccda49fd0745c';
 
 /// Controller for mutating ad-block setting via radiance.
 
@@ -361,7 +361,7 @@ final class RoutingModeControllerProvider
 }
 
 String _$routingModeControllerHash() =>
-    r'480fd991ad95a8392afc3a61561314fe9343421d';
+    r'804dfa4d87418fa8bb3f69f2a4db12a28e32c8b2';
 
 /// Controller for mutating routing mode via radiance.
 
@@ -412,7 +412,7 @@ final class SplitTunnelingControllerProvider
 }
 
 String _$splitTunnelingControllerHash() =>
-    r'1ff35c678ade31eef6081e0b6a32861afb987c14';
+    r'72adff2f4cd3be866cfec86f0f1edf42886a2deb';
 
 /// Controller for mutating split-tunneling enabled via radiance.
 
@@ -463,7 +463,7 @@ final class TelemetryControllerProvider
 }
 
 String _$telemetryControllerHash() =>
-    r'7ef9bb82d16c321a3363d286e038d7f58a43846a';
+    r'5a9d0cbd705985b28272857b2b741908a65c3563';
 
 /// Controller for mutating telemetry consent via radiance.
 

@@ -192,8 +192,6 @@ jobs:
             exit 1
           fi
 
-          sudo usermod -aG lantern "$USER" || true
-
           systemctl is-active --quiet lanternd.service
           test -S /run/lantern/lanternd.sock
           sudo stat -c "%a %U %G %n" /run/lantern/lanternd.sock
