@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -233,7 +235,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
             content: error.localizedErrorMessage);
       },
       (success) {
-        ref.read(availableServersProvider.notifier).forceFetchAvailableServers();
+        unawaited(ref.read(availableServersProvider.notifier).forceFetchAvailableServers());
         context.hideLoadingDialog();
         appLogger.info("Successfully started joining private server.");
       },
