@@ -97,6 +97,14 @@ String buildVpnDebugSnapshot(
       'Visible keyed widgets: $debugKeys';
 }
 
+Never failWithVpnDebugSnapshot(
+  String message,
+  WidgetTester tester,
+  VpnStateFinders vpnStateFinders,
+) {
+  fail('$message. ${buildVpnDebugSnapshot(tester, vpnStateFinders)}');
+}
+
 List<String> collectVisibleSmokeDebugKeys(WidgetTester tester) {
   return tester.allWidgets
       .map((w) => w.key)
@@ -235,4 +243,59 @@ Future<VPNStatus> resolveInitialStableVpnStateForSmoke(
   }
 
   return vpnState;
+}
+
+Future<void> ensureVpnStartsDisconnectedForSmoke(
+  WidgetTester tester, {
+  required VpnSmokeFinders finders,
+  required VpnStateFinders vpnStateFinders,
+  required String scenario,
+  Future<void> Function()? disconnectFromConnectedState,
+}) async {
+  await waitForHomeReadyForVpnSmoke(tester, finders: finders);
+
+  var vpnState = await resolveInitialStableVpnStateForSmoke(
+    tester,
+    finders: finders,
+    vpnStateFinders: vpnStateFinders,
+  );
+
+  if (vpnState == VPNStatus.error) {
+    failWithVpnDebugSnapshot(
+      'VPN reported error before $scenario',
+      tester,
+      vpnStateFinders,
+    );
+  }
+  if (vpnState == VPNStatus.missingPermission) {
+    failWithVpnDebugSnapshot(
+      'VPN reported missing permission before $scenario',
+      tester,
+      vpnStateFinders,
+    );
+  }
+
+  if (vpnState == VPNStatus.connected) {
+    if (disconnectFromConnectedState != null) {
+      await disconnectFromConnectedState();
+    } else {
+      await tester.tap(finders.vpnToggle);
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    vpnState = await vpnStateFinders.waitFor(
+      tester,
+      expected: const [VPNStatus.disconnected],
+      timeout: const Duration(seconds: 45),
+      reason: 'VPN did not reach disconnected state before $scenario',
+    );
+  }
+
+  if (vpnState != VPNStatus.disconnected) {
+    failWithVpnDebugSnapshot(
+      'Expected disconnected state before $scenario, got ${vpnState.name}',
+      tester,
+      vpnStateFinders,
+    );
+  }
 }

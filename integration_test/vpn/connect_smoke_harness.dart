@@ -100,32 +100,12 @@ Future<void> runConnectSmokeHarness(
   final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
   String? baselinePublicIp;
 
-  await waitForHomeReadyForVpnSmoke(tester, finders: finders);
-
-  var vpnState = await resolveInitialStableVpnStateForSmoke(
+  await ensureVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,
+    scenario: 'connect/disconnect smoke',
   );
-
-  if (vpnState == VPNStatus.error) {
-    fail('VPN reported error before connect/disconnect smoke');
-  }
-  if (vpnState == VPNStatus.missingPermission) {
-    fail('VPN reported missing permission before connect/disconnect smoke');
-  }
-
-  if (vpnState == VPNStatus.connected) {
-    await tester.tap(finders.vpnToggle);
-    await tester.pump(const Duration(milliseconds: 200));
-
-    await vpnStateFinders.waitFor(
-      tester,
-      expected: const [VPNStatus.disconnected],
-      timeout: const Duration(seconds: 45),
-      reason: 'Failed to reach disconnected state before connect test',
-    );
-  }
 
   if (enableIpCheck) {
     debugPrint('IP check: enabled; fetching baseline before connect');

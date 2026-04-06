@@ -258,42 +258,12 @@ Future<void> runConfigUrlConnectSmokeHarness(
     Key('server_selection.private_server.$configServerName'),
   );
 
-  await waitForHomeReadyForVpnSmoke(tester, finders: finders);
-
-  var state = await resolveInitialStableVpnStateForSmoke(
+  await ensureVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,
+    scenario: 'config URL smoke',
   );
-  if (state == VPNStatus.error) {
-    fail(
-      'VPN reported error before config URL smoke. '
-      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
-  if (state == VPNStatus.missingPermission) {
-    fail(
-      'VPN reported missing permission before config URL smoke. '
-      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
-  if (state == VPNStatus.connected) {
-    await tester.tap(finders.vpnToggle);
-    await tester.pump(const Duration(milliseconds: 200));
-    state = await vpnStateFinders.waitFor(
-      tester,
-      expected: const [VPNStatus.disconnected],
-      timeout: const Duration(seconds: 45),
-      reason: 'VPN did not reach disconnected state before config URL smoke',
-    );
-  }
-
-  if (state != VPNStatus.disconnected) {
-    fail(
-      'Expected disconnected state before config URL smoke, got ${state.name}. '
-      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
 
   await _openServerSelectionFromHome(
     tester,

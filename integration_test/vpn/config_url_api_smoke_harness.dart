@@ -61,55 +61,25 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders();
 
-  await waitForHomeReadyForVpnSmoke(tester, finders: finders);
   final lantern = await _waitForLanternServiceReady(tester, vpnStateFinders);
-
-  var state = await resolveInitialStableVpnStateForSmoke(
+  await ensureVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
     vpnStateFinders: vpnStateFinders,
+    scenario: 'config URL API smoke',
+    disconnectFromConnectedState: () async {
+      final stop = await lantern.stopVPN();
+      stop.fold(
+        (failure) => _failWithFailure(
+          'Failed to stop VPN before config URL API smoke',
+          failure,
+          tester,
+          vpnStateFinders,
+        ),
+        (_) {},
+      );
+    },
   );
-
-  if (state == VPNStatus.error) {
-    fail(
-      'VPN reported error before config URL API smoke. '
-      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
-  if (state == VPNStatus.missingPermission) {
-    fail(
-      'VPN reported missing permission before config URL API smoke. '
-      '${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
-
-  if (state == VPNStatus.connected) {
-    final stop = await lantern.stopVPN();
-    stop.fold(
-      (failure) => _failWithFailure(
-        'Failed to stop VPN before config URL API smoke',
-        failure,
-        tester,
-        vpnStateFinders,
-      ),
-      (_) {},
-    );
-
-    state = await vpnStateFinders.waitFor(
-      tester,
-      expected: const [VPNStatus.disconnected],
-      timeout: const Duration(seconds: 45),
-      reason:
-          'VPN did not reach disconnected state before config URL API smoke',
-    );
-  }
-
-  if (state != VPNStatus.disconnected) {
-    fail(
-      'Expected disconnected state before config URL API smoke, got '
-      '${state.name}. ${buildVpnDebugSnapshot(tester, vpnStateFinders)}',
-    );
-  }
 
   final addServerResult = await lantern.addServerBasedOnURLs(
     urls: url,
