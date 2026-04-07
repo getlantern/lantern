@@ -405,6 +405,7 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
+      WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -439,6 +440,7 @@ jobs:
         id: slack_msg
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
         run: |
           text=$(./scripts/ci/format.sh slack)
           echo "text<<EOF" >> "$GITHUB_OUTPUT"
