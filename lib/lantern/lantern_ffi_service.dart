@@ -1285,10 +1285,9 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
     required bool skipCertVerification,
-    required String serverName,
   }) async {
     try {
       final result = await runInBackground<String>(() async {
@@ -1296,12 +1295,13 @@ class LanternFFIService implements LanternCoreService {
             .addServerBasedOnURLs(
               urls.toCharPtr,
               skipCertVerification ? 1 : 0,
-              serverName.toCharPtr,
+              ''.toCharPtr,
             )
             .toDartString();
       });
       checkAPIError(result);
-      return Right(unit);
+      final tags = (jsonDecode(result) as List).cast<String>();
+      return Right(tags);
     } catch (e, stackTrace) {
       appLogger.error('Error adding server based on URLs', e, stackTrace);
       return Left(e.toFailure());

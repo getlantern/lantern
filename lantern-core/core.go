@@ -93,7 +93,7 @@ type PrivateServer interface {
 	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
-	AddServerBasedOnURLs(urls string, skipCertVerification bool) error
+	AddServersByURL(urls string, skipCertVerification bool) ([]string, error)
 	DeleteServer(tag string) error
 	UpdatePrivateServerName(oldTag, newTag string) error
 }
@@ -813,12 +813,18 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	return nil
 }
 
-func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool) error {
+func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]string, error) {
 	urlList := strings.Split(urls, ",")
 	for i, u := range urlList {
 		urlList[i] = strings.TrimSpace(u)
 	}
-	return lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+
+	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
 }
 
 /////////////////

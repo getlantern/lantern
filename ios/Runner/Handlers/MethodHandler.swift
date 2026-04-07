@@ -882,12 +882,12 @@ class MethodHandler {
       let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
-      MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
+      let tags = MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
         return
       }
-      await self.replyOK(result)
+      await MainActor.run { result(tags) }
     }
   }
 

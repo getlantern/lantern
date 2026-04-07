@@ -597,10 +597,18 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
 
-func AddServerBasedOnURLs(urls string, skipCertVerification bool, _ string) error {
+func AddServerBasedOnURLs(urls string, skipCertVerification bool, _ string) (string, error) {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
-	return withCore(func(c lanterncore.Core) error {
-		return c.AddServerBasedOnURLs(urls, skipCertVerification)
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		tags, err := c.AddServersByURL(urls, skipCertVerification)
+		if err != nil {
+			return "", err
+		}
+		b, err := json.Marshal(tags)
+		if err != nil {
+			return "", fmt.Errorf("marshal tags: %w", err)
+		}
+		return string(b), nil
 	})
 }
 

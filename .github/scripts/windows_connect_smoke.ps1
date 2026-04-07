@@ -256,8 +256,7 @@ try {
       $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
     }
 
-    # Rollout phase: run API smoke and UI smoke with unique names to avoid collisions.
-    $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
+    # API smoke: server tag comes from the URL, no server name needed.
     $configApiArgs = @(
       "test",
       $ConfigUrlApiTestPath,
@@ -272,6 +271,7 @@ try {
       throw "Windows config URL API smoke test failed with exit code $LASTEXITCODE"
     }
 
+    # UI smoke: server name is typed into the join form.
     $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-ui"
     $configUiArgs = @(
       "test",

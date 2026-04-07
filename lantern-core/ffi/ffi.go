@@ -951,12 +951,16 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverNam
 	urls := C.GoString(_urls)
 	skipCertVerification := _skipCertVerification != 0
 	slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
-	err := c.AddServerBasedOnURLs(urls, skipCertVerification)
+	tags, err := c.AddServersByURL(urls, skipCertVerification)
 	if err != nil {
 		return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
 	}
-	slog.Debug("Server added successfully based on URLs:", "urls", urls)
-	return C.CString("ok")
+	slog.Debug("Server added successfully based on URLs:", "urls", urls, "tags", tags)
+	b, err := json.Marshal(tags)
+	if err != nil {
+		return SendError(fmt.Errorf("Error marshalling server tags: %v", err))
+	}
+	return C.CString(string(b))
 }
 
 //export setBlockAdsEnabled

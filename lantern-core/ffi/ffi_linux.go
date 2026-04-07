@@ -173,8 +173,10 @@ func stopVPN() *C.char {
 //export connectToServer
 func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
 	startLinuxStatusListener()
+	sendStatusToPort(Connecting)
 
 	if err := requireLanternServiceAvailable(); err != nil {
+		sendStatusToPort(Error)
 		return SendError(err)
 	}
 
@@ -182,6 +184,7 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 	ctx := context.Background()
 	if err := ipcClient.ConnectVPN(ctx, tag); err != nil &&
 		!errors.Is(err, ipc.ErrServiceIsNotReady) {
+		sendStatusToPort(Error)
 		if errors.Is(err, ipc.ErrIPCNotRunning) {
 			if diagErr := requireLanternServiceAvailable(); diagErr != nil {
 				return SendError(diagErr)
@@ -190,6 +193,7 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 		return SendError(fmt.Errorf("start service failed: %w", err))
 	}
 
+	sendStatusToPort(Connected)
 	return C.CString("ok")
 }
 

@@ -41,7 +41,6 @@ Future<LanternService> _waitForLanternServiceReady(
 Future<void> runConfigUrlApiConnectSmokeHarness(
   WidgetTester tester, {
   required String configUrl,
-  required String configServerName,
   required bool skipCertVerification,
 }) async {
   final urls = splitConfigUrls(configUrl);
@@ -52,11 +51,6 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
     );
   }
   final url = urls.single;
-  if (configServerName.trim().isEmpty) {
-    fail(
-      'JOIN_SERVER_CONFIG_SERVER_NAME must not be empty for config URL API smoke test',
-    );
-  }
 
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders();
@@ -84,8 +78,8 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
   final addServerResult = await lantern.addServerBasedOnURLs(
     urls: url,
     skipCertVerification: skipCertVerification,
-    serverName: configServerName,
   );
+  late final List<String> addedTags;
   addServerResult.fold(
     (failure) => _failWithFailure(
       'Failed to add server from config URL(s)',
@@ -93,16 +87,21 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
       tester,
       vpnStateFinders,
     ),
-    (_) {},
+    (tags) => addedTags = tags,
   );
+
+  if (addedTags.isEmpty) {
+    fail('addServerBasedOnURLs succeeded but returned no server tags');
+  }
+  final serverTag = addedTags.first;
 
   final connectResult = await lantern.connectToServer(
     ServerLocationType.privateServer.name,
-    configServerName,
+    serverTag,
   );
   connectResult.fold(
     (failure) => _failWithFailure(
-      'Failed to connect to config URL server "$configServerName"',
+      'Failed to connect to config URL server "$serverTag"',
       failure,
       tester,
       vpnStateFinders,

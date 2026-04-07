@@ -540,22 +540,19 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
     required bool skipCertVerification,
-    required String serverName,
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerBasedOnURLs(
         urls: urls,
         skipCertVerification: skipCertVerification,
-        serverName: serverName,
       );
     }
     return _platformService.addServerBasedOnURLs(
       urls: urls,
       skipCertVerification: skipCertVerification,
-      serverName: serverName,
     );
   }
 

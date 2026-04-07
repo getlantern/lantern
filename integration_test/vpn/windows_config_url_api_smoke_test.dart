@@ -15,7 +15,6 @@ void main() {
     await runConfigUrlApiConnectSmokeHarness(
       tester,
       configUrl: requiredSingleConfigUrl(),
-      configServerName: configServerName(),
       skipCertVerification: skipCertVerification(),
     );
   });

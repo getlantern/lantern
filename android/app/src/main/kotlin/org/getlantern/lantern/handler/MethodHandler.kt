@@ -950,13 +950,13 @@ class MethodHandler : FlutterPlugin,
                             map["skipValidation"] as Boolean? ?: error("Missing skipValidation")
                         val serverName = map["serverName"] as String? ?: error("Missing serverName")
 
-                        Mobile.addServerBasedOnURLs(
+                        val tags = Mobile.addServerBasedOnURLs(
                             urls,
                             skipValidation,
                             serverName,
                         )
                         withContext(Dispatchers.Main) {
-                            success("ok")
+                            success(tags)
                         }
                     }.onFailure { e ->
                         result.error(
