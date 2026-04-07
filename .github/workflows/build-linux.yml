@@ -201,7 +201,7 @@ jobs:
         run: |
           set -euxo pipefail
           code=0
-          sg lantern -c "env HOME=$HOME PATH=$PATH xvfb-run -a timeout 15s /usr/bin/lantern >/tmp/lantern-installed-smoke.log 2>&1" || code=$?
+          xvfb-run -a timeout 15s /usr/bin/lantern >/tmp/lantern-installed-smoke.log 2>&1 || code=$?
           if [[ "$code" -ne 124 ]]; then
             cat /tmp/lantern-installed-smoke.log || true
             echo "Installed /usr/bin/lantern did not stay up under xvfb"
@@ -224,7 +224,7 @@ jobs:
             ENABLE_IP_CHECK=true
           fi
           set +e
-          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}
           SMOKE_EXIT=$?
           set -e
 

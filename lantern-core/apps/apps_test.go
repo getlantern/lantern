@@ -75,6 +75,9 @@ func TestScanAppDirs_FindsAppsAndIconWindows(t *testing.T) {
 }
 
 func TestScanAppDirs_FindsAppsAndIcon(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
 	tmp := t.TempDir()
 	root := filepath.Join(tmp, "Applications")
 	if err := os.MkdirAll(root, 0o755); err != nil {
@@ -111,6 +114,9 @@ func TestScanAppDirs_FindsAppsAndIcon(t *testing.T) {
 }
 
 func TestScanAppDirs_DedupByBundleID(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
 	tmp := t.TempDir()
 	root := filepath.Join(tmp, "Applications")
 	if err := os.MkdirAll(root, 0o755); err != nil {
@@ -150,6 +156,9 @@ func TestCacheLoadSaveRoundTrip(t *testing.T) {
 }
 
 func TestLoadInstalledAppsWithDirs_EmitsCachedThenNew(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
 	tmp := t.TempDir()
 
 	cached := &AppData{Name: "Cached", BundleID: "com.cached", AppPath: "/Cached.app"}
