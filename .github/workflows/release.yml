@@ -70,7 +70,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          fetch-depth: ${{ github.event_name == 'push' && 1 || 0 }}
+          # For push-tag releases, avoid shallow checkout here so the full
+          # tag set is available during validation.
+          fetch-depth: 0
           fetch-tags: true
 
       - id: meta
