@@ -1,7 +1,6 @@
+@testable import Lantern
 import Foundation
 import XCTest
-
-@testable import Runner
 
 final class RunnerTests: XCTestCase {
 
@@ -28,6 +27,41 @@ final class RunnerTests: XCTestCase {
       SystemExtensionBundleHasher.hashBundle(at: firstURL),
       SystemExtensionBundleHasher.hashBundle(at: secondURL)
     )
+  }
+
+  func testHashBundleIsStableWhenCodeSignatureChanges() throws {
+    let bundleURL = try createExtensionBundle(
+      name: "Signed.systemextension",
+      shortVersion: "9.0.18",
+      buildVersion: "220",
+      executableContents: "binary-content"
+    )
+
+    defer {
+      try? FileManager.default.removeItem(at: bundleURL.deletingLastPathComponent())
+    }
+
+    let hashBefore = SystemExtensionBundleHasher.hashBundle(at: bundleURL)
+
+    // Simulate a re-sign: write new contents into _CodeSignature (as happens each build).
+    let codeSignatureDir = bundleURL
+      .appendingPathComponent("Contents/_CodeSignature", isDirectory: true)
+    try FileManager.default.createDirectory(
+      at: codeSignatureDir, withIntermediateDirectories: true)
+    try Data("signature-v1".utf8).write(
+      to: codeSignatureDir.appendingPathComponent("CodeResources"))
+
+    let hashAfterFirstSign = SystemExtensionBundleHasher.hashBundle(at: bundleURL)
+    XCTAssertEqual(hashBefore, hashAfterFirstSign, "_CodeSignature should not affect the hash")
+
+    // Simulate another re-sign with different signature data.
+    try Data("signature-v2".utf8).write(
+      to: codeSignatureDir.appendingPathComponent("CodeResources"))
+
+    let hashAfterSecondSign = SystemExtensionBundleHasher.hashBundle(at: bundleURL)
+    XCTAssertEqual(
+      hashAfterFirstSign, hashAfterSecondSign,
+      "Changing _CodeSignature contents should not change the hash")
   }
 
   func testHashBundleChangesWhenBundleContentsChange() throws {

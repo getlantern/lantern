@@ -21,7 +21,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     withExtension newExtension: OSSystemExtensionProperties
   ) -> OSSystemExtensionRequest.ReplacementAction {
     let existingDescriptor = SystemExtensionDescriptor(properties: existing)
-    let newDescriptor = SystemExtensionDescriptor(properties: newExtension)
+    // Use cached bundled descriptor when available to avoid synchronous file I/O on the main thread.
+    let newDescriptor =
+      SystemExtensionDescriptor.cachedBundled(bundleID: newExtension.bundleIdentifier)
+      ?? SystemExtensionDescriptor(properties: newExtension)
 
     if #available(macOS 12.0, *), existing.isAwaitingUserApproval {
       appLogger.info(
@@ -164,8 +167,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   public func checkInstallationStatus() {
-    appLogger.info("Checking and reconciling installation status for ID: \(tunnelBundleID)")
-    submitPropertiesRequest(context: .reconcile)
+    appLogger.info("Checking installation status for ID: \(tunnelBundleID)")
+    submitPropertiesRequest(context: .inspectStatus)
   }
 
   private func submitPropertiesRequest(context: RequestContext) {
@@ -262,20 +265,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         NSWorkspace.shared.open(url)
       }
     } else if #available(macOS 13.0, *) {
-      if let url = URL(
-        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension"
-      ) {
-        appLogger.log("Opening PrivacySecurity.extension URL")
-        NSWorkspace.shared.open(url)
-      } else if let url = URL(
-        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity"
-      ) {
-        appLogger.log("Opening PrivacySecurity URL")
-        NSWorkspace.shared.open(url)
-      } else if let fallbackUrl = generalSecurityPaneURL {
-        appLogger.log("Falling back to general Security & Privacy pane.")
-        NSWorkspace.shared.open(fallbackUrl)
-      }
+      // URL(string:) with a valid literal always succeeds; no fallback needed.
+      let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension")!
+      appLogger.log("Opening PrivacySecurity.extension URL")
+      NSWorkspace.shared.open(url)
     } else {
       if let url = URL(
         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SystemExtensions"
@@ -352,6 +345,23 @@ internal struct SystemExtensionDescriptor: Equatable {
   let isUninstalling: Bool
   let url: URL?
 
+  // Cached bundled descriptors keyed by bundle ID.
+  // - Guarded by _cacheQueue for safe cross-thread access (written on reconciliationQueue,
+  //   read on the main thread from actionForReplacingExtension).
+  // - Only cached when contentHash is non-nil; a failed hash is not stored so the next
+  //   call retries rather than permanently falling back to version-only matching.
+  private static let _cacheQueue = DispatchQueue(
+    label: "org.getlantern.lantern.SystemExtensionDescriptor.cache")
+  private static var _cache: [String: SystemExtensionDescriptor] = [:]
+
+  static func cachedBundled(bundleID: String) -> SystemExtensionDescriptor? {
+    _cacheQueue.sync { _cache[bundleID] }
+  }
+
+  private static func setCached(_ descriptor: SystemExtensionDescriptor) {
+    _cacheQueue.async { _cache[descriptor.bundleIdentifier] = descriptor }
+  }
+
   init(
     bundleIdentifier: String,
     bundleShortVersion: String? = nil,
@@ -415,13 +425,21 @@ internal struct SystemExtensionDescriptor: Equatable {
     let shortVersion = bundle.infoDictionary?["CFBundleShortVersionString"] as? String
     let bundleVersion = bundle.infoDictionary?["CFBundleVersion"] as? String
 
-    return SystemExtensionDescriptor(
+    let contentHash = SystemExtensionBundleHasher.hashBundle(at: url)
+    let descriptor = SystemExtensionDescriptor(
       bundleIdentifier: bundleID,
       bundleShortVersion: shortVersion,
       bundleVersion: bundleVersion,
-      contentHash: SystemExtensionBundleHasher.hashBundle(at: url),
+      contentHash: contentHash,
       url: url
     )
+    // Only cache when hashing succeeded. A transient hash failure should not be
+    // persisted — the next call will retry rather than permanently falling back
+    // to version-only matching (which would mask real content changes).
+    if contentHash != nil {
+      Self.setCached(descriptor)
+    }
+    return descriptor
   }
 
   var versionSummary: String {
@@ -639,6 +657,15 @@ internal enum SystemExtensionBundleHasher {
 
     var entries: [BundleEntry] = []
     for case let fileURL as URL in enumerator {
+      // Skip the _CodeSignature directory entirely — its contents change every build
+      // (timestamps, signing metadata) even when the actual source is identical,
+      // causing false content-change detections. skipDescendants() avoids traversing
+      // into the directory so we don't pay I/O cost for its children.
+      if fileURL.lastPathComponent == "_CodeSignature" {
+        enumerator.skipDescendants()
+        continue
+      }
+
       let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
       let relativePath = relativePath(for: fileURL, under: url)
 
