@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
 
 class AppTextField extends StatelessWidget {
+  final Key? fieldKey;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -34,6 +35,7 @@ class AppTextField extends StatelessWidget {
 
   const AppTextField({
     super.key,
+    this.fieldKey,
     required this.hintText,
     this.validator,
     this.onChanged,
@@ -64,6 +66,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
+        key: fieldKey,
         autofocus: autofocus ?? false,
         textAlign: TextAlign.start,
         textAlignVertical: TextAlignVertical.center,

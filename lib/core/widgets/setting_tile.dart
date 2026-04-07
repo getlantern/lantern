@@ -6,6 +6,7 @@ import '../common/app_semantic_colors.dart';
 import '../extensions/string.dart';
 
 class SettingTile extends StatelessWidget {
+  final Key? tileKey;
   final String label;
   final String? subtitle;
   final String value;
@@ -16,6 +17,7 @@ class SettingTile extends StatelessWidget {
 
   const SettingTile({
     super.key,
+    this.tileKey,
     required this.label,
     required this.value,
     required this.icon,
@@ -29,6 +31,7 @@ class SettingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return InkWell(
+      key: tileKey,
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       splashColor: context.bgCallout,

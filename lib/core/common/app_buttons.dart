@@ -9,6 +9,7 @@ import 'package:lantern/core/common/cap_scaling.dart';
 typedef OnPressed = VoidCallback;
 
 class PrimaryButton extends StatelessWidget {
+  final Key? buttonKey;
   final String label;
 
   final bool enabled;
@@ -28,6 +29,7 @@ class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     required this.label,
     required this.onPressed,
+    this.buttonKey,
     this.bgColor,
     this.iconColor,
     this.textColor,
@@ -49,11 +51,13 @@ class PrimaryButton extends StatelessWidget {
 
     return icon == null
         ? ElevatedButton(
+            key: buttonKey,
             onPressed: enabled ? onPressed : null,
             style: _buildButtonStyle(context, button!, iconSz),
             child: Text(label),
           )
         : ElevatedButton.icon(
+            key: buttonKey,
             onPressed: enabled ? onPressed : null,
             icon: AppImage(
               path: icon!,
