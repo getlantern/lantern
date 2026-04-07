@@ -786,64 +786,28 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 		return nil
 	}
 
-	// Get current servers to find the one being renamed
-	srvs, err := lc.client.Servers(lc.ctx)
+	// Find source server
+	source, exists, err := lc.client.GetServerByTag(lc.ctx, oldTag)
 	if err != nil {
-		return fmt.Errorf("failed to get servers: %w", err)
+		return fmt.Errorf("failed to get server %q: %w", oldTag, err)
 	}
-
-	// Check source exists in user servers
-	userServers, ok := srvs[servers.SGUser]
-	if !ok {
-		return fmt.Errorf("no user servers found")
-	}
-
-	sourceExists := false
-	for _, ep := range userServers.Endpoints {
-		if ep.Tag == oldTag {
-			sourceExists = true
-			break
-		}
-	}
-	if !sourceExists {
-		for _, out := range userServers.Outbounds {
-			if out.Tag == oldTag {
-				sourceExists = true
-				break
-			}
-		}
-	}
-	if !sourceExists {
+	if !exists {
 		return fmt.Errorf("server with tag %q not found", oldTag)
 	}
 
 	// Check new tag doesn't collide
-	_, exists, _ := lc.client.GetServerByTag(lc.ctx, newTag)
-	if exists {
+	_, collision, _ := lc.client.GetServerByTag(lc.ctx, newTag)
+	if collision {
 		return fmt.Errorf("server with tag %q already exists", newTag)
 	}
 
-	// Rename by updating the options
-	for i, ep := range userServers.Endpoints {
-		if ep.Tag == oldTag {
-			userServers.Endpoints[i].Tag = newTag
-		}
-	}
-	for i, out := range userServers.Outbounds {
-		if out.Tag == oldTag {
-			userServers.Outbounds[i].Tag = newTag
-		}
-	}
-	if loc, ok := userServers.Locations[oldTag]; ok {
-		delete(userServers.Locations, oldTag)
-		userServers.Locations[newTag] = loc
-	}
-
-	// Remove old, add new
+	// Remove old, add renamed copy
 	if err := lc.client.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
 		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
 	}
-	if err := lc.client.AddServers(lc.ctx, servers.SGUser, userServers); err != nil {
+	source.Tag = newTag
+	list := servers.ServerList{Servers: []*servers.Server{source}}
+	if err := lc.client.AddServers(lc.ctx, source.IsLantern, list); err != nil {
 		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
 	}
 	return nil

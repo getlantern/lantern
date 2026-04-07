@@ -14,8 +14,6 @@ type InternalTag string
 
 const (
 	InternalTagAutoAll InternalTag = "auto-all"
-	InternalTagUser    InternalTag = InternalTag(servers.SGUser)
-	InternalTagLantern InternalTag = InternalTag(servers.SGLantern)
 )
 
 func StartVPN(client *ipc.Client) error {
@@ -49,8 +47,8 @@ func IsVPNRunning(client *ipc.Client) bool {
 func GetSelectedServer(client *ipc.Client) string {
 	slog.Debug("Getting selected VPN server...")
 	ctx := context.Background()
-	server, _, err := client.SelectedServer(ctx)
-	if err != nil {
+	server, exists, err := client.SelectedServer(ctx)
+	if err != nil || !exists {
 		slog.Debug("Error getting selected server:", "error", err)
 		return ""
 	}
@@ -64,5 +62,5 @@ func GetAutoLocation(client *ipc.Client) (*servers.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get auto location: %w", err)
 	}
-	return &server, nil
+	return server, nil
 }
