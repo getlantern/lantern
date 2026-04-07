@@ -588,8 +588,10 @@ internal enum SystemExtensionReconciler {
     }
 
     if current.matchesVersion(desired) {
-      // Version matches but matches() returned false, so content hashes exist and differ.
-      return .contentChange
+      guard let currentHash = current.contentHash, let desiredHash = desired.contentHash else {
+        return .matched
+      }
+      return currentHash == desiredHash ? .matched : .contentChange
     }
 
     if let currentBuild = current.buildNumber, let desiredBuild = desired.buildNumber {
