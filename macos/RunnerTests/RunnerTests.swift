@@ -1,7 +1,6 @@
+@testable import Lantern
 import Foundation
 import XCTest
-
-@testable import Runner
 
 final class RunnerTests: XCTestCase {
 
