@@ -63,14 +63,27 @@ class _LogsState extends ConsumerState<Logs> {
         return;
       }
 
-      final xFiles = await Future.wait(
+      final xFiles = (await Future.wait(
         filePaths.map((path) async {
           final file = File(path);
           final exists = await file.exists();
-          appLogger.debug('Log file $path exists=$exists size=${exists ? await file.length() : 0}');
+          appLogger.debug(
+            'Log file $path exists=$exists size=${exists ? await file.length() : 0}',
+          );
+          if (!exists) {
+            appLogger.debug('Skipping missing log file: $path');
+            return null;
+          }
           return XFile(path);
         }),
-      );
+      ))
+          .whereType<XFile>()
+          .toList();
+
+      if (xFiles.isEmpty) {
+        appLogger.error('No existing log files found to share');
+        return;
+      }
 
       await SharePlus.instance.share(
         ShareParams(

@@ -242,16 +242,25 @@ class EventHandler : FlutterPlugin {
     }
 
     private fun readLinesSinceOffset(file: File, offset: Long): List<String> {
-        if (!file.exists() || file.length() <= offset) return emptyList()
+        if (!file.exists() || offset < 0 || file.length() <= offset) return emptyList()
         return try {
             java.io.RandomAccessFile(file, "r").use { raf ->
                 raf.seek(offset)
-                val bytes = ByteArray((file.length() - offset).toInt())
-                raf.readFully(bytes)
-                String(bytes, Charsets.UTF_8)
-                    .split("\n")
-                    .map { it.trimEnd('\r') }
-                    .filter { it.isNotEmpty() }
+                val lines = mutableListOf<String>()
+                java.io.BufferedReader(
+                    java.io.InputStreamReader(
+                        java.nio.channels.Channels.newInputStream(raf.channel),
+                        Charsets.UTF_8,
+                    )
+                ).use { reader ->
+                    var line = reader.readLine()
+                    while (line != null) {
+                        val trimmed = line.trimEnd('\r')
+                        if (trimmed.isNotEmpty()) lines.add(trimmed)
+                        line = reader.readLine()
+                    }
+                }
+                lines
             }
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error reading new log lines: ${e.message}")

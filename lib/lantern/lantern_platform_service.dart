@@ -57,7 +57,6 @@ class LanternPlatformService implements LanternCoreService {
   late final Stream<PrivateServerStatus> _privateServerStatus;
   late final Stream<MacOSExtensionState> _systemExtensionStatus;
   late final Stream<AppEvent> _appEventStatus;
-  late final Stream<List<String>> _logs;
 
   final Map<String, AppData> _androidAppCache = <String, AppData>{};
 
@@ -75,9 +74,6 @@ class LanternPlatformService implements LanternCoreService {
       (event) => AppEvent.fromJson(event),
     );
 
-    _logs = accumulateLogBatches(
-      logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
-    );
 
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
@@ -183,6 +179,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
   Future<Either<Failure, String>> stopVPN() async {
     try {
       final _ = await _methodChannel.invokeMethod<String>('stopVPN');
@@ -200,7 +197,9 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) => _logs;
+  Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
+        logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
+      );
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {
