@@ -286,7 +286,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "{#ProgramDataDir}"; Permissions: users-modify
 
 [Files]
-Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Service binary: use restartreplace so if it's still locked after force-kill,
+; Windows will replace it on next reboot rather than silently skipping the copy.
+Source: "{{SOURCE_DIR}}\\lanternsvc.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace
+; Everything else
+Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "lanternsvc.exe"
 
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
@@ -432,6 +436,21 @@ begin
   ExecSc('delete "{#SvcName}"', ExitCode);
 end;
 
+// Force-kill the service process if it's still running after a graceful stop.
+// This handles panicking or hung services that don't respond to sc.exe stop.
+procedure ForceKillServiceProcess;
+var
+  ExitCode: Integer;
+begin
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM lanternsvc.exe', '', SW_HIDE, ewWaitUntilTerminated, ExitCode);
+  if ExitCode = 0 then begin
+    Log('Force-killed lanternsvc.exe process');
+    Sleep(1000);
+  end else begin
+    Log('taskkill lanternsvc.exe exit code ' + IntToStr(ExitCode) + ' (process may not be running)');
+  end;
+end;
+
 function WaitForServiceDelete(const TimeoutMs: Integer): Boolean;
 var
   ExitCode: Integer;
@@ -461,7 +480,16 @@ begin
   Log('Pre-install service cleanup started');
   StopAndDeleteService;
   if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
-    Log('Timed out waiting for service deletion; continuing install');
+    // Graceful stop failed — the service may be panicking, hung, or
+    // not responding to stop signals. Force-kill the process so the
+    // installer can overwrite the locked binary.
+    Log('Timed out waiting for service deletion; force-killing process');
+    ForceKillServiceProcess;
+    // Try delete again now that the process is dead
+    StopAndDeleteService;
+    if not WaitForServiceDelete(5000) then begin
+      Log('WARNING: Service still exists after force-kill; binary may not be replaceable');
+    end;
   end;
 end;
 
