@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -25,6 +26,10 @@ class PipeClient {
   final int timeoutMs;
   final int tokenWaitMs;
   final int bufSize;
+  final Random _jitter = Random();
+
+  int _retryFailureStreak = 0;
+  DateTime? _lastRetryFailureAt;
 
   int _hPipe = INVALID_HANDLE_VALUE;
 
@@ -117,15 +122,42 @@ class PipeClient {
   ]) async {
     try {
       await _connectPipeIfNeeded();
-      return await _callConnected(cmd, params);
+      final response = await _callConnected(cmd, params);
+      _resetRetryWindow();
+      return response;
     } catch (e) {
-      if (!_isRecoverablePipeError(e)) {
+      if (_isAuthOrTokenError(e)) {
+        appLogger.warning(
+          'Pipe call failed with auth/token error; clearing cached token: $e',
+        );
+        await _resetConnectionState(clearToken: true);
         rethrow;
       }
-      appLogger.warning('Pipe call failed, reconnecting once: $e');
-      await _resetConnectionState();
+      if (!_isRecoverablePipeTransportError(e)) {
+        rethrow;
+      }
+      final delay = _nextRetryDelay();
+      appLogger.warning(
+        'Pipe transport failure, reconnecting once in '
+        '${delay.inMilliseconds}ms: $e',
+      );
+      await Future.delayed(delay);
+      await _resetConnectionState(clearToken: false);
       await _connectPipeIfNeeded();
-      return _callConnected(cmd, params);
+      try {
+        final response = await _callConnected(cmd, params);
+        _resetRetryWindow();
+        return response;
+      } catch (retryError) {
+        if (_isAuthOrTokenError(retryError)) {
+          appLogger.warning(
+            'Reconnect retry hit auth/token error; clearing cached token: '
+            '$retryError',
+          );
+          await _resetConnectionState(clearToken: true);
+        }
+        rethrow;
+      }
     }
   }
 
@@ -136,12 +168,14 @@ class PipeClient {
     await connect();
   }
 
-  Future<void> _resetConnectionState() async {
+  Future<void> _resetConnectionState({required bool clearToken}) async {
     await close();
-    token = null;
+    if (clearToken) {
+      token = null;
+    }
   }
 
-  bool _isRecoverablePipeError(Object e) {
+  bool _isRecoverablePipeTransportError(Object e) {
     if (e is PipeTransportException) {
       const recoverable = <int>{
         ERROR_BROKEN_PIPE,
@@ -155,8 +189,50 @@ class PipeClient {
       };
       return recoverable.contains(e.code);
     }
-    final msg = e.toString().toLowerCase();
-    return msg.contains('pipe not connected') || msg.contains('broken pipe');
+    return false;
+  }
+
+  bool _isAuthOrTokenError(Object e) {
+    if (e is PipeTokenException) {
+      return true;
+    }
+    if (e is PipeRpcException) {
+      final code = e.code.toLowerCase();
+      if (code == 'unauthorized' || code == 'invalid_token') {
+        return true;
+      }
+      final message = e.message.toLowerCase();
+      return message.contains('token') || message.contains('unauthorized');
+    }
+    return false;
+  }
+
+  Duration _nextRetryDelay() {
+    final now = DateTime.now();
+    if (_lastRetryFailureAt == null ||
+        now.difference(_lastRetryFailureAt!) > const Duration(seconds: 5)) {
+      _retryFailureStreak = 0;
+    }
+    _lastRetryFailureAt = now;
+    _retryFailureStreak += 1;
+
+    const baseMs = 120;
+    const maxBackoffMs = 2000;
+    var exponent = _retryFailureStreak - 1;
+    if (exponent < 0) {
+      exponent = 0;
+    } else if (exponent > 5) {
+      exponent = 5;
+    }
+    final exponentialMs = baseMs * (1 << exponent);
+    final cappedMs = min(exponentialMs, maxBackoffMs);
+    final jitterMs = 40 + _jitter.nextInt(161);
+    return Duration(milliseconds: cappedMs + jitterMs);
+  }
+
+  void _resetRetryWindow() {
+    _retryFailureStreak = 0;
+    _lastRetryFailureAt = null;
   }
 
   Future<Map<String, dynamic>> _callConnected(
@@ -198,7 +274,10 @@ class PipeClient {
     final err = resp['error'];
     if (err != null) {
       final e = err as Map<String, dynamic>;
-      throw Exception('${e['code']}: ${e['message']}');
+      throw PipeRpcException(
+        code: e['code']?.toString() ?? 'rpc_error',
+        message: e['message']?.toString() ?? 'unknown rpc error',
+      );
     }
     final result = resp['result'];
     return (result is Map<String, dynamic>)
@@ -349,6 +428,16 @@ class PipeTransportException implements Exception {
     }
     return '$operation failed: $code ($hex)';
   }
+}
+
+class PipeRpcException implements Exception {
+  const PipeRpcException({required this.code, required this.message});
+
+  final String code;
+  final String message;
+
+  @override
+  String toString() => '$code: $message';
 }
 
 enum PipeTokenErrorKind { missing, empty, unreadable }

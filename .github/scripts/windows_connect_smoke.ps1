@@ -22,6 +22,30 @@ function Write-Step {
   Write-Host ("[{0}] {1}" -f (Get-Date -Format "HH:mm:ss"), $Message)
 }
 
+function Invoke-ScCommand {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string[]]$ArgumentList,
+    [int[]]$AllowedExitCodes = @(0),
+    [string]$Description = ""
+  )
+
+  $desc = if ([string]::IsNullOrWhiteSpace($Description)) {
+    "sc.exe $($ArgumentList -join ' ')"
+  } else {
+    $Description
+  }
+  Write-Step $desc
+  $output = & sc.exe @ArgumentList 2>&1
+  $exitCode = $LASTEXITCODE
+  if ($output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+  if ($AllowedExitCodes -notcontains $exitCode) {
+    throw "$desc failed with exit code $exitCode"
+  }
+}
+
 function Wait-ProcessWithTimeout {
   param(
     [Parameter(Mandatory = $true)]
@@ -101,10 +125,10 @@ function Remove-ServiceIfPresent {
 
   if (Get-Service -Name $Name -ErrorAction SilentlyContinue) {
     Write-Step "Stopping existing Windows service $Name"
-    sc.exe stop $Name | Out-Null
+    Invoke-ScCommand -ArgumentList @("stop", $Name) -AllowedExitCodes @(0, 1062)
     Start-Sleep -Seconds 2
     Write-Step "Deleting existing Windows service $Name"
-    sc.exe delete $Name | Out-Null
+    Invoke-ScCommand -ArgumentList @("delete", $Name) -AllowedExitCodes @(0, 1060)
     Start-Sleep -Seconds 2
   }
 }
@@ -139,15 +163,22 @@ function Wait-TokenFile {
 
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $Path) {
-      Write-Step "IPC token detected at $Path"
-      return
+      try {
+        $token = (Get-Content -Path $Path -Raw -ErrorAction Stop).Trim()
+      } catch {
+        $token = ""
+      }
+      if (-not [string]::IsNullOrWhiteSpace($token)) {
+        Write-Step "IPC token detected at $Path with content"
+        return
+      }
     }
     if ($i -gt 0 -and ($i % 5) -eq 0) {
-      Write-Step "Waiting for IPC token at $Path ($i/$TimeoutSeconds s)"
+      Write-Step "Waiting for non-empty IPC token at $Path ($i/$TimeoutSeconds s)"
     }
     Start-Sleep -Seconds 1
   }
-  throw "IPC token file not found at $Path"
+  throw "IPC token file missing or empty at $Path"
 }
 
 function Install-FromInstaller {
@@ -212,10 +243,19 @@ try {
     Write-Step "Smoke setup mode: direct service binary"
     $resolvedServiceExe = (Resolve-Path $ServiceExe).Path
     Remove-ServiceIfPresent -Name $ServiceName
-    Write-Step "Creating Windows service from $resolvedServiceExe"
-    sc.exe create $ServiceName binPath= "`"$resolvedServiceExe`"" start= demand DisplayName= "Lantern Service (CI)" | Out-Null
-    Write-Step "Starting Windows service $ServiceName"
-    sc.exe start $ServiceName | Out-Null
+    Invoke-ScCommand `
+      -ArgumentList @(
+        "create",
+        $ServiceName,
+        "binPath= `"$resolvedServiceExe`"",
+        "start= demand",
+        "DisplayName= Lantern Service (CI)"
+      ) `
+      -Description "Creating Windows service from $resolvedServiceExe"
+    Invoke-ScCommand `
+      -ArgumentList @("start", $ServiceName) `
+      -AllowedExitCodes @(0, 1056) `
+      -Description "Starting Windows service $ServiceName"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
 
