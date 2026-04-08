@@ -243,8 +243,7 @@ begin
 end;
 
 #define SourceDirMacro   "{{SOURCE_DIR}}"
-#define SvcName          "LanternSvc"
-#define SvcDisplayName   "Lantern Service"
+#define LegacySvcName    "LanternSvc"
 #define ProgramDataDir   "{commonappdata}\Lantern"
 #define TokenFile        "{commonappdata}\Lantern\ipc-token"
 
@@ -293,24 +292,19 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Run]
-; Create service
-Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= ""{code:ServiceExecutablePath}"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
-  Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "description ""{#SvcName}"" ""Lantern Windows service"""; Flags: runhidden
+; Remove legacy LanternSvc service if present
+Filename: "{sys}\sc.exe"; Parameters: "stop ""{#LegacySvcName}"""; Flags: runhidden
+Filename: "{sys}\sc.exe"; Parameters: "delete ""{#LegacySvcName}"""; Flags: runhidden
 
-; Start service
-Filename: "{sys}\sc.exe"; Parameters: "start ""{#SvcName}"""; Flags: runhidden
+; Install lanternd service (creates Windows service, sets recovery actions, starts it)
+Filename: "{code:LanterndExecutablePath}"; Parameters: "install"; Flags: runhidden
 
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
   Flags: runasoriginaluser nowait postinstall skipifsilent
 
 [UninstallRun]
-Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
+Filename: "{code:LanterndExecutablePath}"; Parameters: "uninstall"; Flags: runhidden
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{#ProgramDataDir}"
@@ -424,22 +418,22 @@ begin
   end;
 end;
 
-procedure StopAndDeleteService;
+procedure StopAndDeleteLegacyService;
 var
   ExitCode: Integer;
 begin
-  ExecSc('stop "{#SvcName}"', ExitCode);
-  ExecSc('delete "{#SvcName}"', ExitCode);
+  ExecSc('stop "{#LegacySvcName}"', ExitCode);
+  ExecSc('delete "{#LegacySvcName}"', ExitCode);
 end;
 
-function WaitForServiceDelete(const TimeoutMs: Integer): Boolean;
+function WaitForLegacyServiceDelete(const TimeoutMs: Integer): Boolean;
 var
   ExitCode: Integer;
   ElapsedMs: Integer;
 begin
   ElapsedMs := 0;
   while ElapsedMs <= TimeoutMs do begin
-    if ExecSc('query "{#SvcName}"', ExitCode) then begin
+    if ExecSc('query "{#LegacySvcName}"', ExitCode) then begin
       // SERVICE_DOES_NOT_EXIST
       if ExitCode = 1060 then begin
         Result := True;
@@ -458,22 +452,22 @@ begin
     exit;
   end;
 
-  Log('Pre-install service cleanup started');
-  StopAndDeleteService;
-  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
-    Log('Timed out waiting for service deletion; continuing install');
+  Log('Pre-install legacy service cleanup started');
+  StopAndDeleteLegacyService;
+  if not WaitForLegacyServiceDelete(ServiceDeleteTimeoutMs) then begin
+    Log('Timed out waiting for legacy service deletion; continuing install');
   end;
 end;
 
-function ServiceExecutablePath(_Param: String): String;
+function LanterndExecutablePath(_Param: String): String;
 var
-  Arm64ServicePath: String;
+  Arm64Path: String;
 begin
-  Arm64ServicePath := ExpandConstant('{app}\arm64\lanternsvc.exe');
-  if IsArm64 and FileExists(Arm64ServicePath) then
-    Result := Arm64ServicePath
+  Arm64Path := ExpandConstant('{app}\arm64\lanternd.exe');
+  if IsArm64 and FileExists(Arm64Path) then
+    Result := Arm64Path
   else
-    Result := ExpandConstant('{app}\lanternsvc.exe');
+    Result := ExpandConstant('{app}\lanternd.exe');
 end;
 
 function InitializeSetup: Boolean;

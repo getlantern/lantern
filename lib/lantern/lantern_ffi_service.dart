@@ -17,11 +17,9 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
-import 'package:lantern/lantern/lantern_windows_service.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:path/path.dart' as p;
 
@@ -43,11 +41,6 @@ const Set<String> _ffiOkResults = {'ok', 'true'};
 /// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
-
-  /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
-  /// we keep going and fall back to the non-IPC paths.
-  LanternServiceWindows? _windowsService;
-  Future<LanternServiceWindows?>? _windowsServiceInitInFlight;
 
   Stream<LanternStatus> _status = _defaultStatusStream();
 
@@ -128,26 +121,13 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error('Radiance setup failed: $err');
       }, (_) {});
 
-      if (Platform.isWindows) {
-        /// Start windows IPC service.
-        /// Keep it alive, but we only use it for VPN-related calls.
-        final ws = await _getOrInitWindowsService();
-        if (ws != null) {
-          _status = ws.watchVPNStatus();
-        } else {
-          appLogger.warning(
-            'Windows IPC init failed; continuing without Windows service',
-          );
-        }
+      _status = statusReceivePort.map((event) {
+        final Map<String, dynamic> result = jsonDecode(event);
+        return LanternStatus.fromJson(result);
+      });
 
-        if (!_isolateInitialized.isCompleted) {
-          await _initializeCommandIsolate();
-        }
-      } else {
-        _status = statusReceivePort.map((event) {
-          final Map<String, dynamic> result = jsonDecode(event);
-          return LanternStatus.fromJson(result);
-        });
+      if (Platform.isWindows && !_isolateInitialized.isCompleted) {
+        await _initializeCommandIsolate();
       }
 
       // These streams exist even if Windows IPC doesn't.
@@ -227,62 +207,6 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Future<void> _initializeWindowsService() async {
-    final tokenPath = p.join(
-      Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-      'Lantern',
-      'ipc-token',
-    );
-    final pipe = PipeClient(tokenPath: tokenPath);
-
-    // Create locally first; only assign to the field after init succeeds.
-    final ws = LanternServiceWindows(pipe);
-
-    try {
-      await ws.init();
-      _windowsService = ws;
-    } catch (e, st) {
-      appLogger.error('LanternServiceWindows.init() threw', e, st);
-      _windowsService = null;
-      rethrow; // init() will catch and keep going; this keeps the original stack.
-    }
-  }
-
-  Future<LanternServiceWindows?> _getOrInitWindowsService() async {
-    final existing = _windowsService;
-    if (existing != null) {
-      return existing;
-    }
-
-    final inFlight = _windowsServiceInitInFlight;
-    if (inFlight != null) {
-      return inFlight;
-    }
-
-    final initFuture = () async {
-      try {
-        await _initializeWindowsService();
-      } catch (e, st) {
-        appLogger.error('Windows IPC re-init failed', e, st);
-        _windowsService = null;
-      } finally {
-        _windowsServiceInitInFlight = null;
-      }
-      return _windowsService;
-    }();
-
-    _windowsServiceInitInFlight = initFuture;
-    return initFuture;
-  }
-
-  Future<void> _markWindowsStatusOrigin(VPNStatusOrigin origin) async {
-    if (!Platform.isWindows) {
-      return;
-    }
-    final ws = await _getOrInitWindowsService();
-    ws?.setNextStatusOrigin(origin);
-  }
-
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
@@ -307,7 +231,6 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
     try {
-      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
       final result = await runInBackground<String>(() async {
         return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
       });
@@ -576,33 +499,16 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    if (Platform.isWindows) {
-      appLogger.debug('Starting VPN on Windows via IPC');
-
-      try {
-        final result = runInBackground(() async {
-          return _ffiService.startAutoLocationListener().toDartString();
-        });
-        result.then((value) {
-          appLogger.debug("auto location listener started: $value");
-        });
-      } catch (e) {
-        appLogger.error("error starting auto location listener: $e");
-      }
-
-      final ws = await _getOrInitWindowsService();
-      if (ws == null) {
-        return left(
-          Failure(
-            error: 'Windows service unavailable',
-            localizedErrorMessage:
-                'The Windows VPN service did not initialize (IPC unavailable).',
-          ),
-        );
-      }
-
-      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connect();
+    try {
+      // Best-effort: start the auto location listener.
+      final locResult = runInBackground(() async {
+        return _ffiService.startAutoLocationListener().toDartString();
+      });
+      locResult.then((value) {
+        appLogger.debug("auto location listener started: $value");
+      });
+    } catch (e) {
+      appLogger.error("error starting auto location listener: $e");
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -670,32 +576,16 @@ class LanternFFIService implements LanternCoreService {
     String location,
     String tag,
   ) async {
-    if (Platform.isWindows) {
-      try {
-        // Do not await here to avoid blocking
-        final result = runInBackground(() async {
-          return _ffiService.stopAutoLocationListener().toDartString();
-        });
-        result.then((value) {
-          appLogger.debug("auto location listener stops : $value");
-        });
-      } catch (e) {
-        appLogger.error("error stopping auto location listener: $e");
-      }
-
-      final ws = await _getOrInitWindowsService();
-      if (ws == null) {
-        return left(
-          Failure(
-            error: 'Windows service unavailable',
-            localizedErrorMessage:
-                'Cannot connect to a server because Windows IPC is unavailable.',
-          ),
-        );
-      }
-
-      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connectToServer(location, tag);
+    try {
+      // Best-effort: stop the auto location listener.
+      final result = runInBackground(() async {
+        return _ffiService.stopAutoLocationListener().toDartString();
+      });
+      result.then((value) {
+        appLogger.debug("auto location listener stops: $value");
+      });
+    } catch (e) {
+      appLogger.error("error stopping auto location listener: $e");
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -726,30 +616,16 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Stopping VPN');
 
-      if (Platform.isWindows) {
-        // Best-effort: stop the listener without blocking the UI.
-        try {
-          final result = runInBackground(() async {
-            return _ffiService.stopAutoLocationListener().toDartString();
-          });
-          result.then((value) {
-            appLogger.debug("auto location listener stops : $value");
-          });
-        } catch (e) {
-          appLogger.error("error stopping auto location listener: $e");
-        }
-
-        final ws = _windowsService;
-        if (ws == null) {
-          // If IPC never came up, treat this as already stopped.
-          appLogger.warning(
-            'stopVPN(): Windows service not initialized; treating as already stopped',
-          );
-          return right('ok');
-        }
-
-        ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-        return ws.disconnect();
+      try {
+        // Best-effort: stop the auto location listener.
+        final locResult = runInBackground(() async {
+          return _ffiService.stopAutoLocationListener().toDartString();
+        });
+        locResult.then((value) {
+          appLogger.debug("auto location listener stops: $value");
+        });
+      } catch (e) {
+        appLogger.error("error stopping auto location listener: $e");
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
@@ -767,13 +643,6 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
-      if (Platform.isWindows) {
-        final ws = await _getOrInitWindowsService();
-        if (ws == null) {
-          return right(false);
-        }
-        return ws.isVPNConnected();
-      }
       final connectedInt = _ffiService.isVPNConnected();
       final connected = connectedInt != 0;
       return right(connected);
@@ -794,13 +663,7 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isWindows) {
-      final ws = _windowsService;
-      if (ws == null) {
-        return const Stream<List<String>>.empty();
-      }
-      return ws.watchLogs();
-    }
+    // Log streaming is not yet implemented via FFI.
     throw UnimplementedError();
   }
 
@@ -1554,7 +1417,6 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
     try {
-      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
       final result = await runInBackground<String>(() async {
         return _ffiService
             .setBlockAdsEnabled(enabled ? 1 : 0)

@@ -1,6 +1,6 @@
 param(
-  [string]$ServiceName = "LanternSvc",
-  [string]$ServiceExe = "build/windows/x64/runner/Release/lanternsvc.exe",
+  [string]$ServiceName = "lanternd",
+  [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
@@ -212,10 +212,8 @@ try {
     Write-Step "Smoke setup mode: direct service binary"
     $resolvedServiceExe = (Resolve-Path $ServiceExe).Path
     Remove-ServiceIfPresent -Name $ServiceName
-    Write-Step "Creating Windows service from $resolvedServiceExe"
-    sc.exe create $ServiceName binPath= "`"$resolvedServiceExe`"" start= demand DisplayName= "Lantern Service (CI)" | Out-Null
-    Write-Step "Starting Windows service $ServiceName"
-    sc.exe start $ServiceName | Out-Null
+    Write-Step "Installing lanternd service from $resolvedServiceExe"
+    & $resolvedServiceExe install
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
 
@@ -294,7 +292,12 @@ finally {
     if ($UseInstaller) {
       Uninstall-FromInstalledService -Name $ServiceName
     } else {
-      Remove-ServiceIfPresent -Name $ServiceName
+      $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
+      if ($resolvedServiceExe) {
+        & $resolvedServiceExe uninstall
+      } else {
+        Remove-ServiceIfPresent -Name $ServiceName
+      }
     }
     Write-Step "Cleanup finished"
   } catch {
