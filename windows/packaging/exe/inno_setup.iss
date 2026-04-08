@@ -469,24 +469,25 @@ begin
   Result := False;
 end;
 
-function IsServiceRunning: Boolean;
+function IsServiceState(const StateCode: String; const StateName: String): Boolean;
 var
   ExitCode: Integer;
 begin
   Result := ExecCmd(
-    '/C sc.exe query "{#SvcName}" | findstr /C:"STATE              : 4  RUNNING" >NUL',
+    '/C sc.exe query {#SvcName} | findstr /R /C:"STATE *: *' +
+      StateCode + ' *' + StateName + '" >NUL',
     ExitCode
   ) and (ExitCode = 0);
 end;
 
-function IsServiceStopped: Boolean;
-var
-  ExitCode: Integer;
+function IsServiceRunning: Boolean;
 begin
-  Result := ExecCmd(
-    '/C sc.exe query "{#SvcName}" | findstr /C:"STATE              : 1  STOPPED" >NUL',
-    ExitCode
-  ) and (ExitCode = 0);
+  Result := IsServiceState('4', 'RUNNING');
+end;
+
+function IsServiceStopped: Boolean;
+begin
+  Result := IsServiceState('1', 'STOPPED');
 end;
 
 function WaitForServiceRunning(const TimeoutMs: Integer): Boolean;
