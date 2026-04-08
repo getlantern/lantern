@@ -514,7 +514,7 @@ end;
 
 function HasNonEmptyTokenFile: Boolean;
 var
-  TokenValue: String;
+  TokenValue: AnsiString;
   TokenFilePath: String;
 begin
   TokenFilePath := ExpandConstant('{#TokenFile}');
@@ -525,7 +525,7 @@ begin
   if not LoadStringFromFile(TokenFilePath, TokenValue) then begin
     exit;
   end;
-  Result := Trim(TokenValue) <> '';
+  Result := Trim(String(TokenValue)) <> '';
 end;
 
 function WaitForTokenFile(const TimeoutMs: Integer): Boolean;
