@@ -1444,13 +1444,9 @@ class LanternFFIService implements LanternCoreService {
           if (protoValue != null) {
             value.protocol = protoValue;
           } else {
-            try {
-              // If not found, try to extract from tag.
-              value.protocol = value.tag.split('-').first;
-            } catch (_) {
-              // If anything goes wrong, just leave it blank.
-              value.protocol = '';
-            }
+            // No outbound assigned — this location is available for selection
+            // but does not have a proxy yet (Pro location picker).
+            value.protocol = '';
           }
         });
       }
