@@ -807,7 +807,7 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	}
 	source.Tag = newTag
 	list := servers.ServerList{Servers: []*servers.Server{source}}
-	if err := lc.client.AddServers(lc.ctx, source.IsLantern, list); err != nil {
+	if err := lc.client.AddServers(lc.ctx, list); err != nil {
 		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
 	}
 	return nil

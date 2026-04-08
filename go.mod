@@ -21,10 +21,9 @@ replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-wa
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
 require (
-	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260407202212-e169f57e9014
+	github.com/getlantern/radiance v0.0.0-20260408160740-6bab4fba54a0
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.41.0
@@ -100,7 +99,7 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
-	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2
+	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/grpc v1.79.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
@@ -112,6 +111,7 @@ require (
 	github.com/1Password/srp v0.2.0 // indirect
 	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/RoaringBitmap/roaring v1.2.3 // indirect
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/Xuanwo/go-locale v1.1.3 // indirect
