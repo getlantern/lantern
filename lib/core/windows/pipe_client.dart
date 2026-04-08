@@ -15,6 +15,7 @@ class PipeClient {
     this.token,
     this.tokenPath,
     this.timeoutMs = 3000,
+    this.tokenWaitMs = 5000,
     this.bufSize = 64 * 1024,
   });
 
@@ -22,6 +23,7 @@ class PipeClient {
   String? token;
   final String? tokenPath;
   final int timeoutMs;
+  final int tokenWaitMs;
   final int bufSize;
 
   int _hPipe = INVALID_HANDLE_VALUE;
@@ -33,18 +35,35 @@ class PipeClient {
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
     final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
-    final deadline = DateTime.now().add(const Duration(seconds: 5));
+    final deadline = DateTime.now().add(Duration(milliseconds: tokenWaitMs));
+    PipeTokenErrorKind failureKind = PipeTokenErrorKind.missing;
+    String failureDetail = 'IPC token file not found at $path';
     while (true) {
       try {
-        token = (await File(path).readAsString()).trim();
-        if (token!.isEmpty) throw Exception('IPC token file is empty: $path');
-        return;
-      } catch (_) {
-        if (DateTime.now().isAfter(deadline)) {
-          throw Exception('IPC token not found at $path');
+        final currentToken = (await File(path).readAsString()).trim();
+        if (currentToken.isEmpty) {
+          failureKind = PipeTokenErrorKind.empty;
+          failureDetail = 'IPC token file is empty at $path';
+        } else {
+          token = currentToken;
+          return;
         }
-        await Future.delayed(const Duration(milliseconds: 200));
+      } on FileSystemException catch (e) {
+        failureKind = PipeTokenErrorKind.missing;
+        failureDetail = e.message;
+      } catch (e) {
+        failureKind = PipeTokenErrorKind.unreadable;
+        failureDetail = e.toString();
       }
+      if (DateTime.now().isAfter(deadline)) {
+        throw PipeTokenException(
+          path: path,
+          kind: failureKind,
+          waitedMs: tokenWaitMs,
+          detail: failureDetail,
+        );
+      }
+      await Future.delayed(const Duration(milliseconds: 200));
     }
   }
 
@@ -69,13 +88,14 @@ class PipeClient {
         if (_hPipe != INVALID_HANDLE_VALUE) return;
 
         final code = GetLastError();
-        final retryableOpen = code == ERROR_PIPE_BUSY ||
+        final retryableOpen =
+            code == ERROR_PIPE_BUSY ||
             code == ERROR_FILE_NOT_FOUND ||
             code == ERROR_PATH_NOT_FOUND ||
             code == 0;
         if (retryableOpen) {
           if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw _PipeTransportException(
+            throw PipeTransportException(
               operation: 'Open pipe',
               code: code,
               timedOut: true,
@@ -84,15 +104,17 @@ class PipeClient {
           await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
-        throw _PipeTransportException(operation: 'Open pipe', code: code);
+        throw PipeTransportException(operation: 'Open pipe', code: code);
       }
     } finally {
       free(lpName);
     }
   }
 
-  Future<Map<String, dynamic>> call(String cmd,
-      [Map<String, dynamic>? params]) async {
+  Future<Map<String, dynamic>> call(
+    String cmd, [
+    Map<String, dynamic>? params,
+  ]) async {
     try {
       await _connectPipeIfNeeded();
       return await _callConnected(cmd, params);
@@ -120,7 +142,7 @@ class PipeClient {
   }
 
   bool _isRecoverablePipeError(Object e) {
-    if (e is _PipeTransportException) {
+    if (e is PipeTransportException) {
       const recoverable = <int>{
         ERROR_BROKEN_PIPE,
         ERROR_PIPE_NOT_CONNECTED,
@@ -142,12 +164,15 @@ class PipeClient {
     Map<String, dynamic>? params,
   ) async {
     await _getToken();
-    final payload = '${jsonEncode({
-          'id': DateTime.now().microsecondsSinceEpoch.toString(),
-          'cmd': cmd,
-          'token': token,
-          if (params != null) 'params': params,
-        })}\n';
+    final request = <String, dynamic>{
+      'id': DateTime.now().microsecondsSinceEpoch.toString(),
+      'cmd': cmd,
+      'token': token,
+    };
+    if (params != null) {
+      request['params'] = params;
+    }
+    final payload = '${jsonEncode(request)}\n';
 
     final bytes = utf8.encode(payload);
     final pBuf = calloc<Uint8>(bytes.length);
@@ -156,7 +181,7 @@ class PipeClient {
       pBuf.asTypedList(bytes.length).setAll(0, bytes);
       final ok = WriteFile(_hPipe, pBuf, bytes.length, pWritten, nullptr);
       if (ok == 0) {
-        throw _PipeTransportException(
+        throw PipeTransportException(
           operation: 'WriteFile',
           code: GetLastError(),
         );
@@ -192,7 +217,7 @@ class PipeClient {
       while (true) {
         final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
         if (ok == 0) {
-          throw _PipeTransportException(
+          throw PipeTransportException(
             operation: 'ReadFile',
             code: GetLastError(),
           );
@@ -275,34 +300,38 @@ class PipeClient {
 
   Stream<Map<String, dynamic>> watchStatus() {
     return _watchRaw('WatchStatus').transform(
-      StreamTransformer.fromHandlers(handleData: (line, sink) {
-        try {
-          sink.add(jsonDecode(line) as Map<String, dynamic>);
-        } catch (e, st) {
-          sink.addError(e, st);
-        }
-      }),
+      StreamTransformer.fromHandlers(
+        handleData: (line, sink) {
+          try {
+            sink.add(jsonDecode(line) as Map<String, dynamic>);
+          } catch (e, st) {
+            sink.addError(e, st);
+          }
+        },
+      ),
     );
   }
 
   Stream<List<String>> watchLogs() {
     return _watchRaw('WatchLogs').transform(
-      StreamTransformer.fromHandlers(handleData: (line, sink) {
-        try {
-          final obj = jsonDecode(line);
-          if (obj is Map && obj['event'] == 'Logs') {
-            final lines =
-                (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
-            if (lines.isNotEmpty) sink.add(lines);
-          }
-        } catch (_) {}
-      }),
+      StreamTransformer.fromHandlers(
+        handleData: (line, sink) {
+          try {
+            final obj = jsonDecode(line);
+            if (obj is Map && obj['event'] == 'Logs') {
+              final lines =
+                  (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
+              if (lines.isNotEmpty) sink.add(lines);
+            }
+          } catch (_) {}
+        },
+      ),
     );
   }
 }
 
-class _PipeTransportException implements Exception {
-  const _PipeTransportException({
+class PipeTransportException implements Exception {
+  const PipeTransportException({
     required this.operation,
     required this.code,
     this.timedOut = false,
@@ -319,6 +348,32 @@ class _PipeTransportException implements Exception {
       return '$operation timed out (last error: $code/$hex)';
     }
     return '$operation failed: $code ($hex)';
+  }
+}
+
+enum PipeTokenErrorKind { missing, empty, unreadable }
+
+class PipeTokenException implements Exception {
+  const PipeTokenException({
+    required this.path,
+    required this.kind,
+    required this.waitedMs,
+    required this.detail,
+  });
+
+  final String path;
+  final PipeTokenErrorKind kind;
+  final int waitedMs;
+  final String detail;
+
+  @override
+  String toString() {
+    final kindText = switch (kind) {
+      PipeTokenErrorKind.missing => 'missing',
+      PipeTokenErrorKind.empty => 'empty',
+      PipeTokenErrorKind.unreadable => 'unreadable',
+    };
+    return 'IPC token $kindText after ${waitedMs}ms at $path: $detail';
   }
 }
 
@@ -343,11 +398,8 @@ void _watchIsolateMain(_WatchArgs args) async {
 
   int hPipe = INVALID_HANDLE_VALUE;
 
-  String watchReq(String token, String cmd) => '${jsonEncode({
-            'id': DateTime.now().microsecondsSinceEpoch.toString(),
-            'cmd': cmd,
-            'token': token,
-          })}\n';
+  String watchReq(String token, String cmd) =>
+      '${jsonEncode({'id': DateTime.now().microsecondsSinceEpoch.toString(), 'cmd': cmd, 'token': token})}\n';
 
   try {
     final name = TEXT(args.pipeName);

@@ -43,11 +43,27 @@ const Set<String> _ffiOkResults = {'ok', 'true'};
 /// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
+  static const String _windowsServiceName = 'LanternSvc';
 
   /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
   /// we keep going and fall back to the non-IPC paths.
   LanternServiceWindows? _windowsService;
   Future<LanternServiceWindows?>? _windowsServiceInitInFlight;
+  DateTime? _windowsServiceLastInitFailureAt;
+  String? _windowsServiceLastInitFailureMessage;
+  static const Duration _windowsServiceRetryCooldown = Duration(seconds: 15);
+  static const Duration _windowsServiceStartWait = Duration(seconds: 6);
+  static const Duration _windowsServicePollInterval = Duration(
+    milliseconds: 300,
+  );
+  static const Duration _windowsInitRetryInterval = Duration(seconds: 3);
+  StreamSubscription<LanternStatus>? _windowsStatusSubscription;
+  LanternStatus _lastWindowsStatus = LanternStatus.fromJson({
+    'status': 'disconnected',
+    'error': null,
+  });
+  final StreamController<LanternStatus> _windowsStatusController =
+      StreamController<LanternStatus>.broadcast();
 
   Stream<LanternStatus> _status = _defaultStatusStream();
 
@@ -129,16 +145,8 @@ class LanternFFIService implements LanternCoreService {
       }, (_) {});
 
       if (Platform.isWindows) {
-        /// Start windows IPC service.
-        /// Keep it alive, but we only use it for VPN-related calls.
-        final ws = await _getOrInitWindowsService();
-        if (ws != null) {
-          _status = ws.watchVPNStatus();
-        } else {
-          appLogger.warning(
-            'Windows IPC init failed; continuing without Windows service',
-          );
-        }
+        // Keep startup responsive. IPC warmup runs in the background.
+        unawaited(_startWindowsServiceWarmup());
 
         if (!_isolateInitialized.isCompleted) {
           await _initializeCommandIsolate();
@@ -227,13 +235,168 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  Stream<LanternStatus> _watchWindowsStatus() async* {
+    yield _lastWindowsStatus;
+    yield* _windowsStatusController.stream;
+  }
+
+  void _publishWindowsStatus(LanternStatus status) {
+    _lastWindowsStatus = status;
+    if (!_windowsStatusController.isClosed) {
+      _windowsStatusController.add(status);
+    }
+  }
+
+  void _attachWindowsStatusStream(LanternServiceWindows windowsService) {
+    _windowsStatusSubscription?.cancel();
+    _windowsStatusSubscription = windowsService.watchVPNStatus().listen(
+      _publishWindowsStatus,
+      onError: (Object error, StackTrace stackTrace) {
+        appLogger.error('Windows status stream failed', error, stackTrace);
+      },
+    );
+  }
+
+  Future<void> _startWindowsServiceWarmup() async {
+    while (Platform.isWindows) {
+      final windowsService = await _getOrInitWindowsService(forceRetry: true);
+      if (windowsService != null) {
+        return;
+      }
+      appLogger.warning('Windows IPC warmup did not complete; retrying');
+      await Future.delayed(_windowsInitRetryInterval);
+    }
+  }
+
+  Future<_WindowsServiceState> _readWindowsServiceState() async {
+    try {
+      final result = await Process.run('sc.exe', [
+        'query',
+        _windowsServiceName,
+      ]);
+      final text = '${result.stdout}\n${result.stderr}'.toUpperCase();
+      if (result.exitCode == 1060 ||
+          text.contains('FAILED 1060') ||
+          text.contains('DOES NOT EXIST')) {
+        return _WindowsServiceState.missing;
+      }
+      if (text.contains('STATE') &&
+          (text.contains('RUNNING') || text.contains('START_PENDING'))) {
+        return _WindowsServiceState.running;
+      }
+      if (text.contains('STATE') &&
+          (text.contains('STOPPED') || text.contains('STOP_PENDING'))) {
+        return _WindowsServiceState.stopped;
+      }
+      return result.exitCode == 0
+          ? _WindowsServiceState.stopped
+          : _WindowsServiceState.unknown;
+    } catch (e, st) {
+      appLogger.error('Failed to query Windows service state', e, st);
+      return _WindowsServiceState.unknown;
+    }
+  }
+
+  Future<bool> _waitForWindowsServiceRunning(Duration timeout) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      final state = await _readWindowsServiceState();
+      if (state == _WindowsServiceState.running) {
+        return true;
+      }
+      if (state == _WindowsServiceState.missing) {
+        return false;
+      }
+      await Future.delayed(_windowsServicePollInterval);
+    }
+    return false;
+  }
+
+  Future<bool> _prepareWindowsService() async {
+    final state = await _readWindowsServiceState();
+    switch (state) {
+      case _WindowsServiceState.running:
+        return true;
+      case _WindowsServiceState.missing:
+        _windowsServiceLastInitFailureMessage =
+            'Windows service LanternSvc is missing.';
+        return false;
+      case _WindowsServiceState.stopped:
+        try {
+          final startResult = await Process.run('sc.exe', [
+            'start',
+            _windowsServiceName,
+          ]);
+          if (startResult.exitCode != 0) {
+            _windowsServiceLastInitFailureMessage =
+                'Windows service LanternSvc could not start.';
+            appLogger.warning(
+              'Failed to start Windows service',
+              startResult.stdout,
+              StackTrace.current,
+            );
+            return false;
+          }
+          final running = await _waitForWindowsServiceRunning(
+            _windowsServiceStartWait,
+          );
+          if (!running) {
+            _windowsServiceLastInitFailureMessage =
+                'Windows service LanternSvc did not reach running state.';
+          }
+          return running;
+        } catch (e, st) {
+          _windowsServiceLastInitFailureMessage =
+              'Windows service LanternSvc start command failed.';
+          appLogger.error('Failed to start Windows service', e, st);
+          return false;
+        }
+      case _WindowsServiceState.unknown:
+        appLogger.warning(
+          'Windows service state is unknown; proceeding with IPC attempt',
+        );
+        return true;
+    }
+  }
+
+  String _describeWindowsIpcFailure(Object error) {
+    if (error is PipeTokenException) {
+      return switch (error.kind) {
+        PipeTokenErrorKind.missing =>
+          'IPC token file is missing at ${error.path}.',
+        PipeTokenErrorKind.empty => 'IPC token file is empty at ${error.path}.',
+        PipeTokenErrorKind.unreadable =>
+          'IPC token file could not be read at ${error.path}.',
+      };
+    }
+    if (error is PipeTransportException) {
+      if (error.timedOut) {
+        return 'Windows IPC pipe open timed out.';
+      }
+      return 'Windows IPC transport failed (${error.code}).';
+    }
+    return error.toString();
+  }
+
+  String _windowsIpcUnavailableMessage() {
+    final details = _windowsServiceLastInitFailureMessage;
+    if (details == null || details.trim().isEmpty) {
+      return 'The Windows VPN service did not initialize (IPC unavailable).';
+    }
+    return 'The Windows VPN service is unavailable: $details';
+  }
+
   Future<void> _initializeWindowsService() async {
     final tokenPath = p.join(
       Platform.environment['ProgramData'] ?? r'C:\ProgramData',
       'Lantern',
       'ipc-token',
     );
-    final pipe = PipeClient(tokenPath: tokenPath);
+    final pipe = PipeClient(
+      tokenPath: tokenPath,
+      timeoutMs: 1500,
+      tokenWaitMs: 1500,
+    );
 
     // Create locally first; only assign to the field after init succeeds.
     final ws = LanternServiceWindows(pipe);
@@ -241,6 +404,9 @@ class LanternFFIService implements LanternCoreService {
     try {
       await ws.init();
       _windowsService = ws;
+      _windowsServiceLastInitFailureAt = null;
+      _windowsServiceLastInitFailureMessage = null;
+      _attachWindowsStatusStream(ws);
     } catch (e, st) {
       appLogger.error('LanternServiceWindows.init() threw', e, st);
       _windowsService = null;
@@ -248,10 +414,21 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Future<LanternServiceWindows?> _getOrInitWindowsService() async {
+  Future<LanternServiceWindows?> _getOrInitWindowsService({
+    bool forceRetry = false,
+  }) async {
     final existing = _windowsService;
     if (existing != null) {
       return existing;
+    }
+
+    if (!forceRetry) {
+      final lastFailureAt = _windowsServiceLastInitFailureAt;
+      if (lastFailureAt != null &&
+          DateTime.now().difference(lastFailureAt) <
+              _windowsServiceRetryCooldown) {
+        return null;
+      }
     }
 
     final inFlight = _windowsServiceInitInFlight;
@@ -261,10 +438,18 @@ class LanternFFIService implements LanternCoreService {
 
     final initFuture = () async {
       try {
+        final ready = await _prepareWindowsService();
+        if (!ready) {
+          _windowsService = null;
+          _windowsServiceLastInitFailureAt = DateTime.now();
+          return null;
+        }
         await _initializeWindowsService();
       } catch (e, st) {
         appLogger.error('Windows IPC re-init failed', e, st);
         _windowsService = null;
+        _windowsServiceLastInitFailureAt = DateTime.now();
+        _windowsServiceLastInitFailureMessage = _describeWindowsIpcFailure(e);
       } finally {
         _windowsServiceInitInFlight = null;
       }
@@ -590,13 +775,12 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error starting auto location listener: $e");
       }
 
-      final ws = await _getOrInitWindowsService();
+      final ws = await _getOrInitWindowsService(forceRetry: true);
       if (ws == null) {
         return left(
           Failure(
             error: 'Windows service unavailable',
-            localizedErrorMessage:
-                'The Windows VPN service did not initialize (IPC unavailable).',
+            localizedErrorMessage: _windowsIpcUnavailableMessage(),
           ),
         );
       }
@@ -683,13 +867,13 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error("error stopping auto location listener: $e");
       }
 
-      final ws = await _getOrInitWindowsService();
+      final ws = await _getOrInitWindowsService(forceRetry: true);
       if (ws == null) {
         return left(
           Failure(
             error: 'Windows service unavailable',
             localizedErrorMessage:
-                'Cannot connect to a server because Windows IPC is unavailable.',
+                'Cannot connect to a server: ${_windowsIpcUnavailableMessage()}',
           ),
         );
       }
@@ -805,7 +989,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() => _status;
+  Stream<LanternStatus> watchVPNStatus() {
+    if (Platform.isWindows) {
+      return _watchWindowsStatus();
+    }
+    return _status;
+  }
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
@@ -1699,6 +1888,8 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 }
+
+enum _WindowsServiceState { running, stopped, missing, unknown }
 
 void checkAPIError(dynamic result) {
   if (result is String) {
