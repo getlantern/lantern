@@ -54,16 +54,16 @@ class AppEventNotifier extends _$AppEventNotifier {
         case 'server-location':
           try {
             final autoLocation = Server.fromJson(jsonDecode(event.message));
-            final countryName = autoLocation.location!.country;
-            final cityName = autoLocation.location!.city;
+            final countryName = autoLocation.location.country;
+            final cityName = autoLocation.location.city;
             final autoServer = ServerLocation(
               serverType: ServerLocationType.auto.name,
               serverName: ''.i18n,
               displayName: '',
               protocol: '',
-              city: autoLocation.location!.city,
+              city: cityName,
               autoLocation: AutoLocation(
-                countryCode: autoLocation.location!.countryCode,
+                countryCode: autoLocation.location.countryCode,
                 country: countryName,
                 displayName: '$countryName - $cityName',
                 tag: autoLocation.tag,

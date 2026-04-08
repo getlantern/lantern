@@ -230,7 +230,10 @@ Future<void> runConfigUrlConnectSmokeHarness(
       'Config URL UI smoke requires exactly one URL, but got ${urls.length}.',
     );
   }
-  final url = urls.single;
+  var url = urls.single;
+  final hashIndex = url.indexOf('#');
+  url = hashIndex >= 0 ? url.substring(0, hashIndex) : url;
+  url = '$url#$configServerName';
 
   if (configServerName.trim().isEmpty) {
     fail(
@@ -357,12 +360,30 @@ Future<void> runConfigUrlConnectSmokeHarness(
     );
   }
 
+  // If the server was already selected, the app stays on server selection
+  // instead of auto-navigating home. Go back and start the VPN manually.
+  final alreadySelected = finders.homeScreen.evaluate().isEmpty;
+  if (alreadySelected) {
+    await _returnToHome(tester, homeScreen: finders.homeScreen);
+  }
+
   await WidgetWaitUtils.waitForFinder(
     tester,
     finders.homeScreen,
     timeout: const Duration(seconds: 60),
     reason: 'Did not return to home screen after selecting joined server',
   );
+
+  if (alreadySelected) {
+    // Server was already selected so tapping it didn't trigger a connect.
+    // Start the VPN explicitly from the home screen.
+    await _tapFinder(
+      tester,
+      finders.vpnToggle,
+      timeout: const Duration(seconds: 15),
+      reason: 'VPN toggle not available to connect already-selected server',
+    );
+  }
 
   await vpnStateFinders.waitFor(
     tester,

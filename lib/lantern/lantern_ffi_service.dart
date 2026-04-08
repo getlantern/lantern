@@ -1297,29 +1297,8 @@ class LanternFFIService implements LanternCoreService {
         return _ffiService.getAvailableServers().toDartString();
       });
       checkAPIError(result);
-      final servers = AvailableServers.fromJson(jsonDecode(result));
-      void applyProtocols(Lantern lantern) {
-        final outboundsByTag = {
-          for (var outbound in lantern.outbounds) outbound.tag: outbound.type,
-        };
-        lantern.locations.forEach((key, value) {
-          final protoValue = outboundsByTag[key];
-          if (protoValue != null) {
-            value.protocol = protoValue;
-          } else {
-            try {
-              // If not found, try to extract from tag.
-              value.protocol = value.tag.split('-').first;
-            } catch (_) {
-              // If anything goes wrong, just leave it blank.
-              value.protocol = '';
-            }
-          }
-        });
-      }
-
-      applyProtocols(servers.lantern);
-      applyProtocols(servers.user);
+      final servers =
+          AvailableServers.fromJson(jsonDecode(result) as List<dynamic>);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error('Error getting available servers', e, stackTrace);

@@ -21,7 +21,7 @@ part 'system_tray_notifier.g.dart';
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   VPNStatus _currentStatus = VPNStatus.disconnected;
   bool _isUserPro = false;
-  List<Location_> _locations = [];
+  List<Server> _locations = [];
   RoutingMode _currentRoutingMode = RoutingMode.full;
   ServerLocation? _serverLocation;
 
@@ -82,11 +82,11 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       next,
     ) async {
       final data = next.value;
-      _locations = data?.lantern.locations.values.toList() ?? [];
+      _locations = data?.lanternServers ?? [];
       _locations.sort((a, b) {
-        final cmp = a.country.compareTo(b.country);
+        final cmp = a.location.country.compareTo(b.location.country);
         if (cmp != 0) return cmp;
-        return a.city.compareTo(b.city);
+        return a.location.city.compareTo(b.location.city);
       });
       await updateTrayMenu();
     });
@@ -122,19 +122,19 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   /// Handle location selection from tray menu
-  Future<void> _onLocationSelected(Location_ location) async {
+  Future<void> _onLocationSelected(Server server) async {
     if (!_checkMacOSExtension()) return;
 
     final result = await ref
         .read(vpnProvider.notifier)
-        .connectToServer(ServerLocationType.lanternLocation, location.tag);
+        .connectToServer(ServerLocationType.lanternLocation, server.tag);
     result.fold(
       (failure) => appLogger.error(
         'Failed to connect: ${failure.localizedErrorMessage}',
       ),
       (success) {
-        appLogger.info('Connecting to ${location.country} - ${location.city}');
-        _saveServerLocation(location);
+        appLogger.info('Connecting to ${server.location.country} - ${server.location.city}');
+        _saveServerLocation(server);
       },
     );
   }
@@ -168,8 +168,8 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     return true;
   }
 
-  Future<void> _saveServerLocation(Location_ location) async {
-    final serverLocation = ServerLocation.fromLanternLocation(server: location);
+  Future<void> _saveServerLocation(Server server) async {
+    final serverLocation = ServerLocation.fromServer(server: server);
     await ref
         .read(serverLocationProvider.notifier)
         .updateServerLocation(serverLocation);
@@ -259,15 +259,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                 ),
                 MenuItem.separator(),
                 // Server list
-                ..._locations.map((location) {
-                  final displayName = location.city.isNotEmpty
-                      ? '${location.country} - ${location.city}'
-                      : location.country;
+                ..._locations.map((server) {
+                  final displayName = server.location.city.isNotEmpty
+                      ? '${server.location.country} - ${server.location.city}'
+                      : server.location.country;
                   return MenuItem(
-                    key: 'location_${location.tag}',
+                    key: 'location_${server.tag}',
                     label: displayName,
-                    icon: AppImagePaths.safeFlagPath(location.countryCode),
-                    onClick: (_) => _onLocationSelected(location),
+                    icon: AppImagePaths.safeFlagPath(server.location.countryCode),
+                    onClick: (_) => _onLocationSelected(server),
                   );
                 }),
               ],

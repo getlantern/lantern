@@ -41,6 +41,7 @@ Future<LanternService> _waitForLanternServiceReady(
 Future<void> runConfigUrlApiConnectSmokeHarness(
   WidgetTester tester, {
   required String configUrl,
+  required String configServerName,
   required bool skipCertVerification,
 }) async {
   final urls = splitConfigUrls(configUrl);
@@ -50,7 +51,10 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
       '${urls.length}.',
     );
   }
-  final url = urls.single;
+  var url = urls.single;
+  final hashIndex = url.indexOf('#');
+  url = hashIndex >= 0 ? url.substring(0, hashIndex) : url;
+  url = '$url#$configServerName';
 
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders();

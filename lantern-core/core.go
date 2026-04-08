@@ -350,32 +350,16 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	srvs, err := lc.client.Servers(lc.ctx)
+	data, err := lc.client.ServersJSON(lc.ctx)
 	if err != nil {
 		slog.Error("Error getting servers", "error", err)
 		return nil
 	}
-	jsonBytes, err := json.Marshal(srvs)
-	if err != nil {
-		slog.Error("Error marshalling servers", "error", err)
-		return nil
-	}
-	return jsonBytes
+	return data
 }
 
 func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
-	server, found, err := lc.client.GetServerByTag(lc.ctx, tag)
-	if err != nil {
-		return nil, false, err
-	}
-	if !found {
-		return nil, false, nil
-	}
-	jsonBytes, err := json.Marshal(server)
-	if err != nil {
-		return nil, false, fmt.Errorf("error marshalling server: %w", err)
-	}
-	return jsonBytes, true, nil
+	return lc.client.GetServerByTagJSON(lc.ctx, tag)
 }
 
 /////////////////////

@@ -17,7 +17,7 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
 
-typedef OnServerSelected = Function(Location_ selectedServer);
+typedef OnServerSelected = Function(Server selectedServer);
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends StatefulHookConsumerWidget {
@@ -72,7 +72,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     final selectedServer = selected;
     final isPrivateServerFound =
-        availableServers.requireValue.user.outbounds.isNotEmpty;
+        availableServers.requireValue.hasUserServers;
 
     return BaseScreen(
       key: const Key('server_selection.screen'),
@@ -298,7 +298,7 @@ class _ServerLocationListViewState
               padding: EdgeInsets.zero,
               child: availableServers.when(
                 data: (data) {
-                  final locations = data.lantern.locations.values.toList();
+                  final locations = data.lanternServers;
 
                   if (locations.isEmpty) {
                     return const Center(child: Text("No locations available"));
@@ -329,7 +329,7 @@ class _ServerLocationListViewState
                               return SingleCityServerView(
                                 key: ValueKey(serverData.tag),
                                 onServerSelected: onServerSelected,
-                                location: serverData,
+                                server: serverData,
                                 isSelected: selectedTag == serverData.tag,
                               );
                             }
@@ -368,7 +368,7 @@ class _ServerLocationListViewState
     );
   }
 
-  Future<void> onServerSelected(Location_ selectedServer) async {
+  Future<void> onServerSelected(Server selectedServer) async {
     if (PlatformUtils.isMacOS) {
       /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
       final macosExtensionStatus = ref.read(macosExtensionProvider);
@@ -405,7 +405,7 @@ class _ServerLocationListViewState
           await ref
               .read(serverLocationProvider.notifier)
               .updateServerLocation(
-                ServerLocation.fromLanternLocation(server: selectedServer),
+                ServerLocation.fromServer(server: selectedServer),
               );
           appRouter.popUntilRoot();
         }
@@ -431,7 +431,7 @@ class _ServerLocationListViewState
 
 class _CountryCityListView extends StatefulWidget {
   final String country;
-  final List<Location_> locations;
+  final List<Server> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
 
@@ -451,8 +451,8 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
 
   @override
   Widget build(BuildContext context) {
-    final countryCode = widget.locations.first.countryCode;
-    final country = widget.locations.first.country;
+    final countryCode = widget.locations.first.location.countryCode;
+    final country = widget.locations.first.location.country;
 
     if (PlatformUtils.isDesktop) {
       return Theme(
@@ -476,16 +476,16 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           },
           trailing: ExpansionChevron(isExpanded: _isExpanded),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: widget.locations.map((loc) {
+          children: widget.locations.map((server) {
             return AppTile(
               dense: true,
               minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
-              label: loc.city,
-              subtitle: loc.protocol.isEmpty
+              label: server.location.city,
+              subtitle: server.type.isEmpty
                   ? null
                   : Text(
-                      loc.protocol.capitalize,
+                      server.type.capitalize,
                       maxLines: 1,
                       style: Theme.of(context).textTheme.labelMedium!.copyWith(
                         color: context.textSecondary,
@@ -494,7 +494,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
-              onPressed: () => _onLocationSelected(context, loc),
+              onPressed: () => _onLocationSelected(context, server),
             );
           }).toList(),
         ),
@@ -513,8 +513,8 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     );
   }
 
-  void _onLocationSelected(BuildContext context, Location_ location) {
-    widget.onServerSelected(location);
+  void _onLocationSelected(BuildContext context, Server server) {
+    widget.onServerSelected(server);
   }
 
   void _showCountryBottomSheet(BuildContext context) {
@@ -531,8 +531,8 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             separatorBuilder: (_, __) =>
                 const DividerSpace(padding: EdgeInsets.zero),
             itemBuilder: (_, index) {
-              final loc = widget.locations[index];
-              final isSelected = widget.selectedServerTag == loc.tag;
+              final server = widget.locations[index];
+              final isSelected = widget.selectedServerTag == server.tag;
 
               return SingleCityServerView(
                 nested: true,
@@ -540,7 +540,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
                 },
-                location: loc,
+                server: server,
                 isSelected: isSelected,
               );
             },
@@ -581,8 +581,7 @@ class _PrivateServerLocationListViewState
       );
     }
 
-    final userLocations = availableServers.requireValue.user.locations.values
-        .toList();
+    final userLocations = availableServers.requireValue.userServers;
 
     final selectedTag = selected.serverName;
 
@@ -621,30 +620,30 @@ class _PrivateServerLocationListViewState
             itemCount: userLocations.length,
             separatorBuilder: (_, __) => const DividerSpace(),
             itemBuilder: (context, index) {
-              final loc = userLocations[index];
-              final isSelected = selectedTag == loc.tag;
+              final server = userLocations[index];
+              final isSelected = selectedTag == server.tag;
               return AppTile(
-                tileKey: Key('server_selection.private_server.${loc.tag}'),
+                tileKey: Key('server_selection.private_server.${server.tag}'),
                 onPressed: () {
                   if (isSelected) {
                     appLogger.debug('Already selected this server');
                     context.showSnackBar('server_already_selected'.i18n);
                     return;
                   }
-                  onPrivateServerSelected(loc);
+                  onPrivateServerSelected(server);
                 },
                 icon: Flag(
-                  countryCode: loc.countryCode,
+                  countryCode: server.location.countryCode,
                   size: const Size(40, 28),
                 ),
-                label: loc.tag,
+                label: server.tag,
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 3),
                       child: Text(
-                        '${loc.city} - ${loc.protocol}',
+                        '${server.location.city} - ${server.type}',
                         style: _textTheme!.labelMedium!.copyWith(
                           color: context.textTertiary,
                         ),
@@ -663,12 +662,12 @@ class _PrivateServerLocationListViewState
     );
   }
 
-  Future<void> onPrivateServerSelected(Location_ location) async {
+  Future<void> onPrivateServerSelected(Server server) async {
     context.showLoadingDialog();
 
     final result = await ref
         .read(vpnProvider.notifier)
-        .connectToServer(ServerLocationType.privateServer, location.tag);
+        .connectToServer(ServerLocationType.privateServer, server.tag);
 
     result.fold(
       (failure) {
@@ -693,11 +692,11 @@ class _PrivateServerLocationListViewState
             .updateServerLocation(
               ServerLocation(
                 serverType: ServerLocationType.privateServer.name,
-                serverName: location.tag,
-                country: location.country,
-                city: location.city,
-                countryCode: location.countryCode,
-                protocol: location.protocol,
+                serverName: server.tag,
+                country: server.location.country,
+                city: server.location.city,
+                countryCode: server.location.countryCode,
+                protocol: server.type,
               ),
             );
         appRouter.popUntilRoot();
@@ -706,12 +705,12 @@ class _PrivateServerLocationListViewState
   }
 }
 
-Map<String, List<Location_>> _groupLocationsByCountry(
-  List<Location_> locations,
+Map<String, List<Server>> _groupLocationsByCountry(
+  List<Server> servers,
 ) {
-  final Map<String, List<Location_>> result = {};
-  for (final loc in locations) {
-    result.putIfAbsent(loc.country, () => <Location_>[]).add(loc);
+  final Map<String, List<Server>> result = {};
+  for (final server in servers) {
+    result.putIfAbsent(server.location.country, () => <Server>[]).add(server);
   }
   return result;
 }

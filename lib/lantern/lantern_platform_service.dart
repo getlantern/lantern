@@ -1361,28 +1361,8 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod(
         'getLanternAvailableServers',
       );
-      final servers = AvailableServers.fromJson(jsonDecode(result));
-
-      void applyProtocols(Lantern lantern) {
-        final outboundsByTag = {
-          for (var outbound in lantern.outbounds) outbound.tag: outbound.type,
-        };
-        lantern.locations.forEach((key, value) {
-          final protoValue = outboundsByTag[key];
-          if (protoValue != null) {
-            value.protocol = protoValue;
-          } else {
-            try {
-              value.protocol = value.tag.split('-').first;
-            } catch (e) {
-              value.protocol = '';
-            }
-          }
-        });
-      }
-
-      applyProtocols(servers.lantern);
-      applyProtocols(servers.user);
+      final servers =
+          AvailableServers.fromJson(jsonDecode(result) as List<dynamic>);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(
