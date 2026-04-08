@@ -426,11 +426,17 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 
 // SetSplitTunnelingEnabled turns split tunneling on or off for this device
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
+	var err error
 	if enabled {
-		lc.splitTunnel.Enable()
+		err = lc.splitTunnel.Enable()
 	} else {
-		lc.splitTunnel.Disable()
+		err = lc.splitTunnel.Disable()
 	}
+	if err != nil {
+		slog.Error("failed to update split tunneling state", "enabled", enabled, "error", err)
+		return
+	}
+	lc.maybeRestartTunnelAfterSplitTunnelChange("toggle-split-tunneling")
 }
 
 // IsSplitTunnelingEnabled returns whether split tunneling is currently enabled
@@ -440,7 +446,17 @@ func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 
 // AddSplitTunnelItem adds a single split tunnel rule
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
-	return lc.splitTunnel.AddItem(filterType, item)
+	normalizedItem := normalizeSplitTunnelItem(filterType, item)
+	if normalizedItem == "" {
+		return fmt.Errorf("split tunnel item is empty")
+	}
+	if err := lc.splitTunnel.AddItem(filterType, normalizedItem); err != nil {
+		return err
+	}
+	if isDomainSplitTunnelFilterType(filterType) {
+		lc.maybeRestartTunnelAfterSplitTunnelChange("add-domain-split-tunnel-item")
+	}
+	return nil
 }
 
 // AddSplitTunnelItems adds multiple split tunnel rules from a comma-separated string
@@ -487,7 +503,17 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 
 // RemoveSplitTunnelItem removes a single split tunnel rule
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
-	return lc.splitTunnel.RemoveItem(filterType, item)
+	normalizedItem := normalizeSplitTunnelItem(filterType, item)
+	if normalizedItem == "" {
+		return nil
+	}
+	if err := lc.splitTunnel.RemoveItem(filterType, normalizedItem); err != nil {
+		return err
+	}
+	if isDomainSplitTunnelFilterType(filterType) {
+		lc.maybeRestartTunnelAfterSplitTunnelChange("remove-domain-split-tunnel-item")
+	}
+	return nil
 }
 
 // resolveLogDir returns a directory that contains the logs
@@ -915,6 +941,50 @@ func splitCSVClean(s string) []string {
 		out = append(out, it)
 	}
 	return out
+}
+
+func normalizeSplitTunnelItem(filterType, item string) string {
+	normalized := strings.TrimSpace(item)
+	normalized = strings.Trim(normalized, `"`)
+	if normalized == "" {
+		return ""
+	}
+
+	if isDomainSplitTunnelFilterType(filterType) {
+		return strings.ToLower(normalized)
+	}
+
+	if common.IsWindows() {
+		switch filterType {
+		case vpn.TypeProcessName, vpn.TypeProcessPath:
+			return strings.ToLower(normalized)
+		}
+	}
+
+	return normalized
+}
+
+func isDomainSplitTunnelFilterType(filterType string) bool {
+	switch filterType {
+	case vpn.TypeDomain, vpn.TypeDomainSuffix, vpn.TypeDomainKeyword, vpn.TypeDomainRegex:
+		return true
+	default:
+		return false
+	}
+}
+
+func (lc *LanternCore) maybeRestartTunnelAfterSplitTunnelChange(reason string) {
+	status, err := vpn.GetStatus()
+	if err != nil {
+		slog.Warn("unable to query tunnel status after split tunnel update", "reason", reason, "error", err)
+		return
+	}
+	if !status.TunnelOpen {
+		return
+	}
+	if err := vpn.Restart(); err != nil {
+		slog.Warn("failed to apply split tunnel update to active tunnel", "reason", reason, "error", err)
+	}
 }
 
 func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
