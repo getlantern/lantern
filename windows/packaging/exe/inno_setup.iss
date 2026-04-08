@@ -264,7 +264,7 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequiredOverridesAllowed=none
 ArchitecturesAllowed=x64compatible arm64
 ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
@@ -571,6 +571,13 @@ begin
   if ExitCode = 0 then begin
     Log('Windows service {#SvcName} created');
     exit;
+  end;
+
+  if ExitCode = 5 then begin
+    FailInstall(
+      'Administrator privileges are required to install {#SvcName}. ' +
+      'Please re-run the installer as administrator.'
+    );
   end;
 
   if ExitCode <> ServiceExistsExitCode then begin
