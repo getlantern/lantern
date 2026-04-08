@@ -289,6 +289,9 @@ Name: "{#ProgramDataDir}"; Permissions: users-modify
 ; Service binary: use restartreplace so if it's still locked after force-kill,
 ; Windows will replace it on next reboot rather than silently skipping the copy.
 Source: "{{SOURCE_DIR}}\\lanternsvc.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace
+; ARM64 service binary: install explicitly because the recursive wildcard below
+; excludes lanternsvc.exe by filename and would otherwise also skip arm64\lanternsvc.exe.
+Source: "{{SOURCE_DIR}}\\arm64\\lanternsvc.exe"; DestDir: "{app}\\arm64"; Flags: ignoreversion restartreplace
 ; Everything else
 Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "lanternsvc.exe"
 
@@ -441,9 +444,12 @@ end;
 procedure ForceKillServiceProcess;
 var
   ExitCode: Integer;
+  ExecResult: Boolean;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM lanternsvc.exe', '', SW_HIDE, ewWaitUntilTerminated, ExitCode);
-  if ExitCode = 0 then begin
+  ExecResult := Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM lanternsvc.exe', '', SW_HIDE, ewWaitUntilTerminated, ExitCode);
+  if not ExecResult then begin
+    Log('Failed to launch taskkill.exe');
+  end else if ExitCode = 0 then begin
     Log('Force-killed lanternsvc.exe process');
     Sleep(1000);
   end else begin
