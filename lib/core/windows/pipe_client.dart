@@ -54,8 +54,14 @@ class PipeClient {
           return;
         }
       } on FileSystemException catch (e) {
-        failureKind = PipeTokenErrorKind.missing;
-        failureDetail = e.message;
+        final errorCode = e.osError?.errorCode;
+        if (errorCode == ERROR_FILE_NOT_FOUND ||
+            errorCode == ERROR_PATH_NOT_FOUND) {
+          failureKind = PipeTokenErrorKind.missing;
+        } else {
+          failureKind = PipeTokenErrorKind.unreadable;
+        }
+        failureDetail = e.toString();
       } catch (e) {
         failureKind = PipeTokenErrorKind.unreadable;
         failureDetail = e.toString();

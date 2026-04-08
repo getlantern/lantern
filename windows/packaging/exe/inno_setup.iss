@@ -479,6 +479,16 @@ begin
   ) and (ExitCode = 0);
 end;
 
+function IsServiceStopped: Boolean;
+var
+  ExitCode: Integer;
+begin
+  Result := ExecCmd(
+    '/C sc.exe query "{#SvcName}" | findstr /C:"STATE              : 1  STOPPED" >NUL',
+    ExitCode
+  ) and (ExitCode = 0);
+end;
+
 function WaitForServiceRunning(const TimeoutMs: Integer): Boolean;
 var
   ElapsedMs: Integer;
@@ -501,7 +511,7 @@ var
 begin
   ElapsedMs := 0;
   while ElapsedMs <= TimeoutMs do begin
-    if not IsServiceRunning then begin
+    if IsServiceStopped then begin
       Result := True;
       exit;
     end;
