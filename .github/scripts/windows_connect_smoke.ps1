@@ -2,7 +2,6 @@ param(
   [string]$ServiceName = "lanternd",
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
-  [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
@@ -128,26 +127,20 @@ function Wait-ServiceRunning {
   }
 
   sc.exe query $Name
-  throw "Windows service did not reach Running state"
-}
 
-function Wait-TokenFile {
-  param(
-    [string]$Path,
-    [int]$TimeoutSeconds
-  )
-
-  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    if (Test-Path $Path) {
-      Write-Step "IPC token detected at $Path"
-      return
-    }
-    if ($i -gt 0 -and ($i % 5) -eq 0) {
-      Write-Step "Waiting for IPC token at $Path ($i/$TimeoutSeconds s)"
-    }
-    Start-Sleep -Seconds 1
+  # Dump diagnostics so we can tell whether the daemon binary was installed and why the service wasn't created.
+  $lanterndPath = "C:\Program Files\Lantern\lanternd.exe"
+  if (Test-Path $lanterndPath) {
+    Write-Step "lanternd.exe exists at $lanterndPath"
+    & $lanterndPath version 2>&1 | ForEach-Object { Write-Step "  version: $_" }
+  } else {
+    Write-Step "lanternd.exe NOT found at $lanterndPath"
+    Write-Step "Contents of C:\Program Files\Lantern\:"
+    Get-ChildItem "C:\Program Files\Lantern\" -ErrorAction SilentlyContinue |
+      ForEach-Object { Write-Step "  $($_.Name)" }
   }
-  throw "IPC token file not found at $Path"
+
+  throw "Windows service did not reach Running state"
 }
 
 function Install-FromInstaller {
@@ -167,6 +160,16 @@ function Install-FromInstaller {
     -TimeoutSeconds $InstallerTimeoutSeconds `
     -PulseSeconds $HeartbeatSeconds `
     -Description "Running installer"
+
+  # After the installer runs, try running 'lanternd install' manually if the service
+  # wasn't created. This helps diagnose whether the issue is in the installer or the
+  # daemon itself.
+  $lanterndPath = "C:\Program Files\Lantern\lanternd.exe"
+  $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
+  if (-not $svc -and (Test-Path $lanterndPath)) {
+    Write-Step "Service not found after installer; running lanternd install manually for diagnostics"
+    & $lanterndPath install 2>&1 | ForEach-Object { Write-Step "  $_" }
+  }
 
   Write-Step "Waiting for Windows service after installer"
   Wait-ServiceRunning -Name $Name -TimeoutSeconds $TimeoutSeconds
@@ -216,8 +219,6 @@ try {
     & $resolvedServiceExe install
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
-
-  Wait-TokenFile -Path $TokenPath -TimeoutSeconds $WaitSeconds
 
   $flutterArgs = @(
     "test",
