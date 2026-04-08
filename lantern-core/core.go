@@ -453,7 +453,7 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	if err := lc.splitTunnel.AddItem(filterType, normalizedItem); err != nil {
 		return err
 	}
-	if isDomainSplitTunnelFilterType(filterType) {
+	if isDomainSplitTunnelFilterType(filterType) && lc.splitTunnel.IsEnabled() {
 		lc.maybeRestartTunnelAfterSplitTunnelChange("add-domain-split-tunnel-item")
 	}
 	return nil
@@ -510,7 +510,7 @@ func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	if err := lc.splitTunnel.RemoveItem(filterType, normalizedItem); err != nil {
 		return err
 	}
-	if isDomainSplitTunnelFilterType(filterType) {
+	if isDomainSplitTunnelFilterType(filterType) && lc.splitTunnel.IsEnabled() {
 		lc.maybeRestartTunnelAfterSplitTunnelChange("remove-domain-split-tunnel-item")
 	}
 	return nil
