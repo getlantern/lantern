@@ -75,6 +75,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         submitPropertiesRequest(context: .inspectStatus)
       }
     case .willCompleteAfterReboot:
+      // Even when the deactivation needs a reboot, still attempt activation
+      // if we were in a deactivate-then-activate flow. macOS can queue the
+      // new extension while the old one is pending removal. Without this,
+      // the activation chain breaks and the user gets stuck after reboot
+      // with no enabled extension.
+      if case .deactivateThenActivate(_, true) = context {
+        appLogger.info("Deactivation needs reboot, but still attempting activation of bundled extension")
+        submitActivationRequest(reason: "activating bundled extension while old version awaits reboot removal")
+        return
+      }
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
       updateStatus(.requiresReboot(details: details))
     @unknown default:
@@ -538,10 +548,19 @@ internal enum SystemExtensionReconciler {
     }
 
     if installed.contains(where: \.isUninstalling) {
+      if enabled == nil {
+        // Old extension is uninstalling but nothing is enabled — don't just wait
+        // for a reboot that may never clear the state. Submit an activation request
+        // so macOS can install the bundled extension alongside the pending removal.
+        return SystemExtensionReconciliation(
+          status: .updatePending(details: "old extension is uninstalling, activating replacement"),
+          action: .activate(reason: "activate bundled extension while old version awaits removal"),
+          change: .install)
+      }
       return SystemExtensionReconciliation(
         status: .requiresReboot(details: "system extension changes are waiting on a reboot"),
         action: .none,
-        change: enabled == nil ? .install : classifyChange(current: enabled, desired: bundled))
+        change: classifyChange(current: enabled, desired: bundled))
     }
 
     guard !installed.isEmpty else {
