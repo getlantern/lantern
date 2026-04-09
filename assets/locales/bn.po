@@ -1632,6 +1632,3 @@ msgstr "আপনার অ্যাকাউন্ট স্থায়ীভ�
 
 msgid "verify_with"
 msgstr "%s দিয়ে যাচাই করুন"
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"

@@ -1997,6 +1997,3 @@ msgstr ""
 
 msgid "domain_fronting_error"
 msgstr ""
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"

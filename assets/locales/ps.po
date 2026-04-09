@@ -1659,6 +1659,3 @@ msgstr "ستاسو حساب د تل لپاره حذف شو."
 
 msgid "verify_with"
 msgstr "د %s سره تایید وکړئ"
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"

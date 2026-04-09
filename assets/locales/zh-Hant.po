@@ -1498,6 +1498,3 @@ msgstr "您的帳戶已永久刪除。"
 
 msgid "verify_with"
 msgstr "透過 %s 驗證"
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"

@@ -1649,6 +1649,3 @@ msgstr "Вы не сможете его восстановить."
 
 msgid "verify_with"
 msgstr "Подтвердить через %s"
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"

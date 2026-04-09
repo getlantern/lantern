@@ -1632,6 +1632,3 @@ msgstr "आपका खाता स्थायी रूप से हटा 
 
 msgid "verify_with"
 msgstr "%s से सत्यापित करें"
-
-msgid "vpn_conflict_connect_anyway"
-msgstr "Connect Anyway"
