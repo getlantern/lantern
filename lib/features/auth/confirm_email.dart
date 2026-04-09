@@ -253,9 +253,10 @@ class ConfirmEmail extends HookConsumerWidget {
         appRouter.push(LanternProLicense(email: email, code: code));
         break;
       case AuthFlow.oauth:
-        appRouter.push(
-          ChoosePaymentMethod(email: email, authFlow: authFlow, code: code),
+        appLogger.warning(
+          'navigateRoute reached OAuth unexpectedly in ConfirmEmail.',
         );
+        appRouter.popUntilRoot();
         break;
       case AuthFlow.changeEmail:
         appLogger.warning(
