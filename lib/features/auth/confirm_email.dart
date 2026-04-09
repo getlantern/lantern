@@ -217,12 +217,12 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(context, ref, code);
+        navigateRoute(ref, code);
       },
     );
   }
 
-  void navigateRoute(BuildContext context, WidgetRef ref, String code) {
+  void navigateRoute(WidgetRef ref, String code) {
     switch (authFlow) {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
@@ -258,11 +258,9 @@ class ConfirmEmail extends HookConsumerWidget {
         );
         break;
       case AuthFlow.changeEmail:
-        context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
         appLogger.warning(
           'navigateRoute reached changeEmail unexpectedly; flow should complete in place.',
         );
-        appRouter.pop();
         break;
       case AuthFlow.renewSubscription:
         appRouter.push(
