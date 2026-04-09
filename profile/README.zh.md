@@ -22,65 +22,87 @@
         <th>视窗/Windows</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe">Windows 10&#43;</a> <br> 
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.exe">Windows 10&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer.exe">Windows 10&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.exe">Windows 10&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-win7.exe">Windows 7</a>    
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe">Windows 10&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.exe">Windows 10&#43;</a>
         </td>
     </tr>
     <tr>
         <th>安卓</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">安卓 6&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer.apk">安卓 6&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.apk">安卓 6&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">安卓 6&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">安卓 6&#43;</a>
         </td>
         <td>
             <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">安卓 6&#43;</a>
         </td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk">安卓 6&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.apk">安卓 6&#43;</a>
         </td>
     </tr>
     <tr>
         <th>苹果Mac系统</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">苹果Mac系统 10.15&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">苹果Mac系统 10.15&#43;</a>
         </td>
     </tr>
     <tr>
         <th>苹果IOS系统</th>
-        <td></td>
+        <td>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.ipa">ipa</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.ipa">ipa</a>
+        </td>
         <td>
             <a href="https://apps.apple.com/app/id1457872372?l">苹果IOS系统 11&#43;</a>
         </td>
-        <td></td>
+        <td>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.ipa">ipa</a>
+        </td>
     </tr>
     <tr>
-        <th>Linux（64 位）</th>
+        <th>Linux (amd64)</th>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.deb">deb</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.deb">deb</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.rpm">rpm</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.rpm">rpm</a>
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.deb">deb</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.rpm">rpm</a>
+        </td>
+    </tr>
+    <tr>
+        <th>Linux (arm64)</th>
+        <td>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer-arm64.deb">deb</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer-arm64.deb">deb</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer-arm64.rpm">rpm</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer-arm64.rpm">rpm</a>
+        </td>
+        <td></td>
+        <td>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta-arm64.deb">deb</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta-arm64.rpm">rpm</a>
         </td>
     </tr>
 </table>
 
-- 📱 如果您所在的地区无法使用 Google/IOS App Store，您可以按照 [这些步骤](https://lantern.io/faq#use-2) 下载蓝灯。
-- 🔗 在于稳定版本，存在多个链接用于托管冗余和选择。
-- 🚀 请尝试早期发布的“测试版”。虽然这可能不太不稳定，但您的反馈有助于改进。欢迎加入我们的 [论坛] (#links) 做出尊贵用户贡献。
+- 如果您所在的地区无法使用 Google/IOS App Store，您可以按照 [这些步骤](https://lantern.io/faq#use-2) 下载蓝灯。
+- 在于稳定版本，存在多个链接用于托管冗余和选择。
+- 请尝试早期发布的“测试版”。虽然这可能不太不稳定，但您的反馈有助于改进。欢迎加入我们的 [论坛] (#links) 做出尊贵用户贡献。
 
 ## 链接
 - [网站](https://lantern.io)
@@ -93,24 +115,5 @@
 - 推特 | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [中文](https://twitter.com/getlantern_CN)
 
 ## Release Notes
-### 8.3.7 (preview)
-- Fixed an issue preventing some users from sending issue reports from the application
-- Fixed an issue that prevented 25-digit activation codes from being redeemed
-### 8.3.5
-- Front end and UI optimization
-- Fixed payment issue with Google Play Store
-- Updated circumvention protocols
-### 8.3.4
-- Updated dialer protocols
-- Payment page bug fixes
-### 8.3.3
-- Updated proxy routes
-- Web traffic optimization
-### 8.3.2
-- Updated circumvention protocols
-### 8.3.1
-- Updated circumvention protocols
-### 8.3.0
-- Updated circumvention protocols
-- Web traffic optimization
 
+- https://github.com/getlantern/lantern/releases

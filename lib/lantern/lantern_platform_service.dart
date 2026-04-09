@@ -85,10 +85,7 @@ class LanternPlatformService implements LanternCoreService {
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
-          .map(
-            (event) =>
-                MacOSExtensionState.fromString(event['status'].toString()),
-          );
+          .map(MacOSExtensionState.fromEvent);
     }
     // _enabledApps starts as EnabledAppsSnapshot.empty() and is refreshed
     // lazily inside installedAppsStream / addSplitTunnelItem / etc.

@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
@@ -372,7 +371,7 @@ class _ServerLocationListViewState
     if (PlatformUtils.isMacOS) {
       /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
       final macosExtensionStatus = ref.read(macosExtensionProvider);
-      if (macosExtensionStatus.status == SystemExtensionStatus.notInstalled) {
+      if (!macosExtensionStatus.isReady) {
         appRouter.push(const MacOSExtensionDialog());
         return;
       }
