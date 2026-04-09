@@ -1,5 +1,5 @@
 param(
-  [string]$ServiceName = "lanternd",
+  [string]$ServiceName = "LanternSvc",
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",

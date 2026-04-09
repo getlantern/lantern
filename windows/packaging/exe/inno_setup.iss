@@ -243,7 +243,7 @@ begin
 end;
 
 #define SourceDirMacro   "{{SOURCE_DIR}}"
-#define LegacySvcName    "LanternSvc"
+#define SvcName          "LanternSvc"
 #define ProgramDataDir   "{commonappdata}\Lantern"
 #define TokenFile        "{commonappdata}\Lantern\ipc-token"
 
@@ -292,11 +292,10 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Run]
-; Remove legacy LanternSvc service if present
-Filename: "{sys}\sc.exe"; Parameters: "stop ""{#LegacySvcName}"""; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "delete ""{#LegacySvcName}"""; Flags: runhidden
+; Stop existing service if running before reinstalling
+Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden
 
-; Install lanternd service (creates Windows service, sets recovery actions, starts it)
+; Install LanternSvc service (creates Windows service, sets recovery actions, starts it)
 Filename: "{code:LanterndExecutablePath}"; Parameters: "install"; Flags: runhidden
 
 ; Launch Lantern app UI
@@ -304,6 +303,7 @@ Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY
   Flags: runasoriginaluser nowait postinstall skipifsilent
 
 [UninstallRun]
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM {{EXECUTABLE_NAME}}"; Flags: runhidden
 Filename: "{code:LanterndExecutablePath}"; Parameters: "uninstall"; Flags: runhidden
 
 [UninstallDelete]

@@ -16,5 +16,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nService installed and started."
-sc.exe qc lanternd
-sc.exe query lanternd
+sc.exe qc LanternSvc
+sc.exe query LanternSvc
