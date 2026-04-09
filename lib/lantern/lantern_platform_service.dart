@@ -9,6 +9,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -1351,6 +1352,34 @@ class LanternPlatformService implements LanternCoreService {
       return right(Server.fromJson(jsonDecode(result!)));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'getSelectedServerJSON',
+      );
+      final json = jsonDecode(result!) as Map<String, dynamic>;
+      final serverJson = json['server'] as Map<String, dynamic>?;
+      if (serverJson == null) {
+        return Right(ServerLocation(
+          serverType: ServerLocationType.auto.name,
+          serverName: '',
+        ));
+      }
+      final server = Server.fromJson(serverJson);
+      return Right(ServerLocation.fromServer(
+        server: server,
+      ).copyWith(
+        serverType: server.isLantern
+            ? ServerLocationType.lanternLocation.name
+            : ServerLocationType.privateServer.name,
+      ));
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching selected server', e, stackTrace);
       return Left(e.toFailure());
     }
   }

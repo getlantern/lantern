@@ -54,6 +54,7 @@ const (
 
 var (
 	lanternCore       atomic.Pointer[lanterncore.Core]
+	appDataDir        string
 	appsPort          int64
 	logsPort          int64
 	statusPort        int64
@@ -67,6 +68,11 @@ func requireCore() (lanterncore.Core, *C.char) {
 		return nil, C.CString(`{"error":"not_initialized"}`)
 	}
 	return *c, nil
+}
+
+//export getAppDataDir
+func getAppDataDir() *C.char {
+	return C.CString(appDataDir)
 }
 
 func sendApps(port int64) func(apps ...*apps.AppData) error {
@@ -103,6 +109,7 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, consent C.int, api unsafe.Pointer) *C.char {
 	logDir := C.GoString(_logDir)
 	dataDir := C.GoString(_dataDir)
+	appDataDir = dataDir
 	locale := C.GoString(_locale)
 	env := C.GoString(_env)
 	return runOnGoStack(func() *C.char {
@@ -304,6 +311,23 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
 		}
 		return C.CString("ok")
+	})
+}
+
+// getSelectedServerJSON returns the selected server response as raw JSON.
+//
+//export getSelectedServerJSON
+func getSelectedServerJSON() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		data, err := c.GetSelectedServerJSON()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(data))
 	})
 }
 

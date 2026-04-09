@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
@@ -44,6 +45,8 @@ abstract class LanternCoreService {
   Stream<List<String>> watchLogs(String path);
 
   Future<Either<Failure, Server>> getAutoServerLocation();
+
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation();
 
   Future<Either<Failure, String>> featureFlag();
 

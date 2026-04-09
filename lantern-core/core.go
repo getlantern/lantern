@@ -52,6 +52,7 @@ type App interface {
 	GetAvailableServers() []byte
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
+	GetSelectedServerJSON() ([]byte, error)
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	StartBackgroundListeners()
@@ -360,6 +361,10 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 
 func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
 	return lc.client.GetServerByTagJSON(lc.ctx, tag)
+}
+
+func (lc *LanternCore) GetSelectedServerJSON() ([]byte, error) {
+	return lc.client.SelectedServerJSON(lc.ctx)
 }
 
 /////////////////////

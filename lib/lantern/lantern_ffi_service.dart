@@ -24,6 +24,7 @@ import 'package:lantern/core/models/user.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
+import '../core/models/server_location.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
 import '../core/utils/compute_worker.dart';
@@ -1389,6 +1390,36 @@ class LanternFFIService implements LanternCoreService {
       return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error('Error while getting auto location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getSelectedServerJSON().toDartString();
+      });
+      checkAPIError(result);
+      final json = jsonDecode(result) as Map<String, dynamic>;
+      final serverJson = json['server'] as Map<String, dynamic>?;
+      if (serverJson == null) {
+        return Right(ServerLocation(
+          serverType: ServerLocationType.auto.name,
+          serverName: '',
+        ));
+      }
+      final server = Server.fromJson(serverJson);
+      final isLantern = server.isLantern;
+      return Right(ServerLocation.fromServer(
+        server: server,
+      ).copyWith(
+        serverType: isLantern
+            ? ServerLocationType.lanternLocation.name
+            : ServerLocationType.privateServer.name,
+      ));
+    } catch (e, stackTrace) {
+      appLogger.error('Error while getting selected server', e, stackTrace);
       return Left(e.toFailure());
     }
   }

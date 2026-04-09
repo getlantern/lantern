@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,7 +16,6 @@ class LocalStorageService {
 
   /// Keys for stored values
   static const _appSettingsKey = 'app_settings_json';
-  static const _serverLocationKey = 'selected_server_location';
   static const _plansKey = 'plans_json';
   static const _developerModeKey = 'developer_mode_json';
 
@@ -44,23 +42,6 @@ class LocalStorageService {
 
   Future<void> saveAppSettings(AppSetting settings) async {
     await setString(_appSettingsKey, jsonEncode(settings.toJson()));
-  }
-
-  // ── ServerLocation ────────────────────────────────────────────────────────
-
-  ServerLocation? getServerLocation() {
-    final raw = getString(_serverLocationKey);
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      return ServerLocation.fromJsonString(raw);
-    } catch (e, st) {
-      appLogger.error('Failed to parse server location from prefs', e, st);
-    }
-    return null;
-  }
-
-  Future<void> saveServerLocation(ServerLocation location) async {
-    await setString(_serverLocationKey, location.toJsonString());
   }
 
   // ── PlansData ─────────────────────────────────────────────────────────────

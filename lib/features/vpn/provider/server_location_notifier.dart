@@ -1,7 +1,5 @@
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
-import 'package:lantern/core/services/injection_container.dart' show sl;
-import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,24 +8,35 @@ part 'server_location_notifier.g.dart';
 
 @Riverpod()
 class ServerLocationNotifier extends _$ServerLocationNotifier {
-  LocalStorageService get _storage => sl<LocalStorageService>();
-
   @override
   ServerLocation build() {
-    return _storage.getServerLocation() ?? _defaultLocation();
+    // Start with default (auto), then fetch the actual selection from radiance.
+    _fetchFromRadiance();
+    return _defaultLocation();
   }
 
-  Future<void> updateServerLocation(ServerLocation entity) async {
+  Future<void> _fetchFromRadiance() async {
+    final result = await ref
+        .read(lanternServiceProvider)
+        .getSelectedServerLocation();
+    result.fold(
+      (error) {
+        appLogger.error('Failed to fetch selected server from radiance: $error');
+      },
+      (location) {
+        state = location;
+      },
+    );
+  }
+
+  void updateServerLocation(ServerLocation entity) {
     final current = state;
     if (entity.serverType != ServerLocationType.auto.name) {
       //Preserve auto location metadata when switching to a non-auto server,
       // so we can show user smart location
-      final updated = entity.copyWith(autoLocation: current.autoLocation);
-      state = updated;
-      await _storage.saveServerLocation(updated);
+      state = entity.copyWith(autoLocation: current.autoLocation);
     } else {
       state = entity;
-      await _storage.saveServerLocation(entity);
     }
   }
 
@@ -40,15 +49,15 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       final result = await ref
           .read(lanternServiceProvider)
           .getAutoServerLocation();
-      await result.fold(
-        (error) async {
+      result.fold(
+        (error) {
           appLogger.error("Failed to fetch auto server location: $error");
         },
-        (autoLocation) async {
+        (autoLocation) {
           final countryName = autoLocation.location!.country;
           final cityName = autoLocation.location!.city;
 
-          await updateServerLocation(
+          updateServerLocation(
             ServerLocation(
               serverType: ServerLocationType.auto.name,
               serverName: '',

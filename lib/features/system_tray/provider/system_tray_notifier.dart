@@ -143,7 +143,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   Future<void> _onSmartLocationSelected() async {
     if (!_checkMacOSExtension()) return;
 
-    await ref
+    ref
         .read(serverLocationProvider.notifier)
         .updateServerLocation(initialServerLocation());
     await ref.read(vpnProvider.notifier).startVPN(force: true);
@@ -168,11 +168,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     return true;
   }
 
-  Future<void> _saveServerLocation(Server server) async {
+  void _saveServerLocation(Server server) {
     final serverLocation = ServerLocation.fromServer(server: server);
-    await ref
-        .read(serverLocationProvider.notifier)
-        .updateServerLocation(serverLocation);
+    ref.read(serverLocationProvider.notifier).updateServerLocation(serverLocation);
   }
 
   /// Build the current location display string (flag emoji + city)

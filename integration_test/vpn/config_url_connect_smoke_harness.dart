@@ -360,30 +360,13 @@ Future<void> runConfigUrlConnectSmokeHarness(
     );
   }
 
-  // If the server was already selected, the app stays on server selection
-  // instead of auto-navigating home. Go back and start the VPN manually.
-  final alreadySelected = finders.homeScreen.evaluate().isEmpty;
-  if (alreadySelected) {
-    await _returnToHome(tester, homeScreen: finders.homeScreen);
-  }
-
+  // Selecting the server should trigger a connect and navigate home.
   await WidgetWaitUtils.waitForFinder(
     tester,
     finders.homeScreen,
     timeout: const Duration(seconds: 60),
     reason: 'Did not return to home screen after selecting joined server',
   );
-
-  if (alreadySelected) {
-    // Server was already selected so tapping it didn't trigger a connect.
-    // Start the VPN explicitly from the home screen.
-    await _tapFinder(
-      tester,
-      finders.vpnToggle,
-      timeout: const Duration(seconds: 15),
-      reason: 'VPN toggle not available to connect already-selected server',
-    );
-  }
 
   await vpnStateFinders.waitFor(
     tester,

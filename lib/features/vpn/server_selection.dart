@@ -206,8 +206,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
-      (_) async {
-        await ref
+      (_) {
+        ref
             .read(serverLocationProvider.notifier)
             .updateServerLocation(
               ServerLocation(
@@ -401,8 +401,8 @@ class _ServerLocationListViewState
       (_) async {
         final vpnStatus = ref.read(vpnProvider);
 
-        Future<void> syncAndPop() async {
-          await ref
+        void syncAndPop() {
+          ref
               .read(serverLocationProvider.notifier)
               .updateServerLocation(
                 ServerLocation.fromServer(server: selectedServer),
@@ -411,17 +411,17 @@ class _ServerLocationListViewState
         }
 
         if (vpnStatus == VPNStatus.connected) {
-          await syncAndPop();
+          syncAndPop();
           return;
         }
 
         ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
           previous,
           next,
-        ) async {
+        ) {
           if (next is AsyncData<LanternStatus> &&
               next.value.status == VPNStatus.connected) {
-            await syncAndPop();
+            syncAndPop();
           }
         });
       },
@@ -683,11 +683,11 @@ class _PrivateServerLocationListViewState
           context.showSnackBar(failure.localizedErrorMessage);
         }
       },
-      (_) async {
+      (_) {
         context.hideLoadingDialog();
         context.showSnackBar('connected_to_private_server'.i18n);
 
-        await ref
+        ref
             .read(serverLocationProvider.notifier)
             .updateServerLocation(
               ServerLocation(

@@ -340,6 +340,12 @@ func GetSelectedServer() string {
 	return s
 }
 
+func GetSelectedServerJSON() ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+		return c.GetSelectedServerJSON()
+	})
+}
+
 func GetAutoLocation() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		server, err := vpn_tunnel.GetAutoLocation(c.Client())
