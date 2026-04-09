@@ -275,8 +275,8 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(VPNSetting());
         break;
       case _SettingType.browserUnbounded:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        UrlUtils.openUrl(AppUrls.unbounded);
+        break;
     }
   }
 

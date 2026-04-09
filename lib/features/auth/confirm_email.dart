@@ -156,11 +156,16 @@ class ConfirmEmail extends HookConsumerWidget {
         validateCode(context, ref, code);
         break;
       case AuthFlow.oauth:
-        throw Exception('OAuth flow should not reach this point');
+        context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+        appLogger.warning(
+          'ConfirmEmail reached OAuth flow unexpectedly while continuing.',
+        );
+        appRouter.popUntilRoot();
+        break;
       case AuthFlow.changeEmail:
         completeChangeEmail(context, ref, code);
       case AuthFlow.renewSubscription:
-        throw UnimplementedError();
+        validateCode(context, ref, code);
     }
   }
 
@@ -248,14 +253,21 @@ class ConfirmEmail extends HookConsumerWidget {
         appRouter.push(LanternProLicense(email: email, code: code));
         break;
       case AuthFlow.oauth:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appLogger.warning(
+          'navigateRoute reached OAuth unexpectedly in ConfirmEmail.',
+        );
+        appRouter.popUntilRoot();
+        break;
       case AuthFlow.changeEmail:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appLogger.warning(
+          'navigateRoute reached changeEmail unexpectedly; flow should complete in place.',
+        );
+        break;
       case AuthFlow.renewSubscription:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(
+          ChoosePaymentMethod(email: email, authFlow: authFlow, code: code),
+        );
+        break;
     }
   }
 
@@ -273,8 +285,9 @@ class ConfirmEmail extends HookConsumerWidget {
         resendChangeEmail(context, ref);
         break;
       case AuthFlow.renewSubscription:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appLogger.info('Resend email for renew subscription to $email');
+        onResendCode(context, ref);
+        break;
     }
   }
 
