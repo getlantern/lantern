@@ -387,11 +387,16 @@ class _ServerLocationListViewState
     result.fold(
       (failure) {
         if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
+          AppDialog.vpnConflictDialog(
             context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              await ref.read(vpnProvider.notifier).connectToServer(
+                    ServerLocationType.lanternLocation,
+                    selectedServer.tag,
+                    skipConflictCheck: true,
+                  );
+            },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
@@ -673,11 +678,16 @@ class _PrivateServerLocationListViewState
       (failure) {
         context.hideLoadingDialog();
         if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
+          AppDialog.vpnConflictDialog(
             context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              await ref.read(vpnProvider.notifier).connectToServer(
+                    ServerLocationType.privateServer,
+                    location.tag,
+                    skipConflictCheck: true,
+                  );
+            },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
