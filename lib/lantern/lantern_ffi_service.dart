@@ -37,12 +37,20 @@ export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
 const Set<String> _ffiOkResults = {'ok', 'true'};
+const String _channelPrefix = 'org.getlantern.lantern';
 
 /// Communicates with the native library via FFI.
 ///
 /// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
+  static const MethodChannel _methodChannel = MethodChannel(
+    '$_channelPrefix/method',
+  );
+  static const EventChannel _systemExtensionStatusChannel = EventChannel(
+    '$_channelPrefix/system_extension_status',
+    JSONMethodCodec(),
+  );
 
   /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
   /// we keep going and fall back to the non-IPC paths.
@@ -1586,21 +1594,57 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> openSystemExtension() {
-    // TODO: implement openSystemExtension
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> openSystemExtension() async {
+    if (!PlatformUtils.isMacOS) {
+      return left(
+        Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is only supported on macOS',
+        ),
+      );
+    }
+    try {
+      final _ = await _methodChannel.invokeMethod<String>(
+        'openSystemExtensionSetting',
+      );
+      appLogger.info('Open System Extension Setting');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error opening system extension setting', e, st);
+      return left(e.toFailure());
+    }
   }
 
   @override
   Stream<MacOSExtensionState> watchSystemExtensionStatus() {
-    // TODO: implement watchSystemExtensionStatus
-    throw UnimplementedError();
+    if (!PlatformUtils.isMacOS) {
+      throw UnimplementedError("This is only supported on macOS");
+    }
+    return _systemExtensionStatusChannel
+        .receiveBroadcastStream()
+        .map(MacOSExtensionState.fromEvent);
   }
 
   @override
-  Future<Either<Failure, Unit>> isSystemExtensionInstalled() {
-    // TODO: implement isSystemExtensionInstalled
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
+    if (!PlatformUtils.isMacOS) {
+      return left(
+        Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is only supported on macOS',
+        ),
+      );
+    }
+    try {
+      final _ = await _methodChannel.invokeMethod<String>(
+        'isSystemExtensionInstalled',
+      );
+      appLogger.info('Check if system extension is installed');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error checking if system extension is installed', e, st);
+      return left(e.toFailure());
+    }
   }
 
   @override
@@ -1694,9 +1738,26 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, List<String>>> diagnosticLogFiles() {
-    // TODO: implement diagnosticLogFiles
-    throw UnimplementedError();
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() async {
+    if (!PlatformUtils.isIOS) {
+      return left(
+        Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'diagnosticLogFiles is only supported on iOS',
+        ),
+      );
+    }
+    try {
+      final files = await _methodChannel.invokeListMethod<String>(
+        'diagnosticLogFiles',
+      );
+      return right(
+        (files ?? const <String>[]).where((path) => path.isNotEmpty).toList(),
+      );
+    } catch (e, st) {
+      appLogger.error('Error fetching diagnostic log files', e, st);
+      return left(e.toFailure());
+    }
   }
 }
 
