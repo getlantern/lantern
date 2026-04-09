@@ -15,6 +15,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
 
+  override init() {
+    super.init()
+    // Query the installed extension state immediately so the initial
+    // status is correct before Flutter subscribes to the stream.
+    // Without this, the @Published status stays .notInstalled until
+    // Flutter explicitly calls checkInstallationStatus(), causing a
+    // race where the UI briefly shows the extension as not installed.
+    submitPropertiesRequest(context: .inspectStatus)
+  }
+
   public func request(
     _ request: OSSystemExtensionRequest,
     actionForReplacingExtension existing: OSSystemExtensionProperties,
