@@ -14,9 +14,9 @@ class AppUrls {
   static String telegramBot = 'https://t.me/lantern_official_bot';
   static String unbounded = 'https://unbounded.lantern.io';
   static const appcastProd =
-      'https://lantern-vpn.s3.amazonaws.com/releases/production/latest/appcast.xml';
+      'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
   static const appcastBeta =
-      'https://lantern-vpn.s3.amazonaws.com/releases/beta/latest/appcast.xml';
+      'https://s3.amazonaws.com/lantern.io/releases/beta/latest/appcast.xml';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
