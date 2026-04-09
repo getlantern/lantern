@@ -20,6 +20,8 @@ replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-wa
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
+replace github.com/getlantern/lantern-box => github.com/getlantern/lantern-box v0.0.59-0.20260409204439-00f7a8cd6cbe
+
 require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/alecthomas/assert/v2 v2.3.0
