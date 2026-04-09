@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/utils/url_utils.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
 import '../utils/widget_wait_utils.dart';
@@ -17,7 +18,7 @@ const _vpnStateLabels = <VPNStatus, String>{
   VPNStatus.error: 'Error',
 };
 
-const _splitTunnelDomain = 'api64.ipify.org';
+const _splitTunnelDomainInput = 'api64.ipify.org';
 const _splitTunnelEndpoint = 'https://api64.ipify.org';
 const _regularEndpoint = 'https://api.ipify.org';
 
@@ -236,6 +237,9 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
       find.byKey(Key('split_tunneling.website.row.${domain.toLowerCase()}'));
   Finder removeWebsiteButton(String domain) =>
       find.byKey(Key('split_tunneling.website.remove.${domain.toLowerCase()}'));
+  final normalizedSplitTunnelDomain = UrlUtils.extractDomain(
+    _splitTunnelDomainInput,
+  );
 
   await prepareVpnStartsDisconnectedForSmoke(
     tester,
@@ -298,11 +302,11 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     reason: 'Website split tunneling screen did not open',
   );
 
-  final existingRow = websiteRow(_splitTunnelDomain);
+  final existingRow = websiteRow(normalizedSplitTunnelDomain);
   if (existingRow.evaluate().isNotEmpty) {
     await _tapFinder(
       tester,
-      removeWebsiteButton(_splitTunnelDomain),
+      removeWebsiteButton(normalizedSplitTunnelDomain),
       timeout: const Duration(seconds: 10),
       reason: 'Remove website button was not tappable',
     );
@@ -317,7 +321,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   await _enterTextField(
     tester,
     field: find.byKey(websiteInputKey),
-    value: _splitTunnelDomain,
+    value: _splitTunnelDomainInput,
     reason: 'Website input field was not available',
   );
   await _tapFinder(
@@ -328,7 +332,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   );
   await WidgetWaitUtils.waitForFinder(
     tester,
-    websiteRow(_splitTunnelDomain),
+    websiteRow(normalizedSplitTunnelDomain),
     timeout: const Duration(seconds: 20),
     reason: 'New website split-tunnel rule was not visible after add',
   );
