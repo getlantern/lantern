@@ -80,7 +80,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       // new extension while the old one is pending removal. Without this,
       // the activation chain breaks and the user gets stuck after reboot
       // with no enabled extension.
-      if case .deactivateThenActivate(_, true) = context {
+      if case .deactivateThenActivate(_, true)? = context {
         appLogger.info("Deactivation needs reboot, but still attempting activation of bundled extension")
         submitActivationRequest(reason: "activating bundled extension while old version awaits reboot removal")
         return
