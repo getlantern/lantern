@@ -24,7 +24,12 @@ public class SystemExtensionStatusEventHandler: NSObject, FlutterPlugin, Flutter
     -> FlutterError?
   {
 
+    // Drop the first (unverified) value — the @Published property starts at
+    // .notInstalled before the init-time properties query completes. Without
+    // this, Flutter briefly sees .notInstalled and may show the installation
+    // dialog even when the extension is already installed.
     cancellable = SystemExtensionManager.shared.$status
+      .dropFirst()
       .sink { sysStatus in
         appLogger.info(
           "SystemExtensionStatusEvent received status: \(sysStatus.logDescription)")
