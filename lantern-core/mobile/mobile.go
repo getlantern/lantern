@@ -32,22 +32,31 @@ func getCore() (lanterncore.Core, error) {
 }
 
 // withCore is a helper function that provides access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCore(fn func(c lanterncore.Core) error) error {
-	c, err := getCore()
-	if err != nil {
-		return err
-	}
-	return fn(c)
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		c, err := getCore()
+		if err != nil {
+			return struct{}{}, err
+		}
+		return struct{}{}, fn(c)
+	})
+	return err
 }
 
 // withCoreR is a helper function that provides type-safe access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
-	var zero T
-	c, err := getCore()
-	if err != nil {
-		return zero, err
-	}
-	return fn(c)
+	return common.RunOffCgoStack(func() (T, error) {
+		c, err := getCore()
+		if err != nil {
+			var zero T
+			return zero, err
+		}
+		return fn(c)
+	})
 }
 
 // panicRecover is a helper function that recovers from panics and logs the error.
