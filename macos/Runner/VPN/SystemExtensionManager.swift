@@ -21,7 +21,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   /// Whether the initial properties query has completed. While false,
   /// the @Published status holds a placeholder and should not be relied
   /// upon — the event handler skips emission until this flips to true.
-  private(set) var initialized = false
+  @Published private(set) var initialized = false
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
 
