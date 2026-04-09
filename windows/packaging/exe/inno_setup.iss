@@ -291,9 +291,6 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Run]
-; Stop existing service if running before reinstalling
-Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden
-
 ; Install LanternSvc service (creates Windows service, sets recovery actions, starts it)
 Filename: "{code:LanterndExecutablePath}"; Parameters: "install"; Flags: runhidden
 
@@ -417,22 +414,22 @@ begin
   end;
 end;
 
-procedure StopAndDeleteLegacyService;
+procedure StopAndDeleteService;
 var
   ExitCode: Integer;
 begin
-  ExecSc('stop "{#LegacySvcName}"', ExitCode);
-  ExecSc('delete "{#LegacySvcName}"', ExitCode);
+  ExecSc('stop "{#SvcName}"', ExitCode);
+  ExecSc('delete "{#SvcName}"', ExitCode);
 end;
 
-function WaitForLegacyServiceDelete(const TimeoutMs: Integer): Boolean;
+function WaitForServiceDelete(const TimeoutMs: Integer): Boolean;
 var
   ExitCode: Integer;
   ElapsedMs: Integer;
 begin
   ElapsedMs := 0;
   while ElapsedMs <= TimeoutMs do begin
-    if ExecSc('query "{#LegacySvcName}"', ExitCode) then begin
+    if ExecSc('query "{#SvcName}"', ExitCode) then begin
       // SERVICE_DOES_NOT_EXIST
       if ExitCode = 1060 then begin
         Result := True;
@@ -451,10 +448,10 @@ begin
     exit;
   end;
 
-  Log('Pre-install legacy service cleanup started');
-  StopAndDeleteLegacyService;
-  if not WaitForLegacyServiceDelete(ServiceDeleteTimeoutMs) then begin
-    Log('Timed out waiting for legacy service deletion; continuing install');
+  Log('Pre-install service cleanup started');
+  StopAndDeleteService;
+  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
+    Log('Timed out waiting for service deletion; continuing install');
   end;
 end;
 
