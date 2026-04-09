@@ -208,17 +208,29 @@ class EventHandler : FlutterPlugin {
         logsChannel?.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 logsJob = eventScope.launch {
-                    var lastSent: List<String>? = null
-                       while (isActive) {
-                        val latest = logsTailer.tail(logFile, 80)
-                        if (latest != lastSent) {
-                            lastSent = latest
+                    // Send initial batch of last 200 lines, matching iOS/macOS behaviour
+                    val initial = logsTailer.tail(logFile, 200)
+                    if (initial.isNotEmpty()) {
+                        withContext(Dispatchers.Main) { events?.success(initial) }
+                    }
 
-                            withContext(Dispatchers.Main) {
-                                events?.success(latest)
+                    // Track offset so we only send NEW lines on each poll (delta, not snapshot)
+                    var fileOffset = logFile.length()
+
+                    while (isActive) {
+                        delay(1000)
+                        val currentSize = logFile.length()
+                        if (currentSize < fileOffset) {
+                            // File was rotated or truncated — reset
+                            fileOffset = 0
+                        }
+                        if (currentSize > fileOffset) {
+                            val newLines = readLinesSinceOffset(logFile, fileOffset)
+                            fileOffset = currentSize
+                            if (newLines.isNotEmpty()) {
+                                withContext(Dispatchers.Main) { events?.success(newLines) }
                             }
                         }
-                        delay(1000)  // adjust if needed
                     }
                 }
             }
@@ -227,5 +239,32 @@ class EventHandler : FlutterPlugin {
                 logsJob?.cancel()
             }
         })
+    }
+
+    private fun readLinesSinceOffset(file: File, offset: Long): List<String> {
+        if (!file.exists() || offset < 0 || file.length() <= offset) return emptyList()
+        return try {
+            java.io.RandomAccessFile(file, "r").use { raf ->
+                raf.seek(offset)
+                val lines = mutableListOf<String>()
+                java.io.BufferedReader(
+                    java.io.InputStreamReader(
+                        java.nio.channels.Channels.newInputStream(raf.channel),
+                        Charsets.UTF_8,
+                    )
+                ).use { reader ->
+                    var line = reader.readLine()
+                    while (line != null) {
+                        val trimmed = line.trimEnd('\r')
+                        if (trimmed.isNotEmpty()) lines.add(trimmed)
+                        line = reader.readLine()
+                    }
+                }
+                lines
+            }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error reading new log lines: ${e.message}")
+            emptyList()
+        }
     }
 }

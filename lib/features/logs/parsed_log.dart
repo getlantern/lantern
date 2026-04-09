@@ -9,10 +9,11 @@ class ParsedLog {
   ParsedLog(this.level, this.id, this.duration, this.message);
 }
 
+final _logFieldRegex = RegExp(r'(\w+)=(".*?"|\S+)');
+
 ParsedLog? parseLogLine(String line) {
-  final regex = RegExp(r'(\w+)=(".*?"|\S+)');
   final fields = {
-    for (final m in regex.allMatches(line))
+    for (final m in _logFieldRegex.allMatches(line))
       m.group(1)!: m.group(2)!.replaceAll('"', '')
   };
 

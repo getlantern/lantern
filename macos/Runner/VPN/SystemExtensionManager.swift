@@ -7,13 +7,30 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
   private let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
+  /// All access to requestContexts must go through contextQueue to avoid
+  /// data races between init (possibly off main thread) and delegate
+  /// callbacks (delivered on main queue).
   private var requestContexts: [ObjectIdentifier: RequestContext] = [:]
+  private let contextQueue = DispatchQueue(
+    label: "org.getlantern.lantern.SystemExtensionManager.contexts"
+  )
   private let reconciliationQueue = DispatchQueue(
     label: "org.getlantern.lantern.SystemExtensionManager.reconciliation",
     qos: .utility
   )
+  /// Whether the initial properties query has completed. While false,
+  /// the @Published status holds a placeholder and should not be relied
+  /// upon — the event handler skips emission until this flips to true.
+  @Published private(set) var initialized = false
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
+
+  override init() {
+    super.init()
+    // Query the installed extension state immediately so the status
+    // is resolved before Flutter subscribes to the stream.
+    submitPropertiesRequest(context: .inspectStatus)
+  }
 
   public func request(
     _ request: OSSystemExtensionRequest,
@@ -75,6 +92,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         submitPropertiesRequest(context: .inspectStatus)
       }
     case .willCompleteAfterReboot:
+      // Even when the deactivation needs a reboot, still attempt activation
+      // if we were in a deactivate-then-activate flow. macOS can queue the
+      // new extension while the old one is pending removal. Without this,
+      // the activation chain breaks and the user gets stuck after reboot
+      // with no enabled extension.
+      if case .deactivateThenActivate(_, true)? = context {
+        appLogger.info("Deactivation needs reboot, but still attempting activation of bundled extension")
+        submitActivationRequest(reason: "activating bundled extension while old version awaits reboot removal")
+        return
+      }
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
       updateStatus(.requiresReboot(details: details))
     @unknown default:
@@ -201,18 +228,18 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func submit(_ request: OSSystemExtensionRequest, context: RequestContext) {
     request.delegate = self
-    requestContexts[ObjectIdentifier(request)] = context
+    contextQueue.sync { requestContexts[ObjectIdentifier(request)] = context }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
   private func requestContext(for request: OSSystemExtensionRequest) -> RequestContext? {
-    requestContexts[ObjectIdentifier(request)]
+    contextQueue.sync { requestContexts[ObjectIdentifier(request)] }
   }
 
   @discardableResult
   private func clearRequestContext(for request: OSSystemExtensionRequest) -> RequestContext? {
-    requestContexts.removeValue(forKey: ObjectIdentifier(request))
+    contextQueue.sync { requestContexts.removeValue(forKey: ObjectIdentifier(request)) }
   }
 
   private func perform(_ action: SystemExtensionInstallAction) {
@@ -242,6 +269,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   private func updateStatus(_ newStatus: ExtensionStatus) {
+    initialized = true
     guard status != newStatus else {
       return
     }
@@ -538,10 +566,19 @@ internal enum SystemExtensionReconciler {
     }
 
     if installed.contains(where: \.isUninstalling) {
+      if enabled == nil {
+        // Old extension is uninstalling but nothing is enabled — don't just wait
+        // for a reboot that may never clear the state. Submit an activation request
+        // so macOS can install the bundled extension alongside the pending removal.
+        return SystemExtensionReconciliation(
+          status: .updatePending(details: "old extension is uninstalling, replacement activation pending"),
+          action: .activate(reason: "activate bundled extension while old version awaits removal"),
+          change: .install)
+      }
       return SystemExtensionReconciliation(
         status: .requiresReboot(details: "system extension changes are waiting on a reboot"),
         action: .none,
-        change: enabled == nil ? .install : classifyChange(current: enabled, desired: bundled))
+        change: classifyChange(current: enabled, desired: bundled))
     }
 
     guard !installed.isEmpty else {

@@ -408,7 +408,16 @@ class PipeClient {
                   (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
               if (lines.isNotEmpty) sink.add(lines);
             }
-          } catch (_) {}
+          } catch (e) {
+            appLogger.error('[PipeClient] failed to parse pipe line: $line', e);
+          }
+        },
+        handleError: (e, st, sink) {
+          appLogger.error('[PipeClient] watchLogs stream error', e, st);
+          sink.addError(e, st);
+        },
+        handleDone: (sink) {
+          sink.close();
         },
       ),
     );

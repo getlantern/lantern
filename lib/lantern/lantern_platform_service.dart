@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -53,13 +52,6 @@ class LanternPlatformService implements LanternCoreService {
     JSONMethodCodec(),
   );
   static final RegExp _newlineRegex = RegExp(r'\r?\n');
-  static const int _maxBufferedLines = 4000;
-
-  // Fraction of lines to keep when trimming the buffer.
-  static const double _keepFraction = 0.25;
-
-  // Backwards-compatible alias; prefer `_keepFraction` in new code.
-  static const double _trimFraction = _keepFraction;
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
@@ -81,6 +73,7 @@ class LanternPlatformService implements LanternCoreService {
     _appEventStatus = appEventStatusChannel.receiveBroadcastStream().map(
       (event) => AppEvent.fromJson(event),
     );
+
 
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
@@ -183,6 +176,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
   Future<Either<Failure, String>> stopVPN() async {
     try {
       final _ = await _methodChannel.invokeMethod<String>('stopVPN');
@@ -200,32 +194,9 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) async* {
-    final buffer = <String>[];
-
-    final stream = logsChannel.receiveBroadcastStream();
-
-    await for (final event in stream) {
-      final batch = _coerceLogBatch(event);
-      if (batch.isEmpty) continue;
-
-      buffer.addAll(batch);
-
-      // Trim to last N lines
-      if (buffer.length > _maxBufferedLines) {
-        // Instead of removing only the excess, drop a chunk to reduce how
-        // often we shift the list
-        final targetLen = (_maxBufferedLines * (1.0 - _trimFraction)).round();
-        final removeCount = math.max(0, buffer.length - targetLen);
-        if (removeCount > 0) {
-          buffer.removeRange(0, removeCount);
-        }
-      }
-
-      // Emit the current buffered logs on every batch
-      yield List<String>.unmodifiable(buffer);
-    }
-  }
+  Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
+        logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
+      );
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {

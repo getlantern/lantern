@@ -23,6 +23,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/wintunmgr"
 
 	rcommon "github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/settings"
 )
 
 const (
@@ -71,6 +72,7 @@ func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
 	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
+		LogDir:   settings.GetString(settings.LogPathKey),
 	}, wt)
 	return wt, s, nil
 }
