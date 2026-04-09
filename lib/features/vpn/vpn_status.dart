@@ -75,9 +75,7 @@ class VpnStatus extends HookConsumerWidget {
     if (!PlatformUtils.isMacOS) {
       return false;
     }
-    return (PlatformUtils.isMacOS &&
-        systemExtensionStatus.status != SystemExtensionStatus.installed &&
-        systemExtensionStatus.status != SystemExtensionStatus.activated);
+    return !systemExtensionStatus.isReady;
   }
 
   Color getStatusColor(VPNStatus vpnStatus, BuildContext context) {

@@ -36,16 +36,26 @@ validate_semver() {
 
 get_latest_version() {
   local type="$1"
-  local pattern
+  local tag=""
 
   case "$type" in
   production)
     # Match v9.0.11, v9.0.11-macos, etc. (but not v9.0.11-beta)
-    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' | grep -v -E -- '-beta|T.*Z' | sort -V | tail -1)
+    tag=$(
+      git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' \
+      | awk '!/-beta/ && !/T.*Z/' \
+      | sort -V \
+      | tail -1
+    )
     ;;
   beta)
     # Match v9.0.11-beta, v9.0.11-beta-macos, etc. (but not nightly with timestamps)
-    local tag=$(git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-beta' 'v[0-9]*\.[0-9]*\.[0-9]*-beta-*' | grep -v -E -- 'T.*Z' | sort -V | tail -1)
+    tag=$(
+      git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-beta' 'v[0-9]*\.[0-9]*\.[0-9]*-beta-*' \
+      | awk '!/T.*Z/' \
+      | sort -V \
+      | tail -1
+    )
     ;;
   *)
     echo "Error: Unknown type '$type'" >&2
@@ -53,7 +63,11 @@ get_latest_version() {
     ;;
   esac
 
-  [[ -n "$tag" ]] && extract_basever "$tag"
+  if [[ -n "$tag" ]]; then
+    extract_basever "$tag"
+  fi
+
+  return 0
 }
 
 increment_patch() {

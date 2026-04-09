@@ -230,6 +230,21 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
+.PHONY: macos-unit-tests
+macos-unit-tests: $(MACOS_FRAMEWORK_BUILD)
+	@echo "Preparing macOS test project..."
+	flutter build macos --debug --config-only
+	@echo "Running macOS Runner unit tests..."
+	xcodebuild test \
+		-workspace macos/Runner.xcworkspace \
+		-scheme Runner \
+		-configuration Debug \
+		-destination "platform=macOS" \
+		-only-testing:RunnerTests \
+		CODE_SIGNING_ALLOWED=NO \
+		CODE_SIGNING_REQUIRED=NO \
+		CODE_SIGN_IDENTITY=""
+
 $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
 	rm -vf $(MACOS_INSTALLER)
