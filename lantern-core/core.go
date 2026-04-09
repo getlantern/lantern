@@ -42,6 +42,7 @@ const (
 type LanternCore struct {
 	rad           *radiance.Radiance
 	splitTunnel   *vpn.SplitTunnel
+	splitTunnelMu sync.Mutex
 	serverManager *servers.Manager
 	apiClient     *api.APIClient
 	initOnce      sync.Once
@@ -427,11 +428,12 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 // SetSplitTunnelingEnabled turns split tunneling on or off for this device
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 	var err error
-	if enabled {
-		err = lc.splitTunnel.Enable()
-	} else {
-		err = lc.splitTunnel.Disable()
-	}
+	err = lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		if enabled {
+			return st.Enable()
+		}
+		return st.Disable()
+	})
 	if err != nil {
 		slog.Error("failed to update split tunneling state", "enabled", enabled, "error", err)
 		return
@@ -441,7 +443,15 @@ func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
 
 // IsSplitTunnelingEnabled returns whether split tunneling is currently enabled
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
-	return lc.splitTunnel.IsEnabled()
+	enabled := false
+	if err := lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		enabled = st.IsEnabled()
+		return nil
+	}); err != nil {
+		slog.Warn("failed to read split tunneling state", "error", err)
+		return false
+	}
+	return enabled
 }
 
 // AddSplitTunnelItem adds a single split tunnel rule
@@ -450,10 +460,17 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	if normalizedItem == "" {
 		return fmt.Errorf("split tunnel item is empty")
 	}
-	if err := lc.splitTunnel.AddItem(filterType, normalizedItem); err != nil {
+	shouldRestart := false
+	if err := lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		if err := st.AddItem(filterType, normalizedItem); err != nil {
+			return err
+		}
+		shouldRestart = isDomainSplitTunnelFilterType(filterType) && st.IsEnabled()
+		return nil
+	}); err != nil {
 		return err
 	}
-	if isDomainSplitTunnelFilterType(filterType) && lc.splitTunnel.IsEnabled() {
+	if shouldRestart {
 		lc.maybeRestartTunnelAfterSplitTunnelChange("add-domain-split-tunnel-item")
 	}
 	return nil
@@ -478,7 +495,9 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 		}
 	}
 
-	return lc.splitTunnel.AddItems(vpnFilter)
+	return lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		return st.AddItems(vpnFilter)
+	})
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
@@ -498,7 +517,9 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 			PackageName: split,
 		}
 	}
-	return lc.splitTunnel.RemoveItems(vpnFilter)
+	return lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		return st.RemoveItems(vpnFilter)
+	})
 }
 
 // RemoveSplitTunnelItem removes a single split tunnel rule
@@ -507,10 +528,17 @@ func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	if normalizedItem == "" {
 		return nil
 	}
-	if err := lc.splitTunnel.RemoveItem(filterType, normalizedItem); err != nil {
+	shouldRestart := false
+	if err := lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		if err := st.RemoveItem(filterType, normalizedItem); err != nil {
+			return err
+		}
+		shouldRestart = isDomainSplitTunnelFilterType(filterType) && st.IsEnabled()
+		return nil
+	}); err != nil {
 		return err
 	}
-	if isDomainSplitTunnelFilterType(filterType) && lc.splitTunnel.IsEnabled() {
+	if shouldRestart {
 		lc.maybeRestartTunnelAfterSplitTunnelChange("remove-domain-split-tunnel-item")
 	}
 	return nil
@@ -1002,8 +1030,8 @@ func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
 	return string(b), nil
 }
 
-func (lc *LanternCore) splitTunnelHandler() (*vpn.SplitTunnel, error) {
-	if lc.splitTunnel != nil {
+func (lc *LanternCore) splitTunnelHandlerLocked(reload bool) (*vpn.SplitTunnel, error) {
+	if !reload && lc.splitTunnel != nil {
 		return lc.splitTunnel, nil
 	}
 	st, err := vpn.NewSplitTunnelHandler()
@@ -1014,12 +1042,30 @@ func (lc *LanternCore) splitTunnelHandler() (*vpn.SplitTunnel, error) {
 	return st, nil
 }
 
+func (lc *LanternCore) withSplitTunnel(reload bool, fn func(*vpn.SplitTunnel) error) error {
+	lc.splitTunnelMu.Lock()
+	defer lc.splitTunnelMu.Unlock()
+	st, err := lc.splitTunnelHandlerLocked(reload)
+	if err != nil {
+		return err
+	}
+	return fn(st)
+}
+
 func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
-	st, err := lc.splitTunnelHandler()
+	var out string
+	err := lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		items, err := st.ItemsJSON(filterType)
+		if err != nil {
+			return err
+		}
+		out = items
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
-	return st.ItemsJSON(filterType)
+	return out, nil
 }
 
 func jsonNumberToIntString(f float64) string {
@@ -1060,11 +1106,19 @@ func (lc *LanternCore) GetAppDataDir() string {
 }
 
 func (lc *LanternCore) GetEnabledApps() (string, error) {
-	st, err := lc.splitTunnelHandler()
+	var out string
+	err := lc.withSplitTunnel(true, func(st *vpn.SplitTunnel) error {
+		enabled, err := st.EnabledAppsJSON()
+		if err != nil {
+			return err
+		}
+		out = enabled
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
-	return st.EnabledAppsJSON()
+	return out, nil
 }
 
 // fixStaleSettingsFilePath corrects a stale "file_path" entry in local.json that can
