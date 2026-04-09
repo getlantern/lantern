@@ -15,8 +15,9 @@ class WebsiteDomainInput extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
 
     void showSnackbar(String message) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
 
     // validate URL and extract the domain before adding it to the
@@ -92,12 +93,14 @@ class WebsiteDomainInput extends HookConsumerWidget {
           children: [
             Expanded(
               child: AppTextField(
+                fieldKey: const Key('split_tunneling.website.input'),
                 prefixIcon: AppImagePaths.web,
                 controller: textController,
                 hintText: '',
               ),
             ),
             AppTextButton(
+              key: const Key('split_tunneling.website.add_button'),
               label: 'add'.i18n,
               textColor: context.textPrimary,
               onPressed: validateAndExtractDomain,

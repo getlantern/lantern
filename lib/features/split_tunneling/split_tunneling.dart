@@ -24,8 +24,9 @@ class SplitTunneling extends HookConsumerWidget {
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
             .toList(growable: false);
 
-    final enabledWebsites =
-        (ref.watch(splitTunnelingWebsitesProvider)).toList(growable: false);
+    final enabledWebsites = (ref.watch(
+      splitTunnelingWebsitesProvider,
+    )).toList(growable: false);
 
     final notifier = ref.read(appSettingProvider.notifier);
 
@@ -36,6 +37,7 @@ class SplitTunneling extends HookConsumerWidget {
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
+        key: const Key('split_tunneling.screen'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -44,6 +46,7 @@ class SplitTunneling extends HookConsumerWidget {
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('split_tunneling.enable_tile'),
                   label: 'split_tunneling'.i18n,
                   tileTextStyle: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
@@ -61,6 +64,7 @@ class SplitTunneling extends HookConsumerWidget {
                   ),
                   onPressed: toggleSplitTunneling,
                   trailing: SwitchButton(
+                    key: const Key('split_tunneling.enable_toggle'),
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
                       final v = value ?? false;
@@ -74,6 +78,7 @@ class SplitTunneling extends HookConsumerWidget {
                 if (splitTunnelingEnabled) ...{
                   DividerSpace(),
                   SplitTunnelingTile(
+                    tileKey: const Key('split_tunneling.apps_tile'),
                     icon: AppImagePaths.keypad,
                     label: 'apps'.i18n,
                     actionText: '${enabledApps.length} Added',
@@ -81,12 +86,13 @@ class SplitTunneling extends HookConsumerWidget {
                   ),
                   DividerSpace(),
                   SplitTunnelingTile(
+                    tileKey: const Key('split_tunneling.websites_tile'),
                     icon: AppImagePaths.world,
                     label: 'websites'.i18n,
                     actionText: '${enabledWebsites.length} Added',
                     onPressed: () => appRouter.push(WebsiteSplitTunneling()),
                   ),
-                }
+                },
               ],
             ),
           ),

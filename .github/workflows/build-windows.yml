@@ -18,7 +18,7 @@ on:
         type: boolean
         default: false
       enable_ip_check:
-        description: "Enable public IP change validation in Windows smoke test"
+        description: "Enable public IP change validation in Windows smoke suite"
         required: false
         type: boolean
         default: false
@@ -234,7 +234,7 @@ jobs:
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
-      - name: Windows installer + UI connect/disconnect integration
+      - name: Windows installer smoke suite
         shell: pwsh
         timeout-minutes: 30
         env:
@@ -245,9 +245,9 @@ jobs:
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           if ("${{ inputs.enable_ip_check }}" -eq "true") {
-            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
+            ./.github/scripts/windows_smoke_suite.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
           } else {
-            ./.github/scripts/windows_connect_smoke.ps1 -UseInstaller -InstallerPath $installerPath
+            ./.github/scripts/windows_smoke_suite.ps1 -UseInstaller -InstallerPath $installerPath
           }
 
       - name: Sign installer
