@@ -180,11 +180,12 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.action, .none)
   }
 
-  func testReconcileRequiresRebootWhenInstalledExtensionIsUninstalling() {
+  func testReconcileRequiresRebootWhenEnabledExtensionIsUninstalling() {
     let bundled = makeDescriptor(build: "220", hash: "hash-a")
     let uninstalling = makeDescriptor(
       build: "220",
       hash: "hash-b",
+      isEnabled: true,
       isUninstalling: true
     )
 
@@ -198,6 +199,24 @@ final class RunnerTests: XCTestCase {
       contains: "waiting on a reboot"
     )
     XCTAssertEqual(reconciliation.action, .none)
+  }
+
+  func testReconcileActivatesWhenUninstallingButNoneEnabled() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let uninstalling = makeDescriptor(
+      build: "210",
+      hash: "hash-b",
+      isUninstalling: true
+    )
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [uninstalling]
+    )
+
+    assertUpdatePending(reconciliation.status, contains: "uninstalling")
+    assertActivate(reconciliation.action, contains: "activate")
+    XCTAssertEqual(reconciliation.change, .install)
   }
 
   func testReconcileActivatesBundledExtensionWhenInstalledVersionIsNotEnabled() {

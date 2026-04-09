@@ -24,7 +24,7 @@ class LanternServiceWindows {
   Future<void> init() async {
     try {
       appLogger.info('[WS] RPC connect()…');
-      await _rpcPipe.connect().timeout(const Duration(seconds: 5));
+      await _rpcPipe.connect();
       appLogger.info('[WS] RPC connected. token=${_rpcPipe.token}');
     } catch (e, st) {
       appLogger.error('[WS] RPC connect() failed', e, st);

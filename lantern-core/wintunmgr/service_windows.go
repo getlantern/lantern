@@ -56,7 +56,7 @@ type logsEvent struct {
 	Ts    int64    `json:"ts"`
 }
 
-// concurrentEncoder ensures that multiple goroutines can safely write JSON responses to the
+// concurrentEncoder lets multiple goroutines write JSON responses to the
 // IPC stream sequentially without colliding and corrupting the data.
 type concurrentEncoder struct {
 	mu  sync.Mutex
@@ -93,7 +93,24 @@ func (s *Service) getToken() (string, error) {
 		return token, nil
 	}
 	b, err := os.ReadFile(s.opts.TokenPath)
-	return strings.TrimSpace(string(b)), err
+	if err != nil {
+		return "", err
+	}
+	token := strings.TrimSpace(string(b))
+	if token != "" {
+		return token, nil
+	}
+
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	token = base64.RawURLEncoding.EncodeToString(buf)
+	if err := os.WriteFile(s.opts.TokenPath, []byte(token), 0o600); err != nil {
+		return "", err
+	}
+	slog.Warn("IPC token file was empty, regenerated token", "token_path", s.opts.TokenPath)
+	return token, nil
 }
 
 func (s *Service) Start(ctx context.Context) error {
