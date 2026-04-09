@@ -1520,3 +1520,6 @@ msgstr "Another VPN is running on your device. Lantern works best as your only a
 
 msgid "vpn_conflict_dismiss"
 msgstr "Got it"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"
