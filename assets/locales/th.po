@@ -1604,3 +1604,6 @@ msgstr "บัญชีของคุณถูกลบอย่างถาว
 
 msgid "verify_with"
 msgstr "ยืนยันด้วย %s"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

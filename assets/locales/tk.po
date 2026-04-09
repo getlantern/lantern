@@ -1617,3 +1617,6 @@ msgstr "Hasabyňyz hemişelik pozuldy."
 
 msgid "verify_with"
 msgstr "%s bilen tassyklaň"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

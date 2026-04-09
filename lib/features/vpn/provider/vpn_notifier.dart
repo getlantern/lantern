@@ -117,7 +117,7 @@ class VpnNotifier extends _$VpnNotifier {
       );
       return lantern.startVPN();
     }
-    return connectToServer(type, tag);
+    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
 
   /// Connects to a specific server location.

@@ -1642,3 +1642,6 @@ msgstr "Akaun anda telah dipadamkan secara kekal. "
 
 msgid "verify_with"
 msgstr "Sahkan dengan %s"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

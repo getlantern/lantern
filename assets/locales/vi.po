@@ -1635,3 +1635,6 @@ msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
 
 msgid "verify_with"
 msgstr "Xác minh với %s"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

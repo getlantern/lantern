@@ -105,9 +105,18 @@ class VPNSwitch extends HookConsumerWidget {
             context: context,
             onConnectAnyway: () async {
               appRouter.maybePop();
-              await ref
+              final retryResult = await ref
                   .read(vpnProvider.notifier)
                   .startVPN(skipConflictCheck: true);
+              if (!context.mounted) return;
+              retryResult.fold(
+                (failure) {
+                  context.showSnackBar(failure.localizedErrorMessage);
+                  appLogger.error(
+                      "Error changing VPN state: ${failure.localizedErrorMessage}");
+                },
+                (_) => null,
+              );
             },
           );
         } else {

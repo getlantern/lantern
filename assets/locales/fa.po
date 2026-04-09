@@ -1630,3 +1630,6 @@ msgstr "حساب شما به طور دائمی حذف شده است."
 
 msgid "verify_with"
 msgstr "تأیید با %s"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

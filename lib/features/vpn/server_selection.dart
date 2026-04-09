@@ -391,45 +391,52 @@ class _ServerLocationListViewState
             context: context,
             onConnectAnyway: () async {
               appRouter.maybePop();
-              await ref.read(vpnProvider.notifier).connectToServer(
-                    ServerLocationType.lanternLocation,
-                    selectedServer.tag,
-                    skipConflictCheck: true,
-                  );
+              final retryResult =
+                  await ref.read(vpnProvider.notifier).connectToServer(
+                        ServerLocationType.lanternLocation,
+                        selectedServer.tag,
+                        skipConflictCheck: true,
+                      );
+              retryResult.fold(
+                (failure) => context.showSnackBar(failure.localizedErrorMessage),
+                (_) => _onLanternServerConnected(ref, selectedServer),
+              );
             },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
         }
       },
-      (_) async {
-        final vpnStatus = ref.read(vpnProvider);
-
-        Future<void> syncAndPop() async {
-          await ref
-              .read(serverLocationProvider.notifier)
-              .updateServerLocation(
-                ServerLocation.fromLanternLocation(server: selectedServer),
-              );
-          appRouter.popUntilRoot();
-        }
-
-        if (vpnStatus == VPNStatus.connected) {
-          await syncAndPop();
-          return;
-        }
-
-        ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
-          previous,
-          next,
-        ) async {
-          if (next is AsyncData<LanternStatus> &&
-              next.value.status == VPNStatus.connected) {
-            await syncAndPop();
-          }
-        });
-      },
+      (_) => _onLanternServerConnected(ref, selectedServer),
     );
+  }
+
+  void _onLanternServerConnected(WidgetRef ref, Location_ selectedServer) {
+    final vpnStatus = ref.read(vpnProvider);
+
+    Future<void> syncAndPop() async {
+      await ref
+          .read(serverLocationProvider.notifier)
+          .updateServerLocation(
+            ServerLocation.fromLanternLocation(server: selectedServer),
+          );
+      appRouter.popUntilRoot();
+    }
+
+    if (vpnStatus == VPNStatus.connected) {
+      syncAndPop();
+      return;
+    }
+
+    ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
+      previous,
+      next,
+    ) async {
+      if (next is AsyncData<LanternStatus> &&
+          next.value.status == VPNStatus.connected) {
+        await syncAndPop();
+      }
+    });
   }
 }
 
@@ -682,36 +689,46 @@ class _PrivateServerLocationListViewState
             context: context,
             onConnectAnyway: () async {
               appRouter.maybePop();
-              await ref.read(vpnProvider.notifier).connectToServer(
-                    ServerLocationType.privateServer,
-                    location.tag,
-                    skipConflictCheck: true,
-                  );
+              final retryResult =
+                  await ref.read(vpnProvider.notifier).connectToServer(
+                        ServerLocationType.privateServer,
+                        location.tag,
+                        skipConflictCheck: true,
+                      );
+              retryResult.fold(
+                (failure) {
+                  context.hideLoadingDialog();
+                  context.showSnackBar(failure.localizedErrorMessage);
+                },
+                (_) => _onPrivateServerConnected(ref, location),
+              );
             },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
         }
       },
-      (_) async {
-        context.hideLoadingDialog();
-        context.showSnackBar('connected_to_private_server'.i18n);
-
-        await ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation(
-                serverType: ServerLocationType.privateServer.name,
-                serverName: location.tag,
-                country: location.country,
-                city: location.city,
-                countryCode: location.countryCode,
-                protocol: location.protocol,
-              ),
-            );
-        appRouter.popUntilRoot();
-      },
+      (_) => _onPrivateServerConnected(ref, location),
     );
+  }
+
+  void _onPrivateServerConnected(WidgetRef ref, Location_ location) async {
+    context.hideLoadingDialog();
+    context.showSnackBar('connected_to_private_server'.i18n);
+
+    await ref
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(
+          ServerLocation(
+            serverType: ServerLocationType.privateServer.name,
+            serverName: location.tag,
+            country: location.country,
+            city: location.city,
+            countryCode: location.countryCode,
+            protocol: location.protocol,
+          ),
+        );
+    appRouter.popUntilRoot();
   }
 }
 

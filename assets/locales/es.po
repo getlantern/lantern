@@ -1653,3 +1653,6 @@ msgstr "Tu cuenta ha sido eliminada permanentemente. "
 
 msgid "verify_with"
 msgstr "Verificar con %s"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

@@ -1630,3 +1630,6 @@ msgstr "Hesabınız kalıcı olarak silindi."
 
 msgid "verify_with"
 msgstr "%s ile doğrula"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"

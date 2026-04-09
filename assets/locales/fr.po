@@ -1516,3 +1516,6 @@ msgstr ""
 
 msgid "expired"
 msgstr "Expiré"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Connect Anyway"
