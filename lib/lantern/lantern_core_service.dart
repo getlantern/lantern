@@ -12,6 +12,26 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
 
+const int _maxBufferedLogLines = 1000;
+const double _logTrimFraction = 0.25;
+
+/// Accumulates batches from [batches] into a growing buffer and re-emits the
+/// full buffer on every update. When the buffer exceeds [_maxBufferedLogLines]
+/// the oldest [_logTrimFraction] of lines are dropped in one go to reduce how
+/// often the list is shifted.
+Stream<List<String>> accumulateLogBatches(Stream<List<String>> batches) async* {
+  final buffer = <String>[];
+  await for (final batch in batches) {
+    if (batch.isEmpty) continue;
+    buffer.addAll(batch);
+    if (buffer.length > _maxBufferedLogLines) {
+      final targetLen = (_maxBufferedLogLines * (1.0 - _logTrimFraction)).round();
+      buffer.removeRange(0, buffer.length - targetLen);
+    }
+    yield List<String>.unmodifiable(buffer);
+  }
+}
+
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService {
   Future<void> init();

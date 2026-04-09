@@ -64,7 +64,7 @@ final class LogTailer {
     }
     handle = FileHandle(forReadingAtPath: path)
 
-    fd = open(path, O_RDONLY)
+    fd = open(path, O_EVTONLY)
     guard fd >= 0 else { return nil }
 
     if let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size]) as? UInt64 {
@@ -140,9 +140,13 @@ final class LogTailer {
   }
 
   static func readLastLines(path: String, maxLines: Int) throws -> [String] {
-    let data = try Data(contentsOf: URL(fileURLWithPath: path))
-    let tail = data.suffix(64 * 1024)
-    let lines = String(decoding: tail, as: UTF8.self)
+    let handle = try FileHandle(forReadingFrom: URL(fileURLWithPath: path))
+    defer { try? handle.close() }
+    let fileSize = try handle.seekToEnd()
+    let readSize = min(fileSize, 64 * 1024)
+    try handle.seek(toOffset: fileSize - readSize)
+    let data = try handle.readToEnd() ?? Data()
+    let lines = String(decoding: data, as: UTF8.self)
       .split(whereSeparator: \.isNewline)
       .map(String.init)
     return Array(lines.suffix(maxLines))
