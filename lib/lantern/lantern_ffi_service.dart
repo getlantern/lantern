@@ -1604,7 +1604,7 @@ class LanternFFIService implements LanternCoreService {
       );
     }
     try {
-      final _ = await _methodChannel.invokeMethod<String>(
+      await _methodChannel.invokeMethod<String>(
         'openSystemExtensionSetting',
       );
       appLogger.info('Open System Extension Setting');
@@ -1636,7 +1636,7 @@ class LanternFFIService implements LanternCoreService {
       );
     }
     try {
-      final _ = await _methodChannel.invokeMethod<String>(
+      await _methodChannel.invokeMethod<String>(
         'isSystemExtensionInstalled',
       );
       appLogger.info('Check if system extension is installed');

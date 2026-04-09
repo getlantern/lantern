@@ -262,7 +262,7 @@ class ConfirmEmail extends HookConsumerWidget {
         appLogger.warning(
           'navigateRoute reached changeEmail unexpectedly; flow should complete in place.',
         );
-        appRouter.popUntil((route) => route.settings.name == 'Account');
+        appRouter.pop();
         break;
       case AuthFlow.renewSubscription:
         appRouter.push(
