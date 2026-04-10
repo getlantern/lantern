@@ -217,6 +217,34 @@ func TestResolveWrappedExecutable(t *testing.T) {
 			t.Fatalf("resolveWrappedExecutable(%q, Claude) = %q, want %q", updateExe, got, claudeExe)
 		}
 	})
+
+	t.Run("resolves wrapper using processStart argument and working directory", func(t *testing.T) {
+		root := t.TempDir()
+		shortcutTarget := filepath.Join(root, "Update.exe")
+		workingDir := filepath.Join(root, "dist")
+		appDir := filepath.Join(workingDir, "app-2.1.78")
+		claudeExe := filepath.Join(appDir, "Claude.exe")
+
+		if err := os.WriteFile(shortcutTarget, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatalf("mkdir app dir: %v", err)
+		}
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		got := resolveWrappedExecutableWithContext(
+			shortcutTarget,
+			"Claude",
+			`--processStart "Claude.exe" --process-start-args "--foo=bar"`,
+			workingDir,
+		)
+		if got != claudeExe {
+			t.Fatalf("resolveWrappedExecutableWithContext(...processStart...) = %q, want %q", got, claudeExe)
+		}
+	})
 }
 
 func TestShortcutDisplayName(t *testing.T) {
@@ -251,6 +279,44 @@ func TestShortcutDisplayName(t *testing.T) {
 			got := shortcutDisplayName(tt.shortcutName, tt.targetExe)
 			if got != tt.want {
 				t.Fatalf("shortcutDisplayName(%q, %q) = %q, want %q", tt.shortcutName, tt.targetExe, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseWindowsCommandTokens(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		want    []string
+	}{
+		{
+			name:    "empty command",
+			command: "",
+			want:    nil,
+		},
+		{
+			name:    "basic split",
+			command: `--processStart Claude.exe --flag value`,
+			want:    []string{"--processStart", "Claude.exe", "--flag", "value"},
+		},
+		{
+			name:    "quoted token preserved",
+			command: `--processStart "Claude.exe" --process-start-args "--foo bar"`,
+			want:    []string{"--processStart", "Claude.exe", "--process-start-args", "--foo bar"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseWindowsCommandTokens(tt.command)
+			if len(got) != len(tt.want) {
+				t.Fatalf("parseWindowsCommandTokens(%q) len=%d, want %d (%v)", tt.command, len(got), len(tt.want), got)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Fatalf("parseWindowsCommandTokens(%q)[%d] = %q, want %q", tt.command, i, got[i], tt.want[i])
+				}
 			}
 		})
 	}

@@ -204,7 +204,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				return nil
 			}
 
-			targetExe, iconFile, iconIndex := resolveLnkViaWScript(wsh, p)
+			targetExe, iconFile, iconIndex, shortcutArgs, shortcutWorkDir := resolveLnkViaWScript(wsh, p)
 
 			// Many Start Menu links point to non-exe targets
 			// For split tunneling we only support process path, so skip non-exe
@@ -213,7 +213,12 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			}
 
 			name := shortcutDisplayName(d.Name(), targetExe)
-			targetExe = resolveWrappedExecutable(targetExe, name)
+			targetExe = resolveWrappedExecutableWithContext(
+				targetExe,
+				name,
+				shortcutArgs,
+				shortcutWorkDir,
+			)
 			if targetExe == "" {
 				return nil
 			}
@@ -276,22 +281,26 @@ func isRPCChangedMode(err error) bool {
 	return uint32(oe.Code()) == rpcEChangedMode
 }
 
-func resolveLnkViaWScript(wsh *ole.IDispatch, lnkPath string) (targetExe string, iconFile string, iconIndex int) {
+func resolveLnkViaWScript(wsh *ole.IDispatch, lnkPath string) (targetExe string, iconFile string, iconIndex int, args string, workingDir string) {
 	v, err := oleutil.CallMethod(wsh, "CreateShortcut", lnkPath)
 	if err != nil {
-		return "", "", 0
+		return "", "", 0, "", ""
 	}
 	sc := v.ToIDispatch()
 	defer sc.Release()
 
 	tp, _ := oleutil.GetProperty(sc, "TargetPath")
 	il, _ := oleutil.GetProperty(sc, "IconLocation")
+	argp, _ := oleutil.GetProperty(sc, "Arguments")
+	wdp, _ := oleutil.GetProperty(sc, "WorkingDirectory")
 
 	targetExe = strings.TrimSpace(tp.ToString())
 	iconLoc := strings.TrimSpace(il.ToString())
+	args = strings.TrimSpace(argp.ToString())
+	workingDir = strings.TrimSpace(wdp.ToString())
 
 	iconFile, iconIndex = parseIconLocation(iconLoc)
-	return targetExe, iconFile, iconIndex
+	return targetExe, iconFile, iconIndex, args, workingDir
 }
 
 // Reads “installed apps” entries from:
@@ -469,6 +478,10 @@ func shortcutDisplayName(shortcutFileName, targetExe string) string {
 }
 
 func resolveWrappedExecutable(exePath, nameHint string) string {
+	return resolveWrappedExecutableWithContext(exePath, nameHint, "", "")
+}
+
+func resolveWrappedExecutableWithContext(exePath, nameHint, shortcutArgs, shortcutWorkingDir string) string {
 	exePath = strings.Trim(strings.TrimSpace(exePath), `"`)
 	if exePath == "" {
 		return ""
@@ -490,7 +503,17 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 	}
 
 	normalizedHint := normalizeExecutableHint(nameHint)
-	searchDirs := wrappedExecutableSearchDirs(appDir)
+	searchDirs := wrappedExecutableSearchDirs(appDir, shortcutWorkingDir)
+	processStartHint := processStartExecutableHint(shortcutArgs)
+	if processStartHint != "" {
+		for _, dir := range searchDirs {
+			candidate := filepath.Clean(filepath.Join(dir, processStartHint))
+			if fileExists(candidate) && strings.EqualFold(filepath.Ext(candidate), ".exe") {
+				return candidate
+			}
+		}
+	}
+
 	candidates := make([]string, 0, 8)
 	seen := make(map[string]bool, 8)
 	for _, dir := range searchDirs {
@@ -529,24 +552,100 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 	return ""
 }
 
-func wrappedExecutableSearchDirs(appDir string) []string {
+func wrappedExecutableSearchDirs(appDir, shortcutWorkingDir string) []string {
 	searchDirs := []string{appDir}
-	entries, err := os.ReadDir(appDir)
-	if err != nil {
-		return searchDirs
+	trimmedWorkingDir := strings.Trim(strings.TrimSpace(shortcutWorkingDir), `"`)
+	if trimmedWorkingDir != "" {
+		workingDir := filepath.Clean(trimmedWorkingDir)
+		if filepath.IsAbs(workingDir) && !containsNormalizedPath(searchDirs, workingDir) {
+			searchDirs = append(searchDirs, workingDir)
+		}
 	}
 
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
+	appendNested := func(root string) {
+		entries, err := os.ReadDir(root)
+		if err != nil {
+			return
 		}
-		dirName := strings.ToLower(strings.TrimSpace(entry.Name()))
-		if strings.HasPrefix(dirName, "app-") || dirName == "current" {
-			searchDirs = append(searchDirs, filepath.Join(appDir, entry.Name()))
+
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			dirName := strings.ToLower(strings.TrimSpace(entry.Name()))
+			if strings.HasPrefix(dirName, "app-") || dirName == "current" {
+				candidate := filepath.Join(root, entry.Name())
+				if !containsNormalizedPath(searchDirs, candidate) {
+					searchDirs = append(searchDirs, candidate)
+				}
+			}
 		}
+	}
+
+	appendNested(appDir)
+	if trimmedWorkingDir != "" {
+		appendNested(filepath.Clean(trimmedWorkingDir))
 	}
 
 	return searchDirs
+}
+
+func containsNormalizedPath(paths []string, candidate string) bool {
+	key := normalizeKey(filepath.Clean(candidate))
+	for _, path := range paths {
+		if normalizeKey(filepath.Clean(path)) == key {
+			return true
+		}
+	}
+	return false
+}
+
+func processStartExecutableHint(shortcutArgs string) string {
+	tokens := parseWindowsCommandTokens(shortcutArgs)
+	for i := 0; i < len(tokens)-1; i++ {
+		flag := strings.ToLower(strings.TrimSpace(tokens[i]))
+		if flag == "--processstart" || flag == "/processstart" {
+			next := strings.Trim(strings.TrimSpace(tokens[i+1]), `"`)
+			if next == "" {
+				return ""
+			}
+			if !strings.EqualFold(filepath.Ext(next), ".exe") {
+				next += ".exe"
+			}
+			return next
+		}
+	}
+	return ""
+}
+
+func parseWindowsCommandTokens(command string) []string {
+	command = strings.TrimSpace(command)
+	if command == "" {
+		return nil
+	}
+
+	var tokens []string
+	var current strings.Builder
+	inQuotes := false
+	for _, r := range command {
+		switch r {
+		case '"':
+			inQuotes = !inQuotes
+		case ' ', '\t':
+			if inQuotes {
+				current.WriteRune(r)
+			} else if current.Len() > 0 {
+				tokens = append(tokens, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+	if current.Len() > 0 {
+		tokens = append(tokens, current.String())
+	}
+	return tokens
 }
 
 func normalizeExecutableHint(name string) string {
