@@ -41,10 +41,69 @@ var excludeNames = map[string]bool{
 	"driver":    true,
 }
 
+var windowsHostExecutableNames = map[string]bool{
+	"backgroundtaskhost.exe":      true,
+	"conhost.exe":                 true,
+	"dllhost.exe":                 true,
+	"runtimebroker.exe":           true,
+	"searchhost.exe":              true,
+	"shellexperiencehost.exe":     true,
+	"sihost.exe":                  true,
+	"startmenuexperiencehost.exe": true,
+	"svchost.exe":                 true,
+	"taskhostw.exe":               true,
+	"textinputhost.exe":           true,
+	"rundll32.exe":                true,
+}
+
 const (
 	appIsDir     = false
 	appExtension = ".exe"
 )
+
+func isWindowsSystemApp(exePath, name string) bool {
+	normalizedPath := normalizeKey(strings.Trim(strings.TrimSpace(exePath), `"`))
+	if normalizedPath != "" {
+		normalizedPath = filepath.Clean(normalizedPath)
+	}
+
+	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
+	if winDir == "" {
+		winDir = normalizeKey(`C:\Windows`)
+	}
+	winDir = filepath.Clean(winDir)
+
+	systemRoots := []string{
+		filepath.Join(winDir, "System32"),
+		filepath.Join(winDir, "SysWOW64"),
+		filepath.Join(winDir, "WinSxS"),
+	}
+	for _, root := range systemRoots {
+		root = filepath.Clean(normalizeKey(root))
+		if root == "" || normalizedPath == "" {
+			continue
+		}
+		if normalizedPath == root || strings.HasPrefix(normalizedPath, root+`\`) {
+			return true
+		}
+	}
+
+	if normalizedPath != "" {
+		if windowsHostExecutableNames[normalizeKey(filepath.Base(normalizedPath))] {
+			return true
+		}
+	}
+
+	normalizedName := normalizeKey(strings.TrimSpace(name))
+	if normalizedName != "" {
+		normalizedName = strings.TrimSuffix(normalizedName, ".exe")
+		if windowsHostExecutableNames[normalizedName+".exe"] {
+			return true
+		}
+	}
+
+	return false
+}
 
 // loadInstalledAppsPlatform returns a list of installed applications for Windows
 // Discovery order:
@@ -151,6 +210,9 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			name := strings.TrimSpace(strings.TrimSuffix(d.Name(), ".lnk"))
 			if name == "" {
 				name = filepathBaseNoExt(targetExe)
+			}
+			if isWindowsSystemApp(targetExe, name) {
+				return nil
 			}
 
 			var iconBytes []byte
@@ -268,6 +330,9 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			exePath := pickExePath(displayIcon, installLoc)
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
+				continue
+			}
+			if isWindowsSystemApp(exePath, displayName) {
 				continue
 			}
 

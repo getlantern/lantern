@@ -139,6 +139,9 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			if isExcludedName(rawName) {
 				return nil
 			}
+			if runtime.GOOS == "windows" && isWindowsSystemApp(path, rawName) {
+				return nil
+			}
 			if shouldExcludeAppBundle(path, rawName, appID) {
 				if appIsDir {
 					return filepath.SkipDir
@@ -229,6 +232,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			if app == nil {
 				continue
 			}
+			if runtime.GOOS == "windows" && isWindowsSystemApp(app.AppPath, app.Name) {
+				continue
+			}
 			if runtime.GOOS == "windows" &&
 				len(app.IconBytes) == 0 &&
 				strings.TrimSpace(app.IconPath) == "" {
@@ -256,6 +262,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 	if runtime.GOOS == "windows" {
 		for _, app := range deferredWindowsCache {
 			if app == nil {
+				continue
+			}
+			if isWindowsSystemApp(app.AppPath, app.Name) {
 				continue
 			}
 
