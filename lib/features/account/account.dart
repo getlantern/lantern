@@ -395,8 +395,9 @@ class Account extends HookConsumerWidget {
         AppTextButton(
           label: 'logout'.i18n,
           onPressed: () {
-            onLogout(context, ref);
+            // Dismiss dialog first, then run the async logout flow.
             appRouter.pop();
+            onLogout(context, ref);
           },
         ),
       ],
@@ -416,22 +417,30 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onLogout(BuildContext context, WidgetRef ref) async {
-    context.showLoadingDialog();
     final email = ref.read(userEmailProvider);
+    if (email.isEmpty) {
+      // Not truly logged in — just clear local state and go home.
+      ref.read(homeProvider.notifier).clearLogoutData();
+      appRouter.popUntilRoot();
+      return;
+    }
+    if (!context.mounted) return;
+    context.showLoadingDialog();
     final result = await ref
         .read(lanternServiceProvider)
         .logout(email);
+    if (!context.mounted) return;
     result.fold(
       (l) {
         context.hideLoadingDialog();
         appLogger.error('Logout error: ${l.localizedErrorMessage}');
+        context.showSnackBar(l.localizedErrorMessage);
       },
       (user) {
         context.hideLoadingDialog();
-        appRouter.popUntilRoot();
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(user);
-
+        appRouter.popUntilRoot();
         appLogger.info('Logout success: $user');
       },
     );

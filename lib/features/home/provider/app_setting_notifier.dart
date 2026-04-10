@@ -13,9 +13,39 @@ import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
 
+/// Name of the marker file placed in the app data directory after first
+/// successful initialization.  When SharedPreferences survive a data-dir
+/// deletion (e.g. NSUserDefaults on macOS), the absence of this file tells
+/// us to treat the launch as a fresh install and reset stored settings.
+const _initMarkerName = '.app_initialized';
+
 @Riverpod(keepAlive: true)
 class AppSettingNotifier extends _$AppSettingNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
+
+  /// Must be called from [injectServices] (before `runApp`) so that stale
+  /// SharedPreferences are cleared before any widget reads the provider.
+  static Future<void> resetIfFreshInstall(LocalStorageService storage) async {
+    final settings = storage.getAppSettings();
+    if (settings == null || !settings.onboardingCompleted) {
+      // Either no stored settings or onboarding hasn't been marked done —
+      // nothing to reset.
+      return;
+    }
+
+    final dataDir = await AppStorageUtils.getAppDirectory();
+    final marker = File('${dataDir.path}/$_initMarkerName');
+    if (marker.existsSync()) return;
+
+    // Settings say onboarding is done, but the data-dir marker is missing.
+    // This means the user deleted the data directory (clean install) while
+    // SharedPreferences (NSUserDefaults / registry) survived.
+    appLogger.info(
+      'Stale settings detected (data dir was cleared), resetting to defaults',
+    );
+    await storage.saveAppSettings(const AppSetting());
+    await marker.create();
+  }
 
   @override
   AppSetting build() {
@@ -70,8 +100,20 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void setShowTelemetryDialog(bool value) =>
       update(state.copyWith(showTelemetryDialog: value));
 
-  void setOnboardingCompleted(bool value) =>
-      update(state.copyWith(onboardingCompleted: value));
+  void setOnboardingCompleted(bool value) {
+    update(state.copyWith(onboardingCompleted: value));
+    if (value) unawaited(_writeInitMarker());
+  }
+
+  Future<void> _writeInitMarker() async {
+    try {
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final marker = File('${dataDir.path}/$_initMarkerName');
+      if (!marker.existsSync()) await marker.create();
+    } catch (e, st) {
+      appLogger.error('Failed to write init marker', e, st);
+    }
+  }
 
   void setThemeMode(String mode) {
     update(state.copyWith(themeMode: mode));

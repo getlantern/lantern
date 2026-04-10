@@ -159,6 +159,9 @@ class MethodHandler {
       case "digitalOcean":
         self.digitalOcean(result: result)
 
+      case "googleCloud":
+        self.googleCloud(result: result)
+
       case "selectAccount":
         let account = call.arguments as? String ?? ""
         self.selectAccount(result: result, account: account)
@@ -217,6 +220,9 @@ class MethodHandler {
       case "getAutoServerLocation":
         self.getAutoServerLocation(result: result)
 
+      case "getSelectedServerJSON":
+        self.getSelectedServerJSON(result: result)
+
       // Utils
       case "featureFlag":
         self.featureFlags(result: result)
@@ -228,6 +234,11 @@ class MethodHandler {
       case "reportIssue":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.reportIssue(result: result, data: data)
+
+      case "isBlockAdsEnabled":
+        Task {
+          await MainActor.run { result(MobileIsBlockAdsEnabled()) }
+        }
 
       case "setBlockAdsEnabled":
         let data = call.arguments as? [String: Any]
@@ -800,6 +811,20 @@ class MethodHandler {
     }
   }
 
+  func googleCloud(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileGoogleCloudPrivateServer(PrivateServerListener.shared, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GOOGLE_CLOUD_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
   func selectAccount(result: @escaping FlutterResult, account: String) {
     Task {
       var error: NSError?
@@ -1038,6 +1063,24 @@ class MethodHandler {
       }
       await MainActor.run {
         result(String(data: servers, encoding: .utf8))
+      }
+    }
+  }
+
+  func getSelectedServerJSON(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetSelectedServerJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SELECTED_SERVER_ERROR")
+        return
+      }
+      guard let data else {
+        await MainActor.run { result("{}") }
+        return
+      }
+      await MainActor.run {
+        result(String(data: data, encoding: .utf8))
       }
     }
   }

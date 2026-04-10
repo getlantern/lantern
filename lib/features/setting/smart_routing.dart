@@ -22,11 +22,12 @@ class SmartRouting extends HookConsumerWidget {
         (failure) {
           context.showSnackBar('failed_to_update_routing_mode'.i18n);
         },
-        (_) {},
+        (_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) appRouter.pop();
+          });
+        },
       );
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) appRouter.pop();
-      });
     }
 
     return BaseScreen(

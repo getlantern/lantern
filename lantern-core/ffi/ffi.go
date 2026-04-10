@@ -134,6 +134,11 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		privateserverPort = int64(privateServerP)
 		appEventPort = int64(appEventP)
 
+		// Start the VPN status listener immediately so the UI reflects the
+		// current VPN state even if the VPN was already connected (e.g. macOS
+		// system extension started before the Flutter app).
+		startStatusListener(core.Client())
+
 		slog.Debug("Radiance setup successfully")
 		return C.CString("ok")
 	})
@@ -249,7 +254,9 @@ func setSplitTunnelingEnabled(enabled C.int) *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		c.SetSplitTunnelingEnabled(enabled != 0)
+		if err := c.SetSplitTunnelingEnabled(enabled != 0); err != nil {
+			return SendError(err)
+		}
 		return C.CString("ok")
 	})
 }
@@ -419,19 +426,21 @@ func getAvailableServers() *C.char {
 	})
 }
 
-func sendStatusToPort(status VPNStatus) {
+func sendStatusToPort(status VPNStatus, errMsg string) {
 	slog.Debug("sendStatusToPort called", "status", status)
 	if statusPort == 0 {
 		slog.Error("Status port is not set, cannot send status")
 		return
 	}
 	msg := map[string]any{"status": status}
+	if errMsg != "" {
+		msg["error"] = errMsg
+	}
 	slog.Debug("Sending status to port", "port", statusPort)
 	data, _ := json.Marshal(msg)
 	slog.Debug("Marshalled status data", "data", string(data))
 	dart_api_dl.SendToPort(statusPort, string(data))
 	slog.Debug("Status sent to port successfully", "status", status)
-
 }
 
 var (
@@ -451,7 +460,7 @@ func startStatusListener(client *ipc.Client) {
 					continue
 				}
 				client.VPNStatusEvents(context.Background(), func(evt vpn.StatusUpdateEvent) {
-					ui := mapStatusEvent(evt)
+					ui, errMsg := mapStatusEvent(evt)
 
 					statusListenerLastMu.Lock()
 					changed := ui != statusListenerLast
@@ -461,7 +470,7 @@ func startStatusListener(client *ipc.Client) {
 					statusListenerLastMu.Unlock()
 
 					if changed {
-						sendStatusToPort(VPNStatus(ui))
+						sendStatusToPort(VPNStatus(ui), errMsg)
 					}
 				})
 				// SSE stream disconnected — retry after a short delay.
@@ -471,23 +480,23 @@ func startStatusListener(client *ipc.Client) {
 	})
 }
 
-func mapStatusEvent(evt vpn.StatusUpdateEvent) string {
+func mapStatusEvent(evt vpn.StatusUpdateEvent) (string, string) {
 	if evt.Error != "" {
-		return string(Error)
+		return string(Error), evt.Error
 	}
 	switch evt.Status {
 	case vpn.Connected:
-		return string(Connected)
-	case vpn.Connecting:
-		return string(Connecting)
+		return string(Connected), ""
+	case vpn.Connecting, vpn.Restarting:
+		return string(Connecting), ""
 	case vpn.Disconnecting:
-		return string(Disconnecting)
+		return string(Disconnecting), ""
 	case vpn.Disconnected:
-		return string(Disconnected)
+		return string(Disconnected), ""
 	case vpn.ErrorStatus:
-		return string(Error)
+		return string(Error), ""
 	default:
-		return string(Disconnected)
+		return string(Disconnected), ""
 	}
 }
 
