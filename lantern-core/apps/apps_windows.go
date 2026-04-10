@@ -62,10 +62,38 @@ var windowsReleaseTypeDenyKeywords = []string{
 	"update",
 }
 
+var windowsSystemRoots = computeWindowsSystemRoots()
+
 const (
 	appIsDir     = false
 	appExtension = ".exe"
 )
+
+type uninstallEntryMetadata struct {
+	systemComponentSet bool
+	systemComponent    uint64
+	noDisplaySet       bool
+	noDisplay          uint64
+	parentKeyName      string
+	releaseType        string
+}
+
+func normalizedWindowsDir() string {
+	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
+	if winDir == "" {
+		winDir = normalizeKey(`C:\Windows`)
+	}
+	return filepath.Clean(winDir)
+}
+
+func computeWindowsSystemRoots() []string {
+	winDir := normalizedWindowsDir()
+	return []string{
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "System32"))),
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "SysWOW64"))),
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "WinSxS"))),
+	}
+}
 
 func isWindowsSystemApp(exePath, name string) bool {
 	normalizedPath := normalizeKey(strings.Trim(strings.TrimSpace(exePath), `"`))
@@ -73,19 +101,7 @@ func isWindowsSystemApp(exePath, name string) bool {
 		normalizedPath = filepath.Clean(normalizedPath)
 	}
 
-	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
-	if winDir == "" {
-		winDir = normalizeKey(`C:\Windows`)
-	}
-	winDir = filepath.Clean(winDir)
-
-	systemRoots := []string{
-		filepath.Join(winDir, "System32"),
-		filepath.Join(winDir, "SysWOW64"),
-		filepath.Join(winDir, "WinSxS"),
-	}
-	for _, root := range systemRoots {
-		root = filepath.Clean(normalizeKey(root))
+	for _, root := range windowsSystemRoots {
 		if root == "" || normalizedPath == "" {
 			continue
 		}
@@ -325,7 +341,8 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				continue
 			}
 
-			if isNonUserFacingUninstallEntry(sk) {
+			metadata := readUninstallEntryMetadata(sk)
+			if isNonUserFacingUninstallEntry(metadata) {
 				sk.Close()
 				continue
 			}
@@ -426,26 +443,47 @@ func pickExePath(displayIcon, installLoc string) string {
 	return ""
 }
 
-func isNonUserFacingUninstallEntry(sk registry.Key) bool {
-	if value, _, err := sk.GetIntegerValue("SystemComponent"); err == nil && value != 0 {
-		return true
+func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
+	metadata := uninstallEntryMetadata{}
+
+	if value, _, err := sk.GetIntegerValue("SystemComponent"); err == nil {
+		metadata.systemComponentSet = true
+		metadata.systemComponent = value
 	}
 
-	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil && value != 0 {
-		return true
+	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil {
+		metadata.noDisplaySet = true
+		metadata.noDisplay = value
 	}
 
-	if parentKeyName, _, err := sk.GetStringValue("ParentKeyName"); err == nil &&
-		strings.TrimSpace(parentKeyName) != "" {
-		return true
+	if parentKeyName, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
+		metadata.parentKeyName = strings.TrimSpace(parentKeyName)
 	}
 
 	if releaseType, _, err := sk.GetStringValue("ReleaseType"); err == nil {
-		normalized := strings.ToLower(strings.TrimSpace(releaseType))
-		for _, keyword := range windowsReleaseTypeDenyKeywords {
-			if strings.Contains(normalized, keyword) {
-				return true
-			}
+		metadata.releaseType = strings.TrimSpace(releaseType)
+	}
+
+	return metadata
+}
+
+func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
+	if metadata.systemComponentSet && metadata.systemComponent != 0 {
+		return true
+	}
+
+	if metadata.noDisplaySet && metadata.noDisplay != 0 {
+		return true
+	}
+
+	if metadata.parentKeyName != "" {
+		return true
+	}
+
+	normalizedReleaseType := strings.ToLower(metadata.releaseType)
+	for _, keyword := range windowsReleaseTypeDenyKeywords {
+		if strings.Contains(normalizedReleaseType, keyword) {
+			return true
 		}
 	}
 
