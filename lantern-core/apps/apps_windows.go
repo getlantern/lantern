@@ -41,10 +41,93 @@ var excludeNames = map[string]bool{
 	"driver":    true,
 }
 
+var windowsHostExecutableNames = map[string]bool{
+	"backgroundtaskhost.exe":      true,
+	"conhost.exe":                 true,
+	"dllhost.exe":                 true,
+	"runtimebroker.exe":           true,
+	"searchhost.exe":              true,
+	"shellexperiencehost.exe":     true,
+	"sihost.exe":                  true,
+	"startmenuexperiencehost.exe": true,
+	"svchost.exe":                 true,
+	"taskhostw.exe":               true,
+	"textinputhost.exe":           true,
+	"rundll32.exe":                true,
+}
+
+var windowsReleaseTypeDenyKeywords = []string{
+	"hotfix",
+	"security",
+	"update",
+}
+
+var windowsSystemRoots = computeWindowsSystemRoots()
+
 const (
 	appIsDir     = false
 	appExtension = ".exe"
 )
+
+type uninstallEntryMetadata struct {
+	systemComponentSet bool
+	systemComponent    uint64
+	noDisplaySet       bool
+	noDisplay          uint64
+	parentKeyName      string
+	releaseType        string
+}
+
+func normalizedWindowsDir() string {
+	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
+	if winDir == "" {
+		winDir = normalizeKey(`C:\Windows`)
+	}
+	return filepath.Clean(winDir)
+}
+
+func computeWindowsSystemRoots() []string {
+	winDir := normalizedWindowsDir()
+	return []string{
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "System32"))),
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "SysWOW64"))),
+		filepath.Clean(normalizeKey(filepath.Join(winDir, "WinSxS"))),
+	}
+}
+
+func isWindowsSystemApp(exePath, name string) bool {
+	normalizedPath := normalizeKey(strings.Trim(strings.TrimSpace(exePath), `"`))
+	if normalizedPath != "" {
+		normalizedPath = filepath.Clean(normalizedPath)
+	}
+
+	for _, root := range windowsSystemRoots {
+		if root == "" || normalizedPath == "" {
+			continue
+		}
+		if normalizedPath == root || strings.HasPrefix(normalizedPath, root+`\`) {
+			return true
+		}
+	}
+
+	if normalizedPath != "" {
+		if windowsHostExecutableNames[normalizeKey(filepath.Base(normalizedPath))] {
+			return true
+		}
+	}
+
+	if normalizedPath == "" {
+		normalizedName := normalizeKey(strings.TrimSpace(name))
+		if normalizedName != "" {
+			normalizedName = strings.TrimSuffix(normalizedName, ".exe")
+			if windowsHostExecutableNames[normalizedName+".exe"] {
+				return true
+			}
+		}
+	}
+
+	return false
+}
 
 // loadInstalledAppsPlatform returns a list of installed applications for Windows
 // Discovery order:
@@ -152,6 +235,9 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if name == "" {
 				name = filepathBaseNoExt(targetExe)
 			}
+			if isWindowsSystemApp(targetExe, name) {
+				return nil
+			}
 
 			var iconBytes []byte
 			// Prefer explicit IconLocation; fall back to exe
@@ -255,6 +341,12 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				continue
 			}
 
+			metadata := readUninstallEntryMetadata(sk)
+			if isNonUserFacingUninstallEntry(metadata) {
+				sk.Close()
+				continue
+			}
+
 			displayName, _, _ := sk.GetStringValue("DisplayName")
 			displayIcon, _, _ := sk.GetStringValue("DisplayIcon")
 			installLoc, _, _ := sk.GetStringValue("InstallLocation")
@@ -268,6 +360,9 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			exePath := pickExePath(displayIcon, installLoc)
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
+				continue
+			}
+			if isWindowsSystemApp(exePath, displayName) {
 				continue
 			}
 
@@ -321,7 +416,7 @@ func filepathBaseNoExt(p string) string {
 
 func pickExePath(displayIcon, installLoc string) string {
 	if p := parseDisplayIcon(displayIcon); p != "" {
-		if fileExists(p) {
+		if fileExists(p) && strings.EqualFold(filepath.Ext(p), ".exe") {
 			return p
 		}
 	}
@@ -346,6 +441,53 @@ func pickExePath(displayIcon, installLoc string) string {
 		}
 	}
 	return ""
+}
+
+func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
+	metadata := uninstallEntryMetadata{}
+
+	if value, _, err := sk.GetIntegerValue("SystemComponent"); err == nil {
+		metadata.systemComponentSet = true
+		metadata.systemComponent = value
+	}
+
+	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil {
+		metadata.noDisplaySet = true
+		metadata.noDisplay = value
+	}
+
+	if parentKeyName, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
+		metadata.parentKeyName = strings.TrimSpace(parentKeyName)
+	}
+
+	if releaseType, _, err := sk.GetStringValue("ReleaseType"); err == nil {
+		metadata.releaseType = strings.TrimSpace(releaseType)
+	}
+
+	return metadata
+}
+
+func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
+	if metadata.systemComponentSet && metadata.systemComponent != 0 {
+		return true
+	}
+
+	if metadata.noDisplaySet && metadata.noDisplay != 0 {
+		return true
+	}
+
+	if metadata.parentKeyName != "" {
+		return true
+	}
+
+	normalizedReleaseType := strings.ToLower(metadata.releaseType)
+	for _, keyword := range windowsReleaseTypeDenyKeywords {
+		if strings.Contains(normalizedReleaseType, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func parseDisplayIcon(s string) string {
