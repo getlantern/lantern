@@ -19,6 +19,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
+    if (!ref.mounted) return;
     result.fold(
       (error) {
         appLogger.error('Failed to fetch selected server from radiance: $error');
@@ -54,8 +55,8 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           appLogger.error("Failed to fetch auto server location: $error");
         },
         (autoLocation) {
-          final countryName = autoLocation.location!.country;
-          final cityName = autoLocation.location!.city;
+          final countryName = autoLocation.location.country;
+          final cityName = autoLocation.location.city;
 
           updateServerLocation(
             ServerLocation(
@@ -65,7 +66,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
               protocol: '',
               city: cityName,
               autoLocation: AutoLocation(
-                countryCode: autoLocation.location!.countryCode,
+                countryCode: autoLocation.location.countryCode,
                 country: countryName,
                 displayName: '$countryName - $cityName',
                 tag: autoLocation.tag,

@@ -21,7 +21,7 @@ class AppStorageUtils {
       final baseDir = await getApplicationSupportDirectory();
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isWindows) {
-      final appDataPath = Platform.environment['PUBLIC'];
+      final appDataPath = Platform.environment['PUBLIC'] ?? r'C:\Users\Public';
       final baseDir = Directory("$appDataPath/Lantern");
       logDir = Directory("${baseDir.path}/logs");
     } else {
@@ -46,7 +46,7 @@ class AppStorageUtils {
     } else if (Platform.isMacOS) {
       appDir = Directory('/Users/Shared/Lantern');
     } else if (Platform.isWindows) {
-      final appDataPath = Platform.environment['PUBLIC'];
+      final appDataPath = Platform.environment['PUBLIC'] ?? r'C:\Users\Public';
       final baseDir = Directory("$appDataPath/Lantern");
       appDir = Directory("${baseDir.path}/data");
     } else {
