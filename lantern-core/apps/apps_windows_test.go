@@ -172,6 +172,30 @@ func TestResolveWrappedExecutable(t *testing.T) {
 			t.Fatalf("resolveWrappedExecutable(%q, \"\") = %q, want empty", updateExe, got)
 		}
 	})
+
+	t.Run("returns empty for relative wrapper path", func(t *testing.T) {
+		got := resolveWrappedExecutable("Update.exe", "Claude")
+		if got != "" {
+			t.Fatalf("resolveWrappedExecutable(relative Update.exe, Claude) = %q, want empty", got)
+		}
+	})
+
+	t.Run("matches hint when name uses uppercase EXE suffix", func(t *testing.T) {
+		dir := t.TempDir()
+		updateExe := filepath.Join(dir, "Update.exe")
+		claudeExe := filepath.Join(dir, "Claude.exe")
+		if err := os.WriteFile(updateExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		got := resolveWrappedExecutable(updateExe, "CLAUDE.EXE")
+		if got != claudeExe {
+			t.Fatalf("resolveWrappedExecutable(%q, CLAUDE.EXE) = %q, want %q", updateExe, got, claudeExe)
+		}
+	})
 }
 
 func TestComputeWindowsSystemRoots(t *testing.T) {

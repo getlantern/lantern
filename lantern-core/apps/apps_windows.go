@@ -464,13 +464,18 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 		return ""
 	}
 
+	exePath = filepath.Clean(exePath)
+	if !filepath.IsAbs(exePath) {
+		return ""
+	}
+
 	baseName := filepathBaseNoExt(exePath)
 	if !isExcludedName(baseName) {
 		return exePath
 	}
 
 	appDir := filepath.Dir(exePath)
-	if appDir == "" {
+	if appDir == "" || appDir == "." {
 		return ""
 	}
 
@@ -506,7 +511,7 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 }
 
 func normalizeExecutableHint(name string) string {
-	name = strings.TrimSpace(strings.ToLower(strings.TrimSuffix(name, ".exe")))
+	name = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(name)), ".exe")
 	var b strings.Builder
 	b.Grow(len(name))
 	for _, r := range name {
