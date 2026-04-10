@@ -168,14 +168,17 @@ Future<bool> _tryGoBack(WidgetTester tester) async {
 Future<void> _returnToHome(
   WidgetTester tester, {
   required Finder homeScreen,
+  required Finder vpnToggle,
 }) async {
-  if (homeScreen.evaluate().isNotEmpty) {
+  if (homeScreen.evaluate().isNotEmpty ||
+      vpnToggle.hitTestable().evaluate().isNotEmpty) {
     return;
   }
 
   final end = DateTime.now().add(const Duration(seconds: 25));
   while (DateTime.now().isBefore(end)) {
-    if (homeScreen.evaluate().isNotEmpty) {
+    if (homeScreen.evaluate().isNotEmpty ||
+        vpnToggle.hitTestable().evaluate().isNotEmpty) {
       return;
     }
 
@@ -337,7 +340,11 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     reason: 'New website split-tunnel rule was not visible after add',
   );
 
-  await _returnToHome(tester, homeScreen: finders.homeScreen);
+  await _returnToHome(
+    tester,
+    homeScreen: finders.homeScreen,
+    vpnToggle: finders.vpnToggle,
+  );
 
   try {
     await _tapFinder(
