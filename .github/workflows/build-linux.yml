@@ -53,7 +53,6 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
