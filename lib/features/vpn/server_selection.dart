@@ -205,7 +205,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
-      (_) async {
+      (_) {
         appRouter.popUntilRoot();
       },
     );
@@ -376,31 +376,29 @@ class _ServerLocationListViewState
           selectedServer.tag,
         );
 
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult =
-                  await ref.read(vpnProvider.notifier).connectToServer(
-                        ServerLocationType.lanternLocation,
-                        selectedServer.tag,
-                        skipConflictCheck: true,
-                      );
-              retryResult.fold(
-                (failure) => context.showSnackBar(failure.localizedErrorMessage),
-                (_) => _onLanternServerConnected(ref, selectedServer),
-              );
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) => _onLanternServerConnected(ref, selectedServer),
-    );
+    result.fold((failure) {
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .connectToServer(
+                  ServerLocationType.lanternLocation,
+                  selectedServer.tag,
+                  skipConflictCheck: true,
+                );
+            retryResult.fold(
+              (failure) => context.showSnackBar(failure.localizedErrorMessage),
+              (_) => _onLanternServerConnected(ref, selectedServer),
+            );
+          },
+        );
+      } else {
+        context.showSnackBar(failure.localizedErrorMessage);
+      }
+    }, (_) => _onLanternServerConnected(ref, selectedServer));
   }
 
   void _onLanternServerConnected(WidgetRef ref, Location_ selectedServer) {
@@ -673,35 +671,30 @@ class _PrivateServerLocationListViewState
         .read(vpnProvider.notifier)
         .connectToServer(ServerLocationType.privateServer, location.tag);
 
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult =
-                  await ref.read(vpnProvider.notifier).connectToServer(
-                        ServerLocationType.privateServer,
-                        location.tag,
-                        skipConflictCheck: true,
-                      );
-              retryResult.fold(
-                (failure) {
-                  context.hideLoadingDialog();
-                  context.showSnackBar(failure.localizedErrorMessage);
-                },
-                (_) => _onPrivateServerConnected(ref, location),
-              );
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) => _onPrivateServerConnected(ref, location),
-    );
+    result.fold((failure) {
+      context.hideLoadingDialog();
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .connectToServer(
+                  ServerLocationType.privateServer,
+                  location.tag,
+                  skipConflictCheck: true,
+                );
+            retryResult.fold((failure) {
+              context.hideLoadingDialog();
+              context.showSnackBar(failure.localizedErrorMessage);
+            }, (_) => _onPrivateServerConnected(ref, location));
+          },
+        );
+      } else {
+        context.showSnackBar(failure.localizedErrorMessage);
+      }
+    }, (_) => _onPrivateServerConnected(ref, location));
   }
 
   void _onPrivateServerConnected(WidgetRef ref, Location_ location) async {
