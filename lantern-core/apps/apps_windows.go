@@ -56,12 +56,6 @@ var windowsHostExecutableNames = map[string]bool{
 	"rundll32.exe":                true,
 }
 
-var windowsReleaseTypeDenyKeywords = []string{
-	"hotfix",
-	"security",
-	"update",
-}
-
 var windowsSystemRoots = computeWindowsSystemRoots()
 
 const (
@@ -72,10 +66,6 @@ const (
 type uninstallEntryMetadata struct {
 	systemComponentSet bool
 	systemComponent    uint64
-	noDisplaySet       bool
-	noDisplay          uint64
-	parentKeyName      string
-	releaseType        string
 }
 
 func normalizedWindowsDir() string {
@@ -222,18 +212,20 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				return nil
 			}
 
-			if isExcludedName(filepathBaseNoExt(targetExe)) {
-				return nil
-			}
-
-			keyPath := normalizeKey(targetExe)
-			if seen[keyPath] {
-				return nil
-			}
-
 			name := strings.TrimSpace(strings.TrimSuffix(d.Name(), ".lnk"))
 			if name == "" {
 				name = filepathBaseNoExt(targetExe)
+			}
+			targetExe = resolveWrappedExecutable(targetExe, name)
+			if targetExe == "" {
+				return nil
+			}
+			if isExcludedName(filepathBaseNoExt(targetExe)) {
+				return nil
+			}
+			keyPath := normalizeKey(targetExe)
+			if seen[keyPath] {
+				return nil
 			}
 			if isWindowsSystemApp(targetExe, name) {
 				return nil
@@ -362,6 +354,10 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
 				continue
 			}
+			exePath = resolveWrappedExecutable(exePath, displayName)
+			if exePath == "" {
+				continue
+			}
 			if isWindowsSystemApp(exePath, displayName) {
 				continue
 			}
@@ -451,19 +447,6 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 		metadata.systemComponent = value
 	}
 
-	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil {
-		metadata.noDisplaySet = true
-		metadata.noDisplay = value
-	}
-
-	if parentKeyName, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
-		metadata.parentKeyName = strings.TrimSpace(parentKeyName)
-	}
-
-	if releaseType, _, err := sk.GetStringValue("ReleaseType"); err == nil {
-		metadata.releaseType = strings.TrimSpace(releaseType)
-	}
-
 	return metadata
 }
 
@@ -472,22 +455,66 @@ func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 		return true
 	}
 
-	if metadata.noDisplaySet && metadata.noDisplay != 0 {
-		return true
+	return false
+}
+
+func resolveWrappedExecutable(exePath, nameHint string) string {
+	exePath = strings.Trim(strings.TrimSpace(exePath), `"`)
+	if exePath == "" {
+		return ""
 	}
 
-	if metadata.parentKeyName != "" {
-		return true
+	baseName := filepathBaseNoExt(exePath)
+	if !isExcludedName(baseName) {
+		return exePath
 	}
 
-	normalizedReleaseType := strings.ToLower(metadata.releaseType)
-	for _, keyword := range windowsReleaseTypeDenyKeywords {
-		if strings.Contains(normalizedReleaseType, keyword) {
-			return true
+	appDir := filepath.Dir(exePath)
+	if appDir == "" {
+		return ""
+	}
+
+	entries, err := os.ReadDir(appDir)
+	if err != nil {
+		return ""
+	}
+
+	normalizedHint := normalizeExecutableHint(nameHint)
+	candidates := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.EqualFold(filepath.Ext(entry.Name()), ".exe") {
+			continue
+		}
+
+		candidateName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		if isExcludedName(candidateName) {
+			continue
+		}
+
+		candidatePath := filepath.Join(appDir, entry.Name())
+		if normalizedHint != "" && normalizeExecutableHint(candidateName) == normalizedHint {
+			return candidatePath
+		}
+		candidates = append(candidates, candidatePath)
+	}
+
+	if len(candidates) == 1 {
+		return candidates[0]
+	}
+
+	return ""
+}
+
+func normalizeExecutableHint(name string) string {
+	name = strings.TrimSpace(strings.ToLower(strings.TrimSuffix(name, ".exe")))
+	var b strings.Builder
+	b.Grow(len(name))
+	for _, r := range name {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
 		}
 	}
-
-	return false
+	return b.String()
 }
 
 func parseDisplayIcon(s string) string {

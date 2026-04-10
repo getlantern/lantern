@@ -84,31 +84,10 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "no display",
+			name: "system component explicitly zero",
 			metadata: uninstallEntryMetadata{
-				noDisplaySet: true,
-				noDisplay:    1,
-			},
-			want: true,
-		},
-		{
-			name: "parent key name",
-			metadata: uninstallEntryMetadata{
-				parentKeyName: "KB12345",
-			},
-			want: true,
-		},
-		{
-			name: "release type update",
-			metadata: uninstallEntryMetadata{
-				releaseType: "Security Update",
-			},
-			want: true,
-		},
-		{
-			name: "release type normal",
-			metadata: uninstallEntryMetadata{
-				releaseType: "Feature Pack",
+				systemComponentSet: true,
+				systemComponent:    0,
 			},
 			want: false,
 		},
@@ -127,6 +106,72 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResolveWrappedExecutable(t *testing.T) {
+	t.Run("returns original path when executable is not wrapper", func(t *testing.T) {
+		dir := t.TempDir()
+		normalExe := filepath.Join(dir, "Claude.exe")
+		if err := os.WriteFile(normalExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write normal exe: %v", err)
+		}
+
+		got := resolveWrappedExecutable(normalExe, "Claude")
+		if got != normalExe {
+			t.Fatalf("resolveWrappedExecutable(%q, Claude) = %q, want %q", normalExe, got, normalExe)
+		}
+	})
+
+	t.Run("resolves Update.exe wrapper to hinted app exe", func(t *testing.T) {
+		dir := t.TempDir()
+		updateExe := filepath.Join(dir, "Update.exe")
+		claudeExe := filepath.Join(dir, "Claude.exe")
+		if err := os.WriteFile(updateExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		got := resolveWrappedExecutable(updateExe, "Claude")
+		if got != claudeExe {
+			t.Fatalf("resolveWrappedExecutable(%q, Claude) = %q, want %q", updateExe, got, claudeExe)
+		}
+	})
+
+	t.Run("returns only non-wrapper executable when unique", func(t *testing.T) {
+		dir := t.TempDir()
+		updateExe := filepath.Join(dir, "Update.exe")
+		appExe := filepath.Join(dir, "App.exe")
+		if err := os.WriteFile(updateExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.WriteFile(appExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write app exe: %v", err)
+		}
+
+		got := resolveWrappedExecutable(updateExe, "")
+		if got != appExe {
+			t.Fatalf("resolveWrappedExecutable(%q, \"\") = %q, want %q", updateExe, got, appExe)
+		}
+	})
+
+	t.Run("returns empty when wrapper has multiple non-wrapper candidates and no hint", func(t *testing.T) {
+		dir := t.TempDir()
+		updateExe := filepath.Join(dir, "Update.exe")
+		appA := filepath.Join(dir, "A.exe")
+		appB := filepath.Join(dir, "B.exe")
+		for _, path := range []string{updateExe, appA, appB} {
+			if err := os.WriteFile(path, []byte(""), 0o644); err != nil {
+				t.Fatalf("write %s: %v", path, err)
+			}
+		}
+
+		got := resolveWrappedExecutable(updateExe, "")
+		if got != "" {
+			t.Fatalf("resolveWrappedExecutable(%q, \"\") = %q, want empty", updateExe, got)
+		}
+	})
 }
 
 func TestComputeWindowsSystemRoots(t *testing.T) {
