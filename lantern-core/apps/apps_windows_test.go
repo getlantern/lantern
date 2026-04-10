@@ -196,6 +196,64 @@ func TestResolveWrappedExecutable(t *testing.T) {
 			t.Fatalf("resolveWrappedExecutable(%q, CLAUDE.EXE) = %q, want %q", updateExe, got, claudeExe)
 		}
 	})
+
+	t.Run("resolves wrapper when app executable is under app-version subdirectory", func(t *testing.T) {
+		dir := t.TempDir()
+		updateExe := filepath.Join(dir, "Update.exe")
+		appVersionDir := filepath.Join(dir, "app-2.1.78")
+		claudeExe := filepath.Join(appVersionDir, "Claude.exe")
+		if err := os.WriteFile(updateExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.MkdirAll(appVersionDir, 0o755); err != nil {
+			t.Fatalf("mkdir app-version dir: %v", err)
+		}
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		got := resolveWrappedExecutable(updateExe, "Claude")
+		if got != claudeExe {
+			t.Fatalf("resolveWrappedExecutable(%q, Claude) = %q, want %q", updateExe, got, claudeExe)
+		}
+	})
+}
+
+func TestShortcutDisplayName(t *testing.T) {
+	tests := []struct {
+		name         string
+		shortcutName string
+		targetExe    string
+		want         string
+	}{
+		{
+			name:         "trims lower-case extension",
+			shortcutName: "Claude.lnk",
+			targetExe:    `C:\Program Files\Claude\Claude.exe`,
+			want:         "Claude",
+		},
+		{
+			name:         "trims upper-case extension",
+			shortcutName: "Claude.LNK",
+			targetExe:    `C:\Program Files\Claude\Claude.exe`,
+			want:         "Claude",
+		},
+		{
+			name:         "falls back to executable base name",
+			shortcutName: "   ",
+			targetExe:    `C:\Program Files\Claude\Claude.exe`,
+			want:         "Claude",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := shortcutDisplayName(tt.shortcutName, tt.targetExe)
+			if got != tt.want {
+				t.Fatalf("shortcutDisplayName(%q, %q) = %q, want %q", tt.shortcutName, tt.targetExe, got, tt.want)
+			}
+		})
+	}
 }
 
 func TestComputeWindowsSystemRoots(t *testing.T) {

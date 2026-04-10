@@ -212,10 +212,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				return nil
 			}
 
-			name := strings.TrimSpace(strings.TrimSuffix(d.Name(), ".lnk"))
-			if name == "" {
-				name = filepathBaseNoExt(targetExe)
-			}
+			name := shortcutDisplayName(d.Name(), targetExe)
 			targetExe = resolveWrappedExecutable(targetExe, name)
 			if targetExe == "" {
 				return nil
@@ -458,6 +455,19 @@ func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 	return false
 }
 
+func shortcutDisplayName(shortcutFileName, targetExe string) string {
+	name := strings.TrimSpace(shortcutFileName)
+	ext := filepath.Ext(name)
+	if strings.EqualFold(ext, ".lnk") {
+		name = strings.TrimSuffix(name, ext)
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		name = filepathBaseNoExt(targetExe)
+	}
+	return name
+}
+
 func resolveWrappedExecutable(exePath, nameHint string) string {
 	exePath = strings.Trim(strings.TrimSpace(exePath), `"`)
 	if exePath == "" {
@@ -479,28 +489,37 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 		return ""
 	}
 
-	entries, err := os.ReadDir(appDir)
-	if err != nil {
-		return ""
-	}
-
 	normalizedHint := normalizeExecutableHint(nameHint)
-	candidates := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.EqualFold(filepath.Ext(entry.Name()), ".exe") {
+	searchDirs := wrappedExecutableSearchDirs(appDir)
+	candidates := make([]string, 0, 8)
+	seen := make(map[string]bool, 8)
+	for _, dir := range searchDirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
 			continue
 		}
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.EqualFold(filepath.Ext(entry.Name()), ".exe") {
+				continue
+			}
 
-		candidateName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-		if isExcludedName(candidateName) {
-			continue
-		}
+			candidateName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+			if isExcludedName(candidateName) {
+				continue
+			}
 
-		candidatePath := filepath.Join(appDir, entry.Name())
-		if normalizedHint != "" && normalizeExecutableHint(candidateName) == normalizedHint {
-			return candidatePath
+			candidatePath := filepath.Join(dir, entry.Name())
+			key := normalizeKey(candidatePath)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			if normalizedHint != "" && normalizeExecutableHint(candidateName) == normalizedHint {
+				return candidatePath
+			}
+			candidates = append(candidates, candidatePath)
 		}
-		candidates = append(candidates, candidatePath)
 	}
 
 	if len(candidates) == 1 {
@@ -508,6 +527,26 @@ func resolveWrappedExecutable(exePath, nameHint string) string {
 	}
 
 	return ""
+}
+
+func wrappedExecutableSearchDirs(appDir string) []string {
+	searchDirs := []string{appDir}
+	entries, err := os.ReadDir(appDir)
+	if err != nil {
+		return searchDirs
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		dirName := strings.ToLower(strings.TrimSpace(entry.Name()))
+		if strings.HasPrefix(dirName, "app-") || dirName == "current" {
+			searchDirs = append(searchDirs, filepath.Join(appDir, entry.Name()))
+		}
+	}
+
+	return searchDirs
 }
 
 func normalizeExecutableHint(name string) string {
