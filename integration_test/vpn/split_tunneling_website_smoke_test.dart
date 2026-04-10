@@ -12,7 +12,7 @@ const _enableIpCheck = bool.fromEnvironment(
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Windows website split tunneling smoke', (tester) async {
+  testWidgets('Website split tunneling smoke', (tester) async {
     await app.main();
     await runSplitTunnelingWebsiteSmokeHarness(
       tester,
