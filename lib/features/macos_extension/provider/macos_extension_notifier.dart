@@ -22,7 +22,7 @@ class MacosExtensionNotifier extends _$MacosExtensionNotifier {
           'Disposing MacosExtensionNotifier and cancelling subscriptions.');
       _extensionStatusSub?.cancel();
     });
-    return MacOSExtensionState(SystemExtensionStatus.notInstalled);
+    return const MacOSExtensionState(SystemExtensionStatus.unknown);
   }
 
   void watchExtensionStatus() {
