@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart' show appRouter;
 import 'package:lantern/core/utils/url_utils.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
@@ -21,6 +23,97 @@ const _vpnStateLabels = <VPNStatus, String>{
 const _splitTunnelDomainInput = 'api64.ipify.org';
 const _splitTunnelEndpoint = 'https://api64.ipify.org';
 const _regularEndpoint = 'https://api.ipify.org';
+const _splitTunnelWindowsPublicPath =
+    r'C:\Users\Public\Lantern\data\split-tunnel.json';
+
+List<String> _splitTunnelRuleFileCandidates() {
+  final candidates = <String>{_splitTunnelWindowsPublicPath};
+
+  final programData = Platform.environment['ProgramData'];
+  if (programData != null && programData.isNotEmpty) {
+    candidates.add('$programData\\Lantern\\data\\split-tunnel.json');
+  }
+
+  final localAppData = Platform.environment['LOCALAPPDATA'];
+  if (localAppData != null && localAppData.isNotEmpty) {
+    candidates.add('$localAppData\\Lantern\\data\\split-tunnel.json');
+  }
+
+  return candidates.toList(growable: false);
+}
+
+Future<MapEntry<String, String>?> _readSplitTunnelConfigFromDisk() async {
+  if (!Platform.isWindows) {
+    return null;
+  }
+
+  for (final path in _splitTunnelRuleFileCandidates()) {
+    final file = File(path);
+    if (!await file.exists()) {
+      continue;
+    }
+    try {
+      final content = await file.readAsString();
+      return MapEntry(path, content);
+    } catch (error) {
+      debugPrint('Split tunnel config read failed at "$path": $error');
+    }
+  }
+
+  return null;
+}
+
+Future<void> _printSplitTunnelConfigSnapshot(String stage) async {
+  final snapshot = await _readSplitTunnelConfigFromDisk();
+  if (snapshot == null) {
+    debugPrint(
+      'Split tunnel config snapshot [$stage]: file not found. '
+      'Checked: ${_splitTunnelRuleFileCandidates().join(', ')}',
+    );
+    return;
+  }
+
+  final content = snapshot.value.trim();
+  debugPrint(
+    'Split tunnel config snapshot [$stage] (${snapshot.key}): '
+    '${content.isEmpty ? '(empty file)' : content}',
+  );
+}
+
+bool _splitTunnelConfigContainsDomainSuffix(
+  String content, {
+  required String domain,
+}) {
+  try {
+    final decoded = jsonDecode(content);
+    if (decoded is! Map<String, dynamic>) {
+      return false;
+    }
+  } catch (_) {
+    return false;
+  }
+
+  final normalizedContent = content.toLowerCase();
+  final normalizedDomain = domain.toLowerCase();
+  return normalizedContent.contains('"domain_suffix"') &&
+      normalizedContent.contains('"$normalizedDomain"');
+}
+
+Future<bool> _waitForDomainPersistenceInSplitTunnelConfig({
+  required String domain,
+  required Duration timeout,
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    final snapshot = await _readSplitTunnelConfigFromDisk();
+    final content = snapshot?.value ?? '';
+    if (_splitTunnelConfigContainsDomainSuffix(content, domain: domain)) {
+      return true;
+    }
+    await Future<void>.delayed(const Duration(seconds: 1));
+  }
+  return false;
+}
 
 Future<String?> _fetchPublicIpOnce(String endpoint) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
@@ -156,6 +249,12 @@ Future<bool> _tryGoBack(WidgetTester tester) async {
     return true;
   }
 
+  final poppedWithRouter = await appRouter.maybePop();
+  if (poppedWithRouter) {
+    await tester.pump(const Duration(milliseconds: 250));
+    return true;
+  }
+
   try {
     await tester.pageBack();
     await tester.pump(const Duration(milliseconds: 250));
@@ -187,6 +286,13 @@ Future<void> _returnToHome(
     }
 
     await tester.pump(const Duration(milliseconds: 250));
+  }
+
+  appRouter.popUntilRoot();
+  await tester.pump(const Duration(milliseconds: 400));
+  if (homeScreen.evaluate().isNotEmpty ||
+      vpnToggle.hitTestable().evaluate().isNotEmpty) {
+    return;
   }
 
   fail(
@@ -304,6 +410,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     timeout: const Duration(seconds: 20),
     reason: 'Website split tunneling screen did not open',
   );
+  await _printSplitTunnelConfigSnapshot('before-domain-update');
 
   final existingRow = websiteRow(normalizedSplitTunnelDomain);
   if (existingRow.evaluate().isNotEmpty) {
@@ -319,6 +426,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
       timeout: const Duration(seconds: 20),
       reason: 'Existing website rule was not removed before re-adding',
     );
+    await _printSplitTunnelConfigSnapshot('after-domain-remove');
   }
 
   await _enterTextField(
@@ -339,12 +447,27 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     timeout: const Duration(seconds: 20),
     reason: 'New website split-tunnel rule was not visible after add',
   );
+  await _printSplitTunnelConfigSnapshot('after-domain-add');
+
+  final persisted = await _waitForDomainPersistenceInSplitTunnelConfig(
+    domain: normalizedSplitTunnelDomain,
+    timeout: const Duration(seconds: 20),
+  );
+  if (!persisted) {
+    await _printSplitTunnelConfigSnapshot('persistence-timeout');
+    fail(
+      'Domain "$normalizedSplitTunnelDomain" was visible in UI but was not '
+      'persisted to split-tunnel.json as domain_suffix within timeout.',
+    );
+  }
+  await _printSplitTunnelConfigSnapshot('after-domain-persistence-check');
 
   await _returnToHome(
     tester,
     homeScreen: finders.homeScreen,
     vpnToggle: finders.vpnToggle,
   );
+  await _printSplitTunnelConfigSnapshot('after-return-home');
 
   try {
     await _tapFinder(
