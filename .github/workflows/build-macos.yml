@@ -46,10 +46,9 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            ${{ runner.os }}-flutter-    
+            ${{ runner.os }}-flutter-
 
       - name: Cache macOS CocoaPods
         uses: actions/cache@v4
