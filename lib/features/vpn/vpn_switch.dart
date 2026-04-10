@@ -101,11 +101,23 @@ class VPNSwitch extends HookConsumerWidget {
     result.fold(
       (failure) {
         if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
+          AppDialog.vpnConflictDialog(
             context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              final retryResult = await ref
+                  .read(vpnProvider.notifier)
+                  .startVPN(skipConflictCheck: true);
+              if (!context.mounted) return;
+              retryResult.fold(
+                (failure) {
+                  context.showSnackBar(failure.localizedErrorMessage);
+                  appLogger.error(
+                      "Error changing VPN state: ${failure.localizedErrorMessage}");
+                },
+                (_) => null,
+              );
+            },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
