@@ -245,7 +245,6 @@ end;
 #define SourceDirMacro   "{{SOURCE_DIR}}"
 #define SvcName          "LanternSvc"
 #define ProgramDataDir   "{commonappdata}\Lantern"
-#define TokenFile        "{commonappdata}\Lantern\ipc-token"
 
 [Setup]
 AppId={{APP_ID}}

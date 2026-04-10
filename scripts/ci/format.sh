@@ -12,6 +12,7 @@ set -euo pipefail
 #   BUILD_TYPE:           production, beta, or nightly
 #   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
 #   GITHUB_SHA:           commit SHA (required for release-notes)
+#   WORKFLOW_URL:         workflow run URL (required for slack, used for nightly builds)
 #   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
 
 FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
@@ -38,8 +39,8 @@ VERSION="${RELEASE_TAG#v}"
 FULL_INSTALLER_NAME="${INSTALLER_BASE_NAME}"
 [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_INSTALLER_NAME="${FULL_INSTALLER_NAME}-${BUILD_TYPE}"
 
-VERSION_URL="https://${BUCKET}.s3.amazonaws.com/releases/${BUILD_TYPE}/${VERSION}"
-LATEST_URL="https://${BUCKET}.s3.amazonaws.com/releases/${BUILD_TYPE}/latest"
+VERSION_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${VERSION}"
+LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
 
 # Check if a platform should be included
 should_include() {
@@ -111,7 +112,12 @@ job-summary)
   ;;
 
 slack)
-  text="Lantern $BUILD_TYPE <https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG|$RELEASE_TAG> is ready."
+  WORKFLOW_URL="${WORKFLOW_URL:?WORKFLOW_URL required for slack}"
+  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+    text="Lantern $BUILD_TYPE <${WORKFLOW_URL}|$RELEASE_TAG> is ready."
+  else
+    text="Lantern $BUILD_TYPE <https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG|$RELEASE_TAG> is ready."
+  fi
   text="${text}\n*Branch:* <https://github.com/getlantern/lantern/tree/$GITHUB_REF_NAME|$GITHUB_REF_NAME>"
   text="${text}\n*Downloads:*"
 

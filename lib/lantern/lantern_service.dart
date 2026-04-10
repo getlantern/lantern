@@ -115,7 +115,7 @@ class LanternService implements LanternCoreService {
   @override
   Stream<List<String>> watchLogs(String path) {
     if (PlatformUtils.isFFISupported) {
-      throw UnimplementedError();
+      return _ffiService.watchLogs(path);
     }
     return _platformService.watchLogs(path);
   }

@@ -24,10 +24,21 @@ public class SystemExtensionStatusEventHandler: NSObject, FlutterPlugin, Flutter
     -> FlutterError?
   {
 
+    // Wait for initialization before emitting to Flutter. Using combineLatest
+    // ensures that even if the resolved status is .notInstalled (same as the
+    // placeholder), the stream still emits once initialized flips to true.
     cancellable = SystemExtensionManager.shared.$status
+      .combineLatest(SystemExtensionManager.shared.$initialized)
+      .filter { _, initialized in initialized }
+      .map { status, _ in status }
       .sink { sysStatus in
-        appLogger.info("SystemExtensionStatusEvent received status: \(sysStatus)")
-        events(["status": sysStatus])
+        appLogger.info(
+          "SystemExtensionStatusEvent received status: \(sysStatus.logDescription)")
+        var payload: [String: Any] = ["status": sysStatus.code]
+        if let details = sysStatus.details {
+          payload["details"] = details
+        }
+        events(payload)
       }
     return nil
   }

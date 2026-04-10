@@ -137,6 +137,51 @@ class AppDialog {
     );
   }
 
+  static void vpnConflictDialog({
+    required BuildContext context,
+    required VoidCallback onConnectAnyway,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.only(
+              top: defaultSize,
+              bottom: defaultSize,
+              left: defaultSize,
+              right: defaultSize),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(height: 24),
+              Text('vpn_conflict_title'.i18n,
+                  style: Theme.of(context).textTheme.headlineMedium),
+              SizedBox(height: defaultSize),
+              Text(
+                'vpn_conflict_body'.i18n,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+          actions: [
+            AppTextButton(
+              label: 'vpn_conflict_dismiss'.i18n,
+              onPressed: () {
+                appRouter.maybePop();
+              },
+            ),
+            AppTextButton(
+              label: 'vpn_conflict_connect_anyway'.i18n,
+              onPressed: onConnectAnyway,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   static void dialog({
     required BuildContext context,
     required String title,

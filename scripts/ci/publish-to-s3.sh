@@ -75,8 +75,8 @@ upload_file() {
   fi
 
   echo "✓ Uploaded $platform successfully"
-  echo "  - https://${BUCKET}.s3.amazonaws.com/${VERSION_PREFIX}/${filename}"
-  echo "  - https://${BUCKET}.s3.amazonaws.com/${LATEST_PREFIX}/${filename}"
+  echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
+  echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
   return 0
 }
 

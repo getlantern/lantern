@@ -131,6 +131,9 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Run macOS unit tests
+        run: make macos-unit-tests
+
       - name: Build macOS release
         run: make macos-release
         env:
@@ -138,6 +141,15 @@ jobs:
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Check system extension build number monotonicity
+        if: ${{ inputs.build_type == 'nightly' }}
+        shell: bash
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          INSTALLER_BASE_NAME: ${{ inputs.installer_base_name }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+        run: bash ./.github/scripts/check_macos_sysext_build.sh
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4

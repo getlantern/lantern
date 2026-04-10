@@ -41,22 +41,31 @@ func getCore() (lanterncore.Core, error) {
 }
 
 // withCore is a helper function that provides access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCore(fn func(c lanterncore.Core) error) error {
-	c, err := getCore()
-	if err != nil {
-		return err
-	}
-	return fn(c)
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		c, err := getCore()
+		if err != nil {
+			return struct{}{}, err
+		}
+		return struct{}{}, fn(c)
+	})
+	return err
 }
 
 // withCoreR is a helper function that provides type-safe access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
-	var zero T
-	c, err := getCore()
-	if err != nil {
-		return zero, err
-	}
-	return fn(c)
+	return utils.RunOffCgoStack(func() (T, error) {
+		c, err := getCore()
+		if err != nil {
+			var zero T
+			return zero, err
+		}
+		return fn(c)
+	})
 }
 
 // getClient returns an IPC client. It prefers the loopback client created by
@@ -77,14 +86,16 @@ func getClient() (*ipc.Client, error) {
 }
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
-	slog.Info("Setting up Radiance", "opts", opts)
-	// Initialize lantern core
-	c, err := lanterncore.New(opts, eventEmitter)
-	if err != nil {
-		return fmt.Errorf("unable to create LanternCore: %v", err)
-	}
-	lanternCore.Store(c)
-	return nil
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Setting up Radiance", "opts", opts)
+		c, err := lanterncore.New(opts, eventEmitter)
+		if err != nil {
+			return struct{}{}, fmt.Errorf("unable to create LanternCore: %v", err)
+		}
+		lanternCore.Store(c)
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func UpdateTelemetryConsent(consent bool) error {
@@ -187,78 +198,90 @@ func IsRadianceConnected() bool {
 }
 
 func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
-	slog.Info("Starting VPN")
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	if err := vpn_tunnel.StartVPN(client); err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener.
-	// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-	if !common.IsMacOS() && !common.IsIOS() {
-		if c, coreErr := getCore(); coreErr == nil {
-			slog.Info("Starting auto location listener on non-iOS/macOS platform")
-			c.StartBackgroundListeners()
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Starting VPN")
+		client, err := getClient()
+		if err != nil {
+			return struct{}{}, err
 		}
-	}
-	return nil
+		if err := vpn_tunnel.StartVPN(client); err != nil {
+			return struct{}{}, err
+		}
+		// On non-iOS/macOS platforms, start the auto location listener.
+		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
+		if !common.IsMacOS() && !common.IsIOS() {
+			if c, coreErr := getCore(); coreErr == nil {
+				slog.Info("Starting auto location listener on non-iOS/macOS platform")
+				c.StartBackgroundListeners()
+			}
+		}
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func StopVPN() error {
-	slog.Info("Stopping VPN")
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	if err := vpn_tunnel.StopVPN(client); err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
-	// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-	if !common.IsMacOS() && !common.IsIOS() {
-		if c, coreErr := getCore(); coreErr == nil {
-			slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-			c.StopBackgroundListeners()
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Stopping VPN")
+		client, err := getClient()
+		if err != nil {
+			return struct{}{}, err
 		}
-	}
-	return nil
+		if err := vpn_tunnel.StopVPN(client); err != nil {
+			return struct{}{}, err
+		}
+		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
+		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
+		if !common.IsMacOS() && !common.IsIOS() {
+			if c, coreErr := getCore(); coreErr == nil {
+				slog.Info("Stopping auto location listener on non-iOS/macOS platform")
+				c.StopBackgroundListeners()
+			}
+		}
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
-	ipcMu.Lock()
-	defer ipcMu.Unlock()
-	if ipcServer != nil {
-		return nil
-	}
-	bopts := backend.Options{
-		DataDir:           opts.DataDir,
-		LogDir:            opts.LogDir,
-		Locale:            opts.Locale,
-		LogLevel:          opts.LogLevel,
-		DeviceID:          opts.Deviceid,
-		TelemetryConsent:  opts.TelemetryConsent,
-		PlatformInterface: platform,
-	}
-	be, err := backend.NewLocalBackend(context.Background(), bopts)
-	if err != nil {
-		return fmt.Errorf("error creating backend for IPC server: %v", err)
-	}
-	ipcServer = ipc.NewServer(be, !common.IsMobile())
-	ipcClient = newLoopbackClient(be)
-	return ipcServer.Start()
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		ipcMu.Lock()
+		defer ipcMu.Unlock()
+		if ipcServer != nil {
+			return struct{}{}, nil
+		}
+		bopts := backend.Options{
+			DataDir:           opts.DataDir,
+			LogDir:            opts.LogDir,
+			Locale:            opts.Locale,
+			LogLevel:          opts.LogLevel,
+			DeviceID:          opts.Deviceid,
+			TelemetryConsent:  opts.TelemetryConsent,
+			PlatformInterface: platform,
+		}
+		be, err := backend.NewLocalBackend(context.Background(), bopts)
+		if err != nil {
+			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
+		}
+		ipcServer = ipc.NewServer(be, !common.IsMobile())
+		ipcClient = newLoopbackClient(be)
+		return struct{}{}, ipcServer.Start()
+	})
+	return err
 }
 
 func CloseIPCServer() error {
-	ipcMu.Lock()
-	defer ipcMu.Unlock()
-	if ipcServer != nil {
-		ipcServer.Close()
-		ipcServer = nil
-	}
-	ipcClient = nil
-	return nil
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		ipcMu.Lock()
+		defer ipcMu.Unlock()
+		if ipcServer != nil {
+			ipcServer.Close()
+			ipcServer = nil
+		}
+		ipcClient = nil
+		return struct{}{}, nil
+	})
+	return err
 }
 
 // IsTagAvailable checks if a server with the given tag exists in the server list.
@@ -279,22 +302,25 @@ func IsTagAvailable(tag string) bool {
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	if err := vpn_tunnel.ConnectToServer(client, locationType, tag); err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
-	// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-	if !common.IsMacOS() && !common.IsIOS() {
-		if c, coreErr := getCore(); coreErr == nil {
-			slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-			c.StopBackgroundListeners()
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		client, err := getClient()
+		if err != nil {
+			return struct{}{}, err
 		}
-	}
-	return nil
+		if err := vpn_tunnel.ConnectToServer(client, locationType, tag); err != nil {
+			return struct{}{}, err
+		}
+		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
+		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
+		if !common.IsMacOS() && !common.IsIOS() {
+			if c, coreErr := getCore(); coreErr == nil {
+				slog.Info("Stopping auto location listener on non-iOS/macOS platform")
+				c.StopBackgroundListeners()
+			}
+		}
+		return struct{}{}, nil
+	})
+	return err
 }
 
 // StartAutoLocationListener starts the auto location listener in the core.

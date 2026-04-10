@@ -91,11 +91,13 @@ class VpnNotifier extends _$VpnNotifier {
   /// If a specific server location is set, it will connect to that server
   /// valid server location types are: auto,lanternLocation,privateServer
 
-  Future<Either<Failure, String>> startVPN({bool force = false}) async {
+  Future<Either<Failure, String>> startVPN({bool force = false, bool skipConflictCheck = false}) async {
     final lantern = ref.read(lanternServiceProvider);
 
-    final conflict = await _checkVpnConflict();
-    if (conflict != null) return conflict;
+    if (!skipConflictCheck) {
+      final conflict = await _checkVpnConflict();
+      if (conflict != null) return conflict;
+    }
 
     final serverLocation = ref.read(serverLocationProvider);
 
@@ -115,20 +117,23 @@ class VpnNotifier extends _$VpnNotifier {
       );
       return lantern.startVPN();
     }
-    return connectToServer(type, tag);
+    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
 
   /// Connects to a specific server location.
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
     ServerLocationType location,
-    String tag,
-  ) async {
+    String tag, {
+    bool skipConflictCheck = false,
+  }) async {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
-    final conflict = await _checkVpnConflict();
-    if (conflict != null) return conflict;
+    if (!skipConflictCheck) {
+      final conflict = await _checkVpnConflict();
+      if (conflict != null) return conflict;
+    }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref

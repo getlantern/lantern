@@ -21,6 +21,30 @@ function Write-Step {
   Write-Host ("[{0}] {1}" -f (Get-Date -Format "HH:mm:ss"), $Message)
 }
 
+function Invoke-ScCommand {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string[]]$ArgumentList,
+    [int[]]$AllowedExitCodes = @(0),
+    [string]$Description = ""
+  )
+
+  $desc = if ([string]::IsNullOrWhiteSpace($Description)) {
+    "sc.exe $($ArgumentList -join ' ')"
+  } else {
+    $Description
+  }
+  Write-Step $desc
+  $output = & sc.exe @ArgumentList 2>&1
+  $exitCode = $LASTEXITCODE
+  if ($output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+  if ($AllowedExitCodes -notcontains $exitCode) {
+    throw "$desc failed with exit code $exitCode"
+  }
+}
+
 function Wait-ProcessWithTimeout {
   param(
     [Parameter(Mandatory = $true)]
@@ -100,10 +124,10 @@ function Remove-ServiceIfPresent {
 
   if (Get-Service -Name $Name -ErrorAction SilentlyContinue) {
     Write-Step "Stopping existing Windows service $Name"
-    sc.exe stop $Name | Out-Null
+    Invoke-ScCommand -ArgumentList @("stop", $Name) -AllowedExitCodes @(0, 1062)
     Start-Sleep -Seconds 2
     Write-Step "Deleting existing Windows service $Name"
-    sc.exe delete $Name | Out-Null
+    Invoke-ScCommand -ArgumentList @("delete", $Name) -AllowedExitCodes @(0, 1060)
     Start-Sleep -Seconds 2
   }
 }

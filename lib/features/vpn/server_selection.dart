@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
@@ -372,7 +371,7 @@ class _ServerLocationListViewState
     if (PlatformUtils.isMacOS) {
       /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
       final macosExtensionStatus = ref.read(macosExtensionProvider);
-      if (macosExtensionStatus.status == SystemExtensionStatus.notInstalled) {
+      if (!macosExtensionStatus.isReady) {
         appRouter.push(const MacOSExtensionDialog());
         return;
       }
@@ -388,11 +387,28 @@ class _ServerLocationListViewState
     result.fold(
       (failure) {
         if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
+          AppDialog.vpnConflictDialog(
             context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              final retryResult =
+                  await ref.read(vpnProvider.notifier).connectToServer(
+                        ServerLocationType.lanternLocation,
+                        selectedServer.tag,
+                        skipConflictCheck: true,
+                      );
+              retryResult.fold(
+                (failure) => context.showSnackBar(failure.localizedErrorMessage),
+                (_) {
+                  ref
+                      .read(serverLocationProvider.notifier)
+                      .updateServerLocation(
+                        ServerLocation.fromServer(server: selectedServer),
+                      );
+                  appRouter.popUntilRoot();
+                },
+              );
+            },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
@@ -427,6 +443,7 @@ class _ServerLocationListViewState
       },
     );
   }
+
 }
 
 class _CountryCityListView extends StatefulWidget {
@@ -673,11 +690,40 @@ class _PrivateServerLocationListViewState
       (failure) {
         context.hideLoadingDialog();
         if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
+          AppDialog.vpnConflictDialog(
             context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              final retryResult =
+                  await ref.read(vpnProvider.notifier).connectToServer(
+                        ServerLocationType.privateServer,
+                        server.tag,
+                        skipConflictCheck: true,
+                      );
+              retryResult.fold(
+                (failure) {
+                  context.hideLoadingDialog();
+                  context.showSnackBar(failure.localizedErrorMessage);
+                },
+                (_) {
+                  context.hideLoadingDialog();
+                  context.showSnackBar('connected_to_private_server'.i18n);
+                  ref
+                      .read(serverLocationProvider.notifier)
+                      .updateServerLocation(
+                        ServerLocation(
+                          serverType: ServerLocationType.privateServer.name,
+                          serverName: server.tag,
+                          country: server.location.country,
+                          city: server.location.city,
+                          countryCode: server.location.countryCode,
+                          protocol: server.type,
+                        ),
+                      );
+                  appRouter.popUntilRoot();
+                },
+              );
+            },
           );
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
@@ -703,6 +749,7 @@ class _PrivateServerLocationListViewState
       },
     );
   }
+
 }
 
 Map<String, List<Server>> _groupLocationsByCountry(

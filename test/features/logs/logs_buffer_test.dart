@@ -11,12 +11,12 @@ void main() {
   });
 
   test('latestLogsForDisplay keeps only most recent lines when over cap', () {
-    final logs = List<String>.generate(805, (index) => 'line-$index');
+    final logs = List<String>.generate(505, (index) => 'line-$index');
 
     final visible = latestLogsForDisplay(logs);
 
-    expect(visible.length, 800);
+    expect(visible.length, 500);
     expect(visible.first, 'line-5');
-    expect(visible.last, 'line-804');
+    expect(visible.last, 'line-504');
   });
 }
