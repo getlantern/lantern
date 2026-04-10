@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -16,6 +19,13 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useEffect(() {
+      unawaited(
+        ref.read(splitTunnelingWebsitesProvider.notifier).refreshFromCore(),
+      );
+      return null;
+    }, const []);
+
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
 
@@ -71,9 +81,15 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
                         final website = enabledList[index];
                         return WebsiteRow(
                           website: website,
-                          onToggle: () => ref
-                              .read(splitTunnelingWebsitesProvider.notifier)
-                              .removeWebsite(website),
+                          onToggle: () async {
+                            final failure = await ref
+                                .read(splitTunnelingWebsitesProvider.notifier)
+                                .removeWebsite(website);
+                            if (!context.mounted || failure == null) {
+                              return;
+                            }
+                            context.showSnackBar(failure.localizedErrorMessage);
+                          },
                         );
                       },
                     ),
@@ -87,7 +103,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
 class WebsiteRow extends StatelessWidget {
   final Website website;
-  final VoidCallback onToggle;
+  final Future<void> Function() onToggle;
 
   const WebsiteRow({super.key, required this.website, required this.onToggle});
 
@@ -107,7 +123,7 @@ class WebsiteRow extends StatelessWidget {
       trailing: AppIconButton(
         key: Key('split_tunneling.website.remove.$normalizedDomain'),
         path: AppImagePaths.close,
-        onPressed: onToggle,
+        onPressed: () => unawaited(onToggle()),
       ),
     );
   }

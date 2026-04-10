@@ -42,7 +42,10 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       (items) {
         final enabled = items.toSet();
         return filtered
-            .where((a) => enabled.contains(appPath(a)))
+            .where((app) {
+              final value = splitTunnelValue(app, logIfEmpty: false);
+              return value != null && enabled.contains(value);
+            })
             .map((a) => a.copyWith(isEnabled: true))
             .toSet();
       },
@@ -76,6 +79,19 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return appData.bundleId;
   }
 
+  String? splitTunnelValue(AppData appData, {bool logIfEmpty = true}) {
+    final value = appPath(appData).trim();
+    if (value.isNotEmpty) {
+      return value;
+    }
+    if (logIfEmpty) {
+      appLogger.warning(
+        'Skipping split-tunnel update for app with empty identifier: ${normalizedAppId(appData)}',
+      );
+    }
+    return null;
+  }
+
   List<AppData> _installedAppsSnapshot() {
     final apps = ref.read(appsDataProvider);
 
@@ -93,18 +109,16 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   Future<void> toggleApp(AppData app) async {
     final id = normalizedAppId(app);
+    final value = splitTunnelValue(app);
+    if (value == null) {
+      return;
+    }
     final current = _current();
     final isEnabled = current.any((a) => normalizedAppId(a) == id);
 
     final result = isEnabled
-        ? await _lanternService.removeSplitTunnelItem(
-            getFilterType(),
-            appPath(app),
-          )
-        : await _lanternService.addSplitTunnelItem(
-            getFilterType(),
-            appPath(app),
-          );
+        ? await _lanternService.removeSplitTunnelItem(getFilterType(), value)
+        : await _lanternService.addSplitTunnelItem(getFilterType(), value);
 
     await result.match(
       (failure) async {
@@ -135,7 +149,18 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         .toList();
     if (toAdd.isEmpty) return;
 
-    final paths = toAdd.map(appPath).toList();
+    final validToAdd = <AppData>[];
+    final paths = <String>[];
+    for (final app in toAdd) {
+      final value = splitTunnelValue(app);
+      if (value != null) {
+        validToAdd.add(app);
+        paths.add(value);
+      }
+    }
+
+    if (paths.isEmpty) return;
+
     final result = await _lanternService.addAllItems(getFilterType(), paths);
 
     await result.match(
@@ -143,7 +168,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       (_) async {
         state = AsyncData({
           ...current,
-          ...toAdd.map((a) => a.copyWith(isEnabled: true)),
+          ...validToAdd.map((a) => a.copyWith(isEnabled: true)),
         });
 
         ref.invalidateSelf();
@@ -159,13 +184,24 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         .toList();
     if (toRemove.isEmpty) return;
 
-    final paths = toRemove.map(appPath).toList();
+    final validToRemove = <AppData>[];
+    final paths = <String>[];
+    for (final app in toRemove) {
+      final value = splitTunnelValue(app);
+      if (value != null) {
+        validToRemove.add(app);
+        paths.add(value);
+      }
+    }
+
+    if (paths.isEmpty) return;
+
     final result = await _lanternService.removeAllItems(getFilterType(), paths);
 
     await result.match(
       (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
       (_) async {
-        final removeIds = toRemove.map(normalizedAppId).toSet();
+        final removeIds = validToRemove.map(normalizedAppId).toSet();
         state = AsyncData(
           current.where((a) => !removeIds.contains(normalizedAppId(a))).toSet(),
         );

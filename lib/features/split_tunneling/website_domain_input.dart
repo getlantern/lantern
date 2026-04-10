@@ -39,7 +39,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
       return website;
     }
 
-    void validateAndExtractDomain() {
+    Future<void> validateAndExtractDomain() async {
       final inputText = textController.text.trim();
 
       if (inputText.isEmpty) {
@@ -72,7 +72,17 @@ class WebsiteDomainInput extends HookConsumerWidget {
         return;
       }
 
-      ref.read(splitTunnelingWebsitesProvider.notifier).addWebsites(added);
+      final failures = await ref
+          .read(splitTunnelingWebsitesProvider.notifier)
+          .addWebsites(added);
+
+      if (!context.mounted || failures.isEmpty) {
+        return;
+      }
+
+      showSnackbar(
+        failures.map((failure) => failure.localizedErrorMessage).join('\n'),
+      );
     }
 
     return Column(

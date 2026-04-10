@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,42 +16,97 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
   @override
   Set<Website> build() {
+    unawaited(_reloadFromCore());
     return <Website>{};
   }
 
-  Future<void> addWebsites(List<Website> websites) async {
-    final newWebsites = websites.where(
-      (w) => !state.any((a) => a.domain == w.domain),
-    );
+  Future<void> refreshFromCore() => _reloadFromCore();
 
-    for (final website in newWebsites) {
-      final result = await _lanternService.addSplitTunnelItem(
-        SplitTunnelFilterType.domainSuffix,
-        website.domain,
-      );
-
-      result.match(
-        (failure) => appLogger.error('Failed to add domain: ${failure.error}'),
-        (_) {
-          state = {...state, website};
-        },
-      );
-    }
-  }
-
-  Future<void> removeWebsite(Website website) async {
-    if (!state.any((a) => a.domain == website.domain)) return;
-
-    final result = await _lanternService.removeSplitTunnelItem(
+  Future<void> _reloadFromCore() async {
+    final result = await _lanternService.getSplitTunnelItems(
       SplitTunnelFilterType.domainSuffix,
-      website.domain,
     );
 
     result.match(
-      (failure) => appLogger.error('Failed to remove domain: ${failure.error}'),
-      (_) {
-        state = state.where((a) => a.domain != website.domain).toSet();
+      (failure) => appLogger.error(
+        'Failed to load split-tunnel websites: ${failure.error}',
+      ),
+      (items) {
+        state = items
+            .map((item) => item.trim().toLowerCase())
+            .where((domain) => domain.isNotEmpty)
+            .map((domain) => Website(domain: domain))
+            .toSet();
       },
     );
+  }
+
+  Future<List<Failure>> addWebsites(List<Website> websites) async {
+    final failures = <Failure>[];
+    final newWebsites = websites.where(
+      (website) =>
+          !state.any(
+            (saved) =>
+                saved.domain.toLowerCase() == website.domain.toLowerCase(),
+          ) &&
+          website.domain.trim().isNotEmpty,
+    );
+
+    var reloaded = false;
+    for (final website in newWebsites) {
+      final normalizedDomain = website.domain.trim().toLowerCase();
+      final result = await _lanternService.addSplitTunnelItem(
+        SplitTunnelFilterType.domainSuffix,
+        normalizedDomain,
+      );
+
+      result.match(
+        (failure) {
+          appLogger.error(
+            'Failed to add split-tunnel website "$normalizedDomain": ${failure.error}',
+          );
+          failures.add(failure);
+        },
+        (_) {
+          reloaded = true;
+        },
+      );
+    }
+
+    if (reloaded) {
+      await _reloadFromCore();
+    }
+
+    return failures;
+  }
+
+  Future<Failure?> removeWebsite(Website website) async {
+    final normalizedDomain = website.domain.trim().toLowerCase();
+    if (normalizedDomain.isEmpty) {
+      return null;
+    }
+
+    if (!state.any((saved) => saved.domain.toLowerCase() == normalizedDomain)) {
+      return null;
+    }
+
+    final result = await _lanternService.removeSplitTunnelItem(
+      SplitTunnelFilterType.domainSuffix,
+      normalizedDomain,
+    );
+
+    final failure = result.match((failure) {
+      appLogger.error(
+        'Failed to remove split-tunnel website "$normalizedDomain": ${failure.error}',
+      );
+      return failure;
+    }, (_) => null);
+
+    if (failure != null) {
+      return failure;
+    }
+
+    await _reloadFromCore();
+    return null;
   }
 }
