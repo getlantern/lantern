@@ -4,7 +4,7 @@ param(
   [string]$InstallerPath = "",
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
-  [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/windows_split_tunneling_website_smoke_test.dart",
+  [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
@@ -298,7 +298,7 @@ try {
 
   Invoke-FlutterSmokeTest `
     -Path $SplitTunnelWebsiteTestPath `
-    -Description "Windows website split tunneling smoke test" `
+    -Description "Website split tunneling smoke test" `
     -EnableIpCheck:$EnableIpCheck
 
   $configUrls = $env:JOIN_SERVER_CONFIG_URLS
