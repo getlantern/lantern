@@ -22,7 +22,7 @@ const _vpnStateLabels = <VPNStatus, String>{
 
 const _splitTunnelDomainInput = 'api64.ipify.org';
 const _splitTunnelEndpoint = 'https://api64.ipify.org';
-const _regularEndpoint = 'https://api.ipify.org';
+const _regularEndpoint = 'https://icanhazip.com';
 const _splitTunnelWindowsPublicPath =
     r'C:\Users\Public\Lantern\data\split-tunnel.json';
 
@@ -358,11 +358,17 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   );
 
   String? baselineSplitDomainIp;
+  String? baselineRegularDomainIp;
   if (enableIpCheck) {
     baselineSplitDomainIp = await _fetchPublicIpWithRetry(
       endpoint: _splitTunnelEndpoint,
       timeout: const Duration(seconds: 45),
       reason: 'split-domain baseline before connect',
+    );
+    baselineRegularDomainIp = await _fetchPublicIpWithRetry(
+      endpoint: _regularEndpoint,
+      timeout: const Duration(seconds: 45),
+      reason: 'regular-domain baseline before connect',
     );
   }
 
@@ -484,16 +490,18 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
       reason: 'VPN did not reach connected state for split tunnel smoke',
     );
 
-    if (enableIpCheck && baselineSplitDomainIp != null) {
+    if (enableIpCheck &&
+        baselineSplitDomainIp != null &&
+        baselineRegularDomainIp != null) {
       final regularDomainChanged = await _waitForPublicIpChangeFromBaseline(
         endpoint: _regularEndpoint,
-        baselineIp: baselineSplitDomainIp,
+        baselineIp: baselineRegularDomainIp,
         timeout: const Duration(seconds: 75),
       );
       if (!regularDomainChanged) {
         fail(
           'Public IP for regular endpoint did not change after VPN connect '
-          '(baseline: $baselineSplitDomainIp)',
+          '(baseline: $baselineRegularDomainIp)',
         );
       }
 
