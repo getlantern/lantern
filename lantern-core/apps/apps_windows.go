@@ -56,6 +56,12 @@ var windowsHostExecutableNames = map[string]bool{
 	"rundll32.exe":                true,
 }
 
+var windowsReleaseTypeDenyKeywords = []string{
+	"hotfix",
+	"security",
+	"update",
+}
+
 const (
 	appIsDir     = false
 	appExtension = ".exe"
@@ -94,11 +100,13 @@ func isWindowsSystemApp(exePath, name string) bool {
 		}
 	}
 
-	normalizedName := normalizeKey(strings.TrimSpace(name))
-	if normalizedName != "" {
-		normalizedName = strings.TrimSuffix(normalizedName, ".exe")
-		if windowsHostExecutableNames[normalizedName+".exe"] {
-			return true
+	if normalizedPath == "" {
+		normalizedName := normalizeKey(strings.TrimSpace(name))
+		if normalizedName != "" {
+			normalizedName = strings.TrimSuffix(normalizedName, ".exe")
+			if windowsHostExecutableNames[normalizedName+".exe"] {
+				return true
+			}
 		}
 	}
 
@@ -317,6 +325,11 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				continue
 			}
 
+			if isNonUserFacingUninstallEntry(sk) {
+				sk.Close()
+				continue
+			}
+
 			displayName, _, _ := sk.GetStringValue("DisplayName")
 			displayIcon, _, _ := sk.GetStringValue("DisplayIcon")
 			installLoc, _, _ := sk.GetStringValue("InstallLocation")
@@ -386,7 +399,7 @@ func filepathBaseNoExt(p string) string {
 
 func pickExePath(displayIcon, installLoc string) string {
 	if p := parseDisplayIcon(displayIcon); p != "" {
-		if fileExists(p) {
+		if fileExists(p) && strings.EqualFold(filepath.Ext(p), ".exe") {
 			return p
 		}
 	}
@@ -411,6 +424,32 @@ func pickExePath(displayIcon, installLoc string) string {
 		}
 	}
 	return ""
+}
+
+func isNonUserFacingUninstallEntry(sk registry.Key) bool {
+	if value, _, err := sk.GetIntegerValue("SystemComponent"); err == nil && value != 0 {
+		return true
+	}
+
+	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil && value != 0 {
+		return true
+	}
+
+	if parentKeyName, _, err := sk.GetStringValue("ParentKeyName"); err == nil &&
+		strings.TrimSpace(parentKeyName) != "" {
+		return true
+	}
+
+	if releaseType, _, err := sk.GetStringValue("ReleaseType"); err == nil {
+		normalized := strings.ToLower(strings.TrimSpace(releaseType))
+		for _, keyword := range windowsReleaseTypeDenyKeywords {
+			if strings.Contains(normalized, keyword) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func parseDisplayIcon(s string) string {
