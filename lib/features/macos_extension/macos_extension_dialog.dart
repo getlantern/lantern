@@ -79,20 +79,6 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
               ),
             ),
           ),
-          if (systemExtensionStatus.message != null &&
-              systemExtensionStatus.status != SystemExtensionStatus.error) ...[
-            const SizedBox(height: 12.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                systemExtensionStatus.message!,
-                style: textTheme.bodyMedium!.copyWith(
-                  color: context.textTertiary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
           const SizedBox(height: 16.0),
           RichText(
             text: TextSpan(

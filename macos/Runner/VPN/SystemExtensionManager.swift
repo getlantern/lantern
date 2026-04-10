@@ -575,10 +575,7 @@ internal enum SystemExtensionReconciler {
           action: .activate(reason: "activate bundled extension while old version awaits removal"),
           change: .install)
       }
-      return SystemExtensionReconciliation(
-        status: .requiresReboot(details: "system extension changes are waiting on a reboot"),
-        action: .none,
-        change: classifyChange(current: enabled, desired: bundled))
+      //  An enabled extension exists but doesn't match bundled Fall through to normal upgrade/content-change handling — a stale uninstalling copy should not block reconciliation.
     }
 
     guard !installed.isEmpty else {
