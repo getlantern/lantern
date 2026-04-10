@@ -18,7 +18,7 @@ class VpnStatus extends HookConsumerWidget {
     final statusValue = vpnStatus.name.capitalize;
     final textTheme = Theme.of(context).textTheme;
     MacOSExtensionState systemExtensionStatus =
-        MacOSExtensionState(SystemExtensionStatus.notInstalled);
+        const MacOSExtensionState(SystemExtensionStatus.unknown);
     if (PlatformUtils.isMacOS) {
       systemExtensionStatus = ref.watch(macosExtensionProvider);
     }
@@ -73,6 +73,9 @@ class VpnStatus extends HookConsumerWidget {
 
   bool isExtensionNeeded(MacOSExtensionState systemExtensionStatus) {
     if (!PlatformUtils.isMacOS) {
+      return false;
+    }
+    if (systemExtensionStatus.status == SystemExtensionStatus.unknown) {
       return false;
     }
     return !systemExtensionStatus.isReady;

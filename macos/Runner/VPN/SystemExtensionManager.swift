@@ -84,7 +84,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       switch context {
       case .deactivateThenActivate(_, let activateAfter):
         if activateAfter {
-          submitActivationRequest(reason: "activating bundled extension after removing mismatched version")
+          submitActivationRequest(
+            reason: "activating bundled extension after removing mismatched version")
         } else {
           submitPropertiesRequest(context: .inspectStatus)
         }
@@ -98,8 +99,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       // the activation chain breaks and the user gets stuck after reboot
       // with no enabled extension.
       if case .deactivateThenActivate(_, true)? = context {
-        appLogger.info("Deactivation needs reboot, but still attempting activation of bundled extension")
-        submitActivationRequest(reason: "activating bundled extension while old version awaits reboot removal")
+        appLogger.info(
+          "Deactivation needs reboot, but still attempting activation of bundled extension")
+        submitActivationRequest(
+          reason: "activating bundled extension while old version awaits reboot removal")
         return
       }
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
@@ -117,10 +120,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     let nsError = error as NSError
 
     if nsError.domain == OSSystemExtensionErrorDomain
-      && (
-        nsError.code == OSSystemExtensionError.requestCanceled.rawValue
-          || nsError.code == OSSystemExtensionError.requestSuperseded.rawValue
-      )
+      && (nsError.code == OSSystemExtensionError.requestCanceled.rawValue
+        || nsError.code == OSSystemExtensionError.requestSuperseded.rawValue)
     {
       appLogger.info(
         "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
@@ -294,7 +295,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       }
     } else if #available(macOS 13.0, *) {
       // URL(string:) with a valid literal always succeeds; no fallback needed.
-      let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension")!
+      let url = URL(
+        string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension")!
       appLogger.log("Opening PrivacySecurity.extension URL")
       NSWorkspace.shared.open(url)
     } else {
@@ -434,18 +436,20 @@ internal struct SystemExtensionDescriptor: Equatable {
     }
 
     let fileManager = FileManager.default
-    guard let items = try? fileManager.contentsOfDirectory(
-      at: sysExtURL,
-      includingPropertiesForKeys: nil,
-      options: [])
+    guard
+      let items = try? fileManager.contentsOfDirectory(
+        at: sysExtURL,
+        includingPropertiesForKeys: nil,
+        options: [])
     else {
       return nil
     }
 
-    guard let url = items.first(where: { candidate in
-      candidate.pathExtension == "systemextension"
-        && (Bundle(url: candidate)?.bundleIdentifier == bundleID)
-    }), let bundle = Bundle(url: url)
+    guard
+      let url = items.first(where: { candidate in
+        candidate.pathExtension == "systemextension"
+          && (Bundle(url: candidate)?.bundleIdentifier == bundleID)
+      }), let bundle = Bundle(url: url)
     else {
       return nil
     }
@@ -571,14 +575,14 @@ internal enum SystemExtensionReconciler {
         // for a reboot that may never clear the state. Submit an activation request
         // so macOS can install the bundled extension alongside the pending removal.
         return SystemExtensionReconciliation(
-          status: .updatePending(details: "old extension is uninstalling, replacement activation pending"),
+          status: .updatePending(
+            details: "old extension is uninstalling, replacement activation pending"),
           action: .activate(reason: "activate bundled extension while old version awaits removal"),
           change: .install)
       }
-      return SystemExtensionReconciliation(
-        status: .requiresReboot(details: "system extension changes are waiting on a reboot"),
-        action: .none,
-        change: classifyChange(current: enabled, desired: bundled))
+      // An enabled extension exists, but it does not match the bundled extension.
+      // Fall through to normal upgrade/content-change handling. A stale uninstalling
+      // copy should not block reconciliation.
     }
 
     guard !installed.isEmpty else {
@@ -601,18 +605,22 @@ internal enum SystemExtensionReconciler {
       return SystemExtensionReconciliation(status: .activated, action: .none, change: .matched)
     case .upgrade:
       return SystemExtensionReconciliation(
-        status: .updatePending(details: "bundled system extension is newer than the active extension"),
+        status: .updatePending(
+          details: "bundled system extension is newer than the active extension"),
         action: .activate(reason: "replace active system extension with bundled upgrade"),
         change: .upgrade)
     case .downgrade:
       return SystemExtensionReconciliation(
         status: .updatePending(details: "active system extension is newer than the current app"),
-        action: .deactivateThenActivate(reason: "replace newer system extension with bundled downgrade"),
+        action: .deactivateThenActivate(
+          reason: "replace newer system extension with bundled downgrade"),
         change: .downgrade)
     case .contentChange:
       return SystemExtensionReconciliation(
-        status: .updatePending(details: "active system extension contents differ from the bundled extension"),
-        action: .deactivateThenActivate(reason: "reload same-version system extension with bundled contents"),
+        status: .updatePending(
+          details: "active system extension contents differ from the bundled extension"),
+        action: .deactivateThenActivate(
+          reason: "reload same-version system extension with bundled contents"),
         change: .contentChange)
     case .install:
       return SystemExtensionReconciliation(
@@ -682,11 +690,12 @@ internal enum SystemExtensionBundleHasher {
 
   static func hashBundle(at url: URL) -> String? {
     let fileManager = FileManager.default
-    guard let enumerator = fileManager.enumerator(
-      at: url,
-      includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
-      options: [],
-      errorHandler: nil)
+    guard
+      let enumerator = fileManager.enumerator(
+        at: url,
+        includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+        options: [],
+        errorHandler: nil)
     else {
       appLogger.error("Failed to enumerate system extension bundle for hashing at \(url.path)")
       return nil
@@ -727,7 +736,8 @@ internal enum SystemExtensionBundleHasher {
     for entry in entries {
       switch entry.kind {
       case .symbolicLink:
-        guard let destination = try? fileManager.destinationOfSymbolicLink(atPath: entry.fileURL.path)
+        guard
+          let destination = try? fileManager.destinationOfSymbolicLink(atPath: entry.fileURL.path)
         else {
           appLogger.error("Failed to read symlink destination while hashing \(entry.fileURL.path)")
           return nil
@@ -780,7 +790,8 @@ internal enum SystemExtensionBundleHasher {
   }
 
   private static func relativePath(for fileURL: URL, under rootURL: URL) -> String {
-    let rootPath = rootURL.standardizedFileURL.path.hasSuffix("/")
+    let rootPath =
+      rootURL.standardizedFileURL.path.hasSuffix("/")
       ? rootURL.standardizedFileURL.path
       : rootURL.standardizedFileURL.path + "/"
     let filePath = fileURL.standardizedFileURL.path

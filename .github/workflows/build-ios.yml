@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true
         with:
           path: |
-            .dart_tool
+            ~/.pub-cache
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-    
