@@ -14,6 +14,7 @@ class SmartRouting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final selected =
         ref.watch(routingModeProvider).value ?? RoutingMode.full;
+    ref.watch(routingModeControllerProvider);
 
     Future<void> select(RoutingMode mode) async {
       final result =

@@ -30,6 +30,11 @@ class VPNSetting extends HookConsumerWidget {
     final blockAds = ref.watch(blockAdsEnabledProvider).value ?? false;
     final telemetryConsent =
         ref.watch(telemetryConsentProvider).value ?? false;
+
+    // Keep controllers alive during async mutations so ref.mounted stays true.
+    ref.watch(blockAdsControllerProvider);
+    ref.watch(telemetryControllerProvider);
+
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,

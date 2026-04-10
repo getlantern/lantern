@@ -20,6 +20,11 @@ class SplitTunneling extends HookConsumerWidget {
     final splitTunnelingEnabled =
         ref.watch(splitTunnelingEnabledProvider).value ?? false;
 
+    // Watch the controller to keep it alive during async toggle operations.
+    // Without this, the auto-dispose controller can be disposed mid-await,
+    // causing ref.mounted to be false and the UI invalidation to be skipped.
+    ref.watch(splitTunnelingControllerProvider);
+
     final enabledApps =
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
             .toList(growable: false);

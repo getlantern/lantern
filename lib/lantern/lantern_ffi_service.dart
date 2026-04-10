@@ -731,6 +731,7 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(() async {
         return _ffiService.plans().toDartString();
       });
+      checkAPIError(result);
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
 

@@ -34,7 +34,7 @@ final class DiagnosticLogNotifierProvider
 }
 
 String _$diagnosticLogNotifierHash() =>
-    r'949ff4928db76e5c3081f548a9f170b8268e6747';
+    r'0a9a50436bb0f1542af4c7d451b2f4f97f693abc';
 
 abstract class _$DiagnosticLogNotifier extends $StreamNotifier<List<String>> {
   Stream<List<String>> build();
