@@ -30,6 +30,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
 
   @override
+  void initState() {
+    super.initState();
+    // Always re-fetch when this screen opens. On first launch the backend may
+    // not have loaded servers yet when the keepAlive provider first ran build().
+    ref.invalidate(availableServersProvider);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selected = ref.watch(serverLocationProvider);
     final availableServers = ref.watch(availableServersProvider);
