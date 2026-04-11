@@ -18,6 +18,7 @@ class AppSetting {
   final String routingModeRaw;
   final String dataCapThreshold;
   final bool onboardingCompleted;
+  final bool peerProxyEnabled;
 
   const AppSetting({
     this.isPro = false,
@@ -37,6 +38,7 @@ class AppSetting {
     this.routingModeRaw = 'full_tunnel',
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
+    this.peerProxyEnabled = false,
   });
 
   AppSetting copyWith({
@@ -57,6 +59,7 @@ class AppSetting {
     String? routingModeRaw,
     String? dataCapThreshold,
     bool? onboardingCompleted,
+    bool? peerProxyEnabled,
   }) {
     return AppSetting(
       isPro: newPro ?? isPro,
@@ -76,6 +79,7 @@ class AppSetting {
       routingModeRaw: routingModeRaw ?? this.routingModeRaw,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      peerProxyEnabled: peerProxyEnabled ?? this.peerProxyEnabled,
     );
   }
 
@@ -98,6 +102,7 @@ class AppSetting {
         'routingModeRaw': routingModeRaw,
         'dataCapThreshold': dataCapThreshold,
         'onboardingCompleted': onboardingCompleted,
+        'peerProxyEnabled': peerProxyEnabled,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -117,6 +122,7 @@ class AppSetting {
         routingModeRaw: (json['routingModeRaw'] ?? 'full_tunnel').toString(),
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
         onboardingCompleted: json['onboardingCompleted'] == true,
+        peerProxyEnabled: json['peerProxyEnabled'] == true,
       );
 
   bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;

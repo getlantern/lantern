@@ -1523,3 +1523,9 @@ msgstr "Got it"
 
 msgid "vpn_conflict_connect_anyway"
 msgstr "Connect Anyway"
+
+msgid "share_connection"
+msgstr "Share My Connection"
+
+msgid "share_connection_description"
+msgstr "Help others access the internet by sharing your connection as a volunteer proxy"

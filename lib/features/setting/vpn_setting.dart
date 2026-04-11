@@ -5,7 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -107,6 +109,32 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
+        if (ref.watch(featureFlagNotifierProvider).getBool(FeatureFlag.peerProxy)) ...[
+          SizedBox(height: 16),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'share_connection'.i18n,
+              subtitle: Text(
+                'share_connection_description'.i18n,
+                style: textTheme.labelMedium!.copyWith(
+                  color: context.textTertiary,
+                  letterSpacing: 0.0,
+                ),
+              ),
+              icon: AppImagePaths.server,
+              trailing: SwitchButton(
+                value: preferences.peerProxyEnabled,
+                onChanged: (bool? value) {
+                  notifier.setPeerProxy(value ?? false);
+                },
+              ),
+              onPressed: () {
+                notifier.setPeerProxy(!preferences.peerProxyEnabled);
+              },
+            ),
+          ),
+        ],
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,

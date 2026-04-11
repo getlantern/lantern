@@ -163,6 +163,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return unit;
   }
 
+  Future<void> setPeerProxy(bool value) async {
+    if (state.peerProxyEnabled == value) return;
+    final prev = state.peerProxyEnabled;
+    await update(state.copyWith(peerProxyEnabled: value));
+    // TODO: Call IPC to start/stop peer proxy once radiance integration lands.
+    // For now, just persist the setting locally.
+    appLogger.info('Peer proxy ${value ? "enabled" : "disabled"}');
+  }
+
   void updateAnonymousDataConsent(bool value) {
     update(state.copyWith(telemetryConsent: value));
     updateTelemetryConsent(value);
