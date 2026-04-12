@@ -726,7 +726,6 @@ jobs:
       - name: Publish release on success
         if: |
           env.IS_TEST_RUN != 'true' &&
-          env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -734,13 +733,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "All steps succeeded - publishing draft release"
+          echo "Publishing release (at least one platform succeeded)"
           gh release edit "$RELEASE_TAG" --draft=false
 
       - name: Delete draft release
         if: |
           env.IS_TEST_RUN == 'true' ||
-          env.BUILD_TYPE == 'nightly' ||
           (env.CLEANUP_ON_FAILURE == 'true' &&
            !(needs.upload-s3.result == 'success' &&
              needs.upload-release-artifacts.result == 'success' &&
@@ -751,8 +749,6 @@ jobs:
         run: |
           if [[ "$IS_TEST_RUN" == "true" ]]; then
             echo "Test run from non-main branch - deleting draft release"
-          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
-            echo "Nightly build - deleting draft release"
           else
             echo "Build failed or cancelled - cleaning up draft release"
           fi
