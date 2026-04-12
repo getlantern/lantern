@@ -388,13 +388,10 @@ jobs:
         build-android,
         build-ios,
       ]
+    # Run if at least one platform build succeeded. Individual platform failures
+    # (e.g., Linux arm64) should not block uploading successful builds.
     if: |
       !cancelled() &&
-      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
-      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
-      (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
-      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
       (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
        needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
        needs.build-ios.result == 'success')
@@ -470,14 +467,10 @@ jobs:
         build-android,
         build-ios,
       ]
+    # Run if at least one platform build succeeded.
     if: |
       !cancelled() &&
       needs.release-create.result == 'success' &&
-      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
-      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
-      (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
-      (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-      (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
       (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
        needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
        needs.build-ios.result == 'success')
