@@ -203,27 +203,27 @@ class _HomeState extends ConsumerState<Home> {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if (!PlatformUtils.isIOS) ...{
-              DividerSpace(),
-              SettingTile(
-                label: 'routing_mode'.i18n,
-                icon: AppImagePaths.route,
-                value: routingMode.label(),
-                actions: [
-                  IconButton(
-                    onPressed: null,
-                    style: ElevatedButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: AppImage(path: AppImagePaths.arrowForward),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
+
+            DividerSpace(),
+            SettingTile(
+              label: 'routing_mode'.i18n,
+              icon: AppImagePaths.route,
+              value: routingMode.label(),
+              actions: [
+                IconButton(
+                  onPressed: null,
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                ],
-                onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
-              ),
-            },
+                  icon: AppImage(path: AppImagePaths.arrowForward),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
+            ),
+
             if (PlatformUtils.isAndroid ||
                 PlatformUtils.isMacOS ||
                 PlatformUtils.isWindows) ...{
