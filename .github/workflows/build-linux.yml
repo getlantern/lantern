@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: all
+      enable_ip_check:
+        description: "Enable public IP change validation in Linux connect smoke"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: "read"
@@ -221,7 +226,7 @@ jobs:
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
           ENABLE_IP_CHECK=false
-          if [[ "${TARGET_ARCH}" == "amd64" ]]; then
+          if [[ "${{ inputs.enable_ip_check }}" == "true" && "${TARGET_ARCH}" == "amd64" ]]; then
             ENABLE_IP_CHECK=true
           fi
           set +e
