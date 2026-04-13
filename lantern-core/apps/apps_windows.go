@@ -3,10 +3,12 @@
 package apps
 
 import (
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -67,6 +69,13 @@ type uninstallEntryMetadata struct {
 	systemComponentSet bool
 	systemComponent    uint64
 }
+
+type shortcutRecoveryHint struct {
+	displayName          string
+	normalizedCandidates []string
+}
+
+const packageCacheSearchDepth = 8
 
 func normalizedWindowsDir() string {
 	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
@@ -154,6 +163,7 @@ func windowsStartMenuDirs() []string {
 func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*AppData {
 	startDirs := windowsStartMenuDirs()
 	var out []*AppData
+	recoveryHints := make(map[string]shortcutRecoveryHint)
 
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
@@ -215,6 +225,9 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				shortcutWorkDir,
 			)
 			if targetExe == "" {
+				if hint := shortcutRecoveryHintFromShortcut(name, shortcutArgs); hint.isValid() {
+					recoveryHints[hint.key()] = hint
+				}
 				return nil
 			}
 			keyPath := normalizeKey(targetExe)
@@ -250,6 +263,11 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			seen[keyPath] = true
 			return nil
 		})
+	}
+
+	if len(recoveryHints) > 0 {
+		recovered := collectAppsFromPackageCacheHints(recoveryHints, seen, cb)
+		out = append(out, recovered...)
 	}
 
 	return out
@@ -478,6 +496,207 @@ func shortcutDisplayName(shortcutFileName, targetExe string) string {
 
 func resolveWrappedExecutable(exePath, nameHint string) string {
 	return resolveWrappedExecutableWithContext(exePath, nameHint, "", "")
+}
+
+func (hint shortcutRecoveryHint) isValid() bool {
+	return strings.TrimSpace(hint.displayName) != "" && len(hint.normalizedCandidates) > 0
+}
+
+func (hint shortcutRecoveryHint) key() string {
+	return normalizeKey(strings.TrimSpace(hint.displayName))
+}
+
+func shortcutRecoveryHintFromShortcut(name, shortcutArgs string) shortcutRecoveryHint {
+	hint := shortcutRecoveryHint{
+		displayName: strings.TrimSpace(name),
+	}
+	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, name)
+	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, processStartExecutableHint(shortcutArgs))
+	return hint
+}
+
+func appendNormalizedHints(candidates []string, values ...string) []string {
+	for _, value := range values {
+		normalized := normalizeExecutableHint(value)
+		if normalized == "" {
+			continue
+		}
+		alreadyAdded := false
+		for _, existing := range candidates {
+			if existing == normalized {
+				alreadyAdded = true
+				break
+			}
+		}
+		if !alreadyAdded {
+			candidates = append(candidates, normalized)
+		}
+	}
+	return candidates
+}
+
+func matchesAnyNormalizedHint(value string, candidates []string) bool {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return false
+	}
+	for _, candidate := range candidates {
+		if candidate == "" {
+			continue
+		}
+		if value == candidate || strings.Contains(value, candidate) || strings.Contains(candidate, value) {
+			return true
+		}
+	}
+	return false
+}
+
+func windowsPackageDirs() []string {
+	localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
+	if localAppData == "" {
+		return nil
+	}
+	packagesRoot := filepath.Join(localAppData, "Packages")
+	entries, err := os.ReadDir(packagesRoot)
+	if err != nil {
+		return nil
+	}
+	dirs := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		dirs = append(dirs, filepath.Join(packagesRoot, entry.Name()))
+	}
+	return dirs
+}
+
+func collectAppsFromPackageCacheHints(hints map[string]shortcutRecoveryHint, seen map[string]bool, cb Callback) []*AppData {
+	packageDirs := windowsPackageDirs()
+	if len(packageDirs) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(hints))
+	for key := range hints {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	var out []*AppData
+	for _, key := range keys {
+		hint := hints[key]
+		if !hint.isValid() {
+			continue
+		}
+
+		exePath := resolvePackageCacheExecutable(packageDirs, hint)
+		if exePath == "" {
+			continue
+		}
+		if isWindowsSystemApp(exePath, hint.displayName) {
+			continue
+		}
+		if isExcludedName(filepathBaseNoExt(exePath)) {
+			continue
+		}
+
+		keyPath := normalizeKey(exePath)
+		if keyPath == "" || seen[keyPath] {
+			continue
+		}
+
+		var iconBytes []byte
+		if b, err := getIconBytesFromLocation(exePath, 0); err == nil {
+			iconBytes = b
+		}
+
+		app := &AppData{
+			Name:      hint.displayName,
+			BundleID:  exePath,
+			AppPath:   exePath,
+			IconPath:  "",
+			IconBytes: iconBytes,
+		}
+
+		if cb != nil {
+			cb(app)
+		}
+		out = append(out, app)
+		seen[keyPath] = true
+	}
+
+	return out
+}
+
+func resolvePackageCacheExecutable(packageDirs []string, hint shortcutRecoveryHint) string {
+	if !hint.isValid() || len(packageDirs) == 0 {
+		return ""
+	}
+
+	prioritized := make([]string, 0, len(packageDirs))
+	fallback := make([]string, 0, len(packageDirs))
+	for _, packageDir := range packageDirs {
+		packageName := normalizeExecutableHint(filepath.Base(packageDir))
+		if matchesAnyNormalizedHint(packageName, hint.normalizedCandidates) {
+			prioritized = append(prioritized, packageDir)
+			continue
+		}
+		fallback = append(fallback, packageDir)
+	}
+
+	searchDirs := append(prioritized, fallback...)
+	for _, packageDir := range searchDirs {
+		localCacheDir := filepath.Join(packageDir, "LocalCache")
+		if !dirExists(localCacheDir) {
+			continue
+		}
+		if match := findExecutableInTree(localCacheDir, hint.normalizedCandidates, packageCacheSearchDepth); match != "" {
+			return match
+		}
+	}
+	return ""
+}
+
+func pathDepth(root, path string) int {
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == "." {
+		return 0
+	}
+	segments := strings.Split(rel, string(os.PathSeparator))
+	return len(segments)
+}
+
+func findExecutableInTree(root string, normalizedCandidates []string, maxDepth int) string {
+	var match string
+	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d == nil {
+			return nil
+		}
+		if d.IsDir() {
+			if pathDepth(root, path) > maxDepth {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.EqualFold(filepath.Ext(d.Name()), ".exe") {
+			return nil
+		}
+
+		base := filepathBaseNoExt(d.Name())
+		if isExcludedName(base) {
+			return nil
+		}
+
+		normalizedBase := normalizeExecutableHint(base)
+		if !matchesAnyNormalizedHint(normalizedBase, normalizedCandidates) {
+			return nil
+		}
+
+		match = path
+		return fs.SkipAll
+	})
+	return match
 }
 
 func resolveShortcutExecutable(targetExe, iconFile, shortcutPath, nameHint, shortcutArgs, shortcutWorkingDir string) string {
