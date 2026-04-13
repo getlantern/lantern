@@ -48,6 +48,20 @@ class VPNManager: VPNBase {
     }
 
     appLogger.log("VPNManager initialized")
+    Task { await syncStatus() }
+  }
+
+  /// Loads the existing VPN profile from preferences and reads its current
+  /// connection status. This ensures the in-memory state reflects the system
+  /// state — for example when the VPN was connected via System Settings
+  /// before the app launched.
+  func syncStatus() async {
+    await setupVPN()
+    let systemStatus = manager.connection.status
+    if systemStatus != connectionStatus {
+      appLogger.info("Syncing VPN status: \(connectionStatus) -> \(systemStatus)")
+      connectionStatus = systemStatus
+    }
   }
 
   deinit {
@@ -170,6 +184,7 @@ class VPNManager: VPNBase {
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
     appLogger.log("Stopping tunnel..")
+    await setupVPN()
     guard connectionStatus == .connected else {
       appLogger.log("In unexpected state: \(connectionStatus)")
       return
