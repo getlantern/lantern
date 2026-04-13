@@ -296,6 +296,11 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_split_tunnel_website_smoke: false
+      run_split_tunnel_apps_smoke: false
+      install_smoke_app_for_split_tunnel: false
+      split_tunnel_smoke_app_winget_id: "Anthropic.Claude"
+      split_tunnel_smoke_app_display_name: "Claude"
+      split_tunnel_smoke_app_executable_hint: "Claude.exe"
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}

@@ -16,6 +16,18 @@ import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
+String _splitTunnelAppKeyToken(String value) {
+  final token = value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  if (token.isEmpty) {
+    return 'unknown';
+  }
+  return token;
+}
+
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
 class AppsSplitTunneling extends HookConsumerWidget {
@@ -57,6 +69,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
         hintText: 'search_apps'.i18n,
       ),
       body: CustomScrollView(
+        key: const Key('split_tunneling.apps.screen'),
         slivers: [
           SliverToBoxAdapter(
             child: Row(
@@ -78,6 +91,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
           else
             SliverToBoxAdapter(
               child: AppCard(
+                key: const Key('split_tunneling.apps.enabled_list'),
                 child: ListView.separated(
                   padding: EdgeInsets.all(0),
                   shrinkWrap: true,
@@ -104,6 +118,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     return AppRow(
                       app: app,
                       enabled: true,
+                      keyToken: _splitTunnelAppKeyToken(app.name),
                       onToggle: () => notifier.toggleApp(app),
                     );
                   },
@@ -115,10 +130,12 @@ class AppsSplitTunneling extends HookConsumerWidget {
           SliverToBoxAdapter(
             child: allApps.isEmpty
                 ? AppCard(
+                    key: const Key('split_tunneling.apps.installed_list'),
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
                     child: Center(child: LoadingIndicator()),
                   )
                 : AppCard(
+                    key: const Key('split_tunneling.apps.installed_list'),
                     child: filteredDisabled.isEmpty
                         ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
                         : ListView.separated(
@@ -148,6 +165,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
+                                keyToken: _splitTunnelAppKeyToken(app.name),
                                 onToggle: () => notifier.toggleApp(app),
                               );
                             },
@@ -163,12 +181,14 @@ class AppsSplitTunneling extends HookConsumerWidget {
 class AppRow extends HookConsumerWidget {
   final AppData app;
   final bool enabled;
+  final String keyToken;
   final VoidCallback? onToggle;
 
   const AppRow({
     super.key,
     required this.enabled,
     required this.app,
+    required this.keyToken,
     this.onToggle,
   });
 
@@ -205,6 +225,7 @@ class AppRow extends HookConsumerWidget {
     }
 
     return SizedBox(
+      key: Key('split_tunneling.apps.row.$keyToken'),
       height: 44.h,
       child: Row(
         children: [
@@ -215,6 +236,7 @@ class AppRow extends HookConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
+                    key: Key('split_tunneling.apps.name.$keyToken'),
                     app.name.replaceAll(".app", ""),
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -229,6 +251,11 @@ class AppRow extends HookConsumerWidget {
           ),
           if (onToggle != null)
             AppIconButton(
+              key: Key(
+                enabled
+                    ? 'split_tunneling.apps.remove.$keyToken'
+                    : 'split_tunneling.apps.add.$keyToken',
+              ),
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
               onPressed: onToggle!,
             ),

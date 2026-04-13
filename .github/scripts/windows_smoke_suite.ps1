@@ -5,9 +5,14 @@ param(
   [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
+  [string]$SplitTunnelAppsTestPath = "integration_test/vpn/split_tunneling_apps_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
+  [string]$SplitTunnelSmokeAppWingetId = "Anthropic.Claude",
+  [string]$SplitTunnelSmokeAppDisplayName = "Claude",
+  [string]$SplitTunnelSmokeAppExecutableHint = "Claude.exe",
+  [string]$SmokeDebugDir = "",
   [int]$WaitSeconds = 30,
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
@@ -15,7 +20,9 @@ param(
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
+  [switch]$RunSplitTunnelAppsSmoke,
   [switch]$RunConfigUrlSmoke,
+  [switch]$InstallSmokeAppForSplitTunnel,
   [switch]$UseInstaller
 )
 
@@ -105,7 +112,8 @@ function Invoke-FlutterSmokeTest {
     [Parameter(Mandatory = $true)]
     [string]$Description,
     [switch]$EnableIpCheck,
-    [switch]$ForceFullTunnel
+    [switch]$ForceFullTunnel,
+    [string[]]$ExtraDartDefines = @()
   )
 
   $args = @(
@@ -125,11 +133,84 @@ function Invoke-FlutterSmokeTest {
     $args += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
   }
 
+  foreach ($dartDefine in $ExtraDartDefines) {
+    if (-not [string]::IsNullOrWhiteSpace($dartDefine)) {
+      $args += "--dart-define=$dartDefine"
+    }
+  }
+
   Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
   & flutter @args
   if ($LASTEXITCODE -ne 0) {
     throw "$Description failed with exit code $LASTEXITCODE"
   }
+}
+
+function Initialize-SmokeDebugDirectory {
+  param([string]$Path)
+
+  if ([string]::IsNullOrWhiteSpace($Path)) {
+    if (-not [string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) {
+      $Path = Join-Path $env:RUNNER_TEMP "windows-smoke-debug"
+    } else {
+      $Path = Join-Path $PSScriptRoot "..\..\tmp\windows-smoke-debug"
+    }
+  }
+  New-Item -ItemType Directory -Path $Path -Force | Out-Null
+  return (Resolve-Path $Path).Path
+}
+
+function Write-SmokeDebugSnapshot {
+  param(
+    [string]$Path,
+    [string]$SmokeAppDisplayName
+  )
+
+  if ([string]::IsNullOrWhiteSpace($Path)) {
+    return
+  }
+
+  New-Item -ItemType Directory -Path $Path -Force | Out-Null
+  $snapshotPath = Join-Path $Path "smoke-runtime-snapshot.txt"
+  $lines = @()
+  $lines += "timestamp=$(Get-Date -Format o)"
+  $lines += "smoke_app_display_name=$SmokeAppDisplayName"
+  $lines += ""
+
+  $candidateFiles = @(
+    "C:\Users\Public\Lantern\data\apps_cache.json",
+    "C:\Users\Public\Lantern\data\split-tunnel.json",
+    "C:\ProgramData\Lantern\ipc-token"
+  )
+  if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $candidateFiles += "$env:LOCALAPPDATA\Lantern\data\apps_cache.json"
+    $candidateFiles += "$env:LOCALAPPDATA\Lantern\data\split-tunnel.json"
+  }
+
+  foreach ($candidate in $candidateFiles) {
+    if (-not (Test-Path $candidate)) {
+      $lines += "missing=$candidate"
+      continue
+    }
+
+    $safeName = $candidate -replace '[\\/:*?"<>|]', '_'
+    $copyPath = Join-Path $Path $safeName
+    Copy-Item -Path $candidate -Destination $copyPath -Force
+    $lines += "copied=$candidate -> $copyPath"
+  }
+
+  try {
+    $serviceInfo = sc.exe query LanternSvc 2>&1
+    $lines += ""
+    $lines += "sc_query_lanternsvc:"
+    $lines += $serviceInfo
+  } catch {
+    $lines += ""
+    $lines += "sc_query_error=$($_.Exception.Message)"
+  }
+
+  Set-Content -Path $snapshotPath -Value $lines -Encoding UTF8
+  Write-Step "Smoke runtime snapshot written to $snapshotPath"
 }
 
 function Get-ServicePathName {
@@ -273,6 +354,9 @@ function Uninstall-FromInstalledService {
     -Description "Running uninstaller"
 }
 
+$SmokeDebugDir = Initialize-SmokeDebugDirectory -Path $SmokeDebugDir
+Write-Step "Smoke debug directory: $SmokeDebugDir"
+
 try {
   if ($UseInstaller) {
     Write-Step "Smoke setup mode: installer"
@@ -299,6 +383,23 @@ try {
 
   Wait-TokenFile -Path $TokenPath -TimeoutSeconds $WaitSeconds
 
+  if ($RunSplitTunnelAppsSmoke -and [string]::IsNullOrWhiteSpace($SplitTunnelSmokeAppDisplayName)) {
+    throw "SplitTunnelSmokeAppDisplayName must be set when apps split tunneling smoke is enabled."
+  }
+
+  if ($InstallSmokeAppForSplitTunnel) {
+    & "$PSScriptRoot/windows_install_smoke_app.ps1" `
+      -WingetId $SplitTunnelSmokeAppWingetId `
+      -DisplayName $SplitTunnelSmokeAppDisplayName `
+      -ExecutableHint $SplitTunnelSmokeAppExecutableHint `
+      -OutputDir $SmokeDebugDir
+    if ($LASTEXITCODE -ne 0) {
+      throw "Smoke app install helper failed with exit code $LASTEXITCODE"
+    }
+  } elseif ($RunSplitTunnelAppsSmoke) {
+    Write-Step "Apps split tunneling smoke is enabled without app install helper."
+  }
+
   Invoke-FlutterSmokeTest `
     -Path $TestPath `
     -Description "Windows connect smoke test" `
@@ -313,6 +414,21 @@ try {
       -ForceFullTunnel:$ForceFullTunnel
   } else {
     Write-Step "Skipping website split tunneling smoke test."
+  }
+
+  if ($RunSplitTunnelAppsSmoke) {
+    $appsSmokeDefines = @(
+      "SPLIT_TUNNEL_SMOKE_APP_NAME=$SplitTunnelSmokeAppDisplayName"
+    )
+
+    Invoke-FlutterSmokeTest `
+      -Path $SplitTunnelAppsTestPath `
+      -Description "Apps split tunneling smoke test" `
+      -EnableIpCheck:$EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel `
+      -ExtraDartDefines $appsSmokeDefines
+  } else {
+    Write-Step "Skipping apps split tunneling smoke test."
   }
 
   if (-not $RunConfigUrlSmoke) {
@@ -361,5 +477,13 @@ finally {
     Write-Step "Cleanup finished"
   } catch {
     Write-Warning ("Failed to clean up service {0}: {1}" -f $ServiceName, $_)
+  }
+
+  try {
+    Write-SmokeDebugSnapshot `
+      -Path $SmokeDebugDir `
+      -SmokeAppDisplayName $SplitTunnelSmokeAppDisplayName
+  } catch {
+    Write-Warning ("Failed to write smoke runtime snapshot: {0}" -f $_)
   }
 }

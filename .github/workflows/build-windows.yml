@@ -27,6 +27,31 @@ on:
         required: false
         type: boolean
         default: false
+      run_split_tunnel_apps_smoke:
+        description: "Run apps split tunneling smoke test"
+        required: false
+        type: boolean
+        default: false
+      install_smoke_app_for_split_tunnel:
+        description: "Install smoke test app before apps split tunneling smoke"
+        required: false
+        type: boolean
+        default: false
+      split_tunnel_smoke_app_winget_id:
+        description: "winget package id used by apps split tunneling smoke"
+        required: false
+        type: string
+        default: "Anthropic.Claude"
+      split_tunnel_smoke_app_display_name:
+        description: "display name used by apps split tunneling smoke"
+        required: false
+        type: string
+        default: "Claude"
+      split_tunnel_smoke_app_executable_hint:
+        description: "executable hint used by apps split tunneling smoke diagnostics"
+        required: false
+        type: string
+        default: "Claude.exe"
       run_config_url_smoke:
         description: "Run config URL smoke tests"
         required: false
@@ -256,20 +281,41 @@ jobs:
           JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
           JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
           JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
+          SMOKE_DEBUG_DIR: ${{ runner.temp }}\windows-smoke-debug
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           $runSplitTunnelWebsiteSmoke = "${{ inputs.run_split_tunnel_website_smoke }}" -eq "true"
+          $runSplitTunnelAppsSmoke = "${{ inputs.run_split_tunnel_apps_smoke }}" -eq "true"
+          $installSmokeAppForSplitTunnel = "${{ inputs.install_smoke_app_for_split_tunnel }}" -eq "true"
           $runConfigUrlSmoke = "${{ inputs.run_config_url_smoke }}" -eq "true"
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
-          Write-Host "Windows smoke options: connect=true splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          $smokeAppWingetId = "${{ inputs.split_tunnel_smoke_app_winget_id }}"
+          $smokeAppDisplayName = "${{ inputs.split_tunnel_smoke_app_display_name }}"
+          $smokeAppExecutableHint = "${{ inputs.split_tunnel_smoke_app_executable_hint }}"
+          Write-Host "Windows smoke options: connect=true splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke installSmokeApp=$installSmokeAppForSplitTunnel configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck smokeApp=$smokeAppDisplayName"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
+            -RunSplitTunnelAppsSmoke:$runSplitTunnelAppsSmoke `
+            -InstallSmokeAppForSplitTunnel:$installSmokeAppForSplitTunnel `
+            -SplitTunnelSmokeAppWingetId $smokeAppWingetId `
+            -SplitTunnelSmokeAppDisplayName $smokeAppDisplayName `
+            -SplitTunnelSmokeAppExecutableHint $smokeAppExecutableHint `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
-            -ForceFullTunnel:$forceFullTunnelSmoke
+            -ForceFullTunnel:$forceFullTunnelSmoke `
+            -SmokeDebugDir $env:SMOKE_DEBUG_DIR
+
+      - name: Upload Windows smoke debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-debug
+          path: ${{ runner.temp }}/windows-smoke-debug
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}
