@@ -34,7 +34,11 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     super.initState();
     // Always re-fetch when this screen opens. On first launch the backend may
     // not have loaded servers yet when the keepAlive provider first ran build().
-    ref.invalidate(availableServersProvider);
+    // Scheduled post-frame because ref.invalidate() accesses inherited widgets,
+    // which cannot be used until initState() has completed.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(availableServersProvider);
+    });
   }
 
   @override

@@ -70,12 +70,10 @@ class _HomeState extends ConsumerState<Home> {
   @override
   Widget build(BuildContext context) {
     final isUserPro = ref.watch(isUserProProvider);
-    appLogger.info("Building Home Screen, isUserPro: $isUserPro");
     final featureFlag = ref.watch(featureFlagProvider);
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),
     );
-    appLogger.info("User logged in status: $userLoggedIn");
     useEffect(() {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
