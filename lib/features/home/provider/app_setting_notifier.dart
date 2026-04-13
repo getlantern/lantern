@@ -8,6 +8,7 @@ import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -33,17 +34,18 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       return;
     }
 
-    final dataDir = await AppStorageUtils.getAppDirectory();
-    final marker = File('${dataDir.path}/$_initMarkerName');
+    final markerDir = await _markerDirectory();
+    final marker = File('${markerDir.path}/$_initMarkerName');
     if (marker.existsSync()) return;
 
-    // Settings say onboarding is done, but the data-dir marker is missing.
-    // This means the user deleted the data directory (clean install) while
+    // Settings say onboarding is done, but the marker is missing.
+    // This means the user reinstalled (or deleted app data) while
     // SharedPreferences (NSUserDefaults / registry) survived.
     appLogger.info(
-      'Stale settings detected (data dir was cleared), resetting to defaults',
+      'Stale settings detected (marker missing), resetting to defaults',
     );
     await storage.saveAppSettings(const AppSetting());
+    if (!markerDir.existsSync()) await markerDir.create(recursive: true);
     await marker.create();
   }
 
@@ -107,12 +109,30 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   Future<void> _writeInitMarker() async {
     try {
-      final dataDir = await AppStorageUtils.getAppDirectory();
-      final marker = File('${dataDir.path}/$_initMarkerName');
-      if (!marker.existsSync()) await marker.create();
+      final markerDir = await _markerDirectory();
+      final marker = File('${markerDir.path}/$_initMarkerName');
+      if (!marker.existsSync()) {
+        if (!markerDir.existsSync()) await markerDir.create(recursive: true);
+        await marker.create();
+      }
     } catch (e, st) {
       appLogger.error('Failed to write init marker', e, st);
     }
+  }
+
+  /// Returns the directory for the init marker file.
+  ///
+  /// On macOS, the shared data directory (`/Users/Shared/Lantern`) survives
+  /// app uninstall, so a marker there can never detect a reinstall. We use
+  /// the per-user Application Support directory instead, which macOS offers
+  /// to clean up when the app is moved to Trash.
+  ///
+  /// On other platforms, the app data directory is sufficient.
+  static Future<Directory> _markerDirectory() async {
+    if (Platform.isMacOS) {
+      return getApplicationSupportDirectory();
+    }
+    return AppStorageUtils.getAppDirectory();
   }
 
   void setThemeMode(String mode) {
