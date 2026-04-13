@@ -205,16 +205,11 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			}
 
 			targetExe, iconFile, iconIndex, shortcutArgs, shortcutWorkDir := resolveLnkViaWScript(wsh, p)
-
-			// Many Start Menu links point to non-exe targets
-			// For split tunneling we only support process path, so skip non-exe
-			if targetExe == "" || !strings.HasSuffix(strings.ToLower(targetExe), ".exe") {
-				return nil
-			}
-
 			name := shortcutDisplayName(d.Name(), targetExe)
-			targetExe = resolveWrappedExecutableWithContext(
+			targetExe = resolveShortcutExecutable(
 				targetExe,
+				iconFile,
+				p,
 				name,
 				shortcutArgs,
 				shortcutWorkDir,
@@ -479,6 +474,75 @@ func shortcutDisplayName(shortcutFileName, targetExe string) string {
 
 func resolveWrappedExecutable(exePath, nameHint string) string {
 	return resolveWrappedExecutableWithContext(exePath, nameHint, "", "")
+}
+
+func resolveShortcutExecutable(targetExe, iconFile, shortcutPath, nameHint, shortcutArgs, shortcutWorkingDir string) string {
+	candidates := make([]string, 0, 2)
+	if normalized := normalizeShortcutExecutablePath(targetExe, shortcutWorkingDir, shortcutPath); normalized != "" {
+		candidates = append(candidates, normalized)
+	}
+	if normalized := normalizeShortcutExecutablePath(iconFile, shortcutWorkingDir, shortcutPath); normalized != "" {
+		if !containsNormalizedPath(candidates, normalized) {
+			candidates = append(candidates, normalized)
+		}
+	}
+
+	for _, candidate := range candidates {
+		resolved := resolveWrappedExecutableWithContext(
+			candidate,
+			nameHint,
+			shortcutArgs,
+			shortcutWorkingDir,
+		)
+		if resolved == "" {
+			continue
+		}
+		if !strings.EqualFold(filepath.Ext(resolved), ".exe") {
+			continue
+		}
+		if isExcludedName(filepathBaseNoExt(resolved)) {
+			continue
+		}
+		if isWindowsSystemApp(resolved, nameHint) {
+			continue
+		}
+		return resolved
+	}
+
+	return ""
+}
+
+func normalizeShortcutExecutablePath(pathValue, shortcutWorkingDir, shortcutPath string) string {
+	pathValue = strings.Trim(strings.TrimSpace(pathValue), `"`)
+	if pathValue == "" {
+		return ""
+	}
+
+	pathValue = filepath.Clean(expandPercentEnv(pathValue))
+	if !strings.EqualFold(filepath.Ext(pathValue), ".exe") {
+		return ""
+	}
+
+	if !filepath.IsAbs(pathValue) {
+		workingDir := strings.Trim(strings.TrimSpace(shortcutWorkingDir), `"`)
+		if workingDir != "" {
+			workingDir = filepath.Clean(expandPercentEnv(workingDir))
+			if filepath.IsAbs(workingDir) {
+				pathValue = filepath.Clean(filepath.Join(workingDir, pathValue))
+			}
+		}
+	}
+	if !filepath.IsAbs(pathValue) && strings.TrimSpace(shortcutPath) != "" {
+		shortcutDir := filepath.Dir(filepath.Clean(shortcutPath))
+		if filepath.IsAbs(shortcutDir) {
+			pathValue = filepath.Clean(filepath.Join(shortcutDir, pathValue))
+		}
+	}
+	if !filepath.IsAbs(pathValue) || !fileExists(pathValue) {
+		return ""
+	}
+
+	return pathValue
 }
 
 func resolveWrappedExecutableWithContext(exePath, nameHint, shortcutArgs, shortcutWorkingDir string) string {

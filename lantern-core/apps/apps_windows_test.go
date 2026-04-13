@@ -247,6 +247,67 @@ func TestResolveWrappedExecutable(t *testing.T) {
 	})
 }
 
+func TestResolveShortcutExecutable(t *testing.T) {
+	t.Run("falls back to icon executable when shortcut target is system host", func(t *testing.T) {
+		dir := t.TempDir()
+		shortcutPath := filepath.Join(dir, "Claude.lnk")
+		claudeExe := filepath.Join(dir, "Claude.exe")
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		systemHost := filepath.Join(normalizedWindowsDir(), "System32", "svchost.exe")
+		got := resolveShortcutExecutable(
+			systemHost,
+			claudeExe,
+			shortcutPath,
+			"Claude",
+			"",
+			dir,
+		)
+		if got != claudeExe {
+			t.Fatalf("resolveShortcutExecutable(system host, icon Claude.exe) = %q, want %q", got, claudeExe)
+		}
+	})
+}
+
+func TestNormalizeShortcutExecutablePath(t *testing.T) {
+	t.Run("resolves relative target from working directory", func(t *testing.T) {
+		root := t.TempDir()
+		workingDir := filepath.Join(root, "dist")
+		if err := os.MkdirAll(workingDir, 0o755); err != nil {
+			t.Fatalf("mkdir working dir: %v", err)
+		}
+		exePath := filepath.Join(workingDir, "Claude.exe")
+		if err := os.WriteFile(exePath, []byte(""), 0o644); err != nil {
+			t.Fatalf("write exe: %v", err)
+		}
+
+		got := normalizeShortcutExecutablePath("Claude.exe", workingDir, filepath.Join(root, "Claude.lnk"))
+		if got != exePath {
+			t.Fatalf("normalizeShortcutExecutablePath(relative, workingDir) = %q, want %q", got, exePath)
+		}
+	})
+
+	t.Run("resolves relative target from shortcut directory when working directory is empty", func(t *testing.T) {
+		root := t.TempDir()
+		shortcutDir := filepath.Join(root, "Programs")
+		if err := os.MkdirAll(shortcutDir, 0o755); err != nil {
+			t.Fatalf("mkdir shortcut dir: %v", err)
+		}
+		exePath := filepath.Join(shortcutDir, "Claude.exe")
+		if err := os.WriteFile(exePath, []byte(""), 0o644); err != nil {
+			t.Fatalf("write exe: %v", err)
+		}
+		shortcutPath := filepath.Join(shortcutDir, "Claude.lnk")
+
+		got := normalizeShortcutExecutablePath("Claude.exe", "", shortcutPath)
+		if got != exePath {
+			t.Fatalf("normalizeShortcutExecutablePath(relative, shortcut dir) = %q, want %q", got, exePath)
+		}
+	})
+}
+
 func TestShortcutDisplayName(t *testing.T) {
 	tests := []struct {
 		name         string
