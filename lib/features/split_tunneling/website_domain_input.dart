@@ -12,7 +12,9 @@ class WebsiteDomainInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
-    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
+    final enabledWebsites =
+        ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
+
 
     void showSnackbar(String message) {
       ScaffoldMessenger.of(context)

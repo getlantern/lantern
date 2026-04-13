@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
@@ -30,7 +31,8 @@ class SplitTunneling extends HookConsumerWidget {
             .toList(growable: false);
 
     final enabledWebsites =
-        (ref.watch(splitTunnelingWebsitesProvider)).toList(growable: false);
+        (ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{})
+            .toList(growable: false);
 
     void toggleSplitTunneling() {
       ref
