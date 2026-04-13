@@ -146,6 +146,55 @@ function Invoke-FlutterSmokeTest {
   }
 }
 
+function Stop-LanternClientProcesses {
+  param([string]$Reason = "")
+
+  $clientProcs = Get-Process -Name "lantern" -ErrorAction SilentlyContinue
+  if (-not $clientProcs) {
+    return
+  }
+
+  if ([string]::IsNullOrWhiteSpace($Reason)) {
+    Write-Step "Stopping lingering lantern.exe processes"
+  } else {
+    Write-Step "Stopping lingering lantern.exe processes ($Reason)"
+  }
+
+  foreach ($proc in $clientProcs) {
+    try {
+      Stop-Process -Id $proc.Id -Force -ErrorAction Stop
+    } catch {
+      Write-Warning ("Failed to stop lantern.exe process {0}: {1}" -f $proc.Id, $_)
+    }
+  }
+  Start-Sleep -Seconds 1
+}
+
+function Invoke-IsolatedFlutterSmokeTest {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+    [Parameter(Mandatory = $true)]
+    [string]$Description,
+    [switch]$EnableIpCheck,
+    [switch]$ForceFullTunnel,
+    [string[]]$ExtraDartDefines = @()
+  )
+
+  Stop-LanternClientProcesses -Reason ("before {0}" -f $Description)
+  try {
+    Invoke-FlutterSmokeTest `
+      -Path $Path `
+      -Description $Description `
+      -EnableIpCheck:$EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel `
+      -ExtraDartDefines $ExtraDartDefines
+  }
+  finally {
+    Stop-LanternClientProcesses -Reason ("after {0}" -f $Description)
+  }
+}
+
 function Initialize-SmokeDebugDirectory {
   param([string]$Path)
 
@@ -197,6 +246,34 @@ function Write-SmokeDebugSnapshot {
     $copyPath = Join-Path $Path $safeName
     Copy-Item -Path $candidate -Destination $copyPath -Force
     $lines += "copied=$candidate -> $copyPath"
+  }
+
+  $logDirs = @("C:\Users\Public\Lantern\logs")
+  if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $logDirs += "$env:LOCALAPPDATA\Lantern\logs"
+  }
+
+  foreach ($logDir in $logDirs) {
+    if (-not (Test-Path $logDir)) {
+      $lines += "missing_log_dir=$logDir"
+      continue
+    }
+
+    $recentLogs = Get-ChildItem -Path $logDir -Filter "*.log" -File -ErrorAction SilentlyContinue |
+      Sort-Object -Property LastWriteTime -Descending |
+      Select-Object -First 6
+
+    if (-not $recentLogs) {
+      $lines += "no_logs_found=$logDir"
+      continue
+    }
+
+    foreach ($logFile in $recentLogs) {
+      $safeName = ($logFile.FullName -replace '[\\/:*?"<>|]', '_')
+      $copyPath = Join-Path $Path $safeName
+      Copy-Item -Path $logFile.FullName -Destination $copyPath -Force
+      $lines += "copied_log=$($logFile.FullName) -> $copyPath"
+    }
   }
 
   try {
@@ -400,14 +477,14 @@ try {
     Write-Step "Apps split tunneling smoke is enabled without app install helper."
   }
 
-  Invoke-FlutterSmokeTest `
+  Invoke-IsolatedFlutterSmokeTest `
     -Path $TestPath `
     -Description "Windows connect smoke test" `
     -EnableIpCheck:$EnableIpCheck `
     -ForceFullTunnel:$ForceFullTunnel
 
   if ($RunSplitTunnelWebsiteSmoke) {
-    Invoke-FlutterSmokeTest `
+    Invoke-IsolatedFlutterSmokeTest `
       -Path $SplitTunnelWebsiteTestPath `
       -Description "Website split tunneling smoke test" `
       -EnableIpCheck:$EnableIpCheck `
@@ -421,7 +498,7 @@ try {
       "SPLIT_TUNNEL_SMOKE_APP_NAME=$SplitTunnelSmokeAppDisplayName"
     )
 
-    Invoke-FlutterSmokeTest `
+    Invoke-IsolatedFlutterSmokeTest `
       -Path $SplitTunnelAppsTestPath `
       -Description "Apps split tunneling smoke test" `
       -EnableIpCheck:$EnableIpCheck `
@@ -453,13 +530,13 @@ try {
 
       # Run API and UI smoke tests with unique names to avoid collisions.
       $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
-      Invoke-FlutterSmokeTest `
+      Invoke-IsolatedFlutterSmokeTest `
         -Path $ConfigUrlApiTestPath `
         -Description "Windows config URL API smoke test" `
         -ForceFullTunnel:$ForceFullTunnel
 
       $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-ui"
-      Invoke-FlutterSmokeTest `
+      Invoke-IsolatedFlutterSmokeTest `
         -Path $ConfigUrlUiTestPath `
         -Description "Windows config URL UI smoke test" `
         -ForceFullTunnel:$ForceFullTunnel
