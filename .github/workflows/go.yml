@@ -42,6 +42,19 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Verify go.mod and go.sum are tidy
+        # Stale entries in go.sum can cause tooling (notably `gomobile bind`)
+        # to resolve transitive deps to older versions that still have
+        # valid hashes, even when go.mod declares newer ones. This bit us
+        # on 2026-04-13 when a release build ended up with lantern-box
+        # v0.0.58 baked in despite go.mod declaring v0.0.65.
+        run: |
+          go mod tidy
+          if ! git diff --exit-code go.mod go.sum; then
+            echo "::error::go.mod or go.sum is not tidy. Run 'go mod tidy' locally and commit the result."
+            exit 1
+          fi
+
       - name: Run gofmt
         run: |
           UNFORMATTED=$(gofmt -l .)
