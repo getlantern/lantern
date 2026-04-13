@@ -41,6 +41,31 @@ on:
         required: false
         type: boolean
         default: true
+      run_split_tunnel_apps_smoke:
+        description: "Run apps split tunneling smoke test on Windows"
+        required: false
+        type: boolean
+        default: false
+      install_smoke_app_for_split_tunnel:
+        description: "Install smoke app before apps split tunneling smoke on Windows"
+        required: false
+        type: boolean
+        default: false
+      split_tunnel_smoke_app_winget_id:
+        description: "winget package id for Windows apps split tunneling smoke"
+        required: false
+        type: string
+        default: "Anthropic.Claude"
+      split_tunnel_smoke_app_display_name:
+        description: "app display name for Windows apps split tunneling smoke"
+        required: false
+        type: string
+        default: "Claude"
+      split_tunnel_smoke_app_executable_hint:
+        description: "executable hint for Windows apps split tunneling smoke"
+        required: false
+        type: string
+        default: "Claude.exe"
 
 permissions:
   contents: write
@@ -66,6 +91,11 @@ jobs:
       linux_arch: ${{ steps.meta.outputs.linux_arch }}
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
+      windows_run_split_tunnel_apps_smoke: ${{ steps.meta.outputs.windows_run_split_tunnel_apps_smoke }}
+      windows_install_smoke_app_for_split_tunnel: ${{ steps.meta.outputs.windows_install_smoke_app_for_split_tunnel }}
+      windows_split_tunnel_smoke_app_winget_id: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_winget_id }}
+      windows_split_tunnel_smoke_app_display_name: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_display_name }}
+      windows_split_tunnel_smoke_app_executable_hint: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_executable_hint }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -198,6 +228,29 @@ jobs:
             SMOKE_ENABLE_IP_CHECK="true"
           fi
 
+          WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE="false"
+          WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL="false"
+          WINDOWS_SPLIT_TUNNEL_SMOKE_APP_WINGET_ID="Anthropic.Claude"
+          WINDOWS_SPLIT_TUNNEL_SMOKE_APP_DISPLAY_NAME="Claude"
+          WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT="Claude.exe"
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.event.inputs.run_split_tunnel_apps_smoke }}" == "true" ]]; then
+              WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE="true"
+            fi
+            if [[ "${{ github.event.inputs.install_smoke_app_for_split_tunnel }}" == "true" ]]; then
+              WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL="true"
+            fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_smoke_app_winget_id }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_SMOKE_APP_WINGET_ID="${{ github.event.inputs.split_tunnel_smoke_app_winget_id }}"
+            fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_smoke_app_display_name }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_SMOKE_APP_DISPLAY_NAME="${{ github.event.inputs.split_tunnel_smoke_app_display_name }}"
+            fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_smoke_app_executable_hint }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT="${{ github.event.inputs.split_tunnel_smoke_app_executable_hint }}"
+            fi
+          fi
+
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -206,6 +259,11 @@ jobs:
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
+          echo "windows_run_split_tunnel_apps_smoke=$WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE" >> $GITHUB_OUTPUT
+          echo "windows_install_smoke_app_for_split_tunnel=$WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_smoke_app_winget_id=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_WINGET_ID" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_smoke_app_display_name=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_smoke_app_executable_hint=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -296,11 +354,11 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_split_tunnel_website_smoke: false
-      run_split_tunnel_apps_smoke: false
-      install_smoke_app_for_split_tunnel: false
-      split_tunnel_smoke_app_winget_id: "Anthropic.Claude"
-      split_tunnel_smoke_app_display_name: "Claude"
-      split_tunnel_smoke_app_executable_hint: "Claude.exe"
+      run_split_tunnel_apps_smoke: ${{ needs.set-metadata.outputs.windows_run_split_tunnel_apps_smoke == 'true' }}
+      install_smoke_app_for_split_tunnel: ${{ needs.set-metadata.outputs.windows_install_smoke_app_for_split_tunnel == 'true' }}
+      split_tunnel_smoke_app_winget_id: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_winget_id }}
+      split_tunnel_smoke_app_display_name: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_display_name }}
+      split_tunnel_smoke_app_executable_hint: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_executable_hint }}
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
