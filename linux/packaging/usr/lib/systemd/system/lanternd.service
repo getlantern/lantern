@@ -1,0 +1,19 @@
+[Unit]
+Description=Lantern VPN Daemon
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/lanternd -data-path /var/lib/lantern -log-path /var/log/lantern -log-level trace
+Restart=on-failure
+RestartSec=5s
+
+RuntimeDirectory=lantern
+RuntimeDirectoryMode=0755
+StateDirectory=lantern
+CacheDirectory=lantern
+LogsDirectory=lantern
+
+[Install]
+WantedBy=multi-user.target
