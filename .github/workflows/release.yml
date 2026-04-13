@@ -36,6 +36,15 @@ on:
           - amd64
           - arm64
         default: all
+      smoke_enable_ip_check:
+        description: "Enable public IP-change smoke validation (auto=true for nightly)"
+        required: false
+        type: choice
+        options:
+          - auto
+          - true
+          - false
+        default: auto
       cleanup_on_failure:
         description: "Delete draft release on failure"
         required: false
@@ -226,6 +235,13 @@ jobs:
           SMOKE_ENABLE_IP_CHECK="false"
           if [[ "$BUILD_TYPE" == "nightly" ]]; then
             SMOKE_ENABLE_IP_CHECK="true"
+          fi
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            case "${{ github.event.inputs.smoke_enable_ip_check }}" in
+              true) SMOKE_ENABLE_IP_CHECK="true" ;;
+              false) SMOKE_ENABLE_IP_CHECK="false" ;;
+              *) ;;
+            esac
           fi
 
           WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE="false"
