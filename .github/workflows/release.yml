@@ -65,6 +65,7 @@ jobs:
       platform: ${{ steps.meta.outputs.platform }}
       linux_arch: ${{ steps.meta.outputs.linux_arch }}
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
+      smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -192,6 +193,11 @@ jobs:
             fi
           fi
 
+          SMOKE_ENABLE_IP_CHECK="false"
+          if [[ "$BUILD_TYPE" == "nightly" ]]; then
+            SMOKE_ENABLE_IP_CHECK="true"
+          fi
+
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -199,6 +205,7 @@ jobs:
           echo "linux_arch=$LINUX_ARCH" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
+          echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -287,7 +294,10 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      enable_ip_check: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.ref_name != 'atavism/webview-updates' }}
+      enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
+      run_split_tunnel_website_smoke: false
+      run_config_url_smoke: false
+      force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
 
   build-linux:
@@ -305,6 +315,8 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       linux_arch: ${{ needs.set-metadata.outputs.linux_arch }}
+      enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
+      force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
 
   build-ios:
     needs: [set-metadata, release-create, release-approval]
@@ -388,13 +400,30 @@ jobs:
         build-android,
         build-ios,
       ]
-    # Run if at least one platform build succeeded. Individual platform failures
-    # (e.g., Linux arm64) should not block uploading successful builds.
+    # Nightly builds publish any healthy platform; beta/production remain
+    # all-or-nothing across requested platforms.
     if: |
+      always() &&
       !cancelled() &&
-      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
-       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
-       needs.build-ios.result == 'success')
+      (
+        (
+          needs.set-metadata.outputs.build_type == 'nightly' &&
+          (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+           needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+           needs.build-ios.result == 'success')
+        ) ||
+        (
+          needs.set-metadata.outputs.build_type != 'nightly' &&
+          (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+          (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
+          (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
+          (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
+          (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
+          (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
+           needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
+           needs.build-ios.result == 'success')
+        )
+      )
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -413,6 +442,59 @@ jobs:
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
+
+      - name: Resolve nightly publish scope
+        if: ${{ env.BUILD_TYPE == 'nightly' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          has_artifact() {
+            compgen -G "$1" > /dev/null
+          }
+
+          platforms=()
+          if has_artifact "lantern-installer-dmg/*.dmg"; then
+            platforms+=("macos")
+          fi
+          if has_artifact "lantern-installer-exe/*.exe"; then
+            platforms+=("windows")
+          fi
+          if has_artifact "lantern-installer-apk/*.apk"; then
+            platforms+=("android")
+          fi
+          if has_artifact "lantern-installer-ipa/*.ipa"; then
+            platforms+=("ios")
+          fi
+
+          linux_amd64=false
+          linux_arm64=false
+          if has_artifact "lantern-installer-deb-amd64/*.deb" || has_artifact "lantern-installer-rpm-amd64/*.rpm" || has_artifact "lantern-installer-deb/*.deb" || has_artifact "lantern-installer-rpm/*.rpm"; then
+            linux_amd64=true
+          fi
+          if has_artifact "lantern-installer-deb-arm64/*.deb" || has_artifact "lantern-installer-rpm-arm64/*.rpm"; then
+            linux_arm64=true
+          fi
+          if [[ "$linux_amd64" == true || "$linux_arm64" == true ]]; then
+            platforms+=("linux")
+          fi
+
+          if [[ "${#platforms[@]}" -eq 0 ]]; then
+            echo "No publishable nightly artifacts were found." >&2
+            exit 1
+          fi
+
+          nightly_platforms="$(IFS=,; echo "${platforms[*]}")"
+          nightly_linux_arch="amd64"
+          if [[ "$linux_amd64" == true && "$linux_arm64" == true ]]; then
+            nightly_linux_arch="all"
+          elif [[ "$linux_arm64" == true ]]; then
+            nightly_linux_arch="arm64"
+          fi
+
+          echo "Nightly publish scope: ${nightly_platforms} (linux_arch=${nightly_linux_arch})"
+          echo "PLATFORM=${nightly_platforms}" >> "$GITHUB_ENV"
+          echo "LINUX_ARCH=${nightly_linux_arch}" >> "$GITHUB_ENV"
 
       - name: Upload to S3
         shell: bash

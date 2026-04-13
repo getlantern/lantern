@@ -13,6 +13,9 @@ param(
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
   [switch]$EnableIpCheck,
+  [switch]$ForceFullTunnel,
+  [switch]$RunSplitTunnelWebsiteSmoke,
+  [switch]$RunConfigUrlSmoke,
   [switch]$UseInstaller
 )
 
