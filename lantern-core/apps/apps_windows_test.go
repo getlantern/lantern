@@ -414,3 +414,112 @@ func TestPickExePathFallsBackWhenDisplayIconIsNonExe(t *testing.T) {
 		t.Fatalf("pickExePath(%q, %q) = %q, want %q", dllPath, dir, got, exePath)
 	}
 }
+
+func TestShortcutRecoveryHintFromShortcut(t *testing.T) {
+	t.Run("includes normalized display name", func(t *testing.T) {
+		hint := shortcutRecoveryHintFromShortcut("Claude", "")
+		if !hint.isValid() {
+			t.Fatalf("shortcutRecoveryHintFromShortcut returned invalid hint")
+		}
+		if hint.displayName != "Claude" {
+			t.Fatalf("displayName = %q, want %q", hint.displayName, "Claude")
+		}
+		if len(hint.normalizedCandidates) != 1 || hint.normalizedCandidates[0] != "claude" {
+			t.Fatalf("normalizedCandidates = %v, want [claude]", hint.normalizedCandidates)
+		}
+	})
+
+	t.Run("adds processStart executable hint when present", func(t *testing.T) {
+		hint := shortcutRecoveryHintFromShortcut(
+			"Anthropic launcher",
+			`--processStart "Claude.exe" --process-start-args "--foo bar"`,
+		)
+		if !hint.isValid() {
+			t.Fatalf("shortcutRecoveryHintFromShortcut returned invalid hint")
+		}
+		if !matchesAnyNormalizedHint("claude", hint.normalizedCandidates) {
+			t.Fatalf("expected normalizedCandidates to include claude, got %v", hint.normalizedCandidates)
+		}
+	})
+}
+
+func TestResolvePackageCacheExecutable(t *testing.T) {
+	t.Run("finds executable in appx-style local cache tree", func(t *testing.T) {
+		root := t.TempDir()
+		packageDir := filepath.Join(root, "Claude_pzs8sxrjxfjjc")
+		exePath := filepath.Join(
+			packageDir,
+			"LocalCache",
+			"Roaming",
+			"Claude",
+			"claude-code",
+			"2.1.78",
+			"claude.exe",
+		)
+		if err := os.MkdirAll(filepath.Dir(exePath), 0o755); err != nil {
+			t.Fatalf("mkdir executable directory: %v", err)
+		}
+		if err := os.WriteFile(exePath, []byte(""), 0o644); err != nil {
+			t.Fatalf("write executable: %v", err)
+		}
+
+		hint := shortcutRecoveryHintFromShortcut("Claude", "")
+		got := resolvePackageCacheExecutable([]string{packageDir}, hint)
+		if got != exePath {
+			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want %q", got, exePath)
+		}
+	})
+
+	t.Run("matches processStart hint when display name differs", func(t *testing.T) {
+		root := t.TempDir()
+		packageDir := filepath.Join(root, "Claude_pzs8sxrjxfjjc")
+		exePath := filepath.Join(
+			packageDir,
+			"LocalCache",
+			"Roaming",
+			"Claude",
+			"app-1.0.0",
+			"Claude.exe",
+		)
+		if err := os.MkdirAll(filepath.Dir(exePath), 0o755); err != nil {
+			t.Fatalf("mkdir executable directory: %v", err)
+		}
+		if err := os.WriteFile(exePath, []byte(""), 0o644); err != nil {
+			t.Fatalf("write executable: %v", err)
+		}
+
+		hint := shortcutRecoveryHintFromShortcut(
+			"Anthropic launcher",
+			`--processStart "Claude.exe" --process-start-args "--foo=bar"`,
+		)
+		got := resolvePackageCacheExecutable([]string{packageDir}, hint)
+		if got != exePath {
+			t.Fatalf("resolvePackageCacheExecutable(...processStart...) = %q, want %q", got, exePath)
+		}
+	})
+
+	t.Run("returns empty when no candidate executable matches hint", func(t *testing.T) {
+		root := t.TempDir()
+		packageDir := filepath.Join(root, "Claude_pzs8sxrjxfjjc")
+		exePath := filepath.Join(
+			packageDir,
+			"LocalCache",
+			"Roaming",
+			"Claude",
+			"app-1.0.0",
+			"Updater.exe",
+		)
+		if err := os.MkdirAll(filepath.Dir(exePath), 0o755); err != nil {
+			t.Fatalf("mkdir executable directory: %v", err)
+		}
+		if err := os.WriteFile(exePath, []byte(""), 0o644); err != nil {
+			t.Fatalf("write executable: %v", err)
+		}
+
+		hint := shortcutRecoveryHintFromShortcut("Claude", "")
+		got := resolvePackageCacheExecutable([]string{packageDir}, hint)
+		if got != "" {
+			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want empty", got)
+		}
+	})
+}
