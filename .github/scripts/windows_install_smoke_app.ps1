@@ -17,6 +17,7 @@ function Write-ReportLine {
     [Parameter(Mandatory = $true)]
     [string]$Path,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyString()]
     [string]$Message
   )
   Add-Content -Path $Path -Value $Message
