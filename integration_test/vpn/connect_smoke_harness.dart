@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 import 'vpn_smoke_helpers.dart';
 
@@ -16,6 +18,57 @@ const _vpnStateLabels = <VPNStatus, String>{
 };
 
 const _ipCheckEndpoint = 'https://api64.ipify.org';
+const _forceFullTunnelForSmoke = bool.fromEnvironment(
+  'SMOKE_FORCE_FULL_TUNNEL',
+  defaultValue: false,
+);
+
+Future<void> _setRoutingModeToFullTunnelForSmoke(
+  WidgetTester tester, {
+  required VpnSmokeFinders finders,
+}) async {
+  if (!_forceFullTunnelForSmoke) {
+    return;
+  }
+
+  final homeElements = finders.homeScreen.evaluate();
+  if (homeElements.isEmpty) {
+    fail('Home screen not found while applying smoke routing mode override');
+  }
+
+  final container = ProviderScope.containerOf(
+    homeElements.first,
+    listen: false,
+  );
+  final currentMode = container.read(appSettingProvider).routingMode;
+  if (currentMode == RoutingMode.full) {
+    debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; routing mode already full');
+    return;
+  }
+
+  debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; switching to full tunnel mode');
+  final result = await container
+      .read(appSettingProvider.notifier)
+      .setRoutingMode(RoutingMode.full);
+
+  result.fold(
+    (failure) => fail(
+      'Failed to switch routing mode to full tunnel for smoke: $failure',
+    ),
+    (_) {},
+  );
+
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    final updatedMode = container.read(appSettingProvider).routingMode;
+    if (updatedMode == RoutingMode.full) {
+      return;
+    }
+  }
+
+  fail('Routing mode did not settle to full tunnel for smoke');
+}
 
 Future<String?> _fetchPublicIpOnce() async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
@@ -106,6 +159,7 @@ Future<void> runConnectSmokeHarness(
     vpnStateFinders: vpnStateFinders,
     scenario: 'connect/disconnect smoke',
   );
+  await _setRoutingModeToFullTunnelForSmoke(tester, finders: finders);
 
   if (enableIpCheck) {
     debugPrint('IP check: enabled; fetching baseline before connect');

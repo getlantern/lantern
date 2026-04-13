@@ -225,7 +225,7 @@ jobs:
             ENABLE_IP_CHECK=true
           fi
           set +e
-          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK} --dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
           SMOKE_EXIT=$?
           set -e
 

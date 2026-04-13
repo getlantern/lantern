@@ -22,6 +22,21 @@ on:
         required: false
         type: boolean
         default: false
+      run_split_tunnel_website_smoke:
+        description: "Run website split tunneling smoke test"
+        required: false
+        type: boolean
+        default: false
+      run_config_url_smoke:
+        description: "Run config URL smoke tests"
+        required: false
+        type: boolean
+        default: false
+      force_full_tunnel_smoke:
+        description: "Force full tunnel routing mode in smoke tests"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -243,11 +258,34 @@ jobs:
           JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
-          if ("${{ inputs.enable_ip_check }}" -eq "true") {
-            ./.github/scripts/windows_smoke_suite.ps1 -UseInstaller -InstallerPath $installerPath -EnableIpCheck
-          } else {
-            ./.github/scripts/windows_smoke_suite.ps1 -UseInstaller -InstallerPath $installerPath
+          $runSplitTunnelWebsiteSmoke = "${{ inputs.run_split_tunnel_website_smoke }}" -eq "true"
+          $runConfigUrlSmoke = "${{ inputs.run_config_url_smoke }}" -eq "true"
+          $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
+          $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
+          Write-Host "Windows smoke options: connect=true splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+
+          $smokeArgs = @(
+            "-UseInstaller",
+            "-InstallerPath", $installerPath
+          )
+
+          if ($runSplitTunnelWebsiteSmoke) {
+            $smokeArgs += "-RunSplitTunnelWebsiteSmoke"
           }
+
+          if ($runConfigUrlSmoke) {
+            $smokeArgs += "-RunConfigUrlSmoke"
+          }
+
+          if ("${{ inputs.enable_ip_check }}" -eq "true") {
+            $smokeArgs += "-EnableIpCheck"
+          }
+
+          if ($forceFullTunnelSmoke) {
+            $smokeArgs += "-ForceFullTunnel"
+          }
+
+          ./.github/scripts/windows_smoke_suite.ps1 @smokeArgs
 
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}

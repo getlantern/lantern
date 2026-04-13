@@ -13,6 +13,9 @@ param(
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
   [switch]$EnableIpCheck,
+  [switch]$ForceFullTunnel,
+  [switch]$RunSplitTunnelWebsiteSmoke,
+  [switch]$RunConfigUrlSmoke,
   [switch]$UseInstaller
 )
 
@@ -101,7 +104,8 @@ function Invoke-FlutterSmokeTest {
     [string]$Path,
     [Parameter(Mandatory = $true)]
     [string]$Description,
-    [switch]$EnableIpCheck
+    [switch]$EnableIpCheck,
+    [switch]$ForceFullTunnel
   )
 
   $args = @(
@@ -115,6 +119,10 @@ function Invoke-FlutterSmokeTest {
 
   if ($EnableIpCheck) {
     $args += "--dart-define=ENABLE_IP_CHECK=true"
+  }
+
+  if ($ForceFullTunnel) {
+    $args += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
   }
 
   Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
@@ -294,40 +302,52 @@ try {
   Invoke-FlutterSmokeTest `
     -Path $TestPath `
     -Description "Windows connect smoke test" `
-    -EnableIpCheck:$EnableIpCheck
+    -EnableIpCheck:$EnableIpCheck `
+    -ForceFullTunnel:$ForceFullTunnel
 
-  Invoke-FlutterSmokeTest `
-    -Path $SplitTunnelWebsiteTestPath `
-    -Description "Website split tunneling smoke test" `
-    -EnableIpCheck:$EnableIpCheck
-
-  $configUrls = $env:JOIN_SERVER_CONFIG_URLS
-  if ([string]::IsNullOrWhiteSpace($configUrls)) {
-    Write-Step "Skipping config URL smoke test (JOIN_SERVER_CONFIG_URLS is not set)."
+  if ($RunSplitTunnelWebsiteSmoke) {
+    Invoke-FlutterSmokeTest `
+      -Path $SplitTunnelWebsiteTestPath `
+      -Description "Website split tunneling smoke test" `
+      -EnableIpCheck:$EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel
   } else {
-    $generatedDefaultConfigServerName = $DefaultConfigServerName
-    if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ID)) {
-      $runAttempt = if ([string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ATTEMPT)) { "1" } else { $env:GITHUB_RUN_ATTEMPT }
-      $generatedDefaultConfigServerName = "ci-config-url-smoke-$($env:GITHUB_RUN_ID)-$runAttempt"
-    }
-    $configServerBaseName = $env:JOIN_SERVER_CONFIG_SERVER_NAME
-    if ([string]::IsNullOrWhiteSpace($configServerBaseName)) {
-      $configServerBaseName = $generatedDefaultConfigServerName
-    }
-    if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION)) {
-      $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
-    }
+    Write-Step "Skipping website split tunneling smoke test."
+  }
 
-    # Rollout phase: run API smoke and UI smoke with unique names to avoid collisions.
-    $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
-    Invoke-FlutterSmokeTest `
-      -Path $ConfigUrlApiTestPath `
-      -Description "Windows config URL API smoke test"
+  if (-not $RunConfigUrlSmoke) {
+    Write-Step "Skipping config URL smoke tests."
+  } else {
+    $configUrls = $env:JOIN_SERVER_CONFIG_URLS
+    if ([string]::IsNullOrWhiteSpace($configUrls)) {
+      Write-Step "Skipping config URL smoke tests (JOIN_SERVER_CONFIG_URLS is not set)."
+    } else {
+      $generatedDefaultConfigServerName = $DefaultConfigServerName
+      if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ID)) {
+        $runAttempt = if ([string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ATTEMPT)) { "1" } else { $env:GITHUB_RUN_ATTEMPT }
+        $generatedDefaultConfigServerName = "ci-config-url-smoke-$($env:GITHUB_RUN_ID)-$runAttempt"
+      }
+      $configServerBaseName = $env:JOIN_SERVER_CONFIG_SERVER_NAME
+      if ([string]::IsNullOrWhiteSpace($configServerBaseName)) {
+        $configServerBaseName = $generatedDefaultConfigServerName
+      }
+      if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION)) {
+        $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
+      }
 
-    $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-ui"
-    Invoke-FlutterSmokeTest `
-      -Path $ConfigUrlUiTestPath `
-      -Description "Windows config URL UI smoke test"
+      # Run API and UI smoke tests with unique names to avoid collisions.
+      $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
+      Invoke-FlutterSmokeTest `
+        -Path $ConfigUrlApiTestPath `
+        -Description "Windows config URL API smoke test" `
+        -ForceFullTunnel:$ForceFullTunnel
+
+      $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-ui"
+      Invoke-FlutterSmokeTest `
+        -Path $ConfigUrlUiTestPath `
+        -Description "Windows config URL UI smoke test" `
+        -ForceFullTunnel:$ForceFullTunnel
+    }
   }
 }
 finally {
