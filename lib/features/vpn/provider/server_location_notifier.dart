@@ -31,6 +31,28 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
   }
 
+  /// Updates only the auto-location metadata (the "Smart Location" label)
+  /// without changing the user's active selection. Used by the `server-location`
+  /// push event from the Go side, which reports what auto-routing chose and
+  /// must NOT overwrite a custom server the user has selected.
+  Future<void> updateAutoLocationMetadata(AutoLocation autoLocation) async {
+    final updated = state.copyWith(autoLocation: autoLocation);
+    state = updated;
+    await _storage.saveServerLocation(updated);
+  }
+
+  /// Flips the active selection to auto without discarding any existing
+  /// fields. The previous custom-server fields (serverName, country, etc.)
+  /// stay in state — only [serverType] changes — so the existing
+  /// autoLocation metadata (if any) remains and the Smart Location label
+  /// doesn't briefly flicker to "fastest_server" before the next push event.
+  Future<void> switchToAuto() async {
+    if (state.serverType == ServerLocationType.auto.name) return;
+    final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    state = updated;
+    await _storage.saveServerLocation(updated);
+  }
+
   Future<void> ifNeededGetAutoServerLocation() async {
     final status = ref.read(vpnProvider);
     final current = state;

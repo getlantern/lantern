@@ -205,7 +205,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
-      (_) {
+      (_) async {
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
         appRouter.popUntilRoot();
       },
     );
