@@ -217,14 +217,8 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if targetExe == "" {
 				return nil
 			}
-			if isExcludedName(filepathBaseNoExt(targetExe)) {
-				return nil
-			}
 			keyPath := normalizeKey(targetExe)
 			if seen[keyPath] {
-				return nil
-			}
-			if isWindowsSystemApp(targetExe, name) {
 				return nil
 			}
 
@@ -281,18 +275,28 @@ func resolveLnkViaWScript(wsh *ole.IDispatch, lnkPath string) (targetExe string,
 	if err != nil {
 		return "", "", 0, "", ""
 	}
+	defer v.Clear()
+
 	sc := v.ToIDispatch()
 	defer sc.Release()
 
-	tp, _ := oleutil.GetProperty(sc, "TargetPath")
-	il, _ := oleutil.GetProperty(sc, "IconLocation")
-	argp, _ := oleutil.GetProperty(sc, "Arguments")
-	wdp, _ := oleutil.GetProperty(sc, "WorkingDirectory")
-
-	targetExe = strings.TrimSpace(tp.ToString())
-	iconLoc := strings.TrimSpace(il.ToString())
-	args = strings.TrimSpace(argp.ToString())
-	workingDir = strings.TrimSpace(wdp.ToString())
+	iconLoc := ""
+	if tp, err := oleutil.GetProperty(sc, "TargetPath"); err == nil {
+		defer tp.Clear()
+		targetExe = strings.TrimSpace(tp.ToString())
+	}
+	if il, err := oleutil.GetProperty(sc, "IconLocation"); err == nil {
+		defer il.Clear()
+		iconLoc = strings.TrimSpace(il.ToString())
+	}
+	if argp, err := oleutil.GetProperty(sc, "Arguments"); err == nil {
+		defer argp.Clear()
+		args = strings.TrimSpace(argp.ToString())
+	}
+	if wdp, err := oleutil.GetProperty(sc, "WorkingDirectory"); err == nil {
+		defer wdp.Clear()
+		workingDir = strings.TrimSpace(wdp.ToString())
+	}
 
 	iconFile, iconIndex = parseIconLocation(iconLoc)
 	return targetExe, iconFile, iconIndex, args, workingDir
@@ -618,12 +622,10 @@ func resolveWrappedExecutableWithContext(exePath, nameHint, shortcutArgs, shortc
 
 func wrappedExecutableSearchDirs(appDir, shortcutWorkingDir string) []string {
 	searchDirs := []string{appDir}
-	trimmedWorkingDir := strings.Trim(strings.TrimSpace(shortcutWorkingDir), `"`)
-	if trimmedWorkingDir != "" {
-		workingDir := filepath.Clean(trimmedWorkingDir)
-		if filepath.IsAbs(workingDir) && !containsNormalizedPath(searchDirs, workingDir) {
-			searchDirs = append(searchDirs, workingDir)
-		}
+	workingDir := strings.Trim(strings.TrimSpace(shortcutWorkingDir), `"`)
+	workingDir = filepath.Clean(expandPercentEnv(workingDir))
+	if workingDir != "" && filepath.IsAbs(workingDir) && dirExists(workingDir) && !containsNormalizedPath(searchDirs, workingDir) {
+		searchDirs = append(searchDirs, workingDir)
 	}
 
 	appendNested := func(root string) {
@@ -647,8 +649,8 @@ func wrappedExecutableSearchDirs(appDir, shortcutWorkingDir string) []string {
 	}
 
 	appendNested(appDir)
-	if trimmedWorkingDir != "" {
-		appendNested(filepath.Clean(trimmedWorkingDir))
+	if workingDir != "" && filepath.IsAbs(workingDir) {
+		appendNested(workingDir)
 	}
 
 	return searchDirs
@@ -777,6 +779,17 @@ func fileExists(p string) bool {
 	}
 	_, err := os.Stat(p)
 	return err == nil
+}
+
+func dirExists(p string) bool {
+	if p == "" {
+		return false
+	}
+	st, err := os.Stat(p)
+	if err != nil {
+		return false
+	}
+	return st.IsDir()
 }
 
 func getAppID(appPath string) (string, error) {
