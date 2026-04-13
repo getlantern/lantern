@@ -297,7 +297,7 @@ jobs:
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
-      force_full_tunnel_smoke: true
+      force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
 
   build-linux:
@@ -316,6 +316,7 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       linux_arch: ${{ needs.set-metadata.outputs.linux_arch }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
+      force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
 
   build-ios:
     needs: [set-metadata, release-create, release-approval]
