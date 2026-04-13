@@ -640,6 +640,9 @@ jobs:
           upload_if_exists "lantern-installer-rpm-arm64/${FULL_NAME}-arm64.rpm"
           upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
           upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
+          upload_if_exists "lantern-installer-pkg-amd64/${FULL_NAME}.pkg.tar.zst"
+          upload_if_exists "lantern-installer-pkg-arm64/${FULL_NAME}-arm64.pkg.tar.zst"
+          upload_if_exists "lantern-installer-pkg/${FULL_NAME}.pkg.tar.zst"
           upload_if_exists "lantern-installer-ipa/${FULL_NAME}.ipa"
 
   # Post-publish steps (only for non-nightly production/beta builds)

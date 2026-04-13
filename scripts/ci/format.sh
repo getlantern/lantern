@@ -93,10 +93,12 @@ release-notes)
     if include_linux_amd64; then
       echo "- [Linux AMD64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb))"
       echo "- [Linux AMD64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm))"
+      echo "- [Linux AMD64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst))"
     fi
     if include_linux_arm64; then
       echo "- [Linux ARM64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb))"
       echo "- [Linux ARM64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm))"
+      echo "- [Linux ARM64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst))"
     fi
   fi
 
@@ -137,10 +139,12 @@ slack)
     if include_linux_amd64; then
       text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|permalink>)"
       text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|permalink>)"
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|${FULL_INSTALLER_NAME}.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|permalink>)"
     fi
     if include_linux_arm64; then
       text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb|${FULL_INSTALLER_NAME}-arm64.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb|permalink>)"
       text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|${FULL_INSTALLER_NAME}-arm64.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|permalink>)"
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|permalink>)"
     fi
   fi
 
