@@ -263,29 +263,13 @@ jobs:
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           Write-Host "Windows smoke options: connect=true splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
-
-          $smokeArgs = @(
-            "-UseInstaller",
-            "-InstallerPath", $installerPath
-          )
-
-          if ($runSplitTunnelWebsiteSmoke) {
-            $smokeArgs += "-RunSplitTunnelWebsiteSmoke"
-          }
-
-          if ($runConfigUrlSmoke) {
-            $smokeArgs += "-RunConfigUrlSmoke"
-          }
-
-          if ("${{ inputs.enable_ip_check }}" -eq "true") {
-            $smokeArgs += "-EnableIpCheck"
-          }
-
-          if ($forceFullTunnelSmoke) {
-            $smokeArgs += "-ForceFullTunnel"
-          }
-
-          ./.github/scripts/windows_smoke_suite.ps1 @smokeArgs
+          ./.github/scripts/windows_smoke_suite.ps1 `
+            -UseInstaller `
+            -InstallerPath $installerPath `
+            -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
+            -RunConfigUrlSmoke:$runConfigUrlSmoke `
+            -EnableIpCheck:$enableIpCheck `
+            -ForceFullTunnel:$forceFullTunnelSmoke
 
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}
