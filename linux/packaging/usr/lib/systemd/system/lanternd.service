@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/lanternd -data-path /var/lib/lantern -log-path /var/log/lantern -log-level trace
+ExecStart=/usr/bin/lanternd -data-path /var/lib/lantern -log-path /var/log/lantern -log-level trace
 Restart=on-failure
 RestartSec=5s
 
