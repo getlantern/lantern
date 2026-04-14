@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_split_tunnel_apps_route_smoke:
+        description: "Run apps split tunneling route smoke test"
+        required: false
+        type: boolean
+        default: false
       install_smoke_app_for_split_tunnel:
         description: "Install smoke test app before apps split tunneling smoke"
         required: false
@@ -57,6 +62,21 @@ on:
         required: false
         type: string
         default: "Claude.exe"
+      split_tunnel_route_app_display_name:
+        description: "display name used by apps split tunneling route smoke"
+        required: false
+        type: string
+        default: "Microsoft Edge"
+      split_tunnel_route_app_executable_hint:
+        description: "executable hint used by apps split tunneling route smoke"
+        required: false
+        type: string
+        default: "msedge.exe"
+      split_tunnel_route_browser_path:
+        description: "browser executable path override used by apps split tunneling route smoke"
+        required: false
+        type: string
+        default: ""
       run_config_url_smoke:
         description: "Run config URL smoke tests"
         required: false
@@ -300,6 +320,7 @@ jobs:
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
           $runSplitTunnelWebsiteSmoke = "${{ inputs.run_split_tunnel_website_smoke }}" -eq "true"
           $runSplitTunnelAppsSmoke = "${{ inputs.run_split_tunnel_apps_smoke }}" -eq "true"
+          $runSplitTunnelAppsRouteSmoke = "${{ inputs.run_split_tunnel_apps_route_smoke }}" -eq "true"
           $installSmokeAppForSplitTunnel = "${{ inputs.install_smoke_app_for_split_tunnel }}" -eq "true"
           $runConfigUrlSmoke = "${{ inputs.run_config_url_smoke }}" -eq "true"
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
@@ -307,17 +328,24 @@ jobs:
           $smokeAppWingetId = "${{ inputs.split_tunnel_smoke_app_winget_id }}"
           $smokeAppDisplayName = "${{ inputs.split_tunnel_smoke_app_display_name }}"
           $smokeAppExecutableHint = "${{ inputs.split_tunnel_smoke_app_executable_hint }}"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke installSmokeApp=$installSmokeAppForSplitTunnel configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck smokeApp=$smokeAppDisplayName"
+          $routeSmokeAppDisplayName = "${{ inputs.split_tunnel_route_app_display_name }}"
+          $routeSmokeAppExecutableHint = "${{ inputs.split_tunnel_route_app_executable_hint }}"
+          $routeSmokeBrowserPath = "${{ inputs.split_tunnel_route_browser_path }}"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke splitTunnelAppsRoute=$runSplitTunnelAppsRouteSmoke installSmokeApp=$installSmokeAppForSplitTunnel configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck smokeApp=$smokeAppDisplayName routeApp=$routeSmokeAppDisplayName"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunSplitTunnelAppsSmoke:$runSplitTunnelAppsSmoke `
+            -RunSplitTunnelAppsRouteSmoke:$runSplitTunnelAppsRouteSmoke `
             -InstallSmokeAppForSplitTunnel:$installSmokeAppForSplitTunnel `
             -SplitTunnelSmokeAppWingetId $smokeAppWingetId `
             -SplitTunnelSmokeAppDisplayName $smokeAppDisplayName `
             -SplitTunnelSmokeAppExecutableHint $smokeAppExecutableHint `
+            -SplitTunnelRouteAppDisplayName $routeSmokeAppDisplayName `
+            -SplitTunnelRouteAppExecutableHint $routeSmokeAppExecutableHint `
+            -SplitTunnelRouteBrowserPath $routeSmokeBrowserPath `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke `

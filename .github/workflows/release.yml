@@ -80,6 +80,26 @@ on:
         required: false
         type: string
         default: "Claude.exe"
+      run_split_tunnel_apps_route_smoke:
+        description: "Run apps split tunneling route smoke test on Windows"
+        required: false
+        type: boolean
+        default: false
+      split_tunnel_route_app_display_name:
+        description: "app display name for Windows apps split tunneling route smoke"
+        required: false
+        type: string
+        default: "Microsoft Edge"
+      split_tunnel_route_app_executable_hint:
+        description: "executable hint for Windows apps split tunneling route smoke"
+        required: false
+        type: string
+        default: "msedge.exe"
+      split_tunnel_route_browser_path:
+        description: "browser executable path override for apps split tunneling route smoke"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -107,10 +127,14 @@ jobs:
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
       windows_run_connect_smoke: ${{ steps.meta.outputs.windows_run_connect_smoke }}
       windows_run_split_tunnel_apps_smoke: ${{ steps.meta.outputs.windows_run_split_tunnel_apps_smoke }}
+      windows_run_split_tunnel_apps_route_smoke: ${{ steps.meta.outputs.windows_run_split_tunnel_apps_route_smoke }}
       windows_install_smoke_app_for_split_tunnel: ${{ steps.meta.outputs.windows_install_smoke_app_for_split_tunnel }}
       windows_split_tunnel_smoke_app_winget_id: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_winget_id }}
       windows_split_tunnel_smoke_app_display_name: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_display_name }}
       windows_split_tunnel_smoke_app_executable_hint: ${{ steps.meta.outputs.windows_split_tunnel_smoke_app_executable_hint }}
+      windows_split_tunnel_route_app_display_name: ${{ steps.meta.outputs.windows_split_tunnel_route_app_display_name }}
+      windows_split_tunnel_route_app_executable_hint: ${{ steps.meta.outputs.windows_split_tunnel_route_app_executable_hint }}
+      windows_split_tunnel_route_browser_path: ${{ steps.meta.outputs.windows_split_tunnel_route_browser_path }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -252,16 +276,23 @@ jobs:
 
           WINDOWS_RUN_CONNECT_SMOKE="true"
           WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE="false"
+          WINDOWS_RUN_SPLIT_TUNNEL_APPS_ROUTE_SMOKE="false"
           WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL="false"
           WINDOWS_SPLIT_TUNNEL_SMOKE_APP_WINGET_ID="Anthropic.Claude"
           WINDOWS_SPLIT_TUNNEL_SMOKE_APP_DISPLAY_NAME="Claude"
           WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT="Claude.exe"
+          WINDOWS_SPLIT_TUNNEL_ROUTE_APP_DISPLAY_NAME="Microsoft Edge"
+          WINDOWS_SPLIT_TUNNEL_ROUTE_APP_EXECUTABLE_HINT="msedge.exe"
+          WINDOWS_SPLIT_TUNNEL_ROUTE_BROWSER_PATH=""
           if [[ "$EVENT" == "workflow_dispatch" ]]; then
             if [[ "${{ github.event.inputs.run_connect_smoke }}" == "false" ]]; then
               WINDOWS_RUN_CONNECT_SMOKE="false"
             fi
             if [[ "${{ github.event.inputs.run_split_tunnel_apps_smoke }}" == "true" ]]; then
               WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE="true"
+            fi
+            if [[ "${{ github.event.inputs.run_split_tunnel_apps_route_smoke }}" == "true" ]]; then
+              WINDOWS_RUN_SPLIT_TUNNEL_APPS_ROUTE_SMOKE="true"
             fi
             if [[ "${{ github.event.inputs.install_smoke_app_for_split_tunnel }}" == "true" ]]; then
               WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL="true"
@@ -275,6 +306,15 @@ jobs:
             if [[ -n "${{ github.event.inputs.split_tunnel_smoke_app_executable_hint }}" ]]; then
               WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT="${{ github.event.inputs.split_tunnel_smoke_app_executable_hint }}"
             fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_route_app_display_name }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_ROUTE_APP_DISPLAY_NAME="${{ github.event.inputs.split_tunnel_route_app_display_name }}"
+            fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_route_app_executable_hint }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_ROUTE_APP_EXECUTABLE_HINT="${{ github.event.inputs.split_tunnel_route_app_executable_hint }}"
+            fi
+            if [[ -n "${{ github.event.inputs.split_tunnel_route_browser_path }}" ]]; then
+              WINDOWS_SPLIT_TUNNEL_ROUTE_BROWSER_PATH="${{ github.event.inputs.split_tunnel_route_browser_path }}"
+            fi
           fi
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
@@ -287,10 +327,14 @@ jobs:
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
           echo "windows_run_connect_smoke=$WINDOWS_RUN_CONNECT_SMOKE" >> $GITHUB_OUTPUT
           echo "windows_run_split_tunnel_apps_smoke=$WINDOWS_RUN_SPLIT_TUNNEL_APPS_SMOKE" >> $GITHUB_OUTPUT
+          echo "windows_run_split_tunnel_apps_route_smoke=$WINDOWS_RUN_SPLIT_TUNNEL_APPS_ROUTE_SMOKE" >> $GITHUB_OUTPUT
           echo "windows_install_smoke_app_for_split_tunnel=$WINDOWS_INSTALL_SMOKE_APP_FOR_SPLIT_TUNNEL" >> $GITHUB_OUTPUT
           echo "windows_split_tunnel_smoke_app_winget_id=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_WINGET_ID" >> $GITHUB_OUTPUT
           echo "windows_split_tunnel_smoke_app_display_name=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_DISPLAY_NAME" >> $GITHUB_OUTPUT
           echo "windows_split_tunnel_smoke_app_executable_hint=$WINDOWS_SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_route_app_display_name=$WINDOWS_SPLIT_TUNNEL_ROUTE_APP_DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_route_app_executable_hint=$WINDOWS_SPLIT_TUNNEL_ROUTE_APP_EXECUTABLE_HINT" >> $GITHUB_OUTPUT
+          echo "windows_split_tunnel_route_browser_path=$WINDOWS_SPLIT_TUNNEL_ROUTE_BROWSER_PATH" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -383,10 +427,14 @@ jobs:
       run_connect_smoke: ${{ needs.set-metadata.outputs.windows_run_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
       run_split_tunnel_apps_smoke: ${{ needs.set-metadata.outputs.windows_run_split_tunnel_apps_smoke == 'true' }}
+      run_split_tunnel_apps_route_smoke: ${{ needs.set-metadata.outputs.windows_run_split_tunnel_apps_route_smoke == 'true' }}
       install_smoke_app_for_split_tunnel: ${{ needs.set-metadata.outputs.windows_install_smoke_app_for_split_tunnel == 'true' }}
       split_tunnel_smoke_app_winget_id: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_winget_id }}
       split_tunnel_smoke_app_display_name: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_display_name }}
       split_tunnel_smoke_app_executable_hint: ${{ needs.set-metadata.outputs.windows_split_tunnel_smoke_app_executable_hint }}
+      split_tunnel_route_app_display_name: ${{ needs.set-metadata.outputs.windows_split_tunnel_route_app_display_name }}
+      split_tunnel_route_app_executable_hint: ${{ needs.set-metadata.outputs.windows_split_tunnel_route_app_executable_hint }}
+      split_tunnel_route_browser_path: ${{ needs.set-metadata.outputs.windows_split_tunnel_route_browser_path }}
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}

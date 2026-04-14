@@ -6,12 +6,18 @@ param(
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$SplitTunnelAppsTestPath = "integration_test/vpn/split_tunneling_apps_smoke_test.dart",
+  [string]$SplitTunnelAppsRouteTestPath = "integration_test/vpn/split_tunneling_apps_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
   [string]$SplitTunnelSmokeAppWingetId = "Anthropic.Claude",
   [string]$SplitTunnelSmokeAppDisplayName = "Claude",
   [string]$SplitTunnelSmokeAppExecutableHint = "Claude.exe",
+  [string]$SplitTunnelRouteAppDisplayName = "Microsoft Edge",
+  [string]$SplitTunnelRouteAppExecutableHint = "msedge.exe",
+  [string]$SplitTunnelRouteBrowserPath = "",
+  [string]$SplitTunnelRouteBypassEndpoint = "https://api64.ipify.org",
+  [string]$SplitTunnelRouteRegularEndpoint = "https://icanhazip.com",
   [string]$SmokeDebugDir = "",
   [int]$WaitSeconds = 30,
   [int]$InstallerTimeoutSeconds = 180,
@@ -22,6 +28,7 @@ param(
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunSplitTunnelAppsSmoke,
+  [switch]$RunSplitTunnelAppsRouteSmoke,
   [switch]$RunConfigUrlSmoke,
   [switch]$InstallSmokeAppForSplitTunnel,
   [switch]$UseInstaller
@@ -545,7 +552,8 @@ try {
 
   if ($RunSplitTunnelAppsSmoke) {
     $appsSmokeDefines = @(
-      "SPLIT_TUNNEL_SMOKE_APP_NAME=$SplitTunnelSmokeAppDisplayName"
+      "SPLIT_TUNNEL_SMOKE_APP_NAME=$SplitTunnelSmokeAppDisplayName",
+      "SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT=$SplitTunnelSmokeAppExecutableHint"
     )
 
     Invoke-IsolatedFlutterSmokeTest `
@@ -558,6 +566,37 @@ try {
       -MaxAttempts 2
   } else {
     Write-Step "Skipping apps split tunneling smoke test."
+  }
+
+  if ($RunSplitTunnelAppsRouteSmoke) {
+    if ([string]::IsNullOrWhiteSpace($SplitTunnelRouteAppDisplayName)) {
+      throw "SplitTunnelRouteAppDisplayName must be set when apps route smoke is enabled."
+    }
+    if ([string]::IsNullOrWhiteSpace($SplitTunnelRouteAppExecutableHint)) {
+      throw "SplitTunnelRouteAppExecutableHint must be set when apps route smoke is enabled."
+    }
+
+    $appsRouteSmokeDefines = @(
+      "SPLIT_TUNNEL_SMOKE_APP_NAME=$SplitTunnelRouteAppDisplayName",
+      "SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT=$SplitTunnelRouteAppExecutableHint",
+      "SPLIT_TUNNEL_ROUTE_CHECK=true",
+      "SPLIT_TUNNEL_ROUTE_BYPASS_ENDPOINT=$SplitTunnelRouteBypassEndpoint",
+      "SPLIT_TUNNEL_ROUTE_REGULAR_ENDPOINT=$SplitTunnelRouteRegularEndpoint"
+    )
+    if (-not [string]::IsNullOrWhiteSpace($SplitTunnelRouteBrowserPath)) {
+      $appsRouteSmokeDefines += "SPLIT_TUNNEL_ROUTE_BROWSER_PATH=$SplitTunnelRouteBrowserPath"
+    }
+
+    Invoke-IsolatedFlutterSmokeTest `
+      -Path $SplitTunnelAppsRouteTestPath `
+      -Description "Apps split tunneling route smoke test" `
+      -EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel `
+      -ExtraDartDefines $appsRouteSmokeDefines `
+      -RetryOnExitCode 79 `
+      -MaxAttempts 2
+  } else {
+    Write-Step "Skipping apps split tunneling route smoke test."
   }
 
   if (-not $RunConfigUrlSmoke) {

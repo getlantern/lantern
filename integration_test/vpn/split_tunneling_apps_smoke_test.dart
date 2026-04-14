@@ -12,16 +12,45 @@ const _splitTunnelSmokeAppName = String.fromEnvironment(
   'SPLIT_TUNNEL_SMOKE_APP_NAME',
   defaultValue: 'Claude',
 );
+const _splitTunnelSmokeAppExecutableHint = String.fromEnvironment(
+  'SPLIT_TUNNEL_SMOKE_APP_EXECUTABLE_HINT',
+  defaultValue: '',
+);
+const _splitTunnelRouteCheck = bool.fromEnvironment(
+  'SPLIT_TUNNEL_ROUTE_CHECK',
+  defaultValue: false,
+);
+const _splitTunnelRouteBrowserPath = String.fromEnvironment(
+  'SPLIT_TUNNEL_ROUTE_BROWSER_PATH',
+  defaultValue: '',
+);
+const _splitTunnelRouteBypassEndpoint = String.fromEnvironment(
+  'SPLIT_TUNNEL_ROUTE_BYPASS_ENDPOINT',
+  defaultValue: 'https://api64.ipify.org',
+);
+const _splitTunnelRouteRegularEndpoint = String.fromEnvironment(
+  'SPLIT_TUNNEL_ROUTE_REGULAR_ENDPOINT',
+  defaultValue: 'https://icanhazip.com',
+);
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Apps split tunneling smoke', (tester) async {
+  final testName = _splitTunnelRouteCheck
+      ? 'Apps split tunneling route smoke'
+      : 'Apps split tunneling smoke';
+
+  testWidgets(testName, (tester) async {
     await app.main();
     await runSplitTunnelingAppsSmokeHarness(
       tester,
       expectedAppName: _splitTunnelSmokeAppName,
+      expectedAppExecutableHint: _splitTunnelSmokeAppExecutableHint,
       enableIpCheck: _enableIpCheck,
+      validateRouteBypass: _splitTunnelRouteCheck,
+      routeBypassEndpoint: _splitTunnelRouteBypassEndpoint,
+      routeRegularEndpoint: _splitTunnelRouteRegularEndpoint,
+      routeBrowserExecutablePath: _splitTunnelRouteBrowserPath,
     );
   });
 }
