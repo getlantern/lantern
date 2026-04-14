@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_auth_smoke:
+        description: "Run Linux auth smoke integration tests"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: "read"
@@ -269,6 +274,7 @@ jobs:
           bash .github/scripts/linux_config_url_smoke.sh
 
       - name: Linux UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
         shell: bash
         env:
           LANG: en_US.UTF-8

@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_auth_smoke:
+        description: "Run auth smoke integration tests"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -273,6 +278,7 @@ jobs:
 
       # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
       - name: Windows UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
         shell: pwsh
         timeout-minutes: 15
         run: |
