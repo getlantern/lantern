@@ -375,6 +375,19 @@ function Get-ServiceExecutablePath {
       return $trimmed.Substring(1, $end - 1)
     }
   }
+
+  # sc qc output can return an unquoted path with spaces.
+  # Capture the executable path through ".exe" before optional arguments.
+  $driveMatch = [regex]::Match($trimmed, '^[A-Za-z]:\\.*?\.exe(?=\s|$)')
+  if ($driveMatch.Success) {
+    return $driveMatch.Value
+  }
+
+  $uncMatch = [regex]::Match($trimmed, '^\\\\[^\\]+\\[^\\]+\\.*?\.exe(?=\s|$)')
+  if ($uncMatch.Success) {
+    return $uncMatch.Value
+  }
+
   return ($trimmed -split '\s+')[0]
 }
 
