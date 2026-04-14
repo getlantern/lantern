@@ -486,7 +486,7 @@ class LanternFFIService implements LanternCoreService {
               description.toCharPtr,
               device.toCharPtr,
               model.toCharPtr,
-              "".toCharPtr,
+              logFilePath.toCharPtr,
             )
             .toDartString();
       });

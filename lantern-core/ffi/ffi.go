@@ -55,11 +55,11 @@ const (
 var (
 	lanternCore       atomic.Pointer[lanterncore.Core]
 	appDataDir        string
-	appsPort          int64
-	logsPort          int64
-	statusPort        int64
-	privateserverPort int64
-	appEventPort      int64
+	appsPort          atomic.Int64
+	logsPort          atomic.Int64
+	statusPort        atomic.Int64
+	privateserverPort atomic.Int64
+	appEventPort      atomic.Int64
 )
 
 func requireCore() (lanterncore.Core, *C.char) {
@@ -72,7 +72,9 @@ func requireCore() (lanterncore.Core, *C.char) {
 
 //export getAppDataDir
 func getAppDataDir() *C.char {
-	return C.CString(appDataDir)
+	return runOnGoStack(func() *C.char {
+		return C.CString(appDataDir)
+	})
 }
 
 func sendApps(port int64) func(apps ...*apps.AppData) error {
@@ -92,7 +94,8 @@ type ffiFlutterEventEmitter struct{}
 
 func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 	slog.Debug("Sending event to Flutter:", "event", event)
-	if appEventPort == 0 {
+	port := appEventPort.Load()
+	if port == 0 {
 		slog.Error("Apps port is not set, cannot send event")
 		return
 	}
@@ -102,7 +105,7 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 		return
 	}
 	slog.Debug("Marshalled event data:", "data", string(eventData))
-	go dart_api_dl.SendToPort(appEventPort, string(eventData))
+	go dart_api_dl.SendToPort(port, string(eventData))
 }
 
 //export setup
@@ -128,11 +131,11 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		}
 		dart_api_dl.Init(api)
 		lanternCore.Store(&core)
-		logsPort = int64(logP)
-		appsPort = int64(appsP)
-		statusPort = int64(statusP)
-		privateserverPort = int64(privateServerP)
-		appEventPort = int64(appEventP)
+		logsPort.Store(int64(logP))
+		appsPort.Store(int64(appsP))
+		statusPort.Store(int64(statusP))
+		privateserverPort.Store(int64(privateServerP))
+		appEventPort.Store(int64(appEventP))
 
 		// Start the VPN status listener immediately so the UI reflects the
 		// current VPN state even if the VPN was already connected (e.g. macOS
@@ -428,7 +431,8 @@ func getAvailableServers() *C.char {
 
 func sendStatusToPort(status VPNStatus, errMsg string) {
 	slog.Debug("sendStatusToPort called", "status", status)
-	if statusPort == 0 {
+	port := statusPort.Load()
+	if port == 0 {
 		slog.Error("Status port is not set, cannot send status")
 		return
 	}
@@ -436,10 +440,10 @@ func sendStatusToPort(status VPNStatus, errMsg string) {
 	if errMsg != "" {
 		msg["error"] = errMsg
 	}
-	slog.Debug("Sending status to port", "port", statusPort)
+	slog.Debug("Sending status to port", "port", port)
 	data, _ := json.Marshal(msg)
 	slog.Debug("Marshalled status data", "data", string(data))
-	dart_api_dl.SendToPort(statusPort, string(data))
+	dart_api_dl.SendToPort(port, string(data))
 	slog.Debug("Status sent to port successfully", "status", status)
 }
 
@@ -455,7 +459,7 @@ func startStatusListener(client *ipc.Client) {
 	statusListenerOnce.Do(func() {
 		go func() {
 			for {
-				if statusPort == 0 {
+				if statusPort.Load() == 0 {
 					time.Sleep(100 * time.Millisecond)
 					continue
 				}
@@ -960,6 +964,14 @@ func (l *ffiPrivateServerEventListener) OnPrivateServerEvent(event string) {
 
 func (l *ffiPrivateServerEventListener) OnError(err string) {
 	slog.Debug("Private server error:", "err", err)
+	// err may already be JSON (from convertErrorToJSON) or a raw string.
+	// Ensure we always send valid JSON so the Dart jsonDecode doesn't crash.
+	if !json.Valid([]byte(err)) {
+		wrapped := map[string]string{"status": "error", "error": err}
+		data, _ := json.Marshal(wrapped)
+		sendPrivateServerEvent(string(data))
+		return
+	}
 	sendPrivateServerEvent(err)
 }
 
@@ -975,13 +987,14 @@ func (l *ffiPrivateServerEventListener) OpenBrowser(url string) error {
 }
 
 func sendPrivateServerEvent(event string) {
-	if privateserverPort == 0 {
+	port := privateserverPort.Load()
+	if port == 0 {
 		slog.Error("Private server port is not set, cannot send event")
 		return
 	}
 
 	go func() {
-		dart_api_dl.SendToPort(privateserverPort, event)
+		dart_api_dl.SendToPort(port, event)
 	}()
 }
 

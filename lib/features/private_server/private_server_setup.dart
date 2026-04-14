@@ -38,7 +38,17 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
         );
       }
       if (serverState.status == 'EventTypeOAuthError') {
+        context.hideLoadingDialog();
         context.showSnackBar('private_server_setup_error'.i18n);
+      }
+      if (serverState.status == 'EventTypeOAuthCancelled') {
+        context.hideLoadingDialog();
+      }
+      if (serverState.status == 'EventTypeNoProjects' ||
+          serverState.status == 'error') {
+        context.hideLoadingDialog();
+        context.showSnackBar(
+            serverState.error ?? 'private_server_setup_error'.i18n);
       }
       if (serverState.status == 'EventTypeOnlyCompartment') {
         context.hideLoadingDialog();

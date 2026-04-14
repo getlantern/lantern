@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:fpdart/fpdart.dart' show Either;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -213,7 +214,26 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Future<void> onSmartLocation() async {
-    final result = await ref.read(vpnProvider.notifier).startVPN(force: true);
+    if (PlatformUtils.isMacOS) {
+      final macosExtensionStatus = ref.read(macosExtensionProvider);
+      if (!macosExtensionStatus.isReady) {
+        appRouter.push(const MacOSExtensionDialog());
+        return;
+      }
+    }
+
+    final vpnStatus = ref.read(vpnProvider);
+    final Either<Failure, String> result;
+
+    if (vpnStatus == VPNStatus.connected || vpnStatus == VPNStatus.connecting) {
+      // Already connected — switch to auto via connectToServer so the
+      // native side handles the reconnect instead of rejecting a duplicate start.
+      result = await ref
+          .read(vpnProvider.notifier)
+          .connectToServer(ServerLocationType.auto, '');
+    } else {
+      result = await ref.read(vpnProvider.notifier).startVPN(force: true);
+    }
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),

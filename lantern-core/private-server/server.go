@@ -158,7 +158,7 @@ func listenToServerEvents(ps provisionSession) {
 				compartments := provisioner.Compartments()
 				if len(compartments) == 0 {
 					slog.Error("No valid projects found, please check your billing account and permissions")
-					events.OnError("No valid projects found, please check your billing account and permissions")
+					events.OnError(convertErrorToJSON("EventTypeNoProjects", errors.New("no valid projects found, please check your billing account and permissions")))
 					return
 				}
 				// if only one compartment, select it by default

@@ -23,9 +23,16 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final textTheme = TextTheme.of(context);
     final controller = useState(FlutterCarouselController());
     final pageIndex = useState(0);
+    final selectedRouteMode = useState(RoutingMode.smart);
     final appSetting = ref.read(appSettingProvider);
 
-    void onboardingCompleted() {
+    // Watch the controller so auto-dispose keeps it alive across the await.
+    ref.watch(routingModeControllerProvider);
+
+    Future<void> onboardingCompleted() async {
+      await ref
+          .read(routingModeControllerProvider.notifier)
+          .set(selectedRouteMode.value);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
       final shouldShowExtensionDialog =
           appSetting.showSplashScreen && PlatformUtils.isMacOS;
@@ -107,7 +114,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                       ],
                     ),
                     slide2(context),
-                    if (!PlatformUtils.isIOS) slide3(context),
+                    if (!PlatformUtils.isIOS)
+                      slide3(context, selectedRouteMode),
                   ],
                 ),
               ),
@@ -255,35 +263,11 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     );
   }
 
-  Widget slide3(BuildContext context) {
+  Widget slide3(
+    BuildContext context,
+    ValueNotifier<RoutingMode> selectedMode,
+  ) {
     final textTheme = TextTheme.of(context);
-    final routeMode =
-        ref.watch(routingModeProvider).value ?? RoutingMode.full;
-    useEffect(() {
-      Future(() {
-        final currentMode =
-            ref.read(routingModeProvider).value ?? RoutingMode.full;
-
-        if (currentMode == RoutingMode.full) {
-          ref
-              .read(routingModeControllerProvider.notifier)
-              .set(RoutingMode.smart);
-        }
-      });
-
-      return null;
-    }, const []);
-
-    Future<void> onRouteChange(RoutingMode mode) async {
-      final result =
-          await ref.read(routingModeControllerProvider.notifier).set(mode);
-      result.fold(
-        (failure) {
-          context.showSnackBar('failed_to_update_routing_mode'.i18n);
-        },
-        (_) {},
-      );
-    }
 
     return Column(
       children: <Widget>[
@@ -296,16 +280,21 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         ),
         SizedBox(height: 24.0),
         GestureDetector(
-            onTap: () => onRouteChange(RoutingMode.smart),
-            child: RouteModeContainer(
-                mode: RoutingMode.smart,
-                isSelected: routeMode == RoutingMode.smart)),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => selectedMode.value = RoutingMode.smart,
+          child: RouteModeContainer(
+            mode: RoutingMode.smart,
+            isSelected: selectedMode.value == RoutingMode.smart,
+          ),
+        ),
         SizedBox(height: 16.0),
         GestureDetector(
-          onTap: () => onRouteChange(RoutingMode.full),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => selectedMode.value = RoutingMode.full,
           child: RouteModeContainer(
-              mode: RoutingMode.full,
-              isSelected: routeMode == RoutingMode.full),
+            mode: RoutingMode.full,
+            isSelected: selectedMode.value == RoutingMode.full,
+          ),
         ),
         Spacer(),
         InfoRow(

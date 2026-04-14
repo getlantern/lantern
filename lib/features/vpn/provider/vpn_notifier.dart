@@ -30,9 +30,10 @@ class VpnNotifier extends _$VpnNotifier {
           (nextStatus == VPNStatus.connected ||
               nextStatus == VPNStatus.disconnected);
 
-      if (previous != null &&
-          previous.value != null &&
-          previousStatus != nextStatus) {
+      final isFirstEvent = previous == null || previous.value == null;
+      final statusChanged = !isFirstEvent && previousStatus != nextStatus;
+
+      if (statusChanged) {
         if (previousStatus != VPNStatus.connecting &&
             nextStatus == VPNStatus.disconnected) {
           if (!suppressConnectionNotifications) {
@@ -46,32 +47,39 @@ class VpnNotifier extends _$VpnNotifier {
               'Suppressed vpn_disconnected notification (origin=$nextOrigin)',
             );
           }
-        } else if (nextStatus == VPNStatus.connected) {
-          if (PlatformUtils.isMobile) {
-            HapticFeedback.mediumImpact();
-          }
-
-          /// Mark successful connection in app settings
-          ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
-
-          // Server location is updated via the "server-location" push event
-          // from the Go side (handled by AppEventNotifier), not by polling
-          // getAutoServerLocation here. This avoids a race where the NE
-          // reports "connected" before the Go tunnel is fully ready.
-
-          if (!suppressConnectionNotifications) {
-            sl<NotificationService>().showNotification(
-              id: NotificationEvent.vpnConnected.id,
-              title: 'app_name'.i18n,
-              body: 'vpn_connected'.i18n,
-            );
-          } else {
-            appLogger.debug(
-              'Suppressed vpn_connected notification (origin=$nextOrigin)',
-            );
-          }
         }
       }
+
+      if (nextStatus == VPNStatus.connected &&
+          (statusChanged || isFirstEvent)) {
+        if (statusChanged && PlatformUtils.isMobile) {
+          HapticFeedback.mediumImpact();
+        }
+
+        /// Mark successful connection in app settings
+        ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
+
+        // On desktop platforms that use platform channels (macOS), the
+        // push event from Go may not arrive through the event channel.
+        // Poll as a fallback after a short delay to let the tunnel
+        // finish initialising.
+        Future.delayed(const Duration(seconds: 2), () {
+          if (ref.mounted) {
+            ref
+                .read(serverLocationProvider.notifier)
+                .ifNeededGetAutoServerLocation();
+          }
+        });
+
+        if (statusChanged && !suppressConnectionNotifications) {
+          sl<NotificationService>().showNotification(
+            id: NotificationEvent.vpnConnected.id,
+            title: 'app_name'.i18n,
+            body: 'vpn_connected'.i18n,
+          );
+        }
+      }
+
       state = nextStatus;
     });
     return VPNStatus.disconnected;

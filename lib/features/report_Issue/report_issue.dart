@@ -183,9 +183,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     String logFilePath = "";
 
     try {
-      if (PlatformUtils.isIOS) {
-        logFilePath = (await AppStorageUtils.flutterLogFile()).path;
-      }
+      logFilePath = (await AppStorageUtils.flutterLogFile()).path;
     } catch (e, st) {
       // Don't block reporting if logs fail. Just report without logs
       appLogger.error("Unable to resolve log file: $e", st);

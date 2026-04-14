@@ -28,6 +28,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         state = location;
       },
     );
+    // If VPN is connected with auto/smart location, fetch the actual
+    // connected server details so the UI shows the real location instead
+    // of just "Fastest Server".
+    await ifNeededGetAutoServerLocation();
   }
 
   void updateServerLocation(ServerLocation entity) {

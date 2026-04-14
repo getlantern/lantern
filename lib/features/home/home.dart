@@ -46,7 +46,6 @@ class _HomeState extends ConsumerState<Home> {
           "User has not completed onboarding, navigating to Onboarding Screen",
         );
         appRouter.push(const Onboarding());
-        appSettingNotifier.setOnboardingCompleted(true);
         return;
       }
 
