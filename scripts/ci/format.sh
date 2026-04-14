@@ -40,7 +40,6 @@ FULL_INSTALLER_NAME="${INSTALLER_BASE_NAME}"
 [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_INSTALLER_NAME="${FULL_INSTALLER_NAME}-${BUILD_TYPE}"
 
 VERSION_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${VERSION}"
-LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
 
 # Check if a platform should be included
 should_include() {
@@ -78,27 +77,27 @@ release-notes)
   echo ""
 
   if should_include "macos"; then
-    echo "- [macOS (.dmg)](${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg))"
+    echo "- [macOS (.dmg)](${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg)"
   fi
 
   if should_include "windows"; then
-    echo "- [Windows (.exe)](${LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
+    echo "- [Windows (.exe)](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe)"
   fi
 
   if should_include "android"; then
-    echo "- [Android (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk))"
+    echo "- [Android (.apk)](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk)"
   fi
 
   if should_include "linux"; then
     if include_linux_amd64; then
-      echo "- [Linux AMD64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb))"
-      echo "- [Linux AMD64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm))"
-      echo "- [Linux AMD64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst))"
+      echo "- [Linux AMD64 (.deb)](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb)"
+      echo "- [Linux AMD64 (.rpm)](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm)"
+      echo "- [Linux AMD64 (.pkg.tar.zst)](${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst)"
     fi
     if include_linux_arm64; then
-      echo "- [Linux ARM64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb))"
-      echo "- [Linux ARM64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm))"
-      echo "- [Linux ARM64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst))"
+      echo "- [Linux ARM64 (.deb)](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb)"
+      echo "- [Linux ARM64 (.rpm)](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm)"
+      echo "- [Linux ARM64 (.pkg.tar.zst)](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst)"
     fi
   fi
 
@@ -124,27 +123,27 @@ slack)
   text="${text}\n*Downloads:*"
 
   if should_include "macos"; then
-    text="${text}\n• macOS <${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg|${FULL_INSTALLER_NAME}.dmg> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg|permalink>)"
+    text="${text}\n• macOS <${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg|${FULL_INSTALLER_NAME}.dmg>"
   fi
 
   if should_include "windows"; then
-    text="${text}\n• Windows <${LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
+    text="${text}\n• Windows <${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe>"
   fi
 
   if should_include "android"; then
-    text="${text}\n• Android <${LATEST_URL}/${FULL_INSTALLER_NAME}.apk|${FULL_INSTALLER_NAME}.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.apk|permalink>)"
+    text="${text}\n• Android <${VERSION_URL}/${FULL_INSTALLER_NAME}.apk|${FULL_INSTALLER_NAME}.apk>"
   fi
 
   if should_include "linux"; then
     if include_linux_amd64; then
-      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|permalink>)"
-      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|permalink>)"
-      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|${FULL_INSTALLER_NAME}.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|permalink>)"
+      text="${text}\n• Linux AMD64 <${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb>"
+      text="${text}\n• Linux AMD64 <${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm>"
+      text="${text}\n• Linux AMD64 <${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|${FULL_INSTALLER_NAME}.pkg.tar.zst>"
     fi
     if include_linux_arm64; then
-      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb|${FULL_INSTALLER_NAME}-arm64.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb|permalink>)"
-      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|${FULL_INSTALLER_NAME}-arm64.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|permalink>)"
-      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|permalink>)"
+      text="${text}\n• Linux ARM64 <${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb|${FULL_INSTALLER_NAME}-arm64.deb>"
+      text="${text}\n• Linux ARM64 <${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|${FULL_INSTALLER_NAME}-arm64.rpm>"
+      text="${text}\n• Linux ARM64 <${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst>"
     fi
   fi
 
