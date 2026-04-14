@@ -52,7 +52,8 @@ import flutter_local_notifications
       do {
         try await setupFileSystem()
       } catch {
-        appLogger.error("File system setup failed, aborting backend startup: \(error.localizedDescription)")
+        appLogger.error(
+          "File system setup failed, aborting backend startup: \(error.localizedDescription)")
         return
       }
       setupRadiance()
@@ -124,7 +125,11 @@ import flutter_local_notifications
       "apps_cache.json",
       "url_test_history.json",
     ]
-    guard legacyFiles.contains(where: { fm.fileExists(atPath: FilePath.sharedDirectory.appendingPathComponent($0).path) }) else {
+    guard
+      legacyFiles.contains(where: {
+        fm.fileExists(atPath: FilePath.sharedDirectory.appendingPathComponent($0).path)
+      })
+    else {
       appLogger.info("Data directory migration: already migrated or new install, skipping")
       return
     }
@@ -139,7 +144,9 @@ import flutter_local_notifications
         do {
           try fm.removeItem(at: src)
         } catch {
-          appLogger.error("Data directory migration: failed to remove legacy \(fileName): \(error.localizedDescription)")
+          appLogger.error(
+            "Data directory migration: failed to remove legacy \(fileName): \(error.localizedDescription)"
+          )
         }
         continue
       }

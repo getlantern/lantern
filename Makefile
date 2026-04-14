@@ -232,8 +232,8 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 
 .PHONY: macos-unit-tests
 macos-unit-tests: $(MACOS_FRAMEWORK_BUILD)
-	@echo "Preparing macOS test project..."
-	flutter build macos --debug --config-only
+	@echo "Preparing macOS test project (building native assets)..."
+	flutter build macos --debug
 	@echo "Running macOS Runner unit tests..."
 	xcodebuild test \
 		-workspace macos/Runner.xcworkspace \

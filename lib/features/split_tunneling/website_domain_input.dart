@@ -15,8 +15,9 @@ class WebsiteDomainInput extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
 
     void showSnackbar(String message) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
 
     // validate URL and extract the domain before adding it to the
@@ -38,7 +39,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
       return website;
     }
 
-    void validateAndExtractDomain() {
+    Future<void> validateAndExtractDomain() async {
       final inputText = textController.text.trim();
 
       if (inputText.isEmpty) {
@@ -71,7 +72,17 @@ class WebsiteDomainInput extends HookConsumerWidget {
         return;
       }
 
-      ref.read(splitTunnelingWebsitesProvider.notifier).addWebsites(added);
+      final failures = await ref
+          .read(splitTunnelingWebsitesProvider.notifier)
+          .addWebsites(added);
+
+      if (!context.mounted || failures.isEmpty) {
+        return;
+      }
+
+      showSnackbar(
+        failures.map((failure) => failure.localizedErrorMessage).join('\n'),
+      );
     }
 
     return Column(
@@ -92,12 +103,14 @@ class WebsiteDomainInput extends HookConsumerWidget {
           children: [
             Expanded(
               child: AppTextField(
+                fieldKey: const Key('split_tunneling.website.input'),
                 prefixIcon: AppImagePaths.web,
                 controller: textController,
                 hintText: '',
               ),
             ),
             AppTextButton(
+              key: const Key('split_tunneling.website.add_button'),
               label: 'add'.i18n,
               textColor: context.textPrimary,
               onPressed: validateAndExtractDomain,

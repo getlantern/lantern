@@ -264,7 +264,6 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
-PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64compatible arm64
 ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
@@ -293,17 +292,6 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Run]
-; Create service
-Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= ""{code:ServiceExecutablePath}"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
-  Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "description ""{#SvcName}"" ""Lantern Windows service"""; Flags: runhidden
-
-; Start service
-Filename: "{sys}\sc.exe"; Parameters: "start ""{#SvcName}"""; Flags: runhidden
-
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
   Flags: runasoriginaluser nowait postinstall skipifsilent
@@ -318,7 +306,13 @@ Type: filesandordirs; Name: "{#ProgramDataDir}"
 [Code]
 const
   ServiceDeleteTimeoutMs = 20000;
+  ServiceStartTimeoutMs = 30000;
+  TokenReadyTimeoutMs = 30000;
   ServicePollIntervalMs = 250;
+  ServiceStopTimeoutMs = 20000;
+  ServiceNotRunningExitCode = 1062;
+  ServiceAlreadyRunningExitCode = 1056;
+  ServiceExistsExitCode = 1073;
   UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
 
 function IsAbsoluteWindowsPath(const Path: String): Boolean;
@@ -424,6 +418,29 @@ begin
   end;
 end;
 
+function ExecCmd(const Parameters: String; var ExitCode: Integer): Boolean;
+begin
+  Result := Exec(
+    ExpandConstant('{sys}\cmd.exe'),
+    Parameters,
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ExitCode
+  );
+  if Result then begin
+    Log('cmd.exe ' + Parameters + ' (exit=' + IntToStr(ExitCode) + ')');
+  end else begin
+    Log('failed to launch cmd.exe ' + Parameters);
+  end;
+end;
+
+procedure FailInstall(const Message: String);
+begin
+  Log('Installation failed: ' + Message);
+  RaiseException(Message);
+end;
+
 procedure StopAndDeleteService;
 var
   ExitCode: Integer;
@@ -452,17 +469,89 @@ begin
   Result := False;
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
+function IsServiceState(const StateCode: String; const StateName: String): Boolean;
+var
+  ExitCode: Integer;
 begin
-  if CurStep <> ssInstall then begin
+  Result := ExecCmd(
+    '/C sc.exe query {#SvcName} | findstr /R /C:"STATE *: *' +
+      StateCode + ' *' + StateName + '" >NUL',
+    ExitCode
+  ) and (ExitCode = 0);
+end;
+
+function IsServiceRunning: Boolean;
+begin
+  Result := IsServiceState('4', 'RUNNING');
+end;
+
+function IsServiceStopped: Boolean;
+begin
+  Result := IsServiceState('1', 'STOPPED');
+end;
+
+function WaitForServiceRunning(const TimeoutMs: Integer): Boolean;
+var
+  ElapsedMs: Integer;
+begin
+  ElapsedMs := 0;
+  while ElapsedMs <= TimeoutMs do begin
+    if IsServiceRunning then begin
+      Result := True;
+      exit;
+    end;
+    Sleep(ServicePollIntervalMs);
+    ElapsedMs := ElapsedMs + ServicePollIntervalMs;
+  end;
+  Result := False;
+end;
+
+function WaitForServiceStopped(const TimeoutMs: Integer): Boolean;
+var
+  ElapsedMs: Integer;
+begin
+  ElapsedMs := 0;
+  while ElapsedMs <= TimeoutMs do begin
+    if IsServiceStopped then begin
+      Result := True;
+      exit;
+    end;
+    Sleep(ServicePollIntervalMs);
+    ElapsedMs := ElapsedMs + ServicePollIntervalMs;
+  end;
+  Result := False;
+end;
+
+function HasNonEmptyTokenFile: Boolean;
+var
+  TokenValue: AnsiString;
+  TokenFilePath: String;
+begin
+  TokenFilePath := ExpandConstant('{#TokenFile}');
+  Result := False;
+  if not FileExists(TokenFilePath) then begin
     exit;
   end;
-
-  Log('Pre-install service cleanup started');
-  StopAndDeleteService;
-  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
-    Log('Timed out waiting for service deletion; continuing install');
+  if not LoadStringFromFile(TokenFilePath, TokenValue) then begin
+    exit;
   end;
+  Result := Trim(String(TokenValue)) <> '';
+end;
+
+function WaitForTokenFile(const TimeoutMs: Integer): Boolean;
+var
+  ElapsedMs: Integer;
+begin
+  ElapsedMs := 0;
+  while ElapsedMs <= TimeoutMs do begin
+    if HasNonEmptyTokenFile then begin
+      Result := True;
+      exit;
+    end;
+    Sleep(ServicePollIntervalMs);
+    ElapsedMs := ElapsedMs + ServicePollIntervalMs;
+  end;
+  Result := False;
 end;
 
 function ServiceExecutablePath(_Param: String): String;
@@ -474,6 +563,142 @@ begin
     Result := Arm64ServicePath
   else
     Result := ExpandConstant('{app}\lanternsvc.exe');
+end;
+
+procedure CreateOrUpdateService(const ServicePath: String);
+var
+  ExitCode: Integer;
+  CreateParams: String;
+  ConfigParams: String;
+begin
+  CreateParams :=
+    'create "{#SvcName}" binPath= "' + ServicePath +
+    '" start= delayed-auto DisplayName= "{#SvcDisplayName}"';
+  if not ExecSc(CreateParams, ExitCode) then begin
+    FailInstall('Unable to run sc create for {#SvcName}.');
+  end;
+
+  if ExitCode = 0 then begin
+    Log('Windows service {#SvcName} created');
+    exit;
+  end;
+
+  if ExitCode = 5 then begin
+    FailInstall(
+      'Administrator privileges are required to install {#SvcName}. ' +
+      'Please re-run the installer as administrator.'
+    );
+  end;
+
+  if ExitCode <> ServiceExistsExitCode then begin
+    FailInstall(
+      'sc create returned exit ' + IntToStr(ExitCode) +
+      ' while configuring {#SvcName}.'
+    );
+  end;
+
+  Log('Windows service {#SvcName} already exists, applying updated config');
+  ConfigParams :=
+    'config "{#SvcName}" binPath= "' + ServicePath +
+    '" start= delayed-auto DisplayName= "{#SvcDisplayName}"';
+  if not ExecSc(ConfigParams, ExitCode) then begin
+    FailInstall('Unable to run sc config for {#SvcName}.');
+  end;
+  if ExitCode <> 0 then begin
+    FailInstall('sc config returned exit ' + IntToStr(ExitCode) + '.');
+  end;
+end;
+
+procedure ConfigureServiceRecovery;
+var
+  ExitCode: Integer;
+begin
+  if not ExecSc('failure "{#SvcName}" reset= 60 actions= restart/5000/restart/5000/""""/5000', ExitCode) then begin
+    FailInstall('Unable to configure service recovery settings.');
+  end;
+  if ExitCode <> 0 then begin
+    FailInstall('Failed to configure service recovery (exit=' + IntToStr(ExitCode) + ').');
+  end;
+  if not ExecSc('failureflag "{#SvcName}" 1', ExitCode) then begin
+    FailInstall('Unable to set service failure flag.');
+  end;
+  if ExitCode <> 0 then begin
+    FailInstall('Failed to set service failure flag (exit=' + IntToStr(ExitCode) + ').');
+  end;
+  if not ExecSc('description "{#SvcName}" "Lantern Windows service"', ExitCode) then begin
+    FailInstall('Unable to set service description.');
+  end;
+  if ExitCode <> 0 then begin
+    FailInstall('Failed to set service description (exit=' + IntToStr(ExitCode) + ').');
+  end;
+end;
+
+procedure StartServiceAndValidate;
+var
+  ExitCode: Integer;
+begin
+  if not ExecSc('query "{#SvcName}"', ExitCode) then begin
+    FailInstall('Unable to query {#SvcName} after install.');
+  end;
+  if ExitCode <> 0 then begin
+    FailInstall('Service {#SvcName} was not created (sc query exit=' + IntToStr(ExitCode) + ').');
+  end;
+
+  if not ExecSc('stop "{#SvcName}"', ExitCode) then begin
+    FailInstall('Unable to stop {#SvcName} before restart.');
+  end;
+  if (ExitCode <> 0) and (ExitCode <> ServiceNotRunningExitCode) then begin
+    FailInstall('sc stop returned exit ' + IntToStr(ExitCode) + ' for {#SvcName}.');
+  end;
+  if not WaitForServiceStopped(ServiceStopTimeoutMs) then begin
+    FailInstall('{#SvcName} did not stop before restart.');
+  end;
+
+  if not ExecSc('start "{#SvcName}"', ExitCode) then begin
+    FailInstall('Unable to start {#SvcName}.');
+  end;
+  if (ExitCode <> 0) and (ExitCode <> ServiceAlreadyRunningExitCode) then begin
+    FailInstall('sc start returned exit ' + IntToStr(ExitCode) + ' for {#SvcName}.');
+  end;
+
+  if not WaitForServiceRunning(ServiceStartTimeoutMs) then begin
+    FailInstall('{#SvcName} did not reach Running state after install.');
+  end;
+  if not WaitForTokenFile(TokenReadyTimeoutMs) then begin
+    FailInstall('IPC token file missing or empty at {#TokenFile}.');
+  end;
+end;
+
+procedure ProvisionWindowsService;
+var
+  ServicePath: String;
+begin
+  ServicePath := ServiceExecutablePath('');
+  if (ServicePath = '') or (not FileExists(ServicePath)) then begin
+    FailInstall('Service executable not found at ' + ServicePath + '.');
+  end;
+
+  Log('Provisioning Windows service from ' + ServicePath);
+  CreateOrUpdateService(ServicePath);
+  ConfigureServiceRecovery;
+  StartServiceAndValidate;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then begin
+    Log('Pre-install service cleanup started');
+    StopAndDeleteService;
+    if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
+      Log('Timed out waiting for service deletion; continuing install');
+    end;
+    exit;
+  end;
+
+  if CurStep = ssPostInstall then begin
+    Log('Post-install service validation started');
+    ProvisionWindowsService;
+  end;
 end;
 
 function InitializeSetup: Boolean;

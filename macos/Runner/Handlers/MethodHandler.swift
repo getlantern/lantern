@@ -944,7 +944,8 @@ class MethodHandler {
       var error: NSError?
       MobileUpdatePrivateServerName(oldName, newName, &error)
       if let error {
-        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
+        await self.handleFlutterError(
+          error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
         return
       }
       await self.replyOK(result)

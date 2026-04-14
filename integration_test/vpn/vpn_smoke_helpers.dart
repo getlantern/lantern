@@ -113,6 +113,8 @@ List<String> collectVisibleSmokeDebugKeys(WidgetTester tester) {
       .where(
         (k) =>
             k.contains('vpn.') ||
+            k.contains('home.') ||
+            k.contains('split_tunneling.') ||
             k.contains('onboarding.') ||
             k.contains('server_selection.') ||
             k.contains('join_private_server.'),
