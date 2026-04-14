@@ -281,3 +281,10 @@ jobs:
           name: lantern-installer-deb-${{ matrix.arch }}
           path: ${{ env.FULL_INSTALLER_NAME }}.deb
           retention-days: 2
+
+      - name: Upload Linux build (Arch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-pkg-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.pkg.tar.zst
+          retention-days: 2

@@ -90,17 +90,23 @@ upload_artifact() {
   local base_name="${INSTALLER_BASE_NAME}"
   [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && base_name="${base_name}-${BUILD_TYPE}"
 
+  # Map compound extensions to short artifact directory names
+  local dir_ext="$extension"
+  case "$extension" in
+    pkg.tar.zst) dir_ext="pkg" ;;
+  esac
+
   local filename
   local -a candidate_dirs=()
   if [[ "$arch" == "arm64" ]]; then
     filename="${base_name}-arm64.${extension}"
-    candidate_dirs=("lantern-installer-${extension}-arm64")
+    candidate_dirs=("lantern-installer-${dir_ext}-arm64")
   elif [[ "$arch" == "amd64" ]]; then
     filename="${base_name}.${extension}"
-    candidate_dirs=("lantern-installer-${extension}-amd64" "lantern-installer-${extension}")
+    candidate_dirs=("lantern-installer-${dir_ext}-amd64" "lantern-installer-${dir_ext}")
   else
     filename="${base_name}.${extension}"
-    candidate_dirs=("lantern-installer-${extension}")
+    candidate_dirs=("lantern-installer-${dir_ext}")
   fi
 
   local filepath=""
@@ -129,10 +135,10 @@ declare -a artifacts=(
 )
 
 if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
-  artifacts+=("linux:deb:amd64" "linux:rpm:amd64")
+  artifacts+=("linux:deb:amd64" "linux:rpm:amd64" "linux:pkg.tar.zst:amd64")
 fi
 if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
-  artifacts+=("linux:deb:arm64" "linux:rpm:arm64")
+  artifacts+=("linux:deb:arm64" "linux:rpm:arm64" "linux:pkg.tar.zst:arm64")
 fi
 
 uploaded=0
