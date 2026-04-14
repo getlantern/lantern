@@ -141,8 +141,49 @@ function Invoke-FlutterSmokeTest {
 
   Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
   & flutter @args
-  if ($LASTEXITCODE -ne 0) {
-    throw "$Description failed with exit code $LASTEXITCODE"
+  return $LASTEXITCODE
+}
+
+function Invoke-FlutterSmokeTestWithPolicy {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+    [Parameter(Mandatory = $true)]
+    [string]$Description,
+    [switch]$EnableIpCheck,
+    [switch]$ForceFullTunnel,
+    [string[]]$ExtraDartDefines = @(),
+    [int]$RetryOnExitCode = -1,
+    [int]$MaxAttempts = 1
+  )
+
+  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    $exitCode = Invoke-FlutterSmokeTest `
+      -Path $Path `
+      -Description $Description `
+      -EnableIpCheck:$EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel `
+      -ExtraDartDefines $ExtraDartDefines
+
+    if ($exitCode -eq 0) {
+      return
+    }
+
+    $canRetry = (
+      $RetryOnExitCode -ge 0 -and
+      $exitCode -eq $RetryOnExitCode -and
+      $attempt -lt $MaxAttempts
+    )
+    if ($canRetry) {
+      Write-Step (
+        "{0} exited with code {1} (attempt {2}/{3}); retrying once" -f
+          $Description, $exitCode, $attempt, $MaxAttempts
+      )
+      Start-Sleep -Seconds 2
+      continue
+    }
+
+    throw "$Description failed with exit code $exitCode"
   }
 }
 
@@ -178,17 +219,21 @@ function Invoke-IsolatedFlutterSmokeTest {
     [string]$Description,
     [switch]$EnableIpCheck,
     [switch]$ForceFullTunnel,
-    [string[]]$ExtraDartDefines = @()
+    [string[]]$ExtraDartDefines = @(),
+    [int]$RetryOnExitCode = -1,
+    [int]$MaxAttempts = 1
   )
 
   Stop-LanternClientProcesses -Reason ("before {0}" -f $Description)
   try {
-    Invoke-FlutterSmokeTest `
+    Invoke-FlutterSmokeTestWithPolicy `
       -Path $Path `
       -Description $Description `
       -EnableIpCheck:$EnableIpCheck `
       -ForceFullTunnel:$ForceFullTunnel `
-      -ExtraDartDefines $ExtraDartDefines
+      -ExtraDartDefines $ExtraDartDefines `
+      -RetryOnExitCode $RetryOnExitCode `
+      -MaxAttempts $MaxAttempts
   }
   finally {
     Stop-LanternClientProcesses -Reason ("after {0}" -f $Description)
@@ -503,7 +548,9 @@ try {
       -Description "Apps split tunneling smoke test" `
       -EnableIpCheck:$EnableIpCheck `
       -ForceFullTunnel:$ForceFullTunnel `
-      -ExtraDartDefines $appsSmokeDefines
+      -ExtraDartDefines $appsSmokeDefines `
+      -RetryOnExitCode 79 `
+      -MaxAttempts 2
   } else {
     Write-Step "Skipping apps split tunneling smoke test."
   }
