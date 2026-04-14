@@ -45,6 +45,7 @@ func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
 		if err := vpn.Connect(group, tag); err != nil {
 			slog.Warn("Failed to restore persisted server, falling back to AutoConnect",
 				"group", group, "tag", tag, "error", err)
+			vpn.ClearLastSelectedServer()
 		} else {
 			return nil
 		}
