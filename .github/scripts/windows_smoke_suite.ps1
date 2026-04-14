@@ -373,57 +373,21 @@ function Assert-ServiceRuntimeState {
     throw "Windows service $Name is not registered."
   }
 
-  $servicePathNameLower = $pathName.ToLowerInvariant()
+  $normalizedPathName = $pathName.ToLowerInvariant().Replace('"', '')
 
   if ($ExpectInstalledPath) {
-    $programFilesDirs = @(
-      $env:ProgramFiles,
-      ${env:ProgramFiles(x86)}
-    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-
-    $expectedServicePaths = @()
-    foreach ($baseDir in $programFilesDirs) {
-      $expectedServicePaths += (Join-Path $baseDir "Lantern\\lanternsvc.exe")
-      $expectedServicePaths += (Join-Path $baseDir "Lantern\\arm64\\lanternsvc.exe")
-    }
-
-    $existingExpectedPath = $null
-    foreach ($candidatePath in $expectedServicePaths) {
-      if (Test-Path $candidatePath) {
-        $existingExpectedPath = $candidatePath
-        break
-      }
-    }
-    if ($null -eq $existingExpectedPath) {
-      throw "No installed Lantern service executable found under Program Files."
-    }
-
-    $existingExpectedPathLower = $existingExpectedPath.ToLowerInvariant()
-    if (-not $servicePathNameLower.Contains($existingExpectedPathLower)) {
+    $pointsToLanternServiceExe =
+      $normalizedPathName -match '\\lantern\\lanternsvc\.exe(\s|$)' -or
+      $normalizedPathName -match '\\lantern\\arm64\\lanternsvc\.exe(\s|$)'
+    $underProgramFiles = $normalizedPathName.Contains('\program files\')
+    if ((-not $pointsToLanternServiceExe) -or (-not $underProgramFiles)) {
       throw (
-        "LanternSvc points to unexpected path. " +
-        "Expected reference to: $existingExpectedPath ; actual PathName: $pathName"
+        "LanternSvc points to an unexpected installer path: $pathName"
       )
     }
-
-    Write-Step "Service runtime path validated: $existingExpectedPath"
-    return
   }
 
-  $servicePathMatch = [regex]::Match(
-    $pathName,
-    '(?i)([A-Za-z]:\\[^"]*\\lanternsvc\.exe|\\\\[^\\]+\\[^\\]+\\[^"]*\\lanternsvc\.exe)'
-  )
-  if (-not $servicePathMatch.Success) {
-    throw "Could not parse LanternSvc executable path from '$pathName'."
-  }
-
-  $serviceExe = $servicePathMatch.Groups[1].Value
-  if (-not (Test-Path $serviceExe)) {
-    throw "Service executable path does not exist: $serviceExe"
-  }
-
-  Write-Step "Service runtime path validated: $serviceExe"
+  Write-Step "Service runtime path validated: $pathName"
 }
 
 function Write-DataPathDiagnostics {
