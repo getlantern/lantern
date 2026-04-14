@@ -520,7 +520,7 @@ Future<void> _runDeleteAccountClearsSessionScenario(WidgetTester tester) async {
     initialAppSetting: const AppSetting(
       userLoggedIn: true,
       email: _deleteUserEmail,
-      oAuthToken: 'session-token',
+      oAuthToken: '',
       oAuthLoginProvider: 'email',
     ),
     initialUser: _buildFreeUser(email: _deleteUserEmail),
