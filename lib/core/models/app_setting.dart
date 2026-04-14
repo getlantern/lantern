@@ -82,42 +82,54 @@ class AppSetting {
   RoutingMode get routingMode => RoutingModeX.fromRaw(routingModeRaw);
 
   Map<String, dynamic> toJson() => {
-        'isPro': isPro,
-        'isSplitTunnelingOn': isSplitTunnelingOn,
-        'themeMode': themeMode,
-        'environment': environment,
-        'userLoggedIn': userLoggedIn,
-        'oAuthToken': oAuthToken,
-        'blockAds': blockAds,
-        'email': email,
-        'locale': locale,
-        'showSplashScreen': showSplashScreen,
-        'telemetryDialogDismissed': telemetryDialogDismissed,
-        'telemetryConsent': telemetryConsent,
-        'successfulConnection': successfulConnection,
-        'routingModeRaw': routingModeRaw,
-        'dataCapThreshold': dataCapThreshold,
-        'onboardingCompleted': onboardingCompleted,
-      };
+    'isPro': isPro,
+    'isSplitTunnelingOn': isSplitTunnelingOn,
+    'themeMode': themeMode,
+    'environment': environment,
+    'userLoggedIn': userLoggedIn,
+    'oAuthToken': oAuthToken,
+    'oAuthLoginProvider': oAuthLoginProvider,
+    'blockAds': blockAds,
+    'email': email,
+    'locale': locale,
+    'showSplashScreen': showSplashScreen,
+    'telemetryDialogDismissed': telemetryDialogDismissed,
+    'telemetryConsent': telemetryConsent,
+    'successfulConnection': successfulConnection,
+    'routingModeRaw': routingModeRaw,
+    'dataCapThreshold': dataCapThreshold,
+    'onboardingCompleted': onboardingCompleted,
+  };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
-        isPro: json['isPro'] == true,
-        isSplitTunnelingOn: json['isSplitTunnelingOn'] == true,
-        themeMode: (json['themeMode'] ?? 'system').toString(),
-        environment: (json['environment'] ?? 'prod').toString(),
-        userLoggedIn: json['userLoggedIn'] == true,
-        oAuthToken: (json['oAuthToken'] ?? '').toString(),
-        blockAds: json['blockAds'] == true,
-        email: (json['email'] ?? '').toString(),
-        locale: (json['locale'] ?? 'en_US').toString(),
-        showSplashScreen: json['showSplashScreen'] != false,
-        telemetryDialogDismissed: json['telemetryDialogDismissed'] == true,
-        telemetryConsent: json['telemetryConsent'] == true,
-        successfulConnection: json['successfulConnection'] == true,
-        routingModeRaw: (json['routingModeRaw'] ?? 'full_tunnel').toString(),
-        dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
-        onboardingCompleted: json['onboardingCompleted'] == true,
-      );
+    isPro: json['isPro'] == true,
+    isSplitTunnelingOn: json['isSplitTunnelingOn'] == true,
+    themeMode: (json['themeMode'] ?? 'system').toString(),
+    environment: (json['environment'] ?? 'prod').toString(),
+    userLoggedIn: json['userLoggedIn'] == true,
+    oAuthToken: (json['oAuthToken'] ?? '').toString(),
+    oAuthLoginProvider: (json['oAuthLoginProvider'] ?? '').toString(),
+    blockAds: json['blockAds'] == true,
+    email: (json['email'] ?? '').toString(),
+    locale: (json['locale'] ?? 'en_US').toString(),
+    showSplashScreen: json['showSplashScreen'] != false,
+    telemetryDialogDismissed: json['telemetryDialogDismissed'] == true,
+    telemetryConsent: json['telemetryConsent'] == true,
+    successfulConnection: json['successfulConnection'] == true,
+    routingModeRaw: (json['routingModeRaw'] ?? 'full_tunnel').toString(),
+    dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
+    onboardingCompleted: json['onboardingCompleted'] == true,
+  );
 
   bool get isSSOUser => oAuthToken.isNotEmpty && oAuthLoginProvider.isNotEmpty;
+
+  AppSetting clearAuthSessionData({bool clearEmail = true}) {
+    return copyWith(
+      newPro: false,
+      userLoggedIn: false,
+      oAuthToken: '',
+      oAuthLoginProvider: '',
+      email: clearEmail ? '' : email,
+    );
+  }
 }

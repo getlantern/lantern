@@ -56,7 +56,8 @@ class HomeNotifier extends _$HomeNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-            'Error refreshing user data: ${failure.localizedErrorMessage}');
+          'Error refreshing user data: ${failure.localizedErrorMessage}',
+        );
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
@@ -80,7 +81,9 @@ class HomeNotifier extends _$HomeNotifier {
     final email = userData.legacyUserData.email.isEmpty
         ? userData.id
         : userData.legacyUserData.email;
-    appLogger.info('Syncing user data to app settings — isPro=$isPro email=$email');
+    appLogger.info(
+      'Syncing user data to app settings — isPro=$isPro email=$email',
+    );
     ref.read(appSettingProvider.notifier)
       ..togglePro(isPro)
       ..setEmail(email);
@@ -141,11 +144,13 @@ class HomeNotifier extends _$HomeNotifier {
       return;
     }
     final userDeviceId = user.legacyUserData.deviceID;
-    final isDeviceAdded =
-        user.legacyUserData.devices.any((device) => device.id == userDeviceId);
-    appLogger
-        .info("current device added for user ${user.legacyUserData.email}: "
-            "$isDeviceAdded");
+    final isDeviceAdded = user.legacyUserData.devices.any(
+      (device) => device.id == userDeviceId,
+    );
+    appLogger.info(
+      "current device added for user ${user.legacyUserData.email}: "
+      "$isDeviceAdded",
+    );
     if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
       appLogger.info(
@@ -159,6 +164,8 @@ class HomeNotifier extends _$HomeNotifier {
   /// Fetches available servers again.
   void clearLogoutData() {
     ref.read(referralProvider.notifier).resetReferral();
-    ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
+    ref.read(appSettingProvider.notifier).clearAuthSessionData();
+    resetServerLocation();
+    state = AsyncValue.data(UserResponse());
   }
 }

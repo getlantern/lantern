@@ -87,6 +87,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_auth_smoke:
+        description: "Run auth smoke integration tests"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -359,6 +364,14 @@ jobs:
           path: ${{ runner.temp }}/windows-smoke-debug
           if-no-files-found: ignore
           retention-days: 7
+
+      # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
+      - name: Windows UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
+        shell: pwsh
+        timeout-minutes: 15
+        run: |
+          flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
       - name: Sign installer
         if: ${{ !inputs.skip_signing }}

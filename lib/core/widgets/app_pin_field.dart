@@ -5,12 +5,14 @@ import 'package:pinput/pinput.dart';
 import '../common/common.dart';
 
 class AppPinField extends StatelessWidget {
+  final Key? inputKey;
   final Function(String)? onCompleted;
   final Function(String)? onChanged;
   final TextEditingController? controller;
 
   const AppPinField({
     super.key,
+    this.inputKey,
     this.onCompleted,
     this.onChanged,
     this.controller,
@@ -49,6 +51,7 @@ class AppPinField extends StatelessWidget {
                   ),
                 },
                 child: Pinput(
+                  key: inputKey,
                   length: 6,
                   showCursor: true,
                   autofocus: true,
@@ -60,9 +63,7 @@ class AppPinField extends StatelessWidget {
                   closeKeyboardWhenCompleted: true,
                   hapticFeedbackType: HapticFeedbackType.lightImpact,
                   textInputAction: TextInputAction.done,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   cursor: Column(
