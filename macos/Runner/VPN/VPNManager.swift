@@ -51,16 +51,28 @@ class VPNManager: VPNBase {
     Task { await syncStatus() }
   }
 
-  /// Loads the existing VPN profile from preferences and reads its current
+  /// Loads an existing VPN profile from preferences and reads its current
   /// connection status. This ensures the in-memory state reflects the system
   /// state — for example when the VPN was connected via System Settings
   /// before the app launched.
+  ///
+  /// Unlike setupVPN(), this does NOT create a new profile if none exists,
+  /// avoiding the system VPN permission prompt on first launch.
   func syncStatus() async {
-    await setupVPN()
-    let systemStatus = manager.connection.status
-    if systemStatus != connectionStatus {
-      appLogger.info("Syncing VPN status: \(connectionStatus) -> \(systemStatus)")
-      connectionStatus = systemStatus
+    do {
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      guard let existing = managers.first else {
+        // No VPN profile configured yet — nothing to sync.
+        return
+      }
+      self.manager = existing
+      let systemStatus = manager.connection.status
+      if systemStatus != connectionStatus {
+        appLogger.info("Syncing VPN status: \(connectionStatus) -> \(systemStatus)")
+        connectionStatus = systemStatus
+      }
+    } catch {
+      appLogger.error("Failed to sync VPN status: \(error.localizedDescription)")
     }
   }
 
@@ -184,7 +196,7 @@ class VPNManager: VPNBase {
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
     appLogger.log("Stopping tunnel..")
-    await setupVPN()
+    await syncStatus()
     guard connectionStatus == .connected else {
       appLogger.log("In unexpected state: \(connectionStatus)")
       return
