@@ -17,6 +17,7 @@ param(
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
+  [bool]$RunConnectSmoke = $true,
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
@@ -522,11 +523,15 @@ try {
     Write-Step "Apps split tunneling smoke is enabled without app install helper."
   }
 
-  Invoke-IsolatedFlutterSmokeTest `
-    -Path $TestPath `
-    -Description "Windows connect smoke test" `
-    -EnableIpCheck:$EnableIpCheck `
-    -ForceFullTunnel:$ForceFullTunnel
+  if ($RunConnectSmoke) {
+    Invoke-IsolatedFlutterSmokeTest `
+      -Path $TestPath `
+      -Description "Windows connect smoke test" `
+      -EnableIpCheck:$EnableIpCheck `
+      -ForceFullTunnel:$ForceFullTunnel
+  } else {
+    Write-Step "Skipping Windows connect smoke test."
+  }
 
   if ($RunSplitTunnelWebsiteSmoke) {
     Invoke-IsolatedFlutterSmokeTest `

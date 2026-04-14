@@ -22,6 +22,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_connect_smoke:
+        description: "Run Windows connect smoke test"
+        required: false
+        type: boolean
+        default: true
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -102,11 +107,22 @@ jobs:
       - name: Install WebView2 Runtime
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
-          Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+          $runtimeDir = Join-Path ${env:ProgramFiles(x86)} "Microsoft\EdgeWebView\Application"
+          if (Test-Path $runtimeDir) {
+            Write-Host "WebView2 Runtime already installed at $runtimeDir"
+          } else {
+            Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
+            Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+          }
 
       - name: Set up MinGW
-        run: choco install mingw -y
+        shell: pwsh
+        run: |
+          if (Get-Command gcc.exe -ErrorAction SilentlyContinue) {
+            Write-Host "MinGW already available"
+          } else {
+            choco install mingw -y
+          }
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
@@ -125,17 +141,14 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      - name: Cache Dart pub global cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-dart-pub-cache-
-
       - name: Install Inno Setup 6
         shell: pwsh
-        run: choco install -y innosetup
+        run: |
+          if (Get-Command iscc.exe -ErrorAction SilentlyContinue) {
+            Write-Host "Inno Setup already available"
+          } else {
+            choco install -y innosetup
+          }
 
       - name: Read app version from pubspec.yaml
         shell: pwsh
@@ -284,6 +297,7 @@ jobs:
           SMOKE_DEBUG_DIR: ${{ runner.temp }}\windows-smoke-debug
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
+          $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
           $runSplitTunnelWebsiteSmoke = "${{ inputs.run_split_tunnel_website_smoke }}" -eq "true"
           $runSplitTunnelAppsSmoke = "${{ inputs.run_split_tunnel_apps_smoke }}" -eq "true"
           $installSmokeAppForSplitTunnel = "${{ inputs.install_smoke_app_for_split_tunnel }}" -eq "true"
@@ -293,10 +307,11 @@ jobs:
           $smokeAppWingetId = "${{ inputs.split_tunnel_smoke_app_winget_id }}"
           $smokeAppDisplayName = "${{ inputs.split_tunnel_smoke_app_display_name }}"
           $smokeAppExecutableHint = "${{ inputs.split_tunnel_smoke_app_executable_hint }}"
-          Write-Host "Windows smoke options: connect=true splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke installSmokeApp=$installSmokeAppForSplitTunnel configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck smokeApp=$smokeAppDisplayName"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke installSmokeApp=$installSmokeAppForSplitTunnel configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck smokeApp=$smokeAppDisplayName"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
+            -RunConnectSmoke:$runConnectSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunSplitTunnelAppsSmoke:$runSplitTunnelAppsSmoke `
             -InstallSmokeAppForSplitTunnel:$installSmokeAppForSplitTunnel `
