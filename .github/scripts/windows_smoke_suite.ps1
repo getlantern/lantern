@@ -362,43 +362,6 @@ function Get-ServicePathName {
   return $svc.PathName
 }
 
-function Get-ServiceExecutablePath {
-  param([string]$PathName)
-
-  if ([string]::IsNullOrWhiteSpace($PathName)) {
-    return $null
-  }
-  $trimmed = $PathName.Trim()
-  if ($trimmed.StartsWith('"')) {
-    $end = $trimmed.IndexOf('"', 1)
-    if ($end -gt 1) {
-      return $trimmed.Substring(1, $end - 1)
-    }
-  }
-
-  # sc qc output can return an unquoted path with spaces.
-  # Capture the executable path through ".exe" before optional arguments.
-  $driveMatch = [regex]::Match(
-    $trimmed,
-    '^[A-Za-z]:\\.*?\.exe(?=\s|$)',
-    [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-  )
-  if ($driveMatch.Success) {
-    return $driveMatch.Value
-  }
-
-  $uncMatch = [regex]::Match(
-    $trimmed,
-    '^\\\\[^\\]+\\[^\\]+\\.*?\.exe(?=\s|$)',
-    [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-  )
-  if ($uncMatch.Success) {
-    return $uncMatch.Value
-  }
-
-  return ($trimmed -split '\s+')[0]
-}
-
 function Assert-ServiceRuntimeState {
   param(
     [string]$Name,
@@ -410,37 +373,54 @@ function Assert-ServiceRuntimeState {
     throw "Windows service $Name is not registered."
   }
 
-  $serviceExe = Get-ServiceExecutablePath -PathName $pathName
-  if ([string]::IsNullOrWhiteSpace($serviceExe)) {
-    throw "Could not parse executable path for service $Name from '$pathName'."
-  }
-  if (-not (Test-Path $serviceExe)) {
-    throw "Service executable path does not exist: $serviceExe"
-  }
+  $servicePathNameLower = $pathName.ToLowerInvariant()
 
   if ($ExpectInstalledPath) {
-    $normalized = $serviceExe.ToLowerInvariant()
     $programFilesDirs = @(
       $env:ProgramFiles,
       ${env:ProgramFiles(x86)}
-    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object {
-      $_.ToLowerInvariant()
-    }
-    $isUnderProgramFiles = $false
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+    $expectedServicePaths = @()
     foreach ($baseDir in $programFilesDirs) {
-      if ($normalized.StartsWith($baseDir)) {
-        $isUnderProgramFiles = $true
+      $expectedServicePaths += (Join-Path $baseDir "Lantern\\lanternsvc.exe")
+      $expectedServicePaths += (Join-Path $baseDir "Lantern\\arm64\\lanternsvc.exe")
+    }
+
+    $existingExpectedPath = $null
+    foreach ($candidatePath in $expectedServicePaths) {
+      if (Test-Path $candidatePath) {
+        $existingExpectedPath = $candidatePath
         break
       }
     }
-    if (
-      -not $isUnderProgramFiles
-    ) {
+    if ($null -eq $existingExpectedPath) {
+      throw "No installed Lantern service executable found under Program Files."
+    }
+
+    $existingExpectedPathLower = $existingExpectedPath.ToLowerInvariant()
+    if (-not $servicePathNameLower.Contains($existingExpectedPathLower)) {
       throw (
-        "Installer mode expected LanternSvc under Program Files, " +
-        "but got: $serviceExe"
+        "LanternSvc points to unexpected path. " +
+        "Expected reference to: $existingExpectedPath ; actual PathName: $pathName"
       )
     }
+
+    Write-Step "Service runtime path validated: $existingExpectedPath"
+    return
+  }
+
+  $servicePathMatch = [regex]::Match(
+    $pathName,
+    '(?i)([A-Za-z]:\\[^"]*\\lanternsvc\.exe|\\\\[^\\]+\\[^\\]+\\[^"]*\\lanternsvc\.exe)'
+  )
+  if (-not $servicePathMatch.Success) {
+    throw "Could not parse LanternSvc executable path from '$pathName'."
+  }
+
+  $serviceExe = $servicePathMatch.Groups[1].Value
+  if (-not (Test-Path $serviceExe)) {
+    throw "Service executable path does not exist: $serviceExe"
   }
 
   Write-Step "Service runtime path validated: $serviceExe"
