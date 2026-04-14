@@ -140,8 +140,8 @@ function Invoke-FlutterSmokeTest {
   }
 
   Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
-  & flutter @args
-  return $LASTEXITCODE
+  & flutter @args 2>&1 | Out-Host
+  return [int]$LASTEXITCODE
 }
 
 function Invoke-FlutterSmokeTestWithPolicy {
