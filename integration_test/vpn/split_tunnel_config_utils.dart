@@ -5,29 +5,56 @@ import 'package:flutter/foundation.dart';
 
 const windowsPublicSplitTunnelPath =
     r'C:\Users\Public\Lantern\data\split-tunnel.json';
+const macSharedSplitTunnelPath = '/Users/Shared/Lantern/split-tunnel.json';
 
 List<String> splitTunnelRuleFileCandidates() {
-  final candidates = <String>{windowsPublicSplitTunnelPath};
+  final candidates = <String>{};
 
-  final programData = Platform.environment['ProgramData'];
-  if (programData != null && programData.isNotEmpty) {
-    candidates.add('$programData\\Lantern\\data\\split-tunnel.json');
-  }
+  if (Platform.isWindows) {
+    candidates.add(windowsPublicSplitTunnelPath);
 
-  final localAppData = Platform.environment['LOCALAPPDATA'];
-  if (localAppData != null && localAppData.isNotEmpty) {
-    candidates.add('$localAppData\\Lantern\\data\\split-tunnel.json');
+    final programData = Platform.environment['ProgramData'];
+    if (programData != null && programData.isNotEmpty) {
+      candidates.add('$programData\\Lantern\\data\\split-tunnel.json');
+    }
+
+    final localAppData = Platform.environment['LOCALAPPDATA'];
+    if (localAppData != null && localAppData.isNotEmpty) {
+      candidates.add('$localAppData\\Lantern\\data\\split-tunnel.json');
+    }
+  } else if (Platform.isMacOS) {
+    candidates.add(macSharedSplitTunnelPath);
+
+    final home = Platform.environment['HOME'];
+    if (home != null && home.isNotEmpty) {
+      candidates.add(
+        '$home/Library/Application Support/org.getlantern.lantern/split-tunnel.json',
+      );
+    }
+  } else if (Platform.isLinux) {
+    final xdgDataHome = Platform.environment['XDG_DATA_HOME'];
+    if (xdgDataHome != null && xdgDataHome.isNotEmpty) {
+      candidates.add('$xdgDataHome/org.getlantern.lantern/split-tunnel.json');
+    }
+
+    final home = Platform.environment['HOME'];
+    if (home != null && home.isNotEmpty) {
+      candidates.add(
+        '$home/.local/share/org.getlantern.lantern/split-tunnel.json',
+      );
+    }
   }
 
   return candidates.toList(growable: false);
 }
 
 Future<MapEntry<String, String>?> readSplitTunnelConfigFromDisk() async {
-  if (!Platform.isWindows) {
+  final candidates = splitTunnelRuleFileCandidates();
+  if (candidates.isEmpty) {
     return null;
   }
 
-  for (final path in splitTunnelRuleFileCandidates()) {
+  for (final path in candidates) {
     final file = File(path);
     if (!await file.exists()) {
       continue;

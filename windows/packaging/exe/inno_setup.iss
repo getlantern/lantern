@@ -449,6 +449,20 @@ begin
   ExecSc('delete "{#SvcName}"', ExitCode);
 end;
 
+procedure StopLanternUiProcesses;
+var
+  ExitCode: Integer;
+begin
+  // Older Lantern UI processes can survive upgrades and keep users on a stale
+  // binary path even after reinstall. Kill them before copying new files.
+  if ExecCmd('/C taskkill /IM lantern.exe /T /F', ExitCode) then begin
+    if (ExitCode = 0) or (ExitCode = 128) then begin
+      exit;
+    end;
+    Log('taskkill lantern.exe returned exit=' + IntToStr(ExitCode));
+  end;
+end;
+
 function WaitForServiceDelete(const TimeoutMs: Integer): Boolean;
 var
   ExitCode: Integer;
@@ -688,6 +702,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssInstall then begin
     Log('Pre-install service cleanup started');
+    StopLanternUiProcesses;
     StopAndDeleteService;
     if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
       Log('Timed out waiting for service deletion; continuing install');
@@ -697,6 +712,7 @@ begin
 
   if CurStep = ssPostInstall then begin
     Log('Post-install service validation started');
+    StopLanternUiProcesses;
     ProvisionWindowsService;
   end;
 end;

@@ -43,8 +43,16 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         final enabled = items.toSet();
         return filtered
             .where((app) {
-              final value = splitTunnelValue(app, logIfEmpty: false);
-              return value != null && enabled.contains(value);
+              final values = splitTunnelValues(app, logIfEmpty: false);
+              if (values.isEmpty) {
+                return false;
+              }
+              for (final value in values) {
+                if (enabled.contains(value)) {
+                  return true;
+                }
+              }
+              return false;
             })
             .map((a) => a.copyWith(isEnabled: true))
             .toSet();
@@ -65,31 +73,47 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   /// For macOS, we need to use regex to match the app path
   /// For other platforms, we can use the bundleId/packageName
   String appPath(AppData appData) {
-    if (PlatformUtils.isMacOS) {
-      // Note that typically MacOS apps use the binary inside the .app bundle
-      // at, for example, /Applications/Firefox.app/Contents/MacOS/firefox.
-      // Some apps, however, use a helper binary inside the Frameworks folder
-      // at, for example:
-      // /Applications/Slack.app/Contents/Frameworks/ArcCore.framework/Versions/A/Helpers/Browser Helper.app/Contents/MacOS/Browser Helper
-      return '${appData.appPath}/Contents/.*';
-    }
     if (PlatformUtils.isWindows) {
+      return appData.appPath;
+    }
+    if (PlatformUtils.isMacOS) {
       return appData.appPath;
     }
     return appData.bundleId;
   }
 
-  String? splitTunnelValue(AppData appData, {bool logIfEmpty = true}) {
+  List<String> splitTunnelValues(AppData appData, {bool logIfEmpty = true}) {
     final value = appPath(appData).trim();
-    if (value.isNotEmpty) {
-      return value;
+    if (value.isEmpty) {
+      if (logIfEmpty) {
+        appLogger.warning(
+          'Skipping split-tunnel update for app with empty identifier: ${normalizedAppId(appData)}',
+        );
+      }
+      return const <String>[];
     }
-    if (logIfEmpty) {
-      appLogger.warning(
-        'Skipping split-tunnel update for app with empty identifier: ${normalizedAppId(appData)}',
-      );
+
+    if (!PlatformUtils.isMacOS) {
+      return <String>[value];
     }
-    return null;
+
+    final bundlePath = value.replaceAll(RegExp(r'[\\/]+$'), '');
+    final escapedBundlePath = RegExp.escape(bundlePath);
+
+    // Primary format uses escaped bundle path. The legacy unescaped format is
+    // included so remove/match works for existing persisted rules.
+    return <String>[
+      '$escapedBundlePath/Contents/.*',
+      '$bundlePath/Contents/.*',
+    ];
+  }
+
+  String? splitTunnelValue(AppData appData, {bool logIfEmpty = true}) {
+    final values = splitTunnelValues(appData, logIfEmpty: logIfEmpty);
+    if (values.isEmpty) {
+      return null;
+    }
+    return values.first;
   }
 
   List<AppData> _installedAppsSnapshot() {
@@ -109,16 +133,21 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   Future<void> toggleApp(AppData app) async {
     final id = normalizedAppId(app);
-    final value = splitTunnelValue(app);
-    if (value == null) {
+    final values = splitTunnelValues(app);
+    if (values.isEmpty) {
       return;
     }
+    final primaryValue = values.first;
+
     final current = _current();
     final isEnabled = current.any((a) => normalizedAppId(a) == id);
 
     final result = isEnabled
-        ? await _lanternService.removeSplitTunnelItem(getFilterType(), value)
-        : await _lanternService.addSplitTunnelItem(getFilterType(), value);
+        ? await _lanternService.removeAllItems(getFilterType(), values)
+        : await _lanternService.addSplitTunnelItem(
+            getFilterType(),
+            primaryValue,
+          );
 
     await result.match(
       (failure) async {
@@ -152,10 +181,10 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final validToAdd = <AppData>[];
     final paths = <String>[];
     for (final app in toAdd) {
-      final value = splitTunnelValue(app);
-      if (value != null) {
+      final values = splitTunnelValues(app);
+      if (values.isNotEmpty) {
         validToAdd.add(app);
-        paths.add(value);
+        paths.add(values.first);
       }
     }
 
@@ -187,10 +216,10 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final validToRemove = <AppData>[];
     final paths = <String>[];
     for (final app in toRemove) {
-      final value = splitTunnelValue(app);
-      if (value != null) {
+      final values = splitTunnelValues(app);
+      if (values.isNotEmpty) {
         validToRemove.add(app);
-        paths.add(value);
+        paths.addAll(values);
       }
     }
 

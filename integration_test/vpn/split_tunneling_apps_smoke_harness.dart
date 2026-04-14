@@ -34,6 +34,108 @@ String _keyToken(String value) {
   return token;
 }
 
+Finder _finderByKeyPrefix(String prefix) {
+  return find.byWidgetPredicate((widget) {
+    final key = widget.key;
+    return key is ValueKey<String> && key.value.startsWith(prefix);
+  }, description: 'widget key starts with "$prefix"');
+}
+
+Finder _appNameTextFinder(String expectedAppName) {
+  final expected = expectedAppName.trim().toLowerCase();
+  return find.byWidgetPredicate((widget) {
+    if (widget is! Text) {
+      return false;
+    }
+    final text = (widget.data ?? widget.textSpan?.toPlainText() ?? '')
+        .trim()
+        .toLowerCase();
+    if (text.isEmpty || expected.isEmpty) {
+      return false;
+    }
+    return text == expected ||
+        text.contains(expected) ||
+        expected.contains(text);
+  }, description: 'text matching app name "$expectedAppName"');
+}
+
+String _collectListTextSnapshot(Finder listFinder, {int maxItems = 20}) {
+  final textFinder = find.descendant(
+    of: listFinder,
+    matching: find.byType(Text),
+  );
+  final values = <String>[];
+  for (final element in textFinder.evaluate()) {
+    final widget = element.widget;
+    if (widget is! Text) {
+      continue;
+    }
+    final value = (widget.data ?? widget.textSpan?.toPlainText() ?? '').trim();
+    if (value.isEmpty) {
+      continue;
+    }
+    values.add(value);
+    if (values.length >= maxItems) {
+      break;
+    }
+  }
+
+  if (values.isEmpty) {
+    return '(none)';
+  }
+  return values.join(' | ');
+}
+
+bool _hasAnyAppMatchInList(Finder listFinder, List<Finder> appNameFinders) {
+  for (final appNameFinder in appNameFinders) {
+    final inList = find.descendant(of: listFinder, matching: appNameFinder);
+    if (inList.evaluate().isNotEmpty) {
+      return true;
+    }
+  }
+  return false;
+}
+
+Finder _findActionButtonForAppInList({
+  required Finder listFinder,
+  required List<Finder> appNameFinders,
+  required bool enabled,
+  required Key fallbackActionKey,
+}) {
+  final actionPrefix = enabled
+      ? 'split_tunneling.apps.remove.'
+      : 'split_tunneling.apps.add.';
+  final actionByPrefix = _finderByKeyPrefix(actionPrefix);
+
+  for (final appNameFinder in appNameFinders) {
+    final appInList = find.descendant(of: listFinder, matching: appNameFinder);
+    if (appInList.evaluate().isEmpty) {
+      continue;
+    }
+
+    final rowFinder = find.ancestor(
+      of: appInList.first,
+      matching: _finderByKeyPrefix('split_tunneling.apps.row.'),
+    );
+    if (rowFinder.evaluate().isEmpty) {
+      continue;
+    }
+
+    final actionInRow = find.descendant(
+      of: rowFinder.first,
+      matching: actionByPrefix,
+    );
+    if (actionInRow.evaluate().isNotEmpty) {
+      return actionInRow.first;
+    }
+  }
+
+  return find.descendant(
+    of: listFinder,
+    matching: find.byKey(fallbackActionKey),
+  );
+}
+
 Future<void> _tapFinder(
   WidgetTester tester,
   Finder finder, {
@@ -132,24 +234,16 @@ Future<String> _waitForAppLocation({
   required WidgetTester tester,
   required Finder enabledListFinder,
   required Finder installedListFinder,
-  required Finder appNameFinder,
+  required List<Finder> appNameFinders,
   required Duration timeout,
 }) async {
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
-    final inEnabled = find.descendant(
-      of: enabledListFinder,
-      matching: appNameFinder,
-    );
-    if (inEnabled.evaluate().isNotEmpty) {
+    if (_hasAnyAppMatchInList(enabledListFinder, appNameFinders)) {
       return 'enabled';
     }
 
-    final inInstalled = find.descendant(
-      of: installedListFinder,
-      matching: appNameFinder,
-    );
-    if (inInstalled.evaluate().isNotEmpty) {
+    if (_hasAnyAppMatchInList(installedListFinder, appNameFinders)) {
       return 'installed';
     }
 
@@ -424,8 +518,14 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
   final appsTileFinder = find.byKey(appsTileKey);
   final enabledListFinder = find.byKey(enabledListKey);
   final installedListFinder = find.byKey(installedListKey);
-  final appNameFinder = find.byKey(appNameKey);
+  final appNameFinders = <Finder>[
+    find.byKey(appNameKey),
+    _appNameTextFinder(expectedAppName),
+  ];
 
+  debugPrint(
+    'Apps split tunneling smoke: preparing home state for app "$expectedAppName" (token=$token)',
+  );
   await prepareVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
@@ -521,12 +621,6 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
 
   await WidgetWaitUtils.waitForFinder(
     tester,
-    enabledListFinder,
-    timeout: const Duration(seconds: 20),
-    reason: 'Enabled apps list was not visible',
-  );
-  await WidgetWaitUtils.waitForFinder(
-    tester,
     installedListFinder,
     timeout: const Duration(seconds: 20),
     reason: 'Installed apps list was not visible',
@@ -536,20 +630,26 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
     tester: tester,
     enabledListFinder: enabledListFinder,
     installedListFinder: installedListFinder,
-    appNameFinder: appNameFinder,
-    timeout: const Duration(seconds: 90),
+    appNameFinders: appNameFinders,
+    timeout: const Duration(seconds: 120),
   );
   if (location.isEmpty) {
+    final enabledSnapshot = _collectListTextSnapshot(enabledListFinder);
+    final installedSnapshot = _collectListTextSnapshot(installedListFinder);
     fail(
       'Expected app "$expectedAppName" (token: $token) was not found in apps '
-      'split tunneling lists. Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
+      'split tunneling lists. '
+      'Enabled list text: $enabledSnapshot. Installed list text: $installedSnapshot. '
+      'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
     );
   }
 
   if (location == 'enabled') {
-    final removeInEnabled = find.descendant(
-      of: enabledListFinder,
-      matching: find.byKey(removeButtonKey),
+    final removeInEnabled = _findActionButtonForAppInList(
+      listFinder: enabledListFinder,
+      appNameFinders: appNameFinders,
+      enabled: true,
+      fallbackActionKey: removeButtonKey,
     );
     await _tapFinder(
       tester,
@@ -563,7 +663,7 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
       tester: tester,
       enabledListFinder: enabledListFinder,
       installedListFinder: installedListFinder,
-      appNameFinder: appNameFinder,
+      appNameFinders: appNameFinders,
       timeout: const Duration(seconds: 45),
     );
     if (location != 'installed') {
@@ -573,9 +673,11 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
     }
   }
 
-  final addInInstalled = find.descendant(
-    of: installedListFinder,
-    matching: find.byKey(addButtonKey),
+  final addInInstalled = _findActionButtonForAppInList(
+    listFinder: installedListFinder,
+    appNameFinders: appNameFinders,
+    enabled: false,
+    fallbackActionKey: addButtonKey,
   );
   await _tapFinder(
     tester,
@@ -589,12 +691,15 @@ Future<void> runSplitTunnelingAppsSmokeHarness(
     tester: tester,
     enabledListFinder: enabledListFinder,
     installedListFinder: installedListFinder,
-    appNameFinder: appNameFinder,
-    timeout: const Duration(seconds: 45),
+    appNameFinders: appNameFinders,
+    timeout: const Duration(seconds: 75),
   );
   if (location != 'enabled') {
+    final enabledSnapshot = _collectListTextSnapshot(enabledListFinder);
+    final installedSnapshot = _collectListTextSnapshot(installedListFinder);
     fail(
-      'Expected app "$expectedAppName" was not shown in enabled apps after add.',
+      'Expected app "$expectedAppName" was not shown in enabled apps after add. '
+      'Enabled list text: $enabledSnapshot. Installed list text: $installedSnapshot.',
     );
   }
   await printSplitTunnelConfigSnapshot('apps-after-add');

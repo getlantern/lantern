@@ -148,8 +148,17 @@ function Invoke-FlutterSmokeTest {
   }
 
   Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
-  & flutter @args 2>&1 | Out-Host
-  return [int]$LASTEXITCODE
+  $output = & flutter @args 2>&1
+  $exitCode = $LASTEXITCODE
+
+  if ($output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+
+  if ($null -eq $exitCode) {
+    return 0
+  }
+  return [int]$exitCode
 }
 
 function Invoke-FlutterSmokeTestWithPolicy {
@@ -166,12 +175,12 @@ function Invoke-FlutterSmokeTestWithPolicy {
   )
 
   for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-    $exitCode = Invoke-FlutterSmokeTest `
+    $exitCode = [int](Invoke-FlutterSmokeTest `
       -Path $Path `
       -Description $Description `
       -EnableIpCheck:$EnableIpCheck `
       -ForceFullTunnel:$ForceFullTunnel `
-      -ExtraDartDefines $ExtraDartDefines
+      -ExtraDartDefines $ExtraDartDefines)
 
     if ($exitCode -eq 0) {
       return
@@ -369,6 +378,85 @@ function Get-ServiceExecutablePath {
   return ($trimmed -split '\s+')[0]
 }
 
+function Assert-ServiceRuntimeState {
+  param(
+    [string]$Name,
+    [bool]$ExpectInstalledPath
+  )
+
+  $pathName = Get-ServicePathName -Name $Name
+  if ([string]::IsNullOrWhiteSpace($pathName)) {
+    throw "Windows service $Name is not registered."
+  }
+
+  $serviceExe = Get-ServiceExecutablePath -PathName $pathName
+  if ([string]::IsNullOrWhiteSpace($serviceExe)) {
+    throw "Could not parse executable path for service $Name from '$pathName'."
+  }
+  if (-not (Test-Path $serviceExe)) {
+    throw "Service executable path does not exist: $serviceExe"
+  }
+
+  if ($ExpectInstalledPath) {
+    $normalized = $serviceExe.ToLowerInvariant()
+    $programFilesDirs = @(
+      $env:ProgramFiles,
+      ${env:ProgramFiles(x86)}
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object {
+      $_.ToLowerInvariant()
+    }
+    $isUnderProgramFiles = $false
+    foreach ($baseDir in $programFilesDirs) {
+      if ($normalized.StartsWith($baseDir)) {
+        $isUnderProgramFiles = $true
+        break
+      }
+    }
+    if (
+      -not $isUnderProgramFiles
+    ) {
+      throw (
+        "Installer mode expected LanternSvc under Program Files, " +
+        "but got: $serviceExe"
+      )
+    }
+  }
+
+  Write-Step "Service runtime path validated: $serviceExe"
+}
+
+function Write-DataPathDiagnostics {
+  $lines = @()
+  $candidateDataDirs = @("C:\Users\Public\Lantern\data")
+  if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $candidateDataDirs += "$env:LOCALAPPDATA\Lantern\data"
+  }
+
+  foreach ($dir in $candidateDataDirs) {
+    if (-not (Test-Path $dir)) {
+      $lines += "missing_data_dir=$dir"
+      continue
+    }
+
+    $lines += "data_dir=$dir"
+    foreach ($name in @("split-tunnel.json", "apps_cache.json", "local.json")) {
+      $filePath = Join-Path $dir $name
+      if (Test-Path $filePath) {
+        $size = (Get-Item $filePath).Length
+        $lines += "  file=$filePath size=$size"
+      } else {
+        $lines += "  missing_file=$filePath"
+      }
+    }
+  }
+
+  if ($lines.Count -eq 0) {
+    return
+  }
+  Write-Step "Windows data-path diagnostics:"
+  $lines | ForEach-Object { Write-Host $_ }
+}
+
 function Remove-ServiceIfPresent {
   param([string]$Name)
 
@@ -512,6 +600,8 @@ try {
   }
 
   Wait-TokenFile -Path $TokenPath -TimeoutSeconds $WaitSeconds
+  Assert-ServiceRuntimeState -Name $ServiceName -ExpectInstalledPath:$UseInstaller
+  Write-DataPathDiagnostics
 
   if ($RunSplitTunnelAppsSmoke -and [string]::IsNullOrWhiteSpace($SplitTunnelSmokeAppDisplayName)) {
     throw "SplitTunnelSmokeAppDisplayName must be set when apps split tunneling smoke is enabled."
