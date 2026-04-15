@@ -165,8 +165,6 @@ guard-%:
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
 
-require-gomobile:
-	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
 .PHONY: require-appdmg
 require-appdmg:
