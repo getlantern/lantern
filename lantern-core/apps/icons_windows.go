@@ -131,6 +131,9 @@ func getIconBytesFromLocation(file string, index int) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Fallback path: ask Windows for the file's associated icon and render it
+// into RGBA bytes. Some icons come back with zero alpha, so we normalize
+// visible pixels to opaque to avoid invisible icons in the UI.
 func extractAssociatedIconAsImage(path string, size int) (*image.RGBA, error) {
 	p, err := windows.UTF16PtrFromString(path)
 	if err != nil {
