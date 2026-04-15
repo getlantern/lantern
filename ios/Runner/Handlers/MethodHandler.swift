@@ -890,7 +890,8 @@ class MethodHandler {
       var error: NSError?
       MobileUpdatePrivateServerName(oldName, newName, &error)
       if let error {
-        await self.handleFlutterError(error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
+        await self.handleFlutterError(
+          error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
         return
       }
       await self.replyOK(result)
@@ -996,7 +997,8 @@ class MethodHandler {
           options: [.skipsHiddenFiles]
         )
 
-        let files = try entries
+        let files =
+          try entries
           .filter { entry in
             let values = try entry.resourceValues(forKeys: [.isRegularFileKey])
             return values.isRegularFile ?? false

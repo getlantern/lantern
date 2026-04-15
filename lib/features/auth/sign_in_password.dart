@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -14,8 +15,11 @@ class SignInPassword extends StatefulHookConsumerWidget {
   final String email;
   final bool fromChangeEmail;
 
-  const SignInPassword(
-      {super.key, required this.email, this.fromChangeEmail = false});
+  const SignInPassword({
+    super.key,
+    required this.email,
+    this.fromChangeEmail = false,
+  });
 
   @override
   ConsumerState createState() => _SignInPasswordState();
@@ -46,6 +50,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               Center(child: EmailTag(email: widget.email)),
               SizedBox(height: defaultSize),
               AppTextField(
+                fieldKey: AuthKeys.signInPasswordField,
                 hintText: '',
                 controller: passwordController,
                 autofocus: true,
@@ -62,23 +67,26 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               SizedBox(height: 8),
               if (!widget.fromChangeEmail)
                 Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text(
-                      'if_you_have_not_set_password'.i18n,
-                      textAlign: TextAlign.start,
-                      style: textTheme.labelMedium!.copyWith(
-                        color: context.textDisabled,
-                      ),
-                    )),
+                  padding: const EdgeInsets.symmetric(horizontal: defaultSize),
+                  child: Text(
+                    'if_you_have_not_set_password'.i18n,
+                    textAlign: TextAlign.start,
+                    style: textTheme.labelMedium!.copyWith(
+                      color: context.textDisabled,
+                    ),
+                  ),
+                ),
               SizedBox(height: 16),
               if (widget.fromChangeEmail)
-                Text('confirm_password_to_continue'.i18n,
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: context.textSecondary,
-                        )),
+                Text(
+                  'confirm_password_to_continue'.i18n,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
               SizedBox(height: 32),
               PrimaryButton(
+                key: AuthKeys.signInPasswordContinueButton,
                 label: 'continue'.i18n,
                 enabled: passwordController.text.isNotEmpty,
                 isTaller: true,
@@ -94,7 +102,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                 onPressed: () {
                   appRouter.push(ResetPasswordEmail(email: widget.email));
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -117,7 +125,8 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     if (widget.fromChangeEmail) {
       /// If the user is changing email, we need to verify the password
       context.pushRoute(
-          AddEmail(authFlow: AuthFlow.changeEmail, password: password));
+        AddEmail(authFlow: AuthFlow.changeEmail, password: password),
+      );
       return;
     }
     context.showLoadingDialog();
@@ -139,7 +148,8 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
           /// Login has failed reason being user has reached device limit
           /// start device flow
           appLogger.warning(
-              "Login failed for user: ${widget.email}, starting device flow");
+            "Login failed for user: ${widget.email}, starting device flow",
+          );
           startDeviceFlow(user.devices.toList(), password, context);
           return;
         }
@@ -159,15 +169,16 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     );
   }
 
-  void startDeviceFlow(List<UserResponse_Device> devices, String password,
-      BuildContext context) {
-    appRouter.push(DeviceLimitReached(devices: devices)).then(
-      (value) {
-        if (value != null && value is bool) {
-          /// If a device was selected, remove it and now sign in
-          signInWithPassword(password);
-        }
-      },
-    );
+  void startDeviceFlow(
+    List<UserResponse_Device> devices,
+    String password,
+    BuildContext context,
+  ) {
+    appRouter.push(DeviceLimitReached(devices: devices)).then((value) {
+      if (value != null && value is bool) {
+        /// If a device was selected, remove it and now sign in
+        signInWithPassword(password);
+      }
+    });
   }
 }

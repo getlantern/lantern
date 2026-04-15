@@ -16,6 +16,21 @@ on:
         required: false
         type: string
         default: all
+      enable_ip_check:
+        description: "Enable public IP change validation in Linux connect smoke"
+        required: false
+        type: boolean
+        default: false
+      force_full_tunnel_smoke:
+        description: "Force full tunnel routing mode in Linux connect smoke"
+        required: false
+        type: boolean
+        default: false
+      run_auth_smoke:
+        description: "Run Linux auth smoke integration tests"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: "read"
@@ -53,7 +68,6 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
@@ -215,15 +229,22 @@ jobs:
         env:
           LANG: en_US.UTF-8
           LC_ALL: en_US.UTF-8
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
+          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
           ENABLE_IP_CHECK=false
-          if [[ "${TARGET_ARCH}" == "amd64" ]]; then
+          if [[ "${{ inputs.enable_ip_check }}" == "true" && "${TARGET_ARCH}" == "amd64" ]]; then
             ENABLE_IP_CHECK=true
           fi
+          FLUTTER_DART_DEFINES="--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          if [[ "${{ inputs.force_full_tunnel_smoke }}" == "true" ]]; then
+            FLUTTER_DART_DEFINES="${FLUTTER_DART_DEFINES} --dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
+          fi
           set +e
-          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=${ENABLE_IP_CHECK}"
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded ${FLUTTER_DART_DEFINES}"
           SMOKE_EXIT=$?
           set -e
 
@@ -250,6 +271,28 @@ jobs:
             exit 1
           fi
 
+          bash .github/scripts/linux_config_url_smoke.sh
+
+      - name: Linux UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
+        shell: bash
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
+        run: |
+          set -euxo pipefail
+          set +e
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 10m xvfb-run -a flutter test integration_test/auth/auth_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true"
+          AUTH_SMOKE_EXIT=$?
+          set -e
+          if [[ "$AUTH_SMOKE_EXIT" -eq 124 ]]; then
+            echo "Linux UI auth smoke timed out after 10m"
+            exit 1
+          fi
+          if [[ "$AUTH_SMOKE_EXIT" -ne 0 ]]; then
+            exit "$AUTH_SMOKE_EXIT"
+          fi
+
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
         with:
@@ -262,4 +305,11 @@ jobs:
         with:
           name: lantern-installer-deb-${{ matrix.arch }}
           path: ${{ env.FULL_INSTALLER_NAME }}.deb
+          retention-days: 2
+
+      - name: Upload Linux build (Arch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-pkg-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.pkg.tar.zst
           retention-days: 2

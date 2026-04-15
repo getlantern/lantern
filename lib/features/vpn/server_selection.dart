@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
@@ -42,6 +41,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       title: Text('server_selection'.i18n),
       actions: [
         IconButton(
+          key: const Key('server_selection.more_options'),
           icon: const Icon(Icons.more_vert),
           onPressed: onOpenMoreOptions,
         ),
@@ -50,6 +50,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     if (availableServers.isLoading) {
       return BaseScreen(
+        key: const Key('server_selection.screen'),
         title: '',
         appBar: appBar,
         body: const Center(child: Spinner()),
@@ -59,6 +60,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final err = availableServers.asError;
     if (err != null) {
       return BaseScreen(
+        key: const Key('server_selection.screen'),
         title: '',
         appBar: appBar,
         body: Center(
@@ -72,6 +74,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         availableServers.requireValue.user.outbounds.isNotEmpty;
 
     return BaseScreen(
+      key: const Key('server_selection.screen'),
       title: '',
       appBar: appBar,
       body: isPrivateServerFound
@@ -131,7 +134,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               ),
               tabs: [
                 Tab(child: Text('lantern_servers'.i18n)),
-                Tab(child: Text('private_servers'.i18n)),
+                Tab(
+                  key: const Key('server_selection.private_servers_tab'),
+                  child: Text('private_servers'.i18n),
+                ),
               ],
             ),
           ),
@@ -199,15 +205,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
-      (_) async {
-        await ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation(
-                serverType: ServerLocationType.auto.name,
-                serverName: '',
-              ),
-            );
+      (_) {
         appRouter.popUntilRoot();
       },
     );
@@ -224,6 +222,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           shrinkWrap: true,
           children: [
             AppTile(
+              tileKey: const Key('server_selection.setup_private_server'),
               label: 'setup_private_server'.i18n,
               onPressed: () {
                 context.pushRoute(PrivateServerSetup());
@@ -231,6 +230,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
             const DividerSpace(padding: EdgeInsets.zero),
             AppTile(
+              tileKey: const Key('server_selection.join_private_server'),
               label: 'join_a_private_server'.i18n,
               onPressed: () {
                 context.pushRoute(JoinPrivateServer());
@@ -238,6 +238,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
             const DividerSpace(padding: EdgeInsets.zero),
             AppTile(
+              tileKey: const Key('server_selection.manage_private_servers'),
               label: 'manage_private_servers'.i18n,
               onPressed: () {
                 context.pushRoute(ManagePrivateServer());
@@ -362,7 +363,7 @@ class _ServerLocationListViewState
     if (PlatformUtils.isMacOS) {
       /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
       final macosExtensionStatus = ref.read(macosExtensionProvider);
-      if (macosExtensionStatus.status == SystemExtensionStatus.notInstalled) {
+      if (!macosExtensionStatus.isReady) {
         appRouter.push(const MacOSExtensionDialog());
         return;
       }
@@ -375,47 +376,57 @@ class _ServerLocationListViewState
           selectedServer.tag,
         );
 
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
-            context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
+    result.fold((failure) {
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .connectToServer(
+                  ServerLocationType.lanternLocation,
+                  selectedServer.tag,
+                  skipConflictCheck: true,
+                );
+            retryResult.fold(
+              (failure) => context.showSnackBar(failure.localizedErrorMessage),
+              (_) => _onLanternServerConnected(ref, selectedServer),
+            );
+          },
+        );
+      } else {
+        context.showSnackBar(failure.localizedErrorMessage);
+      }
+    }, (_) => _onLanternServerConnected(ref, selectedServer));
+  }
+
+  void _onLanternServerConnected(WidgetRef ref, Location_ selectedServer) {
+    final vpnStatus = ref.read(vpnProvider);
+
+    Future<void> syncAndPop() async {
+      await ref
+          .read(serverLocationProvider.notifier)
+          .updateServerLocation(
+            ServerLocation.fromLanternLocation(server: selectedServer),
           );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) async {
-        final vpnStatus = ref.read(vpnProvider);
+      appRouter.popUntilRoot();
+    }
 
-        Future<void> syncAndPop() async {
-          await ref
-              .read(serverLocationProvider.notifier)
-              .updateServerLocation(
-                ServerLocation.fromLanternLocation(server: selectedServer),
-              );
-          appRouter.popUntilRoot();
-        }
+    if (vpnStatus == VPNStatus.connected) {
+      syncAndPop();
+      return;
+    }
 
-        if (vpnStatus == VPNStatus.connected) {
-          await syncAndPop();
-          return;
-        }
-
-        ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
-          previous,
-          next,
-        ) async {
-          if (next is AsyncData<LanternStatus> &&
-              next.value.status == VPNStatus.connected) {
-            await syncAndPop();
-          }
-        });
-      },
-    );
+    ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
+      previous,
+      next,
+    ) async {
+      if (next is AsyncData<LanternStatus> &&
+          next.value.status == VPNStatus.connected) {
+        await syncAndPop();
+      }
+    });
   }
 }
 
@@ -430,7 +441,6 @@ class _CountryCityListView extends StatefulWidget {
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
-    super.key,
   });
 
   @override
@@ -615,6 +625,7 @@ class _PrivateServerLocationListViewState
               final loc = userLocations[index];
               final isSelected = selectedTag == loc.tag;
               return AppTile(
+                tileKey: Key('server_selection.private_server.${loc.tag}'),
                 onPressed: () {
                   if (isSelected) {
                     appLogger.debug('Already selected this server');
@@ -660,39 +671,49 @@ class _PrivateServerLocationListViewState
         .read(vpnProvider.notifier)
         .connectToServer(ServerLocationType.privateServer, location.tag);
 
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        if (failure is VpnConflictFailure) {
-          AppDialog.dialog(
-            context: context,
-            title: 'vpn_conflict_title'.i18n,
-            content: 'vpn_conflict_body'.i18n,
-            action: 'vpn_conflict_dismiss'.i18n,
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) async {
-        context.hideLoadingDialog();
-        context.showSnackBar('connected_to_private_server'.i18n);
+    result.fold((failure) {
+      context.hideLoadingDialog();
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .connectToServer(
+                  ServerLocationType.privateServer,
+                  location.tag,
+                  skipConflictCheck: true,
+                );
+            retryResult.fold((failure) {
+              context.hideLoadingDialog();
+              context.showSnackBar(failure.localizedErrorMessage);
+            }, (_) => _onPrivateServerConnected(ref, location));
+          },
+        );
+      } else {
+        context.showSnackBar(failure.localizedErrorMessage);
+      }
+    }, (_) => _onPrivateServerConnected(ref, location));
+  }
 
-        await ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation(
-                serverType: ServerLocationType.privateServer.name,
-                serverName: location.tag,
-                country: location.country,
-                city: location.city,
-                countryCode: location.countryCode,
-                protocol: location.protocol,
-              ),
-            );
-        appRouter.popUntilRoot();
-      },
-    );
+  void _onPrivateServerConnected(WidgetRef ref, Location_ location) async {
+    context.hideLoadingDialog();
+    context.showSnackBar('connected_to_private_server'.i18n);
+
+    await ref
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(
+          ServerLocation(
+            serverType: ServerLocationType.privateServer.name,
+            serverName: location.tag,
+            country: location.country,
+            city: location.city,
+            countryCode: location.countryCode,
+            protocol: location.protocol,
+          ),
+        );
+    appRouter.popUntilRoot();
   }
 }
 

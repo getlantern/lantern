@@ -44,7 +44,7 @@
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 	<key>SUFeedURL</key>
-	<string>https://lantern-vpn.s3.amazonaws.com/releases/production/latest/appcast.xml</string>
+	<string>https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml</string>
     <key>FlutterDeepLinkingEnabled</key>
     <false/>
     <key>CFBundleURLTypes</key>

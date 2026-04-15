@@ -32,22 +32,31 @@ func getCore() (lanterncore.Core, error) {
 }
 
 // withCore is a helper function that provides access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCore(fn func(c lanterncore.Core) error) error {
-	c, err := getCore()
-	if err != nil {
-		return err
-	}
-	return fn(c)
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		c, err := getCore()
+		if err != nil {
+			return struct{}{}, err
+		}
+		return struct{}{}, fn(c)
+	})
+	return err
 }
 
 // withCoreR is a helper function that provides type-safe access to the lanterncore.Core instance.
+// It runs fn on a real Go goroutine via RunOffCgoStack to avoid GC write barrier
+// panics when gomobile-exported functions are called from CGo callback stacks.
 func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
-	var zero T
-	c, err := getCore()
-	if err != nil {
-		return zero, err
-	}
-	return fn(c)
+	return common.RunOffCgoStack(func() (T, error) {
+		c, err := getCore()
+		if err != nil {
+			var zero T
+			return zero, err
+		}
+		return fn(c)
+	})
 }
 
 // panicRecover is a helper function that recovers from panics and logs the error.
@@ -60,14 +69,16 @@ func panicRecover() {
 }
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
-	slog.Info("Setting up Radiance", "opts", opts)
-	// Initialize lantern core
-	c, err := lanterncore.New(opts, eventEmitter)
-	if err != nil {
-		return fmt.Errorf("unable to create LanternCore: %v", err)
-	}
-	lanternCore.Store(c)
-	return nil
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Setting up Radiance", "opts", opts)
+		c, err := lanterncore.New(opts, eventEmitter)
+		if err != nil {
+			return struct{}{}, fmt.Errorf("unable to create LanternCore: %v", err)
+		}
+		lanternCore.Store(c)
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func UpdateTelemetryConsent(consent bool) error {
@@ -140,44 +151,52 @@ func IsRadianceConnected() bool {
 }
 
 func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
-	slog.Info("Starting VPN")
-	err := vpn_tunnel.StartVPN(platform, opts)
-	if err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener
-	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
-
-	if !common.IsMacOS() && !common.IsIOS() {
-		slog.Info("Starting auto location listener on non-iOS/macOS platform")
-		return withCore(func(c lanterncore.Core) error {
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Starting VPN")
+		if err := vpn_tunnel.StartVPN(platform, opts); err != nil {
+			return struct{}{}, err
+		}
+		// On non-iOS/macOS platforms, start the auto location listener
+		// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+		if !common.IsMacOS() && !common.IsIOS() {
+			slog.Info("Starting auto location listener on non-iOS/macOS platform")
+			c, err := getCore()
+			if err != nil {
+				return struct{}{}, err
+			}
 			c.StartBackgroundListeners()
-			return nil
-		})
-	}
-	return nil
+		}
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func StopVPN() error {
-	slog.Info("Stopping VPN")
-	err := vpn_tunnel.StopVPN()
-	if err != nil {
-		return err
-	}
-	// On non-iOS/macOS platforms, start the auto location listener since radiance is still running
-	// For iOS/macOS, the listener is managed by Native code due to platform restrictions
-	if !common.IsMacOS() && !common.IsIOS() {
-		slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-		return withCore(func(c lanterncore.Core) error {
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Stopping VPN")
+		if err := vpn_tunnel.StopVPN(); err != nil {
+			return struct{}{}, err
+		}
+		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running
+		// For iOS/macOS, the listener is managed by Native code due to platform restrictions
+		if !common.IsMacOS() && !common.IsIOS() {
+			slog.Info("Stopping auto location listener on non-iOS/macOS platform")
+			c, err := getCore()
+			if err != nil {
+				return struct{}{}, err
+			}
 			c.StopBackgroundListeners()
-			return nil
-		})
-	}
-	return nil
+		}
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func CloseIPC() error {
-	return vpn_tunnel.CloseIPC()
+	_, err := common.RunOffCgoStack(func() (struct{}, error) {
+		return struct{}{}, vpn_tunnel.CloseIPC()
+	})
+	return err
 }
 
 // IsTagAvailable checks if a server with the given tag exists in the server list.
@@ -238,19 +257,29 @@ func GetAvailableServers() ([]byte, error) {
 }
 
 func IsVPNConnected() bool {
-	return vpn_tunnel.IsVPNRunning()
+	r, _ := common.RunOffCgoStack(func() (bool, error) {
+		return vpn_tunnel.IsVPNRunning(), nil
+	})
+	return r
 }
 
 func GetSelectedServer() string {
-	return vpn_tunnel.GetSelectedServer()
+	r, _ := common.RunOffCgoStack(func() (string, error) {
+		return vpn_tunnel.GetSelectedServer(), nil
+	})
+	return r
 }
 
 func GetAutoLocation() (string, error) {
-	location, err := vpn_tunnel.GetAutoLocation()
-	if err != nil {
-		return "", err
-	}
-	return withCoreR(func(c lanterncore.Core) (string, error) {
+	return common.RunOffCgoStack(func() (string, error) {
+		location, err := vpn_tunnel.GetAutoLocation()
+		if err != nil {
+			return "", err
+		}
+		c, err := getCore()
+		if err != nil {
+			return "", err
+		}
 		jsonBytes, ok, err := c.GetServerByTagJSON(location.Lantern)
 		if err != nil {
 			return "", fmt.Errorf("error marshalling server: %v", err)

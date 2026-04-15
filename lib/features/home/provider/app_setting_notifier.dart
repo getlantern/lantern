@@ -121,6 +121,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setEmail(String email) => update(state.copyWith(email: email));
 
+  void clearAuthSessionData({bool clearEmail = true}) {
+    update(state.clearAuthSessionData(clearEmail: clearEmail));
+  }
+
   void setSuccessfulConnection(bool value) =>
       update(state.copyWith(successfulConnection: value));
 

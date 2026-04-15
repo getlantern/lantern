@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -61,6 +62,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppTextField(
+                  fieldKey: AuthKeys.signUpEmailField,
                   enable: !isUserRegistered,
                   controller: emailController,
                   label: 'email'.i18n,
@@ -87,30 +89,39 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     widget.authFlow == AuthFlow.lanternProLicense) ...{
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text('lantern_pro_license_applied'.i18n,
-                        style: textTheme!.bodyMedium!.copyWith(
-                            color: context.textDisabled, fontSize: 12)),
+                    child: Text(
+                      'lantern_pro_license_applied'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                   SizedBox(height: defaultSize),
                 },
                 if (widget.authFlow == AuthFlow.changeEmail)
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text('change_email_message'.i18n,
-                        style: textTheme!.bodyMedium!.copyWith(
-                          color: context.textDisabled,
-                        )),
+                    child: Text(
+                      'change_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
                   )
                 else
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                    child: Text('add_your_email_message'.i18n,
-                        style: textTheme!.bodyMedium!.copyWith(
-                          color: context.textDisabled,
-                        )),
+                    child: Text(
+                      'add_your_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
                   ),
                 SizedBox(height: 32),
                 PrimaryButton(
+                  key: AuthKeys.signUpContinueButton,
                   label: 'continue'.i18n,
                   enabled: emailController.text.isValidEmail(),
                   isTaller: true,
@@ -142,6 +153,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                     Center(
                       child: AppTextButton(
+                        key: AuthKeys.signUpContinueWithoutEmailButton,
                         label: 'continue_without_email'.i18n,
                         textColor: AppColors.gray9,
                         onPressed: () =>
@@ -158,30 +170,32 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   bool _isProblematicEmail(String email) {
-    const problematicDomains = [
-      '@sina.com',
-      '@qq.com',
-      '@163.com',
-      '@126.com',
-    ];
+    const problematicDomains = ['@sina.com', '@qq.com', '@163.com', '@126.com'];
 
     return problematicDomains.any(email.endsWith);
   }
 
   void onContinuePressed(
-      SignUpMethodType type, String email, bool isUserRegistered) {
+    SignUpMethodType type,
+    String email,
+    bool isUserRegistered,
+  ) {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isProblematicEmail(email) && !isUserRegistered) {
       _showEmailDeliverabilityNotice(
-          () => _handleContinue(type, email, isUserRegistered));
+        () => _handleContinue(type, email, isUserRegistered),
+      );
       return;
     }
     _handleContinue(type, email, isUserRegistered);
   }
 
   Future<void> _handleContinue(
-      SignUpMethodType type, String email, bool isUserRegistered) async {
+    SignUpMethodType type,
+    String email,
+    bool isUserRegistered,
+  ) async {
     try {
       if (!_formKey.currentState!.validate()) {
         return;
@@ -196,8 +210,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           /// plan is expired or user are creating new account with same email
           /// by pass signup flow and start forgot password flow
           startForgotPasswordFlow(email);
-          appLogger
-              .info("User already registered, starting forgot password flow");
+          appLogger.info(
+            "User already registered, starting forgot password flow",
+          );
         } else {
           appLogger.debug('Starting signup flow');
           await signupFlow(email);
@@ -222,42 +237,46 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         context.hideLoadingDialog();
         if (failure.localizedErrorMessage == 'signup_error_user_exists'.i18n) {
           AppDialog.customDialog(
-              context: context,
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  SizedBox(height: 24),
-                  Text('create_account_error'.i18n,
-                      style: textTheme!.headlineMedium),
-                  SizedBox(height: defaultSize),
-                  Text(
-                    failure.localizedErrorMessage,
-                    style: textTheme!.bodyMedium,
-                  ),
-                ],
+            context: context,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(height: 24),
+                Text(
+                  'create_account_error'.i18n,
+                  style: textTheme!.headlineMedium,
+                ),
+                SizedBox(height: defaultSize),
+                Text(
+                  failure.localizedErrorMessage,
+                  style: textTheme!.bodyMedium,
+                ),
+              ],
+            ),
+            action: [
+              AppTextButton(
+                label: 'sign_in'.i18n,
+                onPressed: () {
+                  appRouter.maybePop();
+                  appRouter.push(SignInEmail());
+                },
               ),
-              action: [
-                AppTextButton(
-                  label: 'sign_in'.i18n,
-                  onPressed: () {
-                    appRouter.maybePop();
-                    appRouter.push(SignInEmail());
-                  },
-                ),
-                AppTextButton(
-                  label: 'ok'.i18n,
-                  textColor: AppColors.gray6,
-                  onPressed: () {
-                    appRouter.maybePop();
-                  },
-                ),
-              ]);
+              AppTextButton(
+                label: 'ok'.i18n,
+                textColor: AppColors.gray6,
+                onPressed: () {
+                  appRouter.maybePop();
+                },
+              ),
+            ],
+          );
           return;
         }
         AppDialog.errorDialog(
-            context: context,
-            title: 'error'.i18n,
-            content: failure.localizedErrorMessage);
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
       },
       (response) {
         //sign up successful
@@ -269,11 +288,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  Future<void> startForgotPasswordFlow(String email,
-      [String? tempPassword]) async {
+  Future<void> startForgotPasswordFlow(
+    String email, [
+    String? tempPassword,
+  ]) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
+    final result = await ref
+        .read(authProvider.notifier)
+        .startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -287,12 +309,15 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   Future<void> onOAuthResult(
-      Map<String, dynamic> result, SignUpMethodType type) async {
+    Map<String, dynamic> result,
+    SignUpMethodType type,
+  ) async {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result =
-          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
+      final result = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
@@ -302,7 +327,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeProvider.notifier).updateUserData(response);
           appLogger.debug(
-              'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}');
+            'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}',
+          );
 
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
@@ -328,9 +354,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       (failure) {
         context.hideLoadingDialog();
         AppDialog.errorDialog(
-            context: context,
-            title: 'error'.i18n,
-            content: failure.localizedErrorMessage);
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
       },
       (newEmail) {
         context.hideLoadingDialog();
@@ -340,8 +367,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  void navigateRoute(SignUpMethodType type, String email,
-      [String? tempPassword]) {
+  void navigateRoute(
+    SignUpMethodType type,
+    String email, [
+    String? tempPassword,
+  ]) {
     switch (type) {
       case SignUpMethodType.apple:
       case SignUpMethodType.google:
@@ -359,14 +389,18 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           appRouter.push(LanternProLicense(email: email, code: ''));
           return;
         }
-        appRouter
-            .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth));
+        appRouter.push(
+          ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth),
+        );
         break;
       case SignUpMethodType.email:
-        appRouter.push(ConfirmEmail(
+        appRouter.push(
+          ConfirmEmail(
             email: email,
             authFlow: widget.authFlow,
-            password: widget.password ?? tempPassword));
+            password: widget.password ?? tempPassword,
+          ),
+        );
         break;
       case SignUpMethodType.withoutEmail:
         continueWithoutEmail();
@@ -438,56 +472,55 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           onPressed: () {
             appRouter.maybePop();
           },
-        )
+        ),
       ],
     );
   }
 
   void _showEmailDeliverabilityNotice(OnPressed onContinue) {
     AppDialog.customDialog(
-        context: context,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(height: size24),
-            Text(
-              'email_deliverability_notice'.i18n,
-              style: textTheme!.headlineSmall!.copyWith(
-                color: context.textPrimary,
-              ),
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: size24),
+          Text(
+            'email_deliverability_notice'.i18n,
+            style: textTheme!.headlineSmall!.copyWith(
+              color: context.textPrimary,
             ),
-            SizedBox(height: defaultSize),
-            Text(
-              'email_deliverability_notice_message'.i18n,
-              style:
-                  textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
-            ),
-            SizedBox(height: defaultSize),
-            Text(
-              'email_deliverability_notice_message_two'.i18n,
-              style:
-                  textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
-            ),
-          ],
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'email_deliverability_notice_message'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'email_deliverability_notice_message_two'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          padding: EdgeInsets.only(right: 8.0),
+          label: 'change_email'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.maybePop();
+          },
         ),
-        action: [
-          AppTextButton(
-            padding: EdgeInsets.only(right: 8.0),
-            label: 'change_email'.i18n,
-            textColor: AppColors.gray6,
-            onPressed: () {
-              appRouter.maybePop();
-            },
-          ),
-          AppTextButton(
-            padding: EdgeInsets.only(right: defaultSize),
-            label: 'continue_anyway'.i18n,
-            textColor: AppColors.blue6,
-            onPressed: () {
-              appRouter.maybePop();
-              Future.delayed(const Duration(milliseconds: 300), onContinue);
-            },
-          ),
-        ]);
+        AppTextButton(
+          padding: EdgeInsets.only(right: defaultSize),
+          label: 'continue_anyway'.i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.maybePop();
+            Future.delayed(const Duration(milliseconds: 300), onContinue);
+          },
+        ),
+      ],
+    );
   }
 }

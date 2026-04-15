@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -38,6 +39,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               AppTextField(
+                fieldKey: AuthKeys.signInEmailField,
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
                 autofillHints: [AutofillHints.email],
@@ -62,6 +64,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
+                key: AuthKeys.signInEmailContinueButton,
                 label: 'sign_in_with_email'.i18n,
                 enabled: emailController.text.isValidEmail(),
                 onPressed: () => signInWithEmail(emailController.text, context),
@@ -85,13 +88,14 @@ class SignInEmail extends HookConsumerWidget {
               DividerSpace(),
               SizedBox(height: 32),
               AppRichText(
+                key: AuthKeys.signInCreateAccountCta,
                 texts: '${'new_to_lantern_pro'.i18n} ',
                 boldTexts: 'create_an_account'.i18n,
                 boldUnderline: true,
                 boldOnPressed: () {
                   appRouter.push(Plans());
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -99,10 +103,7 @@ class SignInEmail extends HookConsumerWidget {
     );
   }
 
-  void signInWithEmail(
-    String email,
-    BuildContext context,
-  ) {
+  void signInWithEmail(String email, BuildContext context) {
     if (!email.isValidEmail()) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
@@ -110,13 +111,18 @@ class SignInEmail extends HookConsumerWidget {
     appRouter.push(SignInPassword(email: email));
   }
 
-  Future<void> onOAuthResult(Map<String, dynamic> result, BuildContext context,
-      WidgetRef ref, SignUpMethodType type) async {
+  Future<void> onOAuthResult(
+    Map<String, dynamic> result,
+    BuildContext context,
+    WidgetRef ref,
+    SignUpMethodType type,
+  ) async {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result =
-          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
+      final result = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
@@ -127,7 +133,8 @@ class SignInEmail extends HookConsumerWidget {
           ref.read(homeProvider.notifier).updateUserData(response);
 
           appLogger.info(
-              'OAuth login successful, updating app settings with token and user data provider: ${type.name}');
+            'OAuth login successful, updating app settings with token and user data provider: ${type.name}',
+          );
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingProvider.notifier)
             ..setOAuthTokenAndProvider(token, type.name)
