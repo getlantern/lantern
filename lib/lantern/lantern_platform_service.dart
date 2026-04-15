@@ -74,7 +74,6 @@ class LanternPlatformService implements LanternCoreService {
       (event) => AppEvent.fromJson(event),
     );
 
-
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
@@ -195,8 +194,8 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
-        logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
-      );
+    logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
+  );
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {
@@ -226,6 +225,14 @@ class LanternPlatformService implements LanternCoreService {
     } else {
       throw UnimplementedError();
     }
+  }
+
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    return null;
   }
 
   @override

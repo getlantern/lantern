@@ -14,8 +14,13 @@ LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 ## APP_VERSION is the version defined in pubspec.yaml
+ifeq ($(OS),Windows_NT)
+APP_VERSION := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output $$v")
+APP_VERSION_PUBSPEC := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ($$v.Split('+')[0])")
+else
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 APP_VERSION_PUBSPEC := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
+endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
@@ -133,10 +138,17 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,wit
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
+ifeq ($(OS),Windows_NT)
+GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$line=(Select-String -Path 'go.mod' -Pattern '^go\s+(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ('go'+$$line)")
+GO_SOURCES := go.mod go.sum
+UNAME_S := Windows
+else
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+UNAME_S := $(shell uname -s)
+endif
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
 GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
-GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
@@ -144,8 +156,6 @@ GOMOBILE_REPOS = \
 	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
-
-UNAME_S := $(shell uname -s)
 
 define osxcodesign
 	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
@@ -179,7 +189,7 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 ifeq ($(OS),Windows_NT)
-  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
+  NORMALIZED_CURDIR := $(subst \,/,$(CURDIR))
   SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
@@ -384,7 +394,7 @@ verify-linux-package:
 
 .PHONY: install-windows-deps
 install-windows-deps:
-	dart pub global activate flutter_distributor
+	dart pub global activate fastforge
 
 windows: windows-amd64
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))

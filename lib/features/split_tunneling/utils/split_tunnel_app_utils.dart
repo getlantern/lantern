@@ -76,6 +76,33 @@ List<AppData> dedupeAndSortApps(
     byId[id] = pickPreferredAppEntry(byId[id], app);
   }
 
-  final out = byId.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+  final byDisplay = <String, AppData>{};
+  for (final app in byId.values) {
+    if (Platform.isWindows) {
+      final displayKey = _windowsDisplayDedupeKey(app);
+      if (displayKey.isNotEmpty) {
+        byDisplay[displayKey] = pickPreferredAppEntry(
+          byDisplay[displayKey],
+          app,
+        );
+        continue;
+      }
+    }
+    byDisplay[normalizedAppId(app)] = pickPreferredAppEntry(
+      byDisplay[normalizedAppId(app)],
+      app,
+    );
+  }
+
+  final out = byDisplay.values.toList()
+    ..sort((a, b) => a.name.compareTo(b.name));
   return out;
+}
+
+String _windowsDisplayDedupeKey(AppData app) {
+  final name = app.name.trim().toLowerCase();
+  if (name.isEmpty) {
+    return '';
+  }
+  return 'name:$name';
 }

@@ -194,9 +194,6 @@ jobs:
           fi
 
           SMOKE_ENABLE_IP_CHECK="false"
-          if [[ "$BUILD_TYPE" == "nightly" ]]; then
-            SMOKE_ENABLE_IP_CHECK="true"
-          fi
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
@@ -295,6 +292,7 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
+      run_connect_smoke: false
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
