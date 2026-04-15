@@ -206,6 +206,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     result.fold(
       (failure) {
         if (failure is VpnConflictFailure) {
+          if (!context.mounted) {
+            return;
+          }
           AppDialog.vpnConflictDialog(
             context: context,
             onConnectAnyway: () async {
@@ -219,7 +222,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 appLogger.error(
                   "Error changing VPN state: ${failure.localizedErrorMessage}",
                 );
-              }, (_) => null);
+              }, (_) => appRouter.popUntilRoot());
             },
           );
         } else {
