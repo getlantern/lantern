@@ -1,5 +1,7 @@
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,11 +10,13 @@ part 'server_location_notifier.g.dart';
 
 @Riverpod()
 class ServerLocationNotifier extends _$ServerLocationNotifier {
+  LocalStorageService get _storage => sl<LocalStorageService>();
+
   @override
   ServerLocation build() {
-    // Start with default (auto), then fetch the actual selection from radiance.
+    // Use cached value for instant display, then refresh from radiance.
     _fetchFromRadiance();
-    return _defaultLocation();
+    return _storage.getServerLocation() ?? _defaultLocation();
   }
 
   Future<void> _fetchFromRadiance() async {
@@ -26,6 +30,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (location) {
         state = location;
+        _storage.saveServerLocation(location);
       },
     );
     // If VPN is connected with auto/smart location, fetch the actual
@@ -36,13 +41,16 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   void updateServerLocation(ServerLocation entity) {
     final current = state;
+    final ServerLocation updated;
     if (entity.serverType != ServerLocationType.auto.name) {
       //Preserve auto location metadata when switching to a non-auto server,
       // so we can show user smart location
-      state = entity.copyWith(autoLocation: current.autoLocation);
+      updated = entity.copyWith(autoLocation: current.autoLocation);
     } else {
-      state = entity;
+      updated = entity;
     }
+    state = updated;
+    _storage.saveServerLocation(updated);
   }
 
   Future<void> ifNeededGetAutoServerLocation() async {

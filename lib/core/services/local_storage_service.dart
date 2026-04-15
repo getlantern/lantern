@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,7 @@ class LocalStorageService {
   static const _appSettingsKey = 'app_settings_json';
   static const _plansKey = 'plans_json';
   static const _developerModeKey = 'developer_mode_json';
+  static const _serverLocationKey = 'server_location_json';
 
   Future<void> init() async {
     _prefs = await SharedPreferencesWithCache.create(
@@ -60,6 +62,26 @@ class LocalStorageService {
 
   Future<void> savePlans(PlansData plans) async {
     await setString(_plansKey, jsonEncode(plans.toJson()));
+  }
+
+  // ── ServerLocation ────────────────────────────────────────────────────────
+
+  ServerLocation? getServerLocation() {
+    final raw = getString(_serverLocationKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return ServerLocation.fromJson(Map<String, dynamic>.from(decoded));
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to parse stored server location', e, st);
+    }
+    return null;
+  }
+
+  Future<void> saveServerLocation(ServerLocation location) async {
+    await setString(_serverLocationKey, jsonEncode(location.toJson()));
   }
 
   // ── DeveloperMode ─────────────────────────────────────────────────────────
