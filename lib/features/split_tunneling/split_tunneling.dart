@@ -18,13 +18,9 @@ class SplitTunneling extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final splitTunnelingEnabled =
-        ref.watch(splitTunnelingEnabledProvider).value ?? false;
-
-    // Watch the controller to keep it alive during async toggle operations.
-    // Without this, the auto-dispose controller can be disposed mid-await,
-    // causing ref.mounted to be false and the UI invalidation to be skipped.
-    ref.watch(splitTunnelingControllerProvider);
+    final splitTunnelingEnabled = ref.watch(
+      radianceSettingsProvider.select((s) => s.splitTunneling),
+    );
 
     final enabledApps =
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
@@ -36,8 +32,8 @@ class SplitTunneling extends HookConsumerWidget {
 
     void toggleSplitTunneling() {
       ref
-          .read(splitTunnelingControllerProvider.notifier)
-          .toggle(!splitTunnelingEnabled);
+          .read(radianceSettingsProvider.notifier)
+          .setSplitTunneling(!splitTunnelingEnabled);
     }
 
     return BaseScreen(
@@ -71,8 +67,8 @@ class SplitTunneling extends HookConsumerWidget {
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
                       ref
-                          .read(splitTunnelingControllerProvider.notifier)
-                          .toggle(value ?? false);
+                          .read(radianceSettingsProvider.notifier)
+                          .setSplitTunneling(value ?? false);
                     },
                     activeColor: AppColors.green5,
                   ),

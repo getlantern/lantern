@@ -42,7 +42,7 @@ final class MacosExtensionNotifierProvider
 }
 
 String _$macosExtensionNotifierHash() =>
-    r'842302433894032ee9670f1910f52ffef193b2b4';
+    r'7b678f457254f0d2be1b97db1ee0226a95958469';
 
 abstract class _$MacosExtensionNotifier extends $Notifier<MacOSExtensionState> {
   MacOSExtensionState build();

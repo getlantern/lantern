@@ -99,6 +99,7 @@ enum class Methods(val method: String) {
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
     GetAutoServerLocation("getAutoServerLocation"),
+    GetSelectedServerJSON("getSelectedServerJSON"),
 
     //Split Tunnel methods
     SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
@@ -1117,6 +1118,13 @@ class MethodHandler : FlutterPlugin,
                             e
                         )
                     }
+                }
+            }
+
+            Methods.GetSelectedServerJSON.method -> {
+                scope.handleValue(result, "get_selected_server_json") {
+                    val data = Mobile.getSelectedServerJSON()
+                    if (data != null && data.isNotEmpty()) String(data) else "{}"
                 }
             }
 

@@ -204,6 +204,9 @@ class MethodHandler {
       case "getAutoServerLocation":
         self.getAutoServerLocation(result: result)
 
+      case "getSelectedServerJSON":
+        self.getSelectedServerJSON(result: result)
+
       // Utils
       case "featureFlag":
         self.featureFlags(result: result)
@@ -218,6 +221,11 @@ class MethodHandler {
 
       case "diagnosticLogFiles":
         self.diagnosticLogFiles(result: result)
+
+      case "isBlockAdsEnabled":
+        Task {
+          await MainActor.run { result(MobileIsBlockAdsEnabled()) }
+        }
 
       case "setBlockAdsEnabled":
         let data = call.arguments as? [String: Any]
@@ -975,6 +983,26 @@ class MethodHandler {
       }
       await MainActor.run {
         result(location ?? "")
+      }
+    }
+  }
+
+  func getSelectedServerJSON(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetSelectedServerJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SELECTED_SERVER_ERROR")
+        return
+      }
+      let json: String
+      if let data, let decoded = String(data: data, encoding: .utf8), !decoded.isEmpty {
+        json = decoded
+      } else {
+        json = "{}"
+      }
+      await MainActor.run {
+        result(json)
       }
     }
   }

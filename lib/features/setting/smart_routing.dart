@@ -12,13 +12,14 @@ class SmartRouting extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final selected =
-        ref.watch(routingModeProvider).value ?? RoutingMode.full;
-    ref.watch(routingModeControllerProvider);
+    final selected = ref.watch(
+      radianceSettingsProvider.select((s) => s.routingMode),
+    );
 
     Future<void> select(RoutingMode mode) async {
-      final result =
-          await ref.read(routingModeControllerProvider.notifier).set(mode);
+      final result = await ref
+          .read(radianceSettingsProvider.notifier)
+          .setRoutingMode(mode);
       result.fold(
         (failure) {
           context.showSnackBar('failed_to_update_routing_mode'.i18n);

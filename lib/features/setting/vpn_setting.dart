@@ -23,17 +23,18 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
-    final splitTunnelingEnabled =
-        ref.watch(splitTunnelingEnabledProvider).value ?? false;
-    final routingMode =
-        ref.watch(routingModeProvider).value ?? RoutingMode.full;
-    final blockAds = ref.watch(blockAdsEnabledProvider).value ?? false;
-    final telemetryConsent =
-        ref.watch(telemetryConsentProvider).value ?? false;
-
-    // Keep controllers alive during async mutations so ref.mounted stays true.
-    ref.watch(blockAdsControllerProvider);
-    ref.watch(telemetryControllerProvider);
+    final splitTunnelingEnabled = ref.watch(
+      radianceSettingsProvider.select((s) => s.splitTunneling),
+    );
+    final routingMode = ref.watch(
+      radianceSettingsProvider.select((s) => s.routingMode),
+    );
+    final blockAds = ref.watch(
+      radianceSettingsProvider.select((s) => s.blockAds),
+    );
+    final telemetryConsent = ref.watch(
+      radianceSettingsProvider.select((s) => s.telemetry),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(0),
@@ -101,8 +102,8 @@ class VPNSetting extends HookConsumerWidget {
                   return;
                 }
                 ref
-                    .read(blockAdsControllerProvider.notifier)
-                    .toggle(value ?? false);
+                    .read(radianceSettingsProvider.notifier)
+                    .setBlockAds(value ?? false);
               },
             ),
             onPressed: () {
@@ -110,7 +111,9 @@ class VPNSetting extends HookConsumerWidget {
                 appRouter.push(Plans());
                 return;
               }
-              ref.read(blockAdsControllerProvider.notifier).toggle(!blockAds);
+              ref
+                  .read(radianceSettingsProvider.notifier)
+                  .setBlockAds(!blockAds);
             },
           ),
         ),
@@ -175,7 +178,9 @@ class VPNSetting extends HookConsumerWidget {
               value: telemetryConsent,
               onChanged: (value) {
                 appLogger.info('Anonymous usage data consent changed: $value');
-                ref.read(telemetryControllerProvider.notifier).setConsent(value);
+                ref
+                    .read(radianceSettingsProvider.notifier)
+                    .setTelemetry(value);
               },
             ),
           ),

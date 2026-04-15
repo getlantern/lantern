@@ -58,7 +58,7 @@ class DeviceModel {
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) => DeviceModel(
-    deviceId: (json['deviceId'] ?? '').toString(),
+    deviceId: (json['id'] ?? '').toString(),
     name: (json['name'] ?? '').toString(),
     created: (json['created'] as num?)?.toInt() ?? 0,
   );
@@ -144,7 +144,6 @@ class UserDataModel {
     unpassRegistered: json['unpassRegistered'] == true,
     lastExpiredOn: (json['lastExpiredOn'] as num?)?.toInt() ?? 0,
     devices: ((json['devices'] as List?) ?? const [])
-        .whereType<Map>()
         .map((m) => DeviceModel.fromJson(Map<String, dynamic>.from(m)))
         .toList(),
     subscriptionData: json['subscriptionData'] is Map

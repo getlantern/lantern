@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -48,8 +49,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   void _initializeState() {
     _currentStatus = ref.read(vpnProvider);
     _isUserPro = ref.read(isUserProProvider);
-    _currentRoutingMode =
-        ref.read(routingModeProvider).value ?? RoutingMode.full;
+    _currentRoutingMode = ref.read(radianceSettingsProvider).routingMode;
     _serverLocation = ref.read(serverLocationProvider);
   }
 
@@ -99,13 +99,12 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   void _listenToRoutingMode() {
-    ref.listen<AsyncValue<RoutingMode>>(routingModeProvider, (
+    ref.listen<RadianceSettingsState>(radianceSettingsProvider, (
       previous,
       next,
     ) async {
-      final mode = next.value;
-      if (mode != null && mode != _currentRoutingMode) {
-        _currentRoutingMode = mode;
+      if (next.routingMode != _currentRoutingMode) {
+        _currentRoutingMode = next.routingMode;
         await updateTrayMenu();
       }
     });
@@ -150,7 +149,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   /// Handle routing mode selection from tray menu
   Future<void> _onRoutingModeSelected(RoutingMode mode) async {
-    await ref.read(routingModeControllerProvider.notifier).set(mode);
+    await ref.read(radianceSettingsProvider.notifier).setRoutingMode(mode);
   }
 
   /// Returns true if OK to proceed, false if blocked by missing extension

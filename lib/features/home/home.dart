@@ -177,10 +177,12 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final routingMode =
-        ref.watch(routingModeProvider).value ?? RoutingMode.full;
-    final isSplitTunnelingOn =
-        ref.watch(splitTunnelingEnabledProvider).value ?? false;
+    final routingMode = ref.watch(
+      radianceSettingsProvider.select((s) => s.routingMode),
+    );
+    final isSplitTunnelingOn = ref.watch(
+      radianceSettingsProvider.select((s) => s.splitTunneling),
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -308,7 +310,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: context.textDisabled,
           onPressed: () {
             context.pop();
-            ref.read(telemetryControllerProvider.notifier).setConsent(false);
+            ref.read(radianceSettingsProvider.notifier).setTelemetry(false);
           },
         ),
         AppTextButton(
@@ -316,7 +318,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: AppColors.blue6,
           onPressed: () {
             context.pop();
-            ref.read(telemetryControllerProvider.notifier).setConsent(true);
+            ref.read(radianceSettingsProvider.notifier).setTelemetry(true);
           },
         ),
       ],

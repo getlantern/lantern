@@ -26,13 +26,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final selectedRouteMode = useState(RoutingMode.smart);
     final appSetting = ref.read(appSettingProvider);
 
-    // Watch the controller so auto-dispose keeps it alive across the await.
-    ref.watch(routingModeControllerProvider);
-
     Future<void> onboardingCompleted() async {
       await ref
-          .read(routingModeControllerProvider.notifier)
-          .set(selectedRouteMode.value);
+          .read(radianceSettingsProvider.notifier)
+          .setRoutingMode(selectedRouteMode.value);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
       final shouldShowExtensionDialog =
           appSetting.showSplashScreen && PlatformUtils.isMacOS;

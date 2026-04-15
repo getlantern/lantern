@@ -8,164 +8,83 @@ part of 'radiance_settings_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Fetches ad-block status on demand from radiance.
+/// Holds radiance-backed VPN preferences in memory.
+///
+/// The notifier returns safe defaults synchronously from [build], then kicks
+/// off a single background refresh that fetches the real values from the
+/// native layer and updates state. Mutations update state in place on success,
+/// avoiding an extra native round-trip just to re-read what we just wrote.
 
-@ProviderFor(blockAdsEnabled)
-final blockAdsEnabledProvider = BlockAdsEnabledProvider._();
+@ProviderFor(RadianceSettings)
+final radianceSettingsProvider = RadianceSettingsProvider._();
 
-/// Fetches ad-block status on demand from radiance.
-
-final class BlockAdsEnabledProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
-    with $FutureModifier<bool>, $FutureProvider<bool> {
-  /// Fetches ad-block status on demand from radiance.
-  BlockAdsEnabledProvider._()
+/// Holds radiance-backed VPN preferences in memory.
+///
+/// The notifier returns safe defaults synchronously from [build], then kicks
+/// off a single background refresh that fetches the real values from the
+/// native layer and updates state. Mutations update state in place on success,
+/// avoiding an extra native round-trip just to re-read what we just wrote.
+final class RadianceSettingsProvider
+    extends $NotifierProvider<RadianceSettings, RadianceSettingsState> {
+  /// Holds radiance-backed VPN preferences in memory.
+  ///
+  /// The notifier returns safe defaults synchronously from [build], then kicks
+  /// off a single background refresh that fetches the real values from the
+  /// native layer and updates state. Mutations update state in place on success,
+  /// avoiding an extra native round-trip just to re-read what we just wrote.
+  RadianceSettingsProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'blockAdsEnabledProvider',
-        isAutoDispose: true,
+        name: r'radianceSettingsProvider',
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$blockAdsEnabledHash();
+  String debugGetCreateSourceHash() => _$radianceSettingsHash();
 
   @$internal
   @override
-  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  RadianceSettings create() => RadianceSettings();
 
-  @override
-  FutureOr<bool> create(Ref ref) {
-    return blockAdsEnabled(ref);
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RadianceSettingsState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RadianceSettingsState>(value),
+    );
   }
 }
 
-String _$blockAdsEnabledHash() => r'4aaa738b21dea4c02e4505b7a4925c71126ebb8f';
+String _$radianceSettingsHash() => r'bd022e3d1632b8d8ce1a5c59fa4f2338a5b007a1';
 
-/// Fetches routing mode on demand from radiance.
+/// Holds radiance-backed VPN preferences in memory.
+///
+/// The notifier returns safe defaults synchronously from [build], then kicks
+/// off a single background refresh that fetches the real values from the
+/// native layer and updates state. Mutations update state in place on success,
+/// avoiding an extra native round-trip just to re-read what we just wrote.
 
-@ProviderFor(routingMode)
-final routingModeProvider = RoutingModeProvider._();
-
-/// Fetches routing mode on demand from radiance.
-
-final class RoutingModeProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<RoutingMode>,
-          RoutingMode,
-          FutureOr<RoutingMode>
-        >
-    with $FutureModifier<RoutingMode>, $FutureProvider<RoutingMode> {
-  /// Fetches routing mode on demand from radiance.
-  RoutingModeProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'routingModeProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
+abstract class _$RadianceSettings extends $Notifier<RadianceSettingsState> {
+  RadianceSettingsState build();
+  @$mustCallSuper
   @override
-  String debugGetCreateSourceHash() => _$routingModeHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<RoutingMode> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<RoutingMode> create(Ref ref) {
-    return routingMode(ref);
+  void runBuild() {
+    final ref = this.ref as $Ref<RadianceSettingsState, RadianceSettingsState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<RadianceSettingsState, RadianceSettingsState>,
+              RadianceSettingsState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }
-
-String _$routingModeHash() => r'3eb46904af8d2a86af2d585807f980ca7ed67634';
-
-/// Fetches split-tunneling enabled status on demand from radiance.
-
-@ProviderFor(splitTunnelingEnabled)
-final splitTunnelingEnabledProvider = SplitTunnelingEnabledProvider._();
-
-/// Fetches split-tunneling enabled status on demand from radiance.
-
-final class SplitTunnelingEnabledProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
-    with $FutureModifier<bool>, $FutureProvider<bool> {
-  /// Fetches split-tunneling enabled status on demand from radiance.
-  SplitTunnelingEnabledProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'splitTunnelingEnabledProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$splitTunnelingEnabledHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<bool> create(Ref ref) {
-    return splitTunnelingEnabled(ref);
-  }
-}
-
-String _$splitTunnelingEnabledHash() =>
-    r'8d3e75582214e10b4266003963a69fdbef91c381';
-
-/// Fetches telemetry consent on demand from radiance.
-
-@ProviderFor(telemetryConsent)
-final telemetryConsentProvider = TelemetryConsentProvider._();
-
-/// Fetches telemetry consent on demand from radiance.
-
-final class TelemetryConsentProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
-    with $FutureModifier<bool>, $FutureProvider<bool> {
-  /// Fetches telemetry consent on demand from radiance.
-  TelemetryConsentProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'telemetryConsentProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$telemetryConsentHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<bool> create(Ref ref) {
-    return telemetryConsent(ref);
-  }
-}
-
-String _$telemetryConsentHash() => r'314d581209fa868fc9a66dfe15eade98c66abd42';
 
 /// Fetches whether user logged in via OAuth from radiance.
 
@@ -280,207 +199,3 @@ final class IsSSOUserProvider
 }
 
 String _$isSSOUserHash() => r'07a9fd3a10783d8b12a5c837224b732f7432f46c';
-
-/// Controller for mutating ad-block setting via radiance.
-
-@ProviderFor(BlockAdsController)
-final blockAdsControllerProvider = BlockAdsControllerProvider._();
-
-/// Controller for mutating ad-block setting via radiance.
-final class BlockAdsControllerProvider
-    extends $AsyncNotifierProvider<BlockAdsController, void> {
-  /// Controller for mutating ad-block setting via radiance.
-  BlockAdsControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'blockAdsControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$blockAdsControllerHash();
-
-  @$internal
-  @override
-  BlockAdsController create() => BlockAdsController();
-}
-
-String _$blockAdsControllerHash() =>
-    r'2aef524ba0f94910b2e7ab47cd3ccda49fd0745c';
-
-/// Controller for mutating ad-block setting via radiance.
-
-abstract class _$BlockAdsController extends $AsyncNotifier<void> {
-  FutureOr<void> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}
-
-/// Controller for mutating routing mode via radiance.
-
-@ProviderFor(RoutingModeController)
-final routingModeControllerProvider = RoutingModeControllerProvider._();
-
-/// Controller for mutating routing mode via radiance.
-final class RoutingModeControllerProvider
-    extends $AsyncNotifierProvider<RoutingModeController, void> {
-  /// Controller for mutating routing mode via radiance.
-  RoutingModeControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'routingModeControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$routingModeControllerHash();
-
-  @$internal
-  @override
-  RoutingModeController create() => RoutingModeController();
-}
-
-String _$routingModeControllerHash() =>
-    r'804dfa4d87418fa8bb3f69f2a4db12a28e32c8b2';
-
-/// Controller for mutating routing mode via radiance.
-
-abstract class _$RoutingModeController extends $AsyncNotifier<void> {
-  FutureOr<void> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}
-
-/// Controller for mutating split-tunneling enabled via radiance.
-
-@ProviderFor(SplitTunnelingController)
-final splitTunnelingControllerProvider = SplitTunnelingControllerProvider._();
-
-/// Controller for mutating split-tunneling enabled via radiance.
-final class SplitTunnelingControllerProvider
-    extends $AsyncNotifierProvider<SplitTunnelingController, void> {
-  /// Controller for mutating split-tunneling enabled via radiance.
-  SplitTunnelingControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'splitTunnelingControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$splitTunnelingControllerHash();
-
-  @$internal
-  @override
-  SplitTunnelingController create() => SplitTunnelingController();
-}
-
-String _$splitTunnelingControllerHash() =>
-    r'72adff2f4cd3be866cfec86f0f1edf42886a2deb';
-
-/// Controller for mutating split-tunneling enabled via radiance.
-
-abstract class _$SplitTunnelingController extends $AsyncNotifier<void> {
-  FutureOr<void> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}
-
-/// Controller for mutating telemetry consent via radiance.
-
-@ProviderFor(TelemetryController)
-final telemetryControllerProvider = TelemetryControllerProvider._();
-
-/// Controller for mutating telemetry consent via radiance.
-final class TelemetryControllerProvider
-    extends $AsyncNotifierProvider<TelemetryController, void> {
-  /// Controller for mutating telemetry consent via radiance.
-  TelemetryControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'telemetryControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$telemetryControllerHash();
-
-  @$internal
-  @override
-  TelemetryController create() => TelemetryController();
-}
-
-String _$telemetryControllerHash() =>
-    r'5a9d0cbd705985b28272857b2b741908a65c3563';
-
-/// Controller for mutating telemetry consent via radiance.
-
-abstract class _$TelemetryController extends $AsyncNotifier<void> {
-  FutureOr<void> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}

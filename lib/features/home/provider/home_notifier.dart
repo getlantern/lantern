@@ -1,10 +1,10 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/core/models/user.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,7 +25,7 @@ class HomeNotifier extends _$HomeNotifier {
         throw Exception('Failed to get user data');
       },
       (userData) {
-        appLogger.debug('Got the userdata: $userData');
+        appLogger.debug('Got the userdata: ${userData.toJson()}');
         _applyUserData(userData);
         return userData;
       },
@@ -56,7 +56,8 @@ class HomeNotifier extends _$HomeNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-            'Error refreshing user data: ${failure.localizedErrorMessage}');
+          'Error refreshing user data: ${failure.localizedErrorMessage}',
+        );
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
@@ -131,11 +132,13 @@ class HomeNotifier extends _$HomeNotifier {
       return;
     }
     final userDeviceId = user.legacyUserData.deviceID;
-    final isDeviceAdded =
-        user.legacyUserData.devices.any((device) => device.deviceId == userDeviceId);
-    appLogger
-        .info("current device added for user ${user.legacyUserData.email}: "
-            "$isDeviceAdded");
+    final isDeviceAdded = user.legacyUserData.devices.any(
+      (device) => device.deviceId == userDeviceId,
+    );
+    appLogger.info(
+      "current device added for user ${user.legacyUserData.email}: "
+      "$isDeviceAdded",
+    );
     if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
       appLogger.info(

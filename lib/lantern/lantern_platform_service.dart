@@ -1330,7 +1330,10 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod<String>(
         'getSelectedServerJSON',
       );
-      final json = jsonDecode(result!) as Map<String, dynamic>;
+      // Normalize a missing selection to an empty JSON object so callers
+      // fall into the "auto" branch below instead of throwing.
+      final raw = (result == null || result.isEmpty) ? '{}' : result;
+      final json = jsonDecode(raw) as Map<String, dynamic>;
       final serverJson = json['server'] as Map<String, dynamic>?;
       if (serverJson == null) {
         return Right(ServerLocation(
