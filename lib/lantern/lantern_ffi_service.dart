@@ -609,9 +609,12 @@ class LanternFFIService implements LanternCoreService {
   Stream<List<AppData>> appsDataStream() async* {
     final String dataDir = _ffiService.getAppDataDir().toDartString();
     final enabledKeys = await _getEnabledAppKeys();
+    var latestEmitted = const <AppData>[];
+
     final memoryApps = _appsFromSnapshot(enabledKeys);
     if (memoryApps.isNotEmpty) {
       yield memoryApps;
+      latestEmitted = memoryApps;
     }
 
     final cachedApps = await _loadCachedApps(dataDir, enabledKeys);
@@ -620,11 +623,19 @@ class LanternFFIService implements LanternCoreService {
         'Loaded ${cachedApps.length} apps from cache before full scan',
       );
       yield cachedApps;
+      latestEmitted = cachedApps;
     }
 
     final hasImmediateApps = memoryApps.isNotEmpty || cachedApps.isNotEmpty;
     if (hasImmediateApps) {
-      unawaited(_refreshAppsCatalogInBackground(dataDir));
+      try {
+        final scannedApps = await _scanInstalledApps(dataDir, enabledKeys);
+        if (_appsSnapshotChanged(latestEmitted, scannedApps)) {
+          yield scannedApps;
+        }
+      } catch (e, st) {
+        appLogger.error("Failed to refresh installed apps", e, st);
+      }
       return;
     }
 
@@ -693,6 +704,33 @@ class LanternFFIService implements LanternCoreService {
     return _applyEnabledState(_lastAppsSnapshot, enabledKeys);
   }
 
+  bool _appsSnapshotChanged(List<AppData> previous, List<AppData> next) {
+    if (previous.length != next.length) {
+      return true;
+    }
+
+    final previousFingerprints = previous.map(_appFingerprint).toList()..sort();
+    final nextFingerprints = next.map(_appFingerprint).toList()..sort();
+    for (var i = 0; i < previousFingerprints.length; i++) {
+      if (previousFingerprints[i] != nextFingerprints[i]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  String _appFingerprint(AppData app) {
+    return [
+      _normalizeSplitTunnelKey(app.bundleId),
+      _normalizeSplitTunnelKey(app.appPath),
+      _normalizeSplitTunnelKey(app.iconPath),
+      app.name.trim().toLowerCase(),
+      app.isEnabled ? '1' : '0',
+      app.removed ? '1' : '0',
+    ].join('|');
+  }
+
   Future<void> _primeAppsCatalog() async {
     final dataDir = _ffiService.getAppDataDir().toDartString();
     if (_isAppsCatalogFresh()) {
@@ -702,17 +740,6 @@ class LanternFFIService implements LanternCoreService {
       await _scanInstalledApps(dataDir, const <String>{});
     } catch (e, st) {
       appLogger.error('Failed to prewarm apps catalog', e, st);
-    }
-  }
-
-  Future<void> _refreshAppsCatalogInBackground(String dataDir) async {
-    if (_isAppsCatalogFresh()) {
-      return;
-    }
-    try {
-      await _scanInstalledApps(dataDir, const <String>{});
-    } catch (e, st) {
-      appLogger.error('Failed to refresh apps catalog', e, st);
     }
   }
 

@@ -29,13 +29,28 @@ class AppIconKey {
 
   final Uint8List? existingBytes;
   final int existingBytesLength;
+  final int existingBytesHash;
 
-  const AppIconKey({
+  AppIconKey({
     required this.id,
     required this.iconPath,
     required this.appPath,
     required this.existingBytes,
-  }) : existingBytesLength = existingBytes?.length ?? 0;
+  }) : existingBytesLength = existingBytes?.length ?? 0,
+       existingBytesHash = _hashBytes(existingBytes);
+
+  static int _hashBytes(Uint8List? bytes) {
+    if (bytes == null || bytes.isEmpty) {
+      return 0;
+    }
+
+    var hash = _fnvOffset64;
+    for (final b in bytes) {
+      hash ^= b;
+      hash = (hash * _fnvPrime64) & _fnvMask64;
+    }
+    return hash;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -43,10 +58,17 @@ class AppIconKey {
       other.id == id &&
       other.iconPath == iconPath &&
       other.appPath == appPath &&
-      other.existingBytesLength == existingBytesLength;
+      other.existingBytesLength == existingBytesLength &&
+      other.existingBytesHash == existingBytesHash;
 
   @override
-  int get hashCode => Object.hash(id, iconPath, appPath, existingBytesLength);
+  int get hashCode => Object.hash(
+    id,
+    iconPath,
+    appPath,
+    existingBytesLength,
+    existingBytesHash,
+  );
 }
 
 @Riverpod(keepAlive: true)

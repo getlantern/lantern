@@ -568,6 +568,7 @@ procedure StopAndDeleteService;
 var
   ExitCode: Integer;
 begin
+  ExitCode := -1;
   if not ExecSc('stop "{#SvcName}"', ExitCode) then begin
     Log('Unable to run sc stop for {#SvcName}; continuing cleanup');
   end;
