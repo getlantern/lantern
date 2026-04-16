@@ -1,5 +1,6 @@
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+import 'dart:typed_data';
+
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
@@ -69,6 +70,23 @@ class LanternService implements LanternCoreService {
     } else {
       yield* _platformService.appsDataStream();
     }
+  }
+
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.loadInstalledAppIconBytes(
+        appPath: appPath,
+        iconPath: iconPath,
+      );
+    }
+    return _platformService.loadInstalledAppIconBytes(
+      appPath: appPath,
+      iconPath: iconPath,
+    );
   }
 
   @override

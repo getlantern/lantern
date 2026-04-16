@@ -26,6 +26,7 @@ const (
 var (
 	modShell32         = windows.NewLazySystemDLL("shell32.dll")
 	procExtractIconExW = modShell32.NewProc("ExtractIconExW")
+	procSHGetFileInfoW = modShell32.NewProc("SHGetFileInfoW")
 
 	modUser32       = windows.NewLazySystemDLL("user32.dll")
 	procDestroyIcon = modUser32.NewProc("DestroyIcon")
@@ -40,6 +41,19 @@ var (
 	procSelectObject       = modGdi32.NewProc("SelectObject")
 	procDeleteObject       = modGdi32.NewProc("DeleteObject")
 )
+
+const (
+	shGFIIcon      = 0x000000100
+	shGFILargeIcon = 0x000000000
+)
+
+type shFileInfo struct {
+	hIcon         windows.Handle
+	iIcon         int32
+	dwAttributes  uint32
+	szDisplayName [260]uint16
+	szTypeName    [80]uint16
+}
 
 type bitmapInfoHeader struct {
 	Size          uint32
@@ -104,7 +118,10 @@ func getIconBytesFromLocation(file string, index int) ([]byte, error) {
 
 	img, err := extractIconAsImage(file, index, 32)
 	if err != nil {
-		return nil, err
+		img, err = extractAssociatedIconAsImage(file, 32)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var buf bytes.Buffer
@@ -112,6 +129,57 @@ func getIconBytesFromLocation(file string, index int) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// Fallback path: ask Windows for the file's associated icon and render it
+// into RGBA bytes. Some icons come back with zero alpha, so we normalize
+// visible pixels to opaque to avoid invisible icons in the UI.
+func extractAssociatedIconAsImage(path string, size int) (*image.RGBA, error) {
+	p, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var info shFileInfo
+	r1, _, callErr := procSHGetFileInfoW.Call(
+		uintptr(unsafe.Pointer(p)),
+		0,
+		uintptr(unsafe.Pointer(&info)),
+		unsafe.Sizeof(info),
+		uintptr(shGFIIcon|shGFILargeIcon),
+	)
+	if r1 == 0 || info.hIcon == 0 {
+		return nil, fmt.Errorf("SHGetFileInfoW failed: %v", callErr)
+	}
+	defer procDestroyIcon.Call(uintptr(info.hIcon))
+
+	bgra, err := drawIconToBGRA(info.hIcon, size, size)
+	if err != nil {
+		return nil, err
+	}
+
+	out := image.NewRGBA(image.Rect(0, 0, size, size))
+	allAlphaZero := true
+	for i := 0; i < len(bgra); i += 4 {
+		b, g, r, a := bgra[i], bgra[i+1], bgra[i+2], bgra[i+3]
+		out.Pix[i] = r
+		out.Pix[i+1] = g
+		out.Pix[i+2] = b
+		out.Pix[i+3] = a
+		if a != 0 {
+			allAlphaZero = false
+		}
+	}
+	if allAlphaZero {
+		for i := 0; i < len(out.Pix); i += 4 {
+			r, g, b := out.Pix[i], out.Pix[i+1], out.Pix[i+2]
+			if r != 0 || g != 0 || b != 0 {
+				out.Pix[i+3] = 255
+			}
+		}
+	}
+
+	return out, nil
 }
 
 // extractIconAsImage pulls the requested icon resource from file and draws it into an RGBA bitmap
@@ -158,12 +226,26 @@ func extractIconAsImage(path string, index int, size int) (*image.RGBA, error) {
 
 	out := image.NewRGBA(image.Rect(0, 0, size, size))
 	// Convert BGRA -> RGBA
+	allAlphaZero := true
 	for i := 0; i < len(bgra); i += 4 {
 		b, g, r, a := bgra[i], bgra[i+1], bgra[i+2], bgra[i+3]
 		out.Pix[i] = r
 		out.Pix[i+1] = g
 		out.Pix[i+2] = b
 		out.Pix[i+3] = a
+		if a != 0 {
+			allAlphaZero = false
+		}
+	}
+	if allAlphaZero {
+		// Some icon sources return valid color channels with zeroed alpha.
+		// Promote visible pixels to opaque so the icon still renders.
+		for i := 0; i < len(out.Pix); i += 4 {
+			r, g, b := out.Pix[i], out.Pix[i+1], out.Pix[i+2]
+			if r != 0 || g != 0 || b != 0 {
+				out.Pix[i+3] = 255
+			}
+		}
 	}
 
 	return out, nil
@@ -227,7 +309,8 @@ func drawIconToBGRA(hicon windows.Handle, w, h int) ([]byte, error) {
 	return out, nil
 }
 
-// not used, windows uses IconBytes
+// For Windows scans we keep an executable/icon location path in app metadata and
+// fetch icon bytes lazily when rows become visible.
 func getIconPath(appPath string) (string, error) {
-	return "", nil
+	return appPath, nil
 }

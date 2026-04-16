@@ -244,6 +244,23 @@ func loadInstalledApps(dataDir *C.char) *C.char {
 	})
 }
 
+//export loadInstalledAppIcon
+func loadInstalledAppIcon(appPathC, iconPathC *C.char) *C.char {
+	return runOnGoStack(func() *C.char {
+		appPath := C.GoString(appPathC)
+		iconPath := C.GoString(iconPathC)
+		if appPath == "" && iconPath == "" {
+			return C.CString("")
+		}
+
+		iconBytes, err := apps.LoadAppIconBytes(appPath, iconPath)
+		if err != nil || len(iconBytes) == 0 {
+			return C.CString("")
+		}
+		return C.CString(base64.StdEncoding.EncodeToString(iconBytes))
+	})
+}
+
 //export getDataCapInfo
 func getDataCapInfo() *C.char {
 	return runOnGoStack(func() *C.char {

@@ -18,6 +18,9 @@ var
   Dependency_List: array of TDependency_Entry;
   Dependency_NeedToRestart, Dependency_ForceX86: Boolean;
   Dependency_DownloadPage: TDownloadWizardPage;
+  PreInstallCleanupDone: Boolean;
+
+procedure PreInstallLanternCleanup; forward;
 
 procedure Dependency_Add(const Filename, Parameters, Title, URL, Checksum: String; const ForceSuccess, RestartAfter: Boolean);
 var
@@ -151,6 +154,10 @@ begin
       end;
     end;
 
+    if Result = '' then begin
+      PreInstallLanternCleanup;
+    end;
+
     Dependency_DownloadPage.Hide;
   end;
 end;
@@ -245,6 +252,8 @@ end;
 #define SourceDirMacro   "{{SOURCE_DIR}}"
 #define SvcName          "LanternSvc"
 #define SvcDisplayName   "Lantern Service"
+#define UiExeName        "{{EXECUTABLE_NAME}}"
+#define SvcExeName       "lanternsvc.exe"
 #define ProgramDataDir   "{commonappdata}\Lantern"
 #define TokenFile        "{commonappdata}\Lantern\ipc-token"
 
@@ -264,6 +273,7 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
+ForceCloseApplications=yes
 ArchitecturesAllowed=x64compatible arm64
 ArchitecturesInstallIn64BitMode=x64compatible arm64
 SetupLogging=yes
@@ -311,9 +321,12 @@ const
   ServicePollIntervalMs = 250;
   ServiceStopTimeoutMs = 20000;
   ServiceNotRunningExitCode = 1062;
+  ServiceDoesNotExistExitCode = 1060;
   ServiceAlreadyRunningExitCode = 1056;
   ServiceExistsExitCode = 1073;
   UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
+
+function WaitForServiceStopped(const TimeoutMs: Integer): Boolean; forward;
 
 function IsAbsoluteWindowsPath(const Path: String): Boolean;
 begin
@@ -435,6 +448,116 @@ begin
   end;
 end;
 
+procedure TryKillProcessImage(const ImageName: String);
+var
+  ExitCode: Integer;
+begin
+  if not ExecCmd('/C taskkill /F /T /IM "' + ImageName + '" >NUL 2>&1', ExitCode) then begin
+    Log('failed to launch taskkill for ' + ImageName);
+    exit;
+  end;
+  Log('taskkill image "' + ImageName + '" exit=' + IntToStr(ExitCode));
+end;
+
+procedure StopLanternProcesses;
+begin
+  Log('Stopping old Lantern UI/service processes');
+  TryKillProcessImage('{#UiExeName}');
+  TryKillProcessImage('{#SvcExeName}');
+end;
+
+function LegacyUserInstallDir: String;
+begin
+  Result := ExpandConstant('{localappdata}\Programs\{#SetupSetting("AppName")}');
+end;
+
+function PathStartsWith(const Path: String; const Prefix: String): Boolean;
+var
+  NormalizedPath: String;
+  NormalizedPrefix: String;
+begin
+  NormalizedPath := LowerCase(RemoveBackslashUnlessRoot(Trim(Path)));
+  NormalizedPrefix := LowerCase(RemoveBackslashUnlessRoot(Trim(Prefix)));
+  if (NormalizedPath = '') or (NormalizedPrefix = '') then begin
+    Result := False;
+    exit;
+  end;
+
+  if NormalizedPath = NormalizedPrefix then begin
+    Result := True;
+    exit;
+  end;
+
+  Result :=
+    (Length(NormalizedPath) > Length(NormalizedPrefix)) and
+    (Copy(NormalizedPath, 1, Length(NormalizedPrefix)) = NormalizedPrefix) and
+    (NormalizedPath[Length(NormalizedPrefix) + 1] = '\');
+end;
+
+procedure TryDeleteFileIfExists(const Path: String);
+begin
+  if not FileExists(Path) then begin
+    exit;
+  end;
+  if DeleteFile(Path) then begin
+    Log('Removed stale shortcut: ' + Path);
+  end else begin
+    Log('Failed to remove stale shortcut: ' + Path);
+  end;
+end;
+
+procedure RemoveLegacyUserShortcuts;
+begin
+  TryDeleteFileIfExists(ExpandConstant('{userprograms}\{#SetupSetting("AppName")}.lnk'));
+  TryDeleteFileIfExists(ExpandConstant('{userdesktop}\{#SetupSetting("AppName")}.lnk'));
+  TryDeleteFileIfExists(
+    ExpandConstant('{userappdata}\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\{#SetupSetting("AppName")}.lnk')
+  );
+  TryDeleteFileIfExists(
+    ExpandConstant('{userappdata}\Microsoft\Internet Explorer\Quick Launch\User Pinned\StartMenu\{#SetupSetting("AppName")}.lnk')
+  );
+end;
+
+procedure RemoveLegacyUserUninstallEntryIfPresent(const UserInstallDir: String);
+var
+  UninstallString: String;
+  UninstallExePath: String;
+begin
+  if not RegQueryStringValue(HKCU, UninstallRegSubKey, 'UninstallString', UninstallString) then begin
+    exit;
+  end;
+
+  UninstallExePath := ExtractExecutablePath(UninstallString);
+  if not PathStartsWith(UninstallExePath, UserInstallDir) then begin
+    exit;
+  end;
+
+  Log('Removing legacy per-user uninstall entry: ' + UninstallRegSubKey);
+  if not RegDeleteKeyIncludingSubkeys(HKCU, UninstallRegSubKey) then begin
+    Log('Failed to remove legacy per-user uninstall entry');
+  end;
+end;
+
+procedure RemoveLegacyUserInstallIfPresent;
+var
+  UserInstallDir: String;
+begin
+  UserInstallDir := LegacyUserInstallDir;
+  if not DirExists(UserInstallDir) then begin
+    exit;
+  end;
+
+  Log('Removing legacy per-user Lantern install: ' + UserInstallDir);
+  RemoveLegacyUserUninstallEntryIfPresent(UserInstallDir);
+  RemoveLegacyUserShortcuts;
+
+  if DelTree(UserInstallDir, True, True, True) then begin
+    Log('Removed legacy per-user Lantern install');
+  end else begin
+    Log('Failed to fully remove legacy per-user Lantern install');
+  end;
+end;
+
 procedure FailInstall(const Message: String);
 begin
   Log('Installation failed: ' + Message);
@@ -445,7 +568,27 @@ procedure StopAndDeleteService;
 var
   ExitCode: Integer;
 begin
-  ExecSc('stop "{#SvcName}"', ExitCode);
+  ExitCode := -1;
+  if not ExecSc('stop "{#SvcName}"', ExitCode) then begin
+    Log('Unable to run sc stop for {#SvcName}; continuing cleanup');
+  end;
+  if ExitCode = 0 then begin
+    if not WaitForServiceStopped(ServiceStopTimeoutMs) then begin
+      Log('{#SvcName} did not report STOPPED in time; forcing process termination');
+      TryKillProcessImage('{#SvcExeName}');
+    end;
+  end else if ExitCode = ServiceNotRunningExitCode then begin
+    Log('{#SvcName} already stopped');
+  end else if ExitCode = ServiceDoesNotExistExitCode then begin
+    Log('{#SvcName} does not exist');
+  end else begin
+    Log('sc stop returned exit ' + IntToStr(ExitCode) + '; forcing process termination');
+    TryKillProcessImage('{#SvcExeName}');
+    if not WaitForServiceStopped(ServiceStopTimeoutMs) then begin
+      Log('{#SvcName} did not report STOPPED in time after forced termination');
+    end;
+  end;
+
   ExecSc('delete "{#SvcName}"', ExitCode);
 end;
 
@@ -458,7 +601,7 @@ begin
   while ElapsedMs <= TimeoutMs do begin
     if ExecSc('query "{#SvcName}"', ExitCode) then begin
       // SERVICE_DOES_NOT_EXIST
-      if ExitCode = 1060 then begin
+      if ExitCode = ServiceDoesNotExistExitCode then begin
         Result := True;
         exit;
       end;
@@ -637,6 +780,13 @@ procedure StartServiceAndValidate;
 var
   ExitCode: Integer;
 begin
+  if FileExists(ExpandConstant('{#TokenFile}')) then begin
+    if DeleteFile(ExpandConstant('{#TokenFile}')) then
+      Log('Deleted stale token file before service start')
+    else
+      Log('Failed to delete stale token file before service start');
+  end;
+
   if not ExecSc('query "{#SvcName}"', ExitCode) then begin
     FailInstall('Unable to query {#SvcName} after install.');
   end;
@@ -684,14 +834,28 @@ begin
   StartServiceAndValidate;
 end;
 
+procedure PreInstallLanternCleanup;
+begin
+  if PreInstallCleanupDone then begin
+    Log('PrepareToInstall cleanup already completed');
+    exit;
+  end;
+
+  Log('PrepareToInstall cleanup started');
+  StopLanternProcesses;
+  RemoveLegacyUserInstallIfPresent;
+  StopAndDeleteService;
+  if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
+    FailInstall('{#SvcName} could not be removed before install.');
+  end;
+  PreInstallCleanupDone := True;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssInstall then begin
     Log('Pre-install service cleanup started');
-    StopAndDeleteService;
-    if not WaitForServiceDelete(ServiceDeleteTimeoutMs) then begin
-      Log('Timed out waiting for service deletion; continuing install');
-    end;
+    PreInstallLanternCleanup;
     exit;
   end;
 

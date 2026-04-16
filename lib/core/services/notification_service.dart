@@ -5,20 +5,24 @@ import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-enum NotificationType {
-  dataCapWarning,
-  main,
-}
+enum NotificationType { dataCapWarning, main }
 
 class NotificationService {
+  static const _fallbackWindowsAppUserModelId = 'Org.GetLantern.Lantern';
+  static const _fallbackWindowsGuid = '5B599538-42C1-4026-A579-AF079F21A65E';
+  static final _windowsGuidPattern = RegExp(
+    r'^[{(]?[0-9a-fA-F]{8}[-]?[0-9a-fA-F]{4}[-]?[0-9a-fA-F]{4}[-]?[0-9a-fA-F]{4}[-]?[0-9a-fA-F]{12}[)}]?$',
+  );
+
   bool _notificationsEnabled = false;
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     try {
-      const androidSettings =
-          AndroidInitializationSettings('lantern_notification_icon');
+      const androidSettings = AndroidInitializationSettings(
+        'lantern_notification_icon',
+      );
       const darwinSettings = DarwinInitializationSettings(
         requestSoundPermission: true,
         requestBadgePermission: true,
@@ -29,19 +33,8 @@ class NotificationService {
         defaultIcon: AssetsLinuxIcon(AppImagePaths.appIcon),
       );
 
-      var iconPath;
-      if (PlatformUtils.isWindows) {
-        iconPath = File.fromUri(WindowsImage.getAssetUri(AppImagePaths.appIcon))
-            .absolute
-            .path;
-      }
+      final windowsSettings = _buildWindowsInitializationSettings();
 
-      final windowsSettings = WindowsInitializationSettings(
-        appName: 'Lantern',
-        appUserModelId: AppSecrets.windowsAppUserModelId,
-        guid: AppSecrets.windowsGuid,
-        iconPath: iconPath,
-      );
       final settings = InitializationSettings(
         android: androidSettings,
         iOS: darwinSettings,
@@ -63,36 +56,83 @@ class NotificationService {
     }
   }
 
+  WindowsInitializationSettings _buildWindowsInitializationSettings() {
+    if (!PlatformUtils.isWindows) {
+      return const WindowsInitializationSettings(
+        appName: 'Lantern',
+        appUserModelId: _fallbackWindowsAppUserModelId,
+        guid: _fallbackWindowsGuid,
+      );
+    }
+
+    var appUserModelId = AppSecrets.windowsAppUserModelId.trim();
+    if (appUserModelId.isEmpty) {
+      appUserModelId = _fallbackWindowsAppUserModelId;
+      appLogger.warning(
+        'WINDOWS_APP_USER_MODEL_ID is missing; using fallback value.',
+      );
+    }
+
+    var guid = AppSecrets.windowsGuid.trim();
+    if (!_windowsGuidPattern.hasMatch(guid)) {
+      appLogger.warning(
+        'Windows notification GUID is missing or invalid; using fallback value.',
+      );
+      guid = _fallbackWindowsGuid;
+    }
+
+    String? iconPath;
+    try {
+      final candidate = File.fromUri(
+        WindowsImage.getAssetUri(AppImagePaths.appIcon),
+      ).absolute.path;
+      if (candidate.isNotEmpty && File(candidate).existsSync()) {
+        iconPath = candidate;
+      } else {
+        appLogger.warning(
+          'Windows notification icon asset not found at "$candidate"; '
+          'using default Windows toast icon.',
+        );
+      }
+    } catch (e) {
+      appLogger.warning('Unable to resolve Windows notification icon path: $e');
+    }
+
+    return WindowsInitializationSettings(
+      appName: 'Lantern',
+      appUserModelId: appUserModelId,
+      guid: guid,
+      iconPath: iconPath,
+    );
+  }
+
   Future<bool?> _permissionsGranted() async {
     if (Platform.isIOS) {
       return _plugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     } else if (Platform.isMacOS) {
       return _plugin
           .resolvePlatformSpecificImplementation<
-              MacOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            MacOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     } else if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _plugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+          _plugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
       return androidImplementation?.requestNotificationsPermission() ?? false;
     }
     return true;
   }
 
   void onDidReceiveNotificationResponse(
-      NotificationResponse notificationResponse) async {
+    NotificationResponse notificationResponse,
+  ) async {
     final String? payload = notificationResponse.payload;
     if (notificationResponse.payload != null) {
       appLogger.debug('notification payload: $payload');
@@ -118,11 +158,13 @@ class NotificationService {
     try {
       if (!_notificationsEnabled) {
         appLogger.warning(
-            "Notifications are not enabled. Skipping notification with id: $id");
+          "Notifications are not enabled. Skipping notification with id: $id",
+        );
         return;
       }
       appLogger.debug(
-          "Scheduling notification (id: $id) with delay: ${delay?.inSeconds ?? 0} seconds");
+        "Scheduling notification (id: $id) with delay: ${delay?.inSeconds ?? 0} seconds",
+      );
 
       /// If dealy is null no need to use zonedSchedule
       /// just show immediately
@@ -142,8 +184,9 @@ class NotificationService {
       }
 
       final nd = _getNotificationDetails(notificationType);
-      appLogger
-          .info("Notification scheduled (id: $id) for time: $scheduleTime");
+      appLogger.info(
+        "Notification scheduled (id: $id) for time: $scheduleTime",
+      );
       await _plugin.zonedSchedule(
         id: id,
         title: title,
@@ -170,7 +213,8 @@ class NotificationService {
     try {
       if (!_notificationsEnabled) {
         appLogger.warning(
-            "Notifications are not enabled. Skipping notification with id: $id");
+          "Notifications are not enabled. Skipping notification with id: $id",
+        );
         return;
       }
       final notificationDetails0 = _getNotificationDetails(notificationType);
@@ -213,8 +257,9 @@ class NotificationService {
         presentSound: true,
       ),
       linux: LinuxNotificationDetails(
-          urgency: LinuxNotificationUrgency.critical,
-          defaultActionName: 'View'),
+        urgency: LinuxNotificationUrgency.critical,
+        defaultActionName: 'View',
+      ),
       windows: WindowsNotificationDetails(
         duration: WindowsNotificationDuration.short,
         audio: WindowsNotificationAudio.preset(

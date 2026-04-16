@@ -46,6 +46,12 @@ func TestIsWindowsSystemApp(t *testing.T) {
 			want:    false,
 		},
 		{
+			name:    "file explorer by host executable name",
+			exePath: `C:\Windows\explorer.exe`,
+			appName: "File Explorer",
+			want:    true,
+		},
+		{
 			name:    "fallback by host name when path missing",
 			exePath: ``,
 			appName: "svchost",
@@ -84,6 +90,28 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "no display",
+			metadata: uninstallEntryMetadata{
+				noDisplaySet: true,
+				noDisplay:    1,
+			},
+			want: true,
+		},
+		{
+			name: "has parent key name",
+			metadata: uninstallEntryMetadata{
+				parentKeyName: "VendorSuite",
+			},
+			want: true,
+		},
+		{
+			name: "release type update",
+			metadata: uninstallEntryMetadata{
+				releaseType: "Security Update",
+			},
+			want: true,
+		},
+		{
 			name: "system component explicitly zero",
 			metadata: uninstallEntryMetadata{
 				systemComponentSet: true,
@@ -103,6 +131,73 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			got := isNonUserFacingUninstallEntry(tt.metadata)
 			if got != tt.want {
 				t.Fatalf("isNonUserFacingUninstallEntry(%+v) = %v, want %v", tt.metadata, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsWindowsUtilityApp(t *testing.T) {
+	tests := []struct {
+		name    string
+		exePath string
+		appName string
+		want    bool
+	}{
+		{
+			name:    "cmake gui display name variant",
+			exePath: `C:\Program Files\CMake\bin\cmake-gui.exe`,
+			appName: "CMake (cmake-gui)",
+			want:    true,
+		},
+		{
+			name:    "git cmd display name variant",
+			exePath: "",
+			appName: "Git CMD",
+			want:    true,
+		},
+		{
+			name:    "office language preferences display name",
+			exePath: "",
+			appName: "Office Language Preferences",
+			want:    true,
+		},
+		{
+			name:    "pc health check display name",
+			exePath: "",
+			appName: "PC Health Check",
+			want:    true,
+		},
+		{
+			name:    "regular app not utility",
+			exePath: `C:\Users\user\AppData\Local\AnthropicClaude\Claude.exe`,
+			appName: "Claude",
+			want:    false,
+		},
+		{
+			name:    "awk utility binary",
+			exePath: `C:\Program Files\Git\usr\bin\awk.exe`,
+			appName: "Awk",
+			want:    true,
+		},
+		{
+			name:    "actions mcp host utility app",
+			exePath: `C:\Users\user\AppData\Local\Microsoft\WindowsApps\ActionsMcpHost.exe`,
+			appName: "ActionsMcpHost",
+			want:    true,
+		},
+		{
+			name:    "visual c++ redistributable utility",
+			exePath: "",
+			appName: "Microsoft Visual C++ 2015-2022 Redistributable (x64)",
+			want:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isWindowsUtilityApp(tt.exePath, tt.appName)
+			if got != tt.want {
+				t.Fatalf("isWindowsUtilityApp(%q, %q) = %v, want %v", tt.exePath, tt.appName, got, tt.want)
 			}
 		})
 	}
@@ -416,16 +511,10 @@ func TestPickExePathFallsBackWhenDisplayIconIsNonExe(t *testing.T) {
 }
 
 func TestShortcutRecoveryHintFromShortcut(t *testing.T) {
-	t.Run("includes normalized display name", func(t *testing.T) {
+	t.Run("skips package-cache recovery without an explicit launcher signal", func(t *testing.T) {
 		hint := shortcutRecoveryHintFromShortcut("Claude", "")
-		if !hint.isValid() {
-			t.Fatalf("shortcutRecoveryHintFromShortcut returned invalid hint")
-		}
-		if hint.displayName != "Claude" {
-			t.Fatalf("displayName = %q, want %q", hint.displayName, "Claude")
-		}
-		if len(hint.normalizedCandidates) != 1 || hint.normalizedCandidates[0] != "claude" {
-			t.Fatalf("normalizedCandidates = %v, want [claude]", hint.normalizedCandidates)
+		if hint.isValid() {
+			t.Fatalf("shortcutRecoveryHintFromShortcut should be invalid without launcher hints")
 		}
 	})
 
@@ -439,6 +528,19 @@ func TestShortcutRecoveryHintFromShortcut(t *testing.T) {
 		}
 		if !matchesAnyNormalizedHint("claude", hint.normalizedCandidates) {
 			t.Fatalf("expected normalizedCandidates to include claude, got %v", hint.normalizedCandidates)
+		}
+	})
+
+	t.Run("adds AppX shell appsfolder hints when present", func(t *testing.T) {
+		hint := shortcutRecoveryHintFromShortcut(
+			"Claude",
+			`shell:AppsFolder\Claude_pzs8sxrjxfjjc!App`,
+		)
+		if !hint.isValid() {
+			t.Fatalf("shortcutRecoveryHintFromShortcut returned invalid hint")
+		}
+		if !matchesAnyNormalizedHint("claudepzs8sxrjxfjjc", hint.normalizedCandidates) {
+			t.Fatalf("expected normalizedCandidates to include package id, got %v", hint.normalizedCandidates)
 		}
 	})
 }
@@ -463,7 +565,7 @@ func TestResolvePackageCacheExecutable(t *testing.T) {
 			t.Fatalf("write executable: %v", err)
 		}
 
-		hint := shortcutRecoveryHintFromShortcut("Claude", "")
+		hint := shortcutRecoveryHintFromShortcut("Claude", `shell:AppsFolder\Claude_pzs8sxrjxfjjc!App`)
 		got := resolvePackageCacheExecutable([]string{packageDir}, hint)
 		if got != exePath {
 			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want %q", got, exePath)
@@ -516,7 +618,7 @@ func TestResolvePackageCacheExecutable(t *testing.T) {
 			t.Fatalf("write executable: %v", err)
 		}
 
-		hint := shortcutRecoveryHintFromShortcut("Claude", "")
+		hint := shortcutRecoveryHintFromShortcut("Claude", `shell:AppsFolder\Claude_pzs8sxrjxfjjc!App`)
 		got := resolvePackageCacheExecutable([]string{packageDir}, hint)
 		if got != "" {
 			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want empty", got)
