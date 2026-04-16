@@ -3,10 +3,12 @@
 package apps
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -76,6 +78,11 @@ var windowsUtilityExecutableHints = map[string]bool{
 	"vcredist":                  true,
 }
 
+var windowsUtilityPrefixHints = []string{
+	"microsoftvisualc",
+	"vcredist",
+}
+
 var windowsSystemDisplayNameHints = []string{
 	"windowspowershell",
 	"windowsterminal",
@@ -119,6 +126,18 @@ type shortcutRecoveryHint struct {
 }
 
 const packageCacheSearchDepth = 8
+
+const appxQueryTimeoutSeconds = 12
+
+type appxPackageApp struct {
+	Name            string `json:"Name"`
+	PackageFamily   string `json:"PackageFamilyName"`
+	InstallLocation string `json:"InstallLocation"`
+	Executable      string `json:"Executable"`
+	AppID           string `json:"AppID"`
+	DisplayName     string `json:"DisplayName"`
+	AppListEntry    string `json:"AppListEntry"`
+}
 
 func normalizedWindowsDir() string {
 	winDir := normalizeKey(strings.TrimSpace(os.Getenv("WINDIR")))
@@ -185,11 +204,8 @@ func isWindowsUtilityApp(exePath, name string) bool {
 		if windowsUtilityExecutableHints[normalized] {
 			return true
 		}
-		for hint := range windowsUtilityExecutableHints {
-			if len(hint) < 4 {
-				continue
-			}
-			if hint != "" && strings.Contains(normalized, hint) {
+		for _, hint := range windowsUtilityPrefixHints {
+			if strings.HasPrefix(normalized, hint) {
 				return true
 			}
 		}
@@ -237,7 +253,8 @@ func isExcludedStartMenuShortcutPath(shortcutPath string) bool {
 // Discovery order:
 //  1. Start Menu shortcuts: the best “user-facing apps” list
 //  2. Uninstall registry entries: catches apps that don’t have Start Menu shortcuts
-//  3. Fallback directory scan
+//  3. AppX/UWP packages: catches Store/MSIX apps that do not surface as classic uninstall entries
+//  4. Fallback directory scan
 func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
 	var out []*AppData
 
@@ -246,6 +263,9 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 
 	registryApps := collectAppsFromUninstallRegistry(seen, cb)
 	out = append(out, registryApps...)
+
+	appxApps := collectAppsFromAppxPackages(seen, cb)
+	out = append(out, appxApps...)
 
 	// Fallback: recursive app scan
 	if len(out) == 0 {
@@ -256,6 +276,8 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 				len(startMenuApps),
 				"registryCount",
 				len(registryApps),
+				"appxCount",
+				len(appxApps),
 			)
 			return out
 		}
@@ -265,6 +287,8 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 			len(startMenuApps),
 			"registryCount",
 			len(registryApps),
+			"appxCount",
+			len(appxApps),
 		)
 		out = append(out, scanAppDirs(appDirs, seen, excludeDirs, cb)...)
 	}
@@ -511,15 +535,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			if exePath == "" {
 				continue
 			}
-			if isWindowsSystemApp(exePath, displayName) {
-				continue
-			}
-			if isWindowsUtilityApp(exePath, displayName) {
-				continue
-			}
-
-			// Don’t show uninstallers/updaters
-			if isExcludedName(filepathBaseNoExt(exePath)) {
+			if shouldExcludeUninstallAppCandidate(metadata, exePath, displayName) {
 				continue
 			}
 
@@ -548,6 +564,173 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 	}
 
 	return out
+}
+
+func shouldExcludeUninstallAppCandidate(metadata uninstallEntryMetadata, exePath, displayName string) bool {
+	if isWindowsSystemApp(exePath, displayName) {
+		return true
+	}
+	if isExcludedName(filepathBaseNoExt(exePath)) {
+		return true
+	}
+	if !isWindowsUtilityApp(exePath, displayName) {
+		return false
+	}
+	if hasStrongUtilityDisplayName(displayName) {
+		return true
+	}
+	return !isExplicitlyUserVisibleUninstallEntry(metadata)
+}
+
+func isExplicitlyUserVisibleUninstallEntry(metadata uninstallEntryMetadata) bool {
+	return !isNonUserFacingUninstallEntry(metadata)
+}
+
+func hasStrongUtilityDisplayName(name string) bool {
+	normalized := normalizeExecutableHint(name)
+	if normalized == "" {
+		return false
+	}
+	if windowsUtilityExecutableHints[normalized] {
+		return true
+	}
+	return strings.HasPrefix(normalized, "microsoftvisualc") || strings.HasPrefix(normalized, "vcredist")
+}
+
+func collectAppsFromAppxPackages(seen map[string]bool, cb Callback) []*AppData {
+	candidates, err := queryAppxPackageApps()
+	if err != nil {
+		slog.Debug("unable to enumerate AppX packages", "err", err)
+		return nil
+	}
+
+	var out []*AppData
+	for _, candidate := range candidates {
+		if isNonUserFacingAppxEntry(candidate) {
+			continue
+		}
+
+		displayName := appxDisplayName(candidate)
+		if displayName == "" || isLikelySystemDisplayName(displayName) {
+			continue
+		}
+
+		exePath := resolveAppxExecutablePath(candidate)
+		if exePath == "" || !strings.EqualFold(filepath.Ext(exePath), ".exe") {
+			continue
+		}
+		exePath = resolveWrappedExecutableWithContext(exePath, displayName, "", "")
+		if exePath == "" {
+			continue
+		}
+		if isWindowsSystemApp(exePath, displayName) || isWindowsUtilityApp(exePath, displayName) {
+			continue
+		}
+		if isExcludedName(filepathBaseNoExt(exePath)) {
+			continue
+		}
+
+		keyPath := normalizeKey(exePath)
+		if keyPath == "" || seen[keyPath] {
+			continue
+		}
+
+		app := &AppData{
+			Name:     displayName,
+			BundleID: exePath,
+			AppPath:  exePath,
+			IconPath: exePath,
+		}
+		if cb != nil {
+			cb(app)
+		}
+		out = append(out, app)
+		seen[keyPath] = true
+	}
+
+	return out
+}
+
+func queryAppxPackageApps() ([]appxPackageApp, error) {
+	script := strings.Join([]string{
+		fmt.Sprintf("$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; $deadline = (Get-Date).AddSeconds(%d);", appxQueryTimeoutSeconds),
+		"$results = @();",
+		"Get-AppxPackage | Where-Object { $_.IsFramework -eq $false -and $_.IsResourcePackage -eq $false -and $_.NonRemovable -eq $false } | ForEach-Object {",
+		"  if ((Get-Date) -gt $deadline) { return }",
+		"  $manifest = Get-AppxPackageManifest $_ -ErrorAction SilentlyContinue;",
+		"  if ($null -eq $manifest -or $null -eq $manifest.Package -or $null -eq $manifest.Package.Applications) { return }",
+		"  foreach ($app in $manifest.Package.Applications.Application) {",
+		"    if ([string]::IsNullOrWhiteSpace($app.Executable)) { continue }",
+		"    $results += [PSCustomObject]@{",
+		"      Name = $_.Name;",
+		"      PackageFamilyName = $_.PackageFamilyName;",
+		"      InstallLocation = $_.InstallLocation;",
+		"      Executable = $app.Executable;",
+		"      AppID = $app.Id;",
+		"      DisplayName = $app.VisualElements.DisplayName;",
+		"      AppListEntry = $app.AppListEntry;",
+		"    };",
+		"  }",
+		"};",
+		"$results | ConvertTo-Json -Compress -Depth 4",
+	}, " ")
+
+	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	trimmed := strings.TrimSpace(string(output))
+	if trimmed == "" || trimmed == "null" {
+		return nil, nil
+	}
+
+	var items []appxPackageApp
+	if err := json.Unmarshal([]byte(trimmed), &items); err == nil {
+		return items, nil
+	}
+
+	var single appxPackageApp
+	if err := json.Unmarshal([]byte(trimmed), &single); err != nil {
+		return nil, err
+	}
+	return []appxPackageApp{single}, nil
+}
+
+func isNonUserFacingAppxEntry(candidate appxPackageApp) bool {
+	appListEntry := strings.TrimSpace(strings.ToLower(candidate.AppListEntry))
+	return appListEntry == "none"
+}
+
+func appxDisplayName(candidate appxPackageApp) string {
+	name := strings.TrimSpace(candidate.DisplayName)
+	lowerName := strings.ToLower(name)
+	if name == "" || strings.HasPrefix(lowerName, "ms-resource:") || strings.HasPrefix(lowerName, "@{") {
+		name = strings.TrimSpace(candidate.Name)
+	}
+	if name == "" {
+		name = strings.TrimSpace(candidate.PackageFamily)
+	}
+	return name
+}
+
+func resolveAppxExecutablePath(candidate appxPackageApp) string {
+	executable := strings.Trim(strings.TrimSpace(expandPercentEnv(candidate.Executable)), `"`)
+	if executable == "" {
+		return ""
+	}
+
+	if filepath.IsAbs(executable) {
+		return filepath.Clean(executable)
+	}
+
+	installLocation := strings.Trim(strings.TrimSpace(expandPercentEnv(candidate.InstallLocation)), `"`)
+	if installLocation == "" {
+		return ""
+	}
+
+	return filepath.Clean(filepath.Join(installLocation, executable))
 }
 
 func filepathBaseNoExt(p string) string {
@@ -656,10 +839,16 @@ func shortcutRecoveryHintFromShortcut(name, shortcutArgs string) shortcutRecover
 	hint := shortcutRecoveryHint{
 		displayName: strings.TrimSpace(name),
 	}
-	processStartHint := processStartExecutableHint(shortcutArgs)
+	processStartHints := processStartExecutableHints(shortcutArgs)
 	appXHints := appxHintsFromShortcutArgs(shortcutArgs)
 
-	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, processStartHint)
+	for _, processStartHint := range processStartHints {
+		hint.normalizedCandidates = appendNormalizedHints(
+			hint.normalizedCandidates,
+			processStartHint,
+			filepathBaseNoExt(processStartHint),
+		)
+	}
 	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, appXHints...)
 	if len(hint.normalizedCandidates) > 0 {
 		hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, name)
@@ -990,8 +1179,20 @@ func resolveWrappedExecutableWithContext(exePath, nameHint, shortcutArgs, shortc
 
 	normalizedHint := normalizeExecutableHint(nameHint)
 	searchDirs := wrappedExecutableSearchDirs(appDir, shortcutWorkingDir)
-	processStartHint := processStartExecutableHint(shortcutArgs)
-	if processStartHint != "" {
+	processStartHints := processStartExecutableHints(shortcutArgs)
+	for _, processStartHint := range processStartHints {
+		processStartHint = filepath.Clean(strings.TrimSpace(processStartHint))
+		if processStartHint == "" {
+			continue
+		}
+
+		if filepath.IsAbs(processStartHint) {
+			if fileExists(processStartHint) && strings.EqualFold(filepath.Ext(processStartHint), ".exe") {
+				return processStartHint
+			}
+			continue
+		}
+
 		for _, dir := range searchDirs {
 			candidate := filepath.Clean(filepath.Join(dir, processStartHint))
 			if fileExists(candidate) && strings.EqualFold(filepath.Ext(candidate), ".exe") {
@@ -1085,21 +1286,79 @@ func containsNormalizedPath(paths []string, candidate string) bool {
 }
 
 func processStartExecutableHint(shortcutArgs string) string {
+	hints := processStartExecutableHints(shortcutArgs)
+	if len(hints) == 0 {
+		return ""
+	}
+	return hints[0]
+}
+
+func processStartExecutableHints(shortcutArgs string) []string {
 	tokens := parseWindowsCommandTokens(shortcutArgs)
-	for i := 0; i < len(tokens)-1; i++ {
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	var hints []string
+	for i := 0; i < len(tokens); i++ {
 		flag := strings.ToLower(strings.TrimSpace(tokens[i]))
-		if flag == "--processstart" || flag == "/processstart" {
-			next := strings.Trim(strings.TrimSpace(tokens[i+1]), `"`)
-			if next == "" {
-				return ""
+
+		if strings.HasPrefix(flag, "--processstart=") || strings.HasPrefix(flag, "/processstart=") ||
+			strings.HasPrefix(flag, "--processstart:") || strings.HasPrefix(flag, "/processstart:") ||
+			strings.HasPrefix(flag, "--processstartandwait=") || strings.HasPrefix(flag, "/processstartandwait=") ||
+			strings.HasPrefix(flag, "--processstartandwait:") || strings.HasPrefix(flag, "/processstartandwait:") {
+			idx := strings.IndexAny(tokens[i], "=:")
+			if idx > -1 && idx < len(tokens[i])-1 {
+				if hint := normalizeProcessStartHint(tokens[i][idx+1:]); hint != "" {
+					hints = appendNormalizedHintValues(hints, hint, filepathBaseNoExt(hint))
+				}
 			}
-			if !strings.EqualFold(filepath.Ext(next), ".exe") {
-				next += ".exe"
+			continue
+		}
+
+		if flag == "--processstart" || flag == "/processstart" || flag == "--processstartandwait" || flag == "/processstartandwait" {
+			if i+1 >= len(tokens) {
+				continue
 			}
-			return next
+			if hint := normalizeProcessStartHint(tokens[i+1]); hint != "" {
+				hints = appendNormalizedHintValues(hints, hint, filepathBaseNoExt(hint))
+			}
+			i++
 		}
 	}
-	return ""
+	return hints
+}
+
+func normalizeProcessStartHint(value string) string {
+	value = strings.Trim(strings.TrimSpace(value), `"`)
+	if value == "" {
+		return ""
+	}
+	value = filepath.Clean(expandPercentEnv(value))
+	if !strings.EqualFold(filepath.Ext(value), ".exe") {
+		value += ".exe"
+	}
+	return value
+}
+
+func appendNormalizedHintValues(existing []string, values ...string) []string {
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		alreadyAdded := false
+		for _, current := range existing {
+			if strings.EqualFold(current, value) {
+				alreadyAdded = true
+				break
+			}
+		}
+		if !alreadyAdded {
+			existing = append(existing, value)
+		}
+	}
+	return existing
 }
 
 func parseWindowsCommandTokens(command string) []string {

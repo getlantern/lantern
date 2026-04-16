@@ -340,6 +340,34 @@ func TestResolveWrappedExecutable(t *testing.T) {
 			t.Fatalf("resolveWrappedExecutableWithContext(...processStart...) = %q, want %q", got, claudeExe)
 		}
 	})
+
+	t.Run("resolves wrapper using processStartAndWait equals form", func(t *testing.T) {
+		root := t.TempDir()
+		shortcutTarget := filepath.Join(root, "Update.exe")
+		workingDir := filepath.Join(root, "dist")
+		appDir := filepath.Join(workingDir, "current")
+		claudeExe := filepath.Join(appDir, "Claude.exe")
+
+		if err := os.WriteFile(shortcutTarget, []byte(""), 0o644); err != nil {
+			t.Fatalf("write update exe: %v", err)
+		}
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatalf("mkdir app dir: %v", err)
+		}
+		if err := os.WriteFile(claudeExe, []byte(""), 0o644); err != nil {
+			t.Fatalf("write claude exe: %v", err)
+		}
+
+		got := resolveWrappedExecutableWithContext(
+			shortcutTarget,
+			"Claude",
+			`--processStartAndWait=Claude.exe`,
+			workingDir,
+		)
+		if got != claudeExe {
+			t.Fatalf("resolveWrappedExecutableWithContext(...processStartAndWait...) = %q, want %q", got, claudeExe)
+		}
+	})
 }
 
 func TestResolveShortcutExecutable(t *testing.T) {
@@ -472,6 +500,44 @@ func TestParseWindowsCommandTokens(t *testing.T) {
 			for i := range tt.want {
 				if got[i] != tt.want[i] {
 					t.Fatalf("parseWindowsCommandTokens(%q)[%d] = %q, want %q", tt.command, i, got[i], tt.want[i])
+				}
+			}
+		})
+	}
+}
+
+func TestProcessStartExecutableHints(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		want []string
+	}{
+		{
+			name: "processStart token",
+			args: `--processStart "Claude.exe" --process-start-args "--foo bar"`,
+			want: []string{"Claude.exe", "Claude"},
+		},
+		{
+			name: "processStart equals form",
+			args: `--processStart=claude`,
+			want: []string{"claude.exe", "claude"},
+		},
+		{
+			name: "processStartAndWait colon form",
+			args: `/processStartAndWait:app-2.1.78\\Claude.exe`,
+			want: []string{`app-2.1.78\\Claude.exe`, "Claude"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := processStartExecutableHints(tt.args)
+			if len(got) != len(tt.want) {
+				t.Fatalf("processStartExecutableHints(%q) = %v, want %v", tt.args, got, tt.want)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Fatalf("processStartExecutableHints(%q)[%d] = %q, want %q", tt.args, i, got[i], tt.want[i])
 				}
 			}
 		})
@@ -624,4 +690,31 @@ func TestResolvePackageCacheExecutable(t *testing.T) {
 			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want empty", got)
 		}
 	})
+}
+
+func TestResolveAppxExecutablePath(t *testing.T) {
+	entry := appxPackageApp{
+		InstallLocation: `C:\Program Files\WindowsApps\Anthropic.Claude_1.0.0.0_x64__pzs8sxrjxfjjc`,
+		Executable:      `App\Claude.exe`,
+	}
+
+	got := resolveAppxExecutablePath(entry)
+	want := `C:\Program Files\WindowsApps\Anthropic.Claude_1.0.0.0_x64__pzs8sxrjxfjjc\App\Claude.exe`
+	if got != want {
+		t.Fatalf("resolveAppxExecutablePath(...) = %q, want %q", got, want)
+	}
+}
+
+func TestAppxDisplayName(t *testing.T) {
+	entry := appxPackageApp{
+		Name:          "Anthropic.Claude",
+		PackageFamily: "Anthropic.Claude_pzs8sxrjxfjjc",
+		DisplayName:   "ms-resource:AppName",
+	}
+
+	got := appxDisplayName(entry)
+	want := "Anthropic.Claude"
+	if got != want {
+		t.Fatalf("appxDisplayName(...) = %q, want %q", got, want)
+	}
 }
