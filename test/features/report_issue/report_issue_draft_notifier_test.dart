@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lantern/features/report_Issue/provider/report_issue_draft_notifier.dart';
+import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 
 void main() {
   group('ReportIssueDraft', () {

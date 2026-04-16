@@ -51,7 +51,7 @@ import 'package:lantern/features/private_server/private_server_setup.dart'
 import 'package:lantern/features/private_server/private_sever_details.dart'
     as _i29;
 import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i30;
-import 'package:lantern/features/report_Issue/report_issue.dart' as _i31;
+import 'package:lantern/features/report_issue/report_issue.dart' as _i31;
 import 'package:lantern/features/setting/appearance.dart' as _i4;
 import 'package:lantern/features/setting/download_links.dart' as _i12;
 import 'package:lantern/features/setting/follow_us.dart' as _i13;

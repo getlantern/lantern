@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/features/report_Issue/provider/report_issue_draft_notifier.dart';
+import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ReportIssue')

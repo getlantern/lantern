@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_theme.dart';
-import 'package:lantern/features/report_Issue/report_issue.dart';
+import 'package:lantern/features/report_issue/report_issue.dart';
 
 void main() {
   testWidgets('description draft survives leaving and reopening the screen', (
