@@ -198,7 +198,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.eventEmitter = eventEmitter
 
 	lc.listenConfigEvents()
-	lc.listenAutoSelectedEvents()
+	go lc.listenAutoSelectedEvents()
 	go lc.listenDataCapEvents()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -225,8 +225,17 @@ func (lc *LanternCore) listenConfigEvents() {
 	})
 }
 
+// listenAutoSelectedEvents subscribes to auto-selected-server events over the
+// IPC stream and forwards them to Flutter as EventTypeServerLocation.
+//
+// Must be called as a goroutine — AutoSelectedEvents blocks on the SSE stream
+// until ctx is cancelled or the connection drops.
+//
+// On the mobile/macOS split the event is emitted inside the packet-tunnel
+// extension's radiance process; subscribing via the in-process events.Subscribe
+// fan-out does not cross that boundary, so we use the IPC stream instead.
 func (lc *LanternCore) listenAutoSelectedEvents() {
-	events.SubscribeContext(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
 		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
 		if err != nil || !found {
 			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
@@ -240,6 +249,9 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 		slog.Debug("Auto location server:", "server", string(jsonBytes))
 		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
 	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("auto-selected event stream ended", "error", err)
+	}
 }
 
 func (lc *LanternCore) listenDataCapEvents() {
