@@ -24,7 +24,13 @@ class DataUsage extends ConsumerWidget {
         final dataCap = dataCapResponse.usage!;
 
         /// Do all math in BYTES
-        final int totalBytes = dataCap.bytesAllotted;
+        final int totalBytes = max(0, dataCap.bytesAllotted);
+        if (totalBytes == 0) {
+          appLogger.warning(
+            'Data cap enabled but bytesAllotted is 0; hiding data usage card to avoid false cap reached UI',
+          );
+          return const SizedBox.shrink();
+        }
         final int usedBytes = dataCap.bytesUsed.clamp(0, totalBytes);
         final int remainingBytes = totalBytes - usedBytes;
         final isDataCapReached = usedBytes >= totalBytes;
@@ -56,9 +62,7 @@ class DataUsage extends ConsumerWidget {
 
         final usageString = '$usedData/$totalData';
 
-        final newProgress = dataCap.bytesAllotted == 0
-            ? 0.0
-            : (dataCap.bytesUsed / dataCap.bytesAllotted).clamp(0.0, 1.0);
+        final newProgress = (usedBytes / totalBytes).clamp(0.0, 1.0);
 
         return Container(
           decoration: BoxDecoration(
