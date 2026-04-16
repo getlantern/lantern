@@ -447,7 +447,7 @@ class MethodHandler : FlutterPlugin,
                             map["planId"] as String
                         )
                         withContext(Dispatchers.Main) {
-                            success(subscriptionData)
+                            success(subscriptionData.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -512,9 +512,9 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val token = call.arguments<String>()
-                        val bytes = Mobile.oAuthLoginCallback(token)
+                        val json = Mobile.oAuthLoginCallback(token)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -529,9 +529,9 @@ class MethodHandler : FlutterPlugin,
             Methods.GetUserData.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.userData()
+                        val json = Mobile.userData()
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -546,9 +546,9 @@ class MethodHandler : FlutterPlugin,
             Methods.FetchUserData.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.fetchUserData()
+                        val json = Mobile.fetchUserData()
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
 
                     }.onFailure { e ->
@@ -647,9 +647,9 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.login(email, password)
+                        val json = Mobile.login(email, password)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -686,9 +686,9 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val email = call.arguments<String>();
                         AppLogger.d(TAG, "Logout email: $email")
-                        val bytes = Mobile.logout(email)
+                        val json = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -707,9 +707,9 @@ class MethodHandler : FlutterPlugin,
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
                         val isSSO = map["isSSO"] as Boolean? ?: error("Missing isSSO")
-                        val bytes = Mobile.deleteAccount(email, password,isSSO)
+                        val json = Mobile.deleteAccount(email, password,isSSO)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1032,9 +1032,9 @@ class MethodHandler : FlutterPlugin,
             Methods.FeatureFlag.method -> {
                 scope.launch {
                     result.runCatching {
-                        val map = Mobile.availableFeatures()
+                        val flags = Mobile.availableFeatures()
                         withContext(Dispatchers.Main) {
-                            success(String(map))
+                            success(if (flags.isEmpty()) "{}" else flags)
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1092,7 +1092,7 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val data = Mobile.getAvailableServers()
                         withContext(Dispatchers.Main) {
-                            success(String(data))
+                            success(if (data.isEmpty()) "[]" else data)
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1124,7 +1124,7 @@ class MethodHandler : FlutterPlugin,
             Methods.GetSelectedServerJSON.method -> {
                 scope.handleValue(result, "get_selected_server_json") {
                     val data = Mobile.getSelectedServerJSON()
-                    if (data != null && data.isNotEmpty()) String(data) else "{}"
+                    if (data.isNullOrEmpty()) "{}" else data
                 }
             }
 
