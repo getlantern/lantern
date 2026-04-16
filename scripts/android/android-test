@@ -66,14 +66,50 @@ fi
 APK="$1"; shift
 ENV_ARGS=("$@")
 
-# --- Pick an AVD ---
+# --- Ensure we have a rootable AVD ---
 # Prefer lantern-test (Google APIs, rootable), fall back to first available.
 AVD=$("$EMULATOR" -list-avds 2>/dev/null | grep "^lantern-test$" || "$EMULATOR" -list-avds 2>/dev/null | head -1)
 if [ -z "$AVD" ]; then
-    echo "Error: No AVDs found. Create one with Android Studio or:"
-    echo "  sdkmanager 'system-images;android-35;google_apis;arm64-v8a'"
-    echo "  avdmanager create avd -n lantern-test -k 'system-images;android-35;google_apis;arm64-v8a'"
-    exit 1
+    echo "No AVDs found. Setting up lantern-test automatically..."
+
+    # Find sdkmanager and avdmanager
+    if [ -n "${ANDROID_HOME:-}" ]; then
+        SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+        AVDMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
+    elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+        SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+        AVDMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager"
+    else
+        SDKMANAGER="$(command -v sdkmanager 2>/dev/null || true)"
+        AVDMANAGER="$(command -v avdmanager 2>/dev/null || true)"
+    fi
+
+    if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+        echo "Error: sdkmanager not found. Install Android SDK command-line tools first."
+        exit 1
+    fi
+    if [ -z "$AVDMANAGER" ] || [ ! -x "$AVDMANAGER" ]; then
+        echo "Error: avdmanager not found. Install Android SDK command-line tools first."
+        exit 1
+    fi
+
+    # Detect host architecture for the system image
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        arm64|aarch64) IMG_ABI="arm64-v8a" ;;
+        x86_64)        IMG_ABI="x86_64" ;;
+        *)             IMG_ABI="arm64-v8a" ;;
+    esac
+
+    IMAGE="system-images;android-35;google_apis;${IMG_ABI}"
+    echo "Installing system image: $IMAGE"
+    "$SDKMANAGER" "$IMAGE"
+
+    echo "Creating AVD: lantern-test"
+    echo "no" | "$AVDMANAGER" create avd -n lantern-test -k "$IMAGE" --force
+
+    AVD="lantern-test"
+    echo "AVD created: $AVD"
 fi
 
 # --- Select / start emulator target ---
