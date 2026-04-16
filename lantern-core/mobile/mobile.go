@@ -169,12 +169,18 @@ func IsSmartRoutingEnabled() bool {
 	return ok
 }
 
-func AvailableFeatures() []byte {
-	b, err := withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.AvailableFeatures(), nil })
+// AvailableFeatures returns feature-flag data as a JSON string.
+//
+// Returns string (not []byte) so the gomobile wrapper marshals the return value
+// via C.malloc rather than leaving it as a Go slice header. This avoids a
+// runtime.bulkBarrierPreWrite panic on the cgo callback goroutine during GC
+// (see getlantern/engineering#3175).
+func AvailableFeatures() string {
+	s, err := withCoreR(func(c lanterncore.Core) (string, error) { return string(c.AvailableFeatures()), nil })
 	if err != nil {
-		return []byte(`{}`)
+		return `{}`
 	}
-	return b
+	return s
 }
 
 func MyDeviceId() (string, error) {
@@ -342,8 +348,12 @@ func StopAutoLocationListener() error {
 }
 
 // GetAvailableServers returns the available servers in JSON format.
-func GetAvailableServers() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
+//
+// Returns string (not []byte) — see AvailableFeatures for the rationale.
+func GetAvailableServers() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return string(c.GetAvailableServers()), nil
+	})
 }
 
 func IsVPNConnected() bool {
@@ -366,9 +376,10 @@ func GetSelectedServer() string {
 	return s
 }
 
-func GetSelectedServerJSON() ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
-		return c.GetSelectedServerJSON()
+func GetSelectedServerJSON() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.GetSelectedServerJSON()
+		return string(b), err
 	})
 }
 
@@ -430,15 +441,21 @@ func LoadInstalledApps(dataDir string) (string, error) {
 
 // User Methods
 // UserData returns pre-fetched user data.
-func UserData() ([]byte, error) {
+func UserData() (string, error) {
 	slog.Debug("User data")
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.UserData() })
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.UserData()
+		return string(b), err
+	})
 }
 
 // FetchUserData will get the user data from the server
-func FetchUserData() ([]byte, error) {
+func FetchUserData() (string, error) {
 	slog.Debug("Fetching user data")
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.FetchUserData() })
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.FetchUserData()
+		return string(b), err
+	})
 }
 
 // OAuth Methods
@@ -446,8 +463,11 @@ func OAuthLoginUrl(provider string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.OAuthLoginUrl(provider) })
 }
 
-func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.OAuthLoginCallback(oAuthToken) })
+func OAuthLoginCallback(oAuthToken string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.OAuthLoginCallback(oAuthToken)
+		return string(b), err
+	})
 }
 
 func StripeSubscription(email, planID string) (string, error) {
@@ -461,15 +481,15 @@ func StripeBillingPortalUrl() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
-func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
 		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		var resp account.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
-			return nil, fmt.Errorf("error unmarshalling acknowledge google purchase response: %v", err)
+			return "", fmt.Errorf("error unmarshalling acknowledge google purchase response: %v", err)
 		}
 
 		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
@@ -482,29 +502,29 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) ([]byte, error) {
 				settings.TokenKey:  resp.ActualUserToken,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("error updating settings after account switch: %v", err)
+				return "", fmt.Errorf("error updating settings after account switch: %v", err)
 			}
 			userData, err := FetchUserData()
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 			return userData, nil
 		}
-		/// Purchase was made on the same account, just return nil to indicate success
-		return nil, nil
+		/// Purchase was made on the same account, just return "" to indicate success
+		return "", nil
 
 	})
 }
 
-func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) {
+func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
 		data, err := c.AcknowledgeApplePurchase(receipt, planII)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		var resp account.VerifySubscriptionResponse
 		if err := json.Unmarshal([]byte(data), &resp); err != nil {
-			return nil, fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
+			return "", fmt.Errorf("error unmarshalling acknowledge apple purchase response: %v", err)
 		}
 		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
 			/// This means the purchase was made on a different account and we need to switch to that account
@@ -516,17 +536,17 @@ func AcknowledgeApplePurchase(receipt, planII string) ([]byte, error) {
 				settings.TokenKey:  resp.ActualUserToken,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("error updating settings after account switch: %v", err)
+				return "", fmt.Errorf("error updating settings after account switch: %v", err)
 			}
 			userData, err := FetchUserData()
 			if err != nil {
-				return nil, err
+				return "", err
 			}
-			slog.Debug("fetched user data after account switch", "userdata", string(userData))
+			slog.Debug("fetched user data after account switch", "userdata", userData)
 			return userData, nil
 		}
-		/// Purchase was made on the same account, just return nil to indicate success
-		return nil, nil
+		/// Purchase was made on the same account, just return "" to indicate success
+		return "", nil
 
 	})
 }
@@ -547,8 +567,11 @@ func StripeSubscriptionPaymentRedirect(subType, planId, email string) (string, e
 
 /// User management apis
 
-func Login(email, password string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Login(email, password) })
+func Login(email, password string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.Login(email, password)
+		return string(b), err
+	})
 }
 
 func StartChangeEmail(newEmail, password string) error {
@@ -563,8 +586,11 @@ func SignUp(email, password string) error {
 	return withCore(func(c lanterncore.Core) error { return c.SignUp(email, password) })
 }
 
-func Logout(email string) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
+func Logout(email string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.Logout(email)
+		return string(b), err
+	})
 }
 
 func GetDataCapInfo() (string, error) {
@@ -607,8 +633,11 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string, _ bool) ([]byte, error) {
-	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
+func DeleteAccount(email, password string, _ bool) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.DeleteAccount(email, password)
+		return string(b), err
+	})
 }
 
 func ActivationCode(email, resellerCode string) error {

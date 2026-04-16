@@ -438,13 +438,15 @@ class MethodHandler {
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
       var error: NSError?
-      let data = try MobileOAuthLoginCallback(token, &error)
+      let json = try MobileOAuthLoginCallback(token, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
         return
       }
       await MainActor.run {
-        result(data)
+        // Dart side expects bytes to utf8.decode — convert the gomobile-returned
+        // string back to Data to preserve the Flutter contract.
+        result(json?.data(using: .utf8))
       }
     }
   }
@@ -452,13 +454,13 @@ class MethodHandler {
   private func getUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = try MobileUserData(&error)
+      let json = try MobileUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
         return
       }
       await MainActor.run {
-        result(data)
+        result(json?.data(using: .utf8))
       }
     }
   }
@@ -480,13 +482,13 @@ class MethodHandler {
   private func fetchUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let bytes = MobileFetchUserData(&error)
+      let json = MobileFetchUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_USER_DATA_ERROR")
         return
       }
       await MainActor.run {
-        result(bytes)
+        result(json?.data(using: .utf8))
       }
     }
   }
@@ -536,13 +538,13 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
+      let json = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
       await MainActor.run {
-        result(data)
+        result(json?.data(using: .utf8))
       }
     }
   }
@@ -607,7 +609,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload?.data(using: .utf8))
       }
     }
   }
@@ -635,7 +637,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload?.data(using: .utf8))
       }
     }
   }
@@ -652,7 +654,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload?.data(using: .utf8))
       }
     }
   }
@@ -930,15 +932,9 @@ class MethodHandler {
 
   func featureFlags(result: @escaping FlutterResult) {
     Task {
-      let flags = MobileAvailableFeatures()
-      guard let flags else {
-        await MainActor.run {
-          result("{}")
-        }
-        return
-      }
+      let flags = MobileAvailableFeatures() ?? ""
       await MainActor.run {
-        result(String(data: flags, encoding: .utf8))
+        result(flags.isEmpty ? "{}" : flags)
       }
     }
   }
@@ -963,12 +959,9 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "GET_LANTERN_SERVERS_ERROR")
         return
       }
-      guard let servers else {
-        await MainActor.run { result("[]") }
-        return
-      }
       await MainActor.run {
-        result(String(data: servers, encoding: .utf8))
+        let s = servers ?? ""
+        result(s.isEmpty ? "[]" : s)
       }
     }
   }
@@ -995,12 +988,8 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "GET_SELECTED_SERVER_ERROR")
         return
       }
-      let json: String
-      if let data, let decoded = String(data: data, encoding: .utf8), !decoded.isEmpty {
-        json = decoded
-      } else {
-        json = "{}"
-      }
+      let s = data ?? ""
+      let json = s.isEmpty ? "{}" : s
       await MainActor.run {
         result(json)
       }
