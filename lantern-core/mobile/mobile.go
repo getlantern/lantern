@@ -263,6 +263,12 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if err != nil {
 			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
 		}
+		// Start() spins up background listeners including AutoSelectedChangeListener,
+		// which polls CurrentAutoSelectedServer and emits AutoSelectedEvent. Without
+		// this, the packet-tunnel extension — the process that actually runs the
+		// tunnel — never emits auto-select events, so no subscribers (including the
+		// host app's IPC SSE stream) ever see them.
+		be.Start()
 		ipcServer = ipc.NewServer(be, !common.IsMobile())
 		ipcClient = newLoopbackClient(be)
 		return struct{}{}, ipcServer.Start()
