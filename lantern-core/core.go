@@ -8,13 +8,12 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/config"
-	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
@@ -29,7 +28,6 @@ type EventType = string
 
 const (
 	EventTypeServerLocation EventType = "server-location"
-	EventTypeConfig         EventType = "config"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -56,6 +54,10 @@ type App interface {
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
 	GetSelectedServerJSON() ([]byte, error)
+	GetSelectedServerTag() (string, error)
+	GetAutoLocationJSON() ([]byte, error)
+	CheckDaemonReachable() error
+	PatchSettings(settings.Settings) error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	StartBackgroundListeners()
@@ -140,6 +142,7 @@ type VPN interface {
 	ConnectVPN(tag string) error
 	DisconnectVPN() error
 	VPNStatus() (vpn.VPNStatus, error)
+	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
 }
 
 type Core interface {
@@ -197,8 +200,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
 
-	lc.listenConfigEvents()
-	lc.listenAutoSelectedEvents()
+	go lc.listenAutoSelectedEvents()
 	go lc.listenDataCapEvents()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -218,41 +220,47 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
-func (lc *LanternCore) listenConfigEvents() {
-	events.SubscribeContext(lc.ctx, func(evt config.NewConfigEvent) {
-		slog.Debug("Config updated, notifying Flutter")
-		lc.notifyFlutter(EventTypeConfig, "")
-	})
-}
-
 func (lc *LanternCore) listenAutoSelectedEvents() {
-	events.SubscribeContext(lc.ctx, func(evt vpn.AutoSelectedEvent) {
-		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
-		if err != nil || !found {
-			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+	bo := common.NewBackoff(30 * time.Second)
+	for lc.ctx.Err() == nil {
+		err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+			server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+			if err != nil || !found {
+				slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+				return
+			}
+			jsonBytes, err := json.Marshal(server)
+			if err != nil {
+				slog.Error("Error marshalling server location", "error", err)
+				return
+			}
+			slog.Debug("Auto location server:", "server", string(jsonBytes))
+			lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
+		})
+		if lc.ctx.Err() != nil {
 			return
 		}
-		jsonBytes, err := json.Marshal(server)
-		if err != nil {
-			slog.Error("Error marshalling server location", "error", err)
-			return
-		}
-		slog.Debug("Auto location server:", "server", string(jsonBytes))
-		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
-	})
+		slog.Warn("auto-selected event stream ended, reconnecting", "error", err)
+		bo.Wait(lc.ctx)
+	}
 }
 
 func (lc *LanternCore) listenDataCapEvents() {
-	err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
-		jsonBytes, err := json.Marshal(info)
-		if err != nil {
-			slog.Error("Error marshalling DataCap event", "error", err)
+	bo := common.NewBackoff(30 * time.Second)
+	for lc.ctx.Err() == nil {
+		err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
+			jsonBytes, err := json.Marshal(info)
+			if err != nil {
+				slog.Error("Error marshalling DataCap event", "error", err)
+				return
+			}
+			lc.notifyFlutter("data-cap-event", string(jsonBytes))
+		})
+		if lc.ctx.Err() != nil {
 			return
 		}
-		lc.notifyFlutter("data-cap-event", string(jsonBytes))
-	})
-	if err != nil && lc.ctx.Err() == nil {
-		slog.Error("datacap event stream ended", "error", err)
+		slog.Warn("datacap event stream ended, reconnecting", "error", err)
+		bo.Wait(lc.ctx)
 	}
 }
 
@@ -278,6 +286,10 @@ func (lc *LanternCore) IsVPNRunning() (bool, error) {
 		return false, err
 	}
 	return status == vpn.Connected, nil
+}
+
+func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error {
+	return lc.client.VPNStatusEvents(ctx, callback)
 }
 
 /////////////////
@@ -373,6 +385,37 @@ func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
 
 func (lc *LanternCore) GetSelectedServerJSON() ([]byte, error) {
 	return lc.client.SelectedServerJSON(lc.ctx)
+}
+
+func (lc *LanternCore) GetSelectedServerTag() (string, error) {
+	server, exists, err := lc.client.SelectedServer(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", nil
+	}
+	return server.Tag, nil
+}
+
+func (lc *LanternCore) GetAutoLocationJSON() ([]byte, error) {
+	server, err := lc.client.AutoSelected(lc.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get auto location: %w", err)
+	}
+	return json.Marshal(server)
+}
+
+func (lc *LanternCore) CheckDaemonReachable() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	_, err := lc.client.VPNStatus(ctx)
+	return err
+}
+
+func (lc *LanternCore) PatchSettings(s settings.Settings) error {
+	_, err := lc.client.PatchSettings(lc.ctx, s)
+	return err
 }
 
 /////////////////////

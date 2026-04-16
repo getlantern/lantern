@@ -29,7 +29,15 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   Future<PlansData> fetchPlans({bool fromBackground = false}) async {
-    if (!fromBackground) {
+    return _fetchPlansWithRetry(
+        fromBackground: fromBackground, attempt: 0);
+  }
+
+  Future<PlansData> _fetchPlansWithRetry({
+    required bool fromBackground,
+    required int attempt,
+  }) async {
+    if (!fromBackground && attempt == 0) {
       state = const AsyncLoading();
     }
     final result = await ref.read(lanternServiceProvider).plans();
@@ -38,6 +46,17 @@ class PlansNotifier extends _$PlansNotifier {
         if (fromBackground) {
           appLogger.error('Error fetching plans in background: $error');
           return state.value ?? (throw Exception('Plans fetch failed'));
+        }
+        // Retry up to 2 times with increasing delay — the first attempt
+        // often fails at startup before radiance is fully ready.
+        if (attempt < 2) {
+          appLogger.info(
+              'Plans fetch failed, retrying (${attempt + 1}/2)...');
+          return Future.delayed(
+            Duration(seconds: 2 * (attempt + 1)),
+            () => _fetchPlansWithRetry(
+                fromBackground: false, attempt: attempt + 1),
+          );
         }
         state = AsyncError(error, StackTrace.current);
         throw Exception('Plans fetch failed');

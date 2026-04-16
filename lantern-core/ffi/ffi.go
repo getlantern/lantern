@@ -23,9 +23,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/apps"
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern/lantern-core/utils"
-	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 
-	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -140,7 +138,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		// Start the VPN status listener immediately so the UI reflects the
 		// current VPN state even if the VPN was already connected (e.g. macOS
 		// system extension started before the Flutter app).
-		startStatusListener(core.Client())
+		startStatusListener(core)
 
 		slog.Debug("Radiance setup successfully")
 		return C.CString("ok")
@@ -350,15 +348,11 @@ func getAutoLocation() *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		server, err := vpn_tunnel.GetAutoLocation(c.Client())
+		data, err := c.GetAutoLocationJSON()
 		if err != nil {
 			return SendError(err)
 		}
-		jsonBytes, err := json.Marshal(server)
-		if err != nil {
-			return SendError(fmt.Errorf("error marshalling server: %v", err))
-		}
-		return C.CString(string(jsonBytes))
+		return C.CString(string(data))
 	})
 }
 
@@ -455,7 +449,7 @@ var (
 
 // startStatusListener subscribes to radiance's VPN status SSE stream and
 // forwards status changes to Flutter via the Dart status port.
-func startStatusListener(client *ipc.Client) {
+func startStatusListener(c lanterncore.Core) {
 	statusListenerOnce.Do(func() {
 		go func() {
 			for {
@@ -463,7 +457,7 @@ func startStatusListener(client *ipc.Client) {
 					time.Sleep(100 * time.Millisecond)
 					continue
 				}
-				client.VPNStatusEvents(context.Background(), func(evt vpn.StatusUpdateEvent) {
+				c.VPNStatusEvents(context.Background(), func(evt vpn.StatusUpdateEvent) {
 					ui, errMsg := mapStatusEvent(evt)
 
 					statusListenerLastMu.Lock()
@@ -511,14 +505,13 @@ func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		startStatusListener(c.Client())
+		startStatusListener(c)
 
-		if err := checkDaemonReachable(c.Client()); err != nil {
+		if err := checkDaemonReachable(c); err != nil {
 			return C.CString(err.Error())
 		}
 
-		ctx := context.Background()
-		if err := c.Client().ConnectVPN(ctx, ""); err != nil {
+		if err := c.ConnectVPN(""); err != nil {
 			return C.CString(fmt.Sprintf("start service failed: %v", err))
 		}
 
@@ -534,10 +527,7 @@ func stopVPN() *C.char {
 			return errStr
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		if err := c.Client().DisconnectVPN(ctx); err != nil {
+		if err := c.DisconnectVPN(); err != nil {
 			return C.CString(fmt.Sprintf("stop service failed: %v", err))
 		}
 
@@ -553,14 +543,13 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 		if errStr != nil {
 			return errStr
 		}
-		startStatusListener(c.Client())
+		startStatusListener(c)
 
-		if err := checkDaemonReachable(c.Client()); err != nil {
+		if err := checkDaemonReachable(c); err != nil {
 			return SendError(err)
 		}
 
-		ctx := context.Background()
-		if err := c.Client().ConnectVPN(ctx, tag); err != nil {
+		if err := c.ConnectVPN(tag); err != nil {
 			return SendError(fmt.Errorf("start service failed: %w", err))
 		}
 
@@ -575,14 +564,11 @@ func isVPNConnected() C.int {
 		return 0
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
-	defer cancel()
-
-	status, err := c.Client().VPNStatus(ctx)
+	running, err := c.IsVPNRunning()
 	if err != nil {
 		return 0
 	}
-	if status == vpn.Connected {
+	if running {
 		return 1
 	}
 	return 0

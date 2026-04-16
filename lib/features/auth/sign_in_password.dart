@@ -159,9 +159,13 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
   void startDeviceFlow(List<DeviceModel> devices, String password,
       BuildContext context) {
     appRouter.push(DeviceLimitReached(devices: devices)).then(
-      (value) {
+      (value) async {
         if (value != null && value is bool) {
-          /// If a device was selected, remove it and now sign in
+          // Give the backend time to propagate the device removal before
+          // retrying sign-in, otherwise the request may still hit the
+          // device limit.
+          await Future.delayed(const Duration(seconds: 1));
+          if (!mounted) return;
           signInWithPassword(password);
         }
       },

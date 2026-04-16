@@ -26,10 +26,11 @@ var (
 	lanternCore        atomic.Value
 	errLanternNotReady = errors.New("radiance not initialized")
 
-	ipcServer *ipc.Server
-	ipcClient *ipc.Client // loopback client for extension process
-	ipcMu     sync.Mutex
-	ipcOnce   sync.Once
+	ipcServer  *ipc.Server
+	ipcClient  *ipc.Client // loopback client for extension process
+	ipcBackend *backend.LocalBackend
+	ipcMu      sync.Mutex
+	ipcOnce    sync.Once
 )
 
 func getCore() (lanterncore.Core, error) {
@@ -269,6 +270,8 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if err != nil {
 			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
 		}
+		be.Start()
+		ipcBackend = be
 		ipcServer = ipc.NewServer(be, !common.IsMobile())
 		ipcClient = newLoopbackClient(be)
 		return struct{}{}, ipcServer.Start()
@@ -280,6 +283,10 @@ func CloseIPCServer() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
 		defer ipcMu.Unlock()
+		if ipcBackend != nil {
+			ipcBackend.Close()
+			ipcBackend = nil
+		}
 		if ipcServer != nil {
 			ipcServer.Close()
 			ipcServer = nil
@@ -358,7 +365,7 @@ func GetAvailableServers() (string, error) {
 
 func IsVPNConnected() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		return vpn_tunnel.IsVPNRunning(c.Client()), nil
+		return c.IsVPNRunning()
 	})
 	if err != nil {
 		return false
@@ -368,7 +375,7 @@ func IsVPNConnected() bool {
 
 func GetSelectedServer() string {
 	s, err := withCoreR(func(c lanterncore.Core) (string, error) {
-		return vpn_tunnel.GetSelectedServer(c.Client()), nil
+		return c.GetSelectedServerTag()
 	})
 	if err != nil {
 		return ""
@@ -385,16 +392,12 @@ func GetSelectedServerJSON() (string, error) {
 
 func GetAutoLocation() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		server, err := vpn_tunnel.GetAutoLocation(c.Client())
+		data, err := c.GetAutoLocationJSON()
 		if err != nil {
 			return "", err
 		}
-		jsonBytes, err := json.Marshal(server)
-		if err != nil {
-			return "", fmt.Errorf("error marshalling server: %v", err)
-		}
-		slog.Debug("Auto location server:", "server", string(jsonBytes))
-		return string(jsonBytes), nil
+		slog.Debug("Auto location server:", "server", string(data))
+		return string(data), nil
 	})
 }
 
@@ -495,13 +498,10 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
 			/// This means the purchase was made on a different account and we need to switch to that account
 			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
-			//reset all data
-			ctx := context.Background()
-			_, err := c.Client().PatchSettings(ctx, settings.Settings{
+			if err := c.PatchSettings(settings.Settings{
 				settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
 				settings.TokenKey:  resp.ActualUserToken,
-			})
-			if err != nil {
+			}); err != nil {
 				return "", fmt.Errorf("error updating settings after account switch: %v", err)
 			}
 			userData, err := FetchUserData()
@@ -529,13 +529,10 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 		if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
 			/// This means the purchase was made on a different account and we need to switch to that account
 			slog.Info("Purchase made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
-			//reset all data
-			ctx := context.Background()
-			_, err := c.Client().PatchSettings(ctx, settings.Settings{
+			if err := c.PatchSettings(settings.Settings{
 				settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
 				settings.TokenKey:  resp.ActualUserToken,
-			})
-			if err != nil {
+			}); err != nil {
 				return "", fmt.Errorf("error updating settings after account switch: %v", err)
 			}
 			userData, err := FetchUserData()

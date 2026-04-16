@@ -5,9 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 @RoutePage(name: 'PrivateServerSetup')
 class PrivateServerSetup extends StatefulHookConsumerWidget {
@@ -18,61 +20,45 @@ class PrivateServerSetup extends StatefulHookConsumerWidget {
 }
 
 class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
-  @override
-  Widget build(BuildContext context) {
-    final serverState = ref.watch(privateServerProvider);
-    final isGCPEnabled = false;
+  final CloudProvider _selectedProvider = CloudProvider.digitalOcean;
 
-    final selectedIdx = useState(0);
-    final CloudProvider selectedProvider = CloudProvider.digitalOcean;
-    final route = ModalRoute.of(context);
-    useEffect(() {
-      if (route == null || !route.isCurrent) return null;
+  /// Handle a non-openBrowser server state update.
+  /// Returns true if the status was recognized and acted on.
+  bool _handleServerState(PrivateServerStatus serverState) {
+    if (!context.mounted) return false;
 
-      if (serverState.status == 'openBrowser') {
-        UrlUtils.openWebview<bool>(
-          serverState.data!,
-          onWebviewResult: (ok) {
-            if (ok) context.showLoadingDialog();
-          },
-        );
-      }
-      if (serverState.status == 'EventTypeOAuthError') {
+    switch (serverState.status) {
+      case 'EventTypeOAuthError':
         context.hideLoadingDialog();
         context.showSnackBar('private_server_setup_error'.i18n);
-      }
-      if (serverState.status == 'EventTypeOAuthCancelled') {
+        return true;
+      case 'EventTypeOAuthCancelled':
         context.hideLoadingDialog();
-      }
-      if (serverState.status == 'EventTypeNoProjects' ||
-          serverState.status == 'error') {
+        return true;
+      case 'EventTypeNoProjects':
+      case 'error':
         context.hideLoadingDialog();
         context.showSnackBar(
             serverState.error ?? 'private_server_setup_error'.i18n);
-      }
-      if (serverState.status == 'EventTypeOnlyCompartment') {
+        return true;
+      case 'EventTypeOnlyCompartment':
         context.hideLoadingDialog();
         appRouter.push(PrivateServerDetails(
-            accounts: [], provider: selectedProvider, isPreFilled: true));
-      }
-      if (serverState.status == 'EventTypeAccounts') {
+            accounts: [], provider: _selectedProvider, isPreFilled: true));
+        return true;
+      case 'EventTypeAccounts':
         context.hideLoadingDialog();
         final accounts = serverState.data!.split(', ');
         appRouter.push(PrivateServerDetails(
-            accounts: accounts, provider: selectedProvider));
-      }
-      if (serverState.status == 'EventTypeValidationError') {
-        if (!context.mounted) {
-          return;
-        }
-
-        /// User has created new account but it does not have billing set up yet
+            accounts: accounts, provider: _selectedProvider));
+        return true;
+      case 'EventTypeValidationError':
         if (serverState.error?.contains('account is not active') ?? false) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.hideLoadingDialog();
             appRouter.push(PrivateServerAddBilling());
           });
-          return;
+          return true;
         }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.hideLoadingDialog();
@@ -84,6 +70,40 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             content: serverState.error!,
           );
         });
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final serverState = ref.watch(privateServerProvider);
+    final isGCPEnabled = false;
+
+    final selectedIdx = useState(0);
+    final route = ModalRoute.of(context);
+    useEffect(() {
+      if (route == null || !route.isCurrent) return null;
+
+      if (serverState.status == 'openBrowser') {
+        UrlUtils.openWebview<bool>(
+          serverState.data!,
+          onWebviewResult: (ok) {
+            if (ok) {
+              context.showLoadingDialog();
+              // Events from Go may have arrived while the webview was open.
+              // Re-check the current notifier state so they aren't missed.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!context.mounted) return;
+                final current = ref.read(privateServerProvider);
+                _handleServerState(current);
+              });
+            }
+          },
+        );
+      } else {
+        _handleServerState(serverState);
       }
       return null;
     }, [serverState.status]);
@@ -172,6 +192,15 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
 
   Future<void> _continue(
       CloudProvider provider, WidgetRef ref, BuildContext context) async {
+    // The cloud provider OAuth webview may fail to load when VPN is
+    // active (the tunnel can block outbound traffic to the provider).
+    // Disconnect first so the webview can reach the OAuth endpoint.
+    final vpnStatus = ref.read(vpnProvider);
+    if (vpnStatus == VPNStatus.connected ||
+        vpnStatus == VPNStatus.connecting) {
+      await ref.read(vpnProvider.notifier).stopVPN();
+    }
+
     final Either<Failure, Unit> result;
     if (provider == CloudProvider.googleCloud) {
       result = await ref.read(privateServerProvider.notifier).googleCloud();
