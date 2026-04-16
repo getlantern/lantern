@@ -28,6 +28,7 @@ type EventType = string
 
 const (
 	EventTypeServerLocation EventType = "server-location"
+	EventTypeConfig         EventType = "config"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -201,6 +202,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.eventEmitter = eventEmitter
 
 	go lc.listenAutoSelectedEvents()
+	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -241,6 +243,28 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 			return
 		}
 		slog.Warn("auto-selected event stream ended, reconnecting", "error", err)
+		bo.Wait(lc.ctx)
+	}
+}
+
+// listenConfigEvents subscribes to config.NewConfigEvent notifications over
+// the IPC stream and forwards them to Flutter as EventTypeConfig. Flutter's
+// handler refreshes available servers and user data on every notification.
+//
+// The event is emitted inside the packet-tunnel extension's radiance process,
+// so we subscribe via the IPC SSE stream rather than events.SubscribeContext —
+// the in-process fan-out doesn't cross process boundaries.
+func (lc *LanternCore) listenConfigEvents() {
+	bo := common.NewBackoff(30 * time.Second)
+	for lc.ctx.Err() == nil {
+		err := lc.client.ConfigEvents(lc.ctx, func() {
+			slog.Debug("Config updated, notifying Flutter")
+			lc.notifyFlutter(EventTypeConfig, "")
+		})
+		if lc.ctx.Err() != nil {
+			return
+		}
+		slog.Warn("config event stream ended, reconnecting", "error", err)
 		bo.Wait(lc.ctx)
 	}
 }
