@@ -3,11 +3,13 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
@@ -234,23 +236,41 @@ func (lc *LanternCore) listenConfigEvents() {
 // On the mobile/macOS split the event is emitted inside the packet-tunnel
 // extension's radiance process; subscribing via the in-process events.Subscribe
 // fan-out does not cross that boundary, so we use the IPC stream instead.
+//
+// The extension's IPC server only starts when the tunnel starts, so the first
+// subscription attempts at LanternCore startup will get ErrIPCNotRunning.
+// Retry with backoff until we either succeed or ctx is cancelled, mirroring
+// the pattern used by ipc.Client.TailLogs.
 func (lc *LanternCore) listenAutoSelectedEvents() {
-	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
-		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
-		if err != nil || !found {
-			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+	const retryDelay = 500 * time.Millisecond
+	for lc.ctx.Err() == nil {
+		err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+			server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+			if err != nil || !found {
+				slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+				return
+			}
+			jsonBytes, err := json.Marshal(server)
+			if err != nil {
+				slog.Error("Error marshalling server location", "error", err)
+				return
+			}
+			slog.Debug("Auto location server:", "server", string(jsonBytes))
+			lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
+		})
+		if lc.ctx.Err() != nil {
 			return
 		}
-		jsonBytes, err := json.Marshal(server)
-		if err != nil {
-			slog.Error("Error marshalling server location", "error", err)
+		if err != nil && !errors.Is(err, ipc.ErrIPCNotRunning) {
+			slog.Debug("auto-selected event stream ended", "error", err)
+		}
+		// Stream ended (IPC not yet running, server restarted, tunnel cycled, etc.).
+		// Back off briefly and try again.
+		select {
+		case <-time.After(retryDelay):
+		case <-lc.ctx.Done():
 			return
 		}
-		slog.Debug("Auto location server:", "server", string(jsonBytes))
-		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
-	})
-	if err != nil && lc.ctx.Err() == nil {
-		slog.Error("auto-selected event stream ended", "error", err)
 	}
 }
 
