@@ -409,6 +409,9 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if strings.TrimSpace(iconFile) != "" {
 				iconLocation = strings.TrimSpace(fmt.Sprintf("%s,%d", iconFile, iconIndex))
 			}
+			if !hasRenderableWindowsIcon(targetExe, iconLocation) {
+				return nil
+			}
 
 			app := &AppData{
 				Name:     name,
@@ -544,6 +547,13 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			if shouldExcludeUninstallAppCandidate(metadata, exePath, displayName) {
 				continue
 			}
+			iconPath := strings.TrimSpace(displayIcon)
+			if iconPath == "" {
+				iconPath = exePath
+			}
+			if !hasRenderableWindowsIcon(exePath, iconPath) {
+				continue
+			}
 
 			appID := exePath
 			keyID := normalizeKey(appID)
@@ -556,7 +566,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				Name:     displayName,
 				BundleID: appID,
 				AppPath:  exePath,
-				IconPath: strings.TrimSpace(displayIcon),
+				IconPath: iconPath,
 			}
 
 			if cb != nil {
@@ -633,6 +643,9 @@ func collectAppsFromAppxPackages(seen map[string]bool, cb Callback) []*AppData {
 			continue
 		}
 		if isExcludedName(filepathBaseNoExt(exePath)) {
+			continue
+		}
+		if !hasRenderableWindowsIcon(exePath, exePath) {
 			continue
 		}
 
@@ -735,6 +748,11 @@ func isNonUserFacingAppxValue(value string) bool {
 		return true
 	}
 	return strings.Contains(normalized, "autostarter")
+}
+
+func hasRenderableWindowsIcon(appPath, iconPath string) bool {
+	iconBytes, err := LoadAppIconBytes(appPath, iconPath)
+	return err == nil && len(iconBytes) > 0
 }
 
 func appxDisplayName(candidate appxPackageApp) string {
@@ -1026,6 +1044,9 @@ func collectAppsFromPackageCacheHints(hints map[string]shortcutRecoveryHint, see
 			continue
 		}
 		if isExcludedName(filepathBaseNoExt(exePath)) {
+			continue
+		}
+		if !hasRenderableWindowsIcon(exePath, exePath) {
 			continue
 		}
 

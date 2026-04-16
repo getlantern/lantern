@@ -162,6 +162,9 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			}
 
 			iconPath, _ := getIconPath(path)
+			if runtime.GOOS == "windows" && !shouldIncludeWindowsApp(path, iconPath) {
+				return nil
+			}
 
 			var iconBytes []byte
 			if runtime.GOOS != "windows" {
@@ -209,6 +212,14 @@ func isExcludedName(name string) bool {
 	return excludeNames[n]
 }
 
+func shouldIncludeWindowsApp(appPath, iconPath string) bool {
+	if runtime.GOOS != "windows" {
+		return true
+	}
+	iconBytes, err := LoadAppIconBytes(appPath, iconPath)
+	return err == nil && len(iconBytes) > 0
+}
+
 func humanizeName(s string) string {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -242,6 +253,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 				continue
 			}
 			if runtime.GOOS == "windows" && isWindowsUtilityApp(app.AppPath, app.Name) {
+				continue
+			}
+			if runtime.GOOS == "windows" && !shouldIncludeWindowsApp(app.AppPath, app.IconPath) {
 				continue
 			}
 			if runtime.GOOS == "windows" &&
@@ -288,6 +302,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 				continue
 			}
 			if isWindowsUtilityApp(app.AppPath, app.Name) {
+				continue
+			}
+			if !shouldIncludeWindowsApp(app.AppPath, app.IconPath) {
 				continue
 			}
 
