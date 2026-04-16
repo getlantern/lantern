@@ -118,9 +118,11 @@ if [ ${#ENV_ARGS[@]} -gt 0 ]; then
     echo "====================="
     echo ""
 
-    # Push the .env to the app's data directory.
-    # Strategy: try adb root first (Google APIs emulator images), then
-    # run-as (debug APKs), then su (user-rooted devices).
+    # Push the .env to the app's .lantern data directory. On Android, the
+    # Go code's cwd is "/" so the init()-time .env read fails. radiance's
+    # common.Init calls env.LoadFromDir(dataDir) which reads from the
+    # .lantern subdir instead.
+    APP_DATA="/data/data/$PKG/.lantern"
     $ADB_CMD push "$ENV_FILE" /data/local/tmp/.env
     PUSHED=false
 
@@ -129,8 +131,8 @@ if [ ${#ENV_ARGS[@]} -gt 0 ]; then
         if $ADB_CMD root 2>/dev/null | grep -q "already running\|restarting"; then
             sleep 2  # wait for adbd to restart
             $ADB_CMD wait-for-device
-            if $ADB_CMD shell "cp /data/local/tmp/.env /data/data/$PKG/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) /data/data/$PKG/.env" 2>/dev/null; then
-                echo ".env pushed via adb root"
+            if $ADB_CMD shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null; then
+                echo ".env pushed to $APP_DATA via adb root"
                 PUSHED=true
                 $ADB_CMD unroot 2>/dev/null || true
                 sleep 1
@@ -141,16 +143,16 @@ if [ ${#ENV_ARGS[@]} -gt 0 ]; then
 
     # Method 2: run-as (debug/debuggable APKs)
     if ! $PUSHED; then
-        if $ADB_CMD shell "run-as $PKG cp /data/local/tmp/.env /data/data/$PKG/.env" 2>/dev/null; then
-            echo ".env pushed via run-as (debug APK)"
+        if $ADB_CMD shell "run-as $PKG mkdir -p .lantern && run-as $PKG cp /data/local/tmp/.env .lantern/.env" 2>/dev/null; then
+            echo ".env pushed to $APP_DATA via run-as (debug APK)"
             PUSHED=true
         fi
     fi
 
     # Method 3: su (user-rooted devices)
     if ! $PUSHED; then
-        if $ADB_CMD shell "su -c \"cp /data/local/tmp/.env /data/data/$PKG/.env && chown \$(stat -c %u:%g /data/data/$PKG/) /data/data/$PKG/.env\"" 2>/dev/null; then
-            echo ".env pushed via su"
+        if $ADB_CMD shell "su -c \"mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c %u:%g /data/data/$PKG) $APP_DATA/.env\"" 2>/dev/null; then
+            echo ".env pushed to $APP_DATA via su"
             PUSHED=true
         fi
     fi
