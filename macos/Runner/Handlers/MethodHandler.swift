@@ -545,7 +545,7 @@ class MethodHandler {
       await MainActor.run {
         // Dart side expects bytes to utf8.decode — convert the gomobile-returned
         // string back to Data to preserve the Flutter contract.
-        result(json?.data(using: .utf8))
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -559,7 +559,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(json?.data(using: .utf8))
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -587,7 +587,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(json?.data(using: .utf8))
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -601,7 +601,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(json?.data(using: .utf8))
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -666,7 +666,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload?.data(using: .utf8))
+        result(payload.data(using: .utf8))
       }
     }
   }
@@ -694,7 +694,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload?.data(using: .utf8))
+        result(payload.data(using: .utf8))
       }
     }
   }
@@ -711,7 +711,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload?.data(using: .utf8))
+        result(payload.data(using: .utf8))
       }
     }
   }
