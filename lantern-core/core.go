@@ -243,26 +243,34 @@ func (lc *LanternCore) listenConfigEvents() {
 // the pattern used by ipc.Client.TailLogs.
 func (lc *LanternCore) listenAutoSelectedEvents() {
 	const retryDelay = 500 * time.Millisecond
+	slog.Info("auto-selected: starting SSE subscription loop")
 	for lc.ctx.Err() == nil {
+		slog.Info("auto-selected: opening IPC stream")
 		err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+			slog.Info("auto-selected: received event from IPC stream", "tag", evt.Selected)
 			server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
 			if err != nil || !found {
-				slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+				slog.Error("auto-selected: no server found with tag", "tag", evt.Selected, "found", found, "error", err)
 				return
 			}
 			jsonBytes, err := json.Marshal(server)
 			if err != nil {
-				slog.Error("Error marshalling server location", "error", err)
+				slog.Error("auto-selected: marshal server", "error", err)
 				return
 			}
-			slog.Debug("Auto location server:", "server", string(jsonBytes))
+			slog.Info("auto-selected: forwarding to Flutter", "server", string(jsonBytes))
 			lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
 		})
 		if lc.ctx.Err() != nil {
 			return
 		}
-		if err != nil && !errors.Is(err, ipc.ErrIPCNotRunning) {
-			slog.Debug("auto-selected event stream ended", "error", err)
+		switch {
+		case err == nil:
+			slog.Info("auto-selected: IPC stream closed cleanly; reconnecting")
+		case errors.Is(err, ipc.ErrIPCNotRunning):
+			slog.Debug("auto-selected: IPC not running yet; retrying", "error", err)
+		default:
+			slog.Warn("auto-selected: IPC stream ended with error; retrying", "error", err)
 		}
 		// Stream ended (IPC not yet running, server restarted, tunnel cycled, etc.).
 		// Back off briefly and try again.
