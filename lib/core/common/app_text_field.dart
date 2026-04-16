@@ -65,11 +65,14 @@ class AppTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final isMultiline = maxLines > 1;
     Widget inputField = TextFormField(
       key: fieldKey,
       autofocus: autofocus ?? false,
       textAlign: TextAlign.start,
-      textAlignVertical: TextAlignVertical.center,
+      textAlignVertical: isMultiline
+          ? TextAlignVertical.top
+          : TextAlignVertical.center,
       keyboardType: keyboardType,
       autocorrect: autocorrect ?? !obscureText,
       autofillHints: autofillHints,
@@ -147,6 +150,7 @@ class AppTextField extends StatelessWidget {
   }
 
   Widget _buildFix(Object iconPath, {Color? iconColor}) {
+    final isMultiline = maxLines > 1;
     Widget? appAsset;
     if (iconPath is IconData) {
       appAsset = Icon(iconPath, color: iconColor);
@@ -158,9 +162,9 @@ class AppTextField extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
-        alignment: Alignment.topCenter,
+        alignment: isMultiline ? Alignment.topCenter : Alignment.center,
         widthFactor: 1.0,
-        heightFactor: maxLines.toDouble(),
+        heightFactor: 1.0,
         child: appAsset,
       ),
     );

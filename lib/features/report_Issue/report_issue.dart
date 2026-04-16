@@ -1,33 +1,37 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/core/widgets/radio_listview.dart';
+import 'package:lantern/features/report_Issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ReportIssue')
-class ReportIssue extends StatefulHookConsumerWidget {
+class ReportIssue extends ConsumerStatefulWidget {
   final String? description;
   final String? type;
 
-  const ReportIssue({
-    super.key,
-    this.description,
-    this.type,
-  });
+  const ReportIssue({super.key, this.description, this.type});
 
   @override
   ConsumerState<ReportIssue> createState() => _ReportIssueState();
 }
 
 class _ReportIssueState extends ConsumerState<ReportIssue> {
-  final formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  GlobalKey<FormFieldState<String>> _issueTypeFieldKey =
+      GlobalKey<FormFieldState<String>>();
 
-  final issueOptions = <String>[
+  late final TextEditingController _emailController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _issueTypeController;
+  late final FocusNode _issueTypeFocusNode;
+
+  String? _selectedIssue;
+
+  List<String> get issueOptions => <String>[
     'cannot_complete_purchase'.i18n,
     'cannot_sign_in'.i18n,
     'spinner_loads_endlessly'.i18n,
@@ -39,141 +43,169 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final emailController = useTextEditingController();
-    final descriptionController =
-        useTextEditingController(text: widget.description);
-    String type = '';
-    try {
-      if (widget.type != null) {
-        type = issueOptions[int.parse(widget.type.toString())];
-      }
-    } catch (e) {
-      appLogger.error("Error parsing issue type: $e");
-      type = '';
-    }
+  void initState() {
+    super.initState();
 
-    final selectedIssueController = useTextEditingController(text: type);
-    final update = useValueListenable(selectedIssueController);
-    final groupValue = useState('');
-
-    reset() {
-      appLogger.debug("Resetting form");
-      formKey.currentState!.reset();
-      emailController.clear();
-      descriptionController.clear();
-      selectedIssueController.clear();
-    }
-
-    useEffect(() {
-      groupValue.value = update.text;
-      if (groupValue.value.isNotEmpty) {
-        formKey.currentState?.validate();
-      }
-      return null;
-    }, [update]);
-
-    return EnterKeyShortcut(
-      onEnter: () {
-        submitReport(
-          formKey,
-          emailController.text.trim(),
-          selectedIssueController.text,
-          descriptionController.text.trim(),
-          reset,
+    ref
+        .read(reportIssueDraftProvider.notifier)
+        .seedFromRoute(
+          description: widget.description,
+          issueType: _resolveInitialIssueType(),
         );
-      },
-      child: BaseScreen(
-        title: 'report_an_issue'.i18n,
-        body: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Form(
-            key: formKey,
-            child: Column(
-              children: <Widget>[
-                AppTextField(
-                  controller: emailController,
-                  hintText: 'email_optional'.i18n,
-                  label: 'email'.i18n,
-                  prefixIcon: AppImagePaths.email,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value != null &&
-                        value.isNotEmpty &&
-                        !EmailValidator.validate(value)) {
-                      return 'please_enter_valid_email'.i18n;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  autovalidateMode: AutovalidateMode.disabled,
-                  controller: selectedIssueController,
-                  label: 'select_an_issue'.i18n,
-                  hintText: '',
-                  onTap: () => openIssueSelection(
-                      selectedIssueController, groupValue.value),
-                  validator: (value) => (value == null || value.isEmpty)
-                      ? 'please_select_an_issue'.i18n
-                      : null,
-                  prefixIcon: Icons.error_outline,
-                  suffixIcon: Icons.arrow_drop_down,
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: descriptionController,
-                  hintText: '',
-                  label: 'issue_description'.i18n,
-                  prefixIcon: Icons.description_outlined,
-                  maxLines: 10,
-                ),
-                const SizedBox(height: size24),
-                PrimaryButton(
-                  label: 'submit_issue_report'.i18n,
-                  onPressed: () => submitReport(
-                    formKey,
-                    emailController.text.trim(),
-                    selectedIssueController.text,
-                    descriptionController.text.trim(),
-                    reset,
-                  ),
-                ),
-                const SizedBox(height: size24),
-              ],
-            ),
+
+    final draft = ref.read(reportIssueDraftProvider);
+    _selectedIssue = draft.issueType.isEmpty ? null : draft.issueType;
+
+    _emailController = TextEditingController(text: draft.email);
+    _descriptionController = TextEditingController(text: draft.description);
+    _issueTypeController = TextEditingController(text: _selectedIssue ?? '');
+    _issueTypeFocusNode = FocusNode();
+
+    _emailController.addListener(_syncEmailDraft);
+    _descriptionController.addListener(_syncDescriptionDraft);
+    _issueTypeController.addListener(_syncIssueSelection);
+  }
+
+  @override
+  void dispose() {
+    _emailController
+      ..removeListener(_syncEmailDraft)
+      ..dispose();
+    _descriptionController
+      ..removeListener(_syncDescriptionDraft)
+      ..dispose();
+    _issueTypeController
+      ..removeListener(_syncIssueSelection)
+      ..dispose();
+    _issueTypeFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseScreen(
+      title: 'report_an_issue'.i18n,
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              AppTextField(
+                controller: _emailController,
+                hintText: 'email_optional'.i18n,
+                label: 'email'.i18n,
+                prefixIcon: AppImagePaths.email,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      !EmailValidator.validate(value)) {
+                    return 'please_enter_valid_email'.i18n;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              _IssueTypeField(
+                fieldKey: _issueTypeFieldKey,
+                controller: _issueTypeController,
+                focusNode: _issueTypeFocusNode,
+                options: issueOptions,
+                selectedIssue: _selectedIssue,
+                onSelected: _setSelectedIssue,
+              ),
+              const SizedBox(height: 16),
+              AppTextField(
+                fieldKey: const Key('report_issue.description'),
+                controller: _descriptionController,
+                hintText: '',
+                label: 'issue_description'.i18n,
+                prefixIcon: Icons.description_outlined,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                maxLines: 10,
+              ),
+              const SizedBox(height: size24),
+              PrimaryButton(
+                label: 'submit_issue_report'.i18n,
+                isTaller: true,
+                onPressed: submitReport,
+              ),
+              const SizedBox(height: size24),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Future<void> openIssueSelection(
-      TextEditingController selectedIssueController, String groupValue) async {
-    showAppBottomSheet(
-      context: context,
-      title: 'select_an_issue'.i18n,
-      builder: (context, scrollController) {
-        return Expanded(
-          child: RadioListView(
-            scrollController: scrollController,
-            items: issueOptions,
-            onChanged: (String issueType) {
-              selectedIssueController.text = issueType;
-              context.pop();
-            },
-            groupValue: groupValue,
-          ),
-        );
-      },
-    );
+  String? _resolveInitialIssueType() {
+    if (widget.type == null) {
+      return null;
+    }
+
+    try {
+      return issueOptions[int.parse(widget.type.toString())];
+    } catch (e) {
+      appLogger.error("Error parsing issue type: $e");
+      return null;
+    }
   }
 
-  Future<void> submitReport(GlobalKey<FormState> formKey, String email,
-      String issueType, String description, Function() reset) async {
-    if (!formKey.currentState!.validate()) return;
+  void _syncEmailDraft() {
+    ref.read(reportIssueDraftProvider.notifier).setEmail(_emailController.text);
+  }
+
+  void _syncDescriptionDraft() {
+    ref
+        .read(reportIssueDraftProvider.notifier)
+        .setDescription(_descriptionController.text);
+  }
+
+  void _syncIssueSelection() {
+    if (_selectedIssue == null || _issueTypeController.text == _selectedIssue) {
+      return;
+    }
+
+    _issueTypeFieldKey.currentState?.didChange(null);
+    _setSelectedIssue(null);
+  }
+
+  void _setSelectedIssue(String? issueType) {
+    if (_selectedIssue == issueType) {
+      return;
+    }
+
+    setState(() {
+      _selectedIssue = issueType;
+    });
+    ref.read(reportIssueDraftProvider.notifier).setIssueType(issueType ?? '');
+  }
+
+  void _clearDraft() {
+    ref.read(reportIssueDraftProvider.notifier).clear();
+    _emailController.clear();
+    _descriptionController.clear();
+    _issueTypeController.clear();
+
+    setState(() {
+      _selectedIssue = null;
+      _formKey = GlobalKey<FormState>();
+      _issueTypeFieldKey = GlobalKey<FormFieldState<String>>();
+    });
+  }
+
+  Future<void> submitReport() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     hideKeyboard();
+
+    final issueType = _selectedIssue ?? '';
+    final email = _emailController.text.trim();
+    final description = _descriptionController.text.trim();
 
     context.showLoadingDialog();
     appLogger.debug("Submitting issue report: $issueType, $description");
@@ -191,23 +223,111 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       appLogger.error("Unable to resolve log file: $e", st);
       logFilePath = "";
     }
+
     final result = await ref
         .read(lanternServiceProvider)
         .reportIssue(email, issueType, description, device, model, logFilePath);
+
+    if (!mounted) {
+      return;
+    }
+
     result.fold(
       (failure) {
         context.hideLoadingDialog();
         AppDialog.errorDialog(
-            context: context,
-            title: 'error'.i18n,
-            content: failure.localizedErrorMessage);
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (_) {
         context.hideLoadingDialog();
         context.showSnackBar('thanks_for_feedback'.i18n);
-        reset.call();
+        _clearDraft();
       },
+    );
+  }
+}
+
+class _IssueTypeField extends StatelessWidget {
+  final GlobalKey<FormFieldState<String>> fieldKey;
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final List<String> options;
+  final String? selectedIssue;
+  final ValueChanged<String?> onSelected;
+
+  const _IssueTypeField({
+    required this.fieldKey,
+    required this.controller,
+    required this.focusNode,
+    required this.options,
+    required this.selectedIssue,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            'select_an_issue'.i18n,
+            style: textTheme.labelLarge?.copyWith(color: context.textSecondary),
+          ),
+        ),
+        const SizedBox(height: 4),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return DropdownMenuFormField<String>(
+              key: fieldKey,
+              controller: controller,
+              focusNode: focusNode,
+              width: constraints.maxWidth,
+              menuHeight: 320,
+              initialSelection: selectedIssue,
+              requestFocusOnTap: true,
+              enableFilter: true,
+              enableSearch: true,
+              textInputAction: TextInputAction.next,
+              textStyle: textTheme.bodyMedium?.copyWith(
+                color: context.textPrimary,
+              ),
+              leadingIcon: Icon(
+                Icons.error_outline,
+                color: context.textPrimary,
+              ),
+              trailingIcon: Icon(
+                Icons.arrow_drop_down,
+                color: context.textPrimary,
+              ),
+              selectedTrailingIcon: Icon(
+                Icons.arrow_drop_up,
+                color: context.textPrimary,
+              ),
+              dropdownMenuEntries: options
+                  .map(
+                    (issue) =>
+                        DropdownMenuEntry<String>(value: issue, label: issue),
+                  )
+                  .toList(),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'please_select_an_issue'.i18n;
+                }
+                return null;
+              },
+              onSelected: onSelected,
+            );
+          },
+        ),
+      ],
     );
   }
 }
