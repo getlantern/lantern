@@ -26,7 +26,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     if (!ref.mounted) return;
     result.fold(
       (error) {
-        appLogger.error('Failed to fetch selected server from radiance: $error');
+        appLogger.error(
+          'Failed to fetch selected server from radiance: $error',
+          error,
+        );
       },
       (location) {
         state = location;

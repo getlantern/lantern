@@ -475,6 +475,7 @@ class LanternVpnService :
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
                 telemetryConsent = isTelemetryEnabled()
                 env = getRadianceEnv()
+                platform = this@LanternVpnService
             }
         return opts
     }
