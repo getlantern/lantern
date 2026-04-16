@@ -96,6 +96,12 @@ var windowsSystemDisplayNameHints = []string{
 	"xbox",
 }
 
+var windowsAppxExcludedHints = map[string]bool{
+	"hpsmart":            true,
+	"microsoftpeople":    true,
+	"msteamsautostarter": true,
+}
+
 var windowsExcludedStartMenuFolders = []string{
 	"administrative tools",
 	"startup",
@@ -700,7 +706,35 @@ func queryAppxPackageApps() ([]appxPackageApp, error) {
 
 func isNonUserFacingAppxEntry(candidate appxPackageApp) bool {
 	appListEntry := strings.TrimSpace(strings.ToLower(candidate.AppListEntry))
-	return appListEntry == "none"
+	if appListEntry == "none" {
+		return true
+	}
+
+	candidates := []string{
+		candidate.Name,
+		candidate.PackageFamily,
+		candidate.DisplayName,
+		candidate.AppID,
+		appxDisplayName(candidate),
+	}
+	for _, value := range candidates {
+		if isNonUserFacingAppxValue(value) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isNonUserFacingAppxValue(value string) bool {
+	normalized := normalizeExecutableHint(value)
+	if normalized == "" {
+		return false
+	}
+	if windowsAppxExcludedHints[normalized] {
+		return true
+	}
+	return strings.Contains(normalized, "autostarter")
 }
 
 func appxDisplayName(candidate appxPackageApp) string {

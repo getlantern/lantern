@@ -718,3 +718,57 @@ func TestAppxDisplayName(t *testing.T) {
 		t.Fatalf("appxDisplayName(...) = %q, want %q", got, want)
 	}
 }
+
+func TestIsNonUserFacingAppxEntry(t *testing.T) {
+	tests := []struct {
+		name      string
+		candidate appxPackageApp
+		want      bool
+	}{
+		{
+			name: "app list entry none",
+			candidate: appxPackageApp{
+				Name:         "Anthropic.Claude",
+				AppListEntry: "none",
+			},
+			want: true,
+		},
+		{
+			name: "microsoft people display name",
+			candidate: appxPackageApp{
+				Name:         "Microsoft.People",
+				DisplayName:  "Microsoft People",
+				AppListEntry: "default",
+			},
+			want: true,
+		},
+		{
+			name: "autostarter app id",
+			candidate: appxPackageApp{
+				Name:         "MSTeams",
+				AppID:        "MSTeamsAutoStarter",
+				AppListEntry: "default",
+			},
+			want: true,
+		},
+		{
+			name: "normal user app",
+			candidate: appxPackageApp{
+				Name:          "Anthropic.Claude",
+				PackageFamily: "Anthropic.Claude_pzs8sxrjxfjjc",
+				DisplayName:   "Claude",
+				AppListEntry:  "default",
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isNonUserFacingAppxEntry(tt.candidate)
+			if got != tt.want {
+				t.Fatalf("isNonUserFacingAppxEntry(%+v) = %v, want %v", tt.candidate, got, tt.want)
+			}
+		})
+	}
+}
