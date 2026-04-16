@@ -114,31 +114,45 @@ fi
 
 # --- Select / start emulator target ---
 # Use -s <serial> throughout so multiple connected devices don't break adb.
+# The emulator is intentionally left running after the script exits so
+# subsequent runs don't pay the boot cost again.
+APPEAR_TIMEOUT="${APPEAR_TIMEOUT:-120}"
+BOOT_TIMEOUT="${BOOT_TIMEOUT:-300}"
+
 TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
 if [ -z "$TARGET_SERIAL" ]; then
     echo "Starting emulator: $AVD"
     "$EMULATOR" -avd "$AVD" -no-snapshot-load -no-audio -gpu host &
-    EMULATOR_PID=$!
     echo "Waiting for emulator to appear..."
+    START_TIME=$(date +%s)
     while :; do
         TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
         if [ -n "$TARGET_SERIAL" ]; then break; fi
+        if [ $(( $(date +%s) - START_TIME )) -ge "$APPEAR_TIMEOUT" ]; then
+            echo "Error: Timed out after ${APPEAR_TIMEOUT}s waiting for emulator to appear." >&2
+            exit 1
+        fi
         sleep 2
     done
     echo "Waiting for emulator to boot..."
     "$ADB" -s "$TARGET_SERIAL" wait-for-device
+    START_TIME=$(date +%s)
     while [ "$("$ADB" -s "$TARGET_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+        if [ $(( $(date +%s) - START_TIME )) -ge "$BOOT_TIMEOUT" ]; then
+            echo "Error: Timed out after ${BOOT_TIMEOUT}s waiting for emulator to boot." >&2
+            exit 1
+        fi
         sleep 2
     done
     echo "Emulator booted: $TARGET_SERIAL"
 else
     echo "Emulator already running: $TARGET_SERIAL"
 fi
-ADB_CMD="$ADB -s $TARGET_SERIAL"
+ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
 
 # --- Install APK ---
 echo "Installing $APK..."
-$ADB_CMD install -r -t "$APK" 2>&1 | tail -1
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
 
 # --- Push .env file ---
 if [ ${#ENV_ARGS[@]} -gt 0 ]; then
@@ -159,27 +173,27 @@ if [ ${#ENV_ARGS[@]} -gt 0 ]; then
     # common.Init calls env.LoadFromDir(dataDir) which reads from the
     # .lantern subdir instead.
     APP_DATA="/data/data/$PKG/.lantern"
-    $ADB_CMD push "$ENV_FILE" /data/local/tmp/.env
+    "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
     PUSHED=false
 
     # Method 1: adb root (Google APIs emulator images — no Play Store)
     if ! $PUSHED; then
-        if $ADB_CMD root 2>/dev/null | grep -q "already running\|restarting"; then
+        if "${ADB_CMD[@]}" root 2>/dev/null | grep -q "already running\|restarting"; then
             sleep 2  # wait for adbd to restart
-            $ADB_CMD wait-for-device
-            if $ADB_CMD shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null; then
+            "${ADB_CMD[@]}" wait-for-device
+            if "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null; then
                 echo ".env pushed to $APP_DATA via adb root"
                 PUSHED=true
-                $ADB_CMD unroot 2>/dev/null || true
+                "${ADB_CMD[@]}" unroot 2>/dev/null || true
                 sleep 1
-                $ADB_CMD wait-for-device
+                "${ADB_CMD[@]}" wait-for-device
             fi
         fi
     fi
 
     # Method 2: run-as (debug/debuggable APKs)
     if ! $PUSHED; then
-        if $ADB_CMD shell "run-as $PKG mkdir -p .lantern && run-as $PKG cp /data/local/tmp/.env .lantern/.env" 2>/dev/null; then
+        if "${ADB_CMD[@]}" shell "run-as $PKG mkdir -p .lantern && run-as $PKG cp /data/local/tmp/.env .lantern/.env" 2>/dev/null; then
             echo ".env pushed to $APP_DATA via run-as (debug APK)"
             PUSHED=true
         fi
@@ -187,7 +201,7 @@ if [ ${#ENV_ARGS[@]} -gt 0 ]; then
 
     # Method 3: su (user-rooted devices)
     if ! $PUSHED; then
-        if $ADB_CMD shell "su -c \"mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c %u:%g /data/data/$PKG) $APP_DATA/.env\"" 2>/dev/null; then
+        if "${ADB_CMD[@]}" shell "su -c \"mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c %u:%g /data/data/$PKG) $APP_DATA/.env\"" 2>/dev/null; then
             echo ".env pushed to $APP_DATA via su"
             PUSHED=true
         fi
@@ -208,17 +222,17 @@ fi
 
 # --- Restart app ---
 echo "Restarting Lantern..."
-$ADB_CMD shell am force-stop "$PKG" 2>/dev/null || true
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
 sleep 1
-$ADB_CMD shell am start -n "$PKG/$ACTIVITY" 2>/dev/null || \
-    $ADB_CMD shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>/dev/null
+"${ADB_CMD[@]}" shell am start -n "$PKG/$ACTIVITY" 2>/dev/null || \
+    "${ADB_CMD[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>/dev/null
 
 # --- Stream logs ---
 echo ""
 echo "=== Streaming logs (Ctrl+C to stop) ==="
 echo ""
-$ADB_CMD logcat -c  # clear old logs
-exec $ADB_CMD logcat -v time \
+"${ADB_CMD[@]}" logcat -c  # clear old logs
+exec "${ADB_CMD[@]}" logcat -v time \
     -s "GoLog:*" "radiance:*" "sing-box:*" "lantern:*" "flutter:*" \
        "LanternService:*" "VpnService:*" "System.err:*" \
        "AndroidRuntime:*" "lantern-box:*"
