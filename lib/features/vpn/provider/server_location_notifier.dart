@@ -8,18 +8,73 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'server_location_notifier.g.dart';
 
-@Riverpod()
+@Riverpod(keepAlive: true)
 class ServerLocationNotifier extends _$ServerLocationNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   @override
   ServerLocation build() {
     // Use cached value for instant display, then refresh from radiance.
-    _fetchFromRadiance();
+    fetchServerLocation();
     return _storage.getServerLocation() ?? _defaultLocation();
   }
 
-  Future<void> _fetchFromRadiance() async {
+  /// Fetches the current server location from radiance.
+  /// If the cached location is auto-selected, fetches the auto location
+  /// (available when VPN is already connected); falls back to cached value
+  /// silently if the VPN isn't connected yet.
+  /// For explicitly selected servers, fetches from radiance immediately.
+  Future<void> fetchServerLocation() async {
+    final cached = _storage.getServerLocation();
+    final isAuto =
+        cached == null ||
+        cached.serverType.toServerLocationType == ServerLocationType.auto;
+
+    if (isAuto) {
+      await _fetchAutoLocation();
+    } else {
+      await _fetchSelectedLocation();
+    }
+  }
+
+  Future<void> _fetchAutoLocation() async {
+    final result = await ref
+        .read(lanternServiceProvider)
+        .getAutoServerLocation();
+    if (!ref.mounted) return;
+    result.fold(
+      (error) {
+        // Expected when VPN isn't connected yet — auto location is only
+        // available after the tunnel starts. The cached value (from the
+        // last session) is used until the server-location event arrives.
+        appLogger.debug('Auto server location not available yet: $error');
+      },
+      (autoServer) {
+        final countryName = autoServer.location.country;
+        final cityName = autoServer.location.city;
+        final location = ServerLocation(
+          serverType: ServerLocationType.auto.name,
+          serverName: '',
+          displayName: '',
+          protocol: '',
+          city: cityName,
+          autoLocation: AutoLocation(
+            countryCode: autoServer.location.countryCode,
+            country: countryName,
+            displayName: '$countryName - $cityName',
+            tag: autoServer.tag,
+          ),
+        );
+        appLogger.debug(
+          'Fetched auto server location from radiance: ${location.toJson()}',
+        );
+        state = location;
+        _storage.saveServerLocation(location);
+      },
+    );
+  }
+
+  Future<void> _fetchSelectedLocation() async {
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
@@ -32,14 +87,13 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         );
       },
       (location) {
+        appLogger.debug(
+          'Fetched selected server location from radiance: ${location.toJson()}',
+        );
         state = location;
         _storage.saveServerLocation(location);
       },
     );
-    // If VPN is connected with auto/smart location, fetch the actual
-    // connected server details so the UI shows the real location instead
-    // of just "Fastest Server".
-    await ifNeededGetAutoServerLocation();
   }
 
   void updateServerLocation(ServerLocation entity) {
@@ -56,40 +110,13 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     _storage.saveServerLocation(updated);
   }
 
-  Future<void> ifNeededGetAutoServerLocation() async {
+  Future<void> refreshAutoLocationIfNeeded() async {
     final status = ref.read(vpnProvider);
     final current = state;
 
     if (status == VPNStatus.connected &&
         current.serverType.toServerLocationType == ServerLocationType.auto) {
-      final result = await ref
-          .read(lanternServiceProvider)
-          .getAutoServerLocation();
-      result.fold(
-        (error) {
-          appLogger.error("Failed to fetch auto server location: $error");
-        },
-        (autoLocation) {
-          final countryName = autoLocation.location.country;
-          final cityName = autoLocation.location.city;
-
-          updateServerLocation(
-            ServerLocation(
-              serverType: ServerLocationType.auto.name,
-              serverName: '',
-              displayName: '',
-              protocol: '',
-              city: cityName,
-              autoLocation: AutoLocation(
-                countryCode: autoLocation.location.countryCode,
-                country: countryName,
-                displayName: '$countryName - $cityName',
-                tag: autoLocation.tag,
-              ),
-            ),
-          );
-        },
-      );
+      await _fetchAutoLocation();
     }
   }
 

@@ -59,18 +59,6 @@ class VpnNotifier extends _$VpnNotifier {
         /// Mark successful connection in app settings
         ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
 
-        // On desktop platforms that use platform channels (macOS), the
-        // push event from Go may not arrive through the event channel.
-        // Poll as a fallback after a short delay to let the tunnel
-        // finish initialising.
-        Future.delayed(const Duration(seconds: 2), () {
-          if (ref.mounted) {
-            ref
-                .read(serverLocationProvider.notifier)
-                .ifNeededGetAutoServerLocation();
-          }
-        });
-
         if (statusChanged && !suppressConnectionNotifications) {
           sl<NotificationService>().showNotification(
             id: NotificationEvent.vpnConnected.id,
@@ -99,7 +87,10 @@ class VpnNotifier extends _$VpnNotifier {
   /// If a specific server location is set, it will connect to that server
   /// valid server location types are: auto,lanternLocation,privateServer
 
-  Future<Either<Failure, String>> startVPN({bool force = false, bool skipConflictCheck = false}) async {
+  Future<Either<Failure, String>> startVPN({
+    bool force = false,
+    bool skipConflictCheck = false,
+  }) async {
     final lantern = ref.read(lanternServiceProvider);
 
     if (!skipConflictCheck) {

@@ -20,7 +20,7 @@ final class ServerLocationNotifierProvider
         argument: null,
         retry: null,
         name: r'serverLocationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -42,7 +42,7 @@ final class ServerLocationNotifierProvider
 }
 
 String _$serverLocationNotifierHash() =>
-    r'c103e3e1a200243b99afbcc04891ec5c157ad840';
+    r'50f4fb9231f0e795e3af169c94d3b8ba9cbef9e8';
 
 abstract class _$ServerLocationNotifier extends $Notifier<ServerLocation> {
   ServerLocation build();

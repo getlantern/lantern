@@ -13,6 +13,8 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/config"
+	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
@@ -27,6 +29,7 @@ type EventType = string
 
 const (
 	EventTypeServerLocation EventType = "server-location"
+	EventTypeConfig         EventType = "config"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -194,7 +197,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
 
-	go lc.listenAutoSelectedEvents()
+	lc.listenConfigEvents()
+	lc.listenAutoSelectedEvents()
 	go lc.listenDataCapEvents()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -214,8 +218,15 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
+func (lc *LanternCore) listenConfigEvents() {
+	events.SubscribeContext(lc.ctx, func(evt config.NewConfigEvent) {
+		slog.Debug("Config updated, notifying Flutter")
+		lc.notifyFlutter(EventTypeConfig, "")
+	})
+}
+
 func (lc *LanternCore) listenAutoSelectedEvents() {
-	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+	events.SubscribeContext(lc.ctx, func(evt vpn.AutoSelectedEvent) {
 		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
 		if err != nil || !found {
 			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
@@ -229,9 +240,6 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 		slog.Debug("Auto location server:", "server", string(jsonBytes))
 		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
 	})
-	if err != nil && lc.ctx.Err() == nil {
-		slog.Error("auto-selected event stream ended", "error", err)
-	}
 }
 
 func (lc *LanternCore) listenDataCapEvents() {
