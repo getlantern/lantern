@@ -14,21 +14,38 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   @override
   ServerLocation build() {
+    final cached = _storage.getServerLocation();
+    final initial = cached ?? _defaultLocation();
+    appLogger.debug(
+      'ServerLocationNotifier.build() cached=${cached != null} '
+      'type=${initial.serverType} city=${initial.city}',
+    );
     // Use cached value for instant display, then refresh from radiance.
     fetchServerLocation();
-    return _storage.getServerLocation() ?? _defaultLocation();
+    return initial;
   }
 
   /// Fetches the current server location from radiance.
-  /// If the cached location is auto-selected, fetches the auto location
-  /// (available when VPN is already connected); falls back to cached value
-  /// silently if the VPN isn't connected yet.
-  /// For explicitly selected servers, fetches from radiance immediately.
+  /// If the VPN isn't connected, uses the cached value.
+  /// If auto-selected, fetches the auto location; otherwise fetches the
+  /// explicitly selected server.
   Future<void> fetchServerLocation() async {
+    final status = ref.read(vpnProvider);
+    if (status != VPNStatus.connected) {
+      appLogger.debug(
+        'fetchServerLocation: VPN not connected ($status), using cached value',
+      );
+      return;
+    }
+
     final cached = _storage.getServerLocation();
     final isAuto =
         cached == null ||
         cached.serverType.toServerLocationType == ServerLocationType.auto;
+
+    appLogger.debug(
+      'fetchServerLocation: VPN connected, isAuto=$isAuto',
+    );
 
     if (isAuto) {
       await _fetchAutoLocation();
@@ -38,6 +55,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   Future<void> _fetchAutoLocation() async {
+    appLogger.debug('Fetching auto server location from radiance...');
     final result = await ref
         .read(lanternServiceProvider)
         .getAutoServerLocation();
@@ -66,7 +84,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           ),
         );
         appLogger.debug(
-          'Fetched auto server location from radiance: ${location.toJson()}',
+          'Fetched auto server location: ${location.toJson()}',
         );
         state = location;
         _storage.saveServerLocation(location);
@@ -75,6 +93,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   Future<void> _fetchSelectedLocation() async {
+    appLogger.debug('Fetching selected server location from radiance...');
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
@@ -88,7 +107,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (location) {
         appLogger.debug(
-          'Fetched selected server location from radiance: ${location.toJson()}',
+          'Fetched selected server location: ${location.toJson()}',
         );
         state = location;
         _storage.saveServerLocation(location);
@@ -106,6 +125,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     } else {
       updated = entity;
     }
+    appLogger.debug(
+      'updateServerLocation: type=${updated.serverType} '
+      'name=${updated.serverName} city=${updated.city}',
+    );
     state = updated;
     _storage.saveServerLocation(updated);
   }
@@ -113,9 +136,14 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   Future<void> refreshAutoLocationIfNeeded() async {
     final status = ref.read(vpnProvider);
     final current = state;
+    final isAuto =
+        current.serverType.toServerLocationType == ServerLocationType.auto;
 
-    if (status == VPNStatus.connected &&
-        current.serverType.toServerLocationType == ServerLocationType.auto) {
+    appLogger.debug(
+      'refreshAutoLocationIfNeeded: vpn=$status isAuto=$isAuto',
+    );
+
+    if (status == VPNStatus.connected && isAuto) {
       await _fetchAutoLocation();
     }
   }
