@@ -1,0 +1,328 @@
+#!/usr/bin/env bash
+# android-reproduce — Reproduce a Freshdesk ticket on an Android emulator
+#
+# Usage:
+#   android-reproduce <ticket-dir> [apk-path]
+#
+# Examples:
+#   android-reproduce /tmp/ticket-172722                         # auto-downloads APK
+#   android-reproduce /tmp/ticket-172722 ~/Downloads/lantern.apk # uses provided APK
+#
+# The ticket-dir should contain files downloaded by /analyze-ticket:
+#   config.json      — user's sing-box config (pushed to emulator)
+#   servers.json     — user's proxy server list (pushed to emulator)
+#   split-tunnel.json — user's split-tunnel rules (pushed to emulator)
+#
+# What it does:
+#   1. Extracts the user's country and app version from config.json
+#   2. Downloads the matching APK from GitHub releases (if not provided)
+#   3. Pushes config.json, servers.json, split-tunnel.json to the emulator
+#      so the app uses the exact same proxies, DNS rules, and rule sets
+#   4. Sets RADIANCE_COUNTRY to match the user's region
+#   5. Installs, restarts, and streams logs
+#
+# Prerequisites:
+#   - Run /analyze-ticket <ticket-id> first to download attachments
+#   - Android SDK (same as android-test)
+#   - gh CLI (for auto-downloading APK from GitHub releases)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PKG="org.getlantern.lantern"
+
+# --- Parse args ---
+if [ $# -lt 1 ]; then
+    echo "Usage: android-reproduce <ticket-dir> [apk-path]"
+    echo ""
+    echo "Examples:"
+    echo "  android-reproduce /tmp/ticket-172722                         # auto-downloads APK"
+    echo "  android-reproduce /tmp/ticket-172722 ~/Downloads/lantern.apk # uses provided APK"
+    echo ""
+    echo "Run /analyze-ticket <ticket-id> first to download the config files."
+    exit 1
+fi
+
+TICKET_DIR="$1"
+APK="${2:-}"
+
+# --- Locate config files ---
+# /analyze-ticket puts files either directly in ticket-dir or in ticket-dir/logs/
+CONFIG_JSON=""
+for candidate in "$TICKET_DIR/config.json" "$TICKET_DIR/logs/config.json"; do
+    if [ -f "$candidate" ]; then
+        CONFIG_JSON="$candidate"
+        break
+    fi
+done
+
+if [ -z "$CONFIG_JSON" ]; then
+    echo "Error: config.json not found in $TICKET_DIR"
+    echo "Run /analyze-ticket <ticket-id> first to download it."
+    exit 1
+fi
+
+echo "=== Ticket reproduction setup ==="
+echo "Ticket dir: $TICKET_DIR"
+echo "Config:     $CONFIG_JSON"
+
+# --- Extract country from config ---
+COUNTRY=""
+if command -v python3 >/dev/null 2>&1; then
+    COUNTRY=$(python3 -c "
+import json, sys
+try:
+    with open('$CONFIG_JSON') as f:
+        cfg = json.load(f)
+    # Try nested ConfigResponse format (from Freshdesk attachment)
+    cr = cfg.get('ConfigResponse', cfg)
+    print(cr.get('country', ''))
+except:
+    pass
+" 2>/dev/null)
+elif command -v jq >/dev/null 2>&1; then
+    COUNTRY=$(jq -r '.ConfigResponse.country // .country // ""' "$CONFIG_JSON" 2>/dev/null)
+fi
+
+if [ -n "$COUNTRY" ]; then
+    echo "Country:    $COUNTRY"
+else
+    echo "Country:    (not detected — config will still be pushed)"
+fi
+
+# --- Extract version and auto-download APK if needed ---
+if [ -z "$APK" ]; then
+    # Try to find the version from config.json metadata or ticket files
+    VERSION=""
+    if command -v python3 >/dev/null 2>&1; then
+        VERSION=$(python3 -c "
+import json, sys, os, glob
+# Try to find version from flutter.log (most reliable)
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'flutter.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'version:' in line.lower():
+                    # Extract version like '9.0.25'
+                    import re
+                    m = re.search(r'version:\s*(\d+\.\d+\.\d+)', line)
+                    if m:
+                        print(m.group(1))
+                        sys.exit(0)
+# Fall back to looking for version in config request logs
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'lantern.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'appVersion' in line or 'app_version' in line:
+                    import re
+                    m = re.search(r'(\d+\.\d+\.\d+)', line)
+                    if m:
+                        print(m.group(1))
+                        sys.exit(0)
+" 2>/dev/null)
+    fi
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: No APK provided and couldn't detect version from ticket logs."
+        echo "Provide the APK path as the second argument."
+        exit 1
+    fi
+
+    RELEASE_TAG="v${VERSION}-beta-android"
+    APK="$TICKET_DIR/lantern-${VERSION}.apk"
+
+    if [ -f "$APK" ]; then
+        echo "APK:        $APK (cached from previous download)"
+    else
+        echo "Downloading APK for v${VERSION} from GitHub releases..."
+        if ! command -v gh >/dev/null 2>&1; then
+            echo "Error: gh CLI not found. Install it or provide the APK path manually."
+            exit 1
+        fi
+        if gh release download "$RELEASE_TAG" --repo getlantern/lantern \
+                --pattern "lantern-installer-beta.apk" \
+                --output "$APK" 2>/dev/null; then
+            echo "APK:        $APK (downloaded from $RELEASE_TAG)"
+        else
+            echo "Error: Failed to download APK from release $RELEASE_TAG"
+            echo "Available Android releases:"
+            gh release list --repo getlantern/lantern --limit 5 | grep android || true
+            echo ""
+            echo "Provide the APK path manually as the second argument."
+            exit 1
+        fi
+    fi
+fi
+
+# --- Extract server locations for display ---
+if command -v python3 >/dev/null 2>&1; then
+    python3 -c "
+import json
+with open('$CONFIG_JSON') as f:
+    cfg = json.load(f)
+cr = cfg.get('ConfigResponse', cfg)
+locs = cr.get('outbound_locations', cr.get('servers', {}))
+if isinstance(locs, dict):
+    cities = sorted(set(v.get('city', '?') for v in locs.values()))
+    print(f'Locations:  {', '.join(cities)}')
+elif isinstance(locs, list):
+    cities = sorted(set(s.get('city', '?') for s in locs))
+    print(f'Locations:  {', '.join(cities)}')
+" 2>/dev/null || true
+fi
+echo "APK:        $APK"
+echo "================================="
+echo ""
+
+# --- Build env overrides ---
+ENV_OVERRIDES=()
+if [ -n "$COUNTRY" ]; then
+    ENV_OVERRIDES+=("RADIANCE_COUNTRY=$COUNTRY")
+fi
+
+# --- Run android-test to handle emulator setup + install ---
+echo "Starting android-test..."
+echo ""
+
+# We need to intercept after install but before app start to push configs.
+# Instead, run android-test and then push configs separately.
+# First, start android-test in a way that we can push configs before the app restarts.
+
+# Actually, the cleanest approach: call android-test which handles everything,
+# then ALSO push the config files. The app will pick them up on the next config
+# cycle (or we force-restart it after pushing).
+
+# Run android-test (it installs, pushes .env, restarts, streams logs).
+# We pipe to tee so we can capture logs while also monitoring.
+# But first, we need to push the config files AFTER install but BEFORE the app starts.
+# android-test does: install → push .env → restart → stream logs.
+# We want:           install → push .env + configs → restart → stream logs.
+
+# The simplest approach: run android-test but tell it to skip log streaming,
+# then push configs, restart, and stream ourselves. But android-test doesn't
+# have that option. So let's just:
+# 1. Run android-test (which handles everything including streaming)
+# 2. In a separate terminal or after Ctrl+C, the configs are already there
+
+# Actually, the BEST approach: push configs as part of the .env push.
+# We can do this by running android-test, which sets up emulator + installs + pushes .env,
+# then we push the config files to the same data dir, force-restart, and stream.
+
+# Let's just do it all ourselves, reusing android-test's emulator/AVD setup.
+
+# Source android-test's tool-finding logic by running it with --help
+# Actually let's just duplicate the minimal setup and push everything together.
+
+# Find tools (same logic as android-test)
+if [ -n "${ANDROID_HOME:-}" ]; then
+    ADB="${ANDROID_HOME}/platform-tools/adb"
+elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+    ADB="${ANDROID_SDK_ROOT}/platform-tools/adb"
+else
+    ADB="$(command -v adb 2>/dev/null || true)"
+fi
+
+if [ -z "$ADB" ] || [ ! -x "$ADB" ]; then
+    echo "Error: adb not found. Set ANDROID_HOME or add Android SDK to PATH."
+    exit 1
+fi
+
+# Run android-test for emulator setup + APK install (it will stream logs at the end)
+# We intercept by running it in background briefly, then pushing configs.
+# Actually, the simplest correct approach: just call android-test with the env
+# overrides, then in a post-hook push the config files.
+
+# BUT android-test ends with `exec` for log streaming, so we can't run code after it.
+# So instead: do the full flow ourselves.
+
+# Step 1: Call android-test WITHOUT log streaming — just setup + install + .env
+# We can't do that with the current script, so let's use it for setup and
+# handle the config push ourselves.
+
+# The pragmatic solution: run android-test in background, wait for "Restarting Lantern",
+# then push configs and let it continue.
+
+# ACTUALLY — the simplest: just run the same steps inline.
+
+# Detect emulator serial
+TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+if [ -z "$TARGET_SERIAL" ]; then
+    echo "No emulator running. Starting one via android-test..."
+    # Run android-test just to get the emulator up and APK installed, skip log streaming
+    # by backgrounding and killing after install
+    "$SCRIPT_DIR/android-test" "$APK" "${ENV_OVERRIDES[@]}" &
+    TEST_PID=$!
+    # Wait for "Restarting Lantern" to appear (means install + .env push done)
+    sleep 30  # generous wait for emulator boot + install
+    kill "$TEST_PID" 2>/dev/null || true
+    wait "$TEST_PID" 2>/dev/null || true
+    TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+fi
+
+if [ -z "$TARGET_SERIAL" ]; then
+    echo "Error: No emulator found after setup. Run android-test manually first."
+    exit 1
+fi
+
+ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
+APP_DATA="/data/data/$PKG/.lantern"
+
+echo "Pushing user's config files to emulator..."
+
+# Root the emulator (Google APIs images)
+"${ADB_CMD[@]}" root 2>/dev/null || true
+sleep 2
+"${ADB_CMD[@]}" wait-for-device
+
+# Push config files
+for file in config.json servers.json split-tunnel.json; do
+    SRC="$TICKET_DIR/$file"
+    if [ -f "$SRC" ]; then
+        "${ADB_CMD[@]}" push "$SRC" "/data/local/tmp/$file"
+        "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/$file $APP_DATA/$file && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/$file" 2>/dev/null
+        echo "  Pushed $file"
+    fi
+done
+
+# Push .env with overrides
+if [ ${#ENV_OVERRIDES[@]} -gt 0 ]; then
+    ENV_FILE=$(mktemp)
+    trap 'rm -f "${ENV_FILE:-}"' EXIT INT TERM
+    for kv in "${ENV_OVERRIDES[@]}"; do
+        echo "$kv" >> "$ENV_FILE"
+    done
+    "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
+    "${ADB_CMD[@]}" shell "cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
+    echo "  Pushed .env (RADIANCE_COUNTRY=$COUNTRY)"
+fi
+
+# Unroot
+"${ADB_CMD[@]}" unroot 2>/dev/null || true
+sleep 1
+"${ADB_CMD[@]}" wait-for-device
+
+# Install APK (if not already done)
+echo "Installing $APK..."
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
+
+# Force-restart the app
+echo "Restarting Lantern with user's config..."
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
+sleep 1
+"${ADB_CMD[@]}" shell am start -n "$PKG/org.getlantern.lantern.MainActivity" 2>/dev/null || \
+    "${ADB_CMD[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>/dev/null
+
+echo ""
+echo "=== Reproducing ticket with user's exact config ==="
+echo "  Country: ${COUNTRY:-unknown}"
+echo "  Config:  $CONFIG_JSON"
+echo "  APK:     $APK"
+echo "=== Streaming logs (Ctrl+C to stop) ==="
+echo ""
+
+"${ADB_CMD[@]}" logcat -c
+exec "${ADB_CMD[@]}" logcat -v time \
+    -s "GoLog:*" "radiance:*" "sing-box:*" "lantern:*" "flutter:*" \
+       "LanternService:*" "VpnService:*" "System.err:*" \
+       "AndroidRuntime:*" "lantern-box:*"
