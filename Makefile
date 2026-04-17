@@ -13,14 +13,15 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-## APP_VERSION is the version defined in pubspec.yaml
-ifeq ($(OS),Windows_NT)
-APP_VERSION := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output $$v")
-APP_VERSION_PUBSPEC := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ($$v.Split('+')[0])")
-else
-APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
-APP_VERSION_PUBSPEC := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
-endif
+## APP_VERSION is the full version defined in pubspec.yaml (e.g. 9.0.25+459).
+## CI may export APP_VERSION via the environment; otherwise fall back to the
+## file. `?=` lets the env value win over the shell-out, which matters on
+## Windows CI where grep/sed are not reliably on PATH (see build-windows.yml
+## "Read app version from pubspec.yaml" which writes APP_VERSION to GITHUB_ENV).
+APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+## APP_VERSION_PUBSPEC strips the +buildnumber for the Go linker. Using Make
+## built-ins keeps this portable across hosts without grep/sed/awk/powershell.
+APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
