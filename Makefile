@@ -29,6 +29,12 @@ endif
 ## shell tools are required — this is the part that has to work in every
 ## environment `make` might invoke the linker in.
 APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
+## Fail loudly at parse time if we couldn't resolve a version — this was the
+## exact failure mode of the bug this file fixes, where an empty value silently
+## produced a broken binary that 400s at /v1/config-new.
+ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
+$(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
+endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
