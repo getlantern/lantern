@@ -72,6 +72,11 @@ class LanternFFIService implements LanternCoreService {
   Stream<PrivateServerStatus> _privateServerStatus =
       const Stream<PrivateServerStatus>.empty();
   Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
+  static const Duration _appsCacheMaxAge = Duration(hours: 6);
+  static const Duration _appsCatalogRefreshInterval = Duration(minutes: 5);
+  Future<List<AppData>>? _appsScanInFlight;
+  List<AppData> _lastAppsSnapshot = const <AppData>[];
+  DateTime? _lastAppsScanAt;
 
   static Stream<LanternStatus> _defaultStatusStream() {
     // Keep a predictable default (matches the Windows status mapping behavior).
@@ -170,6 +175,10 @@ class LanternFFIService implements LanternCoreService {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
       });
+
+      if (Platform.isWindows) {
+        unawaited(_primeAppsCatalog());
+      }
     } catch (e, st) {
       appLogger.error('Error while setting up radiance', e, st);
     }
@@ -598,55 +607,334 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    try {
-      // Installed apps still loaded from Go (already is)
-      final String dataDir = (_ffiService.getAppDataDir().toDartString());
+    final String dataDir = _ffiService.getAppDataDir().toDartString();
+    final enabledKeys = await _getEnabledAppKeys();
+    var latestEmitted = const <AppData>[];
 
-      final String jsonApps = await runInBackground<String>(() async {
-        final ptr = dataDir.toNativeUtf8();
-        try {
-          return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
-        } finally {
-          malloc.free(ptr);
+    final memoryApps = _appsFromSnapshot(enabledKeys);
+    if (memoryApps.isNotEmpty) {
+      yield memoryApps;
+      latestEmitted = memoryApps;
+    }
+
+    final cachedApps = await _loadCachedApps(dataDir, enabledKeys);
+    if (cachedApps.isNotEmpty && memoryApps.isEmpty) {
+      appLogger.debug(
+        'Loaded ${cachedApps.length} apps from cache before full scan',
+      );
+      yield cachedApps;
+      latestEmitted = cachedApps;
+    }
+
+    final hasImmediateApps = memoryApps.isNotEmpty || cachedApps.isNotEmpty;
+    if (hasImmediateApps) {
+      try {
+        final scannedApps = await _scanInstalledApps(dataDir, enabledKeys);
+        if (_appsSnapshotChanged(latestEmitted, scannedApps)) {
+          yield scannedApps;
         }
-      });
+      } catch (e, st) {
+        appLogger.error("Failed to refresh installed apps", e, st);
+      }
+      return;
+    }
 
-      if (jsonApps.isEmpty) {
+    try {
+      final scannedApps = await _scanInstalledApps(dataDir, enabledKeys);
+      if (scannedApps.isEmpty && cachedApps.isEmpty && memoryApps.isEmpty) {
         yield [];
         return;
       }
+      yield scannedApps;
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      if (cachedApps.isEmpty && memoryApps.isEmpty) {
+        yield [];
+      }
+    }
+  }
 
-      // Enabled apps from Go (NOT LocalStorage)
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    final normalizedAppPath = appPath.trim();
+    final normalizedIconPath = iconPath.trim();
+    if (normalizedAppPath.isEmpty && normalizedIconPath.isEmpty) {
+      return null;
+    }
+
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final appPathPtr = normalizedAppPath.toNativeUtf8();
+        final iconPathPtr = normalizedIconPath.toNativeUtf8();
+        try {
+          return _ffiService
+              .loadInstalledAppIcon(
+                appPathPtr.cast<Char>(),
+                iconPathPtr.cast<Char>(),
+              )
+              .toDartString();
+        } finally {
+          malloc.free(appPathPtr);
+          malloc.free(iconPathPtr);
+        }
+      });
+
+      final trimmed = encoded.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      }
+      if (trimmed.startsWith('{') && trimmed.contains('"error"')) {
+        checkAPIError(trimmed);
+        return null;
+      }
+      return base64Decode(trimmed);
+    } catch (e, st) {
+      appLogger.error('Failed to load installed app icon bytes', e, st);
+      return null;
+    }
+  }
+
+  List<AppData> _appsFromSnapshot(Set<String> enabledKeys) {
+    if (_lastAppsSnapshot.isEmpty) {
+      return const <AppData>[];
+    }
+    return _applyEnabledState(_lastAppsSnapshot, enabledKeys);
+  }
+
+  bool _appsSnapshotChanged(List<AppData> previous, List<AppData> next) {
+    if (previous.length != next.length) {
+      return true;
+    }
+
+    final previousFingerprints = previous.map(_appFingerprint).toList()..sort();
+    final nextFingerprints = next.map(_appFingerprint).toList()..sort();
+    for (var i = 0; i < previousFingerprints.length; i++) {
+      if (previousFingerprints[i] != nextFingerprints[i]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  String _appFingerprint(AppData app) {
+    return [
+      _normalizeSplitTunnelKey(app.bundleId),
+      _normalizeSplitTunnelKey(app.appPath),
+      _normalizeSplitTunnelKey(app.iconPath),
+      app.name.trim().toLowerCase(),
+      app.isEnabled ? '1' : '0',
+      app.removed ? '1' : '0',
+    ].join('|');
+  }
+
+  Future<void> _primeAppsCatalog() async {
+    final dataDir = _ffiService.getAppDataDir().toDartString();
+    if (_isAppsCatalogFresh()) {
+      return;
+    }
+    try {
+      await _scanInstalledApps(dataDir, const <String>{});
+    } catch (e, st) {
+      appLogger.error('Failed to prewarm apps catalog', e, st);
+    }
+  }
+
+  bool _isAppsCatalogFresh() {
+    final last = _lastAppsScanAt;
+    if (last == null) {
+      return false;
+    }
+    return DateTime.now().difference(last) <= _appsCatalogRefreshInterval;
+  }
+
+  Future<List<AppData>> _scanInstalledApps(
+    String dataDir,
+    Set<String> enabledKeys,
+  ) async {
+    final inFlight = _appsScanInFlight;
+    if (inFlight != null) {
+      final snapshot = await inFlight;
+      return _applyEnabledState(snapshot, enabledKeys);
+    }
+
+    final scanFuture = _scanInstalledAppsRaw(dataDir);
+    _appsScanInFlight = scanFuture;
+    try {
+      final snapshot = await scanFuture;
+      _lastAppsSnapshot = snapshot
+          .map((app) => app.copyWith(isEnabled: false))
+          .toList();
+      _lastAppsScanAt = DateTime.now();
+      return _applyEnabledState(snapshot, enabledKeys);
+    } finally {
+      _appsScanInFlight = null;
+    }
+  }
+
+  Future<List<AppData>> _scanInstalledAppsRaw(String dataDir) async {
+    final String jsonApps = await runInBackground<String>(() async {
+      final ptr = dataDir.toNativeUtf8();
+      try {
+        return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
+      } finally {
+        malloc.free(ptr);
+      }
+    });
+
+    checkAPIError(jsonApps);
+    if (jsonApps.isEmpty) {
+      return const <AppData>[];
+    }
+    return _parseAppsJson(jsonApps);
+  }
+
+  Future<Set<String>> _getEnabledAppKeys() async {
+    try {
       final enabledJson = await runInBackground<String>(() async {
         return _ffiService.getEnabledApps().toDartString();
       });
       checkAPIError(enabledJson);
-
-      final enabledKeys = (jsonDecode(enabledJson) as List)
-          .cast<String>()
+      final dynamic decoded = jsonDecode(enabledJson);
+      if (decoded is! List) {
+        return const <String>{};
+      }
+      return decoded
+          .map((item) => _normalizeSplitTunnelKey(item?.toString() ?? ''))
+          .where((item) => item.isNotEmpty)
           .toSet();
-
-      final decoded = jsonDecode(jsonApps) as List<dynamic>;
-      final rawApps = decoded.cast<Map<String, dynamic>>();
-
-      yield rawApps.map((raw) {
-        final name = (raw["name"] as String? ?? "").trim();
-        final bundleId = (raw["bundleId"] as String? ?? "").trim();
-        final key = bundleId.isNotEmpty ? bundleId : name;
-
-        return AppData(
-          name: name,
-          bundleId: bundleId,
-          appPath: raw["appPath"] as String? ?? '',
-          iconPath: raw["iconPath"] as String? ?? '',
-          iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
-          isEnabled: enabledKeys.contains(key),
-        );
-      }).toList();
     } catch (e, st) {
-      appLogger.error("Failed to fetch installed apps", e, st);
-      yield [];
+      appLogger.error('Failed to load enabled split-tunnel apps', e, st);
+      return const <String>{};
     }
+  }
+
+  Future<List<AppData>> _loadCachedApps(
+    String dataDir,
+    Set<String> enabledKeys,
+  ) async {
+    try {
+      final cachePath = p.join(dataDir, 'apps_cache.json');
+      final file = File(cachePath);
+      if (!file.existsSync()) {
+        return const <AppData>[];
+      }
+      final stats = await file.stat();
+      if (DateTime.now().difference(stats.modified) > _appsCacheMaxAge) {
+        appLogger.debug('Skipping stale apps cache at $cachePath');
+        return const <AppData>[];
+      }
+      final cacheRaw = await file.readAsString();
+      if (cacheRaw.trim().isEmpty) {
+        return const <AppData>[];
+      }
+      return _parseAppsJson(cacheRaw, enabledKeys);
+    } catch (e, st) {
+      appLogger.error('Failed to load cached apps', e, st);
+      return const <AppData>[];
+    }
+  }
+
+  List<AppData> _applyEnabledState(
+    List<AppData> apps,
+    Set<String> enabledKeys,
+  ) {
+    return apps.map((app) {
+      final matchKey = _splitTunnelMatchKey(
+        app.bundleId,
+        app.appPath,
+        app.name,
+      );
+      return app.copyWith(isEnabled: enabledKeys.contains(matchKey));
+    }).toList();
+  }
+
+  List<AppData> _parseAppsJson(
+    String jsonApps, [
+    Set<String> enabledKeys = const <String>{},
+  ]) {
+    final dynamic decoded = jsonDecode(jsonApps);
+    if (decoded is! List) {
+      return const <AppData>[];
+    }
+
+    final deduped = <String, AppData>{};
+    for (final entry in decoded) {
+      if (entry is! Map) {
+        continue;
+      }
+
+      final raw = entry.cast<String, dynamic>();
+      final name = (raw["name"] as String? ?? "").trim();
+      final bundleId = (raw["bundleId"] as String? ?? "").trim();
+      final appPath = (raw["appPath"] as String? ?? "").trim();
+      final iconPath = (raw["iconPath"] as String? ?? '').trim();
+
+      final matchKey = _splitTunnelMatchKey(bundleId, appPath, name);
+      if (matchKey.isEmpty) {
+        continue;
+      }
+
+      final app = AppData(
+        name: name,
+        bundleId: bundleId,
+        appPath: appPath,
+        iconPath: iconPath,
+        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+        isEnabled: enabledKeys.contains(matchKey),
+      );
+
+      final identity = _appIdentityKey(app);
+      if (identity.isEmpty) {
+        continue;
+      }
+
+      final existing = deduped[identity];
+      if (existing == null ||
+          ((existing.iconBytes?.isEmpty ?? true) &&
+              (app.iconBytes?.isNotEmpty ?? false))) {
+        deduped[identity] = app;
+      }
+    }
+
+    final apps = deduped.values.toList();
+    apps.sort((a, b) {
+      final an = a.name.trim().toLowerCase();
+      final bn = b.name.trim().toLowerCase();
+      if (an.isEmpty && bn.isEmpty) return 0;
+      if (an.isEmpty) return 1;
+      if (bn.isEmpty) return -1;
+      return an.compareTo(bn);
+    });
+    return apps;
+  }
+
+  String _splitTunnelMatchKey(String bundleId, String appPath, String name) {
+    if (bundleId.isNotEmpty) return _normalizeSplitTunnelKey(bundleId);
+    if (appPath.isNotEmpty) return _normalizeSplitTunnelKey(appPath);
+    return _normalizeSplitTunnelKey(name);
+  }
+
+  String _normalizeSplitTunnelKey(String key) {
+    final trimmed = key.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    if (Platform.isWindows) {
+      return trimmed.toLowerCase();
+    }
+    return trimmed;
+  }
+
+  String _appIdentityKey(AppData app) {
+    final bundleId = app.bundleId.trim().toLowerCase();
+    if (bundleId.isNotEmpty) return bundleId;
+    final appPath = app.appPath.trim().toLowerCase();
+    if (appPath.isNotEmpty) return appPath;
+    return app.name.trim().toLowerCase();
   }
 
   // Split tunneling
@@ -1073,10 +1361,14 @@ class LanternFFIService implements LanternCoreService {
       appLogger.info('[watchLogs] awaiting Windows service init');
       return Stream.fromFuture(_getOrInitWindowsService()).asyncExpand((ws) {
         if (ws == null) {
-          appLogger.error('[watchLogs] Windows service is null — returning empty stream');
+          appLogger.error(
+            '[watchLogs] Windows service is null — returning empty stream',
+          );
           return const Stream<List<String>>.empty();
         }
-        appLogger.info('[watchLogs] Windows service ready, starting log pipe stream');
+        appLogger.info(
+          '[watchLogs] Windows service ready, starting log pipe stream',
+        );
         return accumulateLogBatches(ws.watchLogs());
       });
     }

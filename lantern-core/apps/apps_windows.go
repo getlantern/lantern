@@ -3,6 +3,7 @@
 package apps
 
 import (
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -47,6 +48,7 @@ var windowsHostExecutableNames = map[string]bool{
 	"backgroundtaskhost.exe":      true,
 	"conhost.exe":                 true,
 	"dllhost.exe":                 true,
+	"explorer.exe":                true,
 	"runtimebroker.exe":           true,
 	"searchhost.exe":              true,
 	"shellexperiencehost.exe":     true,
@@ -56,6 +58,43 @@ var windowsHostExecutableNames = map[string]bool{
 	"taskhostw.exe":               true,
 	"textinputhost.exe":           true,
 	"rundll32.exe":                true,
+}
+
+var windowsUtilityExecutableHints = map[string]bool{
+	"actionsmcphost":            true,
+	"ahost":                     true,
+	"awk":                       true,
+	"gitbash":                   true,
+	"gitcmd":                    true,
+	"gitgui":                    true,
+	"gitk":                      true,
+	"cmake":                     true,
+	"cmakegui":                  true,
+	"officelanguagepreferences": true,
+	"pchealthcheck":             true,
+	"microsoftvisualc":          true,
+	"vcredist":                  true,
+}
+
+var windowsSystemDisplayNameHints = []string{
+	"windowspowershell",
+	"windowsterminal",
+	"commandprompt",
+	"taskmanager",
+	"controlpanel",
+	"snippingtool",
+	"gethelp",
+	"tips",
+	"feedbackhub",
+	"xbox",
+}
+
+var windowsExcludedStartMenuFolders = []string{
+	"administrative tools",
+	"startup",
+	"system tools",
+	"windows powershell",
+	"windows terminal",
 }
 
 var windowsSystemRoots = computeWindowsSystemRoots()
@@ -68,6 +107,10 @@ const (
 type uninstallEntryMetadata struct {
 	systemComponentSet bool
 	systemComponent    uint64
+	noDisplaySet       bool
+	noDisplay          uint64
+	releaseType        string
+	parentKeyName      string
 }
 
 type shortcutRecoveryHint struct {
@@ -128,6 +171,68 @@ func isWindowsSystemApp(exePath, name string) bool {
 	return false
 }
 
+func isWindowsUtilityApp(exePath, name string) bool {
+	candidates := []string{
+		filepath.Base(strings.Trim(strings.TrimSpace(exePath), `"`)),
+		strings.TrimSpace(name),
+	}
+
+	for _, candidate := range candidates {
+		normalized := normalizeExecutableHint(candidate)
+		if normalized == "" {
+			continue
+		}
+		if windowsUtilityExecutableHints[normalized] {
+			return true
+		}
+		for hint := range windowsUtilityExecutableHints {
+			if len(hint) < 4 {
+				continue
+			}
+			if hint != "" && strings.Contains(normalized, hint) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func isLikelySystemDisplayName(name string) bool {
+	normalized := normalizeExecutableHint(name)
+	if normalized == "" {
+		return false
+	}
+	for _, hint := range windowsSystemDisplayNameHints {
+		if strings.Contains(normalized, hint) {
+			return true
+		}
+	}
+	return false
+}
+
+func isExcludedStartMenuShortcutPath(shortcutPath string) bool {
+	if strings.TrimSpace(shortcutPath) == "" {
+		return false
+	}
+	segments := strings.Split(
+		normalizeKey(filepath.Clean(shortcutPath)),
+		`\`,
+	)
+	for _, segment := range segments {
+		segment = strings.TrimSpace(segment)
+		if segment == "" {
+			continue
+		}
+		for _, excluded := range windowsExcludedStartMenuFolders {
+			if segment == excluded {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // loadInstalledAppsPlatform returns a list of installed applications for Windows
 // Discovery order:
 //  1. Start Menu shortcuts: the best “user-facing apps” list
@@ -136,17 +241,42 @@ func isWindowsSystemApp(exePath, name string) bool {
 func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
 	var out []*AppData
 
-	out = append(out, collectAppsFromStartMenuShortcuts(seen, cb)...)
+	startMenuApps := collectAppsFromStartMenuShortcuts(seen, cb)
+	out = append(out, startMenuApps...)
 
-	out = append(out, collectAppsFromUninstallRegistry(seen, cb)...)
+	registryApps := collectAppsFromUninstallRegistry(seen, cb)
+	out = append(out, registryApps...)
 
 	// Fallback: recursive app scan
 	if len(out) == 0 {
-		slog.Debug("no apps from start menu/registry; falling back to directory scan")
+		if !windowsDirectoryFallbackEnabled() {
+			slog.Warn(
+				"no windows apps from start menu/registry and directory fallback disabled",
+				"startMenuCount",
+				len(startMenuApps),
+				"registryCount",
+				len(registryApps),
+			)
+			return out
+		}
+		slog.Warn(
+			"no windows apps from start menu/registry; falling back to directory scan",
+			"startMenuCount",
+			len(startMenuApps),
+			"registryCount",
+			len(registryApps),
+		)
 		out = append(out, scanAppDirs(appDirs, seen, excludeDirs, cb)...)
 	}
 
 	return out
+}
+
+func windowsDirectoryFallbackEnabled() bool {
+	value := strings.TrimSpace(os.Getenv("LANTERN_WINDOWS_APP_DIR_FALLBACK"))
+	return strings.EqualFold(value, "1") ||
+		strings.EqualFold(value, "true") ||
+		strings.EqualFold(value, "yes")
 }
 
 func windowsStartMenuDirs() []string {
@@ -216,6 +346,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 
 			targetExe, iconFile, iconIndex, shortcutArgs, shortcutWorkDir := resolveLnkViaWScript(wsh, p)
 			name := shortcutDisplayName(d.Name(), targetExe)
+			recoveryHint := shortcutRecoveryHintFromShortcut(name, shortcutArgs)
 			targetExe = resolveShortcutExecutable(
 				targetExe,
 				iconFile,
@@ -225,9 +356,18 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				shortcutWorkDir,
 			)
 			if targetExe == "" {
-				if hint := shortcutRecoveryHintFromShortcut(name, shortcutArgs); hint.isValid() {
-					recoveryHints[hint.key()] = hint
+				if recoveryHint.isValid() {
+					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
+				return nil
+			}
+			if isWindowsSystemApp(targetExe, name) {
+				if recoveryHint.isValid() {
+					recoveryHints[recoveryHint.key()] = recoveryHint
+				}
+				return nil
+			}
+			if isExcludedStartMenuShortcutPath(p) || isWindowsUtilityApp(targetExe, name) {
 				return nil
 			}
 			keyPath := normalizeKey(targetExe)
@@ -235,25 +375,16 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				return nil
 			}
 
-			var iconBytes []byte
-			// Prefer explicit IconLocation; fall back to exe
-			if iconFile != "" {
-				if b, err := getIconBytesFromLocation(iconFile, iconIndex); err == nil {
-					iconBytes = b
-				}
-			}
-			if iconBytes == nil {
-				if b, err := getIconBytesFromLocation(targetExe, 0); err == nil {
-					iconBytes = b
-				}
+			iconLocation := strings.TrimSpace(targetExe)
+			if strings.TrimSpace(iconFile) != "" {
+				iconLocation = strings.TrimSpace(fmt.Sprintf("%s,%d", iconFile, iconIndex))
 			}
 
 			app := &AppData{
-				Name:      name,
-				BundleID:  targetExe,
-				AppPath:   targetExe,
-				IconPath:  "",
-				IconBytes: iconBytes,
+				Name:     name,
+				BundleID: targetExe,
+				AppPath:  targetExe,
+				IconPath: iconLocation,
 			}
 
 			if cb != nil {
@@ -293,7 +424,6 @@ func resolveLnkViaWScript(wsh *ole.IDispatch, lnkPath string) (targetExe string,
 	if err != nil {
 		return "", "", 0, "", ""
 	}
-	defer v.Clear()
 
 	sc := v.ToIDispatch()
 	defer sc.Release()
@@ -384,6 +514,9 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			if isWindowsSystemApp(exePath, displayName) {
 				continue
 			}
+			if isWindowsUtilityApp(exePath, displayName) {
+				continue
+			}
 
 			// Don’t show uninstallers/updaters
 			if isExcludedName(filepathBaseNoExt(exePath)) {
@@ -401,18 +534,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				Name:     displayName,
 				BundleID: appID,
 				AppPath:  exePath,
-			}
-
-			iconFile, iconIndex := parseIconLocation(displayIcon)
-			if iconFile != "" {
-				if b, err := getIconBytesFromLocation(iconFile, iconIndex); err == nil {
-					app.IconBytes = b
-				}
-			}
-			if len(app.IconBytes) == 0 {
-				if b, err := getIconBytesFromLocation(exePath, 0); err == nil {
-					app.IconBytes = b
-				}
+				IconPath: strings.TrimSpace(displayIcon),
 			}
 
 			if cb != nil {
@@ -469,6 +591,16 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 		metadata.systemComponentSet = true
 		metadata.systemComponent = value
 	}
+	if value, _, err := sk.GetIntegerValue("NoDisplay"); err == nil {
+		metadata.noDisplaySet = true
+		metadata.noDisplay = value
+	}
+	if value, _, err := sk.GetStringValue("ReleaseType"); err == nil {
+		metadata.releaseType = strings.TrimSpace(value)
+	}
+	if value, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
+		metadata.parentKeyName = strings.TrimSpace(value)
+	}
 
 	return metadata
 }
@@ -476,6 +608,20 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 	if metadata.systemComponentSet && metadata.systemComponent != 0 {
 		return true
+	}
+	if metadata.noDisplaySet && metadata.noDisplay != 0 {
+		return true
+	}
+	if metadata.parentKeyName != "" {
+		return true
+	}
+	if metadata.releaseType != "" {
+		releaseType := strings.ToLower(metadata.releaseType)
+		if strings.Contains(releaseType, "update") ||
+			strings.Contains(releaseType, "hotfix") ||
+			strings.Contains(releaseType, "security") {
+			return true
+		}
 	}
 
 	return false
@@ -510,9 +656,62 @@ func shortcutRecoveryHintFromShortcut(name, shortcutArgs string) shortcutRecover
 	hint := shortcutRecoveryHint{
 		displayName: strings.TrimSpace(name),
 	}
-	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, name)
-	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, processStartExecutableHint(shortcutArgs))
+	processStartHint := processStartExecutableHint(shortcutArgs)
+	appXHints := appxHintsFromShortcutArgs(shortcutArgs)
+
+	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, processStartHint)
+	hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, appXHints...)
+	if len(hint.normalizedCandidates) > 0 {
+		hint.normalizedCandidates = appendNormalizedHints(hint.normalizedCandidates, name)
+	}
 	return hint
+}
+
+func appxHintsFromShortcutArgs(shortcutArgs string) []string {
+	trimmed := strings.TrimSpace(shortcutArgs)
+	if trimmed == "" {
+		return nil
+	}
+
+	lower := strings.ToLower(trimmed)
+	const marker = "appsfolder\\"
+	idx := strings.Index(lower, marker)
+	if idx < 0 {
+		return nil
+	}
+
+	tail := strings.TrimSpace(trimmed[idx+len(marker):])
+	tail = strings.Trim(tail, `"'`)
+	if tail == "" {
+		return nil
+	}
+
+	for i, r := range tail {
+		if r == ' ' || r == '\t' {
+			tail = tail[:i]
+			break
+		}
+	}
+	tail = strings.TrimSpace(strings.Trim(tail, `"'`))
+	if tail == "" {
+		return nil
+	}
+
+	hints := []string{tail}
+	if bang := strings.Index(tail, "!"); bang > 0 && bang < len(tail)-1 {
+		packageID := strings.TrimSpace(tail[:bang])
+		appID := strings.TrimSpace(tail[bang+1:])
+		if packageID != "" {
+			hints = append(hints, packageID)
+		}
+		if appID != "" {
+			hints = append(hints, appID)
+			if !strings.EqualFold(filepath.Ext(appID), ".exe") {
+				hints = append(hints, appID+".exe")
+			}
+		}
+	}
+	return hints
 }
 
 func appendNormalizedHints(candidates []string, values ...string) []string {
@@ -589,12 +788,18 @@ func collectAppsFromPackageCacheHints(hints map[string]shortcutRecoveryHint, see
 		if !hint.isValid() {
 			continue
 		}
+		if isLikelySystemDisplayName(hint.displayName) {
+			continue
+		}
 
 		exePath := resolvePackageCacheExecutable(packageDirs, hint)
 		if exePath == "" {
 			continue
 		}
 		if isWindowsSystemApp(exePath, hint.displayName) {
+			continue
+		}
+		if isWindowsUtilityApp(exePath, hint.displayName) {
 			continue
 		}
 		if isExcludedName(filepathBaseNoExt(exePath)) {
@@ -606,17 +811,11 @@ func collectAppsFromPackageCacheHints(hints map[string]shortcutRecoveryHint, see
 			continue
 		}
 
-		var iconBytes []byte
-		if b, err := getIconBytesFromLocation(exePath, 0); err == nil {
-			iconBytes = b
-		}
-
 		app := &AppData{
-			Name:      hint.displayName,
-			BundleID:  exePath,
-			AppPath:   exePath,
-			IconPath:  "",
-			IconBytes: iconBytes,
+			Name:     hint.displayName,
+			BundleID: exePath,
+			AppPath:  exePath,
+			IconPath: exePath,
 		}
 
 		if cb != nil {

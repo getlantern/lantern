@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_auth_smoke:
+        description: "Run Linux auth smoke integration tests"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: "read"
@@ -267,6 +272,26 @@ jobs:
           fi
 
           bash .github/scripts/linux_config_url_smoke.sh
+
+      - name: Linux UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
+        shell: bash
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
+        run: |
+          set -euxo pipefail
+          set +e
+          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 10m xvfb-run -a flutter test integration_test/auth/auth_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true"
+          AUTH_SMOKE_EXIT=$?
+          set -e
+          if [[ "$AUTH_SMOKE_EXIT" -eq 124 ]]; then
+            echo "Linux UI auth smoke timed out after 10m"
+            exit 1
+          fi
+          if [[ "$AUTH_SMOKE_EXIT" -ne 0 ]]; then
+            exit "$AUTH_SMOKE_EXIT"
+          fi
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4

@@ -5447,6 +5447,30 @@ class LanternBindings {
   late final _loadInstalledApps = _loadInstalledAppsPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> loadInstalledAppIcon(
+    ffi.Pointer<ffi.Char> appPath,
+    ffi.Pointer<ffi.Char> iconPath,
+  ) {
+    return _loadInstalledAppIcon(appPath, iconPath);
+  }
+
+  late final _loadInstalledAppIconPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('loadInstalledAppIcon');
+  late final _loadInstalledAppIcon = _loadInstalledAppIconPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
   ffi.Pointer<ffi.Char> getDataCapInfo() {
     return _getDataCapInfo();
   }

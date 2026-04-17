@@ -204,7 +204,31 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final result = await ref.read(vpnProvider.notifier).startVPN(force: true);
 
     result.fold(
-      (failure) => context.showSnackBar(failure.localizedErrorMessage),
+      (failure) {
+        if (failure is VpnConflictFailure) {
+          if (!context.mounted) {
+            return;
+          }
+          AppDialog.vpnConflictDialog(
+            context: context,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              final retryResult = await ref
+                  .read(vpnProvider.notifier)
+                  .startVPN(skipConflictCheck: true, force: true);
+              if (!context.mounted) return;
+              retryResult.fold((failure) {
+                context.showSnackBar(failure.localizedErrorMessage);
+                appLogger.error(
+                  "Error changing VPN state: ${failure.localizedErrorMessage}",
+                );
+              }, (_) => appRouter.popUntilRoot());
+            },
+          );
+        } else {
+          context.showSnackBar(failure.localizedErrorMessage);
+        }
+      },
       (_) async {
         await ref.read(serverLocationProvider.notifier).switchToAuto();
         appRouter.popUntilRoot();

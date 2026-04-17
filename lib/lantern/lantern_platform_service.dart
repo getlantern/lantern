@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide Uint8List;
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
@@ -73,7 +74,6 @@ class LanternPlatformService implements LanternCoreService {
     _appEventStatus = appEventStatusChannel.receiveBroadcastStream().map(
       (event) => AppEvent.fromJson(event),
     );
-
 
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
@@ -195,8 +195,8 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
-        logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
-      );
+    logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
+  );
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {
@@ -226,6 +226,14 @@ class LanternPlatformService implements LanternCoreService {
     } else {
       throw UnimplementedError();
     }
+  }
+
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    return null;
   }
 
   @override

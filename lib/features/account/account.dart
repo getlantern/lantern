@@ -8,6 +8,7 @@ import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -29,6 +30,7 @@ class Account extends HookConsumerWidget {
         actions: [
           if (appSettings.userLoggedIn)
             AppTextButton(
+              key: AuthKeys.accountLogoutActionButton,
               label: 'logout'.i18n,
               textColor: context.textLink,
               onPressed: () => logoutDialog(context, ref),
@@ -173,6 +175,7 @@ class Account extends HookConsumerWidget {
               iconUseThemeColor: false,
               label: 'delete_account'.i18n,
               trailing: AppTextButton(
+                key: AuthKeys.accountDeleteActionButton,
                 label: 'delete'.i18n,
                 textColor: buildContext.statusErrorText,
                 onPressed: _onDeleteTap,
@@ -393,6 +396,7 @@ class Account extends HookConsumerWidget {
           },
         ),
         AppTextButton(
+          key: AuthKeys.accountLogoutConfirmButton,
           label: 'logout'.i18n,
           onPressed: () {
             onLogout(context, ref);
