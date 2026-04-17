@@ -470,8 +470,9 @@ func (lc *LanternCore) StartBackgroundListeners() {
 	listenerManager.cancel = cancel
 	listenerManager.isRunning = true
 
-	// Auto-selected and data cap listeners are already running from initialization.
-	// This method is kept for compatibility but the listeners start automatically.
+	// Auto-selected, config, and data cap listeners are already running from
+	// initialization. This method is kept for compatibility but the listeners
+	// start automatically.
 	slog.Info("Background listeners started")
 }
 
