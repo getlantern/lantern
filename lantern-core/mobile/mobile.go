@@ -204,7 +204,7 @@ func IsRadianceConnected() bool {
 	return ok
 }
 
-func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
+func StartVPN(_ utils.PlatformInterface, opts *utils.Opts) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		slog.Info("Starting VPN")
 		client, err := getClient()

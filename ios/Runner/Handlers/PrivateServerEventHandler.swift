@@ -25,12 +25,12 @@ class PrivateServerEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     appLogger.info("PrivateServerEvent onListen called")
     cancellable = PrivateServerListener.shared.$eventSink
       .compactMap { $0 }
+      .receive(on: DispatchQueue.main)
       .sink { event in
         appLogger.info("PrivateServerEvent received event: \(event)")
         if !event.isEmpty {
           events(event)
         }
-
       }
     return nil
   }
