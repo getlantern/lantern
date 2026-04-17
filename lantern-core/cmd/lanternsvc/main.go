@@ -58,9 +58,12 @@ func main() {
 	}
 
 	if *consoleMode || !isService {
+		slog.Info("Starting Windows service executable", "service", common.WindowsServiceName, "version", rcommon.Version, "mode", "console")
 		runConsole()
 		return
 	}
+
+	slog.Info("Starting Windows service executable", "service", common.WindowsServiceName, "version", rcommon.Version, "mode", "service")
 
 	// let SCM specify the service name
 	if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
