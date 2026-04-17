@@ -11,7 +11,8 @@
 #
 # Prerequisites:
 #   - Android SDK (set $ANDROID_HOME, $ANDROID_SDK_ROOT, or have adb/emulator in $PATH)
-#   - At least one AVD created (run: avdmanager list avd)
+#   - If no AVDs exist, the script auto-creates "lantern-test" (requires sdkmanager/avdmanager;
+#     downloads a ~2GB Google APIs system image on first run)
 #
 # What it does:
 #   1. Starts the emulator (if not already running)

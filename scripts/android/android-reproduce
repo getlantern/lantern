@@ -28,7 +28,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG="org.getlantern.lantern"
 
 # --- Parse args ---
@@ -93,22 +92,30 @@ fi
 # --- Extract device info from flutter.log ---
 SDK_INT=""
 DEVICE_MODEL=""
+OS_VERSION=""
 if command -v python3 >/dev/null 2>&1; then
-    eval "$(python3 -c "
+    mapfile -t _DEVICE_INFO < <(python3 -c "
 import os, re, glob
+sdk_int = ''; model = ''; osver = ''
 for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
     for f in glob.glob(os.path.join(log_dir, 'flutter.log')):
         with open(f) as fh:
             for line in fh:
                 if 'Device info:' in line:
                     m = re.search(r'sdkInt:\s*(\d+)', line)
-                    if m: print(f'SDK_INT={m.group(1)}')
+                    if m: sdk_int = m.group(1)
                     m = re.search(r'model:\s*(\S+)', line)
-                    if m: print(f'DEVICE_MODEL={m.group(1).rstrip(\",\")}')
+                    if m: model = m.group(1).rstrip(',')
                     m = re.search(r'osVersion:\s*(\S+)', line)
-                    if m: print(f'OS_VERSION={m.group(1).rstrip(\",\")}')
+                    if m: osver = m.group(1).rstrip(',')
                     break
-" 2>/dev/null)"
+print(sdk_int)
+print(model)
+print(osver)
+" 2>/dev/null)
+    SDK_INT="${_DEVICE_INFO[0]:-}"
+    DEVICE_MODEL="${_DEVICE_INFO[1]:-}"
+    OS_VERSION="${_DEVICE_INFO[2]:-}"
 fi
 
 if [ -n "$SDK_INT" ]; then
@@ -193,10 +200,10 @@ cr = cfg.get('ConfigResponse', cfg)
 locs = cr.get('outbound_locations', cr.get('servers', {}))
 if isinstance(locs, dict):
     cities = sorted(set(v.get('city', '?') for v in locs.values()))
-    print(f'Locations:  {', '.join(cities)}')
+    print('Locations:  ' + ', '.join(cities))
 elif isinstance(locs, list):
     cities = sorted(set(s.get('city', '?') for s in locs))
-    print(f'Locations:  {', '.join(cities)}')
+    print('Locations:  ' + ', '.join(cities))
 " 2>/dev/null || true
 fi
 echo "APK:        $APK"
@@ -304,6 +311,15 @@ fi
 ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
 APP_DATA="/data/data/$PKG/.lantern"
 
+# Install APK FIRST so the app's data directory exists before we push configs.
+echo "Installing $APK..."
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
+
+# Launch once briefly so the data directory is fully created, then stop.
+"${ADB_CMD[@]}" shell am start -n "$PKG/org.getlantern.lantern.MainActivity" 2>/dev/null || true
+sleep 3
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
+
 echo "Pushing user's config files to emulator..."
 
 # Root the emulator (Google APIs images)
@@ -311,13 +327,21 @@ echo "Pushing user's config files to emulator..."
 sleep 2
 "${ADB_CMD[@]}" wait-for-device
 
+# Determine the base directory where config files live in the ticket dir.
+# /analyze-ticket puts them directly in the ticket dir, but they may also
+# be inside a logs/ subdirectory.
+CONFIG_BASE="$(dirname "$CONFIG_JSON")"
+
 # Push config files
 for file in config.json servers.json split-tunnel.json; do
-    SRC="$TICKET_DIR/$file"
-    if [ -f "$SRC" ]; then
+    SRC=""
+    for candidate in "$CONFIG_BASE/$file" "$TICKET_DIR/$file"; do
+        if [ -f "$candidate" ]; then SRC="$candidate"; break; fi
+    done
+    if [ -n "$SRC" ]; then
         "${ADB_CMD[@]}" push "$SRC" "/data/local/tmp/$file"
         "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/$file $APP_DATA/$file && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/$file" 2>/dev/null
-        echo "  Pushed $file"
+        echo "  Pushed $file (from $SRC)"
     fi
 done
 
@@ -329,7 +353,7 @@ if [ ${#ENV_OVERRIDES[@]} -gt 0 ]; then
         echo "$kv" >> "$ENV_FILE"
     done
     "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
-    "${ADB_CMD[@]}" shell "cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
+    "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
     echo "  Pushed .env (RADIANCE_COUNTRY=$COUNTRY)"
 fi
 
@@ -338,11 +362,7 @@ fi
 sleep 1
 "${ADB_CMD[@]}" wait-for-device
 
-# Install APK (if not already done)
-echo "Installing $APK..."
-"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
-
-# Force-restart the app
+# Restart the app with the user's config
 echo "Restarting Lantern with user's config..."
 "${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
 sleep 1
