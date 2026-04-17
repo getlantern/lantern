@@ -15,8 +15,8 @@ RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 ## APP_VERSION is the version defined in pubspec.yaml
 ifeq ($(OS),Windows_NT)
-APP_VERSION := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output $$v")
-APP_VERSION_PUBSPEC := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ($$v.Split('+')[0])")
+APP_VERSION := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$v=(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output $$v')
+APP_VERSION_PUBSPEC := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$v=(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output ($$v.Split("+")[0])')
 else
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 APP_VERSION_PUBSPEC := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
@@ -139,7 +139,7 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,wit
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
 ifeq ($(OS),Windows_NT)
-GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$line=(Select-String -Path 'go.mod' -Pattern '^go\s+(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ('go'+$$line)")
+GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$line=(Select-String -Path "go.mod" -Pattern "^go\s+(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output ("go"+$$line)')
 GO_SOURCES := go.mod go.sum
 UNAME_S := Windows
 else
