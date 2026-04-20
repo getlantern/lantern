@@ -203,7 +203,7 @@ class _HomeState extends ConsumerState<Home> {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if (!PlatformUtils.isIOS) ...{
+            if (!PlatformUtils.isIOS) ...[
               DividerSpace(),
               SettingTile(
                 label: 'routing_mode'.i18n,
@@ -223,7 +223,7 @@ class _HomeState extends ConsumerState<Home> {
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
-            },
+            ],
             if (PlatformUtils.isAndroid ||
                 PlatformUtils.isMacOS ||
                 PlatformUtils.isWindows) ...{
