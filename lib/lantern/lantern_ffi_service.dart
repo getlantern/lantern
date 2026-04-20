@@ -17,15 +17,14 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
-import 'package:lantern/lantern/lantern_windows_service.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
+import '../core/models/server_location.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
 import '../core/utils/compute_worker.dart';
@@ -43,40 +42,12 @@ const Set<String> _ffiOkResults = {'ok', 'true'};
 /// This is meant to be used only by [LanternService].
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
-  static const String _windowsServiceName = 'LanternSvc';
-
-  /// Windows IPC is optional. If it fails to init (missing token, timeout, etc),
-  /// we keep going and fall back to the non-IPC paths.
-  LanternServiceWindows? _windowsService;
-  Future<LanternServiceWindows?>? _windowsServiceInitInFlight;
-  DateTime? _windowsServiceLastInitFailureAt;
-  String? _windowsServiceLastInitFailureMessage;
-  static const Duration _windowsServiceRetryCooldown = Duration(seconds: 15);
-  static const Duration _windowsServiceStartWait = Duration(seconds: 6);
-  static const Duration _windowsServicePollInterval = Duration(
-    milliseconds: 300,
-  );
-  static const Duration _windowsInitRetryInterval = Duration(seconds: 3);
-  static const int _windowsWarmupMaxAttempts = 8;
-  static const Duration _windowsWarmupMaxDelay = Duration(seconds: 30);
-  StreamSubscription<LanternStatus>? _windowsStatusSubscription;
-  LanternStatus _lastWindowsStatus = LanternStatus.fromJson({
-    'status': 'disconnected',
-    'error': null,
-  });
-  final StreamController<LanternStatus> _windowsStatusController =
-      StreamController<LanternStatus>.broadcast();
 
   Stream<LanternStatus> _status = _defaultStatusStream();
 
   Stream<PrivateServerStatus> _privateServerStatus =
       const Stream<PrivateServerStatus>.empty();
   Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
-  static const Duration _appsCacheMaxAge = Duration(hours: 6);
-  static const Duration _appsCatalogRefreshInterval = Duration(minutes: 5);
-  Future<List<AppData>>? _appsScanInFlight;
-  List<AppData> _lastAppsSnapshot = const <AppData>[];
-  DateTime? _lastAppsScanAt;
 
   static Stream<LanternStatus> _defaultStatusStream() {
     // Keep a predictable default (matches the Windows status mapping behavior).
@@ -151,18 +122,13 @@ class LanternFFIService implements LanternCoreService {
         appLogger.error('Radiance setup failed: $err');
       }, (_) {});
 
-      if (Platform.isWindows) {
-        // Keep startup responsive. IPC warmup runs in the background.
-        unawaited(_startWindowsServiceWarmup());
+      _status = statusReceivePort.map((event) {
+        final Map<String, dynamic> result = jsonDecode(event);
+        return LanternStatus.fromJson(result);
+      });
 
-        if (!_isolateInitialized.isCompleted) {
-          await _initializeCommandIsolate();
-        }
-      } else {
-        _status = statusReceivePort.map((event) {
-          final Map<String, dynamic> result = jsonDecode(event);
-          return LanternStatus.fromJson(result);
-        });
+      if (Platform.isWindows && !_isolateInitialized.isCompleted) {
+        await _initializeCommandIsolate();
       }
 
       // These streams exist even if Windows IPC doesn't.
@@ -175,10 +141,6 @@ class LanternFFIService implements LanternCoreService {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
       });
-
-      if (Platform.isWindows) {
-        unawaited(_primeAppsCatalog());
-      }
     } catch (e, st) {
       appLogger.error('Error while setting up radiance', e, st);
     }
@@ -246,328 +208,6 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Stream<LanternStatus> _watchWindowsStatus() async* {
-    yield _lastWindowsStatus;
-    yield* _windowsStatusController.stream;
-  }
-
-  void _publishWindowsStatus(LanternStatus status) {
-    _lastWindowsStatus = status;
-    if (!_windowsStatusController.isClosed) {
-      _windowsStatusController.add(status);
-    }
-  }
-
-  Future<void> _attachWindowsStatusStream(
-    LanternServiceWindows windowsService,
-  ) async {
-    final previous = _windowsStatusSubscription;
-    _windowsStatusSubscription = null;
-    if (previous != null) {
-      await previous.cancel();
-    }
-    _windowsStatusSubscription = windowsService.watchVPNStatus().listen(
-      _publishWindowsStatus,
-      onError: (Object error, StackTrace stackTrace) {
-        appLogger.error('Windows status stream failed', error, stackTrace);
-      },
-    );
-  }
-
-  Future<void> _startWindowsServiceWarmup() async {
-    var retryDelay = _windowsInitRetryInterval;
-    for (
-      var attempt = 1;
-      Platform.isWindows && attempt <= _windowsWarmupMaxAttempts;
-      attempt++
-    ) {
-      final windowsService = await _getOrInitWindowsService(forceRetry: true);
-      if (windowsService != null) {
-        return;
-      }
-
-      final serviceState = await _readWindowsServiceState();
-      if (serviceState == _WindowsServiceState.missing) {
-        appLogger.warning(
-          'Windows IPC warmup stopped: service $_windowsServiceName is missing',
-        );
-        return;
-      }
-
-      if (attempt == _windowsWarmupMaxAttempts) {
-        appLogger.warning(
-          'Windows IPC warmup did not complete after '
-          '$_windowsWarmupMaxAttempts attempts; stopping warmup',
-        );
-        return;
-      }
-
-      appLogger.warning(
-        'Windows IPC warmup did not complete; retrying in '
-        '${retryDelay.inMilliseconds}ms '
-        '(attempt $attempt of $_windowsWarmupMaxAttempts)',
-      );
-      await Future.delayed(retryDelay);
-      retryDelay = _nextWarmupRetryDelay(retryDelay);
-    }
-  }
-
-  Duration _nextWarmupRetryDelay(Duration current) {
-    final doubledMs = current.inMilliseconds * 2;
-    final maxMs = _windowsWarmupMaxDelay.inMilliseconds;
-    final nextMs = doubledMs > maxMs ? maxMs : doubledMs;
-    return Duration(milliseconds: nextMs);
-  }
-
-  Future<_WindowsServiceState> _readWindowsServiceState() async {
-    try {
-      final result = await Process.run('sc.exe', [
-        'query',
-        _windowsServiceName,
-      ]);
-      final text = '${result.stdout}\n${result.stderr}'.toUpperCase();
-      if (result.exitCode == 1060 ||
-          text.contains('FAILED 1060') ||
-          text.contains('DOES NOT EXIST')) {
-        return _WindowsServiceState.missing;
-      }
-      if (text.contains('STATE') && text.contains('START_PENDING')) {
-        return _WindowsServiceState.startPending;
-      }
-      if (text.contains('STATE') && text.contains('STOP_PENDING')) {
-        return _WindowsServiceState.stopPending;
-      }
-      if (text.contains('STATE') && text.contains('RUNNING')) {
-        return _WindowsServiceState.running;
-      }
-      if (text.contains('STATE') && text.contains('STOPPED')) {
-        return _WindowsServiceState.stopped;
-      }
-      return result.exitCode == 0
-          ? _WindowsServiceState.stopped
-          : _WindowsServiceState.unknown;
-    } catch (e, st) {
-      appLogger.error('Failed to query Windows service state', e, st);
-      return _WindowsServiceState.unknown;
-    }
-  }
-
-  Future<bool> _waitForWindowsServiceRunning(Duration timeout) async {
-    final deadline = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(deadline)) {
-      final state = await _readWindowsServiceState();
-      switch (state) {
-        case _WindowsServiceState.running:
-          return true;
-        case _WindowsServiceState.missing:
-          return false;
-        case _WindowsServiceState.startPending:
-        case _WindowsServiceState.stopPending:
-        case _WindowsServiceState.stopped:
-        case _WindowsServiceState.unknown:
-          break;
-      }
-      await Future.delayed(_windowsServicePollInterval);
-    }
-    return false;
-  }
-
-  Future<bool> _waitForWindowsServiceStopped(Duration timeout) async {
-    final deadline = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(deadline)) {
-      final state = await _readWindowsServiceState();
-      switch (state) {
-        case _WindowsServiceState.stopped:
-          return true;
-        case _WindowsServiceState.missing:
-          return false;
-        case _WindowsServiceState.startPending:
-        case _WindowsServiceState.stopPending:
-        case _WindowsServiceState.running:
-        case _WindowsServiceState.unknown:
-          break;
-      }
-      await Future.delayed(_windowsServicePollInterval);
-    }
-    return false;
-  }
-
-  Future<bool> _prepareWindowsService() async {
-    final state = await _readWindowsServiceState();
-    switch (state) {
-      case _WindowsServiceState.running:
-        return true;
-      case _WindowsServiceState.missing:
-        _windowsServiceLastInitFailureMessage =
-            'Windows service LanternSvc is missing.';
-        return false;
-      case _WindowsServiceState.startPending:
-        final running = await _waitForWindowsServiceRunning(
-          _windowsServiceStartWait,
-        );
-        if (!running) {
-          _windowsServiceLastInitFailureMessage =
-              'Windows service LanternSvc did not reach running state.';
-        }
-        return running;
-      case _WindowsServiceState.stopped:
-      case _WindowsServiceState.stopPending:
-        try {
-          if (state == _WindowsServiceState.stopPending) {
-            final stopped = await _waitForWindowsServiceStopped(
-              _windowsServiceStartWait,
-            );
-            if (!stopped) {
-              _windowsServiceLastInitFailureMessage =
-                  'Windows service LanternSvc did not reach stopped state.';
-              return false;
-            }
-          }
-          final startResult = await Process.run('sc.exe', [
-            'start',
-            _windowsServiceName,
-          ]);
-          if (startResult.exitCode != 0) {
-            _windowsServiceLastInitFailureMessage =
-                'Windows service LanternSvc could not start.';
-            appLogger.warning(
-              'Failed to start Windows service',
-              startResult.stdout,
-              StackTrace.current,
-            );
-            return false;
-          }
-          final running = await _waitForWindowsServiceRunning(
-            _windowsServiceStartWait,
-          );
-          if (!running) {
-            _windowsServiceLastInitFailureMessage =
-                'Windows service LanternSvc did not reach running state.';
-          }
-          return running;
-        } catch (e, st) {
-          _windowsServiceLastInitFailureMessage =
-              'Windows service LanternSvc start command failed.';
-          appLogger.error('Failed to start Windows service', e, st);
-          return false;
-        }
-      case _WindowsServiceState.unknown:
-        appLogger.warning(
-          'Windows service state is unknown; proceeding with IPC attempt',
-        );
-        return true;
-    }
-  }
-
-  String _describeWindowsIpcFailure(Object error) {
-    if (error is PipeTokenException) {
-      return switch (error.kind) {
-        PipeTokenErrorKind.missing =>
-          'IPC token file is missing at ${error.path}.',
-        PipeTokenErrorKind.empty => 'IPC token file is empty at ${error.path}.',
-        PipeTokenErrorKind.unreadable =>
-          'IPC token file could not be read at ${error.path}.',
-      };
-    }
-    if (error is PipeTransportException) {
-      if (error.timedOut) {
-        return 'Windows IPC pipe open timed out.';
-      }
-      return 'Windows IPC transport failed (${error.code}).';
-    }
-    return error.toString();
-  }
-
-  String _windowsIpcUnavailableMessage() {
-    final details = _windowsServiceLastInitFailureMessage;
-    if (details == null || details.trim().isEmpty) {
-      return 'The Windows VPN service did not initialize (IPC unavailable).';
-    }
-    return 'The Windows VPN service is unavailable: $details';
-  }
-
-  Future<void> _initializeWindowsService() async {
-    final tokenPath = p.join(
-      Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-      'Lantern',
-      'ipc-token',
-    );
-    final pipe = PipeClient(
-      tokenPath: tokenPath,
-      timeoutMs: 1500,
-      tokenWaitMs: 1500,
-    );
-
-    // Create locally first; only assign to the field after init succeeds.
-    final ws = LanternServiceWindows(pipe);
-
-    try {
-      await ws.init();
-      _windowsService = ws;
-      _windowsServiceLastInitFailureAt = null;
-      _windowsServiceLastInitFailureMessage = null;
-      await _attachWindowsStatusStream(ws);
-    } catch (e, st) {
-      appLogger.error('LanternServiceWindows.init() threw', e, st);
-      _windowsService = null;
-      rethrow; // init() will catch and keep going; this keeps the original stack.
-    }
-  }
-
-  Future<LanternServiceWindows?> _getOrInitWindowsService({
-    bool forceRetry = false,
-  }) async {
-    final existing = _windowsService;
-    if (existing != null) {
-      return existing;
-    }
-
-    if (!forceRetry) {
-      final lastFailureAt = _windowsServiceLastInitFailureAt;
-      if (lastFailureAt != null &&
-          DateTime.now().difference(lastFailureAt) <
-              _windowsServiceRetryCooldown) {
-        return null;
-      }
-    }
-
-    final inFlight = _windowsServiceInitInFlight;
-    if (inFlight != null) {
-      return inFlight;
-    }
-
-    final initFuture = () async {
-      try {
-        final ready = await _prepareWindowsService();
-        if (!ready) {
-          _windowsService = null;
-          _windowsServiceLastInitFailureAt = DateTime.now();
-          return null;
-        }
-        await _initializeWindowsService();
-      } catch (e, st) {
-        appLogger.error('Windows IPC re-init failed', e, st);
-        _windowsService = null;
-        _windowsServiceLastInitFailureAt = DateTime.now();
-        _windowsServiceLastInitFailureMessage = _describeWindowsIpcFailure(e);
-      } finally {
-        _windowsServiceInitInFlight = null;
-      }
-      return _windowsService;
-    }();
-
-    _windowsServiceInitInFlight = initFuture;
-    return initFuture;
-  }
-
-  Future<void> _markWindowsStatusOrigin(VPNStatusOrigin origin) async {
-    if (!Platform.isWindows) {
-      return;
-    }
-    final ws = await _getOrInitWindowsService();
-    ws?.setNextStatusOrigin(origin);
-  }
-
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
@@ -592,7 +232,6 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
     try {
-      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
       final result = await runInBackground<String>(() async {
         return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
       });
@@ -607,50 +246,54 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    final String dataDir = _ffiService.getAppDataDir().toDartString();
-    final enabledKeys = await _getEnabledAppKeys();
-    var latestEmitted = const <AppData>[];
-
-    final memoryApps = _appsFromSnapshot(enabledKeys);
-    if (memoryApps.isNotEmpty) {
-      yield memoryApps;
-      latestEmitted = memoryApps;
-    }
-
-    final cachedApps = await _loadCachedApps(dataDir, enabledKeys);
-    if (cachedApps.isNotEmpty && memoryApps.isEmpty) {
-      appLogger.debug(
-        'Loaded ${cachedApps.length} apps from cache before full scan',
-      );
-      yield cachedApps;
-      latestEmitted = cachedApps;
-    }
-
-    final hasImmediateApps = memoryApps.isNotEmpty || cachedApps.isNotEmpty;
-    if (hasImmediateApps) {
-      try {
-        final scannedApps = await _scanInstalledApps(dataDir, enabledKeys);
-        if (_appsSnapshotChanged(latestEmitted, scannedApps)) {
-          yield scannedApps;
-        }
-      } catch (e, st) {
-        appLogger.error("Failed to refresh installed apps", e, st);
-      }
-      return;
-    }
-
     try {
-      final scannedApps = await _scanInstalledApps(dataDir, enabledKeys);
-      if (scannedApps.isEmpty && cachedApps.isEmpty && memoryApps.isEmpty) {
+      // Installed apps still loaded from Go (already is)
+      final String dataDir = (_ffiService.getAppDataDir().toDartString());
+
+      final String jsonApps = await runInBackground<String>(() async {
+        final ptr = dataDir.toNativeUtf8();
+        try {
+          return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+
+      if (jsonApps.isEmpty) {
         yield [];
         return;
       }
-      yield scannedApps;
+
+      // Enabled apps from Go (NOT LocalStorage)
+      final enabledJson = await runInBackground<String>(() async {
+        return _ffiService.getEnabledApps().toDartString();
+      });
+      checkAPIError(enabledJson);
+
+      final enabledKeys = (jsonDecode(enabledJson) as List)
+          .cast<String>()
+          .toSet();
+
+      final decoded = jsonDecode(jsonApps) as List<dynamic>;
+      final rawApps = decoded.cast<Map<String, dynamic>>();
+
+      yield rawApps.map((raw) {
+        final name = (raw["name"] as String? ?? "").trim();
+        final bundleId = (raw["bundleId"] as String? ?? "").trim();
+        final key = bundleId.isNotEmpty ? bundleId : name;
+
+        return AppData(
+          name: name,
+          bundleId: bundleId,
+          appPath: raw["appPath"] as String? ?? '',
+          iconPath: raw["iconPath"] as String? ?? '',
+          iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+          isEnabled: enabledKeys.contains(key),
+        );
+      }).toList();
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
-      if (cachedApps.isEmpty && memoryApps.isEmpty) {
-        yield [];
-      }
+      yield [];
     }
   }
 
@@ -695,246 +338,6 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Failed to load installed app icon bytes', e, st);
       return null;
     }
-  }
-
-  List<AppData> _appsFromSnapshot(Set<String> enabledKeys) {
-    if (_lastAppsSnapshot.isEmpty) {
-      return const <AppData>[];
-    }
-    return _applyEnabledState(_lastAppsSnapshot, enabledKeys);
-  }
-
-  bool _appsSnapshotChanged(List<AppData> previous, List<AppData> next) {
-    if (previous.length != next.length) {
-      return true;
-    }
-
-    final previousFingerprints = previous.map(_appFingerprint).toList()..sort();
-    final nextFingerprints = next.map(_appFingerprint).toList()..sort();
-    for (var i = 0; i < previousFingerprints.length; i++) {
-      if (previousFingerprints[i] != nextFingerprints[i]) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  String _appFingerprint(AppData app) {
-    return [
-      _normalizeSplitTunnelKey(app.bundleId),
-      _normalizeSplitTunnelKey(app.appPath),
-      _normalizeSplitTunnelKey(app.iconPath),
-      app.name.trim().toLowerCase(),
-      app.isEnabled ? '1' : '0',
-      app.removed ? '1' : '0',
-    ].join('|');
-  }
-
-  Future<void> _primeAppsCatalog() async {
-    final dataDir = _ffiService.getAppDataDir().toDartString();
-    if (_isAppsCatalogFresh()) {
-      return;
-    }
-    try {
-      await _scanInstalledApps(dataDir, const <String>{});
-    } catch (e, st) {
-      appLogger.error('Failed to prewarm apps catalog', e, st);
-    }
-  }
-
-  bool _isAppsCatalogFresh() {
-    final last = _lastAppsScanAt;
-    if (last == null) {
-      return false;
-    }
-    return DateTime.now().difference(last) <= _appsCatalogRefreshInterval;
-  }
-
-  Future<List<AppData>> _scanInstalledApps(
-    String dataDir,
-    Set<String> enabledKeys,
-  ) async {
-    final inFlight = _appsScanInFlight;
-    if (inFlight != null) {
-      final snapshot = await inFlight;
-      return _applyEnabledState(snapshot, enabledKeys);
-    }
-
-    final scanFuture = _scanInstalledAppsRaw(dataDir);
-    _appsScanInFlight = scanFuture;
-    try {
-      final snapshot = await scanFuture;
-      _lastAppsSnapshot = snapshot
-          .map((app) => app.copyWith(isEnabled: false))
-          .toList();
-      _lastAppsScanAt = DateTime.now();
-      return _applyEnabledState(snapshot, enabledKeys);
-    } finally {
-      _appsScanInFlight = null;
-    }
-  }
-
-  Future<List<AppData>> _scanInstalledAppsRaw(String dataDir) async {
-    final String jsonApps = await runInBackground<String>(() async {
-      final ptr = dataDir.toNativeUtf8();
-      try {
-        return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
-      } finally {
-        malloc.free(ptr);
-      }
-    });
-
-    checkAPIError(jsonApps);
-    if (jsonApps.isEmpty) {
-      return const <AppData>[];
-    }
-    return _parseAppsJson(jsonApps);
-  }
-
-  Future<Set<String>> _getEnabledAppKeys() async {
-    try {
-      final enabledJson = await runInBackground<String>(() async {
-        return _ffiService.getEnabledApps().toDartString();
-      });
-      checkAPIError(enabledJson);
-      final dynamic decoded = jsonDecode(enabledJson);
-      if (decoded is! List) {
-        return const <String>{};
-      }
-      return decoded
-          .map((item) => _normalizeSplitTunnelKey(item?.toString() ?? ''))
-          .where((item) => item.isNotEmpty)
-          .toSet();
-    } catch (e, st) {
-      appLogger.error('Failed to load enabled split-tunnel apps', e, st);
-      return const <String>{};
-    }
-  }
-
-  Future<List<AppData>> _loadCachedApps(
-    String dataDir,
-    Set<String> enabledKeys,
-  ) async {
-    try {
-      final cachePath = p.join(dataDir, 'apps_cache.json');
-      final file = File(cachePath);
-      if (!file.existsSync()) {
-        return const <AppData>[];
-      }
-      final stats = await file.stat();
-      if (DateTime.now().difference(stats.modified) > _appsCacheMaxAge) {
-        appLogger.debug('Skipping stale apps cache at $cachePath');
-        return const <AppData>[];
-      }
-      final cacheRaw = await file.readAsString();
-      if (cacheRaw.trim().isEmpty) {
-        return const <AppData>[];
-      }
-      return _parseAppsJson(cacheRaw, enabledKeys);
-    } catch (e, st) {
-      appLogger.error('Failed to load cached apps', e, st);
-      return const <AppData>[];
-    }
-  }
-
-  List<AppData> _applyEnabledState(
-    List<AppData> apps,
-    Set<String> enabledKeys,
-  ) {
-    return apps.map((app) {
-      final matchKey = _splitTunnelMatchKey(
-        app.bundleId,
-        app.appPath,
-        app.name,
-      );
-      return app.copyWith(isEnabled: enabledKeys.contains(matchKey));
-    }).toList();
-  }
-
-  List<AppData> _parseAppsJson(
-    String jsonApps, [
-    Set<String> enabledKeys = const <String>{},
-  ]) {
-    final dynamic decoded = jsonDecode(jsonApps);
-    if (decoded is! List) {
-      return const <AppData>[];
-    }
-
-    final deduped = <String, AppData>{};
-    for (final entry in decoded) {
-      if (entry is! Map) {
-        continue;
-      }
-
-      final raw = entry.cast<String, dynamic>();
-      final name = (raw["name"] as String? ?? "").trim();
-      final bundleId = (raw["bundleId"] as String? ?? "").trim();
-      final appPath = (raw["appPath"] as String? ?? "").trim();
-      final iconPath = (raw["iconPath"] as String? ?? '').trim();
-
-      final matchKey = _splitTunnelMatchKey(bundleId, appPath, name);
-      if (matchKey.isEmpty) {
-        continue;
-      }
-
-      final app = AppData(
-        name: name,
-        bundleId: bundleId,
-        appPath: appPath,
-        iconPath: iconPath,
-        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
-        isEnabled: enabledKeys.contains(matchKey),
-      );
-
-      final identity = _appIdentityKey(app);
-      if (identity.isEmpty) {
-        continue;
-      }
-
-      final existing = deduped[identity];
-      if (existing == null ||
-          ((existing.iconBytes?.isEmpty ?? true) &&
-              (app.iconBytes?.isNotEmpty ?? false))) {
-        deduped[identity] = app;
-      }
-    }
-
-    final apps = deduped.values.toList();
-    apps.sort((a, b) {
-      final an = a.name.trim().toLowerCase();
-      final bn = b.name.trim().toLowerCase();
-      if (an.isEmpty && bn.isEmpty) return 0;
-      if (an.isEmpty) return 1;
-      if (bn.isEmpty) return -1;
-      return an.compareTo(bn);
-    });
-    return apps;
-  }
-
-  String _splitTunnelMatchKey(String bundleId, String appPath, String name) {
-    if (bundleId.isNotEmpty) return _normalizeSplitTunnelKey(bundleId);
-    if (appPath.isNotEmpty) return _normalizeSplitTunnelKey(appPath);
-    return _normalizeSplitTunnelKey(name);
-  }
-
-  String _normalizeSplitTunnelKey(String key) {
-    final trimmed = key.trim();
-    if (trimmed.isEmpty) {
-      return '';
-    }
-    if (Platform.isWindows) {
-      return trimmed.toLowerCase();
-    }
-    return trimmed;
-  }
-
-  String _appIdentityKey(AppData app) {
-    final bundleId = app.bundleId.trim().toLowerCase();
-    if (bundleId.isNotEmpty) return bundleId;
-    final appPath = app.appPath.trim().toLowerCase();
-    if (appPath.isNotEmpty) return appPath;
-    return app.name.trim().toLowerCase();
   }
 
   // Split tunneling
@@ -1126,7 +529,7 @@ class LanternFFIService implements LanternCoreService {
               description.toCharPtr,
               device.toCharPtr,
               model.toCharPtr,
-              "".toCharPtr,
+              logFilePath.toCharPtr,
             )
             .toDartString();
       });
@@ -1140,32 +543,16 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    if (Platform.isWindows) {
-      appLogger.debug('Starting VPN on Windows via IPC');
-
-      try {
-        final result = runInBackground(() async {
-          return _ffiService.startAutoLocationListener().toDartString();
-        });
-        result.then((value) {
-          appLogger.debug("auto location listener started: $value");
-        });
-      } catch (e) {
-        appLogger.error("error starting auto location listener: $e");
-      }
-
-      final ws = await _getOrInitWindowsService(forceRetry: true);
-      if (ws == null) {
-        return left(
-          Failure(
-            error: 'Windows service unavailable',
-            localizedErrorMessage: _windowsIpcUnavailableMessage(),
-          ),
-        );
-      }
-
-      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connect();
+    try {
+      // Best-effort: start the auto location listener.
+      final locResult = runInBackground(() async {
+        return _ffiService.startAutoLocationListener().toDartString();
+      });
+      locResult.then((value) {
+        appLogger.debug("auto location listener started: $value");
+      });
+    } catch (e) {
+      appLogger.error("error starting auto location listener: $e");
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -1233,32 +620,16 @@ class LanternFFIService implements LanternCoreService {
     String location,
     String tag,
   ) async {
-    if (Platform.isWindows) {
-      try {
-        // Do not await here to avoid blocking
-        final result = runInBackground(() async {
-          return _ffiService.stopAutoLocationListener().toDartString();
-        });
-        result.then((value) {
-          appLogger.debug("auto location listener stops : $value");
-        });
-      } catch (e) {
-        appLogger.error("error stopping auto location listener: $e");
-      }
-
-      final ws = await _getOrInitWindowsService(forceRetry: true);
-      if (ws == null) {
-        return left(
-          Failure(
-            error: 'Windows service unavailable',
-            localizedErrorMessage:
-                'Cannot connect to a server: ${_windowsIpcUnavailableMessage()}',
-          ),
-        );
-      }
-
-      ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connectToServer(location, tag);
+    try {
+      // Best-effort: stop the auto location listener.
+      final result = runInBackground(() async {
+        return _ffiService.stopAutoLocationListener().toDartString();
+      });
+      result.then((value) {
+        appLogger.debug("auto location listener stops: $value");
+      });
+    } catch (e) {
+      appLogger.error("error stopping auto location listener: $e");
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -1289,30 +660,16 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Stopping VPN');
 
-      if (Platform.isWindows) {
-        // Best-effort: stop the listener without blocking the UI.
-        try {
-          final result = runInBackground(() async {
-            return _ffiService.stopAutoLocationListener().toDartString();
-          });
-          result.then((value) {
-            appLogger.debug("auto location listener stops : $value");
-          });
-        } catch (e) {
-          appLogger.error("error stopping auto location listener: $e");
-        }
-
-        final ws = _windowsService;
-        if (ws == null) {
-          // If IPC never came up, treat this as already stopped.
-          appLogger.warning(
-            'stopVPN(): Windows service not initialized; treating as already stopped',
-          );
-          return right('ok');
-        }
-
-        ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-        return ws.disconnect();
+      try {
+        // Best-effort: stop the auto location listener.
+        final locResult = runInBackground(() async {
+          return _ffiService.stopAutoLocationListener().toDartString();
+        });
+        locResult.then((value) {
+          appLogger.debug("auto location listener stops: $value");
+        });
+      } catch (e) {
+        appLogger.error("error stopping auto location listener: $e");
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
@@ -1330,13 +687,6 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, bool>> isVPNConnected() async {
     try {
-      if (Platform.isWindows) {
-        final ws = await _getOrInitWindowsService();
-        if (ws == null) {
-          return right(false);
-        }
-        return ws.isVPNConnected();
-      }
       final connectedInt = _ffiService.isVPNConnected();
       final connected = connectedInt != 0;
       return right(connected);
@@ -1357,31 +707,12 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isWindows) {
-      appLogger.info('[watchLogs] awaiting Windows service init');
-      return Stream.fromFuture(_getOrInitWindowsService()).asyncExpand((ws) {
-        if (ws == null) {
-          appLogger.error(
-            '[watchLogs] Windows service is null — returning empty stream',
-          );
-          return const Stream<List<String>>.empty();
-        }
-        appLogger.info(
-          '[watchLogs] Windows service ready, starting log pipe stream',
-        );
-        return accumulateLogBatches(ws.watchLogs());
-      });
-    }
+    // Log streaming is not yet implemented via FFI.
     throw UnimplementedError();
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() {
-    if (Platform.isWindows) {
-      return _watchWindowsStatus();
-    }
-    return _status;
-  }
+  Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
@@ -1443,6 +774,7 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(() async {
         return _ffiService.plans().toDartString();
       });
+      checkAPIError(result);
       final map = jsonDecode(result);
       final plans = PlansData.fromJson(map);
 
@@ -1482,13 +814,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error oauth callback', e, stackTrace);
@@ -1497,16 +830,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> getUserData() async {
-    // if (Platform.isWindows) {
-    //   return _windowsService.getUserData();
-    // }
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.getUserData().toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error getting user data', e, stackTrace);
@@ -1520,13 +851,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.fetchUserData().toDartString();
       });
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error fetchUser data', e, stackTrace);
@@ -1566,14 +898,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.logout(email.toCharPtr).toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error while logout', e, stackTrace);
@@ -1582,7 +914,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) async {
@@ -1593,8 +925,8 @@ class LanternFFIService implements LanternCoreService {
             .toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error while login', e, stackTrace);
@@ -1679,7 +1011,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,
@@ -1691,8 +1023,8 @@ class LanternFFIService implements LanternCoreService {
             .toDartString();
       });
       checkAPIError(result);
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error deleting account', e, stackTrace);
@@ -1861,10 +1193,9 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
     required bool skipCertVerification,
-    required String serverName,
   }) async {
     try {
       final result = await runInBackground<String>(() async {
@@ -1872,12 +1203,13 @@ class LanternFFIService implements LanternCoreService {
             .addServerBasedOnURLs(
               urls.toCharPtr,
               skipCertVerification ? 1 : 0,
-              serverName.toCharPtr,
+              ''.toCharPtr,
             )
             .toDartString();
       });
       checkAPIError(result);
-      return Right(unit);
+      final tags = (jsonDecode(result) as List).cast<String>();
+      return Right(tags);
     } catch (e, stackTrace) {
       appLogger.error('Error adding server based on URLs', e, stackTrace);
       return Left(e.toFailure());
@@ -2010,29 +1342,8 @@ class LanternFFIService implements LanternCoreService {
         return _ffiService.getAvailableServers().toDartString();
       });
       checkAPIError(result);
-      final servers = AvailableServers.fromJson(jsonDecode(result));
-      void applyProtocols(Lantern lantern) {
-        final outboundsByTag = {
-          for (var outbound in lantern.outbounds) outbound.tag: outbound.type,
-        };
-        lantern.locations.forEach((key, value) {
-          final protoValue = outboundsByTag[key];
-          if (protoValue != null) {
-            value.protocol = protoValue;
-          } else {
-            try {
-              // If not found, try to extract from tag.
-              value.protocol = value.tag.split('-').first;
-            } catch (_) {
-              // If anything goes wrong, just leave it blank.
-              value.protocol = '';
-            }
-          }
-        });
-      }
-
-      applyProtocols(servers.lantern);
-      applyProtocols(servers.user);
+      final servers =
+          AvailableServers.fromJson(jsonDecode(result) as List<dynamic>);
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error('Error getting available servers', e, stackTrace);
@@ -2128,9 +1439,41 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getSelectedServerJSON().toDartString();
+      });
+      checkAPIError(result);
+      // Normalize a missing selection to an empty JSON object so callers
+      // fall into the "auto" branch below instead of throwing.
+      final raw = result.isEmpty ? '{}' : result;
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final serverJson = json['server'] as Map<String, dynamic>?;
+      if (serverJson == null) {
+        return Right(ServerLocation(
+          serverType: ServerLocationType.auto.name,
+          serverName: '',
+        ));
+      }
+      final server = Server.fromJson(serverJson);
+      final isLantern = server.isLantern;
+      return Right(ServerLocation.fromServer(
+        server: server,
+      ).copyWith(
+        serverType: isLantern
+            ? ServerLocationType.lanternLocation.name
+            : ServerLocationType.privateServer.name,
+      ));
+    } catch (e, stackTrace) {
+      appLogger.error('Error while getting selected server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
     try {
-      await _markWindowsStatusOrigin(VPNStatusOrigin.settingsMutation);
       final result = await runInBackground<String>(() async {
         return _ffiService
             .setBlockAdsEnabled(enabled ? 1 : 0)
@@ -2152,6 +1495,50 @@ class LanternFFIService implements LanternCoreService {
       return right(res != 0);
     } catch (e, st) {
       appLogger.error('isBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    try {
+      final res = _ffiService.isSmartRoutingEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isSmartRoutingEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    try {
+      final res = _ffiService.isTelemetryEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isTelemetryEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() async {
+    try {
+      final res = _ffiService.isOAuthLogin();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isOAuthLogin error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() async {
+    try {
+      final res = _ffiService.getOAuthProvider().toDartString();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getOAuthProvider error: $e', e, st);
       return Left(e.toFailure());
     }
   }
@@ -2274,15 +1661,6 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement diagnosticLogFiles
     throw UnimplementedError();
   }
-}
-
-enum _WindowsServiceState {
-  running,
-  stopped,
-  startPending,
-  stopPending,
-  missing,
-  unknown,
 }
 
 void checkAPIError(dynamic result) {
