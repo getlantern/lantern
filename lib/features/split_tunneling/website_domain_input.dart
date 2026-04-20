@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,7 +16,6 @@ class WebsiteDomainInput extends HookConsumerWidget {
     final textController = useTextEditingController();
     final enabledWebsites =
         ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
-
 
     void showSnackbar(String message) {
       ScaffoldMessenger.of(
@@ -115,7 +116,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
               key: const Key('split_tunneling.website.add_button'),
               label: 'add'.i18n,
               textColor: context.textPrimary,
-              onPressed: validateAndExtractDomain,
+              onPressed: () => unawaited(validateAndExtractDomain()),
             ),
           ],
         ),

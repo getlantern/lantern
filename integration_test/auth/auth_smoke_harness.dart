@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/router/router.gr.dart';
@@ -14,7 +15,6 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../utils/widget_wait_utils.dart';
 
@@ -60,20 +60,20 @@ class _InMemoryAppSettingNotifier extends AppSettingNotifier {
 class _InMemoryHomeNotifier extends HomeNotifier {
   _InMemoryHomeNotifier(this._initialUser);
 
-  final UserResponse _initialUser;
+  final UserResponseModel _initialUser;
 
   @override
-  Future<UserResponse> build() async => _initialUser;
+  Future<UserResponseModel> build() async => _initialUser;
 
   @override
-  void updateUserData(UserResponse userData) {
+  void updateUserData(UserResponseModel userData) {
     state = AsyncValue.data(userData);
   }
 
   @override
   void clearLogoutData() {
-    ref.read(appSettingProvider.notifier).clearAuthSessionData();
-    state = AsyncValue.data(UserResponse());
+    ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
+    state = AsyncValue.data(_emptyUser());
   }
 }
 
@@ -81,7 +81,7 @@ class _AuthSmokeFakeLanternService implements LanternService {
   _AuthSmokeFakeLanternService({required this.loginUsers});
 
   final Map<String, String> loginUsers;
-  final Map<String, UserResponse> _users = {};
+  final Map<String, UserResponseModel> _users = {};
   final Map<String, String> _recoveryCodes = {};
   bool forceLoginFailure = false;
   int deleteAccountCalls = 0;
@@ -89,14 +89,14 @@ class _AuthSmokeFakeLanternService implements LanternService {
   void seedUser({
     required String email,
     required String password,
-    required UserResponse user,
+    required UserResponseModel user,
   }) {
     loginUsers[email] = password;
     _users[email] = user;
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) async {
@@ -181,12 +181,12 @@ class _AuthSmokeFakeLanternService implements LanternService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
-    return right(UserResponse()..success = true);
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
+    return right(_emptyUser(success: true));
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,
@@ -203,28 +203,35 @@ class _AuthSmokeFakeLanternService implements LanternService {
     loginUsers.remove(email);
     _users.remove(email);
     _recoveryCodes.remove(email);
-    return right(UserResponse()..success = true);
+    return right(_emptyUser(success: true));
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-UserResponse _buildFreeUser({required String email}) {
-  final userData = UserResponse_UserData()
-    ..email = email
-    ..userLevel = 'free';
+UserResponseModel _emptyUser({bool success = false}) => UserResponseModel(
+  legacyID: 0,
+  legacyToken: '',
+  emailConfirmed: false,
+  success: success,
+);
 
-  return UserResponse()
-    ..success = true
-    ..id = email
-    ..legacyUserData = userData;
+UserResponseModel _buildFreeUser({required String email}) {
+  return UserResponseModel(
+    id: email,
+    legacyID: 0,
+    legacyToken: '',
+    emailConfirmed: false,
+    success: true,
+    legacyUserData: UserDataModel(email: email, userLevel: 'free'),
+  );
 }
 
 Future<_AuthSmokeScenarioContext> _startScenario(
   WidgetTester tester, {
   required AppSetting initialAppSetting,
-  required UserResponse initialUser,
+  required UserResponseModel initialUser,
   required _AuthSmokeFakeLanternService fakeService,
 }) async {
   await sl.reset();
@@ -309,7 +316,7 @@ Future<void> _runSignInSuccessScenario(WidgetTester tester) async {
   final context = await _startScenario(
     tester,
     initialAppSetting: const AppSetting(),
-    initialUser: UserResponse(),
+    initialUser: _emptyUser(),
     fakeService: fakeService,
   );
   try {
@@ -337,10 +344,9 @@ Future<void> _runSignInSuccessScenario(WidgetTester tester) async {
     );
 
     final settings = context.container.read(appSettingProvider);
+    final user = context.container.read(homeProvider).value;
     expect(settings.userLoggedIn, isTrue);
-    expect(settings.email, _existingUserEmail);
-    expect(settings.oAuthLoginProvider, SignUpMethodType.email.name);
-    expect(settings.oAuthToken, isEmpty);
+    expect(user?.legacyUserData.email, _existingUserEmail);
   } finally {
     context.dispose();
   }
@@ -358,7 +364,7 @@ Future<void> _runSignInFailureScenario(WidgetTester tester) async {
   final context = await _startScenario(
     tester,
     initialAppSetting: const AppSetting(),
-    initialUser: UserResponse(),
+    initialUser: _emptyUser(),
     fakeService: fakeService,
   );
   try {
@@ -386,10 +392,9 @@ Future<void> _runSignInFailureScenario(WidgetTester tester) async {
     );
 
     final settings = context.container.read(appSettingProvider);
+    final user = context.container.read(homeProvider).value;
     expect(settings.userLoggedIn, isFalse);
-    expect(settings.email, isEmpty);
-    expect(settings.oAuthToken, isEmpty);
-    expect(settings.oAuthLoginProvider, isEmpty);
+    expect(user?.legacyUserData.email ?? '', isEmpty);
   } finally {
     context.dispose();
   }
@@ -401,7 +406,7 @@ Future<void> _runSignUpSuccessScenario(WidgetTester tester) async {
   final context = await _startScenario(
     tester,
     initialAppSetting: const AppSetting(),
-    initialUser: UserResponse(),
+    initialUser: _emptyUser(),
     fakeService: fakeService,
   );
   try {
@@ -456,10 +461,9 @@ Future<void> _runSignUpSuccessScenario(WidgetTester tester) async {
     );
 
     final settings = context.container.read(appSettingProvider);
+    final user = context.container.read(homeProvider).value;
     expect(settings.userLoggedIn, isTrue);
-    expect(settings.email, _newUserEmail);
-    expect(settings.oAuthLoginProvider, SignUpMethodType.email.name);
-    expect(settings.oAuthToken, isEmpty);
+    expect(user?.legacyUserData.email, _newUserEmail);
   } finally {
     context.dispose();
   }
@@ -475,12 +479,7 @@ Future<void> _runLogoutClearsSessionScenario(WidgetTester tester) async {
 
   final context = await _startScenario(
     tester,
-    initialAppSetting: const AppSetting(
-      userLoggedIn: true,
-      email: _existingUserEmail,
-      oAuthToken: 'session-token',
-      oAuthLoginProvider: 'email',
-    ),
+    initialAppSetting: const AppSetting(userLoggedIn: true),
     initialUser: _buildFreeUser(email: _existingUserEmail),
     fakeService: fakeService,
   );
@@ -498,10 +497,9 @@ Future<void> _runLogoutClearsSessionScenario(WidgetTester tester) async {
     );
 
     final settings = context.container.read(appSettingProvider);
+    final user = context.container.read(homeProvider).value;
     expect(settings.userLoggedIn, isFalse);
-    expect(settings.email, isEmpty);
-    expect(settings.oAuthToken, isEmpty);
-    expect(settings.oAuthLoginProvider, isEmpty);
+    expect(user?.legacyUserData.email ?? '', isEmpty);
   } finally {
     context.dispose();
   }
@@ -517,12 +515,7 @@ Future<void> _runDeleteAccountClearsSessionScenario(WidgetTester tester) async {
 
   final context = await _startScenario(
     tester,
-    initialAppSetting: const AppSetting(
-      userLoggedIn: true,
-      email: _deleteUserEmail,
-      oAuthToken: '',
-      oAuthLoginProvider: 'email',
-    ),
+    initialAppSetting: const AppSetting(userLoggedIn: true),
     initialUser: _buildFreeUser(email: _deleteUserEmail),
     fakeService: fakeService,
   );
@@ -546,10 +539,9 @@ Future<void> _runDeleteAccountClearsSessionScenario(WidgetTester tester) async {
     );
 
     final settings = context.container.read(appSettingProvider);
+    final user = context.container.read(homeProvider).value;
     expect(settings.userLoggedIn, isFalse);
-    expect(settings.email, isEmpty);
-    expect(settings.oAuthToken, isEmpty);
-    expect(settings.oAuthLoginProvider, isEmpty);
+    expect(user?.legacyUserData.email ?? '', isEmpty);
 
     expect(context.fakeService.deleteAccountCalls, 1);
   } finally {

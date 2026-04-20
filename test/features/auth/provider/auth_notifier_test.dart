@@ -1,18 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+
+UserResponseModel _successUser() => const UserResponseModel(
+  legacyID: 0,
+  legacyToken: '',
+  emailConfirmed: false,
+  success: true,
+);
 
 class _FakeLanternService implements LanternService {
   String? loginEmail;
   String? loginPassword;
-  Either<Failure, UserResponse> loginResult = right(
-    UserResponse()..success = true,
-  );
+  Either<Failure, UserResponseModel> loginResult = right(_successUser());
 
   String? signUpEmail;
   String? signUpPassword;
@@ -21,12 +26,10 @@ class _FakeLanternService implements LanternService {
   String? deleteEmail;
   String? deletePassword;
   bool? deleteIsSSO;
-  Either<Failure, UserResponse> deleteResult = right(
-    UserResponse()..success = true,
-  );
+  Either<Failure, UserResponseModel> deleteResult = right(_successUser());
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) async {
@@ -46,7 +49,7 @@ class _FakeLanternService implements LanternService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,
@@ -64,8 +67,7 @@ class _FakeLanternService implements LanternService {
 void main() {
   group('AuthNotifier', () {
     test('signInWithEmail forwards credentials and returns success', () async {
-      final fakeService = _FakeLanternService()
-        ..loginResult = right(UserResponse()..success = true);
+      final fakeService = _FakeLanternService()..loginResult = right(_successUser());
       final container = ProviderContainer(
         overrides: [lanternServiceProvider.overrideWithValue(fakeService)],
       );
@@ -102,7 +104,7 @@ void main() {
       result.match(
         (err) =>
             expect(err.localizedErrorMessage, equals('Invalid credentials')),
-        (_) => fail('Expected Left(Failure), got Right(UserResponse)'),
+        (_) => fail('Expected Left(Failure), got Right(UserResponseModel)'),
       );
     });
 
@@ -126,7 +128,7 @@ void main() {
 
     test('deleteAccount forwards args and returns service result', () async {
       final fakeService = _FakeLanternService()
-        ..deleteResult = right(UserResponse()..success = true);
+        ..deleteResult = right(_successUser());
       final container = ProviderContainer(
         overrides: [lanternServiceProvider.overrideWithValue(fakeService)],
       );
