@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
@@ -146,6 +148,10 @@ abstract class LanternCoreService {
   Future<Either<Failure, List<String>>> diagnosticLogFiles();
 
   Stream<List<AppData>> appsDataStream();
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  });
 
   ///OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);

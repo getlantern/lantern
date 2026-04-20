@@ -18,7 +18,7 @@ import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.da
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
-class AppsSplitTunneling extends HookConsumerWidget {
+class AppsSplitTunneling extends ConsumerWidget {
   const AppsSplitTunneling({super.key});
 
   @override
@@ -160,7 +160,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
   }
 }
 
-class AppRow extends HookConsumerWidget {
+class AppRow extends ConsumerWidget {
   final AppData app;
   final bool enabled;
   final VoidCallback? onToggle;
@@ -180,22 +180,39 @@ class AppRow extends HookConsumerWidget {
       appPath: app.appPath,
       existingBytes: app.iconBytes,
     );
-
     final iconAsync = ref.watch(appIconBytesProvider(key));
 
     Widget iconWidget() {
+      if (app.iconBytes != null && app.iconBytes!.isNotEmpty) {
+        return Image.memory(
+          app.iconBytes!,
+          width: 24,
+          height: 24,
+          errorBuilder: (_, error, stackTrace) =>
+              Icon(Icons.apps, size: 24, color: context.textDisabled),
+        );
+      }
+      if (!Platform.isWindows &&
+          app.iconPath.isNotEmpty &&
+          !app.iconPath.toLowerCase().endsWith('.icns')) {
+        return Image.file(
+          File(app.iconPath),
+          width: 24,
+          height: 24,
+          fit: BoxFit.cover,
+          errorBuilder: (_, error, stackTrace) =>
+              Icon(Icons.apps, size: 24, color: context.textDisabled),
+        );
+      }
       return iconAsync.maybeWhen(
         data: (bytes) {
           if (bytes != null && bytes.isNotEmpty) {
-            return Image.memory(bytes, width: 24, height: 24);
-          }
-          if (app.iconPath.isNotEmpty &&
-              !app.iconPath.toLowerCase().endsWith('.icns')) {
-            return Image.file(
-              File(app.iconPath),
+            return Image.memory(
+              bytes,
               width: 24,
               height: 24,
-              fit: BoxFit.cover,
+              errorBuilder: (_, error, stackTrace) =>
+                  Icon(Icons.apps, size: 24, color: context.textDisabled),
             );
           }
           return Icon(Icons.apps, size: 24, color: context.textDisabled);

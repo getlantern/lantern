@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -16,6 +19,13 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useEffect(() {
+      unawaited(
+        ref.read(splitTunnelingWebsitesProvider.notifier).refreshFromCore(),
+      );
+      return null;
+    }, const []);
+
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
 
@@ -26,7 +36,8 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         website.domain.toLowerCase().contains(searchQuery.toLowerCase());
     final enabledList = enabledWebsites.where(matchesSearch).toList()
       ..sort(
-          (a, b) => a.domain.toLowerCase().compareTo(b.domain.toLowerCase()));
+        (a, b) => a.domain.toLowerCase().compareTo(b.domain.toLowerCase()),
+      );
 
     return BaseScreen(
       title: 'website_split_tunneling'.i18n,
@@ -36,6 +47,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         hintText: 'search_websites'.i18n,
       ),
       body: CustomScrollView(
+        key: const Key('split_tunneling.website.screen'),
         slivers: [
           SliverToBoxAdapter(
             child: Focus(autofocus: true, child: WebsiteDomainInput()),
@@ -50,32 +62,39 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           ),
           SliverToBoxAdapter(
             child: AppCard(
-                padding: EdgeInsets.zero,
-                child: enabledList.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'no_websites_selected'.i18n,
-                          style: textTheme.bodyLarge!.copyWith(
-                            color: context.textPrimary,
-                          ),
+              padding: EdgeInsets.zero,
+              child: enabledList.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'no_websites_selected'.i18n,
+                        style: textTheme.bodyLarge!.copyWith(
+                          color: context.textPrimary,
                         ),
-                      )
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        separatorBuilder: (context, index) =>
-                            DividerSpace(padding: EdgeInsets.zero),
-                        itemCount: enabledList.length,
-                        itemBuilder: (context, index) {
-                          final website = enabledList[index];
-                          return WebsiteRow(
-                            website: website,
-                            onToggle: () => ref
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      separatorBuilder: (context, index) =>
+                          DividerSpace(padding: EdgeInsets.zero),
+                      itemCount: enabledList.length,
+                      itemBuilder: (context, index) {
+                        final website = enabledList[index];
+                        return WebsiteRow(
+                          website: website,
+                          onToggle: () async {
+                            final failure = await ref
                                 .read(splitTunnelingWebsitesProvider.notifier)
-                                .removeWebsite(website),
-                          );
-                        },
-                      )),
+                                .removeWebsite(website);
+                            if (!context.mounted || failure == null) {
+                              return;
+                            }
+                            context.showSnackBar(failure.localizedErrorMessage);
+                          },
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
       ),
@@ -85,17 +104,15 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
 class WebsiteRow extends StatelessWidget {
   final Website website;
-  final VoidCallback onToggle;
+  final Future<void> Function() onToggle;
 
-  const WebsiteRow({
-    super.key,
-    required this.website,
-    required this.onToggle,
-  });
+  const WebsiteRow({super.key, required this.website, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
+    final normalizedDomain = website.domain.toLowerCase();
     return AppTile(
+      tileKey: Key('split_tunneling.website.row.$normalizedDomain'),
       minHeight: 45,
       contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
@@ -105,8 +122,9 @@ class WebsiteRow extends StatelessWidget {
         fontWeight: FontWeight.w500,
       ),
       trailing: AppIconButton(
+        key: Key('split_tunneling.website.remove.$normalizedDomain'),
         path: AppImagePaths.close,
-        onPressed: onToggle,
+        onPressed: () => unawaited(onToggle()),
       ),
     );
   }

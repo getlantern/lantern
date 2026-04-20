@@ -13,9 +13,28 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-## APP_VERSION is the version defined in pubspec.yaml
-APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
-APP_VERSION_PUBSPEC := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
+## APP_VERSION is the full version from pubspec.yaml (e.g. 9.0.25+459).
+## Precedence: environment > pubspec.yaml. CI must export APP_VERSION — on
+## Windows CI, `$(shell …)` runs under cmd.exe which mangles the Unix-style
+## quoting in the grep|sed pipeline and returns empty, producing an empty
+## `common.Version` ldflag and a 400 "missing app version" at /v1/config-new.
+## Local builds fall back to reading pubspec.yaml directly, with a PowerShell
+## branch so Windows devs without Git Bash / WSL still get a working build.
+ifeq ($(OS),Windows_NT)
+APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
+else
+APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+endif
+## Strip the +buildnumber for the Go linker. Done with Make built-ins so no
+## shell tools are required — this is the part that has to work in every
+## environment `make` might invoke the linker in.
+APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
+## Fail loudly at parse time if we couldn't resolve a version — this was the
+## exact failure mode of the bug this file fixes, where an empty value silently
+## produced a broken binary that 400s at /v1/config-new.
+ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
+$(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
+endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
@@ -114,10 +133,17 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,wit
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
+ifeq ($(OS),Windows_NT)
+GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$line=(Select-String -Path "go.mod" -Pattern "^go\s+(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output ("go"+$$line)')
+GO_SOURCES := go.mod go.sum
+UNAME_S := Windows
+else
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+UNAME_S := $(shell uname -s)
+endif
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
 GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
-GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
@@ -125,8 +151,6 @@ GOMOBILE_REPOS = \
 	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
-
-UNAME_S := $(shell uname -s)
 
 define osxcodesign
 	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
@@ -146,8 +170,6 @@ guard-%:
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
 
-require-gomobile:
-	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
 .PHONY: require-appdmg
 require-appdmg:
@@ -160,7 +182,7 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 ifeq ($(OS),Windows_NT)
-  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
+  NORMALIZED_CURDIR := $(subst \,/,$(CURDIR))
   SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
@@ -351,7 +373,7 @@ verify-linux-package:
 
 .PHONY: install-windows-deps
 install-windows-deps:
-	dart pub global activate flutter_distributor
+	dart pub global activate fastforge
 
 windows: windows-amd64
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))

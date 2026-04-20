@@ -3,6 +3,7 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 
 class SplitTunnelingTile extends StatelessWidget {
+  final Key? tileKey;
   final String label;
   final String actionText;
   final VoidCallback onPressed;
@@ -11,6 +12,7 @@ class SplitTunnelingTile extends StatelessWidget {
 
   const SplitTunnelingTile({
     super.key,
+    this.tileKey,
     required this.label,
     required this.actionText,
     required this.onPressed,
@@ -21,6 +23,7 @@ class SplitTunnelingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppTile(
+      tileKey: tileKey,
       label: label,
       icon: icon,
       subtitle: subtitle != null
@@ -42,10 +45,7 @@ class SplitTunnelingTile extends StatelessWidget {
             label: actionText,
             onPressed: onPressed,
           ),
-          AppImage(
-            path: AppImagePaths.arrowForward,
-            height: 20,
-          ),
+          AppImage(path: AppImagePaths.arrowForward, height: 20),
         ],
       ),
     );

@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/core/widgets/password_criteria.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
@@ -42,6 +43,7 @@ class CreatePassword extends HookConsumerWidget {
               EmailTag(email: email),
               SizedBox(height: defaultSize),
               AppTextField(
+                fieldKey: AuthKeys.createPasswordField,
                 controller: passwordTextController,
                 hintText: '',
                 prefixIcon: AppImagePaths.lock,
@@ -59,6 +61,7 @@ class CreatePassword extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
+                key: AuthKeys.createPasswordContinueButton,
                 label: 'continue'.i18n,
                 isTaller: true,
                 enabled: passwordTextController.text.isPasswordValid(),
@@ -67,7 +70,8 @@ class CreatePassword extends HookConsumerWidget {
               ),
               SizedBox(height: 32.0),
               PasswordCriteriaWidget(
-                  textEditingController: passwordTextController)
+                textEditingController: passwordTextController,
+              ),
             ],
           ),
         ),
@@ -86,7 +90,10 @@ class CreatePassword extends HookConsumerWidget {
   }
 
   Future<void> onContinue(
-      WidgetRef ref, String password, BuildContext context) async {
+    WidgetRef ref,
+    String password,
+    BuildContext context,
+  ) async {
     hideKeyboard();
     context.showLoadingDialog();
     final result = await ref
@@ -97,7 +104,8 @@ class CreatePassword extends HookConsumerWidget {
       (failure) {
         context.hideLoadingDialog();
         appLogger.error(
-            'Failed to create password: ${failure.localizedErrorMessage}');
+          'Failed to create password: ${failure.localizedErrorMessage}',
+        );
         context.showSnackBarError(failure.localizedErrorMessage);
       },
       (success) {
