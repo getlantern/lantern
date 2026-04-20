@@ -70,6 +70,26 @@ class VPNManager: VPNBase {
   }
   // MARK: - VPN Control Methods
 
+  /// Collects RADIANCE_* env vars from the main app's process environment,
+  /// serialized as JSON for forwarding to the sandboxed system extension
+  /// via `startVPNTunnel(options:)`. Returns nil if there's nothing to forward.
+  /// See macOS VPNManager and radiance/backend.Options.EnvOverrides for the
+  /// full propagation chain.
+  private func radianceEnvOverridesJSON() -> String? {
+    let overrides = ProcessInfo.processInfo.environment
+      .filter { $0.key.hasPrefix("RADIANCE_") }
+    if overrides.isEmpty {
+      return nil
+    }
+    guard let data = try? JSONSerialization.data(withJSONObject: overrides, options: []),
+          let json = String(data: data, encoding: .utf8)
+    else {
+      appLogger.error("failed to encode RADIANCE_* env overrides as JSON")
+      return nil
+    }
+    return json
+  }
+
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
@@ -85,10 +105,13 @@ class VPNManager: VPNBase {
       )
     }
 
-    let options: [String: NSObject] = [
+    var options: [String: NSObject] = [
       "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
+    if let envJSON = radianceEnvOverridesJSON() {
+      options["netEx.EnvOverrides"] = envJSON as NSString
+    }
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
       appLogger.info("VPN is already connected, sending command to extension")
@@ -121,12 +144,15 @@ class VPNManager: VPNBase {
         userInfo: [NSLocalizedDescriptionKey: msg]
       )
     }
-    let options: [String: NSObject] = [
+    var options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
       "netEx.ServerName": serverName as NSString,
       "netEx.Location": location as NSString,
     ]
+    if let envJSON = radianceEnvOverridesJSON() {
+      options["netEx.EnvOverrides"] = envJSON as NSString
+    }
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
       appLogger.info("VPN is already connected, sending command to extension")

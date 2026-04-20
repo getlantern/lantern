@@ -24,10 +24,19 @@ import NetworkExtension
 
 class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
+  /// RADIANCE_* env var JSON forwarded from the main app via
+  /// `startVPNTunnel(options:)`. See macOS ExtensionProvider for details —
+  /// the extension has no shell env inheritance, so shell-set radiance
+  /// vars reach it only through this path.
+  private var envOverridesJSON: String = ""
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
+    }
+
+    if let envJSON = options?["netEx.EnvOverrides"] as? String {
+      envOverridesJSON = envJSON
     }
 
     // Start the IPC server before any VPN operations
@@ -113,6 +122,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.deviceid = DeviceIdentifier.getUDID()
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
+    opts.envOverrides = envOverridesJSON
     return opts
   }
 

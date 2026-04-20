@@ -13,6 +13,13 @@ type Opts struct {
 	Env              string
 	TelemetryConsent bool
 	Platform         PlatformInterface
+	// EnvOverrides is a JSON-encoded map[string]string applied via
+	// os.Setenv before radiance's common.Init runs. Used to forward
+	// shell-set RADIANCE_* vars from the main Lantern process into
+	// the macOS/iOS system extension, which has no shell env
+	// inheritance of its own. Gomobile doesn't marshal maps, so we
+	// pass JSON; empty string means no overrides.
+	EnvOverrides string
 }
 
 type PrivateServerEventListener interface {

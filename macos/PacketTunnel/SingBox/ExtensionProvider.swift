@@ -25,9 +25,24 @@ import OSLog
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
+  /// RADIANCE_* env var JSON forwarded from the main app via
+  /// `startVPNTunnel(options:)`. Stashed here so `opts()` can attach it
+  /// to UtilsOpts on every subsequent gomobile call — radiance's
+  /// common.Init reads RADIANCE_VERSION once before the IPC server
+  /// starts, so the value must land in UtilsOpts the FIRST time
+  /// MobileStartIPCServer is invoked.
+  private var envOverridesJSON: String = ""
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
+    }
+
+    // Capture env overrides from the main app before initializing radiance.
+    // The extension process has no shell env inheritance, so shell-set
+    // RADIANCE_VERSION / RADIANCE_ENV values can only reach it via
+    // host-app → startVPNTunnel(options:) → here.
+    if let envJSON = options?["netEx.EnvOverrides"] as? String {
+      envOverridesJSON = envJSON
     }
 
     // Start the IPC server before any VPN operations
@@ -148,6 +163,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     opts.locale = Locale.current.identifier
     opts.logLevel = "trace"
     opts.logDir = FilePath.logsDirectory.relativePath
+    opts.envOverrides = envOverridesJSON
     appLogger.info("logging to \(opts.logDir)")
     return opts
   }

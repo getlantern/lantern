@@ -132,12 +132,34 @@ class VPNManager: VPNBase {
 
   // MARK: - VPN Control Methods
 
+  /// Collects RADIANCE_* env vars from the main app's process environment,
+  /// serialized as a JSON string suitable to pass through `startVPNTunnel(options:)`
+  /// into the sandboxed system extension (which has no shell env inheritance).
+  /// Returns nil if there's nothing to forward.
+  private func radianceEnvOverridesJSON() -> String? {
+    let overrides = ProcessInfo.processInfo.environment
+      .filter { $0.key.hasPrefix("RADIANCE_") }
+    if overrides.isEmpty {
+      return nil
+    }
+    guard let data = try? JSONSerialization.data(withJSONObject: overrides, options: []),
+          let json = String(data: data, encoding: .utf8)
+    else {
+      appLogger.error("failed to encode RADIANCE_* env overrides as JSON")
+      return nil
+    }
+    return json
+  }
+
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
-    let options = ["netEx.StartReason": NSString("Lantern")]
+    var options: [String: NSObject] = ["netEx.StartReason": NSString("Lantern")]
+    if let envJSON = radianceEnvOverridesJSON() {
+      options["netEx.EnvOverrides"] = envJSON as NSString
+    }
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
@@ -163,12 +185,15 @@ class VPNManager: VPNBase {
     serverName: String,
   ) async throws {
     await self.setupVPN()
-    let options: [String: NSObject] = [
+    var options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
       "netEx.ServerName": serverName as NSString,
       "netEx.Location": location as NSString,
     ]
+    if let envJSON = radianceEnvOverridesJSON() {
+      options["netEx.EnvOverrides"] = envJSON as NSString
+    }
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
       appLogger.info("VPN is already connected, sending command to extension")
