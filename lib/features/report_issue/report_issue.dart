@@ -185,14 +185,14 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   void _clearDraft() {
     ref.read(reportIssueDraftProvider.notifier).clear();
+    _formKey.currentState?.reset();
     _emailController.clear();
     _descriptionController.clear();
     _issueTypeController.clear();
+    _issueTypeFieldKey.currentState?.didChange(null);
 
     setState(() {
       _selectedIssue = null;
-      _formKey = GlobalKey<FormState>();
-      _issueTypeFieldKey = GlobalKey<FormFieldState<String>>();
     });
   }
 
