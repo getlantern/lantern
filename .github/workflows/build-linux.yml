@@ -257,14 +257,14 @@ jobs:
             exit "$SMOKE_EXIT"
           fi
 
-          if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /service/start IPC request in lanternd journal"
+          if ! grep -Eq 'IPC request.*path=/vpn/connect' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /vpn/connect IPC request in lanternd journal"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
 
-          if ! grep -Eq 'IPC request.*path=/service/stop' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /service/stop IPC request in lanternd journal"
+          if ! grep -Eq 'IPC request.*path=/vpn/disconnect' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /vpn/disconnect IPC request in lanternd journal"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
