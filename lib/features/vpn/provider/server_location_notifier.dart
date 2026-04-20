@@ -31,6 +31,17 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
   }
 
+  /// Flips the active selection to auto and clears any stale custom-server
+  /// identity fields so downstream UI does not keep highlighting a previous
+  /// manual selection. The existing [autoLocation] metadata is preserved so
+  /// the Smart Location label remains available until the next push event.
+  Future<void> switchToAuto() async {
+    if (state.serverType == ServerLocationType.auto.name) return;
+    final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    state = updated;
+    await _storage.saveServerLocation(updated);
+  }
+
   Future<void> ifNeededGetAutoServerLocation() async {
     final status = ref.read(vpnProvider);
     final current = state;

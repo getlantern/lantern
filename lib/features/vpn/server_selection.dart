@@ -229,7 +229,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           context.showSnackBar(failure.localizedErrorMessage);
         }
       },
-      (_) {
+      (_) async {
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
         appRouter.popUntilRoot();
       },
     );

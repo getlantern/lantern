@@ -13,13 +13,27 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-## APP_VERSION is the version defined in pubspec.yaml
+## APP_VERSION is the full version from pubspec.yaml (e.g. 9.0.25+459).
+## Precedence: environment > pubspec.yaml. CI must export APP_VERSION — on
+## Windows CI, `$(shell …)` runs under cmd.exe which mangles the Unix-style
+## quoting in the grep|sed pipeline and returns empty, producing an empty
+## `common.Version` ldflag and a 400 "missing app version" at /v1/config-new.
+## Local builds fall back to reading pubspec.yaml directly, with a PowerShell
+## branch so Windows devs without Git Bash / WSL still get a working build.
 ifeq ($(OS),Windows_NT)
-APP_VERSION := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output $$v")
-APP_VERSION_PUBSPEC := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$v=(Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ($$v.Split('+')[0])")
+APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
 else
-APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
-APP_VERSION_PUBSPEC := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//;s/ //g')
+APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+endif
+## Strip the +buildnumber for the Go linker. Done with Make built-ins so no
+## shell tools are required — this is the part that has to work in every
+## environment `make` might invoke the linker in.
+APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
+## Fail loudly at parse time if we couldn't resolve a version — this was the
+## exact failure mode of the bug this file fixes, where an empty value silently
+## produced a broken binary that 400s at /v1/config-new.
+ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
+$(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
 endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 
@@ -139,7 +153,7 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,wit
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
 ifeq ($(OS),Windows_NT)
-GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "$$line=(Select-String -Path 'go.mod' -Pattern '^go\s+(.+)$$').Matches[0].Groups[1].Value.Trim(); Write-Output ('go'+$$line)")
+GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$line=(Select-String -Path "go.mod" -Pattern "^go\s+(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output ("go"+$$line)')
 GO_SOURCES := go.mod go.sum
 UNAME_S := Windows
 else

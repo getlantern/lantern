@@ -26,17 +26,33 @@ const (
 var ipcServer atomic.Pointer[ipc.Server]
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
-// It passes the empty string so it will connect to best server available.
+// If the user previously selected a specific server (persisted by
+// vpn.SelectServer), the new tunnel is pinned to that selection. Otherwise it
+// falls back to AutoConnect which picks the best server.
+//
+// This is critical on Android: the OS VPN service lifecycle tears down and
+// recreates libbox on every settings-driven restart, and the in-memory selector
+// state of the previous libbox doesn't carry over. Reading the persisted
+// selection here is what keeps the user pinned to their chosen server across
+// routing-mode toggles, ad-block toggles, etc.
 func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
-	// As soon user connects to VPN, we start listening for auto location changes.
 	slog.Info("StartVPN called")
 	if err := initIPC(opts, platform); err != nil {
 		return fmt.Errorf("failed to initialize IPC server: %w", err)
 	}
-	// it should use InternalTagLantern so it will connect to best lantern server by default.
-	// if you want to connect to user server, use ConnectToServer with InternalTagUser
-	err := vpn.AutoConnect("")
-	if err != nil {
+	if group, tag := vpn.LastSelectedServer(); group != "" && tag != "" {
+		slog.Info("Restoring persisted server selection", "group", group, "tag", tag)
+		if err := vpn.Connect(group, tag); err != nil {
+			slog.Warn("Failed to restore persisted server, falling back to AutoConnect",
+				"group", group, "tag", tag, "error", err)
+			vpn.ClearLastSelectedServer()
+		} else {
+			return nil
+		}
+	} else {
+		slog.Info("No persisted server selection found, falling back to AutoConnect")
+	}
+	if err := vpn.AutoConnect(""); err != nil {
 		return fmt.Errorf("failed to start VPN: %w", err)
 	}
 	return nil

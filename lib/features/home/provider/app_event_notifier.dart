@@ -28,8 +28,9 @@ class AppEventNotifier extends _$AppEventNotifier {
   Future<void> build() async {
     watchAppEvents();
     ref.onDispose(() {
-      appLogger
-          .debug('Disposing AppEventNotifier and cancelling subscriptions.');
+      appLogger.debug(
+        'Disposing AppEventNotifier and cancelling subscriptions.',
+      );
       _appEventSub?.cancel();
     });
   }
@@ -38,8 +39,9 @@ class AppEventNotifier extends _$AppEventNotifier {
   /// Currently, it listens for 'config' and server-location events.
   void watchAppEvents() {
     appLogger.debug('Setting up app event listener...');
-    _appEventSub =
-        ref.read(lanternServiceProvider).watchAppEvents().listen((event) {
+    _appEventSub = ref.read(lanternServiceProvider).watchAppEvents().listen((
+      event,
+    ) {
       final eventType = event.eventType;
       appLogger.debug('Received app event of type: $eventType');
       switch (eventType) {
@@ -52,6 +54,14 @@ class AppEventNotifier extends _$AppEventNotifier {
           ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;
         case 'server-location':
+          // Only consume this event when the user is actually in auto mode.
+          // Otherwise (custom server selected) ignore it — applying it would
+          // silently flip the user's selection back to Smart Location on
+          // routing-mode changes or any other tunnel rebuild.
+          final currentLocation = ref.read(serverLocationProvider);
+          if (currentLocation.serverType != ServerLocationType.auto.name) {
+            break;
+          }
           try {
             final autoLocation = Server.fromJson(jsonDecode(event.message));
             final countryName = autoLocation.location!.country;
