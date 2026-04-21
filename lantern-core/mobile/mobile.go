@@ -204,7 +204,7 @@ func IsRadianceConnected() bool {
 	return ok
 }
 
-func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
+func StartVPN() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		slog.Info("Starting VPN")
 		client, err := getClient()
@@ -213,14 +213,6 @@ func StartVPN(platform utils.PlatformInterface, opts *utils.Opts) error {
 		}
 		if err := vpn_tunnel.StartVPN(client); err != nil {
 			return struct{}{}, err
-		}
-		// On non-iOS/macOS platforms, start the auto location listener.
-		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-		if !common.IsMacOS() && !common.IsIOS() {
-			if c, coreErr := getCore(); coreErr == nil {
-				slog.Info("Starting auto location listener on non-iOS/macOS platform")
-				c.StartBackgroundListeners()
-			}
 		}
 		return struct{}{}, nil
 	})
@@ -236,14 +228,6 @@ func StopVPN() error {
 		}
 		if err := vpn_tunnel.StopVPN(client); err != nil {
 			return struct{}{}, err
-		}
-		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
-		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-		if !common.IsMacOS() && !common.IsIOS() {
-			if c, coreErr := getCore(); coreErr == nil {
-				slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-				c.StopBackgroundListeners()
-			}
 		}
 		return struct{}{}, nil
 	})
@@ -314,7 +298,7 @@ func IsTagAvailable(tag string) bool {
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface, options *utils.Opts) error {
+func ConnectToServer(locationType, tag string) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		client, err := getClient()
 		if err != nil {
@@ -323,35 +307,9 @@ func ConnectToServer(locationType, tag string, platIfce utils.PlatformInterface,
 		if err := vpn_tunnel.ConnectToServer(client, locationType, tag); err != nil {
 			return struct{}{}, err
 		}
-		// On non-iOS/macOS platforms, stop the auto location listener since radiance is still running.
-		// For iOS/macOS, the listener is managed by native code due to platform restrictions.
-		if !common.IsMacOS() && !common.IsIOS() {
-			if c, coreErr := getCore(); coreErr == nil {
-				slog.Info("Stopping auto location listener on non-iOS/macOS platform")
-				c.StopBackgroundListeners()
-			}
-		}
 		return struct{}{}, nil
 	})
 	return err
-}
-
-// StartAutoLocationListener starts the auto location listener in the core.
-// Should be called only on iOS and macOS
-func StartAutoLocationListener() error {
-	return withCore(func(c lanterncore.Core) error {
-		c.StartBackgroundListeners()
-		return nil
-	})
-}
-
-// StopAutoLocationListener stops the auto location listener in the core.
-// Should be called only on iOS and macOS
-func StopAutoLocationListener() error {
-	return withCore(func(c lanterncore.Core) error {
-		c.StopBackgroundListeners()
-		return nil
-	})
 }
 
 // GetAvailableServers returns the available servers in JSON format.
@@ -567,6 +525,7 @@ func StripeSubscriptionPaymentRedirect(subType, planId, email string) (string, e
 func Login(email, password string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.Login(email, password)
+		slog.Debug("Login response", "response", string(b), "error", err)
 		return string(b), err
 	})
 }

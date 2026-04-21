@@ -5,8 +5,12 @@ extension ErrorExetension on Object {
   String get localizedDescription {
     // Check if the error is a PlatformException
     if (this is PlatformException) {
-      // Extract the message from the PlatformException
-      String description = (this as PlatformException).message ?? '';
+      // Extract the message from the PlatformException and strip the
+      // radiance IPC wrapper (e.g. "ipc: status 401: actual error")
+      // so only the upstream error is kept.
+      String description = _stripIpcPrefix(
+        (this as PlatformException).message ?? '',
+      );
       if (description.contains("proxy_error")) {
         return "proxy_error".i18n;
       }
@@ -34,13 +38,16 @@ extension ErrorExetension on Object {
       if (description.contains("wrong-reseller-code")) {
         return "wrong_seller_code".i18n;
       }
-      if (description
-          .contains("unexpected status 400 body missing verifier or salt ")) {
+      if (description.contains(
+            "unexpected status 400 body missing verifier or salt ",
+          ) ||
+          description.contains('unexpected status 403 body')) {
         return "user_not_found".i18n;
       }
       if (description.contains("user already exists") ||
-          description
-              .contains("user with this legacy user ID already exists")) {
+          description.contains(
+            "user with this legacy user ID already exists",
+          )) {
         return "signup_error_user_exists".i18n;
       }
 
@@ -83,6 +90,17 @@ extension ErrorExetension on Object {
 
     return "error_occurred".i18n;
   }
+}
+
+/// Strips the radiance IPC prefix from error messages.
+/// e.g. "ipc: status 401: unexpected status 403 body forbidden"
+///  → "unexpected status 403 body forbidden"
+String _stripIpcPrefix(String message) {
+  final match = RegExp(r'^ipc:\s*status\s+\d+:\s*').firstMatch(message);
+  if (match != null) {
+    return message.substring(match.end);
+  }
+  return message;
 }
 
 extension PurchaseErrorExtension on String {

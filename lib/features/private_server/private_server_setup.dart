@@ -25,7 +25,12 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   /// Handle a non-openBrowser server state update.
   /// Returns true if the status was recognized and acted on.
   bool _handleServerState(PrivateServerStatus serverState) {
-    if (!context.mounted) return false;
+    if (!context.mounted) {
+      appLogger.warning(
+        "Received private server state update while context not mounted: ${serverState.status}",
+      );
+      return true;
+    }
 
     switch (serverState.status) {
       case 'EventTypeOAuthError':
@@ -39,31 +44,42 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
       case 'error':
         context.hideLoadingDialog();
         context.showSnackBar(
-            serverState.error ?? 'private_server_setup_error'.i18n);
+          serverState.error ?? 'private_server_setup_error'.i18n,
+        );
         return true;
       case 'EventTypeOnlyCompartment':
         context.hideLoadingDialog();
-        appRouter.push(PrivateServerDetails(
-            accounts: [], provider: _selectedProvider, isPreFilled: true));
+        appRouter.push(
+          PrivateServerDetails(
+            accounts: [],
+            provider: _selectedProvider,
+            isPreFilled: true,
+          ),
+        );
         return true;
       case 'EventTypeAccounts':
         context.hideLoadingDialog();
         final accounts = serverState.data!.split(', ');
-        appRouter.push(PrivateServerDetails(
-            accounts: accounts, provider: _selectedProvider));
+        appRouter.push(
+          PrivateServerDetails(accounts: accounts, provider: _selectedProvider),
+        );
         return true;
       case 'EventTypeValidationError':
         if (serverState.error?.contains('account is not active') ?? false) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.hideLoadingDialog();
+            ref.read(privateServerProvider.notifier).resetPrivateServerState();
             appRouter.push(PrivateServerAddBilling());
           });
           return true;
         }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.hideLoadingDialog();
+          ref.read(privateServerProvider.notifier).resetPrivateServerState();
           appLogger.error(
-              "Private server deployment failed.", serverState.error);
+            "Private server deployment failed.",
+            serverState.error,
+          );
           AppDialog.errorDialog(
             context: context,
             title: 'error'.i18n,
@@ -79,13 +95,10 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   @override
   Widget build(BuildContext context) {
     final serverState = ref.watch(privateServerProvider);
+    appLogger.info("Current private server state: ${serverState.status}");
     final isGCPEnabled = false;
-
     final selectedIdx = useState(0);
-    final route = ModalRoute.of(context);
     useEffect(() {
-      if (route == null || !route.isCurrent) return null;
-
       if (serverState.status == 'openBrowser') {
         UrlUtils.openWebview<bool>(
           serverState.data!,
@@ -191,13 +204,15 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   }
 
   Future<void> _continue(
-      CloudProvider provider, WidgetRef ref, BuildContext context) async {
+    CloudProvider provider,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     // The cloud provider OAuth webview may fail to load when VPN is
     // active (the tunnel can block outbound traffic to the provider).
     // Disconnect first so the webview can reach the OAuth endpoint.
     final vpnStatus = ref.read(vpnProvider);
-    if (vpnStatus == VPNStatus.connected ||
-        vpnStatus == VPNStatus.connecting) {
+    if (vpnStatus == VPNStatus.connected || vpnStatus == VPNStatus.connecting) {
       await ref.read(vpnProvider.notifier).stopVPN();
     }
 
@@ -207,9 +222,6 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
     } else {
       result = await ref.read(privateServerProvider.notifier).digitalOcean();
     }
-    result.fold(
-      (f) => context.showSnackBar(f.localizedErrorMessage),
-      (_) {},
-    );
+    result.fold((f) => context.showSnackBar(f.localizedErrorMessage), (_) {});
   }
 }

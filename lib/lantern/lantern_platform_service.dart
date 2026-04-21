@@ -8,11 +8,11 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -74,7 +74,6 @@ class LanternPlatformService implements LanternCoreService {
     _appEventStatus = appEventStatusChannel.receiveBroadcastStream().map(
       (event) => AppEvent.fromJson(event),
     );
-
 
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
@@ -196,8 +195,8 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
-        logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
-      );
+    logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
+  );
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {
@@ -284,8 +283,9 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
-      final res =
-          await _methodChannel.invokeMethod<bool>('isSmartRoutingEnabled');
+      final res = await _methodChannel.invokeMethod<bool>(
+        'isSmartRoutingEnabled',
+      );
       return right(res ?? false);
     } catch (e, st) {
       appLogger.error('isSmartRoutingEnabled failed', e, st);
@@ -296,8 +296,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, bool>> isTelemetryEnabled() async {
     try {
-      final res =
-          await _methodChannel.invokeMethod<bool>('isTelemetryEnabled');
+      final res = await _methodChannel.invokeMethod<bool>('isTelemetryEnabled');
       return right(res ?? false);
     } catch (e, st) {
       appLogger.error('isTelemetryEnabled failed', e, st);
@@ -319,8 +318,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> getOAuthProvider() async {
     try {
-      final res =
-          await _methodChannel.invokeMethod<String>('getOAuthProvider');
+      final res = await _methodChannel.invokeMethod<String>('getOAuthProvider');
       return right(res ?? '');
     } catch (e, st) {
       appLogger.error('getOAuthProvider failed', e, st);
@@ -1245,11 +1243,14 @@ class LanternPlatformService implements LanternCoreService {
     required bool skipCertVerification,
   }) async {
     try {
-      final result = await _methodChannel.invokeMethod<String>('addServerBasedOnURLs', {
-        'urls': urls,
-        'skipValidation': skipCertVerification,
-        'serverName': '',
-      });
+      final result = await _methodChannel.invokeMethod<String>(
+        'addServerBasedOnURLs',
+        {
+          'urls': urls,
+          'skipValidation': skipCertVerification,
+          'serverName': '',
+        },
+      );
       final tags = (jsonDecode(result ?? '[]') as List).cast<String>();
       return Right(tags);
     } catch (e, stackTrace) {
@@ -1336,19 +1337,21 @@ class LanternPlatformService implements LanternCoreService {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final serverJson = json['server'] as Map<String, dynamic>?;
       if (serverJson == null) {
-        return Right(ServerLocation(
-          serverType: ServerLocationType.auto.name,
-          serverName: '',
-        ));
+        return Right(
+          ServerLocation(
+            serverType: ServerLocationType.auto.name,
+            serverName: '',
+          ),
+        );
       }
       final server = Server.fromJson(serverJson);
-      return Right(ServerLocation.fromServer(
-        server: server,
-      ).copyWith(
-        serverType: server.isLantern
-            ? ServerLocationType.lanternLocation.name
-            : ServerLocationType.privateServer.name,
-      ));
+      return Right(
+        ServerLocation.fromServer(server: server).copyWith(
+          serverType: server.isLantern
+              ? ServerLocationType.lanternLocation.name
+              : ServerLocationType.privateServer.name,
+        ),
+      );
     } catch (e, stackTrace) {
       appLogger.error('Error fetching selected server', e, stackTrace);
       return Left(e.toFailure());
@@ -1361,8 +1364,10 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod(
         'getLanternAvailableServers',
       );
-      final servers =
-          AvailableServers.fromJson(jsonDecode(result) as List<dynamic>);
+      appLogger.info("Servers JSON: $result");
+      final servers = AvailableServers.fromJson(
+        jsonDecode(result) as List<dynamic>,
+      );
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(

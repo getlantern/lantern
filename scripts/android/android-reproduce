@@ -28,7 +28,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG="org.getlantern.lantern"
 
 # --- Parse args ---
@@ -88,6 +87,42 @@ if [ -n "$COUNTRY" ]; then
     echo "Country:    $COUNTRY"
 else
     echo "Country:    (not detected — config will still be pushed)"
+fi
+
+# --- Extract device info from flutter.log ---
+SDK_INT=""
+DEVICE_MODEL=""
+OS_VERSION=""
+if command -v python3 >/dev/null 2>&1; then
+    mapfile -t _DEVICE_INFO < <(python3 -c "
+import os, re, glob
+sdk_int = ''; model = ''; osver = ''
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'flutter.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'Device info:' in line:
+                    m = re.search(r'sdkInt:\s*(\d+)', line)
+                    if m: sdk_int = m.group(1)
+                    m = re.search(r'model:\s*(\S+)', line)
+                    if m: model = m.group(1).rstrip(',')
+                    m = re.search(r'osVersion:\s*(\S+)', line)
+                    if m: osver = m.group(1).rstrip(',')
+                    break
+print(sdk_int)
+print(model)
+print(osver)
+" 2>/dev/null)
+    SDK_INT="${_DEVICE_INFO[0]:-}"
+    DEVICE_MODEL="${_DEVICE_INFO[1]:-}"
+    OS_VERSION="${_DEVICE_INFO[2]:-}"
+fi
+
+if [ -n "$SDK_INT" ]; then
+    echo "Android:    API $SDK_INT (Android ${OS_VERSION:-?})"
+fi
+if [ -n "$DEVICE_MODEL" ]; then
+    echo "Device:     $DEVICE_MODEL"
 fi
 
 # --- Extract version and auto-download APK if needed ---
@@ -165,10 +200,10 @@ cr = cfg.get('ConfigResponse', cfg)
 locs = cr.get('outbound_locations', cr.get('servers', {}))
 if isinstance(locs, dict):
     cities = sorted(set(v.get('city', '?') for v in locs.values()))
-    print(f'Locations:  {', '.join(cities)}')
+    print('Locations:  ' + ', '.join(cities))
 elif isinstance(locs, list):
     cities = sorted(set(s.get('city', '?') for s in locs))
-    print(f'Locations:  {', '.join(cities)}')
+    print('Locations:  ' + ', '.join(cities))
 " 2>/dev/null || true
 fi
 echo "APK:        $APK"
@@ -181,92 +216,109 @@ if [ -n "$COUNTRY" ]; then
     ENV_OVERRIDES+=("RADIANCE_COUNTRY=$COUNTRY")
 fi
 
-# --- Run android-test to handle emulator setup + install ---
-echo "Starting android-test..."
-echo ""
-
-# We need to intercept after install but before app start to push configs.
-# Instead, run android-test and then push configs separately.
-# First, start android-test in a way that we can push configs before the app restarts.
-
-# Actually, the cleanest approach: call android-test which handles everything,
-# then ALSO push the config files. The app will pick them up on the next config
-# cycle (or we force-restart it after pushing).
-
-# Run android-test (it installs, pushes .env, restarts, streams logs).
-# We pipe to tee so we can capture logs while also monitoring.
-# But first, we need to push the config files AFTER install but BEFORE the app starts.
-# android-test does: install → push .env → restart → stream logs.
-# We want:           install → push .env + configs → restart → stream logs.
-
-# The simplest approach: run android-test but tell it to skip log streaming,
-# then push configs, restart, and stream ourselves. But android-test doesn't
-# have that option. So let's just:
-# 1. Run android-test (which handles everything including streaming)
-# 2. In a separate terminal or after Ctrl+C, the configs are already there
-
-# Actually, the BEST approach: push configs as part of the .env push.
-# We can do this by running android-test, which sets up emulator + installs + pushes .env,
-# then we push the config files to the same data dir, force-restart, and stream.
-
-# Let's just do it all ourselves, reusing android-test's emulator/AVD setup.
-
-# Source android-test's tool-finding logic by running it with --help
-# Actually let's just duplicate the minimal setup and push everything together.
-
-# Find tools (same logic as android-test)
+# --- Find Android SDK tools ---
 if [ -n "${ANDROID_HOME:-}" ]; then
     ADB="${ANDROID_HOME}/platform-tools/adb"
+    EMULATOR="${ANDROID_HOME}/emulator/emulator"
+    SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+    AVDMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
 elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
     ADB="${ANDROID_SDK_ROOT}/platform-tools/adb"
+    EMULATOR="${ANDROID_SDK_ROOT}/emulator/emulator"
+    SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+    AVDMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager"
 else
     ADB="$(command -v adb 2>/dev/null || true)"
+    EMULATOR="$(command -v emulator 2>/dev/null || true)"
+    SDKMANAGER="$(command -v sdkmanager 2>/dev/null || true)"
+    AVDMANAGER="$(command -v avdmanager 2>/dev/null || true)"
 fi
+for tool in ADB EMULATOR SDKMANAGER AVDMANAGER; do
+    if [ -z "${!tool}" ] || [ ! -x "${!tool}" ]; then
+        echo "Error: $(echo $tool | tr A-Z a-z) not found. Set ANDROID_HOME or add Android SDK to PATH."
+        exit 1
+    fi
+done
 
-if [ -z "$ADB" ] || [ ! -x "$ADB" ]; then
-    echo "Error: adb not found. Set ANDROID_HOME or add Android SDK to PATH."
+# --- Ensure emulator with matching API level ---
+# Each unique API level gets its own AVD (e.g. lantern-api29, lantern-api34).
+# AVDs accumulate over time as you reproduce tickets from different Android versions.
+TARGET_API="${SDK_INT:-35}"
+
+ARCH=$(uname -m)
+case "$ARCH" in
+    arm64|aarch64) IMG_ABI="arm64-v8a" ;;
+    x86_64)        IMG_ABI="x86_64" ;;
+    *)             IMG_ABI="arm64-v8a" ;;
+esac
+
+# Find the closest available Google APIs image (step down if exact isn't available)
+ORIGINAL_API="$TARGET_API"
+while [ "$TARGET_API" -ge 21 ]; do
+    IMAGE="system-images;android-${TARGET_API};google_apis;${IMG_ABI}"
+    if "$SDKMANAGER" --list 2>/dev/null | grep -q "$IMAGE"; then
+        break
+    fi
+    TARGET_API=$((TARGET_API - 1))
+done
+if [ "$TARGET_API" -lt 21 ]; then
+    echo "Error: No Google APIs system image found for any API level." >&2
     exit 1
 fi
+if [ "$TARGET_API" != "$ORIGINAL_API" ]; then
+    echo "Note: API $ORIGINAL_API image not available, using closest: API $TARGET_API"
+fi
 
-# Run android-test for emulator setup + APK install (it will stream logs at the end)
-# We intercept by running it in background briefly, then pushing configs.
-# Actually, the simplest correct approach: just call android-test with the env
-# overrides, then in a post-hook push the config files.
+AVD_NAME="lantern-api${TARGET_API}"
 
-# BUT android-test ends with `exec` for log streaming, so we can't run code after it.
-# So instead: do the full flow ourselves.
+# Download image + create AVD if it doesn't exist yet
+if ! "$EMULATOR" -list-avds 2>/dev/null | grep -q "^${AVD_NAME}$"; then
+    echo "Creating AVD '$AVD_NAME' (API $TARGET_API) to match user's device..."
+    "$SDKMANAGER" "$IMAGE" 2>&1 | tail -3
+    echo "no" | "$AVDMANAGER" create avd -n "$AVD_NAME" -k "$IMAGE" --force 2>&1 | tail -2
+fi
 
-# Step 1: Call android-test WITHOUT log streaming — just setup + install + .env
-# We can't do that with the current script, so let's use it for setup and
-# handle the config push ourselves.
+# Detect or start emulator
+APPEAR_TIMEOUT="${APPEAR_TIMEOUT:-120}"
+BOOT_TIMEOUT="${BOOT_TIMEOUT:-300}"
 
-# The pragmatic solution: run android-test in background, wait for "Restarting Lantern",
-# then push configs and let it continue.
-
-# ACTUALLY — the simplest: just run the same steps inline.
-
-# Detect emulator serial
 TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
 if [ -z "$TARGET_SERIAL" ]; then
-    echo "No emulator running. Starting one via android-test..."
-    # Run android-test just to get the emulator up and APK installed, skip log streaming
-    # by backgrounding and killing after install
-    "$SCRIPT_DIR/android-test" "$APK" "${ENV_OVERRIDES[@]}" &
-    TEST_PID=$!
-    # Wait for "Restarting Lantern" to appear (means install + .env push done)
-    sleep 30  # generous wait for emulator boot + install
-    kill "$TEST_PID" 2>/dev/null || true
-    wait "$TEST_PID" 2>/dev/null || true
-    TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
-fi
-
-if [ -z "$TARGET_SERIAL" ]; then
-    echo "Error: No emulator found after setup. Run android-test manually first."
-    exit 1
+    echo "Starting emulator: $AVD_NAME (API $TARGET_API)..."
+    "$EMULATOR" -avd "$AVD_NAME" -no-snapshot-load -no-audio -gpu host &
+    START_TIME=$(date +%s)
+    while :; do
+        TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+        if [ -n "$TARGET_SERIAL" ]; then break; fi
+        if [ $(( $(date +%s) - START_TIME )) -ge "$APPEAR_TIMEOUT" ]; then
+            echo "Error: Timed out waiting for emulator." >&2; exit 1
+        fi
+        sleep 2
+    done
+    "$ADB" -s "$TARGET_SERIAL" wait-for-device
+    START_TIME=$(date +%s)
+    while [ "$("$ADB" -s "$TARGET_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+        if [ $(( $(date +%s) - START_TIME )) -ge "$BOOT_TIMEOUT" ]; then
+            echo "Error: Timed out waiting for boot." >&2; exit 1
+        fi
+        sleep 2
+    done
+    echo "Emulator booted: $TARGET_SERIAL"
+else
+    echo "Emulator already running: $TARGET_SERIAL"
 fi
 
 ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
 APP_DATA="/data/data/$PKG/.lantern"
+
+# Install APK FIRST so the app's data directory exists before we push configs.
+echo "Installing $APK..."
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
+
+# Launch once briefly so the data directory is fully created, then stop.
+"${ADB_CMD[@]}" shell am start -n "$PKG/org.getlantern.lantern.MainActivity" 2>/dev/null || true
+sleep 3
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
 
 echo "Pushing user's config files to emulator..."
 
@@ -275,13 +327,21 @@ echo "Pushing user's config files to emulator..."
 sleep 2
 "${ADB_CMD[@]}" wait-for-device
 
+# Determine the base directory where config files live in the ticket dir.
+# /analyze-ticket puts them directly in the ticket dir, but they may also
+# be inside a logs/ subdirectory.
+CONFIG_BASE="$(dirname "$CONFIG_JSON")"
+
 # Push config files
 for file in config.json servers.json split-tunnel.json; do
-    SRC="$TICKET_DIR/$file"
-    if [ -f "$SRC" ]; then
+    SRC=""
+    for candidate in "$CONFIG_BASE/$file" "$TICKET_DIR/$file"; do
+        if [ -f "$candidate" ]; then SRC="$candidate"; break; fi
+    done
+    if [ -n "$SRC" ]; then
         "${ADB_CMD[@]}" push "$SRC" "/data/local/tmp/$file"
         "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/$file $APP_DATA/$file && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/$file" 2>/dev/null
-        echo "  Pushed $file"
+        echo "  Pushed $file (from $SRC)"
     fi
 done
 
@@ -293,7 +353,7 @@ if [ ${#ENV_OVERRIDES[@]} -gt 0 ]; then
         echo "$kv" >> "$ENV_FILE"
     done
     "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
-    "${ADB_CMD[@]}" shell "cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
+    "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
     echo "  Pushed .env (RADIANCE_COUNTRY=$COUNTRY)"
 fi
 
@@ -302,11 +362,7 @@ fi
 sleep 1
 "${ADB_CMD[@]}" wait-for-device
 
-# Install APK (if not already done)
-echo "Installing $APK..."
-"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
-
-# Force-restart the app
+# Restart the app with the user's config
 echo "Restarting Lantern with user's config..."
 "${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
 sleep 1

@@ -117,10 +117,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         // Handle load start
         final loading = ref.read(webViewLoadingProvider.notifier);
         loading.start();
-        final handled = await _handleCompletionUrl(
-          webUri == null ? null : Uri.tryParse(webUri.toString()),
-        );
-        if (handled) return;
       },
       onLoadStop: (controller, webUri) async {
         // Handle load stop
@@ -219,6 +215,12 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     final u = Uri.tryParse(uri.toString());
     if (u == null) {
+      return NavigationActionPolicy.ALLOW;
+    }
+
+    // Allow localhost requests to go through so the local server actually
+    // receives the callback (e.g. private server auth).
+    if (u.host == 'localhost' || u.host == '127.0.0.1') {
       return NavigationActionPolicy.ALLOW;
     }
 
