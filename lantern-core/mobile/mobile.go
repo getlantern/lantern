@@ -589,7 +589,7 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
-func DeleteAccount(email, password string, _ bool) (string, error) {
+func DeleteAccount(email, password string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.DeleteAccount(email, password)
 		return string(b), err
@@ -644,7 +644,7 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
 
-func AddServerBasedOnURLs(urls string, skipCertVerification bool, _ string) (string, error) {
+func AddServerBasedOnURLs(urls string, skipCertVerification bool) (string, error) {
 	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		tags, err := c.AddServersByURL(urls, skipCertVerification)

@@ -471,7 +471,7 @@ func mapStatusEvent(evt vpn.StatusUpdateEvent) (string, string) {
 }
 
 //export startVPN
-func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
+func startVPN() *C.char {
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
@@ -508,7 +508,7 @@ func stopVPN() *C.char {
 }
 
 //export connectToServer
-func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
+func connectToServer(_tag *C.char) *C.char {
 	tag := C.GoString(_tag)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
@@ -868,7 +868,7 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 // Delete account permanently
 //
 //export deleteAccount
-func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
+func deleteAccount(_email, _password *C.char) *C.char {
 	email, password := C.GoString(_email), C.GoString(_password)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
@@ -1118,7 +1118,7 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 // addServerBasedOnURLs adds a server based on the provided URLs.
 //
 //export addServerBasedOnURLs
-func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverName *C.char) *C.char {
+func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int) *C.char {
 	urls := C.GoString(_urls)
 	skipCertVerification := _skipCertVerification != 0
 	return runOnGoStack(func() *C.char {
@@ -1130,9 +1130,6 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverNam
 		bytes, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
-		}
-		if err != nil {
-			return SendError(fmt.Errorf("Error marshalling server tags: %v", err))
 		}
 		return C.CString(string(bytes))
 	})

@@ -627,9 +627,8 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, isSSO, &error)
+      let payload = MobileDeleteAccount(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
@@ -870,10 +869,9 @@ class MethodHandler {
     Task {
       let urls = data["urls"] as? String ?? ""
       let skipVerification = data["skipValidation"] as? Bool ?? false
-      let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
-      let tags = MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
+      let tags = MobileAddServerBasedOnURLs(urls, skipVerification, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
         return

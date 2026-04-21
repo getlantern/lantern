@@ -500,15 +500,10 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       appLogger.debug('Starting VPN');
       final result = _ffiService
-          .startVPN(
-            ffiPaths.logFilePathPtr.cast<Char>(),
-            ffiPaths.dataDirPtr.cast<Char>(),
-            ffiPaths.localePtr.cast<Char>(),
-          )
+          .startVPN()
           .cast<Utf8>()
           .toDartString();
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
@@ -519,8 +514,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
       return Left(e.toFailure());
-    } finally {
-      ffiPaths.free();
     }
   }
 
@@ -565,17 +558,10 @@ class LanternFFIService implements LanternCoreService {
     String location,
     String tag,
   ) async {
-    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .connectToServer(
-              location.toCharPtr,
-              tag.toCharPtr,
-              ffiPaths.logFilePathPtr.cast<Char>(),
-              ffiPaths.dataDirPtr.cast<Char>(),
-              ffiPaths.localePtr.cast<Char>(),
-            )
+            .connectToServer(tag.toCharPtr)
             .toDartString();
       });
       checkAPIError(result);
@@ -583,8 +569,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error connecting to server', e, stackTrace);
       return Left(e.toFailure());
-    } finally {
-      ffiPaths.free();
     }
   }
 
@@ -940,7 +924,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .deleteAccount(email.toCharPtr, password.toCharPtr, isSSO ? 1 : 0)
+            .deleteAccount(email.toCharPtr, password.toCharPtr)
             .toDartString();
       });
       checkAPIError(result);
@@ -1124,7 +1108,6 @@ class LanternFFIService implements LanternCoreService {
             .addServerBasedOnURLs(
               urls.toCharPtr,
               skipCertVerification ? 1 : 0,
-              ''.toCharPtr,
             )
             .toDartString();
       });
