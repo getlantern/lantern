@@ -1951,28 +1951,6 @@ class LanternBindings {
   late final _isTagAvailable = _isTagAvailablePtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> startAutoLocationListener() {
-    return _startAutoLocationListener();
-  }
-
-  late final _startAutoLocationListenerPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-        'startAutoLocationListener',
-      );
-  late final _startAutoLocationListener = _startAutoLocationListenerPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function()>();
-
-  ffi.Pointer<ffi.Char> stopAutoLocationListener() {
-    return _stopAutoLocationListener();
-  }
-
-  late final _stopAutoLocationListenerPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-        'stopAutoLocationListener',
-      );
-  late final _stopAutoLocationListener = _stopAutoLocationListenerPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function()>();
-
   ffi.Pointer<ffi.Char> getAvailableServers() {
     return _getAvailableServers();
   }
