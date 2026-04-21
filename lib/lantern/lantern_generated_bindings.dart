@@ -5948,9 +5948,8 @@ class LanternBindings {
   ffi.Pointer<ffi.Char> deleteAccount(
     ffi.Pointer<ffi.Char> _email,
     ffi.Pointer<ffi.Char> _password,
-    int _isSSO,
   ) {
-    return _deleteAccount(_email, _password, _isSSO);
+    return _deleteAccount(_email, _password);
   }
 
   late final _deleteAccountPtr =
@@ -5959,7 +5958,6 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
-            ffi.Int,
           )
         >
       >('deleteAccount');
@@ -5968,7 +5966,6 @@ class LanternBindings {
         ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
-          int,
         )
       >();
 
@@ -6199,29 +6196,18 @@ class LanternBindings {
   ffi.Pointer<ffi.Char> addServerBasedOnURLs(
     ffi.Pointer<ffi.Char> _urls,
     int _skipCertVerification,
-    ffi.Pointer<ffi.Char> _serverName,
   ) {
-    return _addServerBasedOnURLs(_urls, _skipCertVerification, _serverName);
+    return _addServerBasedOnURLs(_urls, _skipCertVerification);
   }
 
   late final _addServerBasedOnURLsPtr =
       _lookup<
         ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-            ffi.Pointer<ffi.Char>,
-            ffi.Int,
-            ffi.Pointer<ffi.Char>,
-          )
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, ffi.Int)
         >
       >('addServerBasedOnURLs');
   late final _addServerBasedOnURLs = _addServerBasedOnURLsPtr
-      .asFunction<
-        ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>,
-          int,
-          ffi.Pointer<ffi.Char>,
-        )
-      >();
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, int)>();
 
   ffi.Pointer<ffi.Char> setBlockAdsEnabled(int enabled) {
     return _setBlockAdsEnabled(enabled);
