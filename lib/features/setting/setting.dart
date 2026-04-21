@@ -1,14 +1,13 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
+import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
@@ -179,7 +178,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
+          if (ref.watch(developerModeProvider).enabled) ...{
             SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,

@@ -17,4 +17,8 @@ class DeveloperModeNotifier extends _$DeveloperModeNotifier {
     state = dev;
     await _storage.saveDeveloperMode(dev);
   }
+
+  Future<void> setEnabled(bool enabled) async {
+    await updateDeveloperSettings(state.copyWith(enabled: enabled));
+  }
 }

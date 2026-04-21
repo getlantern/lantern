@@ -59,6 +59,11 @@ type App interface {
 	GetAutoLocationJSON() ([]byte, error)
 	CheckDaemonReachable() error
 	PatchSettings(settings.Settings) error
+	GetSettingsJSON() ([]byte, error)
+	PatchEnvVars(map[string]string) (map[string]string, error)
+	GetEnvVars() map[string]string
+	RunOfflineURLTests() error
+	UpdateConfig() error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	UpdateTelemetryConsent(consent bool) error
@@ -438,6 +443,38 @@ func (lc *LanternCore) CheckDaemonReachable() error {
 func (lc *LanternCore) PatchSettings(s settings.Settings) error {
 	_, err := lc.client.PatchSettings(lc.ctx, s)
 	return err
+}
+
+func (lc *LanternCore) GetSettingsJSON() ([]byte, error) {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(s)
+}
+
+func (lc *LanternCore) PatchEnvVars(updates map[string]string) (map[string]string, error) {
+	return lc.client.PatchEnvVars(lc.ctx, updates)
+}
+
+// GetEnvVars returns the daemon's in-memory env vars. Uses an empty PATCH
+// because ipc.Client exposes no dedicated GET; the daemon returns the full
+// env map on both GET and PATCH.
+func (lc *LanternCore) GetEnvVars() map[string]string {
+	vars, err := lc.client.PatchEnvVars(lc.ctx, map[string]string{})
+	if err != nil {
+		slog.Error("Error fetching env vars", "error", err)
+		return nil
+	}
+	return vars
+}
+
+func (lc *LanternCore) RunOfflineURLTests() error {
+	return lc.client.RunOfflineURLTests(lc.ctx)
+}
+
+func (lc *LanternCore) UpdateConfig() error {
+	return lc.client.UpdateConfig(lc.ctx)
 }
 
 /////////////////

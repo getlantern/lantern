@@ -6320,6 +6320,76 @@ class LanternBindings {
       );
   late final _getEnabledApps = _getEnabledAppsPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> patchSettings(ffi.Pointer<ffi.Char> patchJSON) {
+    return _patchSettings(patchJSON);
+  }
+
+  late final _patchSettingsPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('patchSettings');
+  late final _patchSettings = _patchSettingsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getSettings() {
+    return _getSettings();
+  }
+
+  late final _getSettingsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getSettings',
+      );
+  late final _getSettings = _getSettingsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> patchEnvVars(ffi.Pointer<ffi.Char> patchJSON) {
+    return _patchEnvVars(patchJSON);
+  }
+
+  late final _patchEnvVarsPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('patchEnvVars');
+  late final _patchEnvVars = _patchEnvVarsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getEnvVars() {
+    return _getEnvVars();
+  }
+
+  late final _getEnvVarsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getEnvVars',
+      );
+  late final _getEnvVars = _getEnvVarsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> runURLTests() {
+    return _runURLTests();
+  }
+
+  late final _runURLTestsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'runURLTests',
+      );
+  late final _runURLTests = _runURLTestsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> updateConfig() {
+    return _updateConfig();
+  }
+
+  late final _updateConfigPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'updateConfig',
+      );
+  late final _updateConfig = _updateConfigPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
 }
 
 typedef va_list = ffi.Pointer<ffi.Char>;

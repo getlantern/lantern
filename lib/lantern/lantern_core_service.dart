@@ -269,4 +269,19 @@ abstract class LanternCoreService {
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,
   );
+
+  /// Developer-mode helpers exposing radiance settings/env controls.
+  Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates);
+
+  Future<Either<Failure, Map<String, dynamic>>> getSettings();
+
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  );
+
+  Future<Either<Failure, Map<String, String>>> getEnvVars();
+
+  Future<Either<Failure, Unit>> runURLTests();
+
+  Future<Either<Failure, Unit>> sendConfigRequest();
 }

@@ -1565,6 +1565,116 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement diagnosticLogFiles
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(
+    Map<String, dynamic> updates,
+  ) async {
+    try {
+      final payload = jsonEncode(updates);
+      final result = await runInBackground<String>(() async {
+        final ptr = payload.toNativeUtf8();
+        try {
+          return _ffiService.patchSettings(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('patchSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getSettings().toDartString();
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, dynamic>{});
+      return right(Map<String, dynamic>.from(decoded));
+    } catch (e, st) {
+      appLogger.error('getSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) async {
+    try {
+      final payload = jsonEncode(updates);
+      final result = await runInBackground<String>(() async {
+        final ptr = payload.toNativeUtf8();
+        try {
+          return _ffiService.patchEnvVars(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('patchEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getEnvVars().toDartString();
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('getEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.runURLTests().toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('runURLTests error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.updateConfig().toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('updateConfig error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 }
 
 void checkAPIError(dynamic result) {

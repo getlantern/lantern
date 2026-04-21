@@ -1547,4 +1547,36 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates) =>
+      _unsupportedOnMobile('patchSettings');
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() =>
+      _unsupportedOnMobile('getSettings');
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) =>
+      _unsupportedOnMobile('patchEnvVars');
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() =>
+      _unsupportedOnMobile('getEnvVars');
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() =>
+      _unsupportedOnMobile('runURLTests');
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() =>
+      _unsupportedOnMobile('sendConfigRequest');
+
+  Future<Either<Failure, T>> _unsupportedOnMobile<T>(String name) async {
+    final msg = '$name is not available on mobile';
+    appLogger.warning(msg);
+    return left(Failure(error: msg, localizedErrorMessage: msg));
+  }
 }
