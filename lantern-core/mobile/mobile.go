@@ -234,21 +234,6 @@ func StopVPN() error {
 	return err
 }
 
-// parseEnvOverrides decodes the JSON-encoded RADIANCE_* map forwarded
-// from the host app (see utils.Opts.EnvOverrides). Invalid JSON is
-// logged and ignored — an env plumbing bug shouldn't block the tunnel.
-func parseEnvOverrides(s string) map[string]string {
-	if s == "" {
-		return nil
-	}
-	var m map[string]string
-	if err := json.Unmarshal([]byte(s), &m); err != nil {
-		slog.Warn("failed to parse EnvOverrides JSON", slog.Any("error", err))
-		return nil
-	}
-	return m
-}
-
 func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
@@ -264,7 +249,7 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 			DeviceID:          opts.Deviceid,
 			TelemetryConsent:  opts.TelemetryConsent,
 			PlatformInterface: platform,
-			EnvOverrides:      parseEnvOverrides(opts.EnvOverrides),
+			EnvOverrides:      utils.ParseEnvOverrides(opts.EnvOverrides),
 		}
 		be, err := backend.NewLocalBackend(context.Background(), bopts)
 		if err != nil {
