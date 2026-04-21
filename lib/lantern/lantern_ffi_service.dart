@@ -543,18 +543,6 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    try {
-      // Best-effort: start the auto location listener.
-      final locResult = runInBackground(() async {
-        return _ffiService.startAutoLocationListener().toDartString();
-      });
-      locResult.then((value) {
-        appLogger.debug("auto location listener started: $value");
-      });
-    } catch (e) {
-      appLogger.error("error starting auto location listener: $e");
-    }
-
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       appLogger.debug('Starting VPN');
@@ -620,18 +608,6 @@ class LanternFFIService implements LanternCoreService {
     String location,
     String tag,
   ) async {
-    try {
-      // Best-effort: stop the auto location listener.
-      final result = runInBackground(() async {
-        return _ffiService.stopAutoLocationListener().toDartString();
-      });
-      result.then((value) {
-        appLogger.debug("auto location listener stops: $value");
-      });
-    } catch (e) {
-      appLogger.error("error stopping auto location listener: $e");
-    }
-
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       final result = await runInBackground<String>(() async {
@@ -659,18 +635,6 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
-
-      try {
-        // Best-effort: stop the auto location listener.
-        final locResult = runInBackground(() async {
-          return _ffiService.stopAutoLocationListener().toDartString();
-        });
-        locResult.then((value) {
-          appLogger.debug("auto location listener stops: $value");
-        });
-      } catch (e) {
-        appLogger.error("error stopping auto location listener: $e");
-      }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {

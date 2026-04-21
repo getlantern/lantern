@@ -345,11 +345,6 @@ class MethodHandler {
     Task {
       do {
         try await vpnManager.startTunnel()
-        var error: NSError?
-        MobileStartAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error getting auto location: \(error.localizedDescription)")
-        }
         await MainActor.run {
           result("VPN started successfully.")
         }
@@ -375,11 +370,6 @@ class MethodHandler {
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       do {
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
-        }
         let location = data["location"] as? String ?? ""
         let serverName = data["serverName"] as? String ?? ""
         try await self.vpnManager.connectToServer(location: location, serverName: serverName)
@@ -403,11 +393,6 @@ class MethodHandler {
   private func stopVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
-        }
         try await vpnManager.stopTunnel()
         await MainActor.run {
           result("VPN stopped successfully.")

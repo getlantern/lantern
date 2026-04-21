@@ -400,34 +400,6 @@ func isTagAvailable(_tag *C.char) *C.char {
 	})
 }
 
-// startAutoLocationListener starts the auto location listener.
-//
-//export startAutoLocationListener
-func startAutoLocationListener() *C.char {
-	return runOnGoStack(func() *C.char {
-		c, errStr := requireCore()
-		if errStr != nil {
-			return errStr
-		}
-		c.StartBackgroundListeners()
-		return C.CString("ok")
-	})
-}
-
-// stopAutoLocationListener stops the auto location listener.
-//
-//export stopAutoLocationListener
-func stopAutoLocationListener() *C.char {
-	return runOnGoStack(func() *C.char {
-		c, errStr := requireCore()
-		if errStr != nil {
-			return errStr
-		}
-		c.StopBackgroundListeners()
-		return C.CString("ok")
-	})
-}
-
 // GetAvailableServers returns the available servers in JSON format.
 //
 //export getAvailableServers

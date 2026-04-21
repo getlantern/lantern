@@ -232,6 +232,7 @@ class LanternVpnService :
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
+                Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
             AppLogger.d(TAG, "Radiance setup completed")
@@ -244,7 +245,7 @@ class LanternVpnService :
         errorCode = "start_vpn",
         cleanUpOnFailure = true,
     ) {
-        Mobile.startVPN(this@LanternVpnService, opts())
+        Mobile.startVPN()
         AppLogger.d(TAG, "VPN service started")
     }
 
@@ -255,7 +256,7 @@ class LanternVpnService :
         errorCode = "connect_to_server",
         cleanUpOnFailure = false,
     ) {
-        Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
+        Mobile.connectToServer(location, tag)
         AppLogger.d(TAG, "Connected to server")
     }
 
@@ -282,6 +283,7 @@ class LanternVpnService :
             // to finish before we attempt to start the VPN tunnel.
             if (!Mobile.isRadianceConnected()) {
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
+                Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }

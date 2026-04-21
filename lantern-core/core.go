@@ -60,8 +60,6 @@ type App interface {
 	PatchSettings(settings.Settings) error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
-	StartBackgroundListeners()
-	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
 	IsOAuthLogin() bool
@@ -416,52 +414,6 @@ func (lc *LanternCore) CheckDaemonReachable() error {
 func (lc *LanternCore) PatchSettings(s settings.Settings) error {
 	_, err := lc.client.PatchSettings(lc.ctx, s)
 	return err
-}
-
-/////////////////////
-// Background      //
-/////////////////////
-
-var listenerManager = &backgroundListenerManager{
-	cancel: func() {},
-}
-
-type backgroundListenerManager struct {
-	cancel    context.CancelFunc
-	isRunning bool
-	mu        sync.Mutex
-}
-
-func (lc *LanternCore) StartBackgroundListeners() {
-	slog.Info("Starting background listeners...")
-	listenerManager.mu.Lock()
-	defer listenerManager.mu.Unlock()
-
-	if listenerManager.isRunning {
-		slog.Info("Background listeners already running")
-		return
-	}
-
-	_, cancel := context.WithCancel(lc.ctx)
-	listenerManager.cancel = cancel
-	listenerManager.isRunning = true
-
-	// Auto-selected and data cap listeners are already running from initialization.
-	// This method is kept for compatibility but the listeners start automatically.
-	slog.Info("Background listeners started")
-}
-
-func (lc *LanternCore) StopBackgroundListeners() {
-	slog.Info("Stopping background listeners...")
-	listenerManager.mu.Lock()
-	defer listenerManager.mu.Unlock()
-	if !listenerManager.isRunning {
-		slog.Info("Background listeners not running")
-		return
-	}
-	listenerManager.cancel()
-	listenerManager.isRunning = false
-	slog.Info("Background listeners stopped")
 }
 
 /////////////////
