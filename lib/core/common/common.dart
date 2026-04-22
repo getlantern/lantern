@@ -25,6 +25,7 @@ import '../services/local_storage_service.dart';
 import '../utils/store_utils.dart';
 
 export 'package:lantern/core/common/app_asset.dart';
+export 'package:lantern/core/common/app_build_info.dart';
 export 'package:lantern/core/common/app_buttons.dart';
 export 'package:lantern/core/common/app_colors.dart';
 export 'package:lantern/core/common/app_dialog.dart';
