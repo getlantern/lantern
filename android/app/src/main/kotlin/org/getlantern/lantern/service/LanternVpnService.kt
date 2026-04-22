@@ -7,10 +7,12 @@ import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import lantern.io.libbox.Notification
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
@@ -48,6 +50,14 @@ class LanternVpnService :
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
         const val ACTION_TILE_START = "org.getlantern.TILE_START"
+
+        // Hard ceiling on how long Mobile.startVPN / connectToServer can block.
+        // Radiance + sing-box + TUN establish usually finishes in under 15 s;
+        // anything above 60 s means the Go side has deadlocked (see Freshdesk
+        // #173507, where /service/start hung and the UI appeared frozen until
+        // a phone reboot). Without this timeout the coroutine could wait forever.
+        private const val VPN_START_TIMEOUT_MS = 60_000L
+
         lateinit var instance: LanternVpnService
     }
 
@@ -291,22 +301,29 @@ class LanternVpnService :
             // Without this, some Android 10+ devices report only the VPN network,
             // causing sing-box to see no physical interface and blocking all traffic.
             updateUnderlyingNetworks()
-            connect()
+            // Bound connect() so a Go-side deadlock can't leave the UI button
+            // frozen. TimeoutCancellationException falls through to runCatching.
+            withTimeout(VPN_START_TIMEOUT_MS) { connect() }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }
         }.onFailure { e ->
-            AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
+            val timedOut = e is TimeoutCancellationException
+            if (timedOut) {
+                AppLogger.e(TAG, "VPN operation ($errorCode) timed out after ${VPN_START_TIMEOUT_MS}ms — Go side likely deadlocked", e)
+            } else {
+                AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
+            }
             // Clear the network change callback to avoid leaking this service
             // instance through the static DefaultNetworkMonitor singleton.
             DefaultNetworkMonitor.setNetworkChangeCallback(null)
             runCatching { runBlocking { DefaultNetworkMonitor.stop() } }
                 .onFailure { stopErr -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", stopErr) }
             VpnStatusManager.postVPNError(
-                errorCode = errorCode,
-                errorMessage = "Error in VPN operation",
+                errorCode = if (timedOut) "${errorCode}_timeout" else errorCode,
+                errorMessage = if (timedOut) "VPN start timed out" else "Error in VPN operation",
                 error = e,
             )
             if (cleanUpOnFailure) serviceCleanUp()
