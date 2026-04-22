@@ -857,4 +857,54 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.checkVpnConflict();
   }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.patchSettings(updates);
+    }
+    return _platformService.patchSettings(updates);
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSettings();
+    }
+    return _platformService.getSettings();
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.patchEnvVars(updates);
+    }
+    return _platformService.patchEnvVars(updates);
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getEnvVars();
+    }
+    return _platformService.getEnvVars();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.runURLTests();
+    }
+    return _platformService.runURLTests();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.sendConfigRequest();
+    }
+    return _platformService.sendConfigRequest();
+  }
 }

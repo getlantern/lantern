@@ -25,6 +25,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern/lantern-core/utils"
 
+	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -489,7 +490,7 @@ func mapStatusEvent(evt vpn.StatusUpdateEvent) (string, string) {
 }
 
 //export startVPN
-func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
+func startVPN() *C.char {
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
@@ -526,7 +527,7 @@ func stopVPN() *C.char {
 }
 
 //export connectToServer
-func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
+func connectToServer(_tag *C.char) *C.char {
 	tag := C.GoString(_tag)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
@@ -886,7 +887,7 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 // Delete account permanently
 //
 //export deleteAccount
-func deleteAccount(_email, _password *C.char, _isSSO C.int) *C.char {
+func deleteAccount(_email, _password *C.char) *C.char {
 	email, password := C.GoString(_email), C.GoString(_password)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
@@ -921,6 +922,116 @@ func activationCode(_email, _resellerCode *C.char) *C.char {
 //export freeCString
 func freeCString(cstr *C.char) {
 	C.free(unsafe.Pointer(cstr))
+}
+
+// patchSettings applies a JSON-encoded settings.Settings patch on the daemon.
+//
+//export patchSettings
+func patchSettings(patchJSON *C.char) *C.char {
+	raw := C.GoString(patchJSON)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		var updates settings.Settings
+		if err := json.Unmarshal([]byte(raw), &updates); err != nil {
+			return SendError(fmt.Errorf("invalid settings JSON: %w", err))
+		}
+		if err := c.PatchSettings(updates); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+// getSettings returns the daemon's current settings as JSON.
+//
+//export getSettings
+func getSettings() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		data, err := c.GetSettingsJSON()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(data))
+	})
+}
+
+// patchEnvVars applies a JSON-encoded map[string]string patch on the daemon's
+// in-memory env vars. Returns the resulting env map as JSON.
+//
+//export patchEnvVars
+func patchEnvVars(patchJSON *C.char) *C.char {
+	raw := C.GoString(patchJSON)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		var updates map[string]string
+		if err := json.Unmarshal([]byte(raw), &updates); err != nil {
+			return SendError(fmt.Errorf("invalid env JSON: %w", err))
+		}
+		result, err := c.PatchEnvVars(updates)
+		if err != nil {
+			return SendError(err)
+		}
+		data, err := json.Marshal(result)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(data))
+	})
+}
+
+// getEnvVars returns the daemon's in-memory env vars as JSON.
+//
+//export getEnvVars
+func getEnvVars() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		data, err := json.Marshal(c.GetEnvVars())
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(data))
+	})
+}
+
+//export runURLTests
+func runURLTests() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.RunOfflineURLTests(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export updateConfig
+func updateConfig() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.UpdateConfig(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
 }
 
 func main() {
@@ -1136,7 +1247,7 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 // addServerBasedOnURLs adds a server based on the provided URLs.
 //
 //export addServerBasedOnURLs
-func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverName *C.char) *C.char {
+func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int) *C.char {
 	urls := C.GoString(_urls)
 	skipCertVerification := _skipCertVerification != 0
 	return runOnGoStack(func() *C.char {
@@ -1148,9 +1259,6 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int, _serverNam
 		bytes, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
-		}
-		if err != nil {
-			return SendError(fmt.Errorf("Error marshalling server tags: %v", err))
 		}
 		return C.CString(string(bytes))
 	})

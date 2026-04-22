@@ -706,8 +706,7 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val isSSO = map["isSSO"] as Boolean? ?: error("Missing isSSO")
-                        val json = Mobile.deleteAccount(email, password,isSSO)
+                        val json = Mobile.deleteAccount(email, password)
                         withContext(Dispatchers.Main) {
                             success(json.toByteArray(Charsets.UTF_8))
                         }
@@ -949,12 +948,10 @@ class MethodHandler : FlutterPlugin,
                         val urls = map["urls"] as String? ?: error("Missing urls")
                         val skipValidation =
                             map["skipValidation"] as Boolean? ?: error("Missing skipValidation")
-                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
 
                         val tags = Mobile.addServerBasedOnURLs(
                             urls,
                             skipValidation,
-                            serverName,
                         )
                         withContext(Dispatchers.Main) {
                             success(tags)

@@ -33,7 +33,7 @@ final class PlansNotifierProvider
   PlansNotifier create() => PlansNotifier();
 }
 
-String _$plansNotifierHash() => r'84a5478f8b3cc789e5fe10dbb1229e280af0f3a7';
+String _$plansNotifierHash() => r'7265639d8213bcabb7d7493c97b1389209751670';
 
 abstract class _$PlansNotifier extends $AsyncNotifier<PlansData> {
   FutureOr<PlansData> build();

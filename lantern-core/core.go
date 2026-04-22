@@ -28,6 +28,7 @@ type EventType = string
 
 const (
 	EventTypeServerLocation EventType = "server-location"
+	EventTypeConfig         EventType = "config"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -58,6 +59,11 @@ type App interface {
 	GetAutoLocationJSON() ([]byte, error)
 	CheckDaemonReachable() error
 	PatchSettings(settings.Settings) error
+	GetSettingsJSON() ([]byte, error)
+	PatchEnvVars(map[string]string) (map[string]string, error)
+	GetEnvVars() map[string]string
+	RunOfflineURLTests() error
+	UpdateConfig() error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	UpdateTelemetryConsent(consent bool) error
@@ -199,6 +205,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.eventEmitter = eventEmitter
 
 	go lc.listenAutoSelectedEvents()
+	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -239,6 +246,28 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 			return
 		}
 		slog.Warn("auto-selected event stream ended, reconnecting", "error", err)
+		bo.Wait(lc.ctx)
+	}
+}
+
+// listenConfigEvents subscribes to config.NewConfigEvent notifications over
+// the IPC stream and forwards them to Flutter as EventTypeConfig. Flutter's
+// handler refreshes available servers and user data on every notification.
+//
+// The event is emitted inside the packet-tunnel extension's radiance process,
+// so we subscribe via the IPC SSE stream rather than events.SubscribeContext —
+// the in-process fan-out doesn't cross process boundaries.
+func (lc *LanternCore) listenConfigEvents() {
+	bo := common.NewBackoff(30 * time.Second)
+	for lc.ctx.Err() == nil {
+		err := lc.client.ConfigEvents(lc.ctx, func() {
+			slog.Debug("Config updated, notifying Flutter")
+			lc.notifyFlutter(EventTypeConfig, "")
+		})
+		if lc.ctx.Err() != nil {
+			return
+		}
+		slog.Warn("config event stream ended, reconnecting", "error", err)
 		bo.Wait(lc.ctx)
 	}
 }
@@ -414,6 +443,38 @@ func (lc *LanternCore) CheckDaemonReachable() error {
 func (lc *LanternCore) PatchSettings(s settings.Settings) error {
 	_, err := lc.client.PatchSettings(lc.ctx, s)
 	return err
+}
+
+func (lc *LanternCore) GetSettingsJSON() ([]byte, error) {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(s)
+}
+
+func (lc *LanternCore) PatchEnvVars(updates map[string]string) (map[string]string, error) {
+	return lc.client.PatchEnvVars(lc.ctx, updates)
+}
+
+// GetEnvVars returns the daemon's in-memory env vars. Uses an empty PATCH
+// because ipc.Client exposes no dedicated GET; the daemon returns the full
+// env map on both GET and PATCH.
+func (lc *LanternCore) GetEnvVars() map[string]string {
+	vars, err := lc.client.PatchEnvVars(lc.ctx, map[string]string{})
+	if err != nil {
+		slog.Error("Error fetching env vars", "error", err)
+		return nil
+	}
+	return vars
+}
+
+func (lc *LanternCore) RunOfflineURLTests() error {
+	return lc.client.RunOfflineURLTests(lc.ctx)
+}
+
+func (lc *LanternCore) UpdateConfig() error {
+	return lc.client.UpdateConfig(lc.ctx)
 }
 
 /////////////////

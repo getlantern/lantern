@@ -42,7 +42,7 @@ final class PrivateServerNotifierProvider
 }
 
 String _$privateServerNotifierHash() =>
-    r'62043a2bc48283545219230571d6615a1e71876d';
+    r'35dc4a5be8bae2ad1bd9b87571c002320460581b';
 
 abstract class _$PrivateServerNotifier extends $Notifier<PrivateServerStatus> {
   PrivateServerStatus build();
