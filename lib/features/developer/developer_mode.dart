@@ -51,6 +51,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   // Track daemon state; `null` means unknown/not yet loaded.
   bool? _configFetchEnabled;
   bool _loading = true;
+  // Action tiles that are currently awaiting an IPC reply. Showing a spinner
+  // on the tile prevents users from re-tapping while the call is in flight.
+  final Set<String> _runningActions = {};
 
   @override
   void initState() {
@@ -306,22 +309,25 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          AppTile(
+          _asyncActionTile(
+            id: 'sendConfig',
             label: 'Send config request',
             icon: Icons.cloud_download_outlined,
-            onPressed: _sendConfigRequest,
+            action: _sendConfigRequest,
           ),
           DividerSpace(),
-          AppTile(
+          _asyncActionTile(
+            id: 'runURLTests',
             label: 'Run URL tests',
             icon: Icons.speed_outlined,
-            onPressed: _runURLTests,
+            action: _runURLTests,
           ),
           DividerSpace(),
-          AppTile(
+          _asyncActionTile(
+            id: 'showState',
             label: 'Show settings & env vars',
             icon: Icons.info_outline,
-            onPressed: _showState,
+            action: _showState,
           ),
           DividerSpace(),
           AppTile(
@@ -341,6 +347,32 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Builds an AppTile that shows a spinner while [action] is in flight and
+  /// blocks re-taps until it completes.
+  Widget _asyncActionTile({
+    required String id,
+    required String label,
+    required IconData icon,
+    required Future<void> Function() action,
+  }) {
+    final running = _runningActions.contains(id);
+    return AppTile(
+      label: label,
+      icon: icon,
+      loading: running,
+      onPressed: running
+          ? null
+          : () async {
+              setState(() => _runningActions.add(id));
+              try {
+                await action();
+              } finally {
+                if (mounted) setState(() => _runningActions.remove(id));
+              }
+            },
     );
   }
 
