@@ -55,4 +55,3 @@ app.*.map.json
 
 app.env
 /android/app/libs
-/.sentry-native

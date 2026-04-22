@@ -43,7 +43,8 @@ func saveCacheToFile(dataDir string, apps ...*AppData) error {
 	}
 	path := filepath.Join(dataDir, cacheFilename)
 
-	// avoid caching IconBytes
+	// Keep the apps catalog lightweight. Row-level icon bytes are fetched lazily
+	// and cached separately, so we don't need large inline blobs in this file.
 	stripped := make([]*AppData, 0, len(apps))
 	for _, a := range apps {
 		if a == nil {
@@ -142,6 +143,9 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			if runtime.GOOS == "windows" && isWindowsSystemApp(path, rawName) {
 				return nil
 			}
+			if runtime.GOOS == "windows" && isWindowsUtilityApp(path, rawName) {
+				return nil
+			}
 			if shouldExcludeAppBundle(path, rawName, appID) {
 				if appIsDir {
 					return filepath.SkipDir
@@ -160,8 +164,10 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			iconPath, _ := getIconPath(path)
 
 			var iconBytes []byte
-			if b, err := getIconBytes(path); err == nil {
-				iconBytes = b
+			if runtime.GOOS != "windows" {
+				if b, err := getIconBytes(path); err == nil {
+					iconBytes = b
+				}
 			}
 
 			app := &AppData{
@@ -235,6 +241,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			if runtime.GOOS == "windows" && isWindowsSystemApp(app.AppPath, app.Name) {
 				continue
 			}
+			if runtime.GOOS == "windows" && isWindowsUtilityApp(app.AppPath, app.Name) {
+				continue
+			}
 			if runtime.GOOS == "windows" &&
 				len(app.IconBytes) == 0 &&
 				strings.TrimSpace(app.IconPath) == "" {
@@ -244,6 +253,11 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			}
 			if cb != nil {
 				cb(app)
+			}
+			if runtime.GOOS == "windows" {
+				// Keep cached entries as an initial snapshot only.
+				// We still want a full live rescan to refresh stale metadata/icons.
+				continue
 			}
 			if app.BundleID != "" {
 				seen[normalizeKey(app.BundleID)] = true
@@ -264,7 +278,16 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			if app == nil {
 				continue
 			}
+			if strings.TrimSpace(app.AppPath) == "" {
+				continue
+			}
+			if _, err := os.Stat(app.AppPath); err != nil {
+				continue
+			}
 			if isWindowsSystemApp(app.AppPath, app.Name) {
+				continue
+			}
+			if isWindowsUtilityApp(app.AppPath, app.Name) {
 				continue
 			}
 
@@ -275,13 +298,6 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 				(keyPath != "" && seen[keyPath]) ||
 				(keyName != "" && seen[keyName]) {
 				continue
-			}
-
-			// Best-effort refresh of missing icon bytes for cache-only entries.
-			if len(app.IconBytes) == 0 && strings.TrimSpace(app.AppPath) != "" {
-				if b, err := getIconBytes(app.AppPath); err == nil {
-					app.IconBytes = b
-				}
 			}
 
 			if cb != nil {

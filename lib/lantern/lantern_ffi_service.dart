@@ -297,6 +297,49 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    final normalizedAppPath = appPath.trim();
+    final normalizedIconPath = iconPath.trim();
+    if (normalizedAppPath.isEmpty && normalizedIconPath.isEmpty) {
+      return null;
+    }
+
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final appPathPtr = normalizedAppPath.toNativeUtf8();
+        final iconPathPtr = normalizedIconPath.toNativeUtf8();
+        try {
+          return _ffiService
+              .loadInstalledAppIcon(
+                appPathPtr.cast<Char>(),
+                iconPathPtr.cast<Char>(),
+              )
+              .toDartString();
+        } finally {
+          malloc.free(appPathPtr);
+          malloc.free(iconPathPtr);
+        }
+      });
+
+      final trimmed = encoded.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      }
+      if (trimmed.startsWith('{') && trimmed.contains('"error"')) {
+        checkAPIError(trimmed);
+        return null;
+      }
+      return base64Decode(trimmed);
+    } catch (e, st) {
+      appLogger.error('Failed to load installed app icon bytes', e, st);
+      return null;
+    }
+  }
+
   // Split tunneling
   static void _commandIsolateEntry(SendPort sendPort) {
     final commandPort = ReceivePort();
