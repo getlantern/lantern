@@ -172,20 +172,6 @@ function Stop-StaleBuildProcesses {
   }
 }
 
-function Validate-IpcToken {
-  $tokenPath = Join-Path $env:ProgramData "Lantern\ipc-token"
-  if (-not (Test-Path $tokenPath)) {
-    throw "IPC token file not found: $tokenPath"
-  }
-
-  $token = (Get-Content -Path $tokenPath -Raw).Trim()
-  if ([string]::IsNullOrWhiteSpace($token)) {
-    throw "IPC token file is empty: $tokenPath"
-  }
-
-  Write-Host "IPC token is present at $tokenPath" -ForegroundColor Green
-}
-
 function Clear-AppDiscoveryCache {
   $paths = @(
     (Join-Path $env:PUBLIC "Lantern\data\apps_cache.json"),
@@ -292,7 +278,6 @@ Show-BuildArtifactInfo -Path $appExe -Label "lantern.exe"
 
 Install-LanterndService -Name $ServiceName -BinaryPath $serviceOutputBinary
 Show-ServiceStatus -Name $ServiceName
-Validate-IpcToken
 Show-ServiceLogs -TailLines $LogTailLines
 Show-AppDiscoveryContext
 Clear-AppDiscoveryCache

@@ -2,7 +2,6 @@ param(
   [string]$ServiceName = "LanternSvc",
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
-  [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
@@ -235,32 +234,6 @@ function Wait-ServiceRunning {
   throw "Windows service did not reach Running state"
 }
 
-function Wait-TokenFile {
-  param(
-    [string]$Path,
-    [int]$TimeoutSeconds
-  )
-
-  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    if (Test-Path $Path) {
-      try {
-        $token = (Get-Content -Path $Path -Raw -ErrorAction Stop).Trim()
-      } catch {
-        $token = ""
-      }
-      if (-not [string]::IsNullOrWhiteSpace($token)) {
-        Write-Step "IPC token detected at $Path with content"
-        return
-      }
-    }
-    if ($i -gt 0 -and ($i % 5) -eq 0) {
-      Write-Step "Waiting for non-empty IPC token at $Path ($i/$TimeoutSeconds s)"
-    }
-    Start-Sleep -Seconds 1
-  }
-  throw "IPC token file missing or empty at $Path"
-}
-
 function Install-FromInstaller {
   param(
     [string]$Path,
@@ -338,8 +311,6 @@ try {
       -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
-
-  Wait-TokenFile -Path $TokenPath -TimeoutSeconds $WaitSeconds
 
   if ($RunConnectSmoke) {
     Invoke-FlutterSmokeTest `
