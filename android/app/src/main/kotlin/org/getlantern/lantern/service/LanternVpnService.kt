@@ -8,7 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -301,9 +303,25 @@ class LanternVpnService :
             // Without this, some Android 10+ devices report only the VPN network,
             // causing sing-box to see no physical interface and blocking all traffic.
             updateUnderlyingNetworks()
-            // Bound connect() so a Go-side deadlock can't leave the UI button
-            // frozen. TimeoutCancellationException falls through to runCatching.
-            withTimeout(VPN_START_TIMEOUT_MS) { connect() }
+            // Bound the Mobile.startVPN / connectToServer call with a wall-clock
+            // timeout. These are blocking JNI calls with no suspension points,
+            // so withTimeout around a direct invocation wouldn't fire — we run
+            // the call in a child coroutine on Dispatchers.IO and await it,
+            // which gives withTimeout a real cancellation point. On timeout we
+            // abandon the awaited Deferred (the underlying JNI call keeps
+            // running in the background; we accept that leak — once Go
+            // eventually completes or the process exits, it will settle) so
+            // the UI gets unstuck with a clear error instead of a frozen
+            // button that only a phone reboot can clear (Freshdesk #173507).
+            coroutineScope {
+                val deferred = async(Dispatchers.IO) { connect() }
+                try {
+                    withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
+                } catch (e: TimeoutCancellationException) {
+                    deferred.cancel()
+                    throw e
+                }
+            }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -323,7 +341,7 @@ class LanternVpnService :
                 .onFailure { stopErr -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", stopErr) }
             VpnStatusManager.postVPNError(
                 errorCode = if (timedOut) "${errorCode}_timeout" else errorCode,
-                errorMessage = if (timedOut) "VPN start timed out" else "Error in VPN operation",
+                errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
                 error = e,
             )
             if (cleanUpOnFailure) serviceCleanUp()
