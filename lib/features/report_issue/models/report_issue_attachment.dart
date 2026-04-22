@@ -6,12 +6,14 @@ class ReportIssueAttachment {
   final String path;
   final String mimeType;
   final int sizeBytes;
+  final String? securityScopedBookmark;
 
   const ReportIssueAttachment({
     required this.name,
     required this.path,
     required this.mimeType,
     required this.sizeBytes,
+    this.securityScopedBookmark,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -27,7 +29,16 @@ class ReportIssueAttachment {
       path: json['path'] as String? ?? '',
       mimeType: json['mimeType'] as String? ?? '',
       sizeBytes: (json['sizeBytes'] as num?)?.toInt() ?? 0,
+      securityScopedBookmark: _bookmarkFromJson(json),
     );
+  }
+
+  static String? _bookmarkFromJson(Map<String, dynamic> json) {
+    final bookmark = (json['securityScopedBookmark'] as String?)?.trim();
+    if (bookmark == null || bookmark.isEmpty) {
+      return null;
+    }
+    return bookmark;
   }
 
   @override

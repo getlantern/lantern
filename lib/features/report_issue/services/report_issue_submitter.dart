@@ -4,31 +4,43 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/device_utils.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_access.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 final reportIssueSubmitterProvider = Provider<ReportIssueSubmitter>(
-  (ref) => ReportIssueSubmitter(ref.read(lanternServiceProvider)),
+  (ref) => ReportIssueSubmitter(
+    ref.read(lanternServiceProvider),
+    attachmentAccess: ref.read(reportIssueAttachmentAccessProvider),
+    attachmentBudget: ref.read(reportIssueAttachmentBudgetProvider),
+  ),
 );
 
 typedef ReportIssueDeviceInfoLoader = Future<(String, String)> Function();
-typedef ReportIssueLogFileResolver = Future<File?> Function();
 
 class ReportIssueSubmitter {
   final LanternService _lanternService;
   final ReportIssueDeviceInfoLoader _deviceInfoLoader;
+  final ReportIssueAttachmentAccess _attachmentAccess;
+  final ReportIssueAttachmentBudget _attachmentBudget;
   final ReportIssueLogFileResolver _logFileResolver;
 
   ReportIssueSubmitter(
     LanternService lanternService, {
     ReportIssueDeviceInfoLoader? deviceInfoLoader,
+    ReportIssueAttachmentAccess? attachmentAccess,
+    ReportIssueAttachmentBudget? attachmentBudget,
     ReportIssueLogFileResolver? logFileResolver,
   }) : _lanternService = lanternService,
        _deviceInfoLoader = deviceInfoLoader ?? DeviceUtils.getDeviceAndModel,
-       _logFileResolver = logFileResolver ?? _defaultLogFileResolver;
+       _attachmentAccess =
+           attachmentAccess ?? PlatformReportIssueAttachmentAccess(),
+       _attachmentBudget =
+           attachmentBudget ?? PlatformReportIssueAttachmentBudget(),
+       _logFileResolver = logFileResolver ?? defaultReportIssueLogFileResolver;
 
   Future<Either<Failure, Unit>> submit({
     required String email,
@@ -36,9 +48,10 @@ class ReportIssueSubmitter {
     required String description,
     required List<ReportIssueAttachment> attachments,
   }) async {
+    final reservedBytes = await _attachmentBudget.reservedBytes();
     final validationError = ReportIssueAttachmentRules.validateAttachments(
       attachments,
-      reservedBytes: await _reservedBytes(),
+      reservedBytes: reservedBytes,
     );
     if (validationError != null) {
       return Left(
@@ -49,32 +62,23 @@ class ReportIssueSubmitter {
     final deviceInfo = await _deviceInfoLoader();
     final logFile = await _resolveLogFile();
 
-    return _lanternService.reportIssue(
-      email,
-      issueType,
-      description,
-      deviceInfo.$1,
-      deviceInfo.$2,
-      logFile?.path ?? '',
-      attachments,
-    );
-  }
-
-  Future<int> _reservedBytes() async {
-    final logFile = await _resolveLogFile();
-    if (logFile == null) {
-      return 0;
-    }
-
     try {
-      return await logFile.length();
-    } catch (error, stackTrace) {
-      appLogger.error(
-        'Unable to measure report issue log file',
-        error,
-        stackTrace,
+      return await _attachmentAccess.withAccess(
+        attachments,
+        () => _lanternService.reportIssue(
+          email,
+          issueType,
+          description,
+          deviceInfo.$1,
+          deviceInfo.$2,
+          logFile?.path ?? '',
+          attachments,
+        ),
       );
-      return 0;
+    } on ReportIssueAttachmentAccessException catch (error) {
+      return Left(
+        Failure(error: error.message, localizedErrorMessage: error.message),
+      );
     }
   }
 
@@ -89,13 +93,5 @@ class ReportIssueSubmitter {
       );
       return null;
     }
-  }
-
-  static Future<File?> _defaultLogFileResolver() async {
-    if (!PlatformUtils.isIOS) {
-      return null;
-    }
-
-    return AppStorageUtils.flutterLogFile();
   }
 }

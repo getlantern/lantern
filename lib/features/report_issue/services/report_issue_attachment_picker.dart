@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
@@ -95,14 +96,29 @@ class PlatformReportIssueAttachmentPicker
         path: path,
         mimeType: file.mimeType ?? '',
       );
+      final securityScopedBookmark = _securityScopedBookmark(file);
 
       return ReportIssueAttachment(
         name: name,
         path: path,
         mimeType: mimeType ?? file.mimeType ?? '',
         sizeBytes: size,
+        securityScopedBookmark: securityScopedBookmark,
       );
     });
+  }
+
+  String? _securityScopedBookmark(XFile file) {
+    if (!Platform.isMacOS || file is! DropItem) {
+      return null;
+    }
+
+    final bookmark = file.extraAppleBookmark;
+    if (bookmark == null || bookmark.isEmpty) {
+      return null;
+    }
+
+    return base64Encode(bookmark);
   }
 
   Future<T> _withScopedAccess<T>(XFile file, Future<T> Function() read) async {

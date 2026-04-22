@@ -8,6 +8,7 @@ import 'package:lantern/features/report_issue/models/report_issue_attachment.dar
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/services/report_issue_attachment_picker.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
 import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 
@@ -222,7 +223,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       final attachments = await ref
           .read(reportIssueAttachmentPickerProvider)
           .pickImages();
-      notifier.addAttachments(attachments);
+      await _addAttachmentsToDraft(attachments);
     } on ReportIssueAttachmentPickerException catch (error) {
       notifier.setAttachmentError(error.message);
     } catch (error, stackTrace) {
@@ -244,7 +245,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       final attachments = await ref
           .read(reportIssueAttachmentPickerProvider)
           .loadDroppedFiles(files);
-      notifier.addAttachments(attachments);
+      await _addAttachmentsToDraft(attachments);
     } on ReportIssueAttachmentPickerException catch (error) {
       notifier.setAttachmentError(error.message);
     } catch (error, stackTrace) {
@@ -261,6 +262,26 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   void _removeAttachment(ReportIssueAttachment attachment) {
     ref.read(reportIssueDraftProvider.notifier).removeAttachment(attachment);
+  }
+
+  Future<void> _addAttachmentsToDraft(
+    List<ReportIssueAttachment> attachments,
+  ) async {
+    if (attachments.isEmpty) {
+      return;
+    }
+
+    final reservedBytes = await ref
+        .read(reportIssueAttachmentBudgetProvider)
+        .reservedBytes();
+
+    if (!mounted) {
+      return;
+    }
+
+    ref
+        .read(reportIssueDraftProvider.notifier)
+        .addAttachments(attachments, reservedBytes: reservedBytes);
   }
 
   void _clearDraft() {
@@ -377,6 +398,7 @@ class _AttachmentSection extends StatelessWidget {
           onTap: onAdd,
           onDrop: onDrop,
           enableDesktopDrop: enableDesktopDrop,
+          enabled: attachments.length < ReportIssueAttachmentRules.maxCount,
         ),
         const SizedBox(height: 8),
         Text(ReportIssueAttachmentRules.helperText, style: helperStyle),

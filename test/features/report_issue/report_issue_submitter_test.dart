@@ -5,6 +5,8 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_access.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
 import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
@@ -42,10 +44,38 @@ class _FakeLanternService implements LanternService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _FakeAttachmentBudget implements ReportIssueAttachmentBudget {
+  int value;
+
+  _FakeAttachmentBudget({this.value = 0});
+
+  @override
+  Future<int> reservedBytes() async => value;
+}
+
+class _FakeAttachmentAccess implements ReportIssueAttachmentAccess {
+  bool wasUsed = false;
+  Object? error;
+
+  @override
+  Future<T> withAccess<T>(
+    List<ReportIssueAttachment> attachments,
+    Future<T> Function() action,
+  ) async {
+    wasUsed = true;
+    if (error != null) {
+      throw error!;
+    }
+    return action();
+  }
+}
+
 void main() {
   group('ReportIssueSubmitter', () {
     test('forwards attachments through to LanternService', () async {
       final fakeService = _FakeLanternService();
+      final attachmentBudget = _FakeAttachmentBudget();
+      final attachmentAccess = _FakeAttachmentAccess();
       const attachment = ReportIssueAttachment(
         name: 'vpn_error.png',
         path: '/tmp/vpn_error.png',
@@ -60,6 +90,8 @@ void main() {
 
       final submitter = ReportIssueSubmitter(
         fakeService,
+        attachmentAccess: attachmentAccess,
+        attachmentBudget: attachmentBudget,
         deviceInfoLoader: () async => ('macOS', 'MacBook Pro'),
         logFileResolver: () async => logFile,
       );
@@ -81,19 +113,18 @@ void main() {
       expect(fakeService.attachments, const <ReportIssueAttachment>[
         attachment,
       ]);
+      expect(attachmentAccess.wasUsed, isTrue);
     });
 
     test('rejects oversize totals before calling LanternService', () async {
       final fakeService = _FakeLanternService();
-      final tempDir = await Directory.systemTemp.createTemp('report-issue');
-      addTearDown(() => tempDir.deleteSync(recursive: true));
-      final logFile = File('${tempDir.path}/flutter.log')
-        ..writeAsBytesSync(List<int>.filled(1024, 1));
+      final attachmentBudget = _FakeAttachmentBudget(value: 1024);
 
       final submitter = ReportIssueSubmitter(
         fakeService,
+        attachmentBudget: attachmentBudget,
         deviceInfoLoader: () async => ('iOS', 'iPhone'),
-        logFileResolver: () async => logFile,
+        logFileResolver: () async => null,
       );
 
       final result = await submitter.submit(
@@ -121,10 +152,56 @@ void main() {
       expect(fakeService.attachments, isNull);
     });
 
+    test(
+      'returns a readable failure when scoped access cannot be restored',
+      () async {
+        final fakeService = _FakeLanternService();
+        final attachmentAccess = _FakeAttachmentAccess()
+          ..error = const ReportIssueAttachmentAccessException(
+            ReportIssueAttachmentRules.unreadableAttachmentMessage,
+          );
+
+        final submitter = ReportIssueSubmitter(
+          fakeService,
+          attachmentAccess: attachmentAccess,
+          attachmentBudget: _FakeAttachmentBudget(),
+          deviceInfoLoader: () async => ('macOS', 'MacBook Pro'),
+          logFileResolver: () async => null,
+        );
+
+        final result = await submitter.submit(
+          email: '',
+          issueType: 'other',
+          description: 'Need help',
+          attachments: const <ReportIssueAttachment>[
+            ReportIssueAttachment(
+              name: 'vpn_error.png',
+              path: '/tmp/vpn_error.png',
+              mimeType: 'image/png',
+              sizeBytes: 4096,
+              securityScopedBookmark: 'bookmark',
+            ),
+          ],
+        );
+
+        expect(result.isLeft(), isTrue);
+        result.match(
+          (failure) => expect(
+            failure.localizedErrorMessage,
+            ReportIssueAttachmentRules.unreadableAttachmentMessage,
+          ),
+          (_) => fail('Expected scoped access restoration to fail'),
+        );
+        expect(fakeService.attachments, isNull);
+        expect(attachmentAccess.wasUsed, isTrue);
+      },
+    );
+
     test('submit without screenshots keeps the legacy path working', () async {
       final fakeService = _FakeLanternService();
       final submitter = ReportIssueSubmitter(
         fakeService,
+        attachmentBudget: _FakeAttachmentBudget(),
         deviceInfoLoader: () async => ('Windows', 'Surface'),
         logFileResolver: () async => null,
       );
