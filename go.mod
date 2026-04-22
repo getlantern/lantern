@@ -1,6 +1,6 @@
 module github.com/getlantern/lantern
 
-go 1.25.4
+go 1.26.2
 
 // replace github.com/getlantern/radiance => ../radiance
 
@@ -25,7 +25,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260422183046-23054beba367
+	github.com/getlantern/radiance v0.0.0-20260422221852-30ef52582c99
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.41.0
