@@ -277,7 +277,9 @@ func getDataCapInfo() *C.char {
 }
 
 //export reportIssue
-func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
+func reportIssue(
+	emailC, typeC, descC, deviceC, modelC, logPathC, attachmentsJSONC *C.char,
+) *C.char {
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
@@ -289,8 +291,17 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 		device := C.GoString(deviceC)
 		model := C.GoString(modelC)
 		logPath := C.GoString(logPathC)
+		attachmentsJSON := C.GoString(attachmentsJSONC)
 
-		if err := c.ReportIssue(email, issueType, desc, device, model, logPath); err != nil {
+		if err := c.ReportIssue(
+			email,
+			issueType,
+			desc,
+			device,
+			model,
+			logPath,
+			attachmentsJSON,
+		); err != nil {
 			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
 		}
 

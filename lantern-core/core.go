@@ -55,7 +55,9 @@ var (
 
 type App interface {
 	AvailableFeatures() []byte
-	ReportIssue(email, issueType, description, device, model, logFilePath string) error
+	ReportIssue(
+		email, issueType, description, device, model, logFilePath, attachmentsJSON string,
+	) error
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
@@ -505,7 +507,7 @@ func resolveLogDir(logFilePath string) string {
 // ReportIssue is used to send an issue report via Radiance.
 // We include a few helpful config files plus the main Lantern + Flutter logs when available
 func (lc *LanternCore) ReportIssue(
-	email, issueType, description, device, model, logFilePath string,
+	email, issueType, description, device, model, logFilePath, attachmentsJSON string,
 ) error {
 	report := radiance.IssueReport{
 		Type:        issueType,
@@ -541,6 +543,7 @@ func (lc *LanternCore) ReportIssue(
 
 		report.Attachments = append(report.Attachments, &issue.Attachment{
 			Name: name,
+			Type: "application/json",
 			Data: b,
 		})
 	}
@@ -554,6 +557,12 @@ func (lc *LanternCore) ReportIssue(
 			utils.CreateLogAttachment(logFilePath)...,
 		)
 	}
+
+	issueAttachments, err := loadReportIssueAttachments(attachmentsJSON)
+	if err != nil {
+		return fmt.Errorf("load issue attachments: %w", err)
+	}
+	report.Attachments = append(report.Attachments, issueAttachments...)
 
 	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {

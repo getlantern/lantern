@@ -12,6 +12,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/common/common.dart' hide DeveloperMode;
@@ -246,6 +247,7 @@ class LanternService implements LanternCoreService {
     String device,
     String model,
     String logFilePath,
+    List<ReportIssueAttachment> attachments,
   ) async {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.reportIssue(
@@ -255,6 +257,7 @@ class LanternService implements LanternCoreService {
         device,
         model,
         logFilePath,
+        attachments,
       );
     }
     return _platformService.reportIssue(
@@ -264,6 +267,7 @@ class LanternService implements LanternCoreService {
       device,
       model,
       logFilePath,
+      attachments,
     );
   }
 

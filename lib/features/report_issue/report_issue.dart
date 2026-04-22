@@ -1,12 +1,15 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/device_utils.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/report_issue/services/report_issue_attachment_picker.dart';
+import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
+import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends ConsumerStatefulWidget {
@@ -20,8 +23,8 @@ class ReportIssue extends ConsumerStatefulWidget {
 }
 
 class _ReportIssueState extends ConsumerState<ReportIssue> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  GlobalKey<FormFieldState<String>> _issueTypeFieldKey =
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormFieldState<String>> _issueTypeFieldKey =
       GlobalKey<FormFieldState<String>>();
 
   late final TextEditingController _emailController;
@@ -46,24 +49,33 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   void initState() {
     super.initState();
 
-    ref
-        .read(reportIssueDraftProvider.notifier)
-        .seedFromRoute(
-          description: widget.description,
-          issueType: _resolveInitialIssueType(),
-        );
-
     final draft = ref.read(reportIssueDraftProvider);
-    _selectedIssue = draft.issueType.isEmpty ? null : draft.issueType;
+    final initialIssueType = _resolveInitialIssueType();
+    final seededDescription = _seededValue(
+      draft.description,
+      widget.description,
+    );
+    final seededIssueType = _seededValue(draft.issueType, initialIssueType);
+
+    _selectedIssue = seededIssueType.isEmpty ? null : seededIssueType;
 
     _emailController = TextEditingController(text: draft.email);
-    _descriptionController = TextEditingController(text: draft.description);
+    _descriptionController = TextEditingController(text: seededDescription);
     _issueTypeController = TextEditingController(text: _selectedIssue ?? '');
     _issueTypeFocusNode = FocusNode();
 
     _emailController.addListener(_syncEmailDraft);
     _descriptionController.addListener(_syncDescriptionDraft);
     _issueTypeController.addListener(_syncIssueSelection);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(reportIssueDraftProvider.notifier)
+          .seedFromRoute(
+            description: widget.description,
+            issueType: initialIssueType,
+          );
+    });
   }
 
   @override
@@ -83,6 +95,9 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(reportIssueDraftProvider);
+    final attachmentPicker = ref.watch(reportIssueAttachmentPickerProvider);
+
     return BaseScreen(
       title: 'report_an_issue'.i18n,
       body: SingleChildScrollView(
@@ -126,8 +141,18 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 textInputAction: TextInputAction.newline,
                 maxLines: 10,
               ),
+              const SizedBox(height: 16),
+              _AttachmentSection(
+                attachments: draft.attachments,
+                errorText: draft.attachmentError,
+                enableDesktopDrop: attachmentPicker.supportsDesktopDropTarget,
+                onAdd: _pickAttachments,
+                onDrop: _handleDroppedFiles,
+                onRemove: _removeAttachment,
+              ),
               const SizedBox(height: size24),
               PrimaryButton(
+                buttonKey: const Key('report_issue.submit_button'),
                 label: 'submit_issue_report'.i18n,
                 isTaller: true,
                 onPressed: submitReport,
@@ -148,9 +173,16 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     try {
       return issueOptions[int.parse(widget.type.toString())];
     } catch (e) {
-      appLogger.error("Error parsing issue type: $e");
+      appLogger.error('Error parsing issue type: $e');
       return null;
     }
+  }
+
+  String _seededValue(String currentValue, String? incomingValue) {
+    if (currentValue.isNotEmpty) {
+      return currentValue;
+    }
+    return incomingValue?.trim() ?? '';
   }
 
   void _syncEmailDraft() {
@@ -183,6 +215,54 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     ref.read(reportIssueDraftProvider.notifier).setIssueType(issueType ?? '');
   }
 
+  Future<void> _pickAttachments() async {
+    final notifier = ref.read(reportIssueDraftProvider.notifier);
+
+    try {
+      final attachments = await ref
+          .read(reportIssueAttachmentPickerProvider)
+          .pickImages();
+      notifier.addAttachments(attachments);
+    } on ReportIssueAttachmentPickerException catch (error) {
+      notifier.setAttachmentError(error.message);
+    } catch (error, stackTrace) {
+      appLogger.error(
+        'Unable to add report issue attachments',
+        error,
+        stackTrace,
+      );
+      notifier.setAttachmentError(
+        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+      );
+    }
+  }
+
+  Future<void> _handleDroppedFiles(List<XFile> files) async {
+    final notifier = ref.read(reportIssueDraftProvider.notifier);
+
+    try {
+      final attachments = await ref
+          .read(reportIssueAttachmentPickerProvider)
+          .loadDroppedFiles(files);
+      notifier.addAttachments(attachments);
+    } on ReportIssueAttachmentPickerException catch (error) {
+      notifier.setAttachmentError(error.message);
+    } catch (error, stackTrace) {
+      appLogger.error(
+        'Unable to drop report issue attachments',
+        error,
+        stackTrace,
+      );
+      notifier.setAttachmentError(
+        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+      );
+    }
+  }
+
+  void _removeAttachment(ReportIssueAttachment attachment) {
+    ref.read(reportIssueDraftProvider.notifier).removeAttachment(attachment);
+  }
+
   void _clearDraft() {
     ref.read(reportIssueDraftProvider.notifier).clear();
     _formKey.currentState?.reset();
@@ -203,30 +283,22 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     hideKeyboard();
 
+    final draft = ref.read(reportIssueDraftProvider);
     final issueType = _selectedIssue ?? '';
     final email = _emailController.text.trim();
     final description = _descriptionController.text.trim();
 
     context.showLoadingDialog();
-    appLogger.debug("Submitting issue report: $issueType, $description");
-    final deviceInfo = await DeviceUtils.getDeviceAndModel();
-    final device = deviceInfo.$1;
-    final model = deviceInfo.$2;
-    String logFilePath = "";
-
-    try {
-      if (PlatformUtils.isIOS) {
-        logFilePath = (await AppStorageUtils.flutterLogFile()).path;
-      }
-    } catch (e, st) {
-      // Don't block reporting if logs fail. Just report without logs
-      appLogger.error("Unable to resolve log file: $e", st);
-      logFilePath = "";
-    }
+    appLogger.debug('Submitting issue report: $issueType, $description');
 
     final result = await ref
-        .read(lanternServiceProvider)
-        .reportIssue(email, issueType, description, device, model, logFilePath);
+        .read(reportIssueSubmitterProvider)
+        .submit(
+          email: email,
+          issueType: issueType,
+          description: description,
+          attachments: draft.attachments,
+        );
 
     if (!mounted) {
       return;
@@ -247,6 +319,129 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
         context.showSnackBar('thanks_for_feedback'.i18n);
         _clearDraft();
       },
+    );
+  }
+}
+
+class _AttachmentSection extends StatelessWidget {
+  final List<ReportIssueAttachment> attachments;
+  final String? errorText;
+  final bool enableDesktopDrop;
+  final VoidCallback onAdd;
+  final Future<void> Function(List<XFile> files) onDrop;
+  final ValueChanged<ReportIssueAttachment> onRemove;
+
+  const _AttachmentSection({
+    required this.attachments,
+    required this.errorText,
+    required this.enableDesktopDrop,
+    required this.onAdd,
+    required this.onDrop,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final helperStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: context.textTertiary);
+    final errorStyle = helperStyle?.copyWith(color: context.statusErrorText);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            ReportIssueAttachmentRules.sectionLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: context.textSecondary),
+          ),
+        ),
+        if (attachments.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 8),
+          ...attachments.map(
+            (attachment) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _AttachmentTile(
+                attachment: attachment,
+                onRemove: () => onRemove(attachment),
+              ),
+            ),
+          ),
+        ] else
+          const SizedBox(height: 8),
+        ReportIssueAttachmentDropzone(
+          label: ReportIssueAttachmentRules.uploadLabel,
+          onTap: onAdd,
+          onDrop: onDrop,
+          enableDesktopDrop: enableDesktopDrop,
+        ),
+        const SizedBox(height: 8),
+        Text(ReportIssueAttachmentRules.helperText, style: helperStyle),
+        if (errorText != null) ...<Widget>[
+          const SizedBox(height: 6),
+          Text(errorText!, style: errorStyle),
+        ],
+      ],
+    );
+  }
+}
+
+class _AttachmentTile extends StatelessWidget {
+  final ReportIssueAttachment attachment;
+  final VoidCallback onRemove;
+
+  const _AttachmentTile({required this.attachment, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: Key('report_issue.attachment.${attachment.path}'),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.bgElevated,
+        borderRadius: defaultBorderRadius,
+        border: Border.all(color: context.borderInput),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.image_outlined, color: context.textPrimary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  ReportIssueAttachmentRules.displayName(attachment),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ReportIssueAttachmentRules.formatSize(attachment.sizeBytes),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: context.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            key: Key('report_issue.remove.${attachment.path}'),
+            icon: Icon(Icons.close, color: context.textSecondary),
+            onPressed: onRemove,
+            tooltip:
+                'Remove ${ReportIssueAttachmentRules.displayName(attachment)}',
+          ),
+        ],
+      ),
     );
   }
 }

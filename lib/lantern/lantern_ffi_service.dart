@@ -18,6 +18,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -1116,8 +1117,14 @@ class LanternFFIService implements LanternCoreService {
     String device,
     String model,
     String logFilePath,
+    List<ReportIssueAttachment> attachments,
   ) async {
     try {
+      final attachmentsJson = jsonEncode(
+        attachments
+            .map((attachment) => attachment.toJson())
+            .toList(growable: false),
+      );
       final result = await runInBackground<String>(() async {
         return _ffiService
             .reportIssue(
@@ -1126,7 +1133,8 @@ class LanternFFIService implements LanternCoreService {
               description.toCharPtr,
               device.toCharPtr,
               model.toCharPtr,
-              "".toCharPtr,
+              logFilePath.toCharPtr,
+              attachmentsJson.toCharPtr,
             )
             .toDartString();
       });

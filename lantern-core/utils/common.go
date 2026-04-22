@@ -47,6 +47,7 @@ func CreateLogAttachment(logFilePath string) []*issue.Attachment {
 	}
 	return []*issue.Attachment{{
 		Name: "flutter.log",
+		Type: "text/plain",
 		Data: data,
 	}}
 }
