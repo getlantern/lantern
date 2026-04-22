@@ -1568,8 +1568,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Map<String, String>>> patchEnvVars(
     Map<String, String> updates,
-  ) =>
-      _unsupportedOnMobile('patchEnvVars');
+  ) => _unsupportedOnMobile('patchEnvVars');
 
   @override
   Future<Either<Failure, Map<String, String>>> getEnvVars() =>
@@ -1584,7 +1583,7 @@ class LanternPlatformService implements LanternCoreService {
       _unsupportedOnMobile('sendConfigRequest');
 
   Future<Either<Failure, T>> _unsupportedOnMobile<T>(String name) async {
-    final msg = '$name is not available on mobile';
+    final msg = '$name is not supported ';
     appLogger.warning(msg);
     return left(Failure(error: msg, localizedErrorMessage: msg));
   }

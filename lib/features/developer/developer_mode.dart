@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/annotations.dart';
@@ -6,33 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/developer_daemon_state.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/developer/notifier/developer_daemon_notifier.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/services/injection_container.dart' show sl;
 
-const List<String> _logLevels = [
-  'trace',
-  'debug',
-  'info',
-  'warn',
-  'error',
-  'fatal',
-  'panic',
-  'disable',
-];
-
-/// Radiance env var keys that dev-mode exposes. Mirrors the names in
-/// radiance/common/env/env.go.
-const String _envCountry = 'RADIANCE_COUNTRY';
-const String _envVersion = 'RADIANCE_VERSION';
-const String _envFeatureOverrides = 'RADIANCE_FEATURE_OVERRIDES';
+enum _DevAction { sendConfig, runURLTests, showState }
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -47,19 +34,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   final _versionController = TextEditingController();
   final _featureOverridesController = TextEditingController();
 
-  String _logLevel = 'info';
-  // Track daemon state; `null` means unknown/not yet loaded.
-  bool? _configFetchEnabled;
-  bool _loading = true;
-  // Action tiles that are currently awaiting an IPC reply. Showing a spinner
-  // on the tile prevents users from re-tapping while the call is in flight.
-  final Set<String> _runningActions = {};
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadFromDaemon());
-  }
+  // Action tiles currently awaiting an IPC reply — drives spinner + blocks
+  // double-taps while the call is in flight.
+  final Set<_DevAction> _runningActions = {};
 
   @override
   void dispose() {
@@ -69,37 +46,20 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     super.dispose();
   }
 
-  Future<void> _loadFromDaemon() async {
-    final service = ref.read(lanternServiceProvider);
-    final settingsResult = await service.getSettings();
-    final envResult = await service.getEnvVars();
-    if (!mounted) return;
-    setState(() {
-      settingsResult.match((_) {}, (settings) {
-        final lvl = settings['log_level'];
-        if (lvl is String && _logLevels.contains(lvl)) _logLevel = lvl;
-        final disabled = settings['config_fetch_disabled'];
-        if (disabled is bool) _configFetchEnabled = !disabled;
-      });
-      envResult.match((_) {}, (env) {
-        _countryController.text = env[_envCountry] ?? '';
-        _versionController.text = env[_envVersion] ?? '';
-        _featureOverridesController.text = env[_envFeatureOverrides] ?? '';
-      });
-      _loading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(homeProvider).value;
+    // Seed controllers from the daemon snapshot once the initial fetch
+    // completes; subsequent state changes don't overwrite user edits.
+    ref.listen<DeveloperDaemonState>(developerDaemonProvider, (prev, next) {
+      if ((prev?.loading ?? true) && !next.loading) {
+        _countryController.text = next.country;
+        _versionController.text = next.version;
+        _featureOverridesController.text = next.featureOverrides;
+      }
+    });
 
-    final developerMode = ref.watch(developerModeProvider);
-    final devNotifier = ref.read(developerModeProvider.notifier);
-    final appSetting = ref.watch(appSettingProvider);
-    final appSettingNotifier = ref.watch(appSettingProvider.notifier);
-    final isStaging = appSetting.environment == 'stage' ||
-        appSetting.environment == 'staging';
+    final user = ref.watch(homeProvider).value;
+    final daemon = ref.watch(developerDaemonProvider);
 
     return BaseScreen(
       title: 'developer_mode'.i18n,
@@ -110,25 +70,20 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           SizedBox(height: defaultSize),
           _accountCard(user),
           SizedBox(height: defaultSize),
-          _purchaseAndEnvironmentCard(
-            developerMode: developerMode,
-            devNotifier: devNotifier,
-            isStaging: isStaging,
-            appSettingNotifier: appSettingNotifier,
-          ),
+          _purchaseAndEnvironmentCard(),
           SizedBox(height: defaultSize),
           _overridesCard(),
           SizedBox(height: defaultSize),
-          _daemonSettingsCard(),
+          _daemonSettingsCard(daemon),
           SizedBox(height: defaultSize),
-          _actionsCard(devNotifier),
+          _actionsCard(),
           SizedBox(height: defaultSize),
         ],
       ),
     );
   }
 
-  Widget _accountCard(dynamic user) {
+  Widget _accountCard(UserResponseModel? user) {
     return AppCard(
       margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
@@ -137,7 +92,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           AppTile(
             label: 'UserId',
             trailing: AppTextButton(
-              label: user?.legacyUserData.userId?.toString() ?? 'N/A',
+              label: user?.legacyUserData.userId.toString() ?? 'N/A',
             ),
           ),
           DividerSpace(),
@@ -152,12 +107,13 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     );
   }
 
-  Widget _purchaseAndEnvironmentCard({
-    required dynamic developerMode,
-    required dynamic devNotifier,
-    required bool isStaging,
-    required dynamic appSettingNotifier,
-  }) {
+  Widget _purchaseAndEnvironmentCard() {
+    final developerMode = ref.watch(developerModeProvider);
+    final devNotifier = ref.read(developerModeProvider.notifier);
+    final environment = ref.watch(
+      appSettingProvider.select((s) => s.environment),
+    );
+    final isStaging = environment == 'stage' || environment == 'staging';
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -183,7 +139,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
               trailing: SwitchButton(
                 value: isStaging,
                 onChanged: (value) async {
-                  await appSettingNotifier.setEnvironment(value);
+                  await ref
+                      .read(appSettingProvider.notifier)
+                      .setEnvironment(value);
                   if (!mounted) return;
                   AppDialog.dialog(
                     context: context,
@@ -206,27 +164,24 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Radiance env overrides',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          const SectionLabel('Radiance env overrides'),
           const SizedBox(height: 8),
           _envField(
             label: 'Country (e.g. IR, CN)',
             controller: _countryController,
-            envKey: _envCountry,
+            envKey: kEnvCountry,
           ),
           const SizedBox(height: 8),
           _envField(
             label: 'App version',
             controller: _versionController,
-            envKey: _envVersion,
+            envKey: kEnvVersion,
           ),
           const SizedBox(height: 8),
           _envField(
             label: 'Feature overrides (JSON)',
             controller: _featureOverridesController,
-            envKey: _envFeatureOverrides,
+            envKey: kEnvFeatureOverrides,
           ),
         ],
       ),
@@ -239,28 +194,33 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     required String envKey,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: TextField(
+          child: AppTextField(
+            label: label,
+            hintText: '',
             controller: controller,
-            decoration: InputDecoration(
-              labelText: label,
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
           ),
         ),
         const SizedBox(width: 8),
-        TextButton(
-          onPressed: () => _applyEnv(envKey, controller.text.trim()),
-          child: const Text('Apply'),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: AppTextButton(
+            label: 'Apply',
+            onPressed: () => _runAndReport(
+              () => ref
+                  .read(developerDaemonProvider.notifier)
+                  .patchEnv(envKey, controller.text.trim()),
+              '$envKey set to "${controller.text.trim()}"',
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _daemonSettingsCard() {
-    final configFetchEnabled = _configFetchEnabled ?? true;
+  Widget _daemonSettingsCard(DeveloperDaemonState daemon) {
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -272,17 +232,22 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
               children: [
                 const Text('Log level'),
                 DropdownButton<String>(
-                  value: _logLevels.contains(_logLevel) ? _logLevel : 'info',
-                  items: _logLevels
-                      .map(
-                        (l) => DropdownMenuItem(value: l, child: Text(l)),
-                      )
+                  value: kDaemonLogLevels.contains(daemon.logLevel)
+                      ? daemon.logLevel
+                      : 'info',
+                  items: kDaemonLogLevels
+                      .map((l) => DropdownMenuItem(value: l, child: Text(l)))
                       .toList(),
-                  onChanged: _loading
+                  onChanged: daemon.loading
                       ? null
                       : (value) {
                           if (value == null) return;
-                          _applyLogLevel(value);
+                          _runAndReport(
+                            () => ref
+                                .read(developerDaemonProvider.notifier)
+                                .setLogLevel(value),
+                            'Log level set to $value',
+                          );
                         },
                 ),
               ],
@@ -292,10 +257,15 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           AppTile(
             label: 'Config fetch enabled',
             trailing: SwitchButton(
-              value: configFetchEnabled,
+              value: daemon.configFetchEnabled,
               onChanged: (value) {
-                if (_loading) return;
-                _applyConfigFetchEnabled(value);
+                if (daemon.loading) return;
+                _runAndReport(
+                  () => ref
+                      .read(developerDaemonProvider.notifier)
+                      .setConfigFetchEnabled(value),
+                  'Config fetch ${value ? 'enabled' : 'disabled'}',
+                );
               },
             ),
           ),
@@ -304,30 +274,39 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     );
   }
 
-  Widget _actionsCard(dynamic devNotifier) {
+  Widget _actionsCard() {
+    final daemon = ref.read(developerDaemonProvider.notifier);
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           _asyncActionTile(
-            id: 'sendConfig',
+            id: _DevAction.sendConfig,
             label: 'Send config request',
             icon: Icons.cloud_download_outlined,
-            action: _sendConfigRequest,
+            action: () =>
+                _runAndReport(daemon.sendConfigRequest, 'Config request sent'),
           ),
           DividerSpace(),
           _asyncActionTile(
-            id: 'runURLTests',
+            id: _DevAction.runURLTests,
             label: 'Run URL tests',
             icon: Icons.speed_outlined,
-            action: _runURLTests,
+            action: () =>
+                _runAndReport(daemon.runURLTests, 'URL tests triggered'),
           ),
           DividerSpace(),
           _asyncActionTile(
-            id: 'showState',
+            id: _DevAction.showState,
             label: 'Show settings & env vars',
             icon: Icons.info_outline,
-            action: _showState,
+            action: () async {
+              final result = await daemon.fetchStateJson();
+              result.match(
+                (f) => _snackFailure(f),
+                _showStateDialog,
+              );
+            },
           ),
           DividerSpace(),
           AppTile(
@@ -335,25 +314,13 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             icon: Icons.restart_alt,
             onPressed: _resetAppData,
           ),
-          DividerSpace(),
-          AppTile(
-            label: 'Disable developer mode',
-            icon: Icons.lock_outline,
-            onPressed: () async {
-              await devNotifier.setEnabled(false);
-              if (!mounted) return;
-              if (Navigator.of(context).canPop()) Navigator.of(context).pop();
-            },
-          ),
         ],
       ),
     );
   }
 
-  /// Builds an AppTile that shows a spinner while [action] is in flight and
-  /// blocks re-taps until it completes.
   Widget _asyncActionTile({
-    required String id,
+    required _DevAction id,
     required String label,
     required IconData icon,
     required Future<void> Function() action,
@@ -376,94 +343,57 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     );
   }
 
-  Future<void> _applyEnv(String key, String value) async {
-    final service = ref.read(lanternServiceProvider);
-    final result = await service.patchEnvVars({key: value});
-    _showResult(result, '$key set to "$value"');
-  }
-
-  Future<void> _applyLogLevel(String level) async {
-    final service = ref.read(lanternServiceProvider);
-    final result = await service.patchSettings({'log_level': level});
-    result.match(
-      (f) => _snack('Failed: ${f.localizedErrorMessage}'),
-      (_) {
-        setState(() => _logLevel = level);
-        _snack('Log level set to $level');
-      },
-    );
-  }
-
-  Future<void> _applyConfigFetchEnabled(bool enabled) async {
-    final service = ref.read(lanternServiceProvider);
-    final result =
-        await service.patchSettings({'config_fetch_disabled': !enabled});
-    result.match(
-      (f) => _snack('Failed: ${f.localizedErrorMessage}'),
-      (_) {
-        setState(() => _configFetchEnabled = enabled);
-        _snack('Config fetch ${enabled ? 'enabled' : 'disabled'}');
-      },
-    );
-  }
-
-  Future<void> _sendConfigRequest() async {
-    final service = ref.read(lanternServiceProvider);
-    final result = await service.sendConfigRequest();
-    _showResult(result, 'Config request sent');
-  }
-
-  Future<void> _runURLTests() async {
-    final service = ref.read(lanternServiceProvider);
-    final result = await service.runURLTests();
-    _showResult(result, 'URL tests triggered');
-  }
-
-  Future<void> _showState() async {
-    final service = ref.read(lanternServiceProvider);
-    final settings = await service.getSettings();
-    final env = await service.getEnvVars();
+  void _showStateDialog(({String settings, String env}) data) {
     if (!mounted) return;
-    final settingsJson = settings.match(
-      (f) => 'Error: ${f.localizedErrorMessage}',
-      (s) => const JsonEncoder.withIndent('  ').convert(s),
-    );
-    final envJson = env.match(
-      (f) => 'Error: ${f.localizedErrorMessage}',
-      (e) => const JsonEncoder.withIndent('  ').convert(e),
-    );
-    showDialog(
+    AppDialog.customDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Settings & env vars'),
-        content: SingleChildScrollView(
-          child: SelectableText(
-            'Settings:\n$settingsJson\n\nEnv:\n$envJson',
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              Text(
+                'Settings & env vars',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 16),
+              SelectableText(
+                'Settings:\n${data.settings}\n\nEnv:\n${data.env}',
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
       ),
+      action: [
+        AppTextButton(
+          label: 'close'.i18n,
+          onPressed: () => appRouter.maybePop(),
+        ),
+      ],
     );
   }
 
-  void _showResult<T>(Either<Failure, T> result, String successMessage) {
-    result.match(
-      (f) => _snack('Failed: ${f.localizedErrorMessage}'),
-      (_) => _snack(successMessage),
-    );
-  }
-
-  void _snack(String msg) {
+  /// Runs [op] and shows [successMessage] or the failure's localized message
+  /// via snackbar. Used by every notifier-driven action in this screen.
+  Future<void> _runAndReport(
+    Future<Either<Failure, Unit>> Function() op,
+    String successMessage,
+  ) async {
+    final result = await op();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+    result.match(
+      _snackFailure,
+      (_) => context.showSnackBar(successMessage),
     );
+  }
+
+  void _snackFailure(Failure f) {
+    if (!mounted) return;
+    context.showSnackBar('Failed: ${f.localizedErrorMessage}');
   }
 
   Future<void> _resetAppData() async {

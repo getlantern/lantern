@@ -7,7 +7,6 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
-import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
@@ -178,7 +177,7 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          if (ref.watch(developerModeProvider).enabled) ...{
+          if (AppBuildInfo.isDevModeEnabled) ...{
             SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
