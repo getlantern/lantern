@@ -26,6 +26,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/utils"
 
 	"github.com/getlantern/radiance/common/settings"
+	rlog "github.com/getlantern/radiance/log"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -141,6 +142,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		// current VPN state even if the VPN was already connected (e.g. macOS
 		// system extension started before the Flutter app).
 		startStatusListener(core)
+		startLogsListener(core)
 
 		slog.Debug("Radiance setup successfully")
 		return C.CString("ok")
@@ -463,6 +465,31 @@ func startStatusListener(c lanterncore.Core) {
 					}
 				})
 				// SSE stream disconnected — retry after a short delay.
+				time.Sleep(500 * time.Millisecond)
+			}
+		}()
+	})
+}
+
+var logsListenerOnce sync.Once
+
+// startLogsListener subscribes to radiance's log SSE stream and forwards each
+// entry to Flutter via the Dart logs port.
+func startLogsListener(c lanterncore.Core) {
+	logsListenerOnce.Do(func() {
+		go func() {
+			for {
+				port := logsPort.Load()
+				if port == 0 {
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+				err := c.Client().TailLogs(context.Background(), func(entry rlog.LogEntry) {
+					dart_api_dl.SendToPort(logsPort.Load(), string(entry))
+				})
+				if err != nil {
+					slog.Debug("log stream disconnected", "error", err)
+				}
 				time.Sleep(500 * time.Millisecond)
 			}
 		}()

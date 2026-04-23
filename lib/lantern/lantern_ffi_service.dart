@@ -48,6 +48,9 @@ class LanternFFIService implements LanternCoreService {
   Stream<PrivateServerStatus> _privateServerStatus =
       const Stream<PrivateServerStatus>.empty();
   Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
+  Stream<List<String>> _logBatches = const Stream<List<String>>.empty();
+
+  static final RegExp _newlineRegex = RegExp(r'\r?\n');
 
   static Stream<LanternStatus> _defaultStatusStream() {
     // Keep a predictable default (matches the Windows status mapping behavior).
@@ -115,6 +118,7 @@ class LanternFFIService implements LanternCoreService {
     _status = _defaultStatusStream();
     _privateServerStatus = const Stream<PrivateServerStatus>.empty();
     _appEvents = const Stream<AppEvent>.empty();
+    _logBatches = const Stream<List<String>>.empty();
 
     try {
       final setupResult = await _setupRadiance();
@@ -141,6 +145,16 @@ class LanternFFIService implements LanternCoreService {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
       });
+
+      _logBatches = loggingReceivePort
+          .cast<String>()
+          .map(
+            (s) => s
+                .split(_newlineRegex)
+                .where((l) => l.isNotEmpty)
+                .toList(growable: false),
+          )
+          .where((batch) => batch.isNotEmpty);
     } catch (e, st) {
       appLogger.error('Error while setting up radiance', e, st);
     }
@@ -668,10 +682,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) {
-    // Log streaming is not yet implemented via FFI.
-    throw UnimplementedError();
-  }
+  Stream<List<String>> watchLogs(String path) => _logBatches;
 
   @override
   Stream<LanternStatus> watchVPNStatus() => _status;

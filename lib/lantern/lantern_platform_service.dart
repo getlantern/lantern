@@ -195,9 +195,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) => accumulateLogBatches(
-    logsChannel.receiveBroadcastStream().map(_coerceLogBatch),
-  );
+  Stream<List<String>> watchLogs(String path) =>
+      logsChannel.receiveBroadcastStream().map(_coerceLogBatch);
 
   List<String> _coerceLogBatch(dynamic event) {
     if (event is List) {

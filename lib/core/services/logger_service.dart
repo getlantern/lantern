@@ -9,6 +9,12 @@ import 'package:loggy/loggy.dart';
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
 
+final StreamController<String> _flutterLogController =
+    StreamController<String>.broadcast();
+
+/// Emits every log line written to flutter.log as it is written.
+Stream<String> get flutterLogLinesStream => _flutterLogController.stream;
+
 /// Pick the right console printer per platform
 LoggyPrinter _defaultConsolePrinter() {
   if (PlatformUtils.isDesktop) {
@@ -99,10 +105,14 @@ class FileLogPrinter extends LoggyPrinter {
       buffer.write("Stack: ${record.stackTrace}");
     }
 
+    final line = buffer.toString();
     try {
-      _controller.add('${buffer.toString()}\n');
+      _controller.add('$line\n');
     } catch (_) {
       // If add throws (controller closed between check and add), ignore silently.
+    }
+    if (!_flutterLogController.isClosed) {
+      _flutterLogController.add(line);
     }
   }
 
