@@ -40,7 +40,13 @@ class LanternServiceWindows {
   }
 
   Future<void> dispose() async {
-    await _statusPipe?.close();
+    final statusPipe = _statusPipe;
+    final logsPipe = _logsPipe;
+    _statusPipe = null;
+    _logsPipe = null;
+
+    await logsPipe?.close();
+    await statusPipe?.close();
     await _rpcPipe.close();
   }
 
