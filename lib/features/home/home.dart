@@ -15,6 +15,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -39,6 +40,11 @@ class _HomeState extends ConsumerState<Home> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// Kick off the server fetch as soon as Home mounts so the Smart
+      /// Location tile can reflect the fastest server without waiting for
+      /// the user to open the server-selection screen.
+      ref.read(availableServersProvider);
+
       final appSetting = ref.read(appSettingProvider);
       final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
