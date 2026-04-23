@@ -244,6 +244,20 @@ class LanternVpnService :
         runBlocking(Dispatchers.IO) {
             stopVPNTunnel()
             startVPN()
+            // launchVPN (wrapping startVPN) catches failures via
+            // runCatching { ... }.onFailure { ... } and returns normally,
+            // so a nil return from startVPN doesn't mean the restart
+            // succeeded. Verify the postcondition on the Go side and
+            // throw if it's not met — the exception propagates through
+            // runBlocking → restartService → radiance's Restart() as a
+            // non-nil error, which is what tells the caller the restart
+            // actually failed and the tunnel needs healing rather than
+            // wedging forever in Restarting.
+            if (!Mobile.isVPNConnected()) {
+                val msg = "restartService failed: VPN not connected after stopVPNTunnel + startVPN"
+                AppLogger.e(TAG, msg)
+                throw IllegalStateException(msg)
+            }
         }
         AppLogger.i(TAG, "restartService completed")
     }
