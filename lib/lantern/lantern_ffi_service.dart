@@ -300,6 +300,38 @@ class LanternFFIService implements LanternCoreService {
     }());
   }
 
+  Future<void> _syncWindowsStatusSnapshot(
+    LanternServiceWindows windowsService, {
+    VPNStatusOrigin origin = VPNStatusOrigin.unknown,
+  }) async {
+    final snapshot = await windowsService.isVPNConnected();
+    snapshot.fold(
+      (failure) {
+        appLogger.warning(
+          'Failed to read Windows VPN status snapshot: '
+          '${failure.localizedErrorMessage}',
+        );
+      },
+      (running) {
+        final nextStatus = running
+            ? VPNStatus.connected
+            : VPNStatus.disconnected;
+        final currentStatus = _lastWindowsStatus.status;
+        if (currentStatus == VPNStatus.connecting ||
+            currentStatus == VPNStatus.disconnecting) {
+          return;
+        }
+        if (currentStatus == nextStatus &&
+            _lastWindowsStatus.origin == origin &&
+            _lastWindowsStatus.error == null) {
+          return;
+        }
+
+        _publishWindowsStatus(_windowsStatus(nextStatus, origin: origin));
+      },
+    );
+  }
+
   Future<void> _attachWindowsStatusStream(
     LanternServiceWindows windowsService,
   ) async {
@@ -340,6 +372,7 @@ class LanternFFIService implements LanternCoreService {
       onDone: scheduleReattach,
       cancelOnError: true,
     );
+    await _syncWindowsStatusSnapshot(windowsService);
   }
 
   Future<void> _startWindowsServiceWarmup() async {
