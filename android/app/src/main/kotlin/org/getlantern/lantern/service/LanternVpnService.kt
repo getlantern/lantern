@@ -168,13 +168,17 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
+            //
+            // Call Mobile.stopVPN() as long as radiance is up. The previous
+            // isVPNConnected() guard (status == Connected) was wrong — if the
+            // tunnel is in any non-Connected state (Restarting, Connecting,
+            // Disconnecting, Error), c.tunnel is still non-nil on the Go side
+            // and needs to be closed so the next process lifetime starts clean.
+            // Mobile.stopVPN() itself is a no-op when c.tunnel is nil.
             val radianceConnected = Mobile.isRadianceConnected()
-            val vpnConnected = Mobile.isVPNConnected()
-            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
+            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected")
             if (!radianceConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-            } else if (!vpnConnected) {
-                AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
             } else {
                 runCatching { Mobile.stopVPN() }
                     .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
@@ -223,10 +227,39 @@ class LanternVpnService :
 
     override fun restartService() {
         AppLogger.i(TAG, "restartService called")
-        serviceScope.launch {
+        // Radiance's Restart() sets the tunnel status to Restarting, then
+        // calls us synchronously and treats a successful return as "restart
+        // complete." If we fire-and-forget via serviceScope.launch and return,
+        // radiance thinks it succeeded but the tunnel is still in Restarting —
+        // and if the Android service is torn down (onDestroy, process
+        // pressure) before the launched coroutine completes, the tunnel
+        // wedges in Restarting forever. Every subsequent Connect fails with
+        // "tunnel is currently Restarting" (getlantern/engineering#3297
+        // issues 1-3, Freshdesk #173681).
+        //
+        // Block until stopVPNTunnel + startVPN finish so the return actually
+        // reflects the state radiance observes. c.mu is released on the Go
+        // side before RestartService is invoked, so synchronous callbacks
+        // into Mobile.* from this thread don't deadlock.
+        runBlocking(Dispatchers.IO) {
             stopVPNTunnel()
             startVPN()
+            // launchVPN (wrapping startVPN) catches failures via
+            // runCatching { ... }.onFailure { ... } and returns normally,
+            // so a nil return from startVPN doesn't mean the restart
+            // succeeded. Verify the postcondition on the Go side and
+            // throw if it's not met — the exception propagates through
+            // runBlocking → restartService → radiance's Restart() as a
+            // non-nil error, which is what tells the caller the restart
+            // actually failed and the tunnel needs healing rather than
+            // wedging forever in Restarting.
+            if (!Mobile.isVPNConnected()) {
+                val msg = "restartService failed: VPN not connected after stopVPNTunnel + startVPN"
+                AppLogger.e(TAG, msg)
+                throw IllegalStateException(msg)
+            }
         }
+        AppLogger.i(TAG, "restartService completed")
     }
 
     override fun sendNotification(notification: Notification?) {
@@ -397,9 +430,16 @@ class LanternVpnService :
     private suspend fun stopVPNTunnel() {
         try {
             closeTunInterface()
+            // Unconditionally call Mobile.stopVPN() as long as radiance is up.
+            // The old isVPNConnected() guard looked at status == Connected,
+            // which is wrong during a restart: radiance sets the tunnel to
+            // Restarting before calling back into the platform, so the check
+            // would skip stopVPN and leave the tunnel wedged in Restarting
+            // (getlantern/engineering#3297). Mobile.stopVPN() itself is a
+            // no-op when c.tunnel is nil, so the guard is unnecessary.
             runCatching {
-                if (!Mobile.isVPNConnected()) {
-                    AppLogger.d(TAG, "VPN is not connected, skipping stopVPN")
+                if (!Mobile.isRadianceConnected()) {
+                    AppLogger.d(TAG, "Radiance IPC not running, skipping stopVPN")
                     return@runCatching
                 }
                 Mobile.stopVPN()
