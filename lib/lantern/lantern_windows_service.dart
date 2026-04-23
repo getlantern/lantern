@@ -31,7 +31,7 @@ class LanternServiceWindows {
       rethrow;
     }
     try {
-      _statusPipe = PipeClient(token: _rpcPipe.token);
+      _statusPipe = _newStreamingPipe();
       appLogger.info('[WS] watchStatus() stream created');
     } catch (e, st) {
       appLogger.error('[WS] watchStatus() setup failed', e, st);
@@ -98,7 +98,7 @@ class LanternServiceWindows {
   }
 
   Stream<LanternStatus> watchVPNStatus() {
-    _statusPipe ??= PipeClient(token: _rpcPipe.token);
+    _statusPipe ??= _newStreamingPipe();
     return _statusPipe!
         .watchStatus()
         .map((evt) {
@@ -156,7 +156,18 @@ class LanternServiceWindows {
   }
 
   Stream<List<String>> watchLogs() {
-    _logsPipe ??= PipeClient(token: _rpcPipe.token);
+    _logsPipe ??= _newStreamingPipe();
     return _logsPipe!.watchLogs();
+  }
+
+  PipeClient _newStreamingPipe() {
+    return PipeClient(
+      pipeName: _rpcPipe.pipeName,
+      token: _rpcPipe.token,
+      tokenPath: _rpcPipe.tokenPath,
+      timeoutMs: _rpcPipe.timeoutMs,
+      tokenWaitMs: _rpcPipe.tokenWaitMs,
+      bufSize: _rpcPipe.bufSize,
+    );
   }
 }

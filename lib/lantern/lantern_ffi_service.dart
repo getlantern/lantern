@@ -59,6 +59,8 @@ class LanternFFIService implements LanternCoreService {
   static const Duration _windowsInitRetryInterval = Duration(seconds: 3);
   static const int _windowsWarmupMaxAttempts = 8;
   static const Duration _windowsWarmupMaxDelay = Duration(seconds: 30);
+  static const Duration _windowsStatusReattachDelay = Duration(seconds: 1);
+  static const Duration _windowsStatusRefreshDelay = Duration(seconds: 2);
   StreamSubscription<LanternStatus>? _windowsStatusSubscription;
   LanternStatus _lastWindowsStatus = LanternStatus.fromJson({
     'status': 'disconnected',
@@ -258,6 +260,46 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  LanternStatus _windowsStatus(
+    VPNStatus status, {
+    String? error,
+    VPNStatusOrigin origin = VPNStatusOrigin.unknown,
+  }) {
+    return LanternStatus(status: status, error: error, origin: origin);
+  }
+
+  void _scheduleWindowsStatusRefresh(
+    LanternServiceWindows windowsService, {
+    required VPNStatus pendingStatus,
+    required VPNStatusOrigin origin,
+  }) {
+    unawaited(() async {
+      await Future.delayed(_windowsStatusRefreshDelay);
+      if (!identical(_windowsService, windowsService) ||
+          _lastWindowsStatus.status != pendingStatus) {
+        return;
+      }
+
+      final snapshot = await windowsService.isVPNConnected();
+      snapshot.fold(
+        (failure) {
+          appLogger.warning(
+            'Failed to refresh Windows VPN status snapshot: '
+            '${failure.localizedErrorMessage}',
+          );
+        },
+        (running) {
+          _publishWindowsStatus(
+            _windowsStatus(
+              running ? VPNStatus.connected : VPNStatus.disconnected,
+              origin: origin,
+            ),
+          );
+        },
+      );
+    }());
+  }
+
   Future<void> _attachWindowsStatusStream(
     LanternServiceWindows windowsService,
   ) async {
@@ -266,11 +308,37 @@ class LanternFFIService implements LanternCoreService {
     if (previous != null) {
       await previous.cancel();
     }
+    var reattachScheduled = false;
+
+    void scheduleReattach({Object? error, StackTrace? stackTrace}) {
+      if (reattachScheduled) {
+        return;
+      }
+      reattachScheduled = true;
+      _windowsStatusSubscription = null;
+
+      if (error != null) {
+        appLogger.error('Windows status stream failed', error, stackTrace);
+      } else {
+        appLogger.warning('Windows status stream ended; reattaching');
+      }
+
+      unawaited(() async {
+        await Future.delayed(_windowsStatusReattachDelay);
+        if (!identical(_windowsService, windowsService) ||
+            _windowsStatusController.isClosed) {
+          return;
+        }
+        await _attachWindowsStatusStream(windowsService);
+      }());
+    }
+
     _windowsStatusSubscription = windowsService.watchVPNStatus().listen(
       _publishWindowsStatus,
-      onError: (Object error, StackTrace stackTrace) {
-        appLogger.error('Windows status stream failed', error, stackTrace);
-      },
+      onError: (Object error, StackTrace stackTrace) =>
+          scheduleReattach(error: error, stackTrace: stackTrace),
+      onDone: scheduleReattach,
+      cancelOnError: true,
     );
   }
 
@@ -1165,7 +1233,30 @@ class LanternFFIService implements LanternCoreService {
       }
 
       ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connect();
+      _publishWindowsStatus(
+        _windowsStatus(
+          VPNStatus.connecting,
+          origin: VPNStatusOrigin.userAction,
+        ),
+      );
+      final result = await ws.connect();
+      result.fold(
+        (failure) {
+          _publishWindowsStatus(
+            _windowsStatus(
+              VPNStatus.error,
+              error: failure.localizedErrorMessage,
+              origin: VPNStatusOrigin.userAction,
+            ),
+          );
+        },
+        (_) => _scheduleWindowsStatusRefresh(
+          ws,
+          pendingStatus: VPNStatus.connecting,
+          origin: VPNStatusOrigin.userAction,
+        ),
+      );
+      return result;
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -1258,7 +1349,30 @@ class LanternFFIService implements LanternCoreService {
       }
 
       ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-      return ws.connectToServer(location, tag);
+      _publishWindowsStatus(
+        _windowsStatus(
+          VPNStatus.connecting,
+          origin: VPNStatusOrigin.userAction,
+        ),
+      );
+      final result = await ws.connectToServer(location, tag);
+      result.fold(
+        (failure) {
+          _publishWindowsStatus(
+            _windowsStatus(
+              VPNStatus.error,
+              error: failure.localizedErrorMessage,
+              origin: VPNStatusOrigin.userAction,
+            ),
+          );
+        },
+        (_) => _scheduleWindowsStatusRefresh(
+          ws,
+          pendingStatus: VPNStatus.connecting,
+          origin: VPNStatusOrigin.userAction,
+        ),
+      );
+      return result;
     }
 
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -1312,7 +1426,30 @@ class LanternFFIService implements LanternCoreService {
         }
 
         ws.setNextStatusOrigin(VPNStatusOrigin.userAction);
-        return ws.disconnect();
+        _publishWindowsStatus(
+          _windowsStatus(
+            VPNStatus.disconnecting,
+            origin: VPNStatusOrigin.userAction,
+          ),
+        );
+        final result = await ws.disconnect();
+        result.fold(
+          (failure) {
+            _publishWindowsStatus(
+              _windowsStatus(
+                VPNStatus.error,
+                error: failure.localizedErrorMessage,
+                origin: VPNStatusOrigin.userAction,
+              ),
+            );
+          },
+          (_) => _scheduleWindowsStatusRefresh(
+            ws,
+            pendingStatus: VPNStatus.disconnecting,
+            origin: VPNStatusOrigin.userAction,
+          ),
+        );
+        return result;
       }
 
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
