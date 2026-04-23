@@ -168,13 +168,17 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
+            //
+            // Call Mobile.stopVPN() as long as radiance is up. The previous
+            // isVPNConnected() guard (status == Connected) was wrong — if the
+            // tunnel is in any non-Connected state (Restarting, Connecting,
+            // Disconnecting, Error), c.tunnel is still non-nil on the Go side
+            // and needs to be closed so the next process lifetime starts clean.
+            // Mobile.stopVPN() itself is a no-op when c.tunnel is nil.
             val radianceConnected = Mobile.isRadianceConnected()
-            val vpnConnected = Mobile.isVPNConnected()
-            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
+            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected")
             if (!radianceConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-            } else if (!vpnConnected) {
-                AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
             } else {
                 runCatching { Mobile.stopVPN() }
                     .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
