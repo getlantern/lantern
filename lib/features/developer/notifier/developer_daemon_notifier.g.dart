@@ -51,7 +51,7 @@ final class DeveloperDaemonNotifierProvider
 }
 
 String _$developerDaemonNotifierHash() =>
-    r'a187baa0b0dc4796e23390def0a5924700071e77';
+    r'f636033cdbb65e7e1d0054fed1242c6eabacf01d';
 
 /// Snapshot of dev-mode daemon state plus the IPC calls that mutate it.
 /// Auto-disposed so each visit to the developer screen re-fetches fresh

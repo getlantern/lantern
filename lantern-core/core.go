@@ -225,69 +225,53 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
+// listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
+// them to Flutter. Blocks until lc.ctx is cancelled.
 func (lc *LanternCore) listenAutoSelectedEvents() {
-	bo := common.NewBackoff(30 * time.Second)
-	for lc.ctx.Err() == nil {
-		err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
-			server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
-			if err != nil || !found {
-				slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
-				return
-			}
-			jsonBytes, err := json.Marshal(server)
-			if err != nil {
-				slog.Error("Error marshalling server location", "error", err)
-				return
-			}
-			slog.Debug("Auto location server:", "server", string(jsonBytes))
-			lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
-		})
-		if lc.ctx.Err() != nil {
+	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+		if err != nil || !found {
+			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
 			return
 		}
-		slog.Warn("auto-selected event stream ended, reconnecting", "error", err)
-		bo.Wait(lc.ctx)
+		jsonBytes, err := json.Marshal(server)
+		if err != nil {
+			slog.Error("Error marshalling server location", "error", err)
+			return
+		}
+		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("auto-selected event stream exited unexpectedly", "error", err)
 	}
 }
 
-// listenConfigEvents subscribes to config.NewConfigEvent notifications over
-// the IPC stream and forwards them to Flutter as EventTypeConfig. Flutter's
-// handler refreshes available servers and user data on every notification.
-//
-// The event is emitted inside the packet-tunnel extension's radiance process,
-// so we subscribe via the IPC SSE stream rather than events.SubscribeContext —
-// the in-process fan-out doesn't cross process boundaries.
+// listenConfigEvents listens for config updates from the IPC client and notifies Flutter when they
+// occur. Blocks until lc.ctx is cancelled.
 func (lc *LanternCore) listenConfigEvents() {
-	bo := common.NewBackoff(30 * time.Second)
-	for lc.ctx.Err() == nil {
-		err := lc.client.ConfigEvents(lc.ctx, func() {
-			slog.Debug("Config updated, notifying Flutter")
-			lc.notifyFlutter(EventTypeConfig, "")
-		})
-		if lc.ctx.Err() != nil {
-			return
-		}
-		slog.Warn("config event stream ended, reconnecting", "error", err)
-		bo.Wait(lc.ctx)
+	err := lc.client.ConfigEvents(lc.ctx, func() {
+		slog.Debug("Config updated, notifying Flutter")
+		lc.notifyFlutter(EventTypeConfig, "")
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("config event stream exited unexpectedly", "error", err)
 	}
 }
 
+// listenDataCapEvents listens for DataCapInfo updates from the IPC client and forwards them to Flutter.
+// Blocks until lc.ctx is cancelled.
 func (lc *LanternCore) listenDataCapEvents() {
-	bo := common.NewBackoff(30 * time.Second)
-	for lc.ctx.Err() == nil {
-		err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
-			jsonBytes, err := json.Marshal(info)
-			if err != nil {
-				slog.Error("Error marshalling DataCap event", "error", err)
-				return
-			}
-			lc.notifyFlutter("data-cap-event", string(jsonBytes))
-		})
-		if lc.ctx.Err() != nil {
+	err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
+		jsonBytes, err := json.Marshal(info)
+		if err != nil {
+			slog.Error("Error marshalling DataCap event", "error", err)
 			return
 		}
-		slog.Warn("datacap event stream ended, reconnecting", "error", err)
-		bo.Wait(lc.ctx)
+		lc.notifyFlutter("data-cap-event", string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("datacap event stream exited unexpectedly", "error", err)
 	}
 }
 
