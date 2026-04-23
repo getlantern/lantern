@@ -279,7 +279,26 @@ func (lc *LanternCore) listenDataCapEvents() {
 //     VPN     //
 /////////////////
 
+// ConnectVPN asks radiance to bring the tunnel up or switch its active
+// outbound. When the Flutter UI picks a server (or "auto") while already
+// connected, it routes through this call expecting a seamless swap — but
+// radiance's /vpn/connect endpoint rejects a duplicate start with
+// ErrTunnelAlreadyConnected. When the tunnel is up, dispatch to
+// /server/selected instead (empty tag → AutoSelectTag) so the outbound
+// switches in place without tearing down the tunnel.
+//
+// getlantern/engineering#3291 issues 1 & 2. radiance#439 attempted the
+// same dispatch inside radiance and was correctly reverted — radiance's
+// ConnectVPN / SelectServer are distinct primitives and the caller
+// (Lantern) is the right place to pick between them.
 func (lc *LanternCore) ConnectVPN(tag string) error {
+	if status, err := lc.client.VPNStatus(lc.ctx); err == nil && status == vpn.Connected {
+		selectTag := tag
+		if selectTag == "" {
+			selectTag = vpn.AutoSelectTag
+		}
+		return lc.client.SelectServer(lc.ctx, selectTag)
+	}
 	return lc.client.ConnectVPN(lc.ctx, tag)
 }
 
