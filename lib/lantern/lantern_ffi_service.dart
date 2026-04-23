@@ -488,14 +488,28 @@ class LanternFFIService implements LanternCoreService {
           : _ffiService.removeSplitTunnelItem;
 
       final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
-      if (result != nullptr) {
-        final error = result.cast<Utf8>().toDartString();
-        malloc.free(result);
-        appLogger.error('$action split tunnel error: $error');
-        return left(Failure(error: error, localizedErrorMessage: error));
+      if (result == nullptr) {
+        return right(unit);
       }
-
-      return right(unit);
+      final resultStr = result.cast<Utf8>().toDartString();
+      malloc.free(result);
+      // The Go FFI returns "ok" (a non-null C string) on success. Treat that
+      // as a successful call rather than an error message.
+      if (resultStr == 'ok') {
+        return right(unit);
+      }
+      // Errors may arrive as raw strings or as JSON {"error": "..."}.
+      var errMsg = resultStr;
+      try {
+        final decoded = jsonDecode(resultStr);
+        if (decoded is Map && decoded['error'] != null) {
+          errMsg = decoded['error'].toString();
+        }
+      } catch (_) {
+        // Not JSON — fall through with the raw string.
+      }
+      appLogger.error('$action split tunnel error: $errMsg');
+      return left(Failure(error: errMsg, localizedErrorMessage: errMsg));
     } catch (e) {
       return left(
         Failure(
