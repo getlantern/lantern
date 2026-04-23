@@ -493,9 +493,9 @@ class LanternFFIService implements LanternCoreService {
       }
       final resultStr = result.cast<Utf8>().toDartString();
       malloc.free(result);
-      // The Go FFI returns "ok" (a non-null C string) on success. Treat that
-      // as a successful call rather than an error message.
-      if (resultStr == 'ok') {
+      // The Go FFI returns a non-null C string like "ok" on success; only
+      // treat unexpected payloads as errors.
+      if (_ffiOkResults.contains(resultStr)) {
         return right(unit);
       }
       // Errors may arrive as raw strings or as JSON {"error": "..."}.
