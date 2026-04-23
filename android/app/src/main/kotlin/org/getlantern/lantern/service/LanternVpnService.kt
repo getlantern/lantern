@@ -367,19 +367,16 @@ class LanternVpnService :
             //
             // Reject concurrent attempts with connectInFlight so repeated
             // retries while a previous call is stuck in JNI don't accumulate
-            // orphan coroutines on Dispatchers.IO. The flag clears in the
-            // async block's finally, which runs when the JNI call eventually
-            // returns (coroutine cancellation alone won't break it out).
+            // orphan coroutines on Dispatchers.IO. Clear the flag from the
+            // Deferred completion path so early cancellation before the async
+            // body starts can't wedge future attempts.
             if (!connectInFlight.compareAndSet(false, true)) {
                 throw IllegalStateException("previous VPN connect attempt still in flight")
             }
             val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-            val deferred = connectScope.async {
-                try {
-                    connect()
-                } finally {
-                    connectInFlight.set(false)
-                }
+            val deferred = connectScope.async { connect() }
+            deferred.invokeOnCompletion {
+                connectInFlight.set(false)
             }
             try {
                 withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
