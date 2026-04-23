@@ -47,8 +47,12 @@ Future<void> main() async {
   }
 
   // Auto-updater is desktop-only (no-op on mobile) and already guarded
-  // internally by kDebugMode and platform checks.
-  await sl<Updater>().init();
+  // internally by kDebugMode and platform checks. Do not await: Sparkle's
+  // setFeedURL / setScheduledCheckInterval are synchronous bridge calls that
+  // can block first paint when the feed URL is slow to resolve or the
+  // framework is touching keychain state. The first actual update check is
+  // already deferred 45 s inside init().
+  unawaited(sl<Updater>().init());
 
   runApp(
     ProviderScope(
