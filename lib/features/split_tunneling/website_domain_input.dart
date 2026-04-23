@@ -18,9 +18,10 @@ class WebsiteDomainInput extends HookConsumerWidget {
         ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
 
     void showSnackbar(String message) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      // All call sites below surface validation or backend errors; use the
+      // design-system error snackbar rather than Material's default unstyled
+      // SnackBar.
+      context.showSnackBarError(message);
     }
 
     // validate URL and extract the domain before adding it to the
