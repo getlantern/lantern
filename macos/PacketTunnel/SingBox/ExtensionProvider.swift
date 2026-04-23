@@ -134,7 +134,15 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       reasserting = false
     }
     stopService()
-    startVPN()
+
+    // Don't cancelTunnelWithError on failure; this extension hosts the IPC server.
+    var error: NSError?
+    MobileStartVPN(&error)
+    if let error {
+      appLogger.error("(lantern-tunnel) restart failed: \(error.localizedDescription)")
+      return
+    }
+    appLogger.log("(lantern-tunnel) tunnel restarted successfully")
   }
 
   func postServiceClose() {
