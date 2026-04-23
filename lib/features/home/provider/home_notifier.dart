@@ -61,7 +61,7 @@ class HomeNotifier extends _$HomeNotifier {
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
-        appLogger.debug('Refreshed user data from Go: $userData');
+        appLogger.debug('Refreshed user data from Go: ${userData.toJson()}');
         _applyUserData(userData);
       },
     );
