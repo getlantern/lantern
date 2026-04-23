@@ -4,13 +4,13 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -59,6 +59,15 @@ class LanternVpnService :
         // #173507, where /service/start hung and the UI appeared frozen until
         // a phone reboot). Without this timeout the coroutine could wait forever.
         private const val VPN_START_TIMEOUT_MS = 60_000L
+
+        // Single-flight gate: when we time out the connect() call, we detach
+        // the coroutine rather than waiting for the JNI call to honor
+        // cancellation (it doesn't). The orphan keeps a Dispatchers.IO thread
+        // pinned until Go eventually returns. To prevent multiple rapid
+        // retries from accumulating orphans and pressuring the IO pool, reject
+        // new connect attempts while a previous one is still in flight. The
+        // flag clears when the orphan's coroutine actually completes.
+        private val connectInFlight = AtomicBoolean(false)
 
         lateinit var instance: LanternVpnService
     }
@@ -306,21 +315,44 @@ class LanternVpnService :
             // Bound the Mobile.startVPN / connectToServer call with a wall-clock
             // timeout. These are blocking JNI calls with no suspension points,
             // so withTimeout around a direct invocation wouldn't fire — we run
-            // the call in a child coroutine on Dispatchers.IO and await it,
-            // which gives withTimeout a real cancellation point. On timeout we
-            // abandon the awaited Deferred (the underlying JNI call keeps
-            // running in the background; we accept that leak — once Go
-            // eventually completes or the process exits, it will settle) so
-            // the UI gets unstuck with a clear error instead of a frozen
-            // button that only a phone reboot can clear (Freshdesk #173507).
-            coroutineScope {
-                val deferred = async(Dispatchers.IO) { connect() }
+            // the call in async() and await it so withTimeout has a real
+            // cancellation point.
+            //
+            // Run it in a DETACHED CoroutineScope (not a structured
+            // coroutineScope { } / the enclosing withContext), because on
+            // timeout structured concurrency would cancel the deferred and
+            // then wait for it to complete — and since the JNI call doesn't
+            // honor cooperative cancellation, that wait is exactly the hang
+            // we're trying to prevent. A detached SupervisorJob scope lets
+            // us stop awaiting without joining; the orphan coroutine keeps
+            // running until Go returns (or the process exits), but the
+            // caller is unblocked and the UI surfaces a clear error instead
+            // of a frozen button only a phone reboot can clear
+            // (Freshdesk #173507).
+            //
+            // Reject concurrent attempts with connectInFlight so repeated
+            // retries while a previous call is stuck in JNI don't accumulate
+            // orphan coroutines on Dispatchers.IO. The flag clears in the
+            // async block's finally, which runs when the JNI call eventually
+            // returns (coroutine cancellation alone won't break it out).
+            if (!connectInFlight.compareAndSet(false, true)) {
+                throw IllegalStateException("previous VPN connect attempt still in flight")
+            }
+            val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            val deferred = connectScope.async {
                 try {
-                    withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
-                } catch (e: TimeoutCancellationException) {
-                    deferred.cancel()
-                    throw e
+                    connect()
+                } finally {
+                    connectInFlight.set(false)
                 }
+            }
+            try {
+                withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
+            } catch (e: TimeoutCancellationException) {
+                deferred.cancel()
+                throw e
+            } finally {
+                connectScope.cancel()
             }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
