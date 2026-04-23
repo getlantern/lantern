@@ -47,8 +47,24 @@ Future<void> main() async {
   }
 
   // Auto-updater is desktop-only (no-op on mobile) and already guarded
-  // internally by kDebugMode and platform checks.
-  await sl<Updater>().init();
+  // internally by kDebugMode and platform checks. Do not await: Sparkle's
+  // setFeedURL / setScheduledCheckInterval are synchronous bridge calls that
+  // can block first paint when the feed URL is slow to resolve or the
+  // framework is touching keychain state. The first actual update check is
+  // already deferred 45 s inside init().
+  //
+  // Guard the sl<Updater>() lookup: if injectServices() threw above, Updater
+  // (registered at injection_container.dart:40) may not be in the registry,
+  // and the synchronous lookup would throw and prevent runApp.
+  try {
+    if (sl.isRegistered<Updater>()) {
+      unawaited(sl<Updater>().init());
+    } else {
+      appLogger.warning('Updater not registered, skipping init');
+    }
+  } catch (e, st) {
+    appLogger.error('Failed to start Updater.init', e, st);
+  }
 
   runApp(
     ProviderScope(
