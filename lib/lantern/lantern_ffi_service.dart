@@ -59,9 +59,14 @@ class LanternFFIService implements LanternCoreService {
   static const Duration _windowsInitRetryInterval = Duration(seconds: 3);
   static const int _windowsWarmupMaxAttempts = 8;
   static const Duration _windowsWarmupMaxDelay = Duration(seconds: 30);
-  static const Duration _windowsStatusReattachDelay = Duration(seconds: 1);
+  static const int _windowsStatusReattachMaxAttempts = 6;
+  static const Duration _windowsStatusReattachInitialDelay = Duration(
+    seconds: 1,
+  );
+  static const Duration _windowsStatusReattachMaxDelay = Duration(seconds: 30);
   static const Duration _windowsStatusRefreshDelay = Duration(seconds: 2);
   StreamSubscription<LanternStatus>? _windowsStatusSubscription;
+  int _windowsStatusReattachAttempts = 0;
   LanternStatus _lastWindowsStatus = LanternStatus.fromJson({
     'status': 'disconnected',
     'error': null,
@@ -268,6 +273,10 @@ class LanternFFIService implements LanternCoreService {
     return LanternStatus(status: status, error: error, origin: origin);
   }
 
+  void _resetWindowsStatusReattachAttempts() {
+    _windowsStatusReattachAttempts = 0;
+  }
+
   void _scheduleWindowsStatusRefresh(
     LanternServiceWindows windowsService, {
     required VPNStatus pendingStatus,
@@ -316,14 +325,11 @@ class LanternFFIService implements LanternCoreService {
         final nextStatus = running
             ? VPNStatus.connected
             : VPNStatus.disconnected;
-        final currentStatus = _lastWindowsStatus.status;
-        if (currentStatus == VPNStatus.connecting ||
-            currentStatus == VPNStatus.disconnecting) {
-          return;
-        }
-        if (currentStatus == nextStatus &&
-            _lastWindowsStatus.origin == origin &&
-            _lastWindowsStatus.error == null) {
+        if (!shouldApplyWindowsStatusSnapshot(
+          current: _lastWindowsStatus,
+          nextStatus: nextStatus,
+          origin: origin,
+        )) {
           return;
         }
 
@@ -356,7 +362,40 @@ class LanternFFIService implements LanternCoreService {
       }
 
       unawaited(() async {
-        await Future.delayed(_windowsStatusReattachDelay);
+        final serviceState = await _readWindowsServiceState();
+        if (!shouldRetryWindowsStatusStream(
+          serviceState: serviceState,
+          attempts: _windowsStatusReattachAttempts,
+          maxAttempts: _windowsStatusReattachMaxAttempts,
+        )) {
+          appLogger.warning(
+            'Windows status stream reattach stopped '
+            '(state=$serviceState, attempts=$_windowsStatusReattachAttempts)',
+          );
+          if (identical(_windowsService, windowsService)) {
+            _windowsService = null;
+            _windowsServiceLastInitFailureAt = DateTime.now();
+            _windowsServiceLastInitFailureMessage =
+                'Windows status stream needs reinitialization.';
+          }
+          _resetWindowsStatusReattachAttempts();
+          await windowsService.dispose();
+          return;
+        }
+
+        final retryDelay = nextWindowsStatusReattachDelay(
+          attempt: _windowsStatusReattachAttempts,
+          initialDelay: _windowsStatusReattachInitialDelay,
+          maxDelay: _windowsStatusReattachMaxDelay,
+        );
+        _windowsStatusReattachAttempts += 1;
+        appLogger.warning(
+          'Windows status stream reattaching in '
+          '${retryDelay.inMilliseconds}ms '
+          '(attempt $_windowsStatusReattachAttempts '
+          'of $_windowsStatusReattachMaxAttempts)',
+        );
+        await Future.delayed(retryDelay);
         if (!identical(_windowsService, windowsService) ||
             _windowsStatusController.isClosed) {
           return;
@@ -366,7 +405,10 @@ class LanternFFIService implements LanternCoreService {
     }
 
     _windowsStatusSubscription = windowsService.watchVPNStatus().listen(
-      _publishWindowsStatus,
+      (status) {
+        _resetWindowsStatusReattachAttempts();
+        _publishWindowsStatus(status);
+      },
       onError: (Object error, StackTrace stackTrace) =>
           scheduleReattach(error: error, stackTrace: stackTrace),
       onDone: scheduleReattach,
@@ -388,7 +430,7 @@ class LanternFFIService implements LanternCoreService {
       }
 
       final serviceState = await _readWindowsServiceState();
-      if (serviceState == _WindowsServiceState.missing) {
+      if (serviceState == WindowsServiceState.missing) {
         appLogger.warning(
           'Windows IPC warmup stopped: service $_windowsServiceName is missing',
         );
@@ -420,7 +462,7 @@ class LanternFFIService implements LanternCoreService {
     return Duration(milliseconds: nextMs);
   }
 
-  Future<_WindowsServiceState> _readWindowsServiceState() async {
+  Future<WindowsServiceState> _readWindowsServiceState() async {
     try {
       final result = await Process.run('sc.exe', [
         'query',
@@ -430,26 +472,26 @@ class LanternFFIService implements LanternCoreService {
       if (result.exitCode == 1060 ||
           text.contains('FAILED 1060') ||
           text.contains('DOES NOT EXIST')) {
-        return _WindowsServiceState.missing;
+        return WindowsServiceState.missing;
       }
       if (text.contains('STATE') && text.contains('START_PENDING')) {
-        return _WindowsServiceState.startPending;
+        return WindowsServiceState.startPending;
       }
       if (text.contains('STATE') && text.contains('STOP_PENDING')) {
-        return _WindowsServiceState.stopPending;
+        return WindowsServiceState.stopPending;
       }
       if (text.contains('STATE') && text.contains('RUNNING')) {
-        return _WindowsServiceState.running;
+        return WindowsServiceState.running;
       }
       if (text.contains('STATE') && text.contains('STOPPED')) {
-        return _WindowsServiceState.stopped;
+        return WindowsServiceState.stopped;
       }
       return result.exitCode == 0
-          ? _WindowsServiceState.stopped
-          : _WindowsServiceState.unknown;
+          ? WindowsServiceState.stopped
+          : WindowsServiceState.unknown;
     } catch (e, st) {
       appLogger.error('Failed to query Windows service state', e, st);
-      return _WindowsServiceState.unknown;
+      return WindowsServiceState.unknown;
     }
   }
 
@@ -458,14 +500,14 @@ class LanternFFIService implements LanternCoreService {
     while (DateTime.now().isBefore(deadline)) {
       final state = await _readWindowsServiceState();
       switch (state) {
-        case _WindowsServiceState.running:
+        case WindowsServiceState.running:
           return true;
-        case _WindowsServiceState.missing:
+        case WindowsServiceState.missing:
           return false;
-        case _WindowsServiceState.startPending:
-        case _WindowsServiceState.stopPending:
-        case _WindowsServiceState.stopped:
-        case _WindowsServiceState.unknown:
+        case WindowsServiceState.startPending:
+        case WindowsServiceState.stopPending:
+        case WindowsServiceState.stopped:
+        case WindowsServiceState.unknown:
           break;
       }
       await Future.delayed(_windowsServicePollInterval);
@@ -478,14 +520,14 @@ class LanternFFIService implements LanternCoreService {
     while (DateTime.now().isBefore(deadline)) {
       final state = await _readWindowsServiceState();
       switch (state) {
-        case _WindowsServiceState.stopped:
+        case WindowsServiceState.stopped:
           return true;
-        case _WindowsServiceState.missing:
+        case WindowsServiceState.missing:
           return false;
-        case _WindowsServiceState.startPending:
-        case _WindowsServiceState.stopPending:
-        case _WindowsServiceState.running:
-        case _WindowsServiceState.unknown:
+        case WindowsServiceState.startPending:
+        case WindowsServiceState.stopPending:
+        case WindowsServiceState.running:
+        case WindowsServiceState.unknown:
           break;
       }
       await Future.delayed(_windowsServicePollInterval);
@@ -496,13 +538,13 @@ class LanternFFIService implements LanternCoreService {
   Future<bool> _prepareWindowsService() async {
     final state = await _readWindowsServiceState();
     switch (state) {
-      case _WindowsServiceState.running:
+      case WindowsServiceState.running:
         return true;
-      case _WindowsServiceState.missing:
+      case WindowsServiceState.missing:
         _windowsServiceLastInitFailureMessage =
             'Windows service LanternSvc is missing.';
         return false;
-      case _WindowsServiceState.startPending:
+      case WindowsServiceState.startPending:
         final running = await _waitForWindowsServiceRunning(
           _windowsServiceStartWait,
         );
@@ -511,10 +553,10 @@ class LanternFFIService implements LanternCoreService {
               'Windows service LanternSvc did not reach running state.';
         }
         return running;
-      case _WindowsServiceState.stopped:
-      case _WindowsServiceState.stopPending:
+      case WindowsServiceState.stopped:
+      case WindowsServiceState.stopPending:
         try {
-          if (state == _WindowsServiceState.stopPending) {
+          if (state == WindowsServiceState.stopPending) {
             final stopped = await _waitForWindowsServiceStopped(
               _windowsServiceStartWait,
             );
@@ -552,7 +594,7 @@ class LanternFFIService implements LanternCoreService {
           appLogger.error('Failed to start Windows service', e, st);
           return false;
         }
-      case _WindowsServiceState.unknown:
+      case WindowsServiceState.unknown:
         appLogger.warning(
           'Windows service state is unknown; proceeding with IPC attempt',
         );
@@ -604,6 +646,7 @@ class LanternFFIService implements LanternCoreService {
 
     try {
       await ws.init();
+      _resetWindowsStatusReattachAttempts();
       _windowsService = ws;
       _windowsServiceLastInitFailureAt = null;
       _windowsServiceLastInitFailureMessage = null;
@@ -2446,13 +2489,58 @@ class LanternFFIService implements LanternCoreService {
   }
 }
 
-enum _WindowsServiceState {
+enum WindowsServiceState {
   running,
   stopped,
   startPending,
   stopPending,
   missing,
   unknown,
+}
+
+@visibleForTesting
+bool shouldRetryWindowsStatusStream({
+  required WindowsServiceState serviceState,
+  required int attempts,
+  required int maxAttempts,
+}) {
+  if (serviceState == WindowsServiceState.missing ||
+      serviceState == WindowsServiceState.stopped) {
+    return false;
+  }
+  return attempts < maxAttempts;
+}
+
+@visibleForTesting
+Duration nextWindowsStatusReattachDelay({
+  required int attempt,
+  required Duration initialDelay,
+  required Duration maxDelay,
+}) {
+  var nextDelay = initialDelay;
+  for (var i = 0; i < attempt; i++) {
+    final doubledMs = nextDelay.inMilliseconds * 2;
+    final maxMs = maxDelay.inMilliseconds;
+    final nextMs = doubledMs > maxMs ? maxMs : doubledMs;
+    nextDelay = Duration(milliseconds: nextMs);
+  }
+  return nextDelay;
+}
+
+@visibleForTesting
+bool shouldApplyWindowsStatusSnapshot({
+  required LanternStatus current,
+  required VPNStatus nextStatus,
+  required VPNStatusOrigin origin,
+}) {
+  if (current.status == VPNStatus.connecting ||
+      current.status == VPNStatus.disconnecting) {
+    return false;
+  }
+
+  return current.status != nextStatus ||
+      current.origin != origin ||
+      current.error != null;
 }
 
 void checkAPIError(dynamic result) {
