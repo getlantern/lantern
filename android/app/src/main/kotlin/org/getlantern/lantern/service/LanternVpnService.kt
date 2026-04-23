@@ -223,10 +223,25 @@ class LanternVpnService :
 
     override fun restartService() {
         AppLogger.i(TAG, "restartService called")
-        serviceScope.launch {
+        // Radiance's Restart() sets the tunnel status to Restarting, then
+        // calls us synchronously and treats a successful return as "restart
+        // complete." If we fire-and-forget via serviceScope.launch and return,
+        // radiance thinks it succeeded but the tunnel is still in Restarting —
+        // and if the Android service is torn down (onDestroy, process
+        // pressure) before the launched coroutine completes, the tunnel
+        // wedges in Restarting forever. Every subsequent Connect fails with
+        // "tunnel is currently Restarting" (getlantern/engineering#3297
+        // issues 1-3, Freshdesk #173681).
+        //
+        // Block until stopVPNTunnel + startVPN finish so the return actually
+        // reflects the state radiance observes. c.mu is released on the Go
+        // side before RestartService is invoked, so synchronous callbacks
+        // into Mobile.* from this thread don't deadlock.
+        runBlocking(Dispatchers.IO) {
             stopVPNTunnel()
             startVPN()
         }
+        AppLogger.i(TAG, "restartService completed")
     }
 
     override fun sendNotification(notification: Notification?) {
@@ -397,9 +412,16 @@ class LanternVpnService :
     private suspend fun stopVPNTunnel() {
         try {
             closeTunInterface()
+            // Unconditionally call Mobile.stopVPN() as long as radiance is up.
+            // The old isVPNConnected() guard looked at status == Connected,
+            // which is wrong during a restart: radiance sets the tunnel to
+            // Restarting before calling back into the platform, so the check
+            // would skip stopVPN and leave the tunnel wedged in Restarting
+            // (getlantern/engineering#3297). Mobile.stopVPN() itself is a
+            // no-op when c.tunnel is nil, so the guard is unnecessary.
             runCatching {
-                if (!Mobile.isVPNConnected()) {
-                    AppLogger.d(TAG, "VPN is not connected, skipping stopVPN")
+                if (!Mobile.isRadianceConnected()) {
+                    AppLogger.d(TAG, "Radiance IPC not running, skipping stopVPN")
                     return@runCatching
                 }
                 Mobile.stopVPN()
