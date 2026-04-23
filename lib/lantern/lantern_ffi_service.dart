@@ -298,12 +298,15 @@ class LanternFFIService implements LanternCoreService {
           );
         },
         (running) {
-          _publishWindowsStatus(
-            _windowsStatus(
-              running ? VPNStatus.connected : VPNStatus.disconnected,
-              origin: origin,
-            ),
+          final nextStatus = nextWindowsStatusRefreshStatus(
+            pendingStatus: pendingStatus,
+            running: running,
           );
+          if (nextStatus == null) {
+            return;
+          }
+
+          _publishWindowsStatus(_windowsStatus(nextStatus, origin: origin));
         },
       );
     }());
@@ -2541,6 +2544,18 @@ bool shouldApplyWindowsStatusSnapshot({
   return current.status != nextStatus ||
       current.origin != origin ||
       current.error != null;
+}
+
+@visibleForTesting
+VPNStatus? nextWindowsStatusRefreshStatus({
+  required VPNStatus pendingStatus,
+  required bool running,
+}) {
+  return switch (pendingStatus) {
+    VPNStatus.connecting => running ? VPNStatus.connected : null,
+    VPNStatus.disconnecting => running ? null : VPNStatus.disconnected,
+    _ => running ? VPNStatus.connected : VPNStatus.disconnected,
+  };
 }
 
 void checkAPIError(dynamic result) {

@@ -136,4 +136,45 @@ void main() {
       );
     });
   });
+
+  group('nextWindowsStatusRefreshStatus', () {
+    test('only confirms the transition that is already in flight', () {
+      expect(
+        nextWindowsStatusRefreshStatus(
+          pendingStatus: LanternStatus.fromJson({
+            'status': 'connecting',
+          }).status,
+          running: false,
+        ),
+        isNull,
+      );
+      expect(
+        nextWindowsStatusRefreshStatus(
+          pendingStatus: LanternStatus.fromJson({
+            'status': 'connecting',
+          }).status,
+          running: true,
+        ),
+        LanternStatus.fromJson({'status': 'connected'}).status,
+      );
+      expect(
+        nextWindowsStatusRefreshStatus(
+          pendingStatus: LanternStatus.fromJson({
+            'status': 'disconnecting',
+          }).status,
+          running: true,
+        ),
+        isNull,
+      );
+      expect(
+        nextWindowsStatusRefreshStatus(
+          pendingStatus: LanternStatus.fromJson({
+            'status': 'disconnecting',
+          }).status,
+          running: false,
+        ),
+        LanternStatus.fromJson({'status': 'disconnected'}).status,
+      );
+    });
+  });
 }
