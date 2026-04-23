@@ -699,12 +699,20 @@ func (s *LogSubscription) Cancel() {
 // TailLogs streams log entries to the provided listener until the returned
 // subscription is cancelled.
 func TailLogs(listener utils.LogListener) (*LogSubscription, error) {
+	if listener == nil {
+		return nil, errors.New("log listener is required")
+	}
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("log stream panic", "panic", r)
+			}
+		}()
 		if err := client.TailLogs(ctx, func(entry rlog.LogEntry) {
 			listener.OnLogEntry(string(entry))
 		}); err != nil && ctx.Err() == nil {

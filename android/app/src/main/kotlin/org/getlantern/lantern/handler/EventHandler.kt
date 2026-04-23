@@ -44,6 +44,7 @@ class EventHandler : FlutterPlugin {
     private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
     var job: Job? = null
     private var logsSubscription: LogSubscription? = null
+    private var logsListener: LogListener? = null
     private val eventScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 
@@ -103,6 +104,7 @@ class EventHandler : FlutterPlugin {
         logsChannel?.setStreamHandler(null)
         logsSubscription?.cancel()
         logsSubscription = null
+        logsListener = null
         appDataChannel?.setStreamHandler(null)
         appDataHandler?.dispose()
         appDataHandler = null
@@ -212,16 +214,19 @@ class EventHandler : FlutterPlugin {
                         eventScope.launch { sink?.success(listOf(trimmed)) }
                     }
                 }
+                logsListener = listener
                 try {
                     logsSubscription = Mobile.tailLogs(listener)
                 } catch (e: Exception) {
                     AppLogger.e(TAG, "Error starting log tail: ${e.message}")
+                    logsListener = null
                 }
             }
 
             override fun onCancel(arguments: Any?) {
                 logsSubscription?.cancel()
                 logsSubscription = null
+                logsListener = null
             }
         })
     }

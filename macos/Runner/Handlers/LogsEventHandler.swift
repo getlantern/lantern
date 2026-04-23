@@ -23,6 +23,8 @@ final class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
     -> FlutterError?
   {
+    subscription?.cancel()
+    subscription = nil
     eventSink = events
 
     let listener = LogEntryListener { [weak self] entry in
@@ -37,6 +39,7 @@ final class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
     var error: NSError?
     subscription = MobileTailLogs(listener, &error)
     if let error = error {
+      self.listener = nil
       return FlutterError(
         code: "tail_logs_failed",
         message: error.localizedDescription,
