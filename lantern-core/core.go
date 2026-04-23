@@ -144,6 +144,7 @@ type SmartRouting interface {
 
 type VPN interface {
 	ConnectVPN(tag string) error
+	SelectServer(tag string) error
 	DisconnectVPN() error
 	VPNStatus() (vpn.VPNStatus, error)
 	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
@@ -281,6 +282,10 @@ func (lc *LanternCore) listenDataCapEvents() {
 
 func (lc *LanternCore) ConnectVPN(tag string) error {
 	return lc.client.ConnectVPN(lc.ctx, tag)
+}
+
+func (lc *LanternCore) SelectServer(tag string) error {
+	return lc.client.SelectServer(lc.ctx, tag)
 }
 
 func (lc *LanternCore) DisconnectVPN() error {
