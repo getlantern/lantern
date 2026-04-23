@@ -477,7 +477,6 @@ void _watchIsolateMain(_WatchArgs args) async {
       hPipe = await _openPipeHandle(args.pipeName, args.timeoutMs);
     } on PipeTransportException catch (e) {
       args.events.send({'error': e.toString()});
-      args.events.send(null);
       return;
     }
 
@@ -489,7 +488,6 @@ void _watchIsolateMain(_WatchArgs args) async {
       final ok = WriteFile(hPipe, p, req.length, w, nullptr);
       if (ok == 0) {
         args.events.send({'error': 'WriteFile failed: ${GetLastError()}'});
-        args.events.send(null);
         return;
       }
     } finally {
