@@ -295,22 +295,8 @@ func (lc *LanternCore) ConnectVPN(tag string) error {
 	return vpn_tunnel.ConnectToServer(lc.client, tag)
 }
 
-// SelectServer sends a server-selection request. Radiance's VPNClient.
-// SelectServer treats the literal vpn.AutoSelectTag ("auto") as the
-// auto-select signal; an empty tag falls into the manual-outbound branch
-// and strands Clash in manual mode with an empty selector. Normalize so
-// the Dart→FFI "" convention survives callers that reach SelectServer
-// directly (radiance fac9089 fixes this server-side too, but we still
-// pin a pre-fac9089 radiance here).
 func (lc *LanternCore) SelectServer(tag string) error {
-	return lc.client.SelectServer(lc.ctx, normalizeAutoTag(tag))
-}
-
-func normalizeAutoTag(tag string) string {
-	if tag == "" {
-		return vpn.AutoSelectTag
-	}
-	return tag
+	return lc.client.SelectServer(lc.ctx, tag)
 }
 
 func (lc *LanternCore) DisconnectVPN() error {
