@@ -50,11 +50,6 @@ var (
 type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
-	// ReportIssueWithAttachments is the multi-attachment variant of ReportIssue.
-	// Used by the desktop FFI layer to auto-attach all *.log files from the
-	// UI-process log directory (ffi.log, flutter.log) which otherwise never
-	// reach the daemon-built issue archive.
-	ReportIssueWithAttachments(email, issueType, description, device, model string, attachments []string) error
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
@@ -578,15 +573,11 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 /////////////////
 
 func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
+	it := parseIssueType(issueType)
 	var attachments []string
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
-	return lc.ReportIssueWithAttachments(email, issueType, description, device, model, attachments)
-}
-
-func (lc *LanternCore) ReportIssueWithAttachments(email, issueType, description, device, model string, attachments []string) error {
-	it := parseIssueType(issueType)
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
 }
 
