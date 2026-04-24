@@ -612,9 +612,13 @@ func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 	if metadata.noDisplaySet && metadata.noDisplay != 0 {
 		return true
 	}
-	if metadata.parentKeyName != "" {
-		return true
-	}
+	// ParentKeyName intentionally NOT filtered. It only means the entry is a
+	// sub-component of another installer package — plenty of legitimate
+	// end-user apps set it (Squirrel-installed apps like Slack / Discord /
+	// GitHub Desktop / VS Code Insiders, winget-managed packages, MSI
+	// bundles with chained sub-components). SystemComponent=1 and
+	// NoDisplay=1 are the Windows-documented signals for non-user-facing
+	// entries; that's enough. See Freshdesk #173774 and engineering#3335.
 	if metadata.releaseType != "" {
 		releaseType := strings.ToLower(metadata.releaseType)
 		if strings.Contains(releaseType, "update") ||

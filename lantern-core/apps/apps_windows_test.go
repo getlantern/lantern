@@ -98,11 +98,15 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "has parent key name",
+			// ParentKeyName alone is NOT sufficient to treat an entry as
+			// non-user-facing. Squirrel-installed apps (Slack, Discord, etc.)
+			// and winget packages frequently set it on legitimate user apps.
+			// See Freshdesk #173774 and engineering#3335.
+			name: "has parent key name alone",
 			metadata: uninstallEntryMetadata{
 				parentKeyName: "VendorSuite",
 			},
-			want: true,
+			want: false,
 		},
 		{
 			name: "release type update",
