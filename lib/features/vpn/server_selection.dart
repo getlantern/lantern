@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fpdart/fpdart.dart' show Either;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -168,7 +167,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'fastest_server'.i18n,
+            'smart_location'.i18n,
             style: _textTheme?.labelLarge!.copyWith(
               color: context.textSecondary,
             ),
@@ -209,15 +208,37 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       }
     }
 
-    final vpnStatus = ref.read(vpnProvider);
-    final Either<Failure, String> result;
-
     /// User clicking here mean user want to switch to auto server regardless of VPN state
-    result = await ref.read(vpnProvider.notifier).startVPN(force: true);
+    final result = await ref.read(vpnProvider.notifier).startVPN(force: true);
 
     result.fold(
-      (failure) => context.showSnackBar(failure.localizedErrorMessage),
-      (_) {
+      (failure) {
+        if (failure is VpnConflictFailure) {
+          if (!context.mounted) {
+            return;
+          }
+          AppDialog.vpnConflictDialog(
+            context: context,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              final retryResult = await ref
+                  .read(vpnProvider.notifier)
+                  .startVPN(skipConflictCheck: true, force: true);
+              if (!context.mounted) return;
+              retryResult.fold((failure) {
+                context.showSnackBar(failure.localizedErrorMessage);
+                appLogger.error(
+                  "Error changing VPN state: ${failure.localizedErrorMessage}",
+                );
+              }, (_) => appRouter.popUntilRoot());
+            },
+          );
+        } else {
+          context.showSnackBar(failure.localizedErrorMessage);
+        }
+      },
+      (_) async {
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
         appRouter.popUntilRoot();
       },
     );

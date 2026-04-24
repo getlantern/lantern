@@ -142,6 +142,17 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
 
+        // Check if VPN is already connected
+        // if so then user already have vpn on now wish to switch auto server
+        // Do not need to create service again just switch server
+        if (Mobile.isVPNConnected()) {
+            AppLogger.d(TAG, "VPN is already connected, switching auto server")
+            CoroutineScope(Dispatchers.Main).launch {
+                LanternVpnService.instance.connectToServer("auto")
+            }
+            return
+        }
+
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN
@@ -155,7 +166,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    fun connectToServer(location: String, tag: String) {
+    fun connectToServer(tag: String) {
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
@@ -166,7 +177,7 @@ class MainActivity : FlutterFragmentActivity() {
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
-                LanternVpnService.instance.connectToServer(location, tag)
+                LanternVpnService.instance.connectToServer(tag)
             }
             return
         }
@@ -175,7 +186,6 @@ class MainActivity : FlutterFragmentActivity() {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
-                putExtra("location", location)
             }
             ContextCompat.startForegroundService(this, vpnIntent)
             AppLogger.d(TAG, "VPN service started")

@@ -43,9 +43,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         cached == null ||
         cached.serverType.toServerLocationType == ServerLocationType.auto;
 
-    appLogger.debug(
-      'fetchServerLocation: VPN connected, isAuto=$isAuto',
-    );
+    appLogger.debug('fetchServerLocation: VPN connected, isAuto=$isAuto');
 
     if (isAuto) {
       await _fetchAutoLocation();
@@ -83,9 +81,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             tag: autoServer.tag,
           ),
         );
-        appLogger.debug(
-          'Fetched auto server location: ${location.toJson()}',
-        );
+        appLogger.debug('Fetched auto server location: ${location.toJson()}');
         state = location;
         _storage.saveServerLocation(location);
       },
@@ -139,13 +135,22 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final isAuto =
         current.serverType.toServerLocationType == ServerLocationType.auto;
 
-    appLogger.debug(
-      'refreshAutoLocationIfNeeded: vpn=$status isAuto=$isAuto',
-    );
+    appLogger.debug('refreshAutoLocationIfNeeded: vpn=$status isAuto=$isAuto');
 
     if (status == VPNStatus.connected && isAuto) {
       await _fetchAutoLocation();
     }
+  }
+
+  /// Flips the active selection to auto and clears any stale custom-server
+  /// identity fields so downstream UI does not keep highlighting a previous
+  /// manual selection. The existing [autoLocation] metadata is preserved so
+  /// the Smart Location label remains available until the next push event.
+  Future<void> switchToAuto() async {
+    if (state.serverType == ServerLocationType.auto.name) return;
+    final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    state = updated;
+    await _storage.saveServerLocation(updated);
   }
 
   static ServerLocation _defaultLocation() => ServerLocation(

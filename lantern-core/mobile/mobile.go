@@ -298,13 +298,13 @@ func IsTagAvailable(tag string) bool {
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
-func ConnectToServer(locationType, tag string) error {
+func ConnectToServer(tag string) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		client, err := getClient()
 		if err != nil {
 			return struct{}{}, err
 		}
-		if err := vpn_tunnel.ConnectToServer(client, locationType, tag); err != nil {
+		if err := vpn_tunnel.ConnectToServer(client, tag); err != nil {
 			return struct{}{}, err
 		}
 		return struct{}{}, nil

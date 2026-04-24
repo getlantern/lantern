@@ -58,6 +58,7 @@ class AppEventNotifier extends _$AppEventNotifier {
           // Otherwise (custom server selected) ignore it — applying it would
           // silently flip the user's selection back to Smart Location on
           // routing-mode changes or any other tunnel rebuild.
+
           final currentLocation = ref.read(serverLocationProvider);
           if (currentLocation.serverType != ServerLocationType.auto.name) {
             break;

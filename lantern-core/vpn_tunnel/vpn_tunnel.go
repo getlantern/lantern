@@ -29,7 +29,7 @@ func StopVPN(client *ipc.Client) error {
 	return client.DisconnectVPN(ctx)
 }
 
-func ConnectToServer(client *ipc.Client, _, tag string) error {
+func ConnectToServer(client *ipc.Client, tag string) error {
 	ctx := context.Background()
 	slog.Debug("Connecting to VPN server", "tag", tag)
 	return client.SelectServer(ctx, tag)

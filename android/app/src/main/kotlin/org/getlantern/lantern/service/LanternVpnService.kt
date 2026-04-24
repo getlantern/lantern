@@ -129,10 +129,7 @@ class LanternVpnService :
 
             ACTION_CONNECT_TO_SERVER -> {
                 serviceScope.launch {
-                    connectToServer(
-                        intent.getStringExtra("location") ?: "",
-                        intent.getStringExtra("tag") ?: "",
-                    )
+                    connectToServer(intent.getStringExtra("tag") ?: "")
                 }
                 AppLogger.d(TAG, "Connecting to server")
                 START_STICKY
@@ -295,7 +292,7 @@ class LanternVpnService :
         }
     }
 
-    private suspend fun startVPN() = launchVPN(
+     suspend fun startVPN() = launchVPN(
         errorCode = "start_vpn",
         cleanUpOnFailure = true,
     ) {
@@ -304,13 +301,12 @@ class LanternVpnService :
     }
 
     suspend fun connectToServer(
-        location: String,
         tag: String,
     ) = launchVPN(
         errorCode = "connect_to_server",
         cleanUpOnFailure = false,
     ) {
-        Mobile.connectToServer(location, tag)
+        Mobile.connectToServer( tag)
         AppLogger.d(TAG, "Connected to server")
     }
 
