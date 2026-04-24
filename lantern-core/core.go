@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -574,11 +575,33 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 
 func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	it := parseIssueType(issueType)
-	var attachments []string
+	// Auto-attach every *.log file from the UI-process log directory (where
+	// lantern-core.log and flutter.log live). The daemon-side archive builder
+	// already globs *.log from its OWN logDir, but the UI process's logDir is
+	// different on desktop — without this, flutter.log and lantern-core.log
+	// never make it into the issue bundle. LogDir() returns "" on host
+	// processes that never called SetupLogging (Android), in which case this
+	// is a no-op.
+	attachments := collectUILogs(LogDir())
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
+}
+
+// collectUILogs returns every *.log file in dir as absolute paths. Errors
+// and non-existent dirs collapse to nil — the daemon-side archive still
+// captures its own logDir, so the report goes out either way.
+func collectUILogs(dir string) []string {
+	if dir == "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
+	if err != nil {
+		slog.Warn("ReportIssue: unable to glob UI logs", "dir", dir, "err", err)
+		return nil
+	}
+	return matches
 }
 
 func parseIssueType(s string) issue.IssueType {

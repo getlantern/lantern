@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 
 	rlog "github.com/getlantern/radiance/log"
 )
@@ -14,24 +15,30 @@ import (
 // when their log directories happen to share a path.
 const LogFileName = "lantern-core.log"
 
-var setupLoggingOnce sync.Once
+var (
+	setupLoggingOnce sync.Once
+	setupLoggingDir  atomic.Pointer[string]
+)
 
 // SetupLogging installs a file-based default slog handler that writes to
 // <logDir>/lantern-core.log with rotation and the same format the radiance
 // daemon uses. Idempotent — only the first call has effect.
 //
 // Call this from any host process that loads lanterncore as a library
-// alongside the running radiance daemon, where lanterncore's slog output
-// would otherwise be silently dropped — currently the Windows/Linux desktop
-// FFI process. Captures Go-side logs from lanterncore and everything it
-// transitively calls (apps scanner, vpn helpers, etc.) — complementary to
-// flutter.log (Dart-only) and to the daemon's lantern.log (separate process).
+// WITHOUT the radiance daemon running in the same process. Today that is
+// every platform except Android:
 //
-// Do NOT call this from a process that runs the radiance daemon in-process
-// (mobile, macOS via gomobile/system extension): there, radiance/common.Init
-// has already configured slog to write to lantern.log, and a second
-// SetDefault here would override that. Those processes already capture Go
-// logs through the daemon's existing lantern.log.
+//   - Windows / Linux desktop: UI talks to lanternd over a named pipe; the
+//     UI process loads lanterncore via cgo FFI.
+//   - iOS / macOS: UI talks to a Network / System Extension over XPC; the
+//     UI process loads lanterncore via gomobile bindings.
+//   - Android: UI and VPN service share a process; radiance.common.Init
+//     there already sets up slog → lantern.log, so this function should
+//     NOT be called from Android or it would override the daemon's handler.
+//
+// Captures Go-side logs from lanterncore and everything it transitively
+// calls (apps scanner, vpn helpers, etc.) — complementary to flutter.log
+// (Dart-only) and to the daemon's lantern.log (separate process).
 //
 // Best-effort: any failure (logDir uncreatable, file unopenable) leaves the
 // existing default handler in place and emits a warning so a
@@ -60,5 +67,19 @@ func SetupLogging(logDir, level string) {
 			DisablePublisher: true,
 		})
 		slog.SetDefault(logger)
+		setupLoggingDir.Store(&logDir)
 	})
+}
+
+// LogDir returns the log directory registered by SetupLogging, or "" if
+// SetupLogging was never called (e.g. the Android host process, where the
+// daemon's common.Init owns logging instead). Used by ReportIssue to glob
+// UI-process log files for inclusion in the issue archive — those files
+// live outside the daemon's logDir and would otherwise be invisible to the
+// daemon-side archive builder.
+func LogDir() string {
+	if p := setupLoggingDir.Load(); p != nil {
+		return *p
+	}
+	return ""
 }
