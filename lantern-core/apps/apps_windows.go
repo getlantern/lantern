@@ -247,6 +247,16 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 	registryApps := collectAppsFromUninstallRegistry(seen, cb)
 	out = append(out, registryApps...)
 
+	// Always log a summary at Info so a single log read tells us how many
+	// apps each source produced. Helps diagnose tickets like
+	// engineering#3335 / Freshdesk #173774 without a second round-trip.
+	slog.Info(
+		"windows app scan summary",
+		"startMenuCount", len(startMenuApps),
+		"registryCount", len(registryApps),
+		"total", len(out),
+	)
+
 	// Fallback: recursive app scan
 	if len(out) == 0 {
 		if !windowsDirectoryFallbackEnabled() {
@@ -330,14 +340,21 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	}
 	defer wsh.Release()
 
+	// Per-filter tallies — see engineering#3335.
+	var totalShortcuts, droppedUnresolved, droppedSystem, droppedUtilityOrExcluded, droppedDuplicate int
+	rootsScanned := make([]string, 0, len(startDirs))
+	rootsMissing := make([]string, 0, len(startDirs))
+
 	for _, root := range startDirs {
 		root = strings.TrimSpace(root)
 		if root == "" {
 			continue
 		}
 		if st, err := os.Stat(root); err != nil || !st.IsDir() {
+			rootsMissing = append(rootsMissing, root)
 			continue
 		}
+		rootsScanned = append(rootsScanned, root)
 
 		_ = filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 			if err != nil || d == nil {
@@ -349,6 +366,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if !strings.HasSuffix(strings.ToLower(d.Name()), ".lnk") {
 				return nil
 			}
+			totalShortcuts++
 
 			targetExe, iconFile, iconIndex, shortcutArgs, shortcutWorkDir := resolveLnkViaWScript(wsh, p)
 			name := shortcutDisplayName(d.Name(), targetExe)
@@ -362,22 +380,26 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				shortcutWorkDir,
 			)
 			if targetExe == "" {
+				droppedUnresolved++
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
 				return nil
 			}
 			if isWindowsSystemApp(targetExe, name) {
+				droppedSystem++
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
 				return nil
 			}
 			if isExcludedStartMenuShortcutPath(p) || isWindowsUtilityApp(targetExe, name) {
+				droppedUtilityOrExcluded++
 				return nil
 			}
 			keyPath := normalizeKey(targetExe)
 			if seen[keyPath] {
+				droppedDuplicate++
 				return nil
 			}
 
@@ -402,10 +424,25 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 		})
 	}
 
+	var recovered int
 	if len(recoveryHints) > 0 {
-		recovered := collectAppsFromPackageCacheHints(recoveryHints, seen, cb)
-		out = append(out, recovered...)
+		recoveredApps := collectAppsFromPackageCacheHints(recoveryHints, seen, cb)
+		out = append(out, recoveredApps...)
+		recovered = len(recoveredApps)
 	}
+
+	slog.Info(
+		"start menu scan complete",
+		"rootsScanned", rootsScanned,
+		"rootsMissing", rootsMissing,
+		"shortcuts", totalShortcuts,
+		"kept", len(out),
+		"droppedUnresolved", droppedUnresolved,
+		"droppedSystem", droppedSystem,
+		"droppedUtilityOrExcluded", droppedUtilityOrExcluded,
+		"droppedDuplicate", droppedDuplicate,
+		"packageCacheHintsRecovered", recovered,
+	)
 
 	return out
 }
@@ -477,6 +514,11 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		{registry.CURRENT_USER, uninstallPath, registry.READ | registry.WOW64_32KEY},
 	}
 
+	// Per-filter tallies so an empty result set tells us exactly which
+	// filter removed the apps — see engineering#3335.
+	var totalEntries, droppedNonUserFacing, droppedNoDisplayName, droppedNoExe,
+		droppedSystem, droppedUtility, droppedExcluded, droppedDuplicate int
+
 	for _, r := range roots {
 		k, err := registry.OpenKey(r.key, r.path, r.flags)
 		if err != nil {
@@ -487,6 +529,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		k.Close()
 
 		for _, sub := range names {
+			totalEntries++
 			sk, err := registry.OpenKey(r.key, r.path+`\`+sub, r.flags)
 			if err != nil {
 				continue
@@ -494,6 +537,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			metadata := readUninstallEntryMetadata(sk)
 			if isNonUserFacingUninstallEntry(metadata) {
+				droppedNonUserFacing++
 				sk.Close()
 				continue
 			}
@@ -505,27 +549,33 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			displayName = strings.TrimSpace(displayName)
 			if displayName == "" {
-				// No name usually indicates an app is “not user-facing”, so skip
+				// No name usually indicates an app is "not user-facing", so skip
+				droppedNoDisplayName++
 				continue
 			}
 
 			exePath := pickExePath(displayIcon, installLoc)
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
+				droppedNoExe++
 				continue
 			}
 			exePath = resolveWrappedExecutable(exePath, displayName)
 			if exePath == "" {
+				droppedNoExe++
 				continue
 			}
 			if isWindowsSystemApp(exePath, displayName) {
+				droppedSystem++
 				continue
 			}
 			if isWindowsUtilityApp(exePath, displayName) {
+				droppedUtility++
 				continue
 			}
 
-			// Don’t show uninstallers/updaters
+			// Don't show uninstallers/updaters
 			if isExcludedName(filepathBaseNoExt(exePath)) {
+				droppedExcluded++
 				continue
 			}
 
@@ -533,6 +583,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			keyID := normalizeKey(appID)
 			keyPath := normalizeKey(exePath)
 			if seen[keyID] || seen[keyPath] {
+				droppedDuplicate++
 				continue
 			}
 
@@ -552,6 +603,19 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			seen[keyPath] = true
 		}
 	}
+
+	slog.Info(
+		"uninstall registry scan complete",
+		"scanned", totalEntries,
+		"kept", len(out),
+		"droppedNonUserFacing", droppedNonUserFacing,
+		"droppedNoDisplayName", droppedNoDisplayName,
+		"droppedNoExe", droppedNoExe,
+		"droppedSystem", droppedSystem,
+		"droppedUtility", droppedUtility,
+		"droppedExcluded", droppedExcluded,
+		"droppedDuplicate", droppedDuplicate,
+	)
 
 	return out
 }
