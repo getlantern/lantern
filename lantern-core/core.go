@@ -189,6 +189,17 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	// common.Init wires up slog to <LogDir>/lantern.log, seeds settings
+	// (DataPathKey / LogPathKey), and installs the crash reporter. Without
+	// this, Go code running in the UI process has slog going to stderr
+	// (= nowhere on a GUI host), settings.Get* returns empty, and no
+	// lantern.log ever gets written outside the daemon's own process. It's
+	// idempotent via an internal sync.Once, so if the daemon already ran
+	// it in this process (Android, where UI + VPN service share a process)
+	// this call is a no-op.
+	if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+		return fmt.Errorf("common.Init: %w", err)
+	}
 	slog.Debug("Starting LanternCore initialization")
 
 	if opts.Env == "stage" || opts.Env == "staging" {
@@ -576,52 +587,50 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 
 func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	it := parseIssueType(issueType)
-	// Auto-attach every *.log file from the UI-process log directory (where
-	// lantern-core.log and flutter.log live). The daemon-side archive builder
-	// already globs *.log from its OWN logDir, but the UI process's logDir is
-	// different on desktop — without this, flutter.log and lantern-core.log
+	// Auto-attach every *.log file from this process's log directory (where
+	// lantern.log + flutter.log live after common.Init). The daemon-side
+	// archive builder already globs *.log from its OWN logDir, but on
+	// desktop the UI process's logDir is different from the daemon's —
+	// without this pass-through, UI-process lantern.log and flutter.log
 	// never make it into the issue bundle.
 	//
-	// Cross-user caveat: on Windows the daemon runs as LocalSystem while the
-	// UI runs as the logged-in user; on macOS the System Extension runs with
-	// root-equivalent privileges while the UI runs as the user. We pass file
-	// PATHS over IPC and the daemon reads them on its side, so those paths
-	// have to live in a location the daemon's user can read. That's why the
-	// UI deliberately writes to %PUBLIC%\Lantern\logs and /Users/Shared/
-	// Lantern/Logs — both have default ACLs granting SYSTEM / root read
-	// access regardless of the file's owning user. If we ever move UI logs
-	// into per-user paths (e.g. %LOCALAPPDATA% or ~/Library/Logs), we'll
-	// have to swap this to an in-memory attachment protocol so the UI can
-	// read the bytes before the cross-process handoff.
-	//
-	// LogDir() returns "" on host processes that never called SetupLogging
-	// (Android, where the daemon runs in the same process), in which case
-	// this is a no-op.
-	attachments := collectUILogs(LogDir())
+	// Cross-user caveat: on Windows the daemon runs as LocalSystem while
+	// the UI runs as the logged-in user; on macOS the System Extension
+	// runs with root-equivalent privileges while the UI runs as the user.
+	// We pass file PATHS over IPC and the daemon reads them on its side,
+	// so those paths have to live in a location the daemon's user can
+	// read. That's why the UI deliberately writes to %PUBLIC%\Lantern\logs
+	// and /Users/Shared/Lantern/Logs — both have default ACLs granting
+	// SYSTEM / root read access regardless of the file's owning user. If
+	// we ever move UI logs into per-user paths (e.g. %LOCALAPPDATA% or
+	// ~/Library/Logs), we'll have to swap this to an in-memory attachment
+	// protocol so the UI can read the bytes before the cross-process
+	// handoff.
+	attachments := collectLocalLogs(settings.GetString(settings.LogPathKey))
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
 }
 
-// collectUILogs returns every *.log file in dir as absolute paths that the
-// UI process can stat. Files the UI itself can't read are dropped here —
-// they won't survive the daemon-side read either, and excluding them keeps
-// the issue report from silently ballooning with entries that'll just warn
-// on readExtraFiles.
-func collectUILogs(dir string) []string {
+// collectLocalLogs returns every *.log file in dir as absolute paths that
+// this process can stat. Files we can't read ourselves are dropped — they
+// won't survive the daemon-side read either, and excluding them keeps the
+// issue report from ballooning with entries that'd just warn on
+// readExtraFiles on the daemon side.
+func collectLocalLogs(dir string) []string {
 	if dir == "" {
 		return nil
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
 	if err != nil {
-		slog.Warn("ReportIssue: unable to glob UI logs", "dir", dir, "err", err)
+		slog.Warn("ReportIssue: unable to glob local logs", "dir", dir, "err", err)
 		return nil
 	}
 	out := matches[:0]
 	for _, p := range matches {
 		if _, err := os.Stat(p); err != nil {
-			slog.Warn("ReportIssue: skipping UI log (unreadable from UI process)", "path", p, "err", err)
+			slog.Warn("ReportIssue: skipping log (unreadable from this process)", "path", p, "err", err)
 			continue
 		}
 		out = append(out, p)

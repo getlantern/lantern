@@ -116,9 +116,9 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 	appDataDir = dataDir
 	locale := C.GoString(_locale)
 	env := C.GoString(_env)
-	// Install a file-based slog handler BEFORE lanterncore.New so any
-	// initialization logging from that call also lands on disk.
-	lanterncore.SetupLogging(logDir, lanterncore.DefaultLogLevel)
+	// lanterncore.New now calls common.Init internally, which wires up
+	// slog → <logDir>/lantern.log, seeds settings, and installs the crash
+	// reporter. No separate setup needed here.
 	return runOnGoStack(func() *C.char {
 		core, err := lanterncore.New(&utils.Opts{
 			LogDir:           logDir,
