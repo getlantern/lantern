@@ -83,43 +83,7 @@ class PipeClient {
     if (isConnected) {
       await close();
     }
-    final start = DateTime.now();
-    final lpName = TEXT(pipeName);
-    try {
-      while (true) {
-        _hPipe = CreateFile(
-          lpName,
-          GENERIC_READ | GENERIC_WRITE,
-          0,
-          nullptr,
-          OPEN_EXISTING,
-          FILE_ATTRIBUTE_NORMAL,
-          0,
-        );
-        if (_hPipe != INVALID_HANDLE_VALUE) return;
-
-        final code = GetLastError();
-        final retryableOpen =
-            code == ERROR_PIPE_BUSY ||
-            code == ERROR_FILE_NOT_FOUND ||
-            code == ERROR_PATH_NOT_FOUND ||
-            code == 0;
-        if (retryableOpen) {
-          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw PipeTransportException(
-              operation: 'Open pipe',
-              code: code,
-              timedOut: true,
-            );
-          }
-          await Future.delayed(const Duration(milliseconds: 100));
-          continue;
-        }
-        throw PipeTransportException(operation: 'Open pipe', code: code);
-      }
-    } finally {
-      free(lpName);
-    }
+    _hPipe = await _openPipeHandle(pipeName, timeoutMs);
   }
 
   Future<Map<String, dynamic>> call(
@@ -345,6 +309,7 @@ class PipeClient {
         _WatchArgs(
           pipeName: pipeName,
           token: token!,
+          timeoutMs: timeoutMs,
           bufSize: bufSize,
           cmd: cmd,
           events: events.sendPort,
@@ -485,12 +450,14 @@ class _WatchArgs {
   const _WatchArgs({
     required this.pipeName,
     required this.token,
+    required this.timeoutMs,
     required this.bufSize,
     required this.cmd,
     required this.events,
   });
   final String pipeName;
   final String token;
+  final int timeoutMs;
   final int bufSize;
   final String cmd;
   final SendPort events;
@@ -506,23 +473,10 @@ void _watchIsolateMain(_WatchArgs args) async {
       '${jsonEncode({'id': DateTime.now().microsecondsSinceEpoch.toString(), 'cmd': cmd, 'token': token})}\n';
 
   try {
-    final name = TEXT(args.pipeName);
     try {
-      hPipe = CreateFile(
-        name,
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        0,
-      );
-    } finally {
-      free(name);
-    }
-    if (hPipe == INVALID_HANDLE_VALUE) {
-      args.events.send({'error': 'open pipe failed: ${GetLastError()}'});
-      args.events.send(null);
+      hPipe = await _openPipeHandle(args.pipeName, args.timeoutMs);
+    } on PipeTransportException catch (e) {
+      args.events.send({'error': e.toString()});
       return;
     }
 
@@ -534,7 +488,6 @@ void _watchIsolateMain(_WatchArgs args) async {
       final ok = WriteFile(hPipe, p, req.length, w, nullptr);
       if (ok == 0) {
         args.events.send({'error': 'WriteFile failed: ${GetLastError()}'});
-        args.events.send(null);
         return;
       }
     } finally {
@@ -585,5 +538,50 @@ void _watchIsolateMain(_WatchArgs args) async {
       CloseHandle(hPipe);
     }
     args.events.send(null);
+  }
+}
+
+bool _isRetryablePipeOpenError(int code) {
+  return code == ERROR_PIPE_BUSY ||
+      code == ERROR_FILE_NOT_FOUND ||
+      code == ERROR_PATH_NOT_FOUND ||
+      code == 0;
+}
+
+Future<int> _openPipeHandle(String pipeName, int timeoutMs) async {
+  final start = DateTime.now();
+  final lpName = TEXT(pipeName);
+  try {
+    while (true) {
+      final handle = CreateFile(
+        lpName,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        0,
+      );
+      if (handle != INVALID_HANDLE_VALUE) {
+        return handle;
+      }
+
+      final code = GetLastError();
+      if (_isRetryablePipeOpenError(code)) {
+        if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
+          throw PipeTransportException(
+            operation: 'Open pipe',
+            code: code,
+            timedOut: true,
+          );
+        }
+        await Future.delayed(const Duration(milliseconds: 100));
+        continue;
+      }
+
+      throw PipeTransportException(operation: 'Open pipe', code: code);
+    }
+  } finally {
+    free(lpName);
   }
 }
