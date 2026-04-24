@@ -302,6 +302,11 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	if err := ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED); err != nil {
 		// If COM is already initialized in a different mode, we can often still proceed
 		if !isRPCChangedMode(err) {
+			// Bail out of the Start Menu scanner entirely on unexpected COM
+			// init failures. Warn (not Debug) so this surfaces in UI logs
+			// when the apps list is empty — the caller falls back to the
+			// Uninstall registry scan, which may or may not cover the gap.
+			slog.Warn("CoInitializeEx failed, skipping Start Menu app scan", "err", err)
 			return out
 		}
 	} else {
@@ -313,13 +318,14 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 
 	wshObj, err := oleutil.CreateObject("WScript.Shell")
 	if err != nil {
-		slog.Debug("WScript.Shell not available", "err", err)
+		slog.Warn("WScript.Shell not available, skipping Start Menu app scan", "err", err)
 		return out
 	}
 	defer wshObj.Release()
 
 	wsh, err := wshObj.QueryInterface(ole.IID_IDispatch)
 	if err != nil {
+		slog.Warn("WScript.Shell QueryInterface failed, skipping Start Menu app scan", "err", err)
 		return out
 	}
 	defer wsh.Release()
