@@ -110,7 +110,6 @@ type uninstallEntryMetadata struct {
 	noDisplaySet       bool
 	noDisplay          uint64
 	releaseType        string
-	parentKeyName      string
 }
 
 type shortcutRecoveryHint struct {
@@ -668,9 +667,9 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 	if value, _, err := sk.GetStringValue("ReleaseType"); err == nil {
 		metadata.releaseType = strings.TrimSpace(value)
 	}
-	if value, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
-		metadata.parentKeyName = strings.TrimSpace(value)
-	}
+	// ParentKeyName intentionally not read. See isNonUserFacingUninstallEntry
+	// for the rationale — a non-empty value is not a reliable "non-user-facing"
+	// signal, so there's no point paying the registry I/O.
 
 	return metadata
 }
