@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:fpdart/fpdart.dart' show Either;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fpdart/fpdart.dart' show Either;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -71,8 +71,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     }
 
     final selectedServer = selected;
-    final isPrivateServerFound =
-        availableServers.requireValue.hasUserServers;
+    final isPrivateServerFound = availableServers.requireValue.hasUserServers;
 
     return BaseScreen(
       key: const Key('server_selection.screen'),
@@ -160,7 +159,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Widget _buildSmartLocation(ServerLocation serverLocation) {
     final autoLocation = serverLocation.autoLocation;
-    final displayName = autoLocation?.displayName ?? 'smart_location'.i18n;
+    final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
     final flag = autoLocation?.countryCode ?? '';
     final protocol = autoLocation?.protocol ?? '';
     return Column(
@@ -169,7 +168,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'smart_location'.i18n,
+            'fastest_server'.i18n,
             style: _textTheme?.labelLarge!.copyWith(
               color: context.textSecondary,
             ),
@@ -213,27 +212,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final vpnStatus = ref.read(vpnProvider);
     final Either<Failure, String> result;
 
-    if (vpnStatus == VPNStatus.connected || vpnStatus == VPNStatus.connecting) {
-      // Already connected — switch to auto via connectToServer so the
-      // native side handles the reconnect instead of rejecting a duplicate start.
-      result = await ref
-          .read(vpnProvider.notifier)
-          .connectToServer(ServerLocationType.auto, '');
-    } else {
-      result = await ref.read(vpnProvider.notifier).startVPN(force: true);
-    }
+    /// User clicking here mean user want to switch to auto server regardless of VPN state
+    result = await ref.read(vpnProvider.notifier).startVPN(force: true);
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),
       (_) {
-        ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation(
-                serverType: ServerLocationType.auto.name,
-                serverName: '',
-              ),
-            );
         appRouter.popUntilRoot();
       },
     );
@@ -411,14 +395,16 @@ class _ServerLocationListViewState
             context: context,
             onConnectAnyway: () async {
               appRouter.maybePop();
-              final retryResult =
-                  await ref.read(vpnProvider.notifier).connectToServer(
-                        ServerLocationType.lanternLocation,
-                        selectedServer.tag,
-                        skipConflictCheck: true,
-                      );
+              final retryResult = await ref
+                  .read(vpnProvider.notifier)
+                  .connectToServer(
+                    ServerLocationType.lanternLocation,
+                    selectedServer.tag,
+                    skipConflictCheck: true,
+                  );
               retryResult.fold(
-                (failure) => context.showSnackBar(failure.localizedErrorMessage),
+                (failure) =>
+                    context.showSnackBar(failure.localizedErrorMessage),
                 (_) {
                   ref
                       .read(serverLocationProvider.notifier)
@@ -463,7 +449,6 @@ class _ServerLocationListViewState
       },
     );
   }
-
 }
 
 class _CountryCityListView extends StatefulWidget {
@@ -714,12 +699,13 @@ class _PrivateServerLocationListViewState
             context: context,
             onConnectAnyway: () async {
               appRouter.maybePop();
-              final retryResult =
-                  await ref.read(vpnProvider.notifier).connectToServer(
-                        ServerLocationType.privateServer,
-                        server.tag,
-                        skipConflictCheck: true,
-                      );
+              final retryResult = await ref
+                  .read(vpnProvider.notifier)
+                  .connectToServer(
+                    ServerLocationType.privateServer,
+                    server.tag,
+                    skipConflictCheck: true,
+                  );
               retryResult.fold(
                 (failure) {
                   context.hideLoadingDialog();
@@ -769,12 +755,9 @@ class _PrivateServerLocationListViewState
       },
     );
   }
-
 }
 
-Map<String, List<Server>> _groupLocationsByCountry(
-  List<Server> servers,
-) {
+Map<String, List<Server>> _groupLocationsByCountry(List<Server> servers) {
   final Map<String, List<Server>> result = {};
   for (final server in servers) {
     result.putIfAbsent(server.location.country, () => <Server>[]).add(server);
