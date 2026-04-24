@@ -280,12 +280,41 @@ func (lc *LanternCore) listenDataCapEvents() {
 //     VPN     //
 /////////////////
 
+// ConnectVPN routes a connect request to radiance, translating it into a
+// server-swap on a live tunnel. When the tunnel is already up, radiance's
+// /vpn/connect endpoint rejects the request with ErrTunnelAlreadyConnected —
+// so dispatch to /server/selected instead, matching the dispatch ffi.go's
+// connectToServer does but applying it to every caller of LanternCore.
+// ConnectVPN. This is load-bearing for the Smart-from-connected flow: Jigar's
+// onSmartLocation rewrite (server_selection.dart) routes "switch back to auto"
+// through startVPN(force: true), which lands in ffi.go:startVPN →
+// c.ConnectVPN(""). Without this dispatch the call 500s with "tunnel already
+// connected" and the user sees a snackbar instead of the smart mode returning.
+//
+// The Flutter UI sends an empty tag to mean "auto" (see ServerLocationType.
+// auto). Radiance recognizes only the literal vpn.AutoSelectTag ("auto") — an
+// empty tag falls into the manual-outbound branch in radiance/vpn/vpn.go
+// SelectServer and strands Clash in manual mode with an empty selector.
+// Normalize so the Dart→FFI "" convention keeps working on both dispatch sides.
+//
+// Fixes getlantern/engineering#3291 issue 3.
 func (lc *LanternCore) ConnectVPN(tag string) error {
+	tag = normalizeAutoTag(tag)
+	if status, err := lc.client.VPNStatus(lc.ctx); err == nil && status == vpn.Connected {
+		return lc.client.SelectServer(lc.ctx, tag)
+	}
 	return lc.client.ConnectVPN(lc.ctx, tag)
 }
 
 func (lc *LanternCore) SelectServer(tag string) error {
-	return lc.client.SelectServer(lc.ctx, tag)
+	return lc.client.SelectServer(lc.ctx, normalizeAutoTag(tag))
+}
+
+func normalizeAutoTag(tag string) string {
+	if tag == "" {
+		return vpn.AutoSelectTag
+	}
+	return tag
 }
 
 func (lc *LanternCore) DisconnectVPN() error {
