@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -56,6 +57,7 @@ const (
 var (
 	lanternCore       atomic.Pointer[lanterncore.Core]
 	appDataDir        string
+	appLogDir         string
 	appsPort          atomic.Int64
 	logsPort          atomic.Int64
 	statusPort        atomic.Int64
@@ -114,8 +116,12 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 	logDir := C.GoString(_logDir)
 	dataDir := C.GoString(_dataDir)
 	appDataDir = dataDir
+	appLogDir = logDir
 	locale := C.GoString(_locale)
 	env := C.GoString(_env)
+	// Install a file-based slog handler BEFORE lanterncore.New so any
+	// initialization logging from that call also lands on disk.
+	lanterncore.SetupLogging(logDir, lanterncore.DefaultLogLevel)
 	return runOnGoStack(func() *C.char {
 		core, err := lanterncore.New(&utils.Opts{
 			LogDir:           logDir,
@@ -336,11 +342,53 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 		if errStr != nil {
 			return errStr
 		}
-		if err := c.ReportIssue(email, issueType, desc, device, model, logPath); err != nil {
+		// Auto-attach every *.log file from the UI-process log directory.
+		// The daemon-side issue archive builder globs the daemon's logDir
+		// (C:\ProgramData\Lantern\logs on Windows) — our logs (ffi.log,
+		// flutter.log) live in a different dir (C:\Users\Public\Lantern\logs)
+		// and would otherwise be lost. De-dupes logPath so callers that pass
+		// it explicitly don't get double-attached.
+		attachments := collectUILogAttachments(appLogDir)
+		if logPath != "" && !containsPath(attachments, logPath) {
+			attachments = append(attachments, logPath)
+		}
+		if err := c.ReportIssueWithAttachments(email, issueType, desc, device, model, attachments); err != nil {
 			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
 		}
 		return C.CString("ok")
 	})
+}
+
+// collectUILogAttachments returns every *.log file in dir as absolute paths.
+// Swallows errors — if the dir doesn't exist (e.g. setup never ran) we just
+// return nil and let the daemon archive whatever it has on its side.
+func collectUILogAttachments(dir string) []string {
+	if dir == "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
+	if err != nil {
+		slog.Warn("reportIssue: unable to glob UI logs", "dir", dir, "err", err)
+		return nil
+	}
+	return matches
+}
+
+func containsPath(paths []string, target string) bool {
+	abs, err := filepath.Abs(target)
+	if err != nil {
+		abs = target
+	}
+	for _, p := range paths {
+		pAbs, err := filepath.Abs(p)
+		if err != nil {
+			pAbs = p
+		}
+		if pAbs == abs {
+			return true
+		}
+	}
+	return false
 }
 
 // getSelectedServerJSON returns the selected server response as raw JSON.

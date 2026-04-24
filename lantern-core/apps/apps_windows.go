@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
@@ -25,41 +24,6 @@ var excludeDirs = []string{
 	// filepath.Join(os.Getenv("ProgramData"), "Microsoft", "Windows", "Start Menu"),
 	// maybe skip common package caches
 	// filepath.Join(os.Getenv("LOCALAPPDATA"), "Packages"),
-}
-
-// windowsAppsDebugDumpPath returns the file we append to on every Windows app
-// scan. It's derived from %PUBLIC% the same way storage_utils.dart computes
-// the Flutter UI's dataDir — so the dump lives next to apps_cache.json and
-// the user can grab it directly.
-//
-// We use a dedicated file (rather than slog) because on Windows the FFI
-// library runs in the Flutter UI process, where the default slog handler
-// writes to stderr and nothing captures it. See engineering#3335.
-func windowsAppsDebugDumpPath() string {
-	publicDir := strings.TrimSpace(os.Getenv("PUBLIC"))
-	if publicDir == "" {
-		publicDir = `C:\Users\Public`
-	}
-	return filepath.Join(publicDir, "Lantern", "data", "apps-scan-debug.log")
-}
-
-// appendWindowsAppsDebug appends a timestamped section to the debug dump.
-// Failures are swallowed — this is purely diagnostic; never block the scan.
-func appendWindowsAppsDebug(section string, lines []string) {
-	path := windowsAppsDebugDumpPath()
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return
-	}
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	fmt.Fprintf(f, "=== %s @ %s ===\n", section, time.Now().UTC().Format(time.RFC3339))
-	for _, l := range lines {
-		fmt.Fprintln(f, l)
-	}
-	fmt.Fprintln(f)
 }
 
 func defaultAppDirs() []string {
@@ -352,7 +316,6 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			// when the apps list is empty — the caller falls back to the
 			// Uninstall registry scan, which may or may not cover the gap.
 			slog.Warn("CoInitializeEx failed, skipping Start Menu app scan", "err", err)
-			appendWindowsAppsDebug("start menu scan", []string{fmt.Sprintf("CoInitializeEx failed: %v", err)})
 			return out
 		}
 	} else {
@@ -365,7 +328,6 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	wshObj, err := oleutil.CreateObject("WScript.Shell")
 	if err != nil {
 		slog.Warn("WScript.Shell not available, skipping Start Menu app scan", "err", err)
-		appendWindowsAppsDebug("start menu scan", []string{fmt.Sprintf("WScript.Shell not available: %v", err)})
 		return out
 	}
 	defer wshObj.Release()
@@ -373,7 +335,6 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	wsh, err := wshObj.QueryInterface(ole.IID_IDispatch)
 	if err != nil {
 		slog.Warn("WScript.Shell QueryInterface failed, skipping Start Menu app scan", "err", err)
-		appendWindowsAppsDebug("start menu scan", []string{fmt.Sprintf("WScript.Shell QueryInterface failed: %v", err)})
 		return out
 	}
 	defer wsh.Release()
@@ -471,6 +432,8 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 
 	slog.Info(
 		"start menu scan complete",
+		"appdata", os.Getenv("APPDATA"),
+		"programData", os.Getenv("ProgramData"),
 		"rootsScanned", rootsScanned,
 		"rootsMissing", rootsMissing,
 		"shortcuts", totalShortcuts,
@@ -480,28 +443,24 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 		"droppedUtilityOrExcluded", droppedUtilityOrExcluded,
 		"droppedDuplicate", droppedDuplicate,
 		"packageCacheHintsRecovered", recovered,
+		"sampleKept", sampleAppNames(out, 20),
 	)
 
-	kept := make([]string, 0, len(out))
-	for i, a := range out {
-		if i >= 20 {
-			break
-		}
-		kept = append(kept, fmt.Sprintf("  %s  (%s)", a.Name, a.AppPath))
-	}
-	debugLines := []string{
-		fmt.Sprintf("APPDATA=%q", os.Getenv("APPDATA")),
-		fmt.Sprintf("ProgramData=%q", os.Getenv("ProgramData")),
-		fmt.Sprintf("rootsScanned=%v", rootsScanned),
-		fmt.Sprintf("rootsMissing=%v", rootsMissing),
-		fmt.Sprintf("shortcuts=%d  kept=%d  recovered=%d", totalShortcuts, len(out)-recovered, recovered),
-		fmt.Sprintf("droppedUnresolved=%d  droppedSystem=%d  droppedUtilityOrExcluded=%d  droppedDuplicate=%d",
-			droppedUnresolved, droppedSystem, droppedUtilityOrExcluded, droppedDuplicate),
-		"kept apps (first 20):",
-	}
-	debugLines = append(debugLines, kept...)
-	appendWindowsAppsDebug("start menu scan", debugLines)
+	return out
+}
 
+// sampleAppNames returns up to n "name (path)" strings from apps for inclusion
+// as a slog attribute. Slog renders slice attrs as a single field, so this
+// keeps a representative sample with the rest of the scan summary on one line
+// while bounding output size.
+func sampleAppNames(apps []*AppData, n int) []string {
+	if n > len(apps) {
+		n = len(apps)
+	}
+	out := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		out = append(out, fmt.Sprintf("%s (%s)", apps[i].Name, apps[i].AppPath))
+	}
 	return out
 }
 
@@ -673,25 +632,8 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		"droppedUtility", droppedUtility,
 		"droppedExcluded", droppedExcluded,
 		"droppedDuplicate", droppedDuplicate,
+		"sampleKept", sampleAppNames(out, 20),
 	)
-
-	kept := make([]string, 0, len(out))
-	for i, a := range out {
-		if i >= 20 {
-			break
-		}
-		kept = append(kept, fmt.Sprintf("  %s  (%s)", a.Name, a.AppPath))
-	}
-	debugLines := []string{
-		fmt.Sprintf("scanned=%d  kept=%d", totalEntries, len(out)),
-		fmt.Sprintf("droppedNonUserFacing=%d  droppedNoDisplayName=%d  droppedNoExe=%d",
-			droppedNonUserFacing, droppedNoDisplayName, droppedNoExe),
-		fmt.Sprintf("droppedSystem=%d  droppedUtility=%d  droppedExcluded=%d  droppedDuplicate=%d",
-			droppedSystem, droppedUtility, droppedExcluded, droppedDuplicate),
-		"kept apps (first 20):",
-	}
-	debugLines = append(debugLines, kept...)
-	appendWindowsAppsDebug("uninstall registry scan", debugLines)
 
 	return out
 }
