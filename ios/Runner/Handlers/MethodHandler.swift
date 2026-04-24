@@ -337,11 +337,10 @@ class MethodHandler {
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       do {
-        let location = data["location"] as? String ?? ""
         let serverName = data["serverName"] as? String ?? ""
-        try await self.vpnManager.connectToServer(location: location, serverName: serverName)
+        try await self.vpnManager.connectToServer(serverName: serverName)
         await MainActor.run {
-          result("VPN connected successfully to \(serverName) at \(location).")
+          result("VPN connected successfully to \(serverName).")
         }
       } catch {
         await MainActor.run {

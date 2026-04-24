@@ -208,6 +208,17 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       }
     }
 
+    final serverLocation = ref.read(serverLocationProvider);
+
+    final type = serverLocation.serverType.toServerLocationType;
+    if (type == ServerLocationType.auto) {
+      appLogger.debug(
+        'Already in smart location, no need to switch, Just pop the screen',
+      );
+      appRouter.popUntilRoot();
+      return;
+    }
+
     /// User clicking here mean user want to switch to auto server regardless of VPN state
     final result = await ref.read(vpnProvider.notifier).startVPN(force: true);
 

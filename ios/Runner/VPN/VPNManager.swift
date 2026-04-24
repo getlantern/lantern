@@ -91,7 +91,7 @@ class VPNManager: VPNBase {
     ]
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
-      appLogger.info("VPN is already connected, sending command to extension")
+      appLogger.info("VPN is already connected, sending lantern/auto command to extension")
       do {
         let result = try await triggerExtensionMethod(methodName: "Lantern")
         return
@@ -109,7 +109,6 @@ class VPNManager: VPNBase {
   }
 
   func connectToServer(
-    location: String,
     serverName: String,
   ) async throws {
     guard let manager = await Profile.shared.getManager() else {
@@ -121,19 +120,13 @@ class VPNManager: VPNBase {
         userInfo: [NSLocalizedDescriptionKey: msg]
       )
     }
-    let options: [String: NSObject] = [
-      "netEx.Type": "PrivateServer" as NSString,
-      "netEx.StartReason": "Private server Initiated" as NSString,
-      "netEx.ServerName": serverName as NSString,
-      "netEx.Location": location as NSString,
-    ]
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
-      appLogger.info("VPN is already connected, sending command to extension")
+      appLogger.info("VPN is already connected, sending privateServer command to extension")
       do {
         let result = try await triggerExtensionMethod(
           methodName: "PrivateServer",
-          params: ["server": serverName, "location": location]
+          params: ["server": serverName]
         )
         return
       } catch {
@@ -141,7 +134,11 @@ class VPNManager: VPNBase {
         throw error
       }
     }
-
+    let options: [String: NSObject] = [
+      "netEx.Type": "PrivateServer" as NSString,
+      "netEx.StartReason": "Private server Initiated" as NSString,
+      "netEx.ServerName": serverName as NSString,
+    ]
     try manager.connection.startVPNTunnel(options: options)
     //    self.manager.isOnDemandEnabled = true
     //    try await self.saveThenLoadProvider()

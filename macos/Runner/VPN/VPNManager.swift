@@ -159,7 +159,6 @@ class VPNManager: VPNBase {
   }
 
   func connectToServer(
-    location: String,
     serverName: String,
   ) async throws {
     await self.setupVPN()
@@ -167,7 +166,6 @@ class VPNManager: VPNBase {
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
       "netEx.ServerName": serverName as NSString,
-      "netEx.Location": location as NSString,
     ]
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
@@ -175,7 +173,7 @@ class VPNManager: VPNBase {
       do {
         let result = try await triggerExtensionMethod(
           methodName: "PrivateServer",
-          params: ["server": serverName, "location": location]
+          params: ["server": serverName]
         )
         return
       } catch {

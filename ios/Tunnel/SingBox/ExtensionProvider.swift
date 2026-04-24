@@ -44,8 +44,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
-      let location = options?["netEx.Location"] as? String
-      connectToServer(location: location!, serverName: serverName!)
+      connectToServer(serverName: serverName!)
     default:
       // Fallback or unknown type
       startVPN()
@@ -77,11 +76,11 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func connectToServer(
-    location: String, serverName: String, completion: ((Bool, String?) -> Void)? = nil
+    serverName: String, completion: ((Bool, String?) -> Void)? = nil
   ) {
     appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
-    MobileConnectToServer(location, serverName, &error)
+    MobileConnectToServer(serverName, &error)
     if error != nil {
       appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
       completion?(false, error?.localizedDescription)
