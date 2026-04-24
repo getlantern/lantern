@@ -567,23 +567,11 @@ func connectToServer(_tag *C.char) *C.char {
 			return SendError(err)
 		}
 
-		// Switch outbounds on the live tunnel when already connected;
-		// otherwise start the tunnel with the chosen tag.
-		status, err := c.VPNStatus()
-		if err != nil {
-			return SendError(fmt.Errorf("get VPN status failed: %w", err))
-		}
-		if status == vpn.Connected {
-			if err := c.SelectServer(tag); err != nil {
-				return SendError(fmt.Errorf("select server failed: %w", err))
-			}
-			return C.CString("ok")
-		}
-
+		// LanternCore.ConnectVPN picks between /vpn/connect and /server/selected
+		// based on VPNStatus — no dispatch needed here.
 		if err := c.ConnectVPN(tag); err != nil {
 			return SendError(fmt.Errorf("start service failed: %w", err))
 		}
-
 		return C.CString("ok")
 	})
 }
