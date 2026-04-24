@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -579,9 +580,23 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	// lantern-core.log and flutter.log live). The daemon-side archive builder
 	// already globs *.log from its OWN logDir, but the UI process's logDir is
 	// different on desktop — without this, flutter.log and lantern-core.log
-	// never make it into the issue bundle. LogDir() returns "" on host
-	// processes that never called SetupLogging (Android), in which case this
-	// is a no-op.
+	// never make it into the issue bundle.
+	//
+	// Cross-user caveat: on Windows the daemon runs as LocalSystem while the
+	// UI runs as the logged-in user; on macOS the System Extension runs with
+	// root-equivalent privileges while the UI runs as the user. We pass file
+	// PATHS over IPC and the daemon reads them on its side, so those paths
+	// have to live in a location the daemon's user can read. That's why the
+	// UI deliberately writes to %PUBLIC%\Lantern\logs and /Users/Shared/
+	// Lantern/Logs — both have default ACLs granting SYSTEM / root read
+	// access regardless of the file's owning user. If we ever move UI logs
+	// into per-user paths (e.g. %LOCALAPPDATA% or ~/Library/Logs), we'll
+	// have to swap this to an in-memory attachment protocol so the UI can
+	// read the bytes before the cross-process handoff.
+	//
+	// LogDir() returns "" on host processes that never called SetupLogging
+	// (Android, where the daemon runs in the same process), in which case
+	// this is a no-op.
 	attachments := collectUILogs(LogDir())
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
@@ -589,9 +604,11 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
 }
 
-// collectUILogs returns every *.log file in dir as absolute paths. Errors
-// and non-existent dirs collapse to nil — the daemon-side archive still
-// captures its own logDir, so the report goes out either way.
+// collectUILogs returns every *.log file in dir as absolute paths that the
+// UI process can stat. Files the UI itself can't read are dropped here —
+// they won't survive the daemon-side read either, and excluding them keeps
+// the issue report from silently ballooning with entries that'll just warn
+// on readExtraFiles.
 func collectUILogs(dir string) []string {
 	if dir == "" {
 		return nil
@@ -601,7 +618,15 @@ func collectUILogs(dir string) []string {
 		slog.Warn("ReportIssue: unable to glob UI logs", "dir", dir, "err", err)
 		return nil
 	}
-	return matches
+	out := matches[:0]
+	for _, p := range matches {
+		if _, err := os.Stat(p); err != nil {
+			slog.Warn("ReportIssue: skipping UI log (unreadable from UI process)", "path", p, "err", err)
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
 }
 
 func parseIssueType(s string) issue.IssueType {
