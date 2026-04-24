@@ -19,21 +19,11 @@ const (
 // MainActivity / iOS VPNManager). It is also reached from Jigar's
 // onSmartLocation rewrite in server_selection.dart via startVPN(force: true)
 // → lantern.startVPN() → Mobile.StartVPN, which expects "switch back to
-// auto" to work on a live tunnel. Dispatch the same way ConnectToServer
-// does: when the tunnel is already up, swap outbounds via /server/selected
-// instead of hitting /vpn/connect (which would 500 with
-// ErrTunnelAlreadyConnected and surface a snackbar error).
+// auto" to work on a live tunnel. Delegate to ConnectToServer so the
+// VPNStatus → /server/selected dispatch handles that case.
 func StartVPN(client *ipc.Client) error {
 	slog.Info("StartVPN called")
-	ctx := context.Background()
-	if status, err := client.VPNStatus(ctx); err == nil && status == vpn.Connected {
-		slog.Debug("VPN is already connected, switching to auto")
-		return client.SelectServer(ctx, vpn.AutoSelectTag)
-	}
-	if err := client.ConnectVPN(ctx, vpn.AutoSelectTag); err != nil {
-		return fmt.Errorf("failed to start VPN: %w", err)
-	}
-	return nil
+	return ConnectToServer(client, vpn.AutoSelectTag)
 }
 
 func StopVPN(client *ipc.Client) error {
