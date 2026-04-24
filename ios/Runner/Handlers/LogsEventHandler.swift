@@ -70,18 +70,3 @@ private class LogEntryListener: NSObject, UtilsLogListenerProtocol {
     onEntry(entry)
   }
 }
-
-enum LogTailer {
-  static func readLastLines(path: String, maxLines: Int) throws -> [String] {
-    let handle = try FileHandle(forReadingFrom: URL(fileURLWithPath: path))
-    defer { try? handle.close() }
-    let fileSize = try handle.seekToEnd()
-    let readSize = min(fileSize, 64 * 1024)
-    try handle.seek(toOffset: fileSize - readSize)
-    let data = try handle.readToEnd() ?? Data()
-    let lines = String(decoding: data, as: UTF8.self)
-      .split(whereSeparator: \.isNewline)
-      .map(String.init)
-    return Array(lines.suffix(maxLines))
-  }
-}

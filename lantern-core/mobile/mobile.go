@@ -16,9 +16,9 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/ipc"
-	rlog "github.com/getlantern/radiance/log"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
+	"github.com/getlantern/lantern/lantern-core/logs"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
@@ -708,14 +708,7 @@ func TailLogs(listener utils.LogListener) (*LogSubscription, error) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				slog.Error("log stream panic", "panic", r)
-			}
-		}()
-		if err := client.TailLogs(ctx, func(entry rlog.LogEntry) {
-			listener.OnLogEntry(string(entry))
-		}); err != nil && ctx.Err() == nil {
+		if err := logs.Subscribe(ctx, client, listener.OnLogEntry); err != nil && ctx.Err() == nil {
 			slog.Debug("log stream exited", "error", err)
 		}
 	}()

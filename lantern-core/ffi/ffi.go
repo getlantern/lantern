@@ -23,10 +23,10 @@ import (
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/apps"
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern/lantern-core/logs"
 	"github.com/getlantern/lantern/lantern-core/utils"
 
 	"github.com/getlantern/radiance/common/settings"
-	rlog "github.com/getlantern/radiance/log"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -484,8 +484,8 @@ func startLogsListener(c lanterncore.Core) {
 					time.Sleep(100 * time.Millisecond)
 					continue
 				}
-				err := c.Client().TailLogs(context.Background(), func(entry rlog.LogEntry) {
-					dart_api_dl.SendToPort(logsPort.Load(), string(entry))
+				err := logs.Subscribe(context.Background(), c.Client(), func(entry string) {
+					dart_api_dl.SendToPort(logsPort.Load(), entry)
 				})
 				if err != nil {
 					slog.Debug("log stream disconnected", "error", err)
