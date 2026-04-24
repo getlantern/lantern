@@ -32,5 +32,17 @@ func StopVPN(client *ipc.Client) error {
 func ConnectToServer(client *ipc.Client, tag string) error {
 	ctx := context.Background()
 	slog.Debug("Connecting to VPN server", "tag", tag)
-	return client.SelectServer(ctx, tag)
+
+	// Switch outbounds on the live tunnel when already connected;
+	// otherwise start the tunnel with the chosen tag.
+	status, err := client.VPNStatus(ctx)
+	if err != nil {
+		return fmt.Errorf("get VPN status failed: %w", err)
+	}
+	if status == vpn.Connected {
+		slog.Debug("VPN is already connected, switching server", "tag", tag)
+		return client.SelectServer(ctx, tag)
+	}
+	slog.Debug("VPN is not connected, starting VPN with selected server", "tag", tag)
+	return client.ConnectVPN(ctx, tag)
 }
