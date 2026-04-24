@@ -399,6 +399,7 @@ class _AttachmentSection extends StatelessWidget {
           onDrop: onDrop,
           enableDesktopDrop: enableDesktopDrop,
           enabled: attachments.length < ReportIssueAttachmentRules.maxCount,
+          compact: attachments.isNotEmpty,
         ),
         const SizedBox(height: 8),
         Text(ReportIssueAttachmentRules.helperText, style: helperStyle),
@@ -421,7 +422,8 @@ class _AttachmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: Key('report_issue.attachment.${attachment.path}'),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: context.bgElevated,
         borderRadius: defaultBorderRadius,
@@ -429,23 +431,22 @@ class _AttachmentTile extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Icon(Icons.image_outlined, color: context.textPrimary),
+          Icon(Icons.image_outlined, color: context.textPrimary, size: 20),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
               children: <Widget>[
-                Text(
-                  ReportIssueAttachmentRules.displayName(attachment),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.textPrimary,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    ReportIssueAttachmentRules.displayName(attachment),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.textPrimary,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(width: 8),
                 Text(
                   ReportIssueAttachmentRules.formatSize(attachment.sizeBytes),
                   style: Theme.of(
@@ -458,6 +459,8 @@ class _AttachmentTile extends StatelessWidget {
           IconButton(
             key: Key('report_issue.remove.${attachment.path}'),
             icon: Icon(Icons.close, color: context.textSecondary),
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            padding: EdgeInsets.zero,
             onPressed: onRemove,
             tooltip:
                 'Remove ${ReportIssueAttachmentRules.displayName(attachment)}',

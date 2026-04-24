@@ -27,6 +27,10 @@ class ReportIssueAttachmentRules {
     'gif': 'image/gif',
   };
 
+  static const Map<String, String> _mimeTypeAliases = <String, String>{
+    'image/jpg': 'image/jpeg',
+  };
+
   static List<String> get allowedExtensions =>
       List<String>.unmodifiable(_mimeTypesByExtension.keys);
 
@@ -73,7 +77,7 @@ class ReportIssueAttachmentRules {
     required String path,
     required String mimeType,
   }) {
-    final normalizedMime = mimeType.trim().toLowerCase();
+    final normalizedMime = _normalizeMimeType(mimeType);
     if (_mimeTypesByExtension.containsValue(normalizedMime)) {
       return normalizedMime;
     }
@@ -123,5 +127,10 @@ class ReportIssueAttachmentRules {
 
   static String _trim(String value) {
     return value.endsWith('.0') ? value.substring(0, value.length - 2) : value;
+  }
+
+  static String _normalizeMimeType(String value) {
+    final normalized = value.split(';').first.trim().toLowerCase();
+    return _mimeTypeAliases[normalized] ?? normalized;
   }
 }

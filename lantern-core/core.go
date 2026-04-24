@@ -504,8 +504,7 @@ func resolveLogDir(logFilePath string) string {
 	return filepath.Dir(p)
 }
 
-// ReportIssue is used to send an issue report via Radiance.
-// We include a few helpful config files plus the main Lantern + Flutter logs when available
+// ReportIssue sends an issue report through Radiance.
 func (lc *LanternCore) ReportIssue(
 	email, issueType, description, device, model, logFilePath, attachmentsJSON string,
 ) error {
@@ -516,7 +515,7 @@ func (lc *LanternCore) ReportIssue(
 		Model:       model,
 	}
 
-	// Attach config files from the Lantern data directory
+	// Attach config files from the Lantern data directory.
 	dataDir := settings.GetString(settings.DataPathKey)
 	configFiles := []string{
 		"config.json",
@@ -548,9 +547,8 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
-	// On IOS flutter.log file should be attached separately
-	// since flutter.log is in a different location due to tunnel running in a different process
-	// On other platforms flutter.log is already included in the main Lantern log file
+	// On iOS, flutter.log lives outside the main Lantern log directory.
+	// Other platforms already include Flutter output in the main Lantern logs.
 	if logFilePath != "" {
 		report.Attachments = append(
 			report.Attachments,
@@ -564,7 +562,6 @@ func (lc *LanternCore) ReportIssue(
 	}
 	report.Attachments = append(report.Attachments, issueAttachments...)
 
-	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}

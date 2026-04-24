@@ -12,6 +12,7 @@ class ReportIssueAttachmentDropzone extends StatefulWidget {
   final Future<void> Function(List<XFile> files)? onDrop;
   final bool enableDesktopDrop;
   final bool enabled;
+  final bool compact;
 
   const ReportIssueAttachmentDropzone({
     super.key,
@@ -20,6 +21,7 @@ class ReportIssueAttachmentDropzone extends StatefulWidget {
     this.onDrop,
     this.enableDesktopDrop = false,
     this.enabled = true,
+    this.compact = false,
   });
 
   @override
@@ -36,6 +38,8 @@ class _ReportIssueAttachmentDropzoneState
     final isEnabled = widget.enabled;
     final child = Semantics(
       button: true,
+      enabled: isEnabled,
+      label: widget.label,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -50,33 +54,24 @@ class _ReportIssueAttachmentDropzoneState
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+              constraints: BoxConstraints(minHeight: widget.compact ? 56 : 112),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: widget.compact ? 14 : 22,
+              ),
               decoration: BoxDecoration(
                 color: _backgroundColor(context, isEnabled),
                 borderRadius: defaultBorderRadius,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(
-                    Icons.add_photo_alternate_outlined,
-                    color: isEnabled
-                        ? context.textPrimary
-                        : context.textDisabled,
-                    size: 28,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    widget.label,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isEnabled
-                          ? context.textPrimary
-                          : context.textDisabled,
-                      fontWeight: FontWeight.w600,
+              child: widget.compact
+                  ? _CompactDropzoneContent(
+                      label: widget.label,
+                      isEnabled: isEnabled,
+                    )
+                  : _EmptyDropzoneContent(
+                      label: widget.label,
+                      isEnabled: isEnabled,
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -117,6 +112,66 @@ class _ReportIssueAttachmentDropzoneState
       return context.borderInputFocus;
     }
     return context.borderInput;
+  }
+}
+
+class _EmptyDropzoneContent extends StatelessWidget {
+  final String label;
+  final bool isEnabled;
+
+  const _EmptyDropzoneContent({required this.label, required this.isEnabled});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = isEnabled ? context.textPrimary : context.textDisabled;
+    final textColor = isEnabled ? context.textTertiary : context.textDisabled;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(Icons.image_outlined, color: iconColor, size: 36),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: textColor),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompactDropzoneContent extends StatelessWidget {
+  final String label;
+  final bool isEnabled;
+
+  const _CompactDropzoneContent({required this.label, required this.isEnabled});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = isEnabled ? context.textPrimary : context.textDisabled;
+    final textColor = isEnabled ? context.textTertiary : context.textDisabled;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(Icons.add, color: iconColor, size: 22),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: textColor),
+          ),
+        ),
+      ],
+    );
   }
 }
 

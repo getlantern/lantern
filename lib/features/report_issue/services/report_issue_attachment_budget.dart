@@ -77,8 +77,7 @@ class PlatformReportIssueAttachmentBudget
 
   Future<int> _archivedLogBytes() async {
     try {
-      // The final payload sends these logs as logs.zip, so we use the raw file
-      // bytes here as a conservative upper bound and keep the form aligned with submit.
+      // Submit compresses these logs as logs.zip. Raw bytes give a conservative estimate.
       final logDirPath = await _logDirectoryResolver();
       final logDir = Directory(logDirPath);
       if (!await logDir.exists()) {

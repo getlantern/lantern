@@ -14,6 +14,7 @@ import 'package:lantern/features/report_issue/report_issue.dart';
 import 'package:lantern/features/report_issue/services/report_issue_attachment_picker.dart';
 import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
 import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
+import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
@@ -184,6 +185,14 @@ void main() {
       expect(
         find.text(ReportIssueAttachmentRules.formatSize(attachment.sizeBytes)),
         findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<ReportIssueAttachmentDropzone>(
+              find.byType(ReportIssueAttachmentDropzone),
+            )
+            .compact,
+        isTrue,
       );
 
       await tester.tap(find.byTooltip('Remove vpn_error.png'));
