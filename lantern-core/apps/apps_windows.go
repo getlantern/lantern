@@ -366,11 +366,17 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	defer wsh.Release()
 
 	var totalShortcuts, droppedUnresolved, droppedSystem, droppedSelf, droppedUtilityOrExcluded, droppedDuplicate int
-	// Per-shortcut sample of the .lnk paths we couldn't resolve to a real
-	// .exe — most useful for diagnosing missing apps (e.g. Squirrel-style
-	// shortcuts whose --processStart fallback we don't yet handle).
-	const maxDroppedSamples = 20
-	var droppedUnresolvedSamples []string
+	// Per-shortcut samples for diagnosing missing apps (e.g. a Squirrel
+	// shortcut that gets caught by isWindowsUtilityApp or an excluded path).
+	// 50-entry cap on unresolved is comfortably bigger than typical scans
+	// (~37 in the wild) so we don't truncate; the filtered buckets are
+	// usually small enough that 20 is plenty.
+	const maxUnresolvedSamples = 50
+	const maxFilteredSamples = 20
+	var (
+		droppedUnresolvedSamples       []string
+		droppedUtilityOrExcludedSample []string
+	)
 	rootsScanned := make([]string, 0, len(startDirs))
 	rootsMissing := make([]string, 0, len(startDirs))
 
@@ -410,7 +416,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			)
 			if targetExe == "" {
 				droppedUnresolved++
-				if len(droppedUnresolvedSamples) < maxDroppedSamples {
+				if len(droppedUnresolvedSamples) < maxUnresolvedSamples {
 					droppedUnresolvedSamples = append(droppedUnresolvedSamples,
 						fmt.Sprintf("%s (name=%q)", p, name))
 				}
@@ -432,6 +438,14 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			}
 			if isExcludedStartMenuShortcutPath(p) || isWindowsUtilityApp(targetExe, name) {
 				droppedUtilityOrExcluded++
+				if len(droppedUtilityOrExcludedSample) < maxFilteredSamples {
+					reason := "utility"
+					if isExcludedStartMenuShortcutPath(p) {
+						reason = "excluded-path"
+					}
+					droppedUtilityOrExcludedSample = append(droppedUtilityOrExcludedSample,
+						fmt.Sprintf("%s → %s (name=%q reason=%s)", p, targetExe, name, reason))
+				}
 				return nil
 			}
 			keyPath := normalizeKey(targetExe)
@@ -484,6 +498,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 		"packageCacheHintsRecovered", recovered,
 		"sampleKept", sampleAppNames(out, 20),
 		"sampleDroppedUnresolved", droppedUnresolvedSamples,
+		"sampleDroppedUtilityOrExcluded", droppedUtilityOrExcludedSample,
 	)
 
 	return out
@@ -571,10 +586,15 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 	var totalEntries, droppedNonUserFacing, droppedNoDisplayName, droppedNoExe,
 		droppedSystem, droppedSelf, droppedUtility, droppedExcluded, droppedDuplicate int
-	// Sample of registry display names dropped because we couldn't resolve
-	// a real .exe path — biggest source of "missing app" reports.
+	// Samples for diagnosing missing apps. NoExe = had a name but couldn't
+	// resolve an exe; NoDisplayName = the much bigger bucket where the
+	// registry entry skipped the DisplayName field entirely (Squirrel apps
+	// like Claude often show up here under their subkey names).
 	const maxRegistryDroppedSamples = 20
-	var droppedNoExeSamples []string
+	var (
+		droppedNoExeSamples         []string
+		droppedNoDisplayNameSamples []string
+	)
 
 	for _, r := range roots {
 		k, err := registry.OpenKey(r.key, r.path, r.flags)
@@ -608,6 +628,10 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			if displayName == "" {
 				// No name usually indicates an app is "not user-facing", so skip
 				droppedNoDisplayName++
+				if len(droppedNoDisplayNameSamples) < maxRegistryDroppedSamples {
+					droppedNoDisplayNameSamples = append(droppedNoDisplayNameSamples,
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", sub, displayIcon, installLoc))
+				}
 				continue
 			}
 
@@ -687,6 +711,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		"droppedDuplicate", droppedDuplicate,
 		"sampleKept", sampleAppNames(out, 20),
 		"sampleDroppedNoExe", droppedNoExeSamples,
+		"sampleDroppedNoDisplayName", droppedNoDisplayNameSamples,
 	)
 
 	return out
