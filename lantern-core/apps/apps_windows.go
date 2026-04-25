@@ -136,6 +136,35 @@ func computeWindowsSystemRoots() []string {
 	}
 }
 
+// isLanternSelfApp filters Lantern itself out of the apps list — there's
+// no point routing Lantern's own traffic through the split-tunnel UI.
+// Matches by exe path under any Lantern install dir AND by basename for
+// the known executables, so portable / non-default install paths still
+// get filtered. See Freshdesk #173827.
+func isLanternSelfApp(exePath, name string) bool {
+	normalizedPath := strings.ToLower(filepath.Clean(strings.Trim(strings.TrimSpace(exePath), `"`)))
+	if normalizedPath != "" {
+		base := strings.TrimSuffix(filepath.Base(normalizedPath), filepath.Ext(normalizedPath))
+		switch base {
+		case "lantern", "lanternsvc", "lanternd":
+			return true
+		}
+		if strings.Contains(normalizedPath, `\program files\lantern\`) ||
+			strings.Contains(normalizedPath, `\program files (x86)\lantern\`) {
+			return true
+		}
+	}
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "lantern", "lantern desktop", "lantern vpn":
+		return true
+	}
+	// Match the registry's verbose DisplayName ("Lantern version X.Y.Z+N").
+	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(name)), "lantern version ") {
+		return true
+	}
+	return false
+}
+
 func isWindowsSystemApp(exePath, name string) bool {
 	normalizedPath := normalizeKey(strings.Trim(strings.TrimSpace(exePath), `"`))
 	if normalizedPath != "" {
@@ -336,7 +365,12 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	}
 	defer wsh.Release()
 
-	var totalShortcuts, droppedUnresolved, droppedSystem, droppedUtilityOrExcluded, droppedDuplicate int
+	var totalShortcuts, droppedUnresolved, droppedSystem, droppedSelf, droppedUtilityOrExcluded, droppedDuplicate int
+	// Per-shortcut sample of the .lnk paths we couldn't resolve to a real
+	// .exe — most useful for diagnosing missing apps (e.g. Squirrel-style
+	// shortcuts whose --processStart fallback we don't yet handle).
+	const maxDroppedSamples = 20
+	var droppedUnresolvedSamples []string
 	rootsScanned := make([]string, 0, len(startDirs))
 	rootsMissing := make([]string, 0, len(startDirs))
 
@@ -376,6 +410,10 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			)
 			if targetExe == "" {
 				droppedUnresolved++
+				if len(droppedUnresolvedSamples) < maxDroppedSamples {
+					droppedUnresolvedSamples = append(droppedUnresolvedSamples,
+						fmt.Sprintf("%s (name=%q)", p, name))
+				}
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
@@ -386,6 +424,10 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
+				return nil
+			}
+			if isLanternSelfApp(targetExe, name) {
+				droppedSelf++
 				return nil
 			}
 			if isExcludedStartMenuShortcutPath(p) || isWindowsUtilityApp(targetExe, name) {
@@ -436,10 +478,12 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 		"kept", len(out),
 		"droppedUnresolved", droppedUnresolved,
 		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
 		"droppedUtilityOrExcluded", droppedUtilityOrExcluded,
 		"droppedDuplicate", droppedDuplicate,
 		"packageCacheHintsRecovered", recovered,
 		"sampleKept", sampleAppNames(out, 20),
+		"sampleDroppedUnresolved", droppedUnresolvedSamples,
 	)
 
 	return out
@@ -526,7 +570,11 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 	}
 
 	var totalEntries, droppedNonUserFacing, droppedNoDisplayName, droppedNoExe,
-		droppedSystem, droppedUtility, droppedExcluded, droppedDuplicate int
+		droppedSystem, droppedSelf, droppedUtility, droppedExcluded, droppedDuplicate int
+	// Sample of registry display names dropped because we couldn't resolve
+	// a real .exe path — biggest source of "missing app" reports.
+	const maxRegistryDroppedSamples = 20
+	var droppedNoExeSamples []string
 
 	for _, r := range roots {
 		k, err := registry.OpenKey(r.key, r.path, r.flags)
@@ -566,15 +614,27 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			exePath := pickExePath(displayIcon, installLoc)
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
 				droppedNoExe++
+				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
+					droppedNoExeSamples = append(droppedNoExeSamples,
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", displayName, displayIcon, installLoc))
+				}
 				continue
 			}
 			exePath = resolveWrappedExecutable(exePath, displayName)
 			if exePath == "" {
 				droppedNoExe++
+				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
+					droppedNoExeSamples = append(droppedNoExeSamples,
+						fmt.Sprintf("%s (wrapped resolve failed for %q)", displayName, displayIcon))
+				}
 				continue
 			}
 			if isWindowsSystemApp(exePath, displayName) {
 				droppedSystem++
+				continue
+			}
+			if isLanternSelfApp(exePath, displayName) {
+				droppedSelf++
 				continue
 			}
 			if isWindowsUtilityApp(exePath, displayName) {
@@ -621,10 +681,12 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		"droppedNoDisplayName", droppedNoDisplayName,
 		"droppedNoExe", droppedNoExe,
 		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
 		"droppedUtility", droppedUtility,
 		"droppedExcluded", droppedExcluded,
 		"droppedDuplicate", droppedDuplicate,
 		"sampleKept", sampleAppNames(out, 20),
+		"sampleDroppedNoExe", droppedNoExeSamples,
 	)
 
 	return out

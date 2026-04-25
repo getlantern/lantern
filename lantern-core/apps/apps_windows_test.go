@@ -196,6 +196,31 @@ func TestIsWindowsUtilityApp(t *testing.T) {
 	}
 }
 
+func TestIsLanternSelfApp(t *testing.T) {
+	tests := []struct {
+		name    string
+		exePath string
+		appName string
+		want    bool
+	}{
+		{name: "lantern.exe under Program Files", exePath: `C:\Program Files\Lantern\lantern.exe`, appName: "Lantern", want: true},
+		{name: "lanternsvc.exe under Program Files", exePath: `C:\Program Files\Lantern\LanternSvc.exe`, appName: "Lantern version 9.0.30+501", want: true},
+		{name: "lantern in Program Files (x86)", exePath: `C:\Program Files (x86)\Lantern\lantern.exe`, appName: "", want: true},
+		{name: "name-only lantern", exePath: "", appName: "Lantern", want: true},
+		{name: "registry display name", exePath: "", appName: "Lantern version 9.0.30+501", want: true},
+		{name: "Claude not lantern", exePath: `C:\Users\user\AppData\Local\AnthropicClaude\Claude.exe`, appName: "Claude", want: false},
+		{name: "Chrome not lantern", exePath: `C:\Program Files\Google\Chrome\Application\chrome.exe`, appName: "Google Chrome", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isLanternSelfApp(tt.exePath, tt.appName); got != tt.want {
+				t.Fatalf("isLanternSelfApp(%q, %q) = %v, want %v", tt.exePath, tt.appName, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestResolveWrappedExecutable(t *testing.T) {
 	t.Run("returns original path when executable is not wrapper", func(t *testing.T) {
 		dir := t.TempDir()
