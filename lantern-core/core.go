@@ -190,11 +190,15 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
-	// Wires up slog → <LogDir>/lantern.log, settings, and the crash
-	// reporter. Idempotent, so Android (where the daemon already ran it
-	// in-process) no-ops.
-	if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
-		return fmt.Errorf("common.Init: %w", err)
+	// Only Windows and Linux have a separate UI process that lacks slog /
+	// settings setup. On Android the daemon shares the process and already
+	// called common.Init; on iOS / macOS the tunnel extension shares the
+	// logDir with the main app, so a second common.Init here would put
+	// two lumberjack writers on the same lantern.log file (rotation race).
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+			return fmt.Errorf("common.Init: %w", err)
+		}
 	}
 	slog.Debug("Starting LanternCore initialization")
 
