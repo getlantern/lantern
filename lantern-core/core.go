@@ -190,6 +190,9 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	// Wire up slog for the host process. Android is the only platform where
+	// the daemon shares the process, so its common.Init has already run and
+	// we'd collide if we called again here.
 	switch runtime.GOOS {
 	case "windows", "linux":
 		// Separate UI process with its own logDir — full common.Init sets
@@ -202,7 +205,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		// called common.Init from its own process). Use a distinct log
 		// file so the two lumberjacks aren't racing on rotation.
 		setupAppLogging(opts.LogDir, opts.LogLevel)
-		// android: daemon runs in-process and has already called common.Init.
 	}
 	slog.Debug("Starting LanternCore initialization")
 
