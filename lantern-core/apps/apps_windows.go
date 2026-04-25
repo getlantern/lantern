@@ -311,10 +311,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	if err := ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED); err != nil {
 		// If COM is already initialized in a different mode, we can often still proceed
 		if !isRPCChangedMode(err) {
-			// Bail out of the Start Menu scanner entirely on unexpected COM
-			// init failures. Warn (not Debug) so this surfaces in UI logs
-			// when the apps list is empty — the caller falls back to the
-			// Uninstall registry scan, which may or may not cover the gap.
+			// Warn (not Debug) so an empty apps list surfaces the root cause.
 			slog.Warn("CoInitializeEx failed, skipping Start Menu app scan", "err", err)
 			return out
 		}
@@ -339,7 +336,6 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	}
 	defer wsh.Release()
 
-	// Per-filter tallies — see engineering#3335.
 	var totalShortcuts, droppedUnresolved, droppedSystem, droppedUtilityOrExcluded, droppedDuplicate int
 	rootsScanned := make([]string, 0, len(startDirs))
 	rootsMissing := make([]string, 0, len(startDirs))
@@ -449,10 +445,8 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	return out
 }
 
-// sampleAppNames returns up to n "name (path)" strings from apps for inclusion
-// as a slog attribute. Slog renders slice attrs as a single field, so this
-// keeps a representative sample with the rest of the scan summary on one line
-// while bounding output size.
+// sampleAppNames returns up to n "name (path)" strings, for use as a slog
+// slice attribute on scan summaries.
 func sampleAppNames(apps []*AppData, n int) []string {
 	if n > len(apps) {
 		n = len(apps)
@@ -531,8 +525,6 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		{registry.CURRENT_USER, uninstallPath, registry.READ | registry.WOW64_32KEY},
 	}
 
-	// Per-filter tallies so an empty result set tells us exactly which
-	// filter removed the apps — see engineering#3335.
 	var totalEntries, droppedNonUserFacing, droppedNoDisplayName, droppedNoExe,
 		droppedSystem, droppedUtility, droppedExcluded, droppedDuplicate int
 
@@ -686,9 +678,7 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 	if value, _, err := sk.GetStringValue("ReleaseType"); err == nil {
 		metadata.releaseType = strings.TrimSpace(value)
 	}
-	// ParentKeyName intentionally not read. See isNonUserFacingUninstallEntry
-	// for the rationale — a non-empty value is not a reliable "non-user-facing"
-	// signal, so there's no point paying the registry I/O.
+	// ParentKeyName intentionally not read — see isNonUserFacingUninstallEntry.
 
 	return metadata
 }
@@ -700,13 +690,11 @@ func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 	if metadata.noDisplaySet && metadata.noDisplay != 0 {
 		return true
 	}
-	// ParentKeyName intentionally NOT filtered. It only means the entry is a
-	// sub-component of another installer package — plenty of legitimate
-	// end-user apps set it (Squirrel-installed apps like Slack / Discord /
-	// GitHub Desktop / VS Code Insiders, winget-managed packages, MSI
-	// bundles with chained sub-components). SystemComponent=1 and
-	// NoDisplay=1 are the Windows-documented signals for non-user-facing
-	// entries; that's enough. See Freshdesk #173774 and engineering#3335.
+	// ParentKeyName is NOT a reliable "non-user-facing" signal — Squirrel
+	// apps (Slack, Discord, VS Code Insiders), winget packages, and MSI
+	// bundle children all set it on legitimate user apps. SystemComponent=1
+	// and NoDisplay=1 are the documented signals; that's enough.
+	// See Freshdesk #173774 / engineering#3335.
 	if metadata.releaseType != "" {
 		releaseType := strings.ToLower(metadata.releaseType)
 		if strings.Contains(releaseType, "update") ||

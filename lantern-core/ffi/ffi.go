@@ -116,9 +116,6 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 	appDataDir = dataDir
 	locale := C.GoString(_locale)
 	env := C.GoString(_env)
-	// lanterncore.New now calls common.Init internally, which wires up
-	// slog → <logDir>/lantern.log, seeds settings, and installs the crash
-	// reporter. No separate setup needed here.
 	return runOnGoStack(func() *C.char {
 		core, err := lanterncore.New(&utils.Opts{
 			LogDir:           logDir,
@@ -339,14 +336,6 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 		if errStr != nil {
 			return errStr
 		}
-		// NOTE: auto-attaching every *.log from the UI logDir (where
-		// lantern-core.log and flutter.log live) is deferred until
-		// https://github.com/getlantern/lantern/pull/8704 (screenshot
-		// attachments) lands on main and propagates to this branch. That
-		// PR adds an attachmentsJSON parameter with a ReportIssueAttachment
-		// struct — once we have it here we'll append the UI log paths via
-		// that same mechanism. For now users must grab lantern-core.log by
-		// hand from <UI logDir>.
 		if err := c.ReportIssue(email, issueType, desc, device, model, logPath); err != nil {
 			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
 		}
