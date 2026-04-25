@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -582,12 +583,15 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 
 func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	it := parseIssueType(issueType)
-	// Daemon's archive builder only globs its own logDir, so on desktop
-	// the UI-process logs need to be passed through explicitly. Paths
-	// (not bytes) — relies on the UI logDir being readable by the
-	// daemon's user (SYSTEM on Windows, root on macOS); %PUBLIC%\Lantern
-	// and /Users/Shared are chosen for exactly that.
-	attachments := collectLocalLogs(settings.GetString(settings.LogPathKey))
+	var attachments []string
+	// Windows + Linux have separate UI and daemon logDirs, so the daemon's
+	// own archive glob misses UI-process logs — pass them through as paths.
+	// Mobile + macOS already share the directory; no pass-through needed.
+	// Relies on the UI logDir being readable by the daemon (SYSTEM on
+	// Windows); %PUBLIC%\Lantern\logs is chosen for that.
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		attachments = collectLocalLogs(settings.GetString(settings.LogPathKey))
+	}
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
