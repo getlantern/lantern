@@ -575,8 +575,12 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Return all process-based items as enabled apps
-	var enabledApps []string
+	// Initialize as empty slice so json.Marshal emits "[]" rather than
+	// "null" when no items are enabled — Dart's jsonDecode("null") returns
+	// null and the receiver does `as List`, which throws. Was the actual
+	// cause of "Failed to fetch installed apps" empty list in
+	// Freshdesk #173774 / #173778 / #173826.
+	enabledApps := []string{}
 	enabledApps = append(enabledApps, filter.ProcessPath...)
 	enabledApps = append(enabledApps, filter.ProcessPathRegex...)
 	enabledApps = append(enabledApps, filter.PackageName...)
