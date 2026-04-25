@@ -202,7 +202,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		// called common.Init from its own process). Use a distinct log
 		// file so the two lumberjacks aren't racing on rotation.
 		setupAppLogging(opts.LogDir, opts.LogLevel)
-	// android: daemon runs in-process and has already called common.Init.
+		// android: daemon runs in-process and has already called common.Init.
 	}
 	slog.Debug("Starting LanternCore initialization")
 
