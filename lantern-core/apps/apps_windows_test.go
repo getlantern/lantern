@@ -643,3 +643,74 @@ func TestResolvePackageCacheExecutable(t *testing.T) {
 		}
 	})
 }
+
+func TestDeriveRunDisplayName(t *testing.T) {
+	tests := []struct {
+		valueName string
+		headExe   string
+		want      string
+	}{
+		{"com.squirrel.Slack.Slack", `C:\Users\u\AppData\Local\slack\Update.exe`, "Slack"},
+		{"com.squirrel.AnthropicClaude.Claude", `C:\Users\u\AppData\Local\AnthropicClaude\Update.exe`, "Claude"},
+		{"OneDrive", `C:\Users\u\AppData\Local\Microsoft\OneDrive\OneDrive.exe`, "OneDrive"},
+		{"", `C:\Foo\bar.exe`, "bar"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.valueName, func(t *testing.T) {
+			if got := deriveRunDisplayName(tt.valueName, tt.headExe); got != tt.want {
+				t.Fatalf("deriveRunDisplayName(%q, %q) = %q, want %q", tt.valueName, tt.headExe, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFindSquirrelAppExe(t *testing.T) {
+	t.Run("sibling exe at appdir root", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "Slack")
+		exe := filepath.Join(appDir, "Slack.exe")
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(exe, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if got := findSquirrelAppExe(appDir, "Slack"); got != exe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, exe)
+		}
+	})
+
+	t.Run("inside app-X.Y.Z subdir", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "AnthropicClaude")
+		exe := filepath.Join(appDir, "app-1.2.3", "Claude.exe")
+		if err := os.MkdirAll(filepath.Dir(exe), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(exe, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if got := findSquirrelAppExe(appDir, "Claude"); got != exe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, exe)
+		}
+	})
+
+	t.Run("falls back to non-update exe when name doesn't match dir", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "AnthropicClaude")
+		updateExe := filepath.Join(appDir, "Update.exe")
+		realExe := filepath.Join(appDir, "Claude.exe")
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		for _, p := range []string{updateExe, realExe} {
+			if err := os.WriteFile(p, nil, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		// dir name is "AnthropicClaude" but exe is "Claude.exe" — fallback path
+		if got := findSquirrelAppExe(appDir, "AnthropicClaude"); got != realExe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, realExe)
+		}
+	})
+}
