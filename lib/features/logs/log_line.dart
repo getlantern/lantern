@@ -40,8 +40,9 @@ class _LogLineWidgetState extends State<LogLineWidget> {
       );
     }
 
-    final levelColor = getLevelColor(parsed.level);
-    final pkgColor = colorForId(parsed.pkg);
+    final brightness = Theme.of(context).brightness;
+    final levelColor = getLevelColor(parsed.level, brightness);
+    final pkgColor = colorForId(parsed.pkg, brightness);
 
     return RichText(
       text: TextSpan(
@@ -60,7 +61,7 @@ class _LogLineWidgetState extends State<LogLineWidget> {
           ),
           TextSpan(
             text: parsed.message,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: context.textPrimary),
           ),
         ],
       ),

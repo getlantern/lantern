@@ -28,27 +28,29 @@ ParsedLog? parseLogLine(String line) {
   return ParsedLog(level, pkg, fields['duration'], msg);
 }
 
-Color getLevelColor(String level) {
+Color getLevelColor(String level, Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
   switch (level.toUpperCase()) {
     case 'DEBUG':
     case 'TRACE':
-      return Colors.grey.shade400;
+      return isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     case 'INFO':
-      return Colors.cyan;
+      return isDark ? Colors.cyan.shade300 : Colors.cyan.shade700;
     case 'WARN':
     case 'WARNING':
-      return Colors.orange;
+      return isDark ? Colors.orange.shade300 : Colors.orange.shade800;
     case 'ERROR':
     case 'FATAL':
     case 'PANIC':
-      return Colors.redAccent;
+      return isDark ? Colors.redAccent.shade100 : Colors.red.shade700;
     default:
-      return Colors.white;
+      return isDark ? Colors.white : Colors.black87;
   }
 }
 
-Color colorForId(String id) {
+Color colorForId(String id, Brightness brightness) {
   final hash = int.tryParse(id) ?? id.hashCode;
   final colorIndex = hash % Colors.primaries.length;
-  return Colors.primaries[colorIndex].shade300;
+  final swatch = Colors.primaries[colorIndex];
+  return brightness == Brightness.dark ? swatch.shade300 : swatch.shade700;
 }
