@@ -30,8 +30,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   late final TextEditingController _emailController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _issueTypeController;
-  late final FocusNode _issueTypeFocusNode;
 
   String? _selectedIssue;
 
@@ -62,12 +60,9 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     _emailController = TextEditingController(text: draft.email);
     _descriptionController = TextEditingController(text: seededDescription);
-    _issueTypeController = TextEditingController(text: _selectedIssue ?? '');
-    _issueTypeFocusNode = FocusNode();
 
     _emailController.addListener(_syncEmailDraft);
     _descriptionController.addListener(_syncDescriptionDraft);
-    _issueTypeController.addListener(_syncIssueSelection);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
@@ -87,10 +82,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     _descriptionController
       ..removeListener(_syncDescriptionDraft)
       ..dispose();
-    _issueTypeController
-      ..removeListener(_syncIssueSelection)
-      ..dispose();
-    _issueTypeFocusNode.dispose();
     super.dispose();
   }
 
@@ -125,8 +116,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               const SizedBox(height: 16),
               _IssueTypeField(
                 fieldKey: _issueTypeFieldKey,
-                controller: _issueTypeController,
-                focusNode: _issueTypeFocusNode,
                 options: issueOptions,
                 selectedIssue: _selectedIssue,
                 onSelected: _setSelectedIssue,
@@ -194,15 +183,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     ref
         .read(reportIssueDraftProvider.notifier)
         .setDescription(_descriptionController.text);
-  }
-
-  void _syncIssueSelection() {
-    if (_selectedIssue == null || _issueTypeController.text == _selectedIssue) {
-      return;
-    }
-
-    _issueTypeFieldKey.currentState?.didChange(null);
-    _setSelectedIssue(null);
   }
 
   void _setSelectedIssue(String? issueType) {
@@ -289,7 +269,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     _formKey.currentState?.reset();
     _emailController.clear();
     _descriptionController.clear();
-    _issueTypeController.clear();
     _issueTypeFieldKey.currentState?.didChange(null);
 
     setState(() {
@@ -473,16 +452,12 @@ class _AttachmentTile extends StatelessWidget {
 
 class _IssueTypeField extends StatelessWidget {
   final GlobalKey<FormFieldState<String>> fieldKey;
-  final TextEditingController controller;
-  final FocusNode focusNode;
   final List<String> options;
   final String? selectedIssue;
   final ValueChanged<String?> onSelected;
 
   const _IssueTypeField({
     required this.fieldKey,
-    required this.controller,
-    required this.focusNode,
     required this.options,
     required this.selectedIssue,
     required this.onSelected,
@@ -503,49 +478,41 @@ class _IssueTypeField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return DropdownMenuFormField<String>(
-              key: fieldKey,
-              controller: controller,
-              focusNode: focusNode,
-              width: constraints.maxWidth,
-              menuHeight: 320,
-              initialSelection: selectedIssue,
-              requestFocusOnTap: true,
-              enableFilter: true,
-              enableSearch: true,
-              textInputAction: TextInputAction.next,
-              textStyle: textTheme.bodyMedium?.copyWith(
-                color: context.textPrimary,
+        DropdownButtonFormField<String>(
+          key: fieldKey,
+          initialValue: selectedIssue,
+          isExpanded: true,
+          menuMaxHeight: 320,
+          style: textTheme.bodyMedium?.copyWith(color: context.textPrimary),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: context.textPrimary,
+          ),
+          hint: const SizedBox.shrink(),
+          decoration: InputDecoration(
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Align(
+                alignment: Alignment.center,
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Icon(Icons.error_outline, color: context.textPrimary),
               ),
-              leadingIcon: Icon(
-                Icons.error_outline,
-                color: context.textPrimary,
-              ),
-              trailingIcon: Icon(
-                Icons.arrow_drop_down,
-                color: context.textPrimary,
-              ),
-              selectedTrailingIcon: Icon(
-                Icons.arrow_drop_up,
-                color: context.textPrimary,
-              ),
-              dropdownMenuEntries: options
-                  .map(
-                    (issue) =>
-                        DropdownMenuEntry<String>(value: issue, label: issue),
-                  )
-                  .toList(),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'please_select_an_issue'.i18n;
-                }
-                return null;
-              },
-              onSelected: onSelected,
-            );
+            ),
+          ),
+          items: options
+              .map(
+                (issue) =>
+                    DropdownMenuItem<String>(value: issue, child: Text(issue)),
+              )
+              .toList(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'please_select_an_issue'.i18n;
+            }
+            return null;
           },
+          onChanged: onSelected,
         ),
       ],
     );
