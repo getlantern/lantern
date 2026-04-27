@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -86,6 +87,31 @@ func getClient() (*ipc.Client, error) {
 		return nil, err
 	}
 	return core.Client(), nil
+}
+
+// SetQAEnvOverrides sets process environment variables that radiance reads
+// at init time, before SetupRadiance / StartIPCServer / StartVPN is called.
+// Used by QA / dev builds to point radiance at an upstream SOCKS5 (typically
+// the local pinger bridge running on the host) and to spoof the timezone so
+// the API treats the client as being in the corresponding country.
+//
+// Empty values are ignored — pass empty strings for any override you don't
+// want to apply. Must be called before any other Mobile.* function that
+// touches radiance to take effect.
+func SetQAEnvOverrides(outboundSocks, tz string) error {
+	if outboundSocks != "" {
+		if err := os.Setenv("RADIANCE_OUTBOUND_SOCKS_ADDRESS", outboundSocks); err != nil {
+			return fmt.Errorf("setenv RADIANCE_OUTBOUND_SOCKS_ADDRESS: %w", err)
+		}
+		slog.Info("QA: set RADIANCE_OUTBOUND_SOCKS_ADDRESS", "value", outboundSocks)
+	}
+	if tz != "" {
+		if err := os.Setenv("TZ", tz); err != nil {
+			return fmt.Errorf("setenv TZ: %w", err)
+		}
+		slog.Info("QA: set TZ", "value", tz)
+	}
+	return nil
 }
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
