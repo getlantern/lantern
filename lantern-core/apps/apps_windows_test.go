@@ -714,3 +714,46 @@ func TestFindSquirrelAppExe(t *testing.T) {
 		}
 	})
 }
+
+func TestIsAppPathsNoise(t *testing.T) {
+	tests := []struct {
+		name        string
+		exePath     string
+		displayName string
+		want        bool
+	}{
+		// System / vestigial paths.
+		{"Internet Explorer relic", `C:\Program Files\Internet Explorer\IEXPLORE.EXE`, "IEXPLORE", true},
+		{"IE diag tool", `C:\Program Files\Internet Explorer\IEDIAGCMD.EXE`, "IEDIAG", true},
+		{"Windows Mail wab", `C:\Program Files\Windows Mail\wab.exe`, "wab", true},
+		{"Common Files microsoft shared TabTip", `C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe`, "TabTip", true},
+		// Office helpers (non-primary exes).
+		{"Office sdxhelper", `C:\Program Files\Microsoft Office\Root\Office16\SDXHelper.exe`, "sdxhelper", true},
+		{"Office msoadfsb", `C:\Program Files\Microsoft Office\Root\Office16\msoadfsb.exe`, "msoadfsb", true},
+		{"Office SkypeServer", `C:\Program Files\Microsoft Office\Root\Office16\SkypeSrv\SKYPESERVER.EXE`, "SKYPESERVER", true},
+		// Office primary apps stay (Start Menu also picks them up; this branch
+		// just ensures App Paths doesn't drop them as Office Root noise).
+		{"Office Word kept", `C:\Program Files\Microsoft Office\Root\Office16\WINWORD.EXE`, "winword", false},
+		{"Office Excel kept", `C:\Program Files\Microsoft Office\Root\Office16\EXCEL.EXE`, "excel", false},
+		// UWP helper-named exes.
+		{"1Password helper BrowserSupport", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password-BrowserSupport.exe`, "1Password-BrowserSupport", true},
+		{"1Password helper LastPass-Exporter", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password-LastPass-Exporter.exe`, "1Password-LastPass-Exporter", true},
+		{"op-ssh-sign-wsl", `C:\Program Files\WindowsApps\Agilebits.1Password_x\op-ssh-sign-wsl.exe`, "op-ssh-sign-wsl", true},
+		{"ms-teamsupdate", `C:\Program Files\WindowsApps\MSTeams_x\ms-teamsupdate.exe`, "ms-teamsupdate", true},
+		// UWP primary apps kept.
+		{"1Password kept", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password.exe`, "1Password", false},
+		{"ms-teams kept", `C:\Program Files\WindowsApps\MSTeams_x\ms-teams.exe`, "ms-teams", false},
+		{"mspaint kept", `C:\Program Files\WindowsApps\Microsoft.Paint_x\PaintApp\mspaint.exe`, "mspaint", false},
+		{"notepad kept", `C:\Program Files\WindowsApps\Microsoft.WindowsNotepad_x\Notepad\Notepad.exe`, "notepad", false},
+		{"olk kept", `C:\Program Files\WindowsApps\Microsoft.OutlookForWindows_x\olk.exe`, "olk", false},
+		// Third-party app stays.
+		{"Chrome kept", `C:\Program Files\Google\Chrome\Application\chrome.exe`, "chrome", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isAppPathsNoise(tt.exePath, tt.displayName); got != tt.want {
+				t.Fatalf("isAppPathsNoise(%q, %q) = %v, want %v", tt.exePath, tt.displayName, got, tt.want)
+			}
+		})
+	}
+}

@@ -757,7 +757,7 @@ func collectAppsFromAppPaths(seen map[string]bool, cb Callback) []*AppData {
 	}
 
 	var out []*AppData
-	var scanned, kept, droppedNoPath, droppedSystem, droppedSelf, droppedUtility, droppedDuplicate int
+	var scanned, kept, droppedNoPath, droppedSystem, droppedSelf, droppedUtility, droppedNoise, droppedDuplicate int
 
 	for _, r := range roots {
 		k, err := registry.OpenKey(r.root, appPathsKey, r.flags)
@@ -801,6 +801,14 @@ func collectAppsFromAppPaths(seen map[string]bool, cb Callback) []*AppData {
 				droppedUtility++
 				continue
 			}
+			if isLikelySystemDisplayName(displayName) {
+				droppedSystem++
+				continue
+			}
+			if isAppPathsNoise(exePath, displayName) {
+				droppedNoise++
+				continue
+			}
 
 			key := normalizeKey(exePath)
 			if seen[key] {
@@ -830,10 +838,100 @@ func collectAppsFromAppPaths(seen map[string]bool, cb Callback) []*AppData {
 		"droppedSystem", droppedSystem,
 		"droppedSelf", droppedSelf,
 		"droppedUtility", droppedUtility,
+		"droppedNoise", droppedNoise,
 		"droppedDuplicate", droppedDuplicate,
 		"sampleKept", sampleAppNames(out, 20),
 	)
 	return out
+}
+
+// isAppPathsNoise filters App Paths-specific noise that escapes the
+// generic system / utility filters. App Paths is heavily polluted by
+// Microsoft-bundled tooling (IE relics, Office helpers, vestigial Mail
+// + tablet apps) and by UWP packages that register helper exes alongside
+// their main app. We keep those filters local to this scanner so they
+// can be aggressive without affecting Start Menu / Uninstall scans.
+//
+// Rules:
+//   - Drop entries under known system / vestigial paths.
+//   - Drop entries under \Microsoft Office\ unless the basename is a
+//     primary Office product exe (those normally arrive via Start Menu;
+//     anything else here is a background tool).
+//   - Drop helper-named basenames (containing "update", "helper",
+//     "browsersupport", etc.) anywhere in the path.
+func isAppPathsNoise(exePath, displayName string) bool {
+	norm := strings.ToLower(filepath.Clean(strings.Trim(strings.TrimSpace(exePath), `"`)))
+	if norm == "" {
+		return false
+	}
+
+	systemPaths := []string{
+		`\program files\internet explorer\`,
+		`\program files (x86)\internet explorer\`,
+		`\program files\windows mail\`,
+		`\program files (x86)\windows mail\`,
+		`\program files\windows nt\`,
+		`\program files (x86)\windows nt\`,
+		`\program files\windows defender\`,
+		`\program files (x86)\windows defender\`,
+		`\common files\microsoft shared\`,
+		`\common files\microsoft.net\`,
+	}
+	for _, p := range systemPaths {
+		if strings.Contains(norm, p) {
+			return true
+		}
+	}
+
+	// Office Root: drop everything except the primary product exes
+	// (those also come via Start Menu, so duplicates hit dedup).
+	if strings.Contains(norm, `\microsoft office\`) {
+		primaryOfficeExes := map[string]bool{
+			"winword.exe":  true,
+			"excel.exe":    true,
+			"powerpnt.exe": true,
+			"outlook.exe":  true,
+			"msaccess.exe": true,
+			"mspub.exe":    true,
+			"onenote.exe":  true,
+			"lync.exe":     true,
+			"groove.exe":   true,
+			"visio.exe":    true,
+			"winproj.exe":  true,
+		}
+		if !primaryOfficeExes[strings.ToLower(filepath.Base(norm))] {
+			return true
+		}
+	}
+
+	// Helper-named basenames. Substring match (case-insensitive, after
+	// stripping non-alnum) so "ms-teamsupdate" → "msteamsupdate" matches
+	// "update", and "1Password-BrowserSupport" → "1passwordbrowsersupport"
+	// matches "browsersupport".
+	base := normalizeExecutableHint(filepath.Base(norm))
+	helperHints := []string{
+		"browsersupport",
+		"lastpassexporter",
+		"sshsign",
+		"sshagent",
+		"updater",
+		"helper",
+		"diagnostic",
+		"diagcmd",
+	}
+	for _, h := range helperHints {
+		if strings.Contains(base, h) {
+			return true
+		}
+	}
+	// Suffix-only check for words too generic to substring-match safely.
+	for _, suffix := range []string{"update", "service", "agent", "sync", "broker"} {
+		if strings.HasSuffix(base, suffix) && base != suffix {
+			return true
+		}
+	}
+
+	return false
 }
 
 // collectAppsFromRunRegistry reads HKLM\...\Run and HKCU\...\Run. Apps that
