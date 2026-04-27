@@ -31,6 +31,11 @@ type FlutterEventEmitter interface {
 	SendEvent(event *FlutterEvent)
 }
 
+// LogListener receives log entries streamed from the IPC client.
+type LogListener interface {
+	OnLogEntry(entry string)
+}
+
 type PlatformInterface interface {
 	libbox.PlatformInterface
 	RestartService() error

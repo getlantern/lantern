@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/radiance/ipc"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
+	"github.com/getlantern/lantern/lantern-core/logs"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
@@ -679,4 +680,37 @@ func GetSplitTunnelStateJSON() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.GetSplitTunnelItems()
 	})
+}
+
+// LogSubscription holds the cancellation handle for a TailLogs stream. Call
+// Cancel to stop receiving log entries.
+type LogSubscription struct {
+	cancel context.CancelFunc
+}
+
+func (s *LogSubscription) Cancel() {
+	if s == nil || s.cancel == nil {
+		return
+	}
+	s.cancel()
+	s.cancel = nil
+}
+
+// TailLogs streams log entries to the provided listener until the returned
+// subscription is cancelled.
+func TailLogs(listener utils.LogListener) (*LogSubscription, error) {
+	if listener == nil {
+		return nil, errors.New("log listener is required")
+	}
+	client, err := getClient()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		if err := logs.Subscribe(ctx, client, listener.OnLogEntry); err != nil && ctx.Err() == nil {
+			slog.Debug("log stream exited", "error", err)
+		}
+	}()
+	return &LogSubscription{cancel: cancel}, nil
 }
