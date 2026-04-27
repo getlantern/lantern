@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	_ "golang.org/x/mobile/bind"
 
@@ -212,7 +213,9 @@ func StartVPN() error {
 		if err != nil {
 			return struct{}{}, err
 		}
-		if err := vpn_tunnel.StartVPN(client); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		if err := vpn_tunnel.StartVPN(ctx, client); err != nil {
 			return struct{}{}, err
 		}
 		return struct{}{}, nil
@@ -227,7 +230,9 @@ func StopVPN() error {
 		if err != nil {
 			return struct{}{}, err
 		}
-		if err := vpn_tunnel.StopVPN(client); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := vpn_tunnel.StopVPN(ctx, client); err != nil {
 			return struct{}{}, err
 		}
 		return struct{}{}, nil
@@ -305,7 +310,9 @@ func ConnectToServer(tag string) error {
 		if err != nil {
 			return struct{}{}, err
 		}
-		if err := vpn_tunnel.ConnectToServer(client, tag); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		if err := vpn_tunnel.ConnectToServer(ctx, client, tag); err != nil {
 			return struct{}{}, err
 		}
 		return struct{}{}, nil

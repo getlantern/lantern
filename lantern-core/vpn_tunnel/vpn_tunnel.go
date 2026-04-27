@@ -21,13 +21,12 @@ const (
 // → lantern.startVPN() → Mobile.StartVPN, which expects "switch back to
 // auto" to work on a live tunnel. Delegate to ConnectToServer so the
 // VPNStatus → /server/selected dispatch handles that case.
-func StartVPN(client *ipc.Client) error {
+func StartVPN(ctx context.Context, client *ipc.Client) error {
 	slog.Info("StartVPN called")
-	return ConnectToServer(client, vpn.AutoSelectTag)
+	return ConnectToServer(ctx, client, vpn.AutoSelectTag)
 }
 
-func StopVPN(client *ipc.Client) error {
-	ctx := context.Background()
+func StopVPN(ctx context.Context, client *ipc.Client) error {
 	return client.DisconnectVPN(ctx)
 }
 
@@ -35,8 +34,12 @@ func StopVPN(client *ipc.Client) error {
 // caller passes an empty tag or vpn.AutoSelectTag, back to auto-select.
 // Radiance normalizes the empty-tag case server-side (fac9089) for both
 // ConnectVPN and SelectServer.
-func ConnectToServer(client *ipc.Client, tag string) error {
-	ctx := context.Background()
+//
+// The caller is responsible for putting a deadline on ctx — the connect
+// path involves real network work (DNS, TLS, sing-box bring-up) and we
+// don't want a hung lanternd to stall the UI forever. LanternCore.ConnectVPN
+// uses 60 s.
+func ConnectToServer(ctx context.Context, client *ipc.Client, tag string) error {
 	slog.Debug("Connecting to VPN server", "tag", tag)
 
 	// Switch outbounds on the live tunnel when already connected;

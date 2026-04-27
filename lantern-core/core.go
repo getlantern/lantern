@@ -281,6 +281,20 @@ func (lc *LanternCore) listenDataCapEvents() {
 //     VPN     //
 /////////////////
 
+// Per-call IPC timeouts. These bound the worst case if lanternd is hung
+// (pipe open, no replies). They're long enough to never fire during normal
+// operation — the connect path involves real DNS / TLS / sing-box bring-up
+// that can take many seconds, while a /vpn/status query should be near-
+// instant — but tight enough that a stuck daemon surfaces as a UI error
+// instead of an indefinite spinner. The dialer already has a 10 s connect
+// timeout (radiance/ipc/conn_windows.go), so these only matter once the
+// pipe is established.
+const (
+	ipcConnectTimeout     = 60 * time.Second
+	ipcStateChangeTimeout = 30 * time.Second
+	ipcStatusTimeout      = 10 * time.Second
+)
+
 // ConnectVPN routes a connect request through vpn_tunnel.ConnectToServer,
 // which picks between /vpn/connect (fresh tunnel) and /server/selected
 // (live-tunnel outbound swap) based on VPNStatus. This is load-bearing for
@@ -292,23 +306,31 @@ func (lc *LanternCore) listenDataCapEvents() {
 //
 // Fixes getlantern/engineering#3291 issue 3.
 func (lc *LanternCore) ConnectVPN(tag string) error {
-	return vpn_tunnel.ConnectToServer(lc.client, tag)
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
+	defer cancel()
+	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
 }
 
 func (lc *LanternCore) SelectServer(tag string) error {
-	return lc.client.SelectServer(lc.ctx, tag)
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.SelectServer(ctx, tag)
 }
 
 func (lc *LanternCore) DisconnectVPN() error {
-	return lc.client.DisconnectVPN(lc.ctx)
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.DisconnectVPN(ctx)
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.VPNStatus, error) {
-	return lc.client.VPNStatus(lc.ctx)
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStatusTimeout)
+	defer cancel()
+	return lc.client.VPNStatus(ctx)
 }
 
 func (lc *LanternCore) IsVPNRunning() (bool, error) {
-	status, err := lc.client.VPNStatus(lc.ctx)
+	status, err := lc.VPNStatus()
 	if err != nil {
 		return false, err
 	}
