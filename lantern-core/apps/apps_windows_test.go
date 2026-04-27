@@ -748,6 +748,12 @@ func TestIsAppPathsNoise(t *testing.T) {
 		{"olk kept", `C:\Program Files\WindowsApps\Microsoft.OutlookForWindows_x\olk.exe`, "olk", false},
 		// Third-party app stays.
 		{"Chrome kept", `C:\Program Files\Google\Chrome\Application\chrome.exe`, "chrome", false},
+		// DesktopAppInstaller package: winget + WindowsPackageManagerServer.
+		{"winget", `C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.28.240.0_x64__8wekyb3d8bbwe\winget.exe`, "winget", true},
+		{"WindowsPackageManagerServer", `C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.28.240.0_x64__8wekyb3d8bbwe\WindowsPackageManagerServer.exe`, "WindowsPackageManagerServer", true},
+		// .NET helpers under UWP packages (Power Automate Desktop).
+		{"PAD BrowserNativeMessageHost", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.BrowserNativeMessageHost.exe`, "PAD.BrowserNativeMessageHost", true},
+		{"PAD ChildSession.Service.Host", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.ChildSession.Service.Host.exe`, "PAD.ChildSession.Service.Host", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

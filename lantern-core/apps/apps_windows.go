@@ -876,6 +876,14 @@ func isAppPathsNoise(exePath, displayName string) bool {
 		`\program files (x86)\windows defender\`,
 		`\common files\microsoft shared\`,
 		`\common files\microsoft.net\`,
+		// UWP package plumbing: winget + WindowsPackageManagerServer
+		// register App Paths entries but aren't user-facing GUI apps.
+		`\windowsapps\microsoft.desktopappinstaller_`,
+		// .NET helper assemblies under UWP packages (e.g. Power Automate
+		// Desktop registers PAD.BrowserNativeMessageHost, PAD.ChildSession.
+		// Service.Host under \dotnet\). The user-facing exe of a UWP
+		// package always sits at the package root, never under \dotnet\.
+		`\dotnet\`,
 	}
 	for _, p := range systemPaths {
 		if strings.Contains(norm, p) {
