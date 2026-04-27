@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class ParsedLog {
   final String level;
-  final String id;
-  final String duration;
+  final String pkg;
+  final String? duration;
   final String message;
 
-  ParsedLog(this.level, this.id, this.duration, this.message);
+  ParsedLog(this.level, this.pkg, this.duration, this.message);
 }
 
 final _logFieldRegex = RegExp(r'(\w+)=(".*?"|\S+)');
@@ -14,19 +14,18 @@ final _logFieldRegex = RegExp(r'(\w+)=(".*?"|\S+)');
 ParsedLog? parseLogLine(String line) {
   final fields = {
     for (final m in _logFieldRegex.allMatches(line))
-      m.group(1)!: m.group(2)!.replaceAll('"', '')
+      m.group(1)!: m.group(2)!.replaceAll('"', ''),
   };
 
   final level = fields['level'];
-  final service = fields['service'];
-  final duration = fields['duration'];
+  final pkg = fields['pkg'];
   final msg = fields['msg'];
 
-  if ([level, service, duration, msg].any((e) => e == null)) {
+  if (level == null || pkg == null || msg == null) {
     return null;
   }
 
-  return ParsedLog(level!, service!, duration!, msg!);
+  return ParsedLog(level, pkg, fields['duration'], msg);
 }
 
 Color getLevelColor(String level) {
