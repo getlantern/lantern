@@ -190,20 +190,25 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
-	// Wire up slog for the host process. Android is the only platform where
-	// the daemon shares the process, so its common.Init has already run and
-	// we'd collide if we called again here.
+	// Wire up slog for the host process according to how the backend is
+	// hosted on each platform:
+	//
+	//   - windows/linux: the UI is a separate process talking to a daemon
+	//     over IPC, so it needs its own full common.Init.
+	//   - darwin/ios: the UI shares its logDir with the tunnel extension,
+	//     which is the process that called common.Init. Re-running it here
+	//     would collide; instead we set up app-process-only logging into a
+	//     distinct file so the two lumberjacks don't race on rotation.
+	//   - android: the backend is embedded in the same process as the UI
+	//     (see init_mobile.go), and Mobile.SetupRadiance has already called
+	//     common.Init by the time we reach here. Fall through with no
+	//     additional setup.
 	switch runtime.GOOS {
 	case "windows", "linux":
-		// Separate UI process with its own logDir — full common.Init sets
-		// up slog, settings, and the crash reporter as the daemon would.
 		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
 			return fmt.Errorf("common.Init: %w", err)
 		}
 	case "darwin", "ios":
-		// Main app shares logDir with the tunnel extension (which already
-		// called common.Init from its own process). Use a distinct log
-		// file so the two lumberjacks aren't racing on rotation.
 		setupAppLogging(opts.LogDir, opts.LogLevel)
 	}
 	slog.Debug("Starting LanternCore initialization")
@@ -612,8 +617,16 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
 }
 
-// collectLocalLogs returns every *.log in dir as absolute paths. Unstat-able
-// files are dropped — the daemon won't be able to read them either.
+// collectLocalLogs returns every *.log directly under dir, with paths shaped
+// however filepath.Glob returns them (relative if dir is relative; the
+// daemon-side ReportIssue path on windows/linux passes the absolute
+// settings.LogPathKey so this is absolute in practice).
+//
+// Files we can't os.Stat from the UI process are dropped. That's a
+// best-effort screen, not a guarantee — the daemon runs as SYSTEM on
+// Windows and may be able to read files this process can't, and vice
+// versa. The drop avoids attaching obviously-broken paths to issue
+// reports; the daemon's own readability check is authoritative.
 func collectLocalLogs(dir string) []string {
 	if dir == "" {
 		return nil

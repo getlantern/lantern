@@ -526,15 +526,20 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	return out
 }
 
-// sampleAppNames returns up to n "name (path)" strings, for use as a slog
-// slice attribute on scan summaries.
+// sampleAppNames returns up to n "name (executable)" strings, for use as a
+// slog slice attribute on scan summaries. The executable path is redacted to
+// its basename — these samples land in scan-summary log lines that get
+// bundled into "Report Issue" tickets, so we don't want full paths
+// (typically C:\Users\<username>\...) in there as PII. Basename keeps enough
+// signal for diagnostics ("did Slack get included? did chrome.exe get
+// included?") without leaking user filesystem layout.
 func sampleAppNames(apps []*AppData, n int) []string {
 	if n > len(apps) {
 		n = len(apps)
 	}
 	out := make([]string, 0, n)
 	for i := 0; i < n; i++ {
-		out = append(out, fmt.Sprintf("%s (%s)", apps[i].Name, apps[i].AppPath))
+		out = append(out, fmt.Sprintf("%s (%s)", apps[i].Name, filepath.Base(apps[i].AppPath)))
 	}
 	return out
 }
@@ -859,13 +864,55 @@ func collectAppsFromAppPaths(seen map[string]bool, cb Callback) []*AppData {
 //     anything else here is a background tool).
 //   - Drop helper-named basenames (containing "update", "helper",
 //     "browsersupport", etc.) anywhere in the path.
+//
+// Constant data (paths, hints, suffixes) is hoisted to package scope so
+// the per-entry hot path stays allocation-free — this runs once per
+// HKLM\...\App Paths entry, which is hundreds-to-thousands of calls per
+// scan.
 func isAppPathsNoise(exePath, displayName string) bool {
 	norm := strings.ToLower(filepath.Clean(strings.Trim(strings.TrimSpace(exePath), `"`)))
 	if norm == "" {
 		return false
 	}
 
-	systemPaths := []string{
+	for _, p := range appPathsNoiseSystemPaths {
+		if strings.Contains(norm, p) {
+			return true
+		}
+	}
+
+	// Office Root: drop everything except the primary product exes
+	// (those also come via Start Menu, so duplicates hit dedup).
+	if strings.Contains(norm, `\microsoft office\`) {
+		if !appPathsNoisePrimaryOfficeExes[strings.ToLower(filepath.Base(norm))] {
+			return true
+		}
+	}
+
+	// Helper-named basenames. Substring match (case-insensitive, after
+	// stripping non-alnum) so "ms-teamsupdate" → "msteamsupdate" matches
+	// "update", and "1Password-BrowserSupport" → "1passwordbrowsersupport"
+	// matches "browsersupport".
+	base := normalizeExecutableHint(filepath.Base(norm))
+	for _, h := range appPathsNoiseHelperHints {
+		if strings.Contains(base, h) {
+			return true
+		}
+	}
+	// Suffix-only check for words too generic to substring-match safely.
+	for _, suffix := range appPathsNoiseGenericSuffixes {
+		if strings.HasSuffix(base, suffix) && base != suffix {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Hoisted constant data for isAppPathsNoise. See the function comment for
+// what each list captures.
+var (
+	appPathsNoiseSystemPaths = []string{
 		`\program files\internet explorer\`,
 		`\program files (x86)\internet explorer\`,
 		`\program files\windows mail\`,
@@ -885,39 +932,22 @@ func isAppPathsNoise(exePath, displayName string) bool {
 		// package always sits at the package root, never under \dotnet\.
 		`\dotnet\`,
 	}
-	for _, p := range systemPaths {
-		if strings.Contains(norm, p) {
-			return true
-		}
+
+	appPathsNoisePrimaryOfficeExes = map[string]bool{
+		"winword.exe":  true,
+		"excel.exe":    true,
+		"powerpnt.exe": true,
+		"outlook.exe":  true,
+		"msaccess.exe": true,
+		"mspub.exe":    true,
+		"onenote.exe":  true,
+		"lync.exe":     true,
+		"groove.exe":   true,
+		"visio.exe":    true,
+		"winproj.exe":  true,
 	}
 
-	// Office Root: drop everything except the primary product exes
-	// (those also come via Start Menu, so duplicates hit dedup).
-	if strings.Contains(norm, `\microsoft office\`) {
-		primaryOfficeExes := map[string]bool{
-			"winword.exe":  true,
-			"excel.exe":    true,
-			"powerpnt.exe": true,
-			"outlook.exe":  true,
-			"msaccess.exe": true,
-			"mspub.exe":    true,
-			"onenote.exe":  true,
-			"lync.exe":     true,
-			"groove.exe":   true,
-			"visio.exe":    true,
-			"winproj.exe":  true,
-		}
-		if !primaryOfficeExes[strings.ToLower(filepath.Base(norm))] {
-			return true
-		}
-	}
-
-	// Helper-named basenames. Substring match (case-insensitive, after
-	// stripping non-alnum) so "ms-teamsupdate" → "msteamsupdate" matches
-	// "update", and "1Password-BrowserSupport" → "1passwordbrowsersupport"
-	// matches "browsersupport".
-	base := normalizeExecutableHint(filepath.Base(norm))
-	helperHints := []string{
+	appPathsNoiseHelperHints = []string{
 		"browsersupport",
 		"lastpassexporter",
 		"sshsign",
@@ -927,20 +957,11 @@ func isAppPathsNoise(exePath, displayName string) bool {
 		"diagnostic",
 		"diagcmd",
 	}
-	for _, h := range helperHints {
-		if strings.Contains(base, h) {
-			return true
-		}
-	}
-	// Suffix-only check for words too generic to substring-match safely.
-	for _, suffix := range []string{"update", "service", "agent", "sync", "broker"} {
-		if strings.HasSuffix(base, suffix) && base != suffix {
-			return true
-		}
-	}
 
-	return false
-}
+	appPathsNoiseGenericSuffixes = []string{
+		"update", "service", "agent", "sync", "broker",
+	}
+)
 
 // collectAppsFromRunRegistry reads HKLM\...\Run and HKCU\...\Run. Apps that
 // register for auto-start (the dominant case is Squirrel apps —
