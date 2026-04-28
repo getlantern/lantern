@@ -13,7 +13,9 @@ import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -38,6 +40,11 @@ class _HomeState extends ConsumerState<Home> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// Kick off the server fetch as soon as Home mounts so the Smart
+      /// Location tile can reflect the fastest server without waiting for
+      /// the user to open the server-selection screen.
+      ref.read(availableServersProvider);
+
       final appSetting = ref.read(appSettingProvider);
       final appSettingNotifier = ref.read(appSettingProvider.notifier);
       if (!appSetting.onboardingCompleted) {
@@ -45,7 +52,6 @@ class _HomeState extends ConsumerState<Home> {
           "User has not completed onboarding, navigating to Onboarding Screen",
         );
         appRouter.push(const Onboarding());
-        appSettingNotifier.setOnboardingCompleted(true);
         return;
       }
 
@@ -77,7 +83,7 @@ class _HomeState extends ConsumerState<Home> {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
         appLogger.info(
-          "User has successfully connected, checking if needs to show Help Lantern Dialog or not",
+          "User has successfully connected, checking if need to show Help Lantern Dialog or not",
         );
         if (!appSetting.telemetryDialogDismissed &&
             (featureFlag.getBool(FeatureFlag.metrics) &&
@@ -178,10 +184,10 @@ class _HomeState extends ConsumerState<Home> {
 
   Widget _buildSetting(WidgetRef ref) {
     final routingMode = ref.watch(
-      appSettingProvider.select((s) => s.routingMode),
+      radianceSettingsProvider.select((s) => s.routingMode),
     );
     final isSplitTunnelingOn = ref.watch(
-      appSettingProvider.select((s) => s.isSplitTunnelingOn),
+      radianceSettingsProvider.select((s) => s.splitTunneling),
     );
 
     return Container(
@@ -203,7 +209,7 @@ class _HomeState extends ConsumerState<Home> {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if (!PlatformUtils.isIOS) ...[
+            if (!PlatformUtils.isIOS) ...{
               DividerSpace(),
               SettingTile(
                 label: 'routing_mode'.i18n,
@@ -223,13 +229,12 @@ class _HomeState extends ConsumerState<Home> {
                 ],
                 onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
-            ],
+            },
             if (PlatformUtils.isAndroid ||
                 PlatformUtils.isMacOS ||
                 PlatformUtils.isWindows) ...{
               DividerSpace(),
               SettingTile(
-                tileKey: const Key('home.split_tunneling_setting'),
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
                 value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
@@ -311,9 +316,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: context.textDisabled,
           onPressed: () {
             context.pop();
-            ref
-                .read(appSettingProvider.notifier)
-                .updateAnonymousDataConsent(false);
+            ref.read(radianceSettingsProvider.notifier).setTelemetry(false);
           },
         ),
         AppTextButton(
@@ -321,9 +324,7 @@ class _HomeState extends ConsumerState<Home> {
           textColor: AppColors.blue6,
           onPressed: () {
             context.pop();
-            ref
-                .read(appSettingProvider.notifier)
-                .updateAnonymousDataConsent(true);
+            ref.read(radianceSettingsProvider.notifier).setTelemetry(true);
           },
         ),
       ],

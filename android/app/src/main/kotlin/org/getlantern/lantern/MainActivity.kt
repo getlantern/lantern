@@ -23,7 +23,9 @@ import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
+import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.isServiceRunning
+import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.setupDirs
 
 
@@ -62,6 +64,17 @@ class MainActivity : FlutterFragmentActivity() {
         Log.d(TAG, "Config directories set up")
         AppLogger.init()
         AppLogger.d(TAG, "AppLogger initialized")
+        // Wire up Go-side logging before any Mobile.* call. Without this, every
+        // lantern-core / radiance slog call that fires before LanternVpnService's
+        // ACTION_START_RADIANCE coroutine reaches common.Init falls through to
+        // the stdlib default (text → stderr → logcat at INFO), so DEBUG logs
+        // disappear and the format diverges from the rest. common.Init is
+        // idempotent — the later call from backend.NewLocalBackend is a no-op.
+        try {
+            Mobile.initLogging(initConfigDir(), logDir(), "trace")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to init Go logging: ${e.message}")
+        }
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
@@ -142,6 +155,17 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
 
+        // Check if VPN is already connected
+        // if so then user already have vpn on now wish to switch auto server
+        // Do not need to create service again just switch server
+        if (Mobile.isVPNConnected()) {
+            AppLogger.d(TAG, "VPN is already connected, switching auto server")
+            CoroutineScope(Dispatchers.Main).launch {
+                LanternVpnService.instance.connectToServer("auto")
+            }
+            return
+        }
+
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN
@@ -155,7 +179,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    fun connectToServer(location: String, tag: String) {
+    fun connectToServer(tag: String) {
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
@@ -166,7 +190,7 @@ class MainActivity : FlutterFragmentActivity() {
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
-                LanternVpnService.instance.connectToServer(location, tag)
+                LanternVpnService.instance.connectToServer(tag)
             }
             return
         }
@@ -175,7 +199,6 @@ class MainActivity : FlutterFragmentActivity() {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
-                putExtra("location", location)
             }
             ContextCompat.startForegroundService(this, vpnIntent)
             AppLogger.d(TAG, "VPN service started")

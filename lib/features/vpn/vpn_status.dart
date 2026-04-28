@@ -75,6 +75,7 @@ class VpnStatus extends HookConsumerWidget {
     if (!PlatformUtils.isMacOS) {
       return false;
     }
+    // Don't show the warning while the status is still being determined.
     if (systemExtensionStatus.status == SystemExtensionStatus.unknown) {
       return false;
     }

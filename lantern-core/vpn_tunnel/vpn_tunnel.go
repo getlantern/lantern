@@ -1,139 +1,57 @@
 package vpn_tunnel
 
 import (
+	"context"
 	"fmt"
-	"runtime"
-	"sync/atomic"
-
 	"log/slog"
 
-	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/getlantern/radiance/vpn/ipc"
-	"github.com/getlantern/radiance/vpn/rvpn"
-
-	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
 type InternalTag string
 
 const (
 	InternalTagAutoAll InternalTag = "auto-all"
-	InternalTagUser    InternalTag = InternalTag(servers.SGUser)
-	InternalTagLantern InternalTag = InternalTag(servers.SGLantern)
 )
 
-var ipcServer atomic.Pointer[ipc.Server]
-
-// StartVPN will start the VPN tunnel using the provided platform interface.
-// If the user previously selected a specific server (persisted by
-// vpn.SelectServer), the new tunnel is pinned to that selection. Otherwise it
-// falls back to AutoConnect which picks the best server.
-//
-// This is critical on Android: the OS VPN service lifecycle tears down and
-// recreates libbox on every settings-driven restart, and the in-memory selector
-// state of the previous libbox doesn't carry over. Reading the persisted
-// selection here is what keeps the user pinned to their chosen server across
-// routing-mode toggles, ad-block toggles, etc.
-func StartVPN(platform rvpn.PlatformInterface, opts *utils.Opts) error {
+// StartVPN is the gomobile entry point for Mobile.StartVPN (Android
+// MainActivity / iOS VPNManager). It is also reached from Jigar's
+// onSmartLocation rewrite in server_selection.dart via startVPN(force: true)
+// → lantern.startVPN() → Mobile.StartVPN, which expects "switch back to
+// auto" to work on a live tunnel. Delegate to ConnectToServer so the
+// VPNStatus → /server/selected dispatch handles that case.
+func StartVPN(ctx context.Context, client *ipc.Client) error {
 	slog.Info("StartVPN called")
-	if err := initIPC(opts, platform); err != nil {
-		return fmt.Errorf("failed to initialize IPC server: %w", err)
-	}
-	if group, tag := vpn.LastSelectedServer(); group != "" && tag != "" {
-		slog.Info("Restoring persisted server selection", "group", group, "tag", tag)
-		if err := vpn.Connect(group, tag); err != nil {
-			slog.Warn("Failed to restore persisted server, falling back to AutoConnect",
-				"group", group, "tag", tag, "error", err)
-			vpn.ClearLastSelectedServer()
-		} else {
-			return nil
-		}
-	} else {
-		slog.Info("No persisted server selection found, falling back to AutoConnect")
-	}
-	if err := vpn.AutoConnect(""); err != nil {
-		return fmt.Errorf("failed to start VPN: %w", err)
-	}
-	return nil
+	return ConnectToServer(ctx, client, vpn.AutoSelectTag)
 }
 
-// StopVPN will stop the VPN tunnel.
-func StopVPN() error {
-	return vpn.Disconnect()
+func StopVPN(ctx context.Context, client *ipc.Client) error {
+	return client.DisconnectVPN(ctx)
 }
 
-// ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
-// empty, it will connect to the best server available in that group. ConnectToServer will start the
-// VPN tunnel if it's not already running.
-func ConnectToServer(group, tag string, platIfce rvpn.PlatformInterface, opts *utils.Opts) error {
-	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
-	if err := initIPC(opts, platIfce); err != nil {
-		return fmt.Errorf("failed to initialize IPC server: %w", err)
-	}
-	switch group {
-	case string(InternalTagAutoAll), "auto":
-		group = "all"
-	case "privateServer":
-		group = string(InternalTagUser)
-	case "lanternLocation":
-		group = string(InternalTagLantern)
-	}
-	slog.Debug("Connecting to VPN server", "group", group, "tag", tag)
-	if tag == "" {
-		return vpn.QuickConnect(group, platIfce)
-	}
-	slog.Debug("Connecting to specific VPN server", "group", group, "tag", tag)
-	return vpn.ConnectToServer(group, tag, platIfce)
-}
+// ConnectToServer switches the live tunnel to a specific server or, when the
+// caller passes an empty tag or vpn.AutoSelectTag, back to auto-select.
+// Radiance normalizes the empty-tag case server-side (fac9089) for both
+// ConnectVPN and SelectServer.
+//
+// The caller is responsible for putting a deadline on ctx — the connect
+// path involves real network work (DNS, TLS, sing-box bring-up) and we
+// don't want a hung lanternd to stall the UI forever. LanternCore.ConnectVPN
+// uses 60 s.
+func ConnectToServer(ctx context.Context, client *ipc.Client, tag string) error {
+	slog.Debug("Connecting to VPN server", "tag", tag)
 
-func IsVPNRunning() bool {
-	slog.Debug("Checking if VPN is running...")
-	status, err := vpn.GetStatus()
-	slog.Debug("VPN status:", "status", status, "Error:", err)
-	return status.TunnelOpen
-}
-
-func GetSelectedServer() string {
-	slog.Debug("Getting selected VPN server...")
-	status, err := vpn.GetStatus()
-	slog.Debug("VPN status:", "status", status, "Error:", err)
-	return status.SelectedServer
-}
-
-func CloseIPC() error {
-	if runtime.GOOS == "linux" {
-		return nil
-	}
-	if svr := ipcServer.Swap(nil); svr != nil {
-		return svr.Close()
-	}
-	return nil
-}
-
-func initIPC(opts *utils.Opts, platIfce rvpn.PlatformInterface) error {
-	if runtime.GOOS == "linux" {
-		return nil
-	}
-	if ipcServer.Load() != nil {
-		return nil
-	}
-	slog.Debug("Initializing IPC", "dataDir", opts.DataDir, "logDir", opts.LogDir, "logLevel", opts.LogLevel)
-	svr, err := vpn.InitIPC(opts.DataDir, opts.LogDir, opts.LogLevel, platIfce)
+	// Switch outbounds on the live tunnel when already connected;
+	// otherwise start the tunnel with the chosen tag.
+	status, err := client.VPNStatus(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("get VPN status failed: %w", err)
 	}
-	ipcServer.Store(svr)
-	return nil
-}
-
-// GetAutoLocation returns the current auto location as a JSON string.
-func GetAutoLocation() (*vpn.AutoSelections, error) {
-	slog.Debug("Getting auto location...")
-	location, err := vpn.AutoServerSelections()
-	slog.Debug("Auto location:", "location", location, "Error:", err)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get auto location: %w", err)
+	if status == vpn.Connected {
+		slog.Debug("VPN is already connected, switching server", "tag", tag)
+		return client.SelectServer(ctx, tag)
 	}
-	return &location, nil
+	slog.Debug("VPN is not connected, starting VPN with selected server", "tag", tag)
+	return client.ConnectVPN(ctx, tag)
 }

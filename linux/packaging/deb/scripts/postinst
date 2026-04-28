@@ -7,26 +7,9 @@ warn() {
 
 case "$1" in
 configure)
-	if ! getent group lantern >/dev/null 2>&1; then
-		groupadd --system lantern >/dev/null 2>&1 || true
-	fi
-	if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] && id "$SUDO_USER" >/dev/null 2>&1; then
-		usermod -a -G lantern "$SUDO_USER" >/dev/null 2>&1 || true
-	fi
-	if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
-		systemctl daemon-reload
-		if ! systemctl enable --now lanternd.service; then
-			warn "failed to enable/start lanternd.service"
-			warn "run: sudo systemctl status lanternd.service"
-			exit 1
-		fi
-		if ! systemctl is-active --quiet lanternd.service; then
-			warn "lanternd.service is not active after install"
-			warn "run: sudo journalctl -u lanternd.service -n 200 --no-pager"
-			exit 1
-		fi
-	else
-		warn "systemd not detected; lanternd.service was not auto-started"
+	if ! /usr/lib/lantern/lanternd install --log-level=trace; then
+		warn "failed to install lanternd service"
+		exit 1
 	fi
 	;;
 esac

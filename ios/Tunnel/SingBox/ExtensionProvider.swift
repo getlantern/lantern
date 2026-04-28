@@ -29,14 +29,22 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
     }
+
+    // Start the IPC server before any VPN operations
+    var ipcError: NSError?
+    MobileStartIPCServer(platformInterface, opts(), &ipcError)
+    if let ipcError {
+      appLogger.error("error starting IPC server: \(ipcError.localizedDescription)")
+      throw ipcError
+    }
+
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
     case "Lantern":
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
-      let location = options?["netEx.Location"] as? String
-      connectToServer(location: location!, serverName: serverName!)
+      connectToServer(serverName: serverName!)
     default:
       // Fallback or unknown type
       startVPN()
@@ -54,7 +62,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
 
-    MobileStartVPN(platformInterface, opts(), &error)
+    MobileStartVPN(&error)
     if error != nil {
       appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
@@ -68,11 +76,11 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func connectToServer(
-    location: String, serverName: String, completion: ((Bool, String?) -> Void)? = nil
+    serverName: String, completion: ((Bool, String?) -> Void)? = nil
   ) {
     appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
-    MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
+    MobileConnectToServer(serverName, &error)
     if error != nil {
       appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
       completion?(false, error?.localizedDescription)
@@ -89,9 +97,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
     var error: NSError?
-    MobileCloseIPC(&error)
+    MobileCloseIPCServer(&error)
     if error != nil {
-      appLogger.log("error closing IPC \(error?.localizedDescription ?? "")")
+      appLogger.log("error closing IPC server \(error?.localizedDescription ?? "")")
     }
     let elapsed = Date().timeIntervalSince(startTime)
     appLogger.log("(lantern-tunnel) stopTunnel completed in \(elapsed) seconds")
@@ -124,7 +132,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
       reasserting = false
     }
     stopService()
-    startVPN()
+
+    // Don't cancelTunnelWithError on failure; this extension hosts the IPC server.
+    var error: NSError?
+    MobileStartVPN(&error)
+    if let error {
+      appLogger.log("(lantern-tunnel) restart failed: \(error.localizedDescription)")
+      return
+    }
+    appLogger.log("(lantern-tunnel) tunnel restarted successfully")
   }
 
   func postServiceClose() {

@@ -7,18 +7,18 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
-	"github.com/getlantern/radiance"
-	"github.com/getlantern/radiance/api"
+	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/config"
-	"github.com/getlantern/radiance/events"
+	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
@@ -26,26 +26,24 @@ import (
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
 type EventType = string
 
 const (
-	EventTypeConfig         EventType = "config"
 	EventTypeServerLocation EventType = "server-location"
+	EventTypeConfig         EventType = "config"
 	DefaultLogLevel                   = "trace"
-
-	plansCacheFile = "plans-cache.json"
 )
 
-// LanternCore is the main structure accessing the Lantern backend.
+// LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
-	rad           *radiance.Radiance
-	splitTunnel   *vpn.SplitTunnel
-	serverManager *servers.Manager
-	apiClient     *api.APIClient
-	initOnce      sync.Once
-	eventEmitter  utils.FlutterEventEmitter
+	client       *ipc.Client
+	ctx          context.Context
+	cancel       context.CancelFunc
+	initOnce     sync.Once
+	eventEmitter utils.FlutterEventEmitter
 }
 
 var (
@@ -63,19 +61,28 @@ type App interface {
 	GetAvailableServers() []byte
 	MyDeviceId() string
 	GetServerByTagJSON(tag string) ([]byte, bool, error)
+	GetSelectedServerJSON() ([]byte, error)
+	GetSelectedServerTag() (string, error)
+	GetAutoLocationJSON() ([]byte, error)
+	CheckDaemonReachable() error
+	PatchSettings(settings.Settings) error
+	GetSettingsJSON() ([]byte, error)
+	PatchEnvVars(map[string]string) (map[string]string, error)
+	GetEnvVars() map[string]string
+	RunOfflineURLTests() error
+	UpdateConfig() error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
-	StartBackgroundListeners()
-	StopBackgroundListeners()
 	UpdateTelemetryConsent(consent bool) error
-	GetAppDataDir() string
+	IsTelemetryEnabled() bool
+	IsOAuthLogin() bool
+	GetOAuthProvider() string
 	GetEnabledApps() (string, error)
 }
 
 type User interface {
 	UserData() ([]byte, error)
 	DataCapInfo() (string, error)
-	DataCapStream(ctx context.Context) error
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -86,9 +93,8 @@ type User interface {
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
-	DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error)
-	RemoveDevice(deviceId string) (*api.LinkResponse, error)
-	//Change email
+	DeleteAccount(email, password string) ([]byte, error)
+	RemoveDevice(deviceId string) (*account.LinkResponse, error)
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
 }
@@ -104,7 +110,7 @@ type PrivateServer interface {
 	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
 	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
 	StartDeployment(location, serverName string) error
-	AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error
+	AddServersByURL(urls string, skipCertVerification bool) ([]byte, error)
 	DeleteServer(tag string) error
 	UpdatePrivateServerName(oldTag, newTag string) error
 }
@@ -117,20 +123,20 @@ type Payment interface {
 	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
-	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
+	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
 }
 
 type SplitTunnel interface {
 	LoadInstalledApps(dataDir string) (string, error)
 	IsSplitTunnelingEnabled() bool
-	SetSplitTunnelingEnabled(bool)
+	SetSplitTunnelingEnabled(bool) error
 	AddSplitTunnelItem(filterType, item string) error
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
-	GetSplitTunnelStateJSON() (string, error)
-	GetSplitTunnelItems(filterType string) (string, error)
+	GetSplitTunnelItems() (string, error)
+	GetSplitTunnelItemsFor(filterType string) (string, error)
 }
 
 type Ads interface {
@@ -143,6 +149,14 @@ type SmartRouting interface {
 	IsSmartRoutingEnabled() bool
 }
 
+type VPN interface {
+	ConnectVPN(tag string) error
+	SelectServer(tag string) error
+	DisconnectVPN() error
+	VPNStatus() (vpn.VPNStatus, error)
+	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
+}
+
 type Core interface {
 	App
 	User
@@ -151,9 +165,10 @@ type Core interface {
 	SplitTunnel
 	Ads
 	SmartRouting
+	VPN
+	Client() *ipc.Client
 }
 
-// Make sure LanternCore implements the Core interface
 var _ Core = (*LanternCore)(nil)
 
 func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error) {
@@ -161,9 +176,6 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 		return nil, fmt.Errorf("opts and eventEmitter cannot be nil")
 	}
 
-	// This isn't ideal, but currently on Android and maybe other platforms
-	// there are multiple places that try to initialize the backend, so we
-	// need to ensure it's only done once.
 	core.initOnce.Do(func() {
 		if opts.LogLevel == "" {
 			opts.LogLevel = DefaultLogLevel
@@ -181,115 +193,60 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	// Wire up slog for the host process according to how the backend is
+	// hosted on each platform:
+	//
+	//   - windows/linux: the UI is a separate process talking to a daemon
+	//     over IPC, so it needs its own full common.Init.
+	//   - darwin/ios: the UI shares its logDir with the tunnel extension,
+	//     which is the process that called common.Init. Re-running it here
+	//     would collide; instead we set up app-process-only logging into a
+	//     distinct file so the two lumberjacks don't race on rotation.
+	//   - android: the backend is embedded in the same process as the UI
+	//     (see init_mobile.go), and Mobile.SetupRadiance has already called
+	//     common.Init by the time we reach here. Fall through with no
+	//     additional setup.
+	switch runtime.GOOS {
+	case "windows", "linux":
+		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+			return fmt.Errorf("common.Init: %w", err)
+		}
+	case "darwin", "ios":
+		setupAppLogging(opts.LogDir, opts.LogLevel)
+	}
 	slog.Debug("Starting LanternCore initialization")
-	// Set the environment before initializing Radiance so that common.Stage()/Prod()/Dev()
-	// pick up the correct value during initialization.
+
 	if opts.Env == "stage" || opts.Env == "staging" {
 		slog.Debug("Setting staging environment")
 		env.SetStagingEnv()
 	}
-	var radErr error
-	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
-		LogDir:           opts.LogDir,
-		DataDir:          opts.DataDir,
-		DeviceID:         opts.Deviceid,
-		LogLevel:         opts.LogLevel,
-		Locale:           opts.Locale,
-		TelemetryConsent: opts.TelemetryConsent,
-	}); radErr != nil {
-		return fmt.Errorf("failed to create Radiance: %w", radErr)
-	}
-	slog.Debug("Paths:", "logs", settings.GetString(settings.LogPathKey), "data", settings.GetString(settings.DataPathKey))
 
-	fixStaleSettingsFilePath(opts.DataDir)
-
-	var sthErr error
-	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
-		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+	ctx, cancel := context.WithCancel(context.Background())
+	client, err := createClient(ctx, opts)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed to create IPC client: %w", err)
 	}
 
-	lc.serverManager = lc.rad.ServerManager()
-	lc.apiClient = lc.rad.APIHandler()
+	lc.client = client
+	lc.ctx = ctx
+	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
 
-	// Listen for config updates and notify Flutter
-	events.Subscribe(func(evt config.NewConfigEvent) {
-		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
-	})
+	go lc.listenAutoSelectedEvents()
+	go lc.listenConfigEvents()
+	go lc.listenDataCapEvents()
+	go lc.fetchUserDataIfNeeded()
 
-	lc.listeningServerLocationChanges()
-	lc.listeningDataCapChanges()
 	slog.Debug("LanternCore initialized successfully")
-
-	// If we have a legacy user ID, fetch user data
-	if settings.GetInt64(settings.UserIDKey) != 0 {
-		userData, _ := core.FetchUserData()
-		slog.Debug("Fetched user data", "data", string(userData))
-	}
-
 	return nil
 }
 
-// Listen for server location changes and notify Flutter
-func (lc *LanternCore) listeningServerLocationChanges() {
-	events.Subscribe(func(evt vpn.AutoSelectionsEvent) {
-		tag := evt.Selections.Lantern
-		servers, ok := lc.serverManager.GetServerByTag(tag)
-		if !ok {
-			slog.Error("no server found with tag", "tag", tag)
-			return
-		}
-		jsonBytes, err := json.Marshal(servers)
-		if err != nil {
-			slog.Error("Error marshalling server location", "error", err)
-			return
-		}
-		stringBody := string(jsonBytes)
-		slog.Debug("Auto location server:", "server", stringBody)
-		lc.notifyFlutter(EventTypeServerLocation, stringBody)
-	})
-}
-func (lc *LanternCore) listeningDataCapChanges() {
-	events.Subscribe(func(evt api.DataCapChangeEvent) {
-		dataCapResponse := evt.DataCapUsageResponse
-		jsonBytes, err := json.Marshal(dataCapResponse)
-		if err != nil {
-			slog.Error("Error marshalling DataCap event", "error", err)
-			return
-		}
-		stringBody := string(jsonBytes)
-		slog.Debug("DataCap event:", "event", stringBody)
-		lc.notifyFlutter("data-cap-event", stringBody)
-	})
+func (lc *LanternCore) Client() *ipc.Client {
+	return lc.client
 }
 
-func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
-	slog.Debug("Updating telemetry consent", "consent", consent)
-	if consent {
-		slog.Info("User has opted in to telemetry")
-		lc.rad.EnableTelemetry()
-	} else {
-		slog.Info("User has opted out of telemetry")
-		lc.rad.DisableTelemetry()
-	}
-	return nil
-}
-
-func (lc *LanternCore) SetSmartRoutingMode(mode bool) error {
-	slog.Debug("Setting Smart Routing Mode to:", "mode", mode)
-	if err := vpn.SetSmartRouting(mode); err != nil {
-		return fmt.Errorf("failed to set Smart Routing Mode: %w", err)
-	}
-	return nil
-}
-
-func (lc *LanternCore) GetSmartRoutingMode() bool {
-	return vpn.SmartRoutingEnabled()
-}
-
-// Internal methods
 // notifyFlutter sends an event to the Flutter frontend via the event emitter.
-// On mobile we use EventChannel; on desktop this goes over the FFI event port
 func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	slog.Debug("Notifying Flutter")
 	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
@@ -298,99 +255,225 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
-type backgroundListenerManager struct {
-	cancel    context.CancelFunc
-	isRunning bool
-	mu        sync.Mutex
-}
-
-var listenerManager = &backgroundListenerManager{
-	// avoid nil cancel
-	cancel: func() {},
-}
-
-func (lc *LanternCore) StartBackgroundListeners() {
-	slog.Info("Starting background listeners...")
-	listenerManager.mu.Lock()
-	defer listenerManager.mu.Unlock()
-
-	if listenerManager.isRunning {
-		slog.Info("Background listeners already running")
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup
+func (lc *LanternCore) fetchUserDataIfNeeded() {
+	raw := lc.settings()[settings.UserIDKey]
+	userID := userIDAsInt64(raw)
+	if userID == 0 {
+		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
 		return
 	}
+	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
+		slog.Error("Startup user-data fetch failed", "error", err)
+		return
+	}
+	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
+}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	listenerManager.cancel = cancel
-	listenerManager.isRunning = true
+// userIDAsInt64 normalizes the radiance UserIDKey value across the storage
+// types it can have: int64 (in-process), float64 (after JSON IPC round-trip),
+// int (defensive), or a decimal string (mobile.go purchase flow). Returns 0
+// for any unrecognized type so the caller treats the user as anonymous.
+func userIDAsInt64(v any) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case float64:
+		return int64(x)
+	case int:
+		return int64(x)
+	case string:
+		n, _ := strconv.ParseInt(x, 10, 64)
+		return n
+	}
+	return 0
+}
 
-	// Auto location listener
-	go vpn.AutoSelectionsChangeListener(ctx)
-
-	// DataCap SSE stream
-	go func() {
-		if err := lc.apiClient.DataCapStream(ctx); err != nil {
-			slog.Error("datacap stopped", "error", err)
+// listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
+// them to Flutter. Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenAutoSelectedEvents() {
+	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+		if err != nil || !found {
+			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+			return
 		}
-	}()
-
-	slog.Info("Background listeners started")
-}
-
-// stopAutoLocationListener stops the location listener
-
-func (lc *LanternCore) StopBackgroundListeners() {
-	slog.Info("Stopping background listeners...")
-	listenerManager.mu.Lock()
-	defer listenerManager.mu.Unlock()
-	if !listenerManager.isRunning {
-		slog.Info("Background listeners not running")
-		return
+		jsonBytes, err := json.Marshal(server)
+		if err != nil {
+			slog.Error("Error marshalling server location", "error", err)
+			return
+		}
+		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("auto-selected event stream exited unexpectedly", "error", err)
 	}
-	listenerManager.cancel()
-	listenerManager.isRunning = false
-	slog.Info("Background listeners stopped")
 }
 
-// GetServerByTagJSON returns the server for a given tag as pre-marshalled JSON.
-// This is safe to call from CGo callback stacks because the pointer-rich Server
-// types are marshalled here rather than being returned to the caller.
-func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
-	return lc.serverManager.GetServerByTagJSON(tag)
+// listenConfigEvents listens for config updates from the IPC client and notifies Flutter when they
+// occur. Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenConfigEvents() {
+	err := lc.client.ConfigEvents(lc.ctx, func() {
+		slog.Debug("Config updated, notifying Flutter")
+		lc.notifyFlutter(EventTypeConfig, "")
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("config event stream exited unexpectedly", "error", err)
+	}
 }
 
-func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
-	return vpn.GetStatus()
+// listenDataCapEvents listens for DataCapInfo updates from the IPC client and forwards them to Flutter.
+// Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenDataCapEvents() {
+	err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
+		jsonBytes, err := json.Marshal(info)
+		if err != nil {
+			slog.Error("Error marshalling DataCap event", "error", err)
+			return
+		}
+		lc.notifyFlutter("data-cap-event", string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("datacap event stream exited unexpectedly", "error", err)
+	}
+}
+
+/////////////////
+//     VPN     //
+/////////////////
+
+// Per-call IPC timeouts. These bound the worst case if lanternd is hung
+// (pipe open, no replies). They're long enough to never fire during normal
+// operation — the connect path involves real DNS / TLS / sing-box bring-up
+// that can take many seconds, while a /vpn/status query should be near-
+// instant — but tight enough that a stuck daemon surfaces as a UI error
+// instead of an indefinite spinner. The dialer already has a 10 s connect
+// timeout (radiance/ipc/conn_windows.go), so these only matter once the
+// pipe is established.
+const (
+	ipcConnectTimeout     = 60 * time.Second
+	ipcStateChangeTimeout = 30 * time.Second
+	ipcStatusTimeout      = 10 * time.Second
+)
+
+// ConnectVPN routes a connect request through vpn_tunnel.ConnectToServer,
+// which picks between /vpn/connect (fresh tunnel) and /server/selected
+// (live-tunnel outbound swap) based on VPNStatus. This is load-bearing for
+// the Smart-from-connected flow: Jigar's onSmartLocation rewrite
+// (server_selection.dart) routes "switch back to auto" through
+// startVPN(force: true) → ffi.go:startVPN → c.ConnectVPN(""). Without the
+// dispatch the call 500s with ErrTunnelAlreadyConnected from
+// radiance/vpn/vpn.go:130 and the user sees a snackbar.
+//
+// Fixes getlantern/engineering#3291 issue 3.
+func (lc *LanternCore) ConnectVPN(tag string) error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
+	defer cancel()
+	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
+}
+
+func (lc *LanternCore) SelectServer(tag string) error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.SelectServer(ctx, tag)
+}
+
+func (lc *LanternCore) DisconnectVPN() error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.DisconnectVPN(ctx)
+}
+
+func (lc *LanternCore) VPNStatus() (vpn.VPNStatus, error) {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStatusTimeout)
+	defer cancel()
+	return lc.client.VPNStatus(ctx)
 }
 
 func (lc *LanternCore) IsVPNRunning() (bool, error) {
-	st, err := vpn.GetStatus()
+	status, err := lc.VPNStatus()
 	if err != nil {
 		return false, err
 	}
-	return st.TunnelOpen, nil
+	return status == vpn.Connected, nil
+}
+
+func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error {
+	return lc.client.VPNStatusEvents(ctx, callback)
+}
+
+/////////////////
+//  Settings   //
+/////////////////
+
+// settings returns the current settings from radiance.
+func (lc *LanternCore) settings() settings.Settings {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		slog.Error("Error fetching settings", "error", err)
+		return settings.Settings{}
+	}
+	return s
+}
+
+func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
+	return lc.client.EnableTelemetry(lc.ctx, consent)
+}
+
+func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
+	return lc.client.EnableAdBlocking(lc.ctx, enabled)
+}
+
+func (lc *LanternCore) IsBlockAdsEnabled() bool {
+	b, _ := lc.settings()[settings.AdBlockKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
+	return lc.client.EnableSmartRouting(lc.ctx, enabled)
+}
+
+func (lc *LanternCore) IsSmartRoutingEnabled() bool {
+	b, _ := lc.settings()[settings.SmartRoutingKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) IsTelemetryEnabled() bool {
+	b, _ := lc.settings()[settings.TelemetryKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) IsOAuthLogin() bool {
+	b, _ := lc.settings()[settings.OAuthLoginKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) GetOAuthProvider() string {
+	v, _ := lc.settings()[settings.OAuthProviderKey].(string)
+	return v
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {
-	return lc.rad != nil
+	return lc.client != nil
 }
 
 func (lc *LanternCore) MyDeviceId() string {
-	return settings.GetString(settings.DeviceIDKey)
+	v, _ := lc.settings()[settings.DeviceIDKey].(string)
+	return v
 }
 
 func (lc *LanternCore) UpdateLocale(locale string) error {
-	slog.Debug("Updating locale", "locale", locale)
-	settings.Set(settings.LocaleKey, locale)
-	return nil
-}
-
-func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
-	return lc.apiClient.ReferralAttach(context.Background(), referralCode)
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.LocaleKey: locale})
+	return err
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {
-	features := lc.rad.Features()
-	slog.Debug("Available features", "features", features)
+	features, err := lc.client.Features(lc.ctx)
+	if err != nil {
+		slog.Error("Error getting features", "error", err)
+		return nil
+	}
 	jsonBytes, err := json.Marshal(features)
 	if err != nil {
 		slog.Error("Error marshalling features", "error", err)
@@ -400,25 +483,96 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {
-	// Use ServersJSON which marshals under the lock, avoiding GC write barrier
-	// panics when pointer-rich sing-box types are copied on a CGo callback stack.
-	jsonBytes, err := lc.rad.ServerManager().ServersJSON()
+	data, err := lc.client.ServersJSON(lc.ctx)
 	if err != nil {
-		slog.Error("Error marshalling servers", "error", err)
+		slog.Error("Error getting servers", "error", err)
 		return nil
 	}
-	return jsonBytes
+	return data
 }
 
-// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
-// currently only works on/enabled for macOS
+func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
+	return lc.client.GetServerByTagJSON(lc.ctx, tag)
+}
+
+func (lc *LanternCore) GetSelectedServerJSON() ([]byte, error) {
+	return lc.client.SelectedServerJSON(lc.ctx)
+}
+
+func (lc *LanternCore) GetSelectedServerTag() (string, error) {
+	server, exists, err := lc.client.SelectedServer(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", nil
+	}
+	return server.Tag, nil
+}
+
+func (lc *LanternCore) GetAutoLocationJSON() ([]byte, error) {
+	server, err := lc.client.AutoSelected(lc.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get auto location: %w", err)
+	}
+	return json.Marshal(server)
+}
+
+func (lc *LanternCore) CheckDaemonReachable() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	_, err := lc.client.VPNStatus(ctx)
+	return err
+}
+
+func (lc *LanternCore) PatchSettings(s settings.Settings) error {
+	_, err := lc.client.PatchSettings(lc.ctx, s)
+	return err
+}
+
+func (lc *LanternCore) GetSettingsJSON() ([]byte, error) {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(s)
+}
+
+func (lc *LanternCore) PatchEnvVars(updates map[string]string) (map[string]string, error) {
+	return lc.client.PatchEnvVars(lc.ctx, updates)
+}
+
+// GetEnvVars returns the daemon's in-memory env vars. Uses an empty PATCH
+// because ipc.Client exposes no dedicated GET; the daemon returns the full
+// env map on both GET and PATCH.
+func (lc *LanternCore) GetEnvVars() map[string]string {
+	vars, err := lc.client.PatchEnvVars(lc.ctx, map[string]string{})
+	if err != nil {
+		slog.Error("Error fetching env vars", "error", err)
+		return nil
+	}
+	return vars
+}
+
+func (lc *LanternCore) RunOfflineURLTests() error {
+	return lc.client.RunOfflineURLTests(lc.ctx)
+}
+
+func (lc *LanternCore) UpdateConfig() error {
+	return lc.client.UpdateConfig(lc.ctx)
+}
+
+/////////////////
+// Split Tunnel //
+/////////////////
+
+// TODO: ??? not sure what to do about this one. it can't access dataDir
 func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	appsList := []*apps.AppData{}
 	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
 		appsList = append(appsList, a...)
 		return nil
 	})
-
 	b, err := json.Marshal(appsList)
 	if err != nil {
 		return "", err
@@ -426,219 +580,286 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	return string(b), nil
 }
 
-// SetSplitTunnelingEnabled turns split tunneling on or off for this device
-func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
-	if enabled {
-		lc.splitTunnel.Enable()
-	} else {
-		lc.splitTunnel.Disable()
-	}
+func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
 }
 
-// IsSplitTunnelingEnabled returns whether split tunneling is currently enabled
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
-	return lc.splitTunnel.IsEnabled()
+	b, _ := lc.settings()[settings.SplitTunnelKey].(bool)
+	return b
 }
 
-// AddSplitTunnelItem adds a single split tunnel rule
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
-	return lc.splitTunnel.AddItem(filterType, item)
+	filter := filterFromTypeAndItems(filterType, []string{item})
+	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
 }
 
-// AddSplitTunnelItems adds multiple split tunnel rules from a comma-separated string
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
+	filter := platformFilter(split)
+	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+}
 
-	var vpnFilter vpn.Filter
-	if common.IsMacOS() {
-		vpnFilter = vpn.Filter{
-			ProcessPathRegex: split,
-		}
-	} else if common.IsWindows() {
-		vpnFilter = vpn.Filter{
-			ProcessPath: split,
-		}
-	} else {
-		vpnFilter = vpn.Filter{
-			PackageName: split,
-		}
-	}
-
-	return lc.splitTunnel.AddItems(vpnFilter)
+func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
+	filter := filterFromTypeAndItems(filterType, []string{item})
+	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
-
-	var vpnFilter vpn.Filter
-	if common.IsMacOS() {
-		vpnFilter = vpn.Filter{
-			ProcessPathRegex: split,
-		}
-	} else if common.IsWindows() {
-		vpnFilter = vpn.Filter{
-			ProcessPath: split,
-		}
-	} else {
-		vpnFilter = vpn.Filter{
-			PackageName: split,
-		}
-	}
-	return lc.splitTunnel.RemoveItems(vpnFilter)
+	filter := platformFilter(split)
+	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
 }
 
-// RemoveSplitTunnelItem removes a single split tunnel rule
-func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
-	return lc.splitTunnel.RemoveItem(filterType, item)
+func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "{}", nil
+	}
+	b, err := json.Marshal(filter)
+	if err != nil {
+		return "{}", nil
+	}
+	return string(b), nil
 }
 
-// resolveLogDir returns a directory that contains the logs
-func resolveLogDir(logFilePath string) string {
-	p := strings.TrimSpace(logFilePath)
-	if p == "" {
-		return settings.GetString(settings.LogPathKey)
+func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "", err
 	}
-	if st, err := os.Stat(p); err == nil && st.IsDir() {
-		return p
+	items := itemsForType(filter, filterType)
+	b, err := json.Marshal(items)
+	if err != nil {
+		return "", err
 	}
-	return filepath.Dir(p)
+	return string(b), nil
 }
 
-// ReportIssue sends an issue report through Radiance.
-func (lc *LanternCore) ReportIssue(
-	email, issueType, description, device, model, logFilePath, attachmentsJSON string,
-) error {
-	report := radiance.IssueReport{
-		Type:        issueType,
-		Description: description,
-		Device:      device,
-		Model:       model,
+func (lc *LanternCore) GetEnabledApps() (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "", err
 	}
-
-	// Attach config files from the Lantern data directory.
-	dataDir := settings.GetString(settings.DataPathKey)
-	configFiles := []string{
-		"config.json",
-		"servers.json",
-		"split-tunnel.json",
+	// Initialize as empty slice so json.Marshal emits "[]" rather than
+	// "null" when no items are enabled — Dart's jsonDecode("null") returns
+	// null and the receiver does `as List`, which throws. Was the actual
+	// cause of "Failed to fetch installed apps" empty list in
+	// Freshdesk #173774 / #173778 / #173826.
+	enabledApps := []string{}
+	enabledApps = append(enabledApps, filter.ProcessPath...)
+	enabledApps = append(enabledApps, filter.ProcessPathRegex...)
+	enabledApps = append(enabledApps, filter.PackageName...)
+	b, err := json.Marshal(enabledApps)
+	if err != nil {
+		return "", err
 	}
+	return string(b), nil
+}
 
-	for _, name := range configFiles {
-		path := filepath.Join(dataDir, name)
-		b, err := os.ReadFile(path)
-		if err != nil {
-			if !os.IsNotExist(err) {
-				slog.Error("Failed to read file for issue report",
-					"file", name,
-					"path", path,
-					"error", err,
-				)
-			}
-			continue
-		}
-		if len(b) == 0 {
-			continue
-		}
+/////////////////
+// Issue Report //
+/////////////////
 
-		report.Attachments = append(report.Attachments, &issue.Attachment{
-			Name: name,
-			Type: "application/json",
-			Data: b,
-		})
+func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath, attachmentsJSON string) error {
+	it := parseIssueType(issueType)
+	var attachments []string
+	// Windows + Linux have separate UI and daemon logDirs, so the daemon's
+	// own archive glob misses UI-process logs — pass them through as paths.
+	// Mobile + macOS already share the directory; no pass-through needed.
+	// Relies on the UI logDir being readable by the daemon (SYSTEM on
+	// Windows); %PUBLIC%\Lantern\logs is chosen for that.
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		attachments = collectLocalLogs(settings.GetString(settings.LogPathKey))
 	}
-
-	// On iOS, flutter.log lives outside the main Lantern log directory.
-	// Other platforms already include Flutter output in the main Lantern logs.
 	if logFilePath != "" {
-		report.Attachments = append(
-			report.Attachments,
-			utils.CreateLogAttachment(logFilePath)...,
-		)
+		attachments = append(attachments, logFilePath)
 	}
 
-	issueAttachments, err := loadReportIssueAttachments(attachmentsJSON)
+	firstClassAttachments, err := loadReportIssueAttachments(attachmentsJSON)
 	if err != nil {
 		return fmt.Errorf("load issue attachments: %w", err)
 	}
-	report.Attachments = append(report.Attachments, issueAttachments...)
 
-	if err := lc.rad.ReportIssue(email, report); err != nil {
-		return fmt.Errorf("error reporting issue: %w", err)
+	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments, firstClassAttachments)
+}
+
+// collectLocalLogs returns every *.log directly under dir, with paths shaped
+// however filepath.Glob returns them (relative if dir is relative; the
+// daemon-side ReportIssue path on windows/linux passes the absolute
+// settings.LogPathKey so this is absolute in practice).
+//
+// Files we can't os.Stat from the UI process are dropped. That's a
+// best-effort screen, not a guarantee — the daemon runs as SYSTEM on
+// Windows and may be able to read files this process can't, and vice
+// versa. The drop avoids attaching obviously-broken paths to issue
+// reports; the daemon's own readability check is authoritative.
+func collectLocalLogs(dir string) []string {
+	if dir == "" {
+		return nil
 	}
-
-	slog.Debug("Reported issue", "type", issueType, "device", device, "model", model)
-	return nil
+	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
+	if err != nil {
+		slog.Warn("ReportIssue: unable to glob local logs", "dir", dir, "err", err)
+		return nil
+	}
+	out := matches[:0]
+	for _, p := range matches {
+		if _, err := os.Stat(p); err != nil {
+			slog.Warn("ReportIssue: skipping log (unreadable from this process)", "path", p, "err", err)
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
 }
 
-// DataCapInfo returns information about this user's data cap. Only valid for free accounts
+func parseIssueType(s string) issue.IssueType {
+	switch strings.ToLower(s) {
+	case "cannot_complete_purchase":
+		return issue.CannotCompletePurchase
+	case "cannot_sign_in":
+		return issue.CannotSignIn
+	case "spinner_loads_endlessly":
+		return issue.SpinnerLoadsEndlessly
+	case "cannot_access_blocked_sites":
+		return issue.CannotAccessBlockedSites
+	case "slow":
+		return issue.Slow
+	case "cannot_link_device":
+		return issue.CannotLinkDevice
+	case "application_crashes":
+		return issue.ApplicationCrashes
+	case "update_fails":
+		return issue.UpdateFails
+	default:
+		return issue.Other
+	}
+}
+
+/////////////////
+//   Account   //
+/////////////////
+
 func (lc *LanternCore) DataCapInfo() (string, error) {
-	return lc.apiClient.DataCapInfo(context.Background())
+	info, err := lc.client.DataCapInfo(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	jsonBytes, err := json.Marshal(info)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling DataCapInfo: %w", err)
+	}
+	return string(jsonBytes), nil
 }
 
-// DataCapStream starts a stream to receive data cap updates
-func (lc *LanternCore) DataCapStream(ctx context.Context) error {
-	return lc.apiClient.DataCapStream(ctx)
-}
-
-// User Methods
-// UserData returns user data that has already been fetched.
-// If user data has not been fetched yet (e.g., for a first-time user), this method will return an error.
-// This is expected behavior and not necessarily a problem.
 func (lc *LanternCore) UserData() ([]byte, error) {
-	return lc.apiClient.UserData()
+	userData, err := lc.client.UserData(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
 }
 
-// FetchUserData will get the user data from the server
 func (lc *LanternCore) FetchUserData() ([]byte, error) {
-	return lc.apiClient.FetchUserData(context.Background())
+	userData, err := lc.client.FetchUserData(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
 }
 
-// OAuth Methods
 func (lc *LanternCore) OAuthLoginUrl(provider string) (string, error) {
-	return lc.apiClient.OAuthLoginUrl(context.Background(), provider)
+	return lc.client.OAuthLoginURL(lc.ctx, provider)
 }
 
 func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	return lc.apiClient.OAuthLoginCallback(context.Background(), oAuthToken)
+	userData, err := lc.client.OAuthLoginCallback(lc.ctx, oAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
 }
 
-func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
-	redirectBody := api.PaymentRedirectData{
-		Provider:    "stripe",
-		Plan:        planID,
-		DeviceName:  settings.GetString(settings.DeviceIDKey),
-		Email:       email,
-		BillingType: api.SubscriptionType(subscriptionType),
+func (lc *LanternCore) Login(email, password string) ([]byte, error) {
+	userData, err := lc.client.Login(lc.ctx, email, password)
+	if err != nil {
+		return nil, err
 	}
-	return lc.SubscriptionPaymentRedirectURL(redirectBody)
+	return json.Marshal(userData)
 }
+
+func (lc *LanternCore) SignUp(email, password string) error {
+	_, _, err := lc.client.SignUp(lc.ctx, email, password)
+	return err
+}
+
+func (lc *LanternCore) Logout(email string) ([]byte, error) {
+	userData, err := lc.client.Logout(lc.ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) StartRecoveryByEmail(email string) error {
+	return lc.client.StartRecoveryByEmail(lc.ctx, email)
+}
+
+func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
+	return lc.client.ValidateEmailRecoveryCode(lc.ctx, email, code)
+}
+
+func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
+	return lc.client.CompleteRecoveryByEmail(lc.ctx, email, password, code)
+}
+
+func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
+	userData, err := lc.client.DeleteAccount(lc.ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) RemoveDevice(deviceID string) (*account.LinkResponse, error) {
+	return lc.client.RemoveDevice(lc.ctx, deviceID)
+}
+
+func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
+	return lc.client.StartChangeEmail(lc.ctx, newEmail, password)
+}
+
+func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
+	return lc.client.CompleteChangeEmail(lc.ctx, email, password, code)
+}
+
+func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
+	return lc.client.ReferralAttach(lc.ctx, referralCode)
+}
+
+/////////////////
+//  Payments   //
+/////////////////
 
 func (lc *LanternCore) StripeSubscription(email, planID string) (string, error) {
-	slog.Debug("Creating stripe subscription")
-	return lc.apiClient.NewStripeSubscription(context.Background(), email, planID)
+	return lc.client.NewStripeSubscription(lc.ctx, email, planID)
 }
 
 func (lc *LanternCore) Plans(channel string) (string, error) {
-	slog.Debug("Getting plans")
-	return lc.apiClient.SubscriptionPlans(context.Background(), channel)
+	return lc.client.SubscriptionPlans(lc.ctx, channel)
 }
+
 func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
-	slog.Debug("Getting stripe billing portal")
-	return lc.apiClient.StripeBillingPortalUrl(context.Background())
+	return lc.client.StripeBillingPortalURL(lc.ctx)
 }
 
 func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
-	slog.Debug("Purchase token: ", "token", purchaseToken, "planId", planId)
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
-	status, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
-	if err != nil {
-		return "", fmt.Errorf("error acknowledging google purchase: %w", err)
-	}
-	slog.Debug("acknowledge google purchase:", "status", status)
-	return status, nil
+	return lc.client.VerifySubscription(lc.ctx, account.GoogleService, params)
 }
 
 func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
@@ -646,132 +867,68 @@ func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string,
 		"receipt": receipt,
 		"planId":  planII,
 	}
-	data, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
-	if err != nil {
-		return "", fmt.Errorf("error acknowledging apple purchase: %w", err)
-	}
-	slog.Debug("acknowledge apple purchase: ", "data", data)
-	return data, nil
+	return lc.client.VerifySubscription(lc.ctx, account.AppleService, params)
 }
 
-func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error) {
-	slog.Debug("Getting payment redirect URL")
-	return lc.apiClient.SubscriptionPaymentRedirectURL(context.Background(), redirectBody)
+func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error) {
+	return lc.client.SubscriptionPaymentRedirectURL(lc.ctx, redirectBody)
+}
+
+func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
+	deviceID := lc.MyDeviceId()
+	redirectBody := account.PaymentRedirectData{
+		Provider:    "stripe",
+		Plan:        planID,
+		DeviceName:  deviceID,
+		Email:       email,
+		BillingType: account.SubscriptionType(subscriptionType),
+	}
+	return lc.SubscriptionPaymentRedirectURL(redirectBody)
 }
 
 func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, error) {
-	slog.Debug("Payment redirect")
-	deviceName := settings.GetString(settings.DeviceIDKey)
-	body := api.PaymentRedirectData{
+	deviceName := lc.MyDeviceId()
+	body := account.PaymentRedirectData{
 		Provider:   provider,
 		Plan:       planId,
 		DeviceName: deviceName,
 		Email:      email,
 	}
-	paymentRedirect, err := lc.apiClient.PaymentRedirect(context.Background(), body)
-	if err != nil {
-		return "", fmt.Errorf("error getting payment redirect: %w", err)
-	}
-	slog.Debug("Payment redirect response: ", "response", paymentRedirect)
-	return paymentRedirect, nil
-}
-
-/// User management apis
-
-func (lc *LanternCore) Login(email, password string) ([]byte, error) {
-	slog.Debug("Logging in user")
-	return lc.apiClient.Login(context.Background(), email, password)
-}
-
-func (lc *LanternCore) SignUp(email, password string) error {
-	slog.Debug("Signing up user")
-	salt, body, err := lc.apiClient.SignUp(context.Background(), email, password)
-	if err != nil {
-		return fmt.Errorf("error signing up: %w", err)
-	}
-	slog.Debug("SignUp response: ", "salt", salt, "body", body)
-	return nil
-}
-
-func (lc *LanternCore) Logout(email string) ([]byte, error) {
-	slog.Debug("Logging out")
-	return lc.apiClient.Logout(context.Background(), email)
-}
-
-// Email Recovery Methods
-// This will start the email recovery process by sending a recovery code to the user's email
-func (lc *LanternCore) StartRecoveryByEmail(email string) error {
-	slog.Debug("Starting change email")
-	return lc.apiClient.StartRecoveryByEmail(context.Background(), email)
-}
-
-// This will validate the recovery code sent to the user's email
-func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
-	slog.Debug("Validating change email code")
-	return lc.apiClient.ValidateEmailRecoveryCode(context.Background(), email, code)
-}
-
-// This will complete the email recovery by setting the new password
-func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
-	slog.Debug("Completing email recovery")
-	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
-}
-
-func (lc *LanternCore) DeleteAccount(email, password string, isOAuthUser bool) ([]byte, error) {
-	slog.Debug("Deleting account")
-	return lc.apiClient.DeleteAccount(context.Background(), email, password, isOAuthUser)
-}
-
-func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
-	slog.Debug("Removing device: ", "deviceID", deviceID)
-	return lc.apiClient.RemoveDevice(context.Background(), deviceID)
-}
-
-// Change email
-func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
-	slog.Debug("Starting change email")
-	return lc.apiClient.StartChangeEmail(context.Background(), newEmail, password)
-}
-
-func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
-	slog.Debug("Completing change email")
-	return lc.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
+	return lc.client.PaymentRedirect(lc.ctx, body)
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
-	slog.Debug("Getting activation code")
-	purchase, err := lc.apiClient.ActivationCode(context.Background(), email, resellerCode)
+	purchase, err := lc.client.ActivationCode(lc.ctx, email, resellerCode)
 	if err != nil {
 		return fmt.Errorf("error getting activation code: %w", err)
 	}
-	slog.Debug("ActivationCode response: ", "response", purchase)
 	if purchase.Status != "ok" {
 		return fmt.Errorf("activation code failed: %s", purchase.Status)
 	}
 	return nil
 }
 
+/////////////////////
+// Private Servers //
+/////////////////////
+
 func (lc *LanternCore) DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
-	slog.Debug("Starting DigitalOcean private server flow")
-	return privateserver.StartDigitalOceanPrivateServerFlow(events, lc.serverManager)
+	return privateserver.StartDigitalOceanPrivateServerFlow(events, lc.client)
 }
 
 func (lc *LanternCore) GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
-	return privateserver.StartGoogleCloudPrivateServerFlow(events, lc.serverManager)
+	return privateserver.StartGoogleCloudPrivateServerFlow(events, lc.client)
 }
 
 func (lc *LanternCore) ValidateSession() error {
-	slog.Debug("Validating private server session")
 	return privateserver.ValidateSession(context.Background())
 }
 
 func (lc *LanternCore) SelectAccount(account string) error {
-	slog.Debug("Selecting account: ", "account", account)
 	return privateserver.SelectAccount(account)
 }
 
 func (lc *LanternCore) SelectProject(project string) error {
-	slog.Debug("Selecting project: ", "project", project)
 	return privateserver.SelectProject(project)
 }
 
@@ -784,19 +941,15 @@ func (lc *LanternCore) CancelDeployment() error {
 }
 
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.serverManager, events)
+	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.client, events)
 }
+
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
 	portInt, err := parsePort(port)
 	if err != nil {
 		return "", err
 	}
-	accessToken, err = lc.serverManager.InviteToPrivateServer(ip, portInt, accessToken, inviteName)
-	if err != nil {
-		return "", fmt.Errorf("error inviting to server manager instance: %w", err)
-	}
-	slog.Debug("Invite to server manager instance:", "ip", ip, "port", portInt, "name", inviteName)
-	return accessToken, nil
+	return lc.client.InviteToPrivateServer(lc.ctx, ip, portInt, accessToken, inviteName)
 }
 
 func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteName string) error {
@@ -804,13 +957,11 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 	if err != nil {
 		return err
 	}
-	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
-	return lc.serverManager.RevokePrivateServerInvite(ip, portInt, accessToken, inviteName)
+	return lc.client.RevokePrivateServerInvite(lc.ctx, ip, portInt, accessToken, inviteName)
 }
 
 func (lc *LanternCore) DeleteServer(tag string) error {
-	slog.Debug("Deleting server with tag: ", "tag", tag)
-	return lc.serverManager.RemoveServer(tag)
+	return lc.client.RemoveServers(lc.ctx, []string{tag})
 }
 
 func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
@@ -821,54 +972,54 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 		return nil
 	}
 
-	// Ensure the source exists in user servers.
-	userServers := lc.serverManager.Servers()[servers.SGUser]
-	sourceExists := false
-	for _, ep := range userServers.Endpoints {
-		if ep.Tag == oldTag {
-			sourceExists = true
-			break
-		}
+	// Find source server
+	source, exists, err := lc.client.GetServerByTag(lc.ctx, oldTag)
+	if err != nil {
+		return fmt.Errorf("failed to get server %q: %w", oldTag, err)
 	}
-	if !sourceExists {
-		for _, out := range userServers.Outbounds {
-			if out.Tag == oldTag {
-				sourceExists = true
-				break
-			}
-		}
-	}
-	if !sourceExists {
+	if !exists {
 		return fmt.Errorf("server with tag %q not found", oldTag)
 	}
 
-	// Prevent collisions against any existing server tag.
-	if _, exists := lc.serverManager.GetServerByTag(newTag); exists {
+	// Check new tag doesn't collide
+	_, collision, _ := lc.client.GetServerByTag(lc.ctx, newTag)
+	if collision {
 		return fmt.Errorf("server with tag %q already exists", newTag)
 	}
 
-	for i, ep := range userServers.Endpoints {
-		if ep.Tag == oldTag {
-			userServers.Endpoints[i].Tag = newTag
-		}
+	// Remove old, add renamed copy
+	if err := lc.client.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
+		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
 	}
-	for i, out := range userServers.Outbounds {
-		if out.Tag == oldTag {
-			userServers.Outbounds[i].Tag = newTag
-		}
-	}
-	if loc, ok := userServers.Locations[oldTag]; ok {
-		delete(userServers.Locations, oldTag)
-		userServers.Locations[newTag] = loc
-	}
-	if err := lc.serverManager.SetServers(servers.SGUser, userServers); err != nil {
-		return fmt.Errorf("failed to rename private server %q to %q: %w", oldTag, newTag, err)
+	source.Tag = newTag
+	list := servers.ServerList{Servers: []*servers.Server{source}}
+	if err := lc.client.AddServers(lc.ctx, list); err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
 	}
 	return nil
 }
 
+func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]byte, error) {
+	urlList := strings.Split(urls, ",")
+	for i, u := range urlList {
+		urlList[i] = strings.TrimSpace(u)
+	}
+
+	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(tags)
+}
+
+/////////////////
+//  Helpers    //
+/////////////////
+
 func parsePort(port string) (int, error) {
-	portInt, err := strconv.Atoi(port)
+	portInt := 0
+	_, err := fmt.Sscanf(port, "%d", &portInt)
 	if err != nil {
 		return 0, fmt.Errorf("invalid port %q: %w", port, err)
 	}
@@ -878,29 +1029,6 @@ func parsePort(port string) (int, error) {
 	return portInt, nil
 }
 
-func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
-	return vpn.SetAdBlock(enabled)
-}
-
-func (lc *LanternCore) IsBlockAdsEnabled() bool {
-	return vpn.AdBlockEnabled()
-}
-
-func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
-	return vpn.SetSmartRouting(enabled)
-}
-
-func (lc *LanternCore) IsSmartRoutingEnabled() bool {
-	return vpn.SmartRoutingEnabled()
-}
-
-func (lc *LanternCore) AddServerBasedOnURLs(urls string, skipCertVerification bool, serverName string) error {
-	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
-	return lc.serverManager.AddServerBasedOnURLs(context.Background(), urls, skipCertVerification, serverName)
-}
-
-// splitCSVClean splits a comma-separated string into a stable list
-// It trims whitespace and surrounding quotes and removes duplicates
 func splitCSVClean(s string) []string {
 	raw := strings.Split(s, ",")
 	out := make([]string, 0, len(raw))
@@ -923,103 +1051,57 @@ func splitCSVClean(s string) []string {
 	return out
 }
 
-func (lc *LanternCore) GetSplitTunnelStateJSON() (string, error) {
-	path := filepath.Join(settings.GetString(settings.DataPathKey), "split-tunnel.json")
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return `{}`, nil
-		}
-		return "", err
+func platformFilter(items []string) vpn.SplitTunnelFilter {
+	if common.IsMacOS() {
+		return vpn.SplitTunnelFilter{ProcessPathRegex: items}
+	} else if common.IsWindows() {
+		return vpn.SplitTunnelFilter{ProcessPath: items}
 	}
-	if len(b) == 0 {
-		return `{}`, nil
-	}
-	return string(b), nil
+	return vpn.SplitTunnelFilter{PackageName: items}
 }
 
-func (lc *LanternCore) splitTunnelHandler() (*vpn.SplitTunnel, error) {
-	if lc.splitTunnel != nil {
-		return lc.splitTunnel, nil
+func filterFromTypeAndItems(filterType string, items []string) vpn.SplitTunnelFilter {
+	switch filterType {
+	case vpn.TypeDomain:
+		return vpn.SplitTunnelFilter{Domain: items}
+	case vpn.TypeDomainSuffix:
+		return vpn.SplitTunnelFilter{DomainSuffix: items}
+	case vpn.TypeDomainKeyword:
+		return vpn.SplitTunnelFilter{DomainKeyword: items}
+	case vpn.TypeDomainRegex:
+		return vpn.SplitTunnelFilter{DomainRegex: items}
+	case vpn.TypeProcessName:
+		return vpn.SplitTunnelFilter{ProcessName: items}
+	case vpn.TypeProcessPath:
+		return vpn.SplitTunnelFilter{ProcessPath: items}
+	case vpn.TypeProcessPathRegex:
+		return vpn.SplitTunnelFilter{ProcessPathRegex: items}
+	case vpn.TypePackageName:
+		return vpn.SplitTunnelFilter{PackageName: items}
+	default:
+		return vpn.SplitTunnelFilter{}
 	}
-	st, err := vpn.NewSplitTunnelHandler()
-	if err != nil {
-		return nil, err
-	}
-	lc.splitTunnel = st
-	return st, nil
 }
 
-func (lc *LanternCore) GetSplitTunnelItems(filterType string) (string, error) {
-	st, err := lc.splitTunnelHandler()
-	if err != nil {
-		return "", err
-	}
-	return st.ItemsJSON(filterType)
-}
-
-func jsonNumberToIntString(f float64) string {
-	// ports are integral; safe enough here
-	return string([]byte((func() string {
-		n := int(f)
-		return itoa(n)
-	})()))
-}
-
-// tiny local itoa to avoid importing strconv in this file (optional)
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	buf := make([]byte, 0, 12)
-	for n > 0 {
-		d := n % 10
-		buf = append(buf, byte('0'+d))
-		n /= 10
-	}
-	if neg {
-		buf = append(buf, '-')
-	}
-	// reverse
-	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
-		buf[i], buf[j] = buf[j], buf[i]
-	}
-	return string(buf)
-}
-
-func (lc *LanternCore) GetAppDataDir() string {
-	return settings.GetString(settings.DataPathKey)
-}
-
-func (lc *LanternCore) GetEnabledApps() (string, error) {
-	st, err := lc.splitTunnelHandler()
-	if err != nil {
-		return "", err
-	}
-	return st.EnabledAppsJSON()
-}
-
-// fixStaleSettingsFilePath corrects a stale "file_path" entry in local.json that can
-// occur after the iOS migration from the App Group root to the data/ subdirectory.
-// The radiance settings watcher reads "file_path" from local.json to decide which
-// directory to watch via fsnotify. If it still points to the App Group root, the
-// Network Extension sandbox blocks lstat on
-// .com.apple.mobile_container_manager.metadata.plist, causing the tunnel to fail.
-// The main app always runs before the tunnel (user must tap Connect), so this fix
-// is guaranteed to persist to disk before the tunnel process starts.
-func fixStaleSettingsFilePath(dataDir string) {
-	// "file_path" and "local.json" mirror unexported constants in the radiance settings package.
-	expected := filepath.Join(dataDir, "local.json")
-	current := settings.GetString("file_path")
-	if current == "" || current == expected {
-		return
-	}
-	slog.Info("Fixing stale file_path in settings", "from", current, "to", expected)
-	if err := settings.Set("file_path", expected); err != nil {
-		slog.Warn("Failed to fix file_path in settings", "error", err)
+func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
+	switch filterType {
+	case vpn.TypeDomain:
+		return filter.Domain
+	case vpn.TypeDomainSuffix:
+		return filter.DomainSuffix
+	case vpn.TypeDomainKeyword:
+		return filter.DomainKeyword
+	case vpn.TypeDomainRegex:
+		return filter.DomainRegex
+	case vpn.TypeProcessName:
+		return filter.ProcessName
+	case vpn.TypeProcessPath:
+		return filter.ProcessPath
+	case vpn.TypeProcessPathRegex:
+		return filter.ProcessPathRegex
+	case vpn.TypePackageName:
+		return filter.PackageName
+	default:
+		return nil
 	}
 }

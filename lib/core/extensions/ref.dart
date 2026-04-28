@@ -29,7 +29,7 @@ final userEmailProvider = Provider<String>((ref) {
 final isPrivateServerFoundProvider = Provider<bool>((ref) {
   final privateServersAsync = ref.watch(availableServersProvider);
   return privateServersAsync.maybeWhen(
-    data: (servers) => servers.user.locations.values.isNotEmpty,
+    data: (servers) => servers.hasUserServers,
     orElse: () => false,
   );
 });

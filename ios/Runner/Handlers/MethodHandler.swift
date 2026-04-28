@@ -204,6 +204,9 @@ class MethodHandler {
       case "getAutoServerLocation":
         self.getAutoServerLocation(result: result)
 
+      case "getSelectedServerJSON":
+        self.getSelectedServerJSON(result: result)
+
       // Utils
       case "featureFlag":
         self.featureFlags(result: result)
@@ -219,6 +222,11 @@ class MethodHandler {
       case "diagnosticLogFiles":
         self.diagnosticLogFiles(result: result)
 
+      case "isBlockAdsEnabled":
+        Task {
+          await MainActor.run { result(MobileIsBlockAdsEnabled()) }
+        }
+
       case "setBlockAdsEnabled":
         let data = call.arguments as? [String: Any]
         let enabled = data?["enabled"] as? Bool ?? false
@@ -233,6 +241,26 @@ class MethodHandler {
           return
         }
         self.setSmartRouteMode(mode: mode, result: result)
+
+      case "isSmartRoutingEnabled":
+        Task {
+          await MainActor.run { result(MobileIsSmartRoutingEnabled()) }
+        }
+
+      case "isTelemetryEnabled":
+        Task {
+          await MainActor.run { result(MobileIsTelemetryEnabled()) }
+        }
+
+      case "isOAuthLogin":
+        Task {
+          await MainActor.run { result(MobileIsOAuthLogin()) }
+        }
+
+      case "getOAuthProvider":
+        Task {
+          await MainActor.run { result(MobileGetOAuthProvider()) }
+        }
 
       default:
         result(FlutterMethodNotImplemented)
@@ -283,13 +311,7 @@ class MethodHandler {
   private func startVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        // start auto location listener
         try await vpnManager.startTunnel()
-        var error: NSError?
-        MobileStartAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error getting auto location: \(error.localizedDescription)")
-        }
         await MainActor.run {
           result("VPN started successfully.")
         }
@@ -315,17 +337,10 @@ class MethodHandler {
   private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       do {
-        // Stop auto location listener before connecting to a specific server
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
-        }
-        let location = data["location"] as? String ?? ""
         let serverName = data["serverName"] as? String ?? ""
-        try await self.vpnManager.connectToServer(location: location, serverName: serverName)
+        try await self.vpnManager.connectToServer(serverName: serverName)
         await MainActor.run {
-          result("VPN connected successfully to \(serverName) at \(location).")
+          result("VPN connected successfully to \(serverName).")
         }
       } catch {
         await MainActor.run {
@@ -344,13 +359,6 @@ class MethodHandler {
   private func stopVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        // Stop auto location listener before connecting to a specific server
-
-        var error: NSError?
-        MobileStopAutoLocationListener(&error)
-        if let error {
-          appLogger.error("Error stopping auto location listener: \(error.localizedDescription)")
-        }
         try await vpnManager.stopTunnel()
         await MainActor.run {
           result("VPN stopped successfully.")
@@ -410,13 +418,15 @@ class MethodHandler {
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
       var error: NSError?
-      let data = try MobileOAuthLoginCallback(token, &error)
+      let json = try MobileOAuthLoginCallback(token, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
         return
       }
       await MainActor.run {
-        result(data)
+        // Dart side expects bytes to utf8.decode — convert the gomobile-returned
+        // string back to Data to preserve the Flutter contract.
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -424,13 +434,13 @@ class MethodHandler {
   private func getUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = try MobileUserData(&error)
+      let json = try MobileUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
         return
       }
       await MainActor.run {
-        result(data)
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -452,13 +462,13 @@ class MethodHandler {
   private func fetchUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let bytes = MobileFetchUserData(&error)
+      let json = MobileFetchUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "FETCH_USER_DATA_ERROR")
         return
       }
       await MainActor.run {
-        result(bytes)
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -508,13 +518,13 @@ class MethodHandler {
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = MobileAcknowledgeApplePurchase(token, planId, &error)
+      let json = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
       }
       await MainActor.run {
-        result(data)
+        result(json.data(using: .utf8))
       }
     }
   }
@@ -579,7 +589,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload.data(using: .utf8))
       }
     }
   }
@@ -607,7 +617,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload.data(using: .utf8))
       }
     }
   }
@@ -616,15 +626,14 @@ class MethodHandler {
     Task {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
-      let isSSO = data["isSSO"] as? Bool ?? false
       var error: NSError?
-      let payload = MobileDeleteAccount(email, password, isSSO, &error)
+      let payload = MobileDeleteAccount(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
         return
       }
       await MainActor.run {
-        result(payload)
+        result(payload.data(using: .utf8))
       }
     }
   }
@@ -859,15 +868,14 @@ class MethodHandler {
     Task {
       let urls = data["urls"] as? String ?? ""
       let skipVerification = data["skipValidation"] as? Bool ?? false
-      let serverName = data["serverName"] as? String ?? ""
       var error: NSError?
 
-      MobileAddServerBasedOnURLs(urls, skipVerification, serverName, &error)
+      let tags = MobileAddServerBasedOnURLs(urls, skipVerification, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
         return
       }
-      await self.replyOK(result)
+      await MainActor.run { result(tags) }
     }
   }
 
@@ -902,15 +910,9 @@ class MethodHandler {
 
   func featureFlags(result: @escaping FlutterResult) {
     Task {
-      let flags = MobileAvailableFeatures()
-      guard let flags else {
-        await MainActor.run {
-          result("{}")
-        }
-        return
-      }
+      let flags = MobileAvailableFeatures() ?? ""
       await MainActor.run {
-        result(String(data: flags, encoding: .utf8))
+        result(flags.isEmpty ? "{}" : flags)
       }
     }
   }
@@ -935,12 +937,9 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "GET_LANTERN_SERVERS_ERROR")
         return
       }
-      guard let servers else {
-        await MainActor.run { result("[]") }
-        return
-      }
       await MainActor.run {
-        result(String(data: servers, encoding: .utf8))
+        let s = servers ?? ""
+        result(s.isEmpty ? "[]" : s)
       }
     }
   }
@@ -955,6 +954,22 @@ class MethodHandler {
       }
       await MainActor.run {
         result(location ?? "")
+      }
+    }
+  }
+
+  func getSelectedServerJSON(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetSelectedServerJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SELECTED_SERVER_ERROR")
+        return
+      }
+      let s = data ?? ""
+      let json = s.isEmpty ? "{}" : s
+      await MainActor.run {
+        result(json)
       }
     }
   }

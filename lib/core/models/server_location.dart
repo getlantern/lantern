@@ -38,19 +38,19 @@ class ServerLocation {
     return '$c - $t';
   }
 
-  /// Replaces `lanternLocation(...)` instance method
-  factory ServerLocation.fromLanternLocation({
-    required Location_ server,
+  /// Build from a radiance [Server] object.
+  factory ServerLocation.fromServer({
+    required Server server,
     AutoLocation? autoLocation,
   }) {
     return ServerLocation(
       serverName: server.tag,
       serverType: ServerLocationType.lanternLocation.name,
-      country: server.country,
-      city: server.city,
-      countryCode: server.countryCode,
-      displayName: '${server.country} - ${server.city}',
-      protocol: server.protocol,
+      country: server.location.country,
+      city: server.location.city,
+      countryCode: server.location.countryCode,
+      displayName: '${server.location.country} - ${server.location.city}',
+      protocol: server.type,
       autoLocation: autoLocation,
     );
   }

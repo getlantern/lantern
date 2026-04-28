@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 import 'vpn_smoke_helpers.dart';
 
@@ -40,15 +40,9 @@ Future<void> _setRoutingModeToFullTunnelForSmoke(
     homeElements.first,
     listen: false,
   );
-  final currentMode = container.read(appSettingProvider).routingMode;
-  if (currentMode == RoutingMode.full) {
-    debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; routing mode already full');
-    return;
-  }
-
   debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; switching to full tunnel mode');
   final result = await container
-      .read(appSettingProvider.notifier)
+      .read(radianceSettingsProvider.notifier)
       .setRoutingMode(RoutingMode.full);
 
   result.fold(
@@ -61,7 +55,7 @@ Future<void> _setRoutingModeToFullTunnelForSmoke(
   final deadline = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 200));
-    final updatedMode = container.read(appSettingProvider).routingMode;
+    final updatedMode = container.read(radianceSettingsProvider).routingMode;
     if (updatedMode == RoutingMode.full) {
       return;
     }

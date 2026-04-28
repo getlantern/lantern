@@ -5,6 +5,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -13,7 +14,7 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 import '../core/common/common.dart' hide DeveloperMode;
 import '../core/models/available_servers.dart';
@@ -288,7 +289,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.oAuthLoginCallback(token);
     }
@@ -296,7 +297,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> getUserData() {
+  Future<Either<Failure, UserResponseModel>> getUserData() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getUserData();
     }
@@ -320,7 +321,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.fetchUserData();
     }
@@ -345,7 +346,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) {
+  Future<Either<Failure, UserResponseModel>> logout(String email) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.logout(email);
     }
@@ -373,7 +374,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> login({
+  Future<Either<Failure, UserResponseModel>> login({
     required String email,
     required String password,
   }) {
@@ -434,7 +435,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
     required String email,
     required String password,
     bool isSSO = false,
@@ -562,22 +563,19 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerBasedOnURLs({
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
     required bool skipCertVerification,
-    required String serverName,
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerBasedOnURLs(
         urls: urls,
         skipCertVerification: skipCertVerification,
-        serverName: serverName,
       );
     }
     return _platformService.addServerBasedOnURLs(
       urls: urls,
       skipCertVerification: skipCertVerification,
-      serverName: serverName,
     );
   }
 
@@ -702,6 +700,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSelectedServerLocation();
+    }
+    return _platformService.getSelectedServerLocation();
+  }
+
+  @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.triggerSystemExtension();
@@ -772,6 +778,38 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isSmartRoutingEnabled();
+    }
+    return _platformService.isSmartRoutingEnabled();
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isTelemetryEnabled();
+    }
+    return _platformService.isTelemetryEnabled();
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isOAuthLogin();
+    }
+    return _platformService.isOAuthLogin();
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getOAuthProvider();
+    }
+    return _platformService.getOAuthProvider();
+  }
+
+  @override
   Future<Either<Failure, String>> attachReferralCode(String code) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.attachReferralCode(code);
@@ -822,5 +860,55 @@ class LanternService implements LanternCoreService {
       return _ffiService.checkVpnConflict();
     }
     return _platformService.checkVpnConflict();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.patchSettings(updates);
+    }
+    return _platformService.patchSettings(updates);
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getSettings();
+    }
+    return _platformService.getSettings();
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.patchEnvVars(updates);
+    }
+    return _platformService.patchEnvVars(updates);
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getEnvVars();
+    }
+    return _platformService.getEnvVars();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.runURLTests();
+    }
+    return _platformService.runURLTests();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.sendConfigRequest();
+    }
+    return _platformService.sendConfigRequest();
   }
 }

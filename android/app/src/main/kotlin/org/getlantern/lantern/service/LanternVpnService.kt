@@ -4,13 +4,13 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -59,6 +59,15 @@ class LanternVpnService :
         // #173507, where /service/start hung and the UI appeared frozen until
         // a phone reboot). Without this timeout the coroutine could wait forever.
         private const val VPN_START_TIMEOUT_MS = 60_000L
+
+        // Single-flight gate: when we time out the connect() call, we detach
+        // the coroutine rather than waiting for the JNI call to honor
+        // cancellation (it doesn't). The orphan keeps a Dispatchers.IO thread
+        // pinned until Go eventually returns. To prevent multiple rapid
+        // retries from accumulating orphans and pressuring the IO pool, reject
+        // new connect attempts while a previous one is still in flight. The
+        // flag clears when the orphan's coroutine actually completes.
+        private val connectInFlight = AtomicBoolean(false)
 
         lateinit var instance: LanternVpnService
     }
@@ -120,10 +129,7 @@ class LanternVpnService :
 
             ACTION_CONNECT_TO_SERVER -> {
                 serviceScope.launch {
-                    connectToServer(
-                        intent.getStringExtra("location") ?: "",
-                        intent.getStringExtra("tag") ?: "",
-                    )
+                    connectToServer(intent.getStringExtra("tag") ?: "")
                 }
                 AppLogger.d(TAG, "Connecting to server")
                 START_STICKY
@@ -159,13 +165,17 @@ class LanternVpnService :
             closeTunInterface()
             // Clean up synchronously — cannot use serviceScope here because
             // it is cancelled in the finally block below.
+            //
+            // Call Mobile.stopVPN() as long as radiance is up. The previous
+            // isVPNConnected() guard (status == Connected) was wrong — if the
+            // tunnel is in any non-Connected state (Restarting, Connecting,
+            // Disconnecting, Error), c.tunnel is still non-nil on the Go side
+            // and needs to be closed so the next process lifetime starts clean.
+            // Mobile.stopVPN() itself is a no-op when c.tunnel is nil.
             val radianceConnected = Mobile.isRadianceConnected()
-            val vpnConnected = Mobile.isVPNConnected()
-            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected vpnConnected=$vpnConnected")
+            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected")
             if (!radianceConnected) {
                 AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-            } else if (!vpnConnected) {
-                AppLogger.d(TAG, "Skipping stopVPN — VPN tunnel was never started")
             } else {
                 runCatching { Mobile.stopVPN() }
                     .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
@@ -214,10 +224,39 @@ class LanternVpnService :
 
     override fun restartService() {
         AppLogger.i(TAG, "restartService called")
-        serviceScope.launch {
+        // Radiance's Restart() sets the tunnel status to Restarting, then
+        // calls us synchronously and treats a successful return as "restart
+        // complete." If we fire-and-forget via serviceScope.launch and return,
+        // radiance thinks it succeeded but the tunnel is still in Restarting —
+        // and if the Android service is torn down (onDestroy, process
+        // pressure) before the launched coroutine completes, the tunnel
+        // wedges in Restarting forever. Every subsequent Connect fails with
+        // "tunnel is currently Restarting" (getlantern/engineering#3297
+        // issues 1-3, Freshdesk #173681).
+        //
+        // Block until stopVPNTunnel + startVPN finish so the return actually
+        // reflects the state radiance observes. c.mu is released on the Go
+        // side before RestartService is invoked, so synchronous callbacks
+        // into Mobile.* from this thread don't deadlock.
+        runBlocking(Dispatchers.IO) {
             stopVPNTunnel()
             startVPN()
+            // launchVPN (wrapping startVPN) catches failures via
+            // runCatching { ... }.onFailure { ... } and returns normally,
+            // so a nil return from startVPN doesn't mean the restart
+            // succeeded. Verify the postcondition on the Go side and
+            // throw if it's not met — the exception propagates through
+            // runBlocking → restartService → radiance's Restart() as a
+            // non-nil error, which is what tells the caller the restart
+            // actually failed and the tunnel needs healing rather than
+            // wedging forever in Restarting.
+            if (!Mobile.isVPNConnected()) {
+                val msg = "restartService failed: VPN not connected after stopVPNTunnel + startVPN"
+                AppLogger.e(TAG, msg)
+                throw IllegalStateException(msg)
+            }
         }
+        AppLogger.i(TAG, "restartService completed")
     }
 
     override fun sendNotification(notification: Notification?) {
@@ -244,6 +283,7 @@ class LanternVpnService :
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
+                Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
             AppLogger.d(TAG, "Radiance setup completed")
@@ -252,22 +292,21 @@ class LanternVpnService :
         }
     }
 
-    private suspend fun startVPN() = launchVPN(
+     suspend fun startVPN() = launchVPN(
         errorCode = "start_vpn",
         cleanUpOnFailure = true,
     ) {
-        Mobile.startVPN(this@LanternVpnService, opts())
+        Mobile.startVPN()
         AppLogger.d(TAG, "VPN service started")
     }
 
     suspend fun connectToServer(
-        location: String,
         tag: String,
     ) = launchVPN(
         errorCode = "connect_to_server",
         cleanUpOnFailure = false,
     ) {
-        Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
+        Mobile.connectToServer( tag)
         AppLogger.d(TAG, "Connected to server")
     }
 
@@ -294,6 +333,7 @@ class LanternVpnService :
             // to finish before we attempt to start the VPN tunnel.
             if (!Mobile.isRadianceConnected()) {
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
+                Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
@@ -306,21 +346,41 @@ class LanternVpnService :
             // Bound the Mobile.startVPN / connectToServer call with a wall-clock
             // timeout. These are blocking JNI calls with no suspension points,
             // so withTimeout around a direct invocation wouldn't fire — we run
-            // the call in a child coroutine on Dispatchers.IO and await it,
-            // which gives withTimeout a real cancellation point. On timeout we
-            // abandon the awaited Deferred (the underlying JNI call keeps
-            // running in the background; we accept that leak — once Go
-            // eventually completes or the process exits, it will settle) so
-            // the UI gets unstuck with a clear error instead of a frozen
-            // button that only a phone reboot can clear (Freshdesk #173507).
-            coroutineScope {
-                val deferred = async(Dispatchers.IO) { connect() }
-                try {
-                    withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
-                } catch (e: TimeoutCancellationException) {
-                    deferred.cancel()
-                    throw e
-                }
+            // the call in async() and await it so withTimeout has a real
+            // cancellation point.
+            //
+            // Run it in a DETACHED CoroutineScope (not a structured
+            // coroutineScope { } / the enclosing withContext), because on
+            // timeout structured concurrency would cancel the deferred and
+            // then wait for it to complete — and since the JNI call doesn't
+            // honor cooperative cancellation, that wait is exactly the hang
+            // we're trying to prevent. A detached SupervisorJob scope lets
+            // us stop awaiting without joining; the orphan coroutine keeps
+            // running until Go returns (or the process exits), but the
+            // caller is unblocked and the UI surfaces a clear error instead
+            // of a frozen button only a phone reboot can clear
+            // (Freshdesk #173507).
+            //
+            // Reject concurrent attempts with connectInFlight so repeated
+            // retries while a previous call is stuck in JNI don't accumulate
+            // orphan coroutines on Dispatchers.IO. Clear the flag from the
+            // Deferred completion path so early cancellation before the async
+            // body starts can't wedge future attempts.
+            if (!connectInFlight.compareAndSet(false, true)) {
+                throw IllegalStateException("previous VPN connect attempt still in flight")
+            }
+            val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            val deferred = connectScope.async { connect() }
+            deferred.invokeOnCompletion {
+                connectInFlight.set(false)
+            }
+            try {
+                withTimeout(VPN_START_TIMEOUT_MS) { deferred.await() }
+            } catch (e: TimeoutCancellationException) {
+                deferred.cancel()
+                throw e
+            } finally {
+                connectScope.cancel()
             }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -363,9 +423,16 @@ class LanternVpnService :
     private suspend fun stopVPNTunnel() {
         try {
             closeTunInterface()
+            // Unconditionally call Mobile.stopVPN() as long as radiance is up.
+            // The old isVPNConnected() guard looked at status == Connected,
+            // which is wrong during a restart: radiance sets the tunnel to
+            // Restarting before calling back into the platform, so the check
+            // would skip stopVPN and leave the tunnel wedged in Restarting
+            // (getlantern/engineering#3297). Mobile.stopVPN() itself is a
+            // no-op when c.tunnel is nil, so the guard is unnecessary.
             runCatching {
-                if (!Mobile.isVPNConnected()) {
-                    AppLogger.d(TAG, "VPN is not connected, skipping stopVPN")
+                if (!Mobile.isRadianceConnected()) {
+                    AppLogger.d(TAG, "Radiance IPC not running, skipping stopVPN")
                     return@runCatching
                 }
                 Mobile.stopVPN()
@@ -510,6 +577,7 @@ class LanternVpnService :
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
                 telemetryConsent = isTelemetryEnabled()
                 env = getRadianceEnv()
+                platform = this@LanternVpnService
             }
         return opts
     }

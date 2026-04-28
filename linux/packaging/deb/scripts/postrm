@@ -4,8 +4,6 @@ set -e
 case "$1" in
 remove | purge)
 	if command -v systemctl >/dev/null 2>&1; then
-		systemctl disable lanternd.service >/dev/null 2>&1 || true
-		systemctl daemon-reload >/dev/null 2>&1 || true
 		systemctl reset-failed lanternd.service >/dev/null 2>&1 || true
 	fi
 	;;

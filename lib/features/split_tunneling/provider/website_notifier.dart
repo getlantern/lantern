@@ -15,10 +15,27 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
   late final LanternService _lanternService = ref.read(lanternServiceProvider);
 
   @override
-  Set<Website> build() {
-    unawaited(_reloadFromCore());
-    return <Website>{};
+  FutureOr<Set<Website>> build() async {
+    final result = await _lanternService.getSplitTunnelItems(
+      SplitTunnelFilterType.domainSuffix,
+    );
+
+    return result.match(
+      (failure) {
+        appLogger.error(
+          'Failed to load split-tunnel websites: ${failure.error}',
+        );
+        return <Website>{};
+      },
+      (items) => items
+          .map((item) => item.trim().toLowerCase())
+          .where((domain) => domain.isNotEmpty)
+          .map((domain) => Website(domain: domain))
+          .toSet(),
+    );
   }
+
+  Set<Website> _current() => state.value ?? <Website>{};
 
   Future<void> refreshFromCore() => _reloadFromCore();
 
@@ -32,20 +49,23 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
         'Failed to load split-tunnel websites: ${failure.error}',
       ),
       (items) {
-        state = items
-            .map((item) => item.trim().toLowerCase())
-            .where((domain) => domain.isNotEmpty)
-            .map((domain) => Website(domain: domain))
-            .toSet();
+        state = AsyncData(
+          items
+              .map((item) => item.trim().toLowerCase())
+              .where((domain) => domain.isNotEmpty)
+              .map((domain) => Website(domain: domain))
+              .toSet(),
+        );
       },
     );
   }
 
   Future<List<Failure>> addWebsites(List<Website> websites) async {
     final failures = <Failure>[];
+    final current = _current();
     final newWebsites = websites.where(
       (website) =>
-          !state.any(
+          !current.any(
             (saved) =>
                 saved.domain.toLowerCase() == website.domain.toLowerCase(),
           ) &&
@@ -86,7 +106,8 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
       return null;
     }
 
-    if (!state.any((saved) => saved.domain.toLowerCase() == normalizedDomain)) {
+    final current = _current();
+    if (!current.any((saved) => saved.domain.toLowerCase() == normalizedDomain)) {
       return null;
     }
 

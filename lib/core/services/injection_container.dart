@@ -7,6 +7,7 @@ import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -30,6 +31,11 @@ Future<void> injectServices() async {
     appLogger.error('Storage init failed', e, st);
     rethrow;
   }
+
+  // Detect when the data directory was deleted but SharedPreferences
+  // (e.g. NSUserDefaults on macOS) survived.  Must run before runApp()
+  // so that AppSettingNotifier.build() reads the correct defaults.
+  await AppSettingNotifier.resetIfFreshInstall(storage);
 
   sl.registerLazySingleton<Updater>(() => Updater());
   sl.registerLazySingleton<AppRouter>(() => AppRouter());

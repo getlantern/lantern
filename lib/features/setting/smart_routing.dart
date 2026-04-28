@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-
-import '../home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'SmartRouting')
 class SmartRouting extends HookConsumerWidget {
@@ -13,21 +12,24 @@ class SmartRouting extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final appSetting = ref.watch(appSettingProvider);
-    final selected = appSetting.routingMode;
+    final selected = ref.watch(
+      radianceSettingsProvider.select((s) => s.routingMode),
+    );
 
     Future<void> select(RoutingMode mode) async {
-      final result =
-          await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+      final result = await ref
+          .read(radianceSettingsProvider.notifier)
+          .setRoutingMode(mode);
       result.fold(
         (failure) {
           context.showSnackBar('failed_to_update_routing_mode'.i18n);
         },
-        (_) {},
+        (_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) appRouter.pop();
+          });
+        },
       );
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) appRouter.pop();
-      });
     }
 
     return BaseScreen(

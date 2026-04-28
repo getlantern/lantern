@@ -206,8 +206,6 @@ jobs:
             exit 1
           fi
 
-          sudo usermod -aG lantern "$USER" || true
-
           systemctl is-active --quiet lanternd.service
           test -S /run/lantern/lanternd.sock
           sudo stat -c "%a %U %G %n" /run/lantern/lanternd.sock
@@ -217,7 +215,7 @@ jobs:
         run: |
           set -euxo pipefail
           code=0
-          sg lantern -c "env HOME=$HOME PATH=$PATH xvfb-run -a timeout 15s /usr/bin/lantern >/tmp/lantern-installed-smoke.log 2>&1" || code=$?
+          env HOME=$HOME PATH=$PATH xvfb-run -a timeout 15s /usr/bin/lantern >/tmp/lantern-installed-smoke.log 2>&1 || code=$?
           if [[ "$code" -ne 124 ]]; then
             cat /tmp/lantern-installed-smoke.log || true
             echo "Installed /usr/bin/lantern did not stay up under xvfb"
@@ -244,7 +242,7 @@ jobs:
             FLUTTER_DART_DEFINES="${FLUTTER_DART_DEFINES} --dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
           fi
           set +e
-          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded ${FLUTTER_DART_DEFINES}"
+          env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 8m xvfb-run -a flutter test integration_test/vpn/linux_connect_smoke_test.dart -d linux --reporter=expanded ${FLUTTER_DART_DEFINES}
           SMOKE_EXIT=$?
           set -e
 
@@ -259,14 +257,14 @@ jobs:
             exit "$SMOKE_EXIT"
           fi
 
-          if ! grep -Eq 'IPC request.*path=/service/start' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /service/start IPC request in lanternd journal"
+          if ! grep -Eq 'IPC request.*path=/vpn/connect' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /vpn/connect IPC request in lanternd journal"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
 
-          if ! grep -Eq 'IPC request.*path=/service/stop' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /service/stop IPC request in lanternd journal"
+          if ! grep -Eq 'IPC request.*path=/vpn/disconnect' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "Missing /vpn/disconnect IPC request in lanternd journal"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
@@ -282,7 +280,7 @@ jobs:
         run: |
           set -euxo pipefail
           set +e
-          sg lantern -c "env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 10m xvfb-run -a flutter test integration_test/auth/auth_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true"
+          env PATH=$PATH HOME=$HOME timeout --signal=TERM --kill-after=30s 10m xvfb-run -a flutter test integration_test/auth/auth_smoke_test.dart -d linux --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
           AUTH_SMOKE_EXIT=$?
           set -e
           if [[ "$AUTH_SMOKE_EXIT" -eq 124 ]]; then

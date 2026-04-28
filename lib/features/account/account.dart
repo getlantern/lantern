@@ -13,7 +13,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'Account')
 class Account extends HookConsumerWidget {
@@ -45,7 +45,7 @@ class Account extends HookConsumerWidget {
     final user = ref.watch(homeProvider).value;
     final isExpired = ref.watch(isUserExpiredProvider);
     final isPro = ref.watch(isUserProProvider);
-    final appSettings = ref.watch(appSettingProvider);
+    final email = ref.watch(userEmailProvider);
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
 
@@ -90,12 +90,12 @@ class Account extends HookConsumerWidget {
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: appSettings.email.toLowerCase(),
+              label: email.toLowerCase(),
               icon: AppImagePaths.email,
               contentPadding: EdgeInsets.only(left: 16),
               onPressed: kDebugMode
                   ? () {
-                      copyToClipboard(appSettings.email);
+                      copyToClipboard(email);
                     }
                   : null,
               trailing: AppTextButton(
@@ -103,7 +103,7 @@ class Account extends HookConsumerWidget {
                 onPressed: () {
                   appRouter.push(
                     SignInPassword(
-                      email: appSettings.email,
+                      email: email,
                       fromChangeEmail: true,
                     ),
                   );
@@ -189,7 +189,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget? planTrailingWidget(
-    UserResponse user,
+    UserResponseModel user,
     BuildContext buildContext,
     WidgetRef ref,
   ) {
@@ -218,7 +218,7 @@ class Account extends HookConsumerWidget {
   Future<void> onManageSubscriptionTap(
     WidgetRef ref,
     BuildContext buildContext,
-    UserResponse user,
+    UserResponseModel user,
   ) async {
     final provider = user.legacyUserData.subscriptionData.provider;
     switch (provider) {
@@ -319,7 +319,7 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> _handleSubscriptionChange({
-    required UserResponse oldUser,
+    required UserResponseModel oldUser,
     required LanternService lanternService,
     required HomeNotifier notifier,
     required BuildContext context,
@@ -399,8 +399,9 @@ class Account extends HookConsumerWidget {
           key: AuthKeys.accountLogoutConfirmButton,
           label: 'logout'.i18n,
           onPressed: () {
-            onLogout(context, ref);
+            // Dismiss dialog first, then run the async logout flow.
             appRouter.pop();
+            onLogout(context, ref);
           },
         ),
       ],
@@ -420,22 +421,30 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onLogout(BuildContext context, WidgetRef ref) async {
+    final email = ref.read(userEmailProvider);
+    if (email.isEmpty) {
+      // Not truly logged in — just clear local state and go home.
+      ref.read(homeProvider.notifier).clearLogoutData();
+      appRouter.popUntilRoot();
+      return;
+    }
+    if (!context.mounted) return;
     context.showLoadingDialog();
-    final appSetting = ref.read(appSettingProvider);
     final result = await ref
         .read(lanternServiceProvider)
-        .logout(appSetting.email);
+        .logout(email);
+    if (!context.mounted) return;
     result.fold(
       (l) {
         context.hideLoadingDialog();
         appLogger.error('Logout error: ${l.localizedErrorMessage}');
+        context.showSnackBar(l.localizedErrorMessage);
       },
       (user) {
         context.hideLoadingDialog();
-        appRouter.popUntilRoot();
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(user);
-
+        appRouter.popUntilRoot();
         appLogger.info('Logout success: $user');
       },
     );

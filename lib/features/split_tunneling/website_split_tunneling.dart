@@ -29,7 +29,8 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
+    final enabledWebsites =
+        ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
     matchesSearch(website) =>
         searchQuery.isEmpty ||
         website.domain.toLowerCase().contains(searchQuery.toLowerCase());

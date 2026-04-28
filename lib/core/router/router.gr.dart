@@ -13,6 +13,7 @@ import 'package:auto_route/auto_route.dart' as _i44;
 import 'package:collection/collection.dart' as _i48;
 import 'package:flutter/material.dart' as _i45;
 import 'package:lantern/core/common/common.dart' as _i46;
+import 'package:lantern/core/models/user.dart' as _i47;
 import 'package:lantern/core/widgets/app_webview.dart' as _i3;
 import 'package:lantern/features/account/account.dart' as _i1;
 import 'package:lantern/features/account/delete_account.dart' as _i9;
@@ -68,7 +69,6 @@ import 'package:lantern/features/split_tunneling/website_split_tunneling.dart'
     as _i43;
 import 'package:lantern/features/support/support.dart' as _i41;
 import 'package:lantern/features/vpn/server_selection.dart' as _i34;
-import 'package:lantern/lantern/protos/protos/auth.pb.dart' as _i47;
 
 /// generated route for
 /// [_i1.Account]
@@ -483,7 +483,7 @@ class DeveloperMode extends _i44.PageRouteInfo<void> {
 class DeviceLimitReached extends _i44.PageRouteInfo<DeviceLimitReachedArgs> {
   DeviceLimitReached({
     _i45.Key? key,
-    required List<_i47.UserResponse_Device> devices,
+    required List<_i47.DeviceModel> devices,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          DeviceLimitReached.name,
@@ -507,7 +507,7 @@ class DeviceLimitReachedArgs {
 
   final _i45.Key? key;
 
-  final List<_i47.UserResponse_Device> devices;
+  final List<_i47.DeviceModel> devices;
 
   @override
   String toString() {
@@ -519,7 +519,7 @@ class DeviceLimitReachedArgs {
     if (identical(this, other)) return true;
     if (other is! DeviceLimitReachedArgs) return false;
     return key == other.key &&
-        const _i48.ListEquality<_i47.UserResponse_Device>().equals(
+        const _i48.ListEquality<_i47.DeviceModel>().equals(
           devices,
           other.devices,
         );
@@ -527,8 +527,7 @@ class DeviceLimitReachedArgs {
 
   @override
   int get hashCode =>
-      key.hashCode ^
-      const _i48.ListEquality<_i47.UserResponse_Device>().hash(devices);
+      key.hashCode ^ const _i48.ListEquality<_i47.DeviceModel>().hash(devices);
 }
 
 /// generated route for

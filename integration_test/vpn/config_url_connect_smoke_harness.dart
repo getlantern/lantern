@@ -230,7 +230,10 @@ Future<void> runConfigUrlConnectSmokeHarness(
       'Config URL UI smoke requires exactly one URL, but got ${urls.length}.',
     );
   }
-  final url = urls.single;
+  var url = urls.single;
+  final hashIndex = url.indexOf('#');
+  url = hashIndex >= 0 ? url.substring(0, hashIndex) : url;
+  url = '$url#$configServerName';
 
   if (configServerName.trim().isEmpty) {
     fail(
@@ -357,6 +360,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
     );
   }
 
+  // Selecting the server should trigger a connect and navigate home.
   await WidgetWaitUtils.waitForFinder(
     tester,
     finders.homeScreen,

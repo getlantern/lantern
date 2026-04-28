@@ -14,8 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/common"
-	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/ipc"
 
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
@@ -39,7 +38,7 @@ type provisionSession struct {
 	userProjectString   string
 	serverName          string
 	serverLocation      string
-	manager             *servers.Manager
+	client              *ipc.Client
 }
 
 type provisionerResponse struct {
@@ -75,7 +74,7 @@ func getSession() (*provisionSession, error) {
 // StartDigitalOceanPrivateServerFlow initializes the DigitalOcean provisioner and starts listening for events.
 // It takes a PrivateServerEventListener to handle events and browser opening.
 // It returns an error if the provisioner fails to start or if there are issues during the session.
-func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *servers.Manager) error {
+func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *ipc.Client) error {
 	ctx := context.Background()
 	provisioner := digitalocean.GetProvisioner(ctx, func(url string) error {
 		return events.OpenBrowser(url)
@@ -88,7 +87,7 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 	ps := &provisionSession{
 		provisioner: provisioner,
 		eventSink:   events,
-		manager:     vpnClient,
+		client:      vpnClient,
 	}
 	storeSession(ps)
 	go listenToServerEvents(*ps)
@@ -96,7 +95,7 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 }
 
 // StartGoogleCloudPrivateServerFlow initializes the GCP provisioner and starts listening for events
-func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *servers.Manager) error {
+func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *ipc.Client) error {
 	ctx := context.Background()
 	provisioner := gcp.GetProvisioner(ctx, func(url string) error {
 		return events.OpenBrowser(url)
@@ -109,7 +108,7 @@ func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, 
 	ps := &provisionSession{
 		provisioner: provisioner,
 		eventSink:   events,
-		manager:     vpnClient,
+		client:      vpnClient,
 	}
 	storeSession(ps)
 	go listenToServerEvents(*ps)
@@ -159,7 +158,7 @@ func listenToServerEvents(ps provisionSession) {
 				compartments := provisioner.Compartments()
 				if len(compartments) == 0 {
 					slog.Error("No valid projects found, please check your billing account and permissions")
-					events.OnError("No valid projects found, please check your billing account and permissions")
+					events.OnError(convertErrorToJSON("EventTypeNoProjects", errors.New("no valid projects found, please check your billing account and permissions")))
 					return
 				}
 				// if only one compartment, select it by default
@@ -226,14 +225,20 @@ func listenToServerEvents(ps provisionSession) {
 				// sgp1 - SG [SG]
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
-				mangerErr := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &common.ServerLocation{CountryCode: country, City: city}, false)
+				ctx := context.Background()
+				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
 					return
 				}
 				slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
-				serverInfo, found := ps.manager.GetServerByTag(resp.Tag)
+				serverInfo, found, err := ps.client.GetServerByTag(ctx, resp.Tag)
+				if err != nil {
+					slog.Error("Error getting server by tag", slog.Any("error", err))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
+					return
+				}
 				// add protocol info if found
 				if found {
 					resp.Protocol = serverInfo.Type
@@ -338,7 +343,7 @@ func CancelDeployment() error {
 
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
-func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Manager, events utils.PrivateServerEventListener) error {
+func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
 	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
@@ -351,17 +356,14 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 		Tag:         tag,
 	}
 	provisionSession := &provisionSession{
-		manager:   vpnClient,
+		client:    vpnClient,
 		eventSink: events,
 	}
 	storeSession(provisionSession)
 	location := getGeoInfo(ip)
-	_, city, country := ParseLocation(location)
-	err = provisionSession.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, &common.ServerLocation{
-		Country:     "",
-		City:        city,
-		CountryCode: country,
-	}, true)
+	_, _, _ = ParseLocation(location)
+	ctx := context.Background()
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
 	if err != nil {
 		return err
 	}

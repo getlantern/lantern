@@ -13,7 +13,7 @@ part of 'home_notifier.dart';
 final homeProvider = HomeNotifierProvider._();
 
 final class HomeNotifierProvider
-    extends $AsyncNotifierProvider<HomeNotifier, UserResponse> {
+    extends $AsyncNotifierProvider<HomeNotifier, UserResponseModel> {
   HomeNotifierProvider._()
     : super(
         from: null,
@@ -33,19 +33,20 @@ final class HomeNotifierProvider
   HomeNotifier create() => HomeNotifier();
 }
 
-String _$homeNotifierHash() => r'008a819ad8ed52ef8483e4f8547f347620470f25';
+String _$homeNotifierHash() => r'fdc560f98e46d5c3946ea4341b53e5846119f9e2';
 
-abstract class _$HomeNotifier extends $AsyncNotifier<UserResponse> {
-  FutureOr<UserResponse> build();
+abstract class _$HomeNotifier extends $AsyncNotifier<UserResponseModel> {
+  FutureOr<UserResponseModel> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<UserResponse>, UserResponse>;
+    final ref =
+        this.ref as $Ref<AsyncValue<UserResponseModel>, UserResponseModel>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<UserResponse>, UserResponse>,
-              AsyncValue<UserResponse>,
+              AnyNotifier<AsyncValue<UserResponseModel>, UserResponseModel>,
+              AsyncValue<UserResponseModel>,
               Object?,
               Object?
             >;

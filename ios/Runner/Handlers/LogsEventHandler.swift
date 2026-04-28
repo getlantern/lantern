@@ -1,15 +1,17 @@
 import Flutter
 import Foundation
+import Liblantern
 
 class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/logs"
 
   private var channel: FlutterEventChannel?
   private var eventSink: FlutterEventSink?
-  private var tailer: LogTailer?
+  private var subscription: MobileLogSubscription?
+  private var listener: LogEntryListener?
 
   deinit {
-    tailer?.stop()
+    subscription?.cancel()
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -23,132 +25,48 @@ class LogsEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
     -> FlutterError?
   {
+    subscription?.cancel()
+    subscription = nil
     eventSink = events
 
-    try? FileManager.default.createDirectory(
-      at: FilePath.logsDirectory, withIntermediateDirectories: true)
-
-    let logFile = FilePath.logsDirectory.appendingPathComponent("lantern.log")
-    if let last = try? LogTailer.readLastLines(path: logFile.path, maxLines: 200), !last.isEmpty {
-      events(last)
+    let listener = LogEntryListener { [weak self] entry in
+      let trimmed = entry.trimmingCharacters(in: .newlines)
+      guard !trimmed.isEmpty else { return }
+      DispatchQueue.main.async {
+        self?.eventSink?([trimmed])
+      }
     }
+    self.listener = listener
 
-    tailer = LogTailer(path: logFile.path) { [weak self] newLines in
-      self?.eventSink?(newLines)
+    var error: NSError?
+    subscription = MobileTailLogs(listener, &error)
+    if let error = error {
+      self.listener = nil
+      return FlutterError(
+        code: "tail_logs_failed",
+        message: error.localizedDescription,
+        details: nil)
     }
     return nil
   }
 
   public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    tailer?.stop()
-    tailer = nil
+    subscription?.cancel()
+    subscription = nil
+    listener = nil
     eventSink = nil
     return nil
   }
 }
 
-final class LogTailer {
-  private let path: String
-  private var fd: Int32 = -1
-  private var source: DispatchSourceFileSystemObject?
-  private var handle: FileHandle?
-  private var offset: UInt64 = 0
-  private let onLines: ([String]) -> Void
+private class LogEntryListener: NSObject, UtilsLogListenerProtocol {
+  private let onEntry: (String) -> Void
 
-  init?(path: String, onLines: @escaping ([String]) -> Void) {
-    self.path = path
-    self.onLines = onLines
-
-    if !FileManager.default.fileExists(atPath: path) {
-      FileManager.default.createFile(atPath: path, contents: nil)
-    }
-    handle = FileHandle(forReadingAtPath: path)
-
-    fd = open(path, O_EVTONLY)
-    guard fd >= 0 else { return nil }
-
-    if let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size]) as? UInt64 {
-      offset = size
-      try? handle?.seek(toOffset: offset)
-    }
-
-    let queue = DispatchQueue.global(qos: .utility)
-    let source = DispatchSource.makeFileSystemObjectSource(
-      fileDescriptor: fd, eventMask: [.write, .extend, .rename, .delete], queue: queue)
-    source.setEventHandler { [weak self] in self?.handleEvent() }
-    source.setCancelHandler { [weak self] in
-      if let fd = self?.fd, fd >= 0 {
-        close(fd)
-      }
-    }
-    source.resume()
-    self.source = source
+  init(onEntry: @escaping (String) -> Void) {
+    self.onEntry = onEntry
   }
 
-  func stop() {
-    source?.cancel()
-    source = nil
-    try? handle?.close()
-    handle = nil
-  }
-
-  private func reopenHandleIfNeeded(resetOffset: Bool) {
-    if !FileManager.default.fileExists(atPath: path) {
-      FileManager.default.createFile(atPath: path, contents: nil)
-    }
-    if handle == nil {
-      handle = FileHandle(forReadingAtPath: path)
-    }
-    if resetOffset {
-      offset = 0
-    }
-    try? handle?.seek(toOffset: offset)
-  }
-
-  private func handleEvent() {
-    guard let source = source else { return }
-    let event = source.data
-
-    if event.contains(.rename) || event.contains(.delete) {
-      source.suspend()
-      try? handle?.close()
-      handle = nil
-      reopenHandleIfNeeded(resetOffset: true)
-      source.resume()
-      return
-    }
-
-    do {
-      if handle == nil {
-        reopenHandleIfNeeded(resetOffset: false)
-      }
-      guard let handle else { return }
-
-      try handle.seek(toOffset: offset)
-      let data = try handle.readToEnd() ?? Data()
-      guard !data.isEmpty else { return }
-      offset += UInt64(data.count)
-
-      let lines = String(decoding: data, as: UTF8.self)
-        .split(whereSeparator: \.isNewline)
-        .map(String.init)
-      if !lines.isEmpty {
-        onLines(lines)
-      }
-    } catch {
-    }
-  }
-
-  static func readLastLines(path: String, maxLines: Int) throws -> [String] {
-    let handle = try FileHandle(forReadingFrom: URL(fileURLWithPath: path))
-    defer { try? handle.close() }
-    let fileSize = try handle.seekToEnd()
-    let readSize = min(fileSize, 64 * 1024)
-    try handle.seek(toOffset: fileSize - readSize)
-    let data = try handle.readToEnd() ?? Data()
-    let lines = String(decoding: data, as: UTF8.self)
-      .split(whereSeparator: \.isNewline)
-      .map(String.init)
-    return Array(lines.suffix(maxLines))
+    func onLogEntry(_ entry: String?) {
+        onEntry(entry ?? "")
   }
 }

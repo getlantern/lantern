@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,12 +14,14 @@ class WebsiteDomainInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
-    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
+    final enabledWebsites =
+        ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
 
     void showSnackbar(String message) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      // All call sites below surface validation or backend errors; use the
+      // design-system error snackbar rather than Material's default unstyled
+      // SnackBar.
+      context.showSnackBarError(message);
     }
 
     // validate URL and extract the domain before adding it to the
@@ -113,7 +117,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
               key: const Key('split_tunneling.website.add_button'),
               label: 'add'.i18n,
               textColor: context.textPrimary,
-              onPressed: validateAndExtractDomain,
+              onPressed: () => unawaited(validateAndExtractDomain()),
             ),
           ],
         ),

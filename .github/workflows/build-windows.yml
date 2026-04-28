@@ -159,7 +159,6 @@ jobs:
 
           # Third-party binaries that are already signed by their vendors
           $thirdParty = @(
-            'wintun.dll',           # WinTun
             'flutter_windows.dll',  # Google/Flutter
             'WebView2Loader.dll',   # Microsoft
             'WinSparkle.dll'        # WinSparkle

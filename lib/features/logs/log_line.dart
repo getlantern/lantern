@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/logs/parsed_log.dart';
 
 class LogLineWidget extends StatefulWidget {
@@ -36,36 +36,32 @@ class _LogLineWidgetState extends State<LogLineWidget> {
     if (parsed == null) {
       return Text(
         widget.line,
-        style: AppTextStyles.monospace(
-          color: context.textPrimary,
-        ),
+        style: AppTextStyles.monospace(color: context.textPrimary),
       );
     }
 
-    final levelColor = getLevelColor(parsed.level);
-    final idColor = colorForId(parsed.id);
+    final brightness = Theme.of(context).brightness;
+    final levelColor = getLevelColor(parsed.level, brightness);
+    final pkgColor = colorForId(parsed.pkg, brightness);
 
     return RichText(
       text: TextSpan(
-        style: AppTextStyles.monospace(
-          fontSize: 13,
-        ),
+        style: AppTextStyles.monospace(fontSize: 13),
         children: [
           TextSpan(
             text: parsed.level.toUpperCase(),
-            style: TextStyle(
-              color: levelColor,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: levelColor, fontWeight: FontWeight.bold),
           ),
           const TextSpan(text: ' '),
           TextSpan(
-            text: '[${parsed.id} ${parsed.duration}] ',
-            style: TextStyle(color: idColor),
+            text: parsed.duration == null
+                ? '[${parsed.pkg}] '
+                : '[${parsed.pkg} ${parsed.duration}] ',
+            style: TextStyle(color: pkgColor),
           ),
           TextSpan(
             text: parsed.message,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: context.textPrimary),
           ),
         ],
       ),

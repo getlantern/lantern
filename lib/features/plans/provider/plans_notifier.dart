@@ -20,29 +20,63 @@ class PlansNotifier extends _$PlansNotifier {
     state = const AsyncLoading();
     final cached = _storage.getPlans();
     if (cached != null) {
+      appLogger.info('Found cached plans, refreshing in background');
       unawaited(_refreshInBackground());
       state = AsyncData(cached);
       return cached;
     }
 
+    appLogger.info('No cached plans, fetching from server');
     return fetchPlans();
   }
 
   Future<PlansData> fetchPlans({bool fromBackground = false}) async {
-    if (!fromBackground) {
+    return _fetchPlansWithRetry(fromBackground: fromBackground, attempt: 0);
+  }
+
+  Future<PlansData> _fetchPlansWithRetry({
+    required bool fromBackground,
+    required int attempt,
+  }) async {
+    appLogger.info(
+      '[PlansNotifier] _fetchPlansWithRetry(fromBackground: $fromBackground, attempt: $attempt)',
+    );
+    if (!fromBackground && attempt == 0) {
       state = const AsyncLoading();
     }
     final result = await ref.read(lanternServiceProvider).plans();
     return result.fold(
       (error) {
+        appLogger.error(
+          '[PlansNotifier] Plans fetch error: $error (fromBackground: $fromBackground, attempt: $attempt)',
+        );
         if (fromBackground) {
-          appLogger.error('Error fetching plans in background: $error');
           return state.value ?? (throw Exception('Plans fetch failed'));
         }
+        // Retry up to 2 times with increasing delay — the first attempt
+        // often fails at startup before radiance is fully ready.
+        if (attempt < 2) {
+          appLogger.info(
+            '[PlansNotifier] Retrying plans fetch (${attempt + 1}/2) after ${2 * (attempt + 1)}s delay...',
+          );
+          return Future.delayed(
+            Duration(seconds: 2 * (attempt + 1)),
+            () => _fetchPlansWithRetry(
+              fromBackground: false,
+              attempt: attempt + 1,
+            ),
+          );
+        }
+        appLogger.error(
+          '[PlansNotifier] All retry attempts exhausted, setting error state',
+        );
         state = AsyncError(error, StackTrace.current);
         throw Exception('Plans fetch failed');
       },
       (remote) {
+        appLogger.info(
+          '[PlansNotifier] Plans fetched successfully: ${remote.plans.length} plans',
+        );
         unawaited(_storage.savePlans(remote));
         return remote;
       },
@@ -50,12 +84,21 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   Future<void> _refreshInBackground() async {
-    appLogger.info('Refreshing plans in background');
+    appLogger.info('[PlansNotifier] _refreshInBackground started');
     final remotePlans = await fetchPlans(fromBackground: true);
+    appLogger.info(
+      '[PlansNotifier] Background refresh complete, updating state',
+    );
     state = AsyncData(remotePlans);
   }
 
-  void setSelectedPlan(Plan plan) => userSelectedPlan = plan;
+  void setSelectedPlan(Plan plan) {
+    appLogger.info('[PlansNotifier] setSelectedPlan: ${plan.id}');
+    userSelectedPlan = plan;
+  }
 
-  Plan getSelectedPlan() => userSelectedPlan!;
+  Plan getSelectedPlan() {
+    appLogger.info('[PlansNotifier] getSelectedPlan: ${userSelectedPlan?.id}');
+    return userSelectedPlan!;
+  }
 }

@@ -4,9 +4,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
@@ -16,28 +17,28 @@ class SplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appSettingProvider);
     final textTheme = Theme.of(context).textTheme;
-    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final splitTunnelingEnabled = ref.watch(
+      radianceSettingsProvider.select((s) => s.splitTunneling),
+    );
 
     final enabledApps =
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
             .toList(growable: false);
 
-    final enabledWebsites = (ref.watch(
-      splitTunnelingWebsitesProvider,
-    )).toList(growable: false);
-
-    final notifier = ref.read(appSettingProvider.notifier);
+    final enabledWebsites =
+        (ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{})
+            .toList(growable: false);
 
     void toggleSplitTunneling() {
-      notifier.setSplitTunnelingEnabled(!splitTunnelingEnabled);
+      ref
+          .read(radianceSettingsProvider.notifier)
+          .setSplitTunneling(!splitTunnelingEnabled);
     }
 
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
-        key: const Key('split_tunneling.screen'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -46,7 +47,6 @@ class SplitTunneling extends HookConsumerWidget {
             child: Column(
               children: [
                 AppTile(
-                  tileKey: const Key('split_tunneling.enable_tile'),
                   label: 'split_tunneling'.i18n,
                   tileTextStyle: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
@@ -64,13 +64,11 @@ class SplitTunneling extends HookConsumerWidget {
                   ),
                   onPressed: toggleSplitTunneling,
                   trailing: SwitchButton(
-                    key: const Key('split_tunneling.enable_toggle'),
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
-                      final v = value ?? false;
                       ref
-                          .read(appSettingProvider.notifier)
-                          .setSplitTunnelingEnabled(v);
+                          .read(radianceSettingsProvider.notifier)
+                          .setSplitTunneling(value ?? false);
                     },
                     activeColor: AppColors.green5,
                   ),
@@ -78,7 +76,6 @@ class SplitTunneling extends HookConsumerWidget {
                 if (splitTunnelingEnabled) ...{
                   DividerSpace(),
                   SplitTunnelingTile(
-                    tileKey: const Key('split_tunneling.apps_tile'),
                     icon: AppImagePaths.keypad,
                     label: 'apps'.i18n,
                     actionText: '${enabledApps.length} Added',
@@ -86,13 +83,12 @@ class SplitTunneling extends HookConsumerWidget {
                   ),
                   DividerSpace(),
                   SplitTunnelingTile(
-                    tileKey: const Key('split_tunneling.websites_tile'),
                     icon: AppImagePaths.world,
                     label: 'websites'.i18n,
                     actionText: '${enabledWebsites.length} Added',
                     onPressed: () => appRouter.push(WebsiteSplitTunneling()),
                   ),
-                },
+                }
               ],
             ),
           ),

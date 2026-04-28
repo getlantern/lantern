@@ -11,21 +11,16 @@ section: x11
 priority: optional
 
 contents:
-  # Flutter release bundle
+  # Flutter release bundle (includes lanternd)
   - src: "${LINUX_BUNDLE_SRC}"
     dst: /usr/lib/lantern
     type: tree
     expand: true
 
-  # lanternd service binary
-  - src: "${LANTERND_SRC}"
-    dst: "${LANTERND_DST}"
-    expand: true
-
-  # systemd unit
-  - src: "${SYSTEMD_UNIT_SRC}"
-    dst: /usr/lib/systemd/system/lanternd.service
-    expand: true
+  # symlink so lantern is on PATH
+  - src: /usr/lib/lantern/lantern
+    dst: /usr/bin/lantern
+    type: symlink
 
   # desktop entry
   - src: linux/packaging/desktop/lantern.desktop
@@ -34,11 +29,6 @@ contents:
   # app icon
   - src: assets/images/lantern_app_icon.png
     dst: /usr/share/icons/hicolor/128x128/apps/lantern.png
-
-  # symlink so lantern is on PATH
-  - src: /usr/lib/lantern/lantern
-    dst: /usr/bin/lantern
-    type: symlink
 
 scripts:
   postinstall: linux/packaging/deb/scripts/postinst

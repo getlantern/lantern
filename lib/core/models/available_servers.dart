@@ -1,81 +1,103 @@
 class AvailableServers {
-  Lantern lantern;
-  Lantern user;
+  final List<Server> servers;
 
-  AvailableServers({
-    required this.lantern,
-    required this.user,
-  });
+  AvailableServers(this.servers);
 
-  factory AvailableServers.fromJson(Map<String, dynamic> json) =>
-      AvailableServers(
-        lantern: Lantern.fromJson(
-            (json["lantern"] as Map<String, dynamic>?) ?? const {}),
-        user: Lantern.fromJson(
-            (json["user"] as Map<String, dynamic>?) ?? const {}),
+  factory AvailableServers.fromJson(List<dynamic> json) => AvailableServers(
+    json.map((e) => Server.fromJson(e as Map<String, dynamic>)).toList(),
+  );
+
+  List<Server> get lanternServers => servers.where((s) => s.isLantern).toList();
+
+  List<Server> get userServers => servers.where((s) => !s.isLantern).toList();
+
+  bool get hasUserServers => servers.any((s) => !s.isLantern);
+
+  /// Lantern server with the lowest URL-test delay. Null when no server has
+  /// a usable probe result — sing-box reports delay 0 for unreachable probes,
+  /// so those are excluded.
+  Server? get fastestLanternServer {
+    final ranked = lanternServers
+        .where((s) => s.urlTestResult != null && s.urlTestResult!.delay > 0)
+        .toList()
+      ..sort(
+        (a, b) => a.urlTestResult!.delay.compareTo(b.urlTestResult!.delay),
       );
-
-  Map<String, dynamic> toJson() => {
-        "lantern": lantern.toJson(),
-        "user": user.toJson(),
-      };
+    return ranked.isEmpty ? null : ranked.first;
+  }
 }
 
-class Lantern {
-  List<Endpoint> endpoints;
-  List<Endpoint> outbounds;
-  Map<String, Location_> locations;
-  Map<String, ServerCredential> credentials;
+class Server {
+  final String tag;
+  final String type;
+  final bool isLantern;
+  final Map<String, dynamic>? outbound;
+  final Map<String, dynamic>? endpoint;
+  final GeoLocation location;
+  final ServerCredential? credentials;
+  final UrlTestResult? urlTestResult;
 
-  Lantern({
-    required this.endpoints,
-    required this.outbounds,
-    required this.locations,
-    required this.credentials,
+  Server({
+    required this.tag,
+    required this.type,
+    required this.isLantern,
+    this.outbound,
+    this.endpoint,
+    required this.location,
+    this.credentials,
+    this.urlTestResult,
   });
 
-  factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
-        endpoints: json["endpoints"] == null
-            ? []
-            : List<Endpoint>.from(
-                (json["endpoints"] as List).map((x) => Endpoint.fromJson(x))),
-        outbounds: json["outbounds"] == null
-            ? []
-            : List<Endpoint>.from(
-                (json["outbounds"] as List).map((x) => Endpoint.fromJson(x))),
-        locations: json["locations"] == null
-            ? <String, Location_>{}
-            : Map<String, Location_>.from(
-                (json["locations"] as Map<String, dynamic>).map(
-                  (k, v) => MapEntry(
-                    k,
-                    Location_.fromJson(v as Map<String, dynamic>)..tag = k,
-                  ),
-                ),
-              ),
-        credentials: json["credentials"] == null
-            ? <String, ServerCredential>{}
-            : Map<String, ServerCredential>.from(
-                (json["credentials"] as Map<String, dynamic>).map(
-                  (k, v) => MapEntry(
-                    k,
-                    ServerCredential.fromJson(v as Map<String, dynamic>),
-                  ),
-                ),
-              ),
-      );
+  factory Server.fromJson(Map<String, dynamic> json) => Server(
+    tag: json['tag'] ?? '',
+    type: json['type'] ?? '',
+    isLantern: json['isLantern'] ?? false,
+    outbound: json['outbound'] as Map<String, dynamic>?,
+    endpoint: json['endpoint'] as Map<String, dynamic>?,
+    location: GeoLocation.fromJson(
+      (json['location'] as Map<String, dynamic>?) ?? const {},
+    ),
+    credentials: json['credentials'] != null
+        ? ServerCredential.fromJson(json['credentials'] as Map<String, dynamic>)
+        : null,
+    urlTestResult: json["urlTestResult"] == null
+        ? null
+        : UrlTestResult.fromJson(json["urlTestResult"]),
+  );
 
-  Map<String, dynamic> toJson() => {
-        "endpoints": List<dynamic>.from(endpoints.map((x) => x.toJson())),
-        "locations": locations.map((k, v) => MapEntry(k, v.toJson())),
-        "credentials": credentials.map((k, v) => MapEntry(k, v.toJson())),
-      };
+  /// IP address extracted from outbound or endpoint options.
+  String get serverIP =>
+      outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
+}
+
+class GeoLocation {
+  final String country;
+  final String countryCode;
+  final String city;
+  final double latitude;
+  final double longitude;
+
+  GeoLocation({
+    required this.country,
+    required this.countryCode,
+    required this.city,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory GeoLocation.fromJson(Map<String, dynamic> json) => GeoLocation(
+    country: json['country'] ?? '',
+    countryCode: json['country_code'] ?? '',
+    city: json['city'] ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+    longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+  );
 }
 
 class ServerCredential {
-  String accessToken;
-  bool isJoined;
-  String port;
+  final String accessToken;
+  final bool isJoined;
+  final String port;
 
   ServerCredential({
     required this.accessToken,
@@ -85,134 +107,23 @@ class ServerCredential {
 
   factory ServerCredential.fromJson(Map<String, dynamic> json) =>
       ServerCredential(
-        accessToken: json["access_token"] ?? '',
-        isJoined: json["isJoined"] ?? false,
-        port: json["port"]?.toString() ?? '',
+        accessToken: json['access_token'] ?? '',
+        isJoined: json['is_joined'] ?? false,
+        port: json['port']?.toString() ?? '',
       );
-
-  Map<String, dynamic> toJson() => {
-        "access_token": accessToken,
-        "isJoined": isJoined,
-        "port": port,
-      };
 }
 
-class Endpoint {
-  String type;
-  String tag;
-  String server;
-  String serverPort;
+class UrlTestResult {
+  int delay;
+  DateTime time;
 
-  Endpoint({
-    required this.type,
-    required this.tag,
-    required this.server,
-    required this.serverPort,
-  });
+  UrlTestResult({required this.delay, required this.time});
 
-  factory Endpoint.fromJson(Map<String, dynamic> json) => Endpoint(
-      type: json["type"],
-      tag: json["tag"],
-      server: json["server"] ?? '',
-      serverPort:
-          json["server_port"] == null ? "" : json["server_port"].toString());
+  factory UrlTestResult.fromJson(Map<String, dynamic> json) =>
+      UrlTestResult(delay: json["delay"], time: DateTime.parse(json["time"]));
 
   Map<String, dynamic> toJson() => {
-        "type": type,
-        "tag": tag,
-        "server": server,
-        "server_port": serverPort,
-      };
-}
-
-class Location_ {
-  String country;
-  String countryCode;
-  String city;
-  double latitude;
-  double longitude;
-
-  // tag will be assigned later, not in the JSON
-  // it will map to the endpoint tag
-  String tag;
-
-  // As have default value, we can derive protocol from tag
-  String protocol = '';
-
-  Location_({
-    required this.country,
-    required this.countryCode,
-    required this.city,
-    required this.latitude,
-    required this.longitude,
-    required this.tag,
-  });
-
-  factory Location_.fromJson(Map<String, dynamic> json) => Location_(
-        country: json["country"] ?? '',
-        countryCode: json["country_code"] ?? '',
-        city: json["city"] ?? '',
-        latitude: json["latitude"]?.toDouble() ?? 0.0,
-        longitude: json["longitude"]?.toDouble() ?? 0.0,
-        tag: "",
-      );
-
-  Location_ copyWith({
-    String? country,
-    String? countryCode,
-    String? city,
-    double? latitude,
-    double? longitude,
-    String? tag,
-    String? protocol,
-  }) {
-    return Location_(
-      country: country ?? this.country,
-      countryCode: countryCode ?? this.countryCode,
-      city: city ?? this.city,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      tag: tag ?? this.tag,
-    )..protocol = protocol ?? this.protocol;
-  }
-
-  Map<String, dynamic> toJson() => {
-        "country": country,
-        "city": city,
-        "latitude": latitude,
-        "longitude": longitude,
-        "country_code": countryCode,
-      };
-}
-
-class Server {
-  String group;
-  String tag;
-  String type;
-  Endpoint? options;
-  Location_? location;
-
-  Server({
-    required this.group,
-    required this.tag,
-    required this.type,
-    required this.options,
-    required this.location,
-  });
-
-  factory Server.fromJson(Map<String, dynamic> json) => Server(
-        group: json["Group"],
-        tag: json["Tag"],
-        type: json["Type"],
-        options: Endpoint.fromJson(json["Options"]),
-        location: Location_.fromJson(json["Location"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "Group": group,
-        "Tag": tag,
-        "Type": type,
-        "Options": options?.toJson(),
-        "Location": location?.toJson(),
-      };
+    "delay": delay,
+    "time": time.toIso8601String(),
+  };
 }

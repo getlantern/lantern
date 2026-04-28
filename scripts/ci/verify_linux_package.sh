@@ -44,13 +44,10 @@ require_grep() {
 	fi
 }
 
-require_file "$TMP_DIR/root/usr/sbin/lanternd"
-require_file "$TMP_DIR/root/usr/lib/systemd/system/lanternd.service"
+require_file "$TMP_DIR/root/usr/lib/lantern/lanternd"
+require_file "$TMP_DIR/root/usr/lib/lantern/lantern"
 require_file "$TMP_DIR/control/postinst"
 
-require_grep "ExecStart=/usr/sbin/lanternd" "$TMP_DIR/root/usr/lib/systemd/system/lanternd.service"
-require_grep "groupadd --system lantern" "$TMP_DIR/control/postinst"
-require_grep "systemctl enable --now lanternd.service" "$TMP_DIR/control/postinst"
-require_grep "systemctl is-active --quiet lanternd.service" "$TMP_DIR/control/postinst"
+require_grep "lanternd install" "$TMP_DIR/control/postinst"
 
 echo "linux package verification passed: $DEB_PATH"

@@ -17,9 +17,9 @@ class LocalStorageService {
 
   /// Keys for stored values
   static const _appSettingsKey = 'app_settings_json';
-  static const _serverLocationKey = 'selected_server_location';
   static const _plansKey = 'plans_json';
   static const _developerModeKey = 'developer_mode_json';
+  static const _serverLocationKey = 'server_location_json';
 
   Future<void> init() async {
     _prefs = await SharedPreferencesWithCache.create(
@@ -46,23 +46,6 @@ class LocalStorageService {
     await setString(_appSettingsKey, jsonEncode(settings.toJson()));
   }
 
-  // ── ServerLocation ────────────────────────────────────────────────────────
-
-  ServerLocation? getServerLocation() {
-    final raw = getString(_serverLocationKey);
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      return ServerLocation.fromJsonString(raw);
-    } catch (e, st) {
-      appLogger.error('Failed to parse server location from prefs', e, st);
-    }
-    return null;
-  }
-
-  Future<void> saveServerLocation(ServerLocation location) async {
-    await setString(_serverLocationKey, location.toJsonString());
-  }
-
   // ── PlansData ─────────────────────────────────────────────────────────────
 
   PlansData? getPlans() {
@@ -79,6 +62,26 @@ class LocalStorageService {
 
   Future<void> savePlans(PlansData plans) async {
     await setString(_plansKey, jsonEncode(plans.toJson()));
+  }
+
+  // ── ServerLocation ────────────────────────────────────────────────────────
+
+  ServerLocation? getServerLocation() {
+    final raw = getString(_serverLocationKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return ServerLocation.fromJson(Map<String, dynamic>.from(decoded));
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to parse stored server location', e, st);
+    }
+    return null;
+  }
+
+  Future<void> saveServerLocation(ServerLocation location) async {
+    await setString(_serverLocationKey, jsonEncode(location.toJson()));
   }
 
   // ── DeveloperMode ─────────────────────────────────────────────────────────

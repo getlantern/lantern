@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+# android-test — Quick Android emulator test harness for Lantern
+#
+# Usage:
+#   android-test <apk-path> [ENV_KEY=VALUE ...]
+#
+# Examples:
+#   android-test ~/Downloads/lantern-9.0.25.apk RADIANCE_COUNTRY=BG
+#   android-test ~/Downloads/lantern.apk RADIANCE_COUNTRY=CN RADIANCE_FEATURE_OVERRIDES=dns_ruleset_host_bypass
+#   android-test ~/Downloads/lantern.apk  # no overrides, just install + logs
+#
+# Prerequisites:
+#   - Android SDK (set $ANDROID_HOME, $ANDROID_SDK_ROOT, or have adb/emulator in $PATH)
+#   - If no AVDs exist, the script auto-creates "lantern-test" (requires sdkmanager/avdmanager;
+#     downloads a ~2GB Google APIs system image on first run)
+#
+# What it does:
+#   1. Starts the emulator (if not already running)
+#   2. Waits for boot
+#   3. Installs the APK
+#   4. Pushes a .env file with your overrides to the app's data dir
+#   5. Force-stops and restarts the app so it picks up the .env
+#   6. Streams logcat filtered to Lantern/radiance/sing-box output
+#
+# The .env file is read by radiance/common/env/env.go init() from the
+# app's working directory. On Android this requires either a debug APK
+# (run-as works) or root (adb root on Google APIs images, or su on
+# user-rooted devices). If none of these work, the script reports the
+# failure and continues without overrides.
+
+set -euo pipefail
+
+PKG="org.getlantern.lantern"
+ACTIVITY="org.getlantern.lantern.MainActivity"
+
+# Find tools — prefer $ANDROID_HOME, fall back to $PATH
+if [ -n "${ANDROID_HOME:-}" ]; then
+    ADB="${ANDROID_HOME}/platform-tools/adb"
+    EMULATOR="${ANDROID_HOME}/emulator/emulator"
+elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+    ADB="${ANDROID_SDK_ROOT}/platform-tools/adb"
+    EMULATOR="${ANDROID_SDK_ROOT}/emulator/emulator"
+else
+    ADB="$(command -v adb 2>/dev/null || true)"
+    EMULATOR="$(command -v emulator 2>/dev/null || true)"
+fi
+
+if [ -z "$ADB" ] || [ ! -x "$ADB" ]; then
+    echo "Error: adb not found. Set ANDROID_HOME or add Android SDK to PATH."
+    exit 1
+fi
+if [ -z "$EMULATOR" ] || [ ! -x "$EMULATOR" ]; then
+    echo "Error: emulator not found. Set ANDROID_HOME or add Android SDK to PATH."
+    exit 1
+fi
+
+# --- Parse args ---
+if [ $# -lt 1 ]; then
+    echo "Usage: android-test <apk-path> [ENV_KEY=VALUE ...]"
+    echo ""
+    echo "Examples:"
+    echo "  android-test lantern.apk RADIANCE_COUNTRY=BG"
+    echo "  android-test lantern.apk RADIANCE_COUNTRY=CN RADIANCE_FEATURE_OVERRIDES=dns_ruleset_host_bypass"
+    exit 1
+fi
+
+APK="$1"; shift
+ENV_ARGS=("$@")
+
+# --- Ensure we have a rootable AVD ---
+# Prefer lantern-test (Google APIs, rootable), fall back to first available.
+AVD=$("$EMULATOR" -list-avds 2>/dev/null | grep "^lantern-test$" || "$EMULATOR" -list-avds 2>/dev/null | head -1)
+if [ -z "$AVD" ]; then
+    echo "No AVDs found. Setting up lantern-test automatically..."
+
+    # Find sdkmanager and avdmanager
+    if [ -n "${ANDROID_HOME:-}" ]; then
+        SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+        AVDMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
+    elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+        SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+        AVDMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager"
+    else
+        SDKMANAGER="$(command -v sdkmanager 2>/dev/null || true)"
+        AVDMANAGER="$(command -v avdmanager 2>/dev/null || true)"
+    fi
+
+    if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+        echo "Error: sdkmanager not found. Install Android SDK command-line tools first."
+        exit 1
+    fi
+    if [ -z "$AVDMANAGER" ] || [ ! -x "$AVDMANAGER" ]; then
+        echo "Error: avdmanager not found. Install Android SDK command-line tools first."
+        exit 1
+    fi
+
+    # Detect host architecture for the system image
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        arm64|aarch64) IMG_ABI="arm64-v8a" ;;
+        x86_64)        IMG_ABI="x86_64" ;;
+        *)             IMG_ABI="arm64-v8a" ;;
+    esac
+
+    IMAGE="system-images;android-35;google_apis;${IMG_ABI}"
+    echo "Installing system image: $IMAGE"
+    "$SDKMANAGER" "$IMAGE"
+
+    echo "Creating AVD: lantern-test"
+    echo "no" | "$AVDMANAGER" create avd -n lantern-test -k "$IMAGE" --force
+
+    AVD="lantern-test"
+    echo "AVD created: $AVD"
+fi
+
+# --- Select / start emulator target ---
+# Use -s <serial> throughout so multiple connected devices don't break adb.
+# The emulator is intentionally left running after the script exits so
+# subsequent runs don't pay the boot cost again.
+APPEAR_TIMEOUT="${APPEAR_TIMEOUT:-120}"
+BOOT_TIMEOUT="${BOOT_TIMEOUT:-300}"
+
+TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+if [ -z "$TARGET_SERIAL" ]; then
+    echo "Starting emulator: $AVD"
+    "$EMULATOR" -avd "$AVD" -no-snapshot-load -no-audio -gpu host &
+    echo "Waiting for emulator to appear..."
+    START_TIME=$(date +%s)
+    while :; do
+        TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+        if [ -n "$TARGET_SERIAL" ]; then break; fi
+        if [ $(( $(date +%s) - START_TIME )) -ge "$APPEAR_TIMEOUT" ]; then
+            echo "Error: Timed out after ${APPEAR_TIMEOUT}s waiting for emulator to appear." >&2
+            exit 1
+        fi
+        sleep 2
+    done
+    echo "Waiting for emulator to boot..."
+    "$ADB" -s "$TARGET_SERIAL" wait-for-device
+    START_TIME=$(date +%s)
+    while [ "$("$ADB" -s "$TARGET_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+        if [ $(( $(date +%s) - START_TIME )) -ge "$BOOT_TIMEOUT" ]; then
+            echo "Error: Timed out after ${BOOT_TIMEOUT}s waiting for emulator to boot." >&2
+            exit 1
+        fi
+        sleep 2
+    done
+    echo "Emulator booted: $TARGET_SERIAL"
+else
+    echo "Emulator already running: $TARGET_SERIAL"
+fi
+ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
+
+# --- Install APK ---
+echo "Installing $APK..."
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
+
+# --- Push .env file ---
+if [ ${#ENV_ARGS[@]} -gt 0 ]; then
+    ENV_FILE=$(mktemp)
+    trap 'rm -f "${ENV_FILE:-}"' EXIT INT TERM
+
+    for kv in "${ENV_ARGS[@]}"; do
+        echo "$kv" >> "$ENV_FILE"
+    done
+    echo ""
+    echo "=== .env contents ==="
+    cat "$ENV_FILE"
+    echo "====================="
+    echo ""
+
+    # Push the .env to the app's .lantern data directory. On Android, the
+    # Go code's cwd is "/" so the init()-time .env read fails. radiance's
+    # common.Init calls env.LoadFromDir(dataDir) which reads from the
+    # .lantern subdir instead.
+    APP_DATA="/data/data/$PKG/.lantern"
+    "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
+    PUSHED=false
+
+    # Method 1: adb root (Google APIs emulator images — no Play Store)
+    if ! $PUSHED; then
+        if "${ADB_CMD[@]}" root 2>/dev/null | grep -q "already running\|restarting"; then
+            sleep 2  # wait for adbd to restart
+            "${ADB_CMD[@]}" wait-for-device
+            if "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null; then
+                echo ".env pushed to $APP_DATA via adb root"
+                PUSHED=true
+                "${ADB_CMD[@]}" unroot 2>/dev/null || true
+                sleep 1
+                "${ADB_CMD[@]}" wait-for-device
+            fi
+        fi
+    fi
+
+    # Method 2: run-as (debug/debuggable APKs)
+    if ! $PUSHED; then
+        if "${ADB_CMD[@]}" shell "run-as $PKG mkdir -p .lantern && run-as $PKG cp /data/local/tmp/.env .lantern/.env" 2>/dev/null; then
+            echo ".env pushed to $APP_DATA via run-as (debug APK)"
+            PUSHED=true
+        fi
+    fi
+
+    # Method 3: su (user-rooted devices)
+    if ! $PUSHED; then
+        if "${ADB_CMD[@]}" shell "su -c \"mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c %u:%g /data/data/$PKG) $APP_DATA/.env\"" 2>/dev/null; then
+            echo ".env pushed to $APP_DATA via su"
+            PUSHED=true
+        fi
+    fi
+
+    if ! $PUSHED; then
+        echo ""
+        echo "ERROR: Cannot push .env — APK is not debuggable and device is not rooted."
+        echo "Options:"
+        echo "  1. Use a debug APK build"
+        echo "  2. Use a Google APIs emulator image (rootable, no Play Store):"
+        echo "     sdkmanager 'system-images;android-35;google_apis;arm64-v8a'"
+        echo "     avdmanager create avd -n lantern-test -k 'system-images;android-35;google_apis;arm64-v8a'"
+        echo ""
+        echo "Continuing without overrides..."
+    fi
+fi
+
+# --- Restart app ---
+echo "Restarting Lantern..."
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
+sleep 1
+"${ADB_CMD[@]}" shell am start -n "$PKG/$ACTIVITY" 2>/dev/null || \
+    "${ADB_CMD[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>/dev/null
+
+# --- Stream logs ---
+echo ""
+echo "=== Streaming logs (Ctrl+C to stop) ==="
+echo ""
+"${ADB_CMD[@]}" logcat -c  # clear old logs
+exec "${ADB_CMD[@]}" logcat -v time \
+    -s "GoLog:*" "radiance:*" "sing-box:*" "lantern:*" "flutter:*" \
+       "LanternService:*" "VpnService:*" "System.err:*" \
+       "AndroidRuntime:*" "lantern-box:*"

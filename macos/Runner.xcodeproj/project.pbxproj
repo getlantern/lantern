@@ -21,6 +21,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		030897EB2F9F8A27001CBEBF /* FlutterEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */; };
+		030897EC2F9F8A27001CBEBF /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */; };
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		038636162EE69F7D004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
 		0386361F2EE6A026004A11CF /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 038636152EE69F5D004A11CF /* libresolv.tbd */; };
@@ -135,6 +137,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventListener.swift; sourceTree = "<group>"; };
+		030897E92F9F8A27001CBEBF /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
+		030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
 		038636152EE69F5D004A11CF /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
 		03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
@@ -186,32 +191,6 @@
 		CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				FlutterEventListener.swift,
-				PrivateServerListener.swift,
-			);
-			target = 33CC10EC2044A3C60003C045 /* Runner */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		03D236712E3A06E20004EC53 /* Utils */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Utils;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		29952B012DE79CB200640E7F /* Frameworks */ = {
@@ -370,7 +349,6 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				03D236712E3A06E20004EC53 /* Utils */,
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
@@ -386,6 +364,9 @@
 		5F53D0132E42440F00740586 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */,
+				030897E92F9F8A27001CBEBF /* ImageUtils.swift */,
+				030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */,
 				5F53D0122E42440F00740586 /* PrivateServerListener.swift */,
 			);
 			path = Utils;
@@ -708,6 +689,8 @@
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
 				03CC8B862E9408BC00EC8D51 /* FlutterEventHandler.swift in Sources */,
 				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
+				030897EB2F9F8A27001CBEBF /* FlutterEventListener.swift in Sources */,
+				030897EC2F9F8A27001CBEBF /* PrivateServerListener.swift in Sources */,
 				5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */,
 				5F7B9A5A2F0C13AC0019E3E0 /* AppStreamHandler.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,

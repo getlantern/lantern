@@ -1,5 +1,5 @@
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:lantern/core/models/user.dart';
 
-extension UserDataProX on UserResponse_UserData {
+extension UserDataProX on UserDataModel {
   bool get isPro => userLevel == 'pro';
 }

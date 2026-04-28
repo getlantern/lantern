@@ -21,7 +21,8 @@ class AppStorageUtils {
       final baseDir = await getApplicationSupportDirectory();
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isWindows) {
-      final baseDir = await getWindowsAppDataDirectory();
+      final appDataPath = Platform.environment['PUBLIC'] ?? r'C:\Users\Public';
+      final baseDir = Directory("$appDataPath/Lantern");
       logDir = Directory("${baseDir.path}/logs");
     } else {
       throw UnsupportedError("Unsupported platform for log directory");
@@ -45,14 +46,9 @@ class AppStorageUtils {
     } else if (Platform.isMacOS) {
       appDir = Directory('/Users/Shared/Lantern');
     } else if (Platform.isWindows) {
-      Directory appDataDir = await getWindowsAppDataDirectory();
-
-      // On Windows, the Windows service starts without any knowledge of
-      // the app directory. It passes the empty string to the radiance
-      // common.Init function, which creates the app data directory as
-      // a subdirectory of the Lantern app data directory at
-      // C:\Users\Public\Lantern. So we need to follow the same logic here.
-      appDir = Directory("${appDataDir.path}/data");
+      final appDataPath = Platform.environment['PUBLIC'] ?? r'C:\Users\Public';
+      final baseDir = Directory("$appDataPath/Lantern");
+      appDir = Directory("${baseDir.path}/data");
     } else {
       // Note this is the application support directory *with*
       // the fully qualified name of our app.
@@ -97,20 +93,5 @@ class AppStorageUtils {
         .where((f) => f.path.endsWith('.log'))
         .map((f) => f.path)
         .toList(growable: false);
-  }
-
-  static Future<Directory> getWindowsAppDataDirectory() async {
-    if (!Platform.isWindows) throw UnsupportedError("Not running on Windows");
-
-    // On Windows, we want to store app data in C:\Users\Public\Lantern to
-    // ensure that the Windows service can access it without needing to know
-    // the specific user profile. The Windows service will create a subdirectory
-    // called "data" within this directory to store its own data.
-    final appDataPath = Platform.environment['PUBLIC'];
-    final appDir = Directory("$appDataPath/Lantern");
-    if (!appDir.existsSync()) {
-      await appDir.create(recursive: true);
-    }
-    return appDir;
   }
 }

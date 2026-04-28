@@ -91,7 +91,7 @@ function Remove-ServiceIfPresent {
   throw "Service '$Name' still exists after delete."
 }
 
-function Install-And-StartService {
+function Install-LanterndService {
   param(
     [string]$Name,
     [string]$BinaryPath
@@ -100,12 +100,11 @@ function Install-And-StartService {
     throw "Service binary not found: $BinaryPath"
   }
 
-  $quotedPath = "`"$BinaryPath`""
-  Write-Step "Creating service '$Name'"
-  & sc.exe create $Name binPath= $quotedPath start= auto DisplayName= "Lantern Service (dev)" | Out-Host
-
-  Write-Step "Starting service '$Name'"
-  & sc.exe start $Name | Out-Host
+  Write-Step "Installing service '$Name' from '$BinaryPath'"
+  & $BinaryPath install | Out-Host
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install service '$Name' from $BinaryPath"
+  }
 
   $deadline = (Get-Date).AddSeconds(20)
   while ((Get-Date) -lt $deadline) {
@@ -173,20 +172,6 @@ function Stop-StaleBuildProcesses {
   }
 }
 
-function Validate-IpcToken {
-  $tokenPath = Join-Path $env:ProgramData "Lantern\ipc-token"
-  if (-not (Test-Path $tokenPath)) {
-    throw "IPC token file not found: $tokenPath"
-  }
-
-  $token = (Get-Content -Path $tokenPath -Raw).Trim()
-  if ([string]::IsNullOrWhiteSpace($token)) {
-    throw "IPC token file is empty: $tokenPath"
-  }
-
-  Write-Host "IPC token is present at $tokenPath" -ForegroundColor Green
-}
-
 function Clear-AppDiscoveryCache {
   $paths = @(
     (Join-Path $env:PUBLIC "Lantern\data\apps_cache.json"),
@@ -244,9 +229,8 @@ if (-not $SkipBuildStateReset) {
   Reset-WindowsBuildState -RepoRoot $repoRoot
 }
 
-$serviceBinary = Join-Path $repoRoot "bin\windows-amd64\lanternsvc.exe"
+$serviceBinary = Join-Path $repoRoot "bin\windows-amd64\lanternd.exe"
 $dllBinary = Join-Path $repoRoot "bin\windows-amd64\liblantern.dll"
-$wintunBinary = Join-Path $repoRoot "windows\third_party\wintun\bin\amd64\wintun.dll"
 
 if ($Release) {
   $targetDir = Join-Path $repoRoot "build\windows\x64\runner\Release"
@@ -255,6 +239,7 @@ if ($Release) {
   $targetDir = Join-Path $repoRoot "build\windows\x64\runner\Debug"
   $appExe = Join-Path $targetDir "lantern.exe"
 }
+$serviceOutputBinary = Join-Path $targetDir "lanternd.exe"
 
 Remove-ServiceIfPresent -Name $ServiceName
 
@@ -262,8 +247,8 @@ Invoke-Step "Fetching dependencies and generating code" {
   make pubget gen
 }
 
-Invoke-Step "Building Windows native artifacts (liblantern.dll + service + wintun)" {
-  make windows-amd64 windows-service-build-amd64 wintun-amd64
+Invoke-Step "Building Windows native artifacts (liblantern.dll + lanternd)" {
+  make windows-amd64 lanternd-windows-amd64
 }
 
 Invoke-Step "Building Windows app" {
@@ -274,20 +259,25 @@ Invoke-Step "Building Windows app" {
   }
 }
 
+Invoke-Step "Copying lanternd into app output folder" {
+  if ($Release) {
+    make copy-lanternd-release
+  } else {
+    make copy-lanternd-debug
+  }
+}
+
 Write-Step "Copying native artifacts into app output folder"
 New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 Copy-Item -Force $dllBinary (Join-Path $targetDir "liblantern.dll")
-Copy-Item -Force $serviceBinary (Join-Path $targetDir "lanternsvc.exe")
-Copy-Item -Force $wintunBinary (Join-Path $targetDir "wintun.dll")
 
 Write-Step "Build artifact diagnostics"
 Show-BuildArtifactInfo -Path $dllBinary -Label "liblantern.dll"
-Show-BuildArtifactInfo -Path $serviceBinary -Label "lanternsvc.exe"
+Show-BuildArtifactInfo -Path $serviceOutputBinary -Label "lanternd.exe"
 Show-BuildArtifactInfo -Path $appExe -Label "lantern.exe"
 
-Install-And-StartService -Name $ServiceName -BinaryPath $serviceBinary
+Install-LanterndService -Name $ServiceName -BinaryPath $serviceOutputBinary
 Show-ServiceStatus -Name $ServiceName
-Validate-IpcToken
 Show-ServiceLogs -TailLines $LogTailLines
 Show-AppDiscoveryContext
 Clear-AppDiscoveryCache

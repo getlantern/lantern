@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+# android-reproduce — Reproduce a Freshdesk ticket on an Android emulator
+#
+# Usage:
+#   android-reproduce <ticket-dir> [apk-path]
+#
+# Examples:
+#   android-reproduce /tmp/ticket-172722                         # auto-downloads APK
+#   android-reproduce /tmp/ticket-172722 ~/Downloads/lantern.apk # uses provided APK
+#
+# The ticket-dir should contain files downloaded by /analyze-ticket:
+#   config.json      — user's sing-box config (pushed to emulator)
+#   servers.json     — user's proxy server list (pushed to emulator)
+#   split-tunnel.json — user's split-tunnel rules (pushed to emulator)
+#
+# What it does:
+#   1. Extracts the user's country and app version from config.json
+#   2. Downloads the matching APK from GitHub releases (if not provided)
+#   3. Pushes config.json, servers.json, split-tunnel.json to the emulator
+#      so the app uses the exact same proxies, DNS rules, and rule sets
+#   4. Sets RADIANCE_COUNTRY to match the user's region
+#   5. Installs, restarts, and streams logs
+#
+# Prerequisites:
+#   - Run /analyze-ticket <ticket-id> first to download attachments
+#   - Android SDK (same as android-test)
+#   - gh CLI (for auto-downloading APK from GitHub releases)
+
+set -euo pipefail
+
+PKG="org.getlantern.lantern"
+
+# --- Parse args ---
+if [ $# -lt 1 ]; then
+    echo "Usage: android-reproduce <ticket-dir> [apk-path]"
+    echo ""
+    echo "Examples:"
+    echo "  android-reproduce /tmp/ticket-172722                         # auto-downloads APK"
+    echo "  android-reproduce /tmp/ticket-172722 ~/Downloads/lantern.apk # uses provided APK"
+    echo ""
+    echo "Run /analyze-ticket <ticket-id> first to download the config files."
+    exit 1
+fi
+
+TICKET_DIR="$1"
+APK="${2:-}"
+
+# --- Locate config files ---
+# /analyze-ticket puts files either directly in ticket-dir or in ticket-dir/logs/
+CONFIG_JSON=""
+for candidate in "$TICKET_DIR/config.json" "$TICKET_DIR/logs/config.json"; do
+    if [ -f "$candidate" ]; then
+        CONFIG_JSON="$candidate"
+        break
+    fi
+done
+
+if [ -z "$CONFIG_JSON" ]; then
+    echo "Error: config.json not found in $TICKET_DIR"
+    echo "Run /analyze-ticket <ticket-id> first to download it."
+    exit 1
+fi
+
+echo "=== Ticket reproduction setup ==="
+echo "Ticket dir: $TICKET_DIR"
+echo "Config:     $CONFIG_JSON"
+
+# --- Extract country from config ---
+COUNTRY=""
+if command -v python3 >/dev/null 2>&1; then
+    COUNTRY=$(python3 -c "
+import json, sys
+try:
+    with open('$CONFIG_JSON') as f:
+        cfg = json.load(f)
+    # Try nested ConfigResponse format (from Freshdesk attachment)
+    cr = cfg.get('ConfigResponse', cfg)
+    print(cr.get('country', ''))
+except:
+    pass
+" 2>/dev/null)
+elif command -v jq >/dev/null 2>&1; then
+    COUNTRY=$(jq -r '.ConfigResponse.country // .country // ""' "$CONFIG_JSON" 2>/dev/null)
+fi
+
+if [ -n "$COUNTRY" ]; then
+    echo "Country:    $COUNTRY"
+else
+    echo "Country:    (not detected — config will still be pushed)"
+fi
+
+# --- Extract device info from flutter.log ---
+SDK_INT=""
+DEVICE_MODEL=""
+OS_VERSION=""
+if command -v python3 >/dev/null 2>&1; then
+    mapfile -t _DEVICE_INFO < <(python3 -c "
+import os, re, glob
+sdk_int = ''; model = ''; osver = ''
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'flutter.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'Device info:' in line:
+                    m = re.search(r'sdkInt:\s*(\d+)', line)
+                    if m: sdk_int = m.group(1)
+                    m = re.search(r'model:\s*(\S+)', line)
+                    if m: model = m.group(1).rstrip(',')
+                    m = re.search(r'osVersion:\s*(\S+)', line)
+                    if m: osver = m.group(1).rstrip(',')
+                    break
+print(sdk_int)
+print(model)
+print(osver)
+" 2>/dev/null)
+    SDK_INT="${_DEVICE_INFO[0]:-}"
+    DEVICE_MODEL="${_DEVICE_INFO[1]:-}"
+    OS_VERSION="${_DEVICE_INFO[2]:-}"
+fi
+
+if [ -n "$SDK_INT" ]; then
+    echo "Android:    API $SDK_INT (Android ${OS_VERSION:-?})"
+fi
+if [ -n "$DEVICE_MODEL" ]; then
+    echo "Device:     $DEVICE_MODEL"
+fi
+
+# --- Extract version and auto-download APK if needed ---
+if [ -z "$APK" ]; then
+    # Try to find the version from config.json metadata or ticket files
+    VERSION=""
+    if command -v python3 >/dev/null 2>&1; then
+        VERSION=$(python3 -c "
+import json, sys, os, glob
+# Try to find version from flutter.log (most reliable)
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'flutter.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'version:' in line.lower():
+                    # Extract version like '9.0.25'
+                    import re
+                    m = re.search(r'version:\s*(\d+\.\d+\.\d+)', line)
+                    if m:
+                        print(m.group(1))
+                        sys.exit(0)
+# Fall back to looking for version in config request logs
+for log_dir in ['$TICKET_DIR/logs/logs', '$TICKET_DIR/logs', '$TICKET_DIR']:
+    for f in glob.glob(os.path.join(log_dir, 'lantern.log')):
+        with open(f) as fh:
+            for line in fh:
+                if 'appVersion' in line or 'app_version' in line:
+                    import re
+                    m = re.search(r'(\d+\.\d+\.\d+)', line)
+                    if m:
+                        print(m.group(1))
+                        sys.exit(0)
+" 2>/dev/null)
+    fi
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: No APK provided and couldn't detect version from ticket logs."
+        echo "Provide the APK path as the second argument."
+        exit 1
+    fi
+
+    RELEASE_TAG="v${VERSION}-beta-android"
+    APK="$TICKET_DIR/lantern-${VERSION}.apk"
+
+    if [ -f "$APK" ]; then
+        echo "APK:        $APK (cached from previous download)"
+    else
+        echo "Downloading APK for v${VERSION} from GitHub releases..."
+        if ! command -v gh >/dev/null 2>&1; then
+            echo "Error: gh CLI not found. Install it or provide the APK path manually."
+            exit 1
+        fi
+        if gh release download "$RELEASE_TAG" --repo getlantern/lantern \
+                --pattern "lantern-installer-beta.apk" \
+                --output "$APK" 2>/dev/null; then
+            echo "APK:        $APK (downloaded from $RELEASE_TAG)"
+        else
+            echo "Error: Failed to download APK from release $RELEASE_TAG"
+            echo "Available Android releases:"
+            gh release list --repo getlantern/lantern --limit 5 | grep android || true
+            echo ""
+            echo "Provide the APK path manually as the second argument."
+            exit 1
+        fi
+    fi
+fi
+
+# --- Extract server locations for display ---
+if command -v python3 >/dev/null 2>&1; then
+    python3 -c "
+import json
+with open('$CONFIG_JSON') as f:
+    cfg = json.load(f)
+cr = cfg.get('ConfigResponse', cfg)
+locs = cr.get('outbound_locations', cr.get('servers', {}))
+if isinstance(locs, dict):
+    cities = sorted(set(v.get('city', '?') for v in locs.values()))
+    print('Locations:  ' + ', '.join(cities))
+elif isinstance(locs, list):
+    cities = sorted(set(s.get('city', '?') for s in locs))
+    print('Locations:  ' + ', '.join(cities))
+" 2>/dev/null || true
+fi
+echo "APK:        $APK"
+echo "================================="
+echo ""
+
+# --- Build env overrides ---
+ENV_OVERRIDES=()
+if [ -n "$COUNTRY" ]; then
+    ENV_OVERRIDES+=("RADIANCE_COUNTRY=$COUNTRY")
+fi
+
+# --- Find Android SDK tools ---
+if [ -n "${ANDROID_HOME:-}" ]; then
+    ADB="${ANDROID_HOME}/platform-tools/adb"
+    EMULATOR="${ANDROID_HOME}/emulator/emulator"
+    SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+    AVDMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
+elif [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+    ADB="${ANDROID_SDK_ROOT}/platform-tools/adb"
+    EMULATOR="${ANDROID_SDK_ROOT}/emulator/emulator"
+    SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+    AVDMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager"
+else
+    ADB="$(command -v adb 2>/dev/null || true)"
+    EMULATOR="$(command -v emulator 2>/dev/null || true)"
+    SDKMANAGER="$(command -v sdkmanager 2>/dev/null || true)"
+    AVDMANAGER="$(command -v avdmanager 2>/dev/null || true)"
+fi
+for tool in ADB EMULATOR SDKMANAGER AVDMANAGER; do
+    if [ -z "${!tool}" ] || [ ! -x "${!tool}" ]; then
+        echo "Error: $(echo $tool | tr A-Z a-z) not found. Set ANDROID_HOME or add Android SDK to PATH."
+        exit 1
+    fi
+done
+
+# --- Ensure emulator with matching API level ---
+# Each unique API level gets its own AVD (e.g. lantern-api29, lantern-api34).
+# AVDs accumulate over time as you reproduce tickets from different Android versions.
+TARGET_API="${SDK_INT:-35}"
+
+ARCH=$(uname -m)
+case "$ARCH" in
+    arm64|aarch64) IMG_ABI="arm64-v8a" ;;
+    x86_64)        IMG_ABI="x86_64" ;;
+    *)             IMG_ABI="arm64-v8a" ;;
+esac
+
+# Find the closest available Google APIs image (step down if exact isn't available)
+ORIGINAL_API="$TARGET_API"
+while [ "$TARGET_API" -ge 21 ]; do
+    IMAGE="system-images;android-${TARGET_API};google_apis;${IMG_ABI}"
+    if "$SDKMANAGER" --list 2>/dev/null | grep -q "$IMAGE"; then
+        break
+    fi
+    TARGET_API=$((TARGET_API - 1))
+done
+if [ "$TARGET_API" -lt 21 ]; then
+    echo "Error: No Google APIs system image found for any API level." >&2
+    exit 1
+fi
+if [ "$TARGET_API" != "$ORIGINAL_API" ]; then
+    echo "Note: API $ORIGINAL_API image not available, using closest: API $TARGET_API"
+fi
+
+AVD_NAME="lantern-api${TARGET_API}"
+
+# Download image + create AVD if it doesn't exist yet
+if ! "$EMULATOR" -list-avds 2>/dev/null | grep -q "^${AVD_NAME}$"; then
+    echo "Creating AVD '$AVD_NAME' (API $TARGET_API) to match user's device..."
+    "$SDKMANAGER" "$IMAGE" 2>&1 | tail -3
+    echo "no" | "$AVDMANAGER" create avd -n "$AVD_NAME" -k "$IMAGE" --force 2>&1 | tail -2
+fi
+
+# Detect or start emulator
+APPEAR_TIMEOUT="${APPEAR_TIMEOUT:-120}"
+BOOT_TIMEOUT="${BOOT_TIMEOUT:-300}"
+
+TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+if [ -z "$TARGET_SERIAL" ]; then
+    echo "Starting emulator: $AVD_NAME (API $TARGET_API)..."
+    "$EMULATOR" -avd "$AVD_NAME" -no-snapshot-load -no-audio -gpu host &
+    START_TIME=$(date +%s)
+    while :; do
+        TARGET_SERIAL=$("$ADB" devices 2>/dev/null | awk '/^emulator-/{print $1; exit}')
+        if [ -n "$TARGET_SERIAL" ]; then break; fi
+        if [ $(( $(date +%s) - START_TIME )) -ge "$APPEAR_TIMEOUT" ]; then
+            echo "Error: Timed out waiting for emulator." >&2; exit 1
+        fi
+        sleep 2
+    done
+    "$ADB" -s "$TARGET_SERIAL" wait-for-device
+    START_TIME=$(date +%s)
+    while [ "$("$ADB" -s "$TARGET_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+        if [ $(( $(date +%s) - START_TIME )) -ge "$BOOT_TIMEOUT" ]; then
+            echo "Error: Timed out waiting for boot." >&2; exit 1
+        fi
+        sleep 2
+    done
+    echo "Emulator booted: $TARGET_SERIAL"
+else
+    echo "Emulator already running: $TARGET_SERIAL"
+fi
+
+ADB_CMD=("$ADB" -s "$TARGET_SERIAL")
+APP_DATA="/data/data/$PKG/.lantern"
+
+# Install APK FIRST so the app's data directory exists before we push configs.
+echo "Installing $APK..."
+"${ADB_CMD[@]}" install -r -t "$APK" 2>&1 | tail -1
+
+# Launch once briefly so the data directory is fully created, then stop.
+"${ADB_CMD[@]}" shell am start -n "$PKG/org.getlantern.lantern.MainActivity" 2>/dev/null || true
+sleep 3
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
+
+echo "Pushing user's config files to emulator..."
+
+# Root the emulator (Google APIs images)
+"${ADB_CMD[@]}" root 2>/dev/null || true
+sleep 2
+"${ADB_CMD[@]}" wait-for-device
+
+# Determine the base directory where config files live in the ticket dir.
+# /analyze-ticket puts them directly in the ticket dir, but they may also
+# be inside a logs/ subdirectory.
+CONFIG_BASE="$(dirname "$CONFIG_JSON")"
+
+# Push config files
+for file in config.json servers.json split-tunnel.json; do
+    SRC=""
+    for candidate in "$CONFIG_BASE/$file" "$TICKET_DIR/$file"; do
+        if [ -f "$candidate" ]; then SRC="$candidate"; break; fi
+    done
+    if [ -n "$SRC" ]; then
+        "${ADB_CMD[@]}" push "$SRC" "/data/local/tmp/$file"
+        "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/$file $APP_DATA/$file && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/$file" 2>/dev/null
+        echo "  Pushed $file (from $SRC)"
+    fi
+done
+
+# Push .env with overrides
+if [ ${#ENV_OVERRIDES[@]} -gt 0 ]; then
+    ENV_FILE=$(mktemp)
+    trap 'rm -f "${ENV_FILE:-}"' EXIT INT TERM
+    for kv in "${ENV_OVERRIDES[@]}"; do
+        echo "$kv" >> "$ENV_FILE"
+    done
+    "${ADB_CMD[@]}" push "$ENV_FILE" /data/local/tmp/.env
+    "${ADB_CMD[@]}" shell "mkdir -p $APP_DATA && cp /data/local/tmp/.env $APP_DATA/.env && chown \$(stat -c '%U:%G' /data/data/$PKG) $APP_DATA/.env" 2>/dev/null
+    echo "  Pushed .env (RADIANCE_COUNTRY=$COUNTRY)"
+fi
+
+# Unroot
+"${ADB_CMD[@]}" unroot 2>/dev/null || true
+sleep 1
+"${ADB_CMD[@]}" wait-for-device
+
+# Restart the app with the user's config
+echo "Restarting Lantern with user's config..."
+"${ADB_CMD[@]}" shell am force-stop "$PKG" 2>/dev/null || true
+sleep 1
+"${ADB_CMD[@]}" shell am start -n "$PKG/org.getlantern.lantern.MainActivity" 2>/dev/null || \
+    "${ADB_CMD[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>/dev/null
+
+echo ""
+echo "=== Reproducing ticket with user's exact config ==="
+echo "  Country: ${COUNTRY:-unknown}"
+echo "  Config:  $CONFIG_JSON"
+echo "  APK:     $APK"
+echo "=== Streaming logs (Ctrl+C to stop) ==="
+echo ""
+
+"${ADB_CMD[@]}" logcat -c
+exec "${ADB_CMD[@]}" logcat -v time \
+    -s "GoLog:*" "radiance:*" "sing-box:*" "lantern:*" "flutter:*" \
+       "LanternService:*" "VpnService:*" "System.err:*" \
+       "AndroidRuntime:*" "lantern-box:*"

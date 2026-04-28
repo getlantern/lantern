@@ -7,7 +7,7 @@ import '../../core/common/common.dart';
 // single_city_server_view.dart
 
 class SingleCityServerView extends StatefulWidget {
-  final Location_ location;
+  final Server server;
   final OnServerSelected onServerSelected;
   final bool isSelected;
   final bool nested;
@@ -15,7 +15,7 @@ class SingleCityServerView extends StatefulWidget {
   const SingleCityServerView({
     super.key,
     required this.onServerSelected,
-    required this.location,
+    required this.server,
     this.isSelected = false,
     this.nested = false,
   });
@@ -30,20 +30,20 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
     final textTheme = Theme.of(context).textTheme;
     return AppTile(
       label: widget.nested
-          ? widget.location.city
-          : '${widget.location.country} - ${widget.location.city}',
+          ? widget.server.location.city
+          : '${widget.server.location.country} - ${widget.server.location.city}',
       selected: widget.isSelected,
-      subtitle: widget.location.protocol.isEmpty
+      subtitle: widget.server.type.isEmpty
           ? null
           : Text(
-              widget.location.protocol.capitalize,
+              widget.server.type.capitalize,
               style: textTheme.labelMedium!.copyWith(
                 color: context.textTertiary,
               ),
             ),
-      icon: Flag(countryCode: widget.location.countryCode),
+      icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
-        widget.onServerSelected(widget.location);
+        widget.onServerSelected(widget.server);
       },
     );
   }

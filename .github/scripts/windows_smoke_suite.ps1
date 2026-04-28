@@ -1,8 +1,7 @@
 param(
   [string]$ServiceName = "LanternSvc",
-  [string]$ServiceExe = "build/windows/x64/runner/Release/lanternsvc.exe",
+  [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
-  [string]$TokenPath = "C:\ProgramData\Lantern\ipc-token",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
@@ -99,6 +98,32 @@ function Invoke-ProcessWithTimeout {
   }
 }
 
+function Invoke-LanterndCommand {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$FilePath,
+    [Parameter(Mandatory = $true)]
+    [string[]]$ArgumentList,
+    [string]$Description
+  )
+
+  $desc = if ([string]::IsNullOrWhiteSpace($Description)) {
+    "$FilePath $($ArgumentList -join ' ')"
+  } else {
+    $Description
+  }
+
+  Write-Step $desc
+  $output = & $FilePath @ArgumentList 2>&1
+  $exitCode = $LASTEXITCODE
+  if ($output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+  if ($exitCode -ne 0) {
+    throw "$desc failed with exit code $exitCode"
+  }
+}
+
 function Invoke-FlutterSmokeTest {
   param(
     [Parameter(Mandatory = $true)]
@@ -172,6 +197,20 @@ function Remove-ServiceIfPresent {
   }
 }
 
+function Show-LanterndInstallDiagnostics {
+  $lanterndPath = "C:\Program Files\Lantern\lanternd.exe"
+  if (Test-Path $lanterndPath) {
+    Write-Step "lanternd.exe exists at $lanterndPath"
+    & $lanterndPath version 2>&1 | ForEach-Object { Write-Step "  version: $_" }
+    return
+  }
+
+  Write-Step "lanternd.exe NOT found at $lanterndPath"
+  Write-Step "Contents of C:\Program Files\Lantern\:"
+  Get-ChildItem "C:\Program Files\Lantern\" -ErrorAction SilentlyContinue |
+    ForEach-Object { Write-Step "  $($_.Name)" }
+}
+
 function Wait-ServiceRunning {
   param(
     [string]$Name,
@@ -191,33 +230,8 @@ function Wait-ServiceRunning {
   }
 
   sc.exe query $Name
+  Show-LanterndInstallDiagnostics
   throw "Windows service did not reach Running state"
-}
-
-function Wait-TokenFile {
-  param(
-    [string]$Path,
-    [int]$TimeoutSeconds
-  )
-
-  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    if (Test-Path $Path) {
-      try {
-        $token = (Get-Content -Path $Path -Raw -ErrorAction Stop).Trim()
-      } catch {
-        $token = ""
-      }
-      if (-not [string]::IsNullOrWhiteSpace($token)) {
-        Write-Step "IPC token detected at $Path with content"
-        return
-      }
-    }
-    if ($i -gt 0 -and ($i % 5) -eq 0) {
-      Write-Step "Waiting for non-empty IPC token at $Path ($i/$TimeoutSeconds s)"
-    }
-    Start-Sleep -Seconds 1
-  }
-  throw "IPC token file missing or empty at $Path"
 }
 
 function Install-FromInstaller {
@@ -237,6 +251,15 @@ function Install-FromInstaller {
     -TimeoutSeconds $InstallerTimeoutSeconds `
     -PulseSeconds $HeartbeatSeconds `
     -Description "Running installer"
+
+  $lanterndPath = "C:\Program Files\Lantern\lanternd.exe"
+  $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
+  if (-not $svc -and (Test-Path $lanterndPath)) {
+    Invoke-LanterndCommand `
+      -FilePath $lanterndPath `
+      -ArgumentList @("install") `
+      -Description "Service not found after installer; running lanternd install manually for diagnostics"
+  }
 
   Write-Step "Waiting for Windows service after installer"
   Wait-ServiceRunning -Name $Name -TimeoutSeconds $TimeoutSeconds
@@ -282,23 +305,12 @@ try {
     Write-Step "Smoke setup mode: direct service binary"
     $resolvedServiceExe = (Resolve-Path $ServiceExe).Path
     Remove-ServiceIfPresent -Name $ServiceName
-    Invoke-ScCommand `
-      -ArgumentList @(
-        "create",
-        $ServiceName,
-        "binPath= `"$resolvedServiceExe`"",
-        "start= demand",
-        "DisplayName= Lantern Service (CI)"
-      ) `
-      -Description "Creating Windows service from $resolvedServiceExe"
-    Invoke-ScCommand `
-      -ArgumentList @("start", $ServiceName) `
-      -AllowedExitCodes @(0, 1056) `
-      -Description "Starting Windows service $ServiceName"
+    Invoke-LanterndCommand `
+      -FilePath $resolvedServiceExe `
+      -ArgumentList @("install") `
+      -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
-
-  Wait-TokenFile -Path $TokenPath -TimeoutSeconds $WaitSeconds
 
   if ($RunConnectSmoke) {
     Invoke-FlutterSmokeTest `
@@ -340,7 +352,6 @@ try {
         $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
       }
 
-      # Run API and UI smoke tests with unique names to avoid collisions.
       $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
       Invoke-FlutterSmokeTest `
         -Path $ConfigUrlApiTestPath `
@@ -361,7 +372,15 @@ finally {
     if ($UseInstaller) {
       Uninstall-FromInstalledService -Name $ServiceName
     } else {
-      Remove-ServiceIfPresent -Name $ServiceName
+      $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
+      if ($resolvedServiceExe) {
+        Invoke-LanterndCommand `
+          -FilePath $resolvedServiceExe `
+          -ArgumentList @("uninstall") `
+          -Description "Uninstalling lanternd service from $resolvedServiceExe"
+      } else {
+        Remove-ServiceIfPresent -Name $ServiceName
+      }
     }
     Write-Step "Cleanup finished"
   } catch {

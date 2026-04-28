@@ -13,7 +13,7 @@ part of 'website_notifier.dart';
 final splitTunnelingWebsitesProvider = SplitTunnelingWebsitesProvider._();
 
 final class SplitTunnelingWebsitesProvider
-    extends $NotifierProvider<SplitTunnelingWebsites, Set<Website>> {
+    extends $AsyncNotifierProvider<SplitTunnelingWebsites, Set<Website>> {
   SplitTunnelingWebsitesProvider._()
     : super(
         from: null,
@@ -31,30 +31,22 @@ final class SplitTunnelingWebsitesProvider
   @$internal
   @override
   SplitTunnelingWebsites create() => SplitTunnelingWebsites();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Set<Website> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Set<Website>>(value),
-    );
-  }
 }
 
 String _$splitTunnelingWebsitesHash() =>
-    r'39da356a931b1305da390b67cd181082292fddb4';
+    r'b787523e773ed95e8914c848bc448a3a4dd4ce17';
 
-abstract class _$SplitTunnelingWebsites extends $Notifier<Set<Website>> {
-  Set<Website> build();
+abstract class _$SplitTunnelingWebsites extends $AsyncNotifier<Set<Website>> {
+  FutureOr<Set<Website>> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<Set<Website>, Set<Website>>;
+    final ref = this.ref as $Ref<AsyncValue<Set<Website>>, Set<Website>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<Set<Website>, Set<Website>>,
-              Set<Website>,
+              AnyNotifier<AsyncValue<Set<Website>>, Set<Website>>,
+              AsyncValue<Set<Website>>,
               Object?,
               Object?
             >;

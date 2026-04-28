@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
@@ -21,7 +21,7 @@ part 'system_tray_notifier.g.dart';
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   VPNStatus _currentStatus = VPNStatus.disconnected;
   bool _isUserPro = false;
-  List<Location_> _locations = [];
+  List<Server> _locations = [];
   RoutingMode _currentRoutingMode = RoutingMode.full;
   ServerLocation? _serverLocation;
 
@@ -49,7 +49,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   void _initializeState() {
     _currentStatus = ref.read(vpnProvider);
     _isUserPro = ref.read(isUserProProvider);
-    _currentRoutingMode = ref.read(appSettingProvider).routingMode;
+    _currentRoutingMode = ref.read(radianceSettingsProvider).routingMode;
     _serverLocation = ref.read(serverLocationProvider);
   }
 
@@ -81,11 +81,11 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       next,
     ) async {
       final data = next.value;
-      _locations = data?.lantern.locations.values.toList() ?? [];
+      _locations = data?.lanternServers ?? [];
       _locations.sort((a, b) {
-        final cmp = a.country.compareTo(b.country);
+        final cmp = a.location.country.compareTo(b.location.country);
         if (cmp != 0) return cmp;
-        return a.city.compareTo(b.city);
+        return a.location.city.compareTo(b.location.city);
       });
       await updateTrayMenu();
     });
@@ -99,8 +99,11 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   void _listenToRoutingMode() {
-    ref.listen<AppSetting>(appSettingProvider, (previous, next) async {
-      if (previous?.routingMode != next.routingMode) {
+    ref.listen<RadianceSettingsState>(radianceSettingsProvider, (
+      previous,
+      next,
+    ) async {
+      if (next.routingMode != _currentRoutingMode) {
         _currentRoutingMode = next.routingMode;
         await updateTrayMenu();
       }
@@ -117,19 +120,19 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   /// Handle location selection from tray menu
-  Future<void> _onLocationSelected(Location_ location) async {
+  Future<void> _onLocationSelected(Server server) async {
     if (!_checkMacOSExtension()) return;
 
     final result = await ref
         .read(vpnProvider.notifier)
-        .connectToServer(ServerLocationType.lanternLocation, location.tag);
+        .connectToServer(ServerLocationType.lanternLocation, server.tag);
     result.fold(
       (failure) => appLogger.error(
         'Failed to connect: ${failure.localizedErrorMessage}',
       ),
       (success) {
-        appLogger.info('Connecting to ${location.country} - ${location.city}');
-        _saveServerLocation(location);
+        appLogger.info('Connecting to ${server.location.country} - ${server.location.city}');
+        _saveServerLocation(server);
       },
     );
   }
@@ -138,7 +141,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   Future<void> _onSmartLocationSelected() async {
     if (!_checkMacOSExtension()) return;
 
-    await ref
+    ref
         .read(serverLocationProvider.notifier)
         .updateServerLocation(initialServerLocation());
     await ref.read(vpnProvider.notifier).startVPN(force: true);
@@ -146,7 +149,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   /// Handle routing mode selection from tray menu
   Future<void> _onRoutingModeSelected(RoutingMode mode) async {
-    await ref.read(appSettingProvider.notifier).setRoutingMode(mode);
+    await ref.read(radianceSettingsProvider.notifier).setRoutingMode(mode);
   }
 
   /// Returns true if OK to proceed, false if blocked by missing extension
@@ -162,11 +165,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     return true;
   }
 
-  Future<void> _saveServerLocation(Location_ location) async {
-    final serverLocation = ServerLocation.fromLanternLocation(server: location);
-    await ref
-        .read(serverLocationProvider.notifier)
-        .updateServerLocation(serverLocation);
+  void _saveServerLocation(Server server) {
+    final serverLocation = ServerLocation.fromServer(server: server);
+    ref.read(serverLocationProvider.notifier).updateServerLocation(serverLocation);
   }
 
   /// Build the current location display string (flag emoji + city)
@@ -253,15 +254,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                 ),
                 MenuItem.separator(),
                 // Server list
-                ..._locations.map((location) {
-                  final displayName = location.city.isNotEmpty
-                      ? '${location.country} - ${location.city}'
-                      : location.country;
+                ..._locations.map((server) {
+                  final displayName = server.location.city.isNotEmpty
+                      ? '${server.location.country} - ${server.location.city}'
+                      : server.location.country;
                   return MenuItem(
-                    key: 'location_${location.tag}',
+                    key: 'location_${server.tag}',
                     label: displayName,
-                    icon: AppImagePaths.safeFlagPath(location.countryCode),
-                    onClick: (_) => _onLocationSelected(location),
+                    icon: AppImagePaths.safeFlagPath(server.location.countryCode),
+                    onClick: (_) => _onLocationSelected(server),
                   );
                 }),
               ],

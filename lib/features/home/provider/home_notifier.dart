@@ -1,10 +1,10 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,7 +13,7 @@ part 'home_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class HomeNotifier extends _$HomeNotifier {
   @override
-  Future<UserResponse> build() async {
+  Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
     /// If yes, load it first to avoid delay in UI
     final result = await ref.read(lanternServiceProvider).getUserData();
@@ -25,7 +25,7 @@ class HomeNotifier extends _$HomeNotifier {
         throw Exception('Failed to get user data');
       },
       (userData) {
-        appLogger.debug('Got the userdata: $userData');
+        appLogger.debug('Got the userdata: ${userData.toJson()}');
         _applyUserData(userData);
         return userData;
       },
@@ -61,7 +61,7 @@ class HomeNotifier extends _$HomeNotifier {
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
-        appLogger.debug('Refreshed user data from Go: $userData');
+        appLogger.debug('Refreshed user data from Go: ${userData.toJson()}');
         _applyUserData(userData);
       },
     );
@@ -69,26 +69,14 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// Updates the user data in state and local storage.
   /// notifies UI about changes.
-  void updateUserData(UserResponse userData) {
+  void updateUserData(UserResponseModel userData) {
     _applyUserData(userData);
   }
 
-  void _applyUserData(UserResponse userData) {
+  void _applyUserData(UserResponseModel userData) {
     state = AsyncValue.data(userData);
 
-    // Step 1: Sync all user fields to app settings first before any other logic.
     final isPro = userData.legacyUserData.isPro;
-    final email = userData.legacyUserData.email.isEmpty
-        ? userData.id
-        : userData.legacyUserData.email;
-    appLogger.info(
-      'Syncing user data to app settings — isPro=$isPro email=$email',
-    );
-    ref.read(appSettingProvider.notifier)
-      ..togglePro(isPro)
-      ..setEmail(email);
-
-    // Step 2: Now run derived logic that depends on the stored settings.
     if (!isPro) {
       resetServerLocation();
     }
@@ -133,7 +121,7 @@ class HomeNotifier extends _$HomeNotifier {
     _checkIfUserProAndDeviceIsAdded(user);
   }
 
-  void _checkIfUserProAndDeviceIsAdded(UserResponse user) {
+  void _checkIfUserProAndDeviceIsAdded(UserResponseModel user) {
     if (!user.legacyUserData.isPro) {
       appLogger.info("User is not Pro. Skipping device check.");
       return;
@@ -145,7 +133,7 @@ class HomeNotifier extends _$HomeNotifier {
     }
     final userDeviceId = user.legacyUserData.deviceID;
     final isDeviceAdded = user.legacyUserData.devices.any(
-      (device) => device.id == userDeviceId,
+      (device) => device.deviceId == userDeviceId,
     );
     appLogger.info(
       "current device added for user ${user.legacyUserData.email}: "
@@ -164,8 +152,6 @@ class HomeNotifier extends _$HomeNotifier {
   /// Fetches available servers again.
   void clearLogoutData() {
     ref.read(referralProvider.notifier).resetReferral();
-    ref.read(appSettingProvider.notifier).clearAuthSessionData();
-    resetServerLocation();
-    state = AsyncValue.data(UserResponse());
+    ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
   }
 }

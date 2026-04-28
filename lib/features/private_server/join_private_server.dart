@@ -224,7 +224,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerProvider.notifier)
-        .addServerBasedOnURLs(urls, true, serverName);
+        .addServerBasedOnURLs(urls, true);
     result.fold(
       (error) {
         appLogger.error("Failed to join private server: $error");

@@ -1,10 +1,6 @@
 package utils
 
 import (
-	"log/slog"
-	"os"
-
-	"github.com/getlantern/radiance/issue"
 	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
@@ -16,6 +12,7 @@ type Opts struct {
 	Locale           string
 	Env              string
 	TelemetryConsent bool
+	Platform         PlatformInterface
 }
 
 type PrivateServerEventListener interface {
@@ -34,22 +31,9 @@ type FlutterEventEmitter interface {
 	SendEvent(event *FlutterEvent)
 }
 
-// CreateLogAttachment tries to read the log file at logFilePath and returns
-// an []*issue.Attachment with the log (if found)
-func CreateLogAttachment(logFilePath string) []*issue.Attachment {
-	if logFilePath == "" {
-		return nil
-	}
-	data, err := os.ReadFile(logFilePath)
-	if err != nil {
-		slog.Debug("could not read log file %q: %v", logFilePath, err)
-		return nil
-	}
-	return []*issue.Attachment{{
-		Name: "flutter.log",
-		Type: "text/plain",
-		Data: data,
-	}}
+// LogListener receives log entries streamed from the IPC client.
+type LogListener interface {
+	OnLogEntry(entry string)
 }
 
 type PlatformInterface interface {

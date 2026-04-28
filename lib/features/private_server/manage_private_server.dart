@@ -42,12 +42,12 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         body: Center(child: Text(err.toString())),
       ),
       data: (servers) {
-        final allServers = servers.user.locations.values.toList();
+        final allServers = servers.userServers;
         final joinedServers = allServers
-            .where((loc) => servers.user.credentials[loc.tag]?.isJoined == true)
+            .where((s) => s.credentials?.isJoined == true)
             .toList();
         final myServers = allServers
-            .where((loc) => servers.user.credentials[loc.tag]?.isJoined != true)
+            .where((s) => s.credentials?.isJoined != true)
             .toList();
 
         return BaseScreen(
@@ -103,7 +103,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  Widget buildMyServer(List<Location_> myServers) {
+  Widget buildMyServer(List<Server> myServers) {
     return Column(
       children: <Widget>[
         const SizedBox(height: 8),
@@ -122,7 +122,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   Widget _buildListView(
-    List<Location_> myServers, {
+    List<Server> myServers, {
     required bool showShareAccessKey,
   }) {
     return ListView.builder(
@@ -137,8 +137,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             children: [
               AppTile(
                 label: item.tag,
-                subtitle: Text(item.city),
-                icon: Flag(countryCode: item.countryCode),
+                subtitle: Text(item.location.city),
+                icon: Flag(countryCode: item.location.countryCode),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
@@ -169,26 +169,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     );
   }
 
-  void onTapShareAccessKey(Location_ location) {
-    final servers = ref.read(availableServersProvider).value;
-
-    if (servers == null) {
-      appLogger.error('Servers data is null, cannot share access key');
-      return;
-    }
-
-    final matchingOutbounds =
-        servers.user.outbounds.where((o) => o.tag == location.tag);
-    if (matchingOutbounds.isEmpty) {
-      appLogger.error(
-          'No outbound found for tag: ${location.tag}, cannot share access key');
-      return;
-    }
-    final userServer = matchingOutbounds.first;
-
-    final credential = servers.user.credentials[location.tag];
+  void onTapShareAccessKey(Server server) {
+    final credential = server.credentials;
     if (credential == null || credential.accessToken.isEmpty) {
-      appLogger.error('No access token for tag: ${location.tag}');
+      appLogger.error('No access token for tag: ${server.tag}');
       AppDialog.errorDialog(
         context: context,
         title: 'error'.i18n,
@@ -198,26 +182,26 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     }
 
     final privateServer = PrivateServer(
-      serverName: userServer.tag,
-      externalIp: userServer.server,
+      serverName: server.tag,
+      externalIp: server.serverIP,
       port: credential.port,
       accessToken: credential.accessToken,
-      serverLocationName: location.city,
-      serverCountryCode: location.countryCode,
-      protocol: location.protocol,
+      serverLocationName: server.location.city,
+      serverCountryCode: server.location.countryCode,
+      protocol: server.type,
       isJoined: credential.isJoined,
     );
-    final cachedKey = _accessKeyCache[location.tag];
+    final cachedKey = _accessKeyCache[server.tag];
     if (cachedKey != null) {
-      appLogger.info('Reusing cached access key for tag: ${location.tag}');
+      appLogger.info('Reusing cached access key for tag: ${server.tag}');
       try {
         final tokenData = JwtDecoder.decode(cachedKey);
         sharePrivateAccessKey(privateServer, tokenData);
         return;
       } catch (e) {
         appLogger.warning(
-            'Cached access key invalid for tag: ${location.tag}, regenerating');
-        _accessKeyCache.remove(location.tag);
+            'Cached access key invalid for tag: ${server.tag}, regenerating');
+        _accessKeyCache.remove(server.tag);
       }
     }
 

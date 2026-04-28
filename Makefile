@@ -66,20 +66,15 @@ LINUX_PACKAGE_ARCH_SUFFIX := $(if $(filter amd64,$(LINUX_TARGET_ARCH)),,-$(LINUX
 LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).rpm
 LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
-LINUX_SERVICE_NAME := lanternd
-LINUX_SERVICE_SRC  := $(RADIANCE_REPO)/cmd/lanternd
-LINUX_SERVICE_BUILD_AMD64 := $(BIN_DIR)/linux-amd64/$(LINUX_SERVICE_NAME)
-LINUX_SERVICE_BUILD_ARM64 := $(BIN_DIR)/linux-arm64/$(LINUX_SERVICE_NAME)
-LINUX_SERVICE_BUILD_TARGET := $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_SERVICE_NAME)
+LANTERND := lanternd
+LANTERND_SRC := $(RADIANCE_REPO)/cmd/lanternd
+LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
+LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
 LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
 LINUX_BUNDLE_DIR_ARM64 := build/linux/arm64/release/bundle
 LINUX_CC_AMD64 ?= x86_64-linux-gnu-gcc
 LINUX_CC_ARM64 ?= aarch64-linux-gnu-gcc
 LINUX_PKG_ROOT := linux/packaging
-LINUX_SERVICE_DST := $(LINUX_PKG_ROOT)/usr/sbin
-LINUX_PKG_SYSTEMD_DIR := $(LINUX_PKG_ROOT)/usr/lib/systemd/system
-LINUX_SYSTEMD_UNIT_SRC := $(shell go list -m -f '{{.Dir}}' $(RADIANCE_REPO))/cmd/lanternd/lanternd.service
-LINUX_SYSTEMD_UNIT_DST := $(LINUX_PKG_SYSTEMD_DIR)/lanternd.service
 
 ifeq ($(OS),Windows_NT)
   PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
@@ -92,12 +87,8 @@ else
   RM_RF = rm -rf -- '$(1)'
 endif
 
-WINDOWS_SERVICE_NAME := lanternsvc.exe
-WINDOWS_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
-WINDOWS_SERVICE_BUILD_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME)
-WINDOWS_SERVICE_BUILD_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_SERVICE_NAME)
-WINDOWS_SERVICE_BUILD := $(WINDOWS_SERVICE_BUILD_AMD64)
-WINDOWS_SERVICE_CGO_ENABLED ?= 0
+LANTERND_WINDOWS_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERND).exe
+LANTERND_WINDOWS_ARM64 := $(BIN_DIR)/windows-arm64/$(LANTERND).exe
 
 WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
@@ -105,18 +96,8 @@ WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
-WINDOWS_SERVICE_BUILD_ARM64_RELEASE := $(WINDOWS_RELEASE_DIR)/arm64/$(WINDOWS_SERVICE_NAME)
-WINTUN_VERSION ?= 0.14.1
-WINTUN_BASE_URL := https://wwW.wintun.net
-WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
-WINTUN_OUT_DIR_AMD64 := windows/third_party/wintun/bin/amd64
-WINTUN_OUT_DIR_ARM64 := windows/third_party/wintun/bin/arm64
-WINTUN_DLL_AMD64     := $(WINTUN_OUT_DIR_AMD64)/wintun.dll
-WINTUN_DLL_ARM64     := $(WINTUN_OUT_DIR_ARM64)/wintun.dll
-WINTUN_DLL           := $(WINTUN_DLL_AMD64)
-WINTUN_DLL_RELEASE := $(WINDOWS_RELEASE_DIR)/wintun.dll
-WINTUN_DLL_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/wintun.dll
-WINTUN_DLL_DEBUG   := $(WINDOWS_DEBUG_DIR)/wintun.dll
+LANTERND_WINDOWS_RELEASE := $(WINDOWS_RELEASE_DIR)/$(LANTERND).exe
+LANTERND_WINDOWS_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/$(LANTERND).exe
 
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
@@ -331,32 +312,23 @@ linux: linux-$(LINUX_TARGET_ARCH)
 	mkdir -p $(BIN_DIR)/linux
 	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
 
-.PHONY: linux-service-amd64 linux-service-arm64 linux-service stage-linux-service
+.PHONY: lanternd-linux-amd64 lanternd-linux-arm64
 
-linux-service-amd64: $(GO_SOURCES)
-	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_AMD64)))
+lanternd-linux-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
-	  go build -v -trimpath -tags "$(TAGS)" \
-	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
-	  -o $(LINUX_SERVICE_BUILD_AMD64) $(LINUX_SERVICE_SRC)
-	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_AMD64)"
+		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
-linux-service-arm64: $(GO_SOURCES)
-	$(call MKDIR_P,$(dir $(LINUX_SERVICE_BUILD_ARM64)))
+lanternd-linux-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
-	  go build -v -trimpath -tags "$(TAGS)" \
-	  -ldflags "-w -s $(EXTRA_LDFLAGS)" \
-	  -o $(LINUX_SERVICE_BUILD_ARM64) $(LINUX_SERVICE_SRC)
-	@echo "Built Linux service: $(LINUX_SERVICE_BUILD_ARM64)"
-
-linux-service: linux-service-$(LINUX_TARGET_ARCH)
-
-stage-linux-service: linux-service
-	@echo "Staging systemd unit + service binary $(LINUX_PKG_ROOT)..."
-	$(call MKDIR_P,$(LINUX_SERVICE_DST))
-	$(call COPY_FILE,$(LINUX_SERVICE_BUILD_TARGET),$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME))
-	$(call MKDIR_P,$(LINUX_PKG_SYSTEMD_DIR))
-	$(call COPY_FILE,$(LINUX_SYSTEMD_UNIT_SRC),$(LINUX_SYSTEMD_UNIT_DST))
+		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
 .PHONY: linux-debug
 linux-debug:
@@ -369,7 +341,7 @@ linux-release: clean linux-release-ci
 linux-release-ci: linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
-	$(MAKE) stage-linux-service
+	$(MAKE) lanternd-linux-$(LINUX_TARGET_ARCH)
 
 	@if [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
 	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_ARM64)"; \
@@ -382,15 +354,13 @@ linux-release-ci: linux pubget gen
 	fi; \
 	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
 	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
+	cp "$(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LANTERND)" "$$BUNDLE_DIR"; \
 	patchelf --set-rpath '$$ORIGIN/lib' "$$BUNDLE_DIR/lantern" || true; \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB); \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/sbin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM); \
-	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" SYSTEMD_UNIT_SRC=$(LINUX_SYSTEMD_UNIT_DST) \
-	LANTERND_SRC=$(LINUX_SERVICE_DST)/$(LINUX_SERVICE_NAME) LANTERND_DST=/usr/bin/$(LINUX_SERVICE_NAME) \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
 
 .PHONY: verify-linux-package
@@ -398,11 +368,8 @@ verify-linux-package:
 	./scripts/ci/verify_linux_package.sh $(LINUX_INSTALLER_DEB)
 
 # Windows Build
-.PHONY: build-lanternsvc-windows build-lanternsvc-windows-arm64 \
-        windows-service-build windows-service-build-amd64 windows-service-build-arm64 \
-        copy-lanternsvc-release copy-lanternsvc-release-arm64 copy-lanternsvc-debug \
-        wintun wintun-amd64 wintun-arm64 clean-wintun \
-        copy-wintun-release copy-wintun-release-arm64 copy-wintun-debug
+.PHONY: lanternd-windows-amd64 lanternd-windows-arm64 \
+        copy-lanternd-release copy-lanternd-release-arm64 copy-lanternd-debug
 
 .PHONY: install-windows-deps
 install-windows-deps:
@@ -423,101 +390,42 @@ windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
-.PHONY: build-lanternsvc-windows
-build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD_AMD64)
+lanternd-windows-amd64: $(LANTERND_WINDOWS_AMD64)
 
-.PHONY: build-lanternsvc-windows-arm64
-build-lanternsvc-windows-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
+lanternd-windows-arm64: $(LANTERND_WINDOWS_ARM64)
 
-windows-service-build: windows-service-build-amd64
-
-windows-service-build-amd64: $(WINDOWS_SERVICE_BUILD_AMD64)
-
-windows-service-build-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
-
-$(WINDOWS_SERVICE_BUILD_AMD64):
-	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_AMD64)))
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=$(WINDOWS_SERVICE_CGO_ENABLED) go build -v -trimpath -tags "$(TAGS)" \
+$(LANTERND_WINDOWS_AMD64):
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 		-ldflags "$(EXTRA_LDFLAGS)" \
-		-o $(WINDOWS_SERVICE_BUILD_AMD64) $(WINDOWS_SERVICE_SRC)
-	@echo "Built Windows service (amd64): $(WINDOWS_SERVICE_BUILD_AMD64)"
+		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
+	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
 
-$(WINDOWS_SERVICE_BUILD_ARM64):
-	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_ARM64)))
-	GOOS=windows GOARCH=arm64 CGO_ENABLED=$(WINDOWS_SERVICE_CGO_ENABLED) go build -v -trimpath -tags "$(TAGS)" \
+$(LANTERND_WINDOWS_ARM64):
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
 		-ldflags "$(EXTRA_LDFLAGS)" \
-		-o $(WINDOWS_SERVICE_BUILD_ARM64) $(WINDOWS_SERVICE_SRC)
-	@echo "Built Windows service (arm64): $(WINDOWS_SERVICE_BUILD_ARM64)"
+		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
+	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
 
-copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD_AMD64)
+copy-lanternd-release: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
-	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_AMD64),$(WINDOWS_RELEASE_DIR)/$(WINDOWS_SERVICE_NAME))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_RELEASE))
 
-copy-lanternsvc-release-arm64: $(WINDOWS_SERVICE_BUILD_ARM64)
-	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD_ARM64_RELEASE)))
-	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_ARM64),$(WINDOWS_SERVICE_BUILD_ARM64_RELEASE))
+copy-lanternd-release-arm64: $(LANTERND_WINDOWS_ARM64)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_RELEASE_ARM64)))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_ARM64),$(LANTERND_WINDOWS_RELEASE_ARM64))
 
-copy-lanternsvc-debug: $(WINDOWS_SERVICE_BUILD_AMD64)
+copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
-	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD_AMD64),$(WINDOWS_DEBUG_DIR)/$(WINDOWS_SERVICE_NAME))
-
-wintun: wintun-amd64
-
-wintun-amd64: $(WINTUN_DLL_AMD64)
-
-wintun-arm64: $(WINTUN_DLL_ARM64)
-
-clean-wintun:
-	@$(call RM_RF,$(WINTUN_OUT_DIR_AMD64))
-	@$(call RM_RF,$(WINTUN_OUT_DIR_ARM64))
-
-$(WINTUN_DLL_AMD64):
-	$(call MKDIR_P,$(WINTUN_OUT_DIR_AMD64))
-	@ver='$(WINTUN_VERSION)'; \
-	  zip='$(WINTUN_OUT_DIR_AMD64)/wintun-'$$ver'.zip'; \
-	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
-	  echo "Using Wintun $$ver"; \
-	  curl -fsSL -o "$$zip" "$$url"; \
-	  $(call MKDIR_P,$(WINTUN_OUT_DIR_AMD64)/_unz); \
-	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_AMD64)/_unz" "wintun/bin/amd64/wintun.dll" \
-	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_AMD64)/_unz'";
-	$(call COPY_FILE,$(WINTUN_OUT_DIR_AMD64)/_unz/wintun/bin/amd64/wintun.dll,$(WINTUN_DLL_AMD64))
-	$(call RM_RF,$(WINTUN_OUT_DIR_AMD64)/_unz)
-	@echo "Installed: $(WINTUN_DLL_AMD64)";
-
-$(WINTUN_DLL_ARM64):
-	$(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64))
-	@ver='$(WINTUN_VERSION)'; \
-	  zip='$(WINTUN_OUT_DIR_ARM64)/wintun-'$$ver'.zip'; \
-	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
-	  echo "Using Wintun $$ver"; \
-	  curl -fsSL -o "$$zip" "$$url"; \
-	  $(call MKDIR_P,$(WINTUN_OUT_DIR_ARM64)/_unz); \
-	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR_ARM64)/_unz" "wintun/bin/arm64/wintun.dll" \
-	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR_ARM64)/_unz'";
-	$(call COPY_FILE,$(WINTUN_OUT_DIR_ARM64)/_unz/wintun/bin/arm64/wintun.dll,$(WINTUN_DLL_ARM64))
-	$(call RM_RF,$(WINTUN_OUT_DIR_ARM64)/_unz)
-	@echo "Installed: $(WINTUN_DLL_ARM64)";
-
-.PHONY: copy-wintun-release copy-wintun-debug
-copy-wintun-release: $(WINTUN_DLL_AMD64)
-	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
-	$(call COPY_FILE,$(WINTUN_DLL_AMD64),$(WINTUN_DLL_RELEASE))
-
-copy-wintun-release-arm64: $(WINTUN_DLL_ARM64)
-	$(call MKDIR_P,$(dir $(WINTUN_DLL_RELEASE_ARM64)))
-	$(call COPY_FILE,$(WINTUN_DLL_ARM64),$(WINTUN_DLL_RELEASE_ARM64))
-
-copy-wintun-debug: $(WINTUN_DLL_AMD64)
-	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
-	$(call COPY_FILE,$(WINTUN_DLL_AMD64),$(WINTUN_DLL_DEBUG))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(WINDOWS_DEBUG_DIR)/$(LANTERND).exe)
 
 .PHONY: prepare-windows-release
-prepare-windows-release: build-lanternsvc-windows build-lanternsvc-windows-arm64 wintun-amd64 wintun-arm64
-	$(MAKE) copy-lanternsvc-release
-	$(MAKE) copy-lanternsvc-release-arm64
-	$(MAKE) copy-wintun-release
-	$(MAKE) copy-wintun-release-arm64
+prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
+	$(MAKE) copy-lanternd-release
+	$(MAKE) copy-lanternd-release-arm64
 
 .PHONY: windows-debug
 windows-debug: windows

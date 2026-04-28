@@ -8,21 +8,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import lantern.io.mobile.LogSubscription
+import lantern.io.mobile.Mobile
 import lantern.io.utils.FlutterEvent
+import lantern.io.utils.LogListener
 import org.getlantern.lantern.apps.AppDataHandler
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.FlutterEventStream
-import org.getlantern.lantern.utils.LogTailer
 import org.getlantern.lantern.utils.PrivateServerEventStream
 import org.getlantern.lantern.utils.VpnStatusManager
-import org.getlantern.lantern.utils.logDir
-import java.io.File
 
 
 class EventHandler : FlutterPlugin {
@@ -46,9 +43,8 @@ class EventHandler : FlutterPlugin {
     private var statusObserver: Observer<Event<VPNStatus>>? = null
     private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
     var job: Job? = null
-    private var logsJob: Job? = null
-    var logFile: File = File(logDir(), "lantern.log")
-    private var logsTailer: LogTailer = LogTailer()
+    private var logsSubscription: LogSubscription? = null
+    private var logsListener: LogListener? = null
     private val eventScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 
@@ -106,7 +102,9 @@ class EventHandler : FlutterPlugin {
             flutterEventObserver = null
         }
         logsChannel?.setStreamHandler(null)
-        logsJob?.cancel()
+        logsSubscription?.cancel()
+        logsSubscription = null
+        logsListener = null
         appDataChannel?.setStreamHandler(null)
         appDataHandler?.dispose()
         appDataHandler = null
@@ -207,64 +205,29 @@ class EventHandler : FlutterPlugin {
     private fun logsChannelListeners() {
         logsChannel?.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                logsJob = eventScope.launch {
-                    // Send initial batch of last 200 lines, matching iOS/macOS behaviour
-                    val initial = logsTailer.tail(logFile, 200)
-                    if (initial.isNotEmpty()) {
-                        withContext(Dispatchers.Main) { events?.success(initial) }
+                logsSubscription?.cancel()
+                val sink = events
+                val listener = object : LogListener {
+                    override fun onLogEntry(entry: String) {
+                        val trimmed = entry.trimEnd('\r', '\n')
+                        if (trimmed.isEmpty()) return
+                        eventScope.launch { sink?.success(listOf(trimmed)) }
                     }
-
-                    // Track offset so we only send NEW lines on each poll (delta, not snapshot)
-                    var fileOffset = logFile.length()
-
-                    while (isActive) {
-                        delay(1000)
-                        val currentSize = logFile.length()
-                        if (currentSize < fileOffset) {
-                            // File was rotated or truncated — reset
-                            fileOffset = 0
-                        }
-                        if (currentSize > fileOffset) {
-                            val newLines = readLinesSinceOffset(logFile, fileOffset)
-                            fileOffset = currentSize
-                            if (newLines.isNotEmpty()) {
-                                withContext(Dispatchers.Main) { events?.success(newLines) }
-                            }
-                        }
-                    }
+                }
+                logsListener = listener
+                try {
+                    logsSubscription = Mobile.tailLogs(listener)
+                } catch (e: Exception) {
+                    AppLogger.e(TAG, "Error starting log tail: ${e.message}")
+                    logsListener = null
                 }
             }
 
             override fun onCancel(arguments: Any?) {
-                logsJob?.cancel()
+                logsSubscription?.cancel()
+                logsSubscription = null
+                logsListener = null
             }
         })
-    }
-
-    private fun readLinesSinceOffset(file: File, offset: Long): List<String> {
-        if (!file.exists() || offset < 0 || file.length() <= offset) return emptyList()
-        return try {
-            java.io.RandomAccessFile(file, "r").use { raf ->
-                raf.seek(offset)
-                val lines = mutableListOf<String>()
-                java.io.BufferedReader(
-                    java.io.InputStreamReader(
-                        java.nio.channels.Channels.newInputStream(raf.channel),
-                        Charsets.UTF_8,
-                    )
-                ).use { reader ->
-                    var line = reader.readLine()
-                    while (line != null) {
-                        val trimmed = line.trimEnd('\r')
-                        if (trimmed.isNotEmpty()) lines.add(trimmed)
-                        line = reader.readLine()
-                    }
-                }
-                lines
-            }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, "Error reading new log lines: ${e.message}")
-            emptyList()
-        }
     }
 }

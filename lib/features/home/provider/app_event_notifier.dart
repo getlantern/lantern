@@ -6,7 +6,6 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -50,30 +49,29 @@ class AppEventNotifier extends _$AppEventNotifier {
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
 
-          /// this will also refresh user data if needed
-          ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;
         case 'server-location':
           // Only consume this event when the user is actually in auto mode.
           // Otherwise (custom server selected) ignore it — applying it would
           // silently flip the user's selection back to Smart Location on
           // routing-mode changes or any other tunnel rebuild.
+
           final currentLocation = ref.read(serverLocationProvider);
           if (currentLocation.serverType != ServerLocationType.auto.name) {
             break;
           }
           try {
             final autoLocation = Server.fromJson(jsonDecode(event.message));
-            final countryName = autoLocation.location!.country;
-            final cityName = autoLocation.location!.city;
+            final countryName = autoLocation.location.country;
+            final cityName = autoLocation.location.city;
             final autoServer = ServerLocation(
               serverType: ServerLocationType.auto.name,
               serverName: ''.i18n,
               displayName: '',
               protocol: '',
-              city: autoLocation.location!.city,
+              city: cityName,
               autoLocation: AutoLocation(
-                countryCode: autoLocation.location!.countryCode,
+                countryCode: autoLocation.location.countryCode,
                 country: countryName,
                 displayName: '$countryName - $cityName',
                 tag: autoLocation.tag,

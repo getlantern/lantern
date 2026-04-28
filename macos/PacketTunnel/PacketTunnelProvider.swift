@@ -35,15 +35,13 @@ public class PacketTunnelProvider: ExtensionProvider {
     switch method {
     case "PrivateServer":
       appLogger.info("Received connectServer command with params: \(params)")
-      guard let server = params["server"] as? String,
-        let location = params["location"] as? String
-      else {
+      guard let server = params["server"] as? String else {
         return respond(["error": "Missing parameters"])
       }
-      appLogger.info("Connecting to server \(server) at location \(location)")
-      connectToServer(location: location, serverName: server) { success, errorMessage in
+      appLogger.info("Connecting to server \(server)")
+      connectToServer(serverName: server) { success, errorMessage in
         if success {
-          respond(["result": "Connected to \(server) at \(location)"])
+          respond(["result": "Connected to \(server)"])
         } else {
           respond(["error": errorMessage ?? "Unknown error"])
         }
@@ -51,13 +49,14 @@ public class PacketTunnelProvider: ExtensionProvider {
       break
     case "Lantern":
       appLogger.info("Received Lantern command")
-      startVPN(completion: { success, errorMessage in
-        if success {
-          respond(["result": "Lantern VPN started"])
-        } else {
-          respond(["error": errorMessage ?? "Unknown error"])
+        appLogger.info("VPN already active connecting to Lantern/auto")
+        connectToServer(serverName: "auto") { success, errorMessage in
+          if success {
+            respond(["result": "Connected to auto tag"])
+          } else {
+            respond(["error": errorMessage ?? "Unknown error"])
+          }
         }
-      })
 
     default:
       respond(["error": "Unknown method"])

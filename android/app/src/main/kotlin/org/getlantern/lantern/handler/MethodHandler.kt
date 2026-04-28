@@ -99,6 +99,7 @@ enum class Methods(val method: String) {
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
     GetAutoServerLocation("getAutoServerLocation"),
+    GetSelectedServerJSON("getSelectedServerJSON"),
 
     //Split Tunnel methods
     SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
@@ -120,6 +121,14 @@ enum class Methods(val method: String) {
 
     // Smart routing
     SetRoutingMode("setRoutingMode"),
+    IsSmartRoutingEnabled("isSmartRoutingEnabled"),
+
+    // Telemetry
+    IsTelemetryEnabled("isTelemetryEnabled"),
+
+    // OAuth
+    IsOAuthLogin("isOAuthLogin"),
+    GetOAuthProvider("getOAuthProvider"),
 
     // VPN conflict detection
     CheckVpnConflict("checkVpnConflict"),
@@ -184,12 +193,8 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
-                        val location = map["location"] as String? ?: error("Missing location")
                         val tag = map["serverName"] as String? ?: error("Missing serverName")
-                        MainActivity.instance.connectToServer(
-                            location,
-                            tag,
-                        )
+                        MainActivity.instance.connectToServer(tag)
                         success("ok")
                     }.onFailure { e ->
                         result.error(
@@ -440,7 +445,7 @@ class MethodHandler : FlutterPlugin,
                             map["planId"] as String
                         )
                         withContext(Dispatchers.Main) {
-                            success(subscriptionData)
+                            success(subscriptionData.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -505,9 +510,9 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val token = call.arguments<String>()
-                        val bytes = Mobile.oAuthLoginCallback(token)
+                        val json = Mobile.oAuthLoginCallback(token)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -522,9 +527,9 @@ class MethodHandler : FlutterPlugin,
             Methods.GetUserData.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.userData()
+                        val json = Mobile.userData()
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -539,9 +544,9 @@ class MethodHandler : FlutterPlugin,
             Methods.FetchUserData.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.fetchUserData()
+                        val json = Mobile.fetchUserData()
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
 
                     }.onFailure { e ->
@@ -640,9 +645,9 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.login(email, password)
+                        val json = Mobile.login(email, password)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -679,9 +684,9 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val email = call.arguments<String>();
                         AppLogger.d(TAG, "Logout email: $email")
-                        val bytes = Mobile.logout(email)
+                        val json = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -699,10 +704,9 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val isSSO = map["isSSO"] as Boolean? ?: error("Missing isSSO")
-                        val bytes = Mobile.deleteAccount(email, password,isSSO)
+                        val json = Mobile.deleteAccount(email, password)
                         withContext(Dispatchers.Main) {
-                            success(bytes)
+                            success(json.toByteArray(Charsets.UTF_8))
                         }
                     }.onFailure { e ->
                         result.error(
@@ -942,15 +946,13 @@ class MethodHandler : FlutterPlugin,
                         val urls = map["urls"] as String? ?: error("Missing urls")
                         val skipValidation =
                             map["skipValidation"] as Boolean? ?: error("Missing skipValidation")
-                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
 
-                        Mobile.addServerBasedOnURLs(
+                        val tags = Mobile.addServerBasedOnURLs(
                             urls,
                             skipValidation,
-                            serverName,
                         )
                         withContext(Dispatchers.Main) {
-                            success("ok")
+                            success(tags)
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1025,9 +1027,9 @@ class MethodHandler : FlutterPlugin,
             Methods.FeatureFlag.method -> {
                 scope.launch {
                     result.runCatching {
-                        val map = Mobile.availableFeatures()
+                        val flags = Mobile.availableFeatures()
                         withContext(Dispatchers.Main) {
-                            success(String(map))
+                            success(if (flags.isEmpty()) "{}" else flags)
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1085,7 +1087,7 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val data = Mobile.getAvailableServers()
                         withContext(Dispatchers.Main) {
-                            success(String(data))
+                            success(if (data.isEmpty()) "[]" else data)
                         }
                     }.onFailure { e ->
                         result.error(
@@ -1114,6 +1116,13 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.GetSelectedServerJSON.method -> {
+                scope.handleValue(result, "get_selected_server_json") {
+                    val data = Mobile.getSelectedServerJSON()
+                    if (data.isNullOrEmpty()) "{}" else data
+                }
+            }
+
             Methods.UpdateTelemetryEvents.method -> {
                 scope.handleResult(result, "UpdateTelemetryEvents") {
                     val consent = call.arguments as Boolean
@@ -1125,6 +1134,30 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "SetRoutingMode") {
                     val enable = call.arguments as Boolean
                     Mobile.setSmartRoutingEnabled(enable)
+                }
+            }
+
+            Methods.IsSmartRoutingEnabled.method -> {
+                scope.handleValue(result, "is_smart_routing_enabled") {
+                    Mobile.isSmartRoutingEnabled()
+                }
+            }
+
+            Methods.IsTelemetryEnabled.method -> {
+                scope.handleValue(result, "is_telemetry_enabled") {
+                    Mobile.isTelemetryEnabled()
+                }
+            }
+
+            Methods.IsOAuthLogin.method -> {
+                scope.handleValue(result, "is_oauth_login") {
+                    Mobile.isOAuthLogin()
+                }
+            }
+
+            Methods.GetOAuthProvider.method -> {
+                scope.handleValue(result, "get_oauth_provider") {
+                    Mobile.getOAuthProvider()
                 }
             }
 
