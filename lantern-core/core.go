@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -187,6 +191,27 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 }
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	// Wire up slog for the host process according to how the backend is
+	// hosted on each platform:
+	//
+	//   - windows/linux: the UI is a separate process talking to a daemon
+	//     over IPC, so it needs its own full common.Init.
+	//   - darwin/ios: the UI shares its logDir with the tunnel extension,
+	//     which is the process that called common.Init. Re-running it here
+	//     would collide; instead we set up app-process-only logging into a
+	//     distinct file so the two lumberjacks don't race on rotation.
+	//   - android: the backend is embedded in the same process as the UI
+	//     (see init_mobile.go), and Mobile.SetupRadiance has already called
+	//     common.Init by the time we reach here. Fall through with no
+	//     additional setup.
+	switch runtime.GOOS {
+	case "windows", "linux":
+		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+			return fmt.Errorf("common.Init: %w", err)
+		}
+	case "darwin", "ios":
+		setupAppLogging(opts.LogDir, opts.LogLevel)
+	}
 	slog.Debug("Starting LanternCore initialization")
 
 	if opts.Env == "stage" || opts.Env == "staging" {
@@ -209,6 +234,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
+	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
@@ -225,6 +251,40 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Type:    string(event),
 		Message: message,
 	})
+}
+
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup
+func (lc *LanternCore) fetchUserDataIfNeeded() {
+	raw := lc.settings()[settings.UserIDKey]
+	userID := userIDAsInt64(raw)
+	if userID == 0 {
+		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
+		return
+	}
+	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
+		slog.Error("Startup user-data fetch failed", "error", err)
+		return
+	}
+	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
+}
+
+// userIDAsInt64 normalizes the radiance UserIDKey value across the storage
+// types it can have: int64 (in-process), float64 (after JSON IPC round-trip),
+// int (defensive), or a decimal string (mobile.go purchase flow). Returns 0
+// for any unrecognized type so the caller treats the user as anonymous.
+func userIDAsInt64(v any) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case float64:
+		return int64(x)
+	case int:
+		return int64(x)
+	case string:
+		n, _ := strconv.ParseInt(x, 10, 64)
+		return n
+	}
+	return 0
 }
 
 // listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
@@ -349,6 +409,7 @@ func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vp
 func (lc *LanternCore) settings() settings.Settings {
 	s, err := lc.client.Settings(lc.ctx)
 	if err != nil {
+		slog.Error("Error fetching settings", "error", err)
 		return settings.Settings{}
 	}
 	return s
@@ -578,8 +639,12 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Return all process-based items as enabled apps
-	var enabledApps []string
+	// Initialize as empty slice so json.Marshal emits "[]" rather than
+	// "null" when no items are enabled — Dart's jsonDecode("null") returns
+	// null and the receiver does `as List`, which throws. Was the actual
+	// cause of "Failed to fetch installed apps" empty list in
+	// Freshdesk #173774 / #173778 / #173826.
+	enabledApps := []string{}
 	enabledApps = append(enabledApps, filter.ProcessPath...)
 	enabledApps = append(enabledApps, filter.ProcessPathRegex...)
 	enabledApps = append(enabledApps, filter.PackageName...)
@@ -597,10 +662,48 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	it := parseIssueType(issueType)
 	var attachments []string
+	// Windows + Linux have separate UI and daemon logDirs, so the daemon's
+	// own archive glob misses UI-process logs — pass them through as paths.
+	// Mobile + macOS already share the directory; no pass-through needed.
+	// Relies on the UI logDir being readable by the daemon (SYSTEM on
+	// Windows); %PUBLIC%\Lantern\logs is chosen for that.
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		attachments = collectLocalLogs(settings.GetString(settings.LogPathKey))
+	}
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
 	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
+}
+
+// collectLocalLogs returns every *.log directly under dir, with paths shaped
+// however filepath.Glob returns them (relative if dir is relative; the
+// daemon-side ReportIssue path on windows/linux passes the absolute
+// settings.LogPathKey so this is absolute in practice).
+//
+// Files we can't os.Stat from the UI process are dropped. That's a
+// best-effort screen, not a guarantee — the daemon runs as SYSTEM on
+// Windows and may be able to read files this process can't, and vice
+// versa. The drop avoids attaching obviously-broken paths to issue
+// reports; the daemon's own readability check is authoritative.
+func collectLocalLogs(dir string) []string {
+	if dir == "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
+	if err != nil {
+		slog.Warn("ReportIssue: unable to glob local logs", "dir", dir, "err", err)
+		return nil
+	}
+	out := matches[:0]
+	for _, p := range matches {
+		if _, err := os.Stat(p); err != nil {
+			slog.Warn("ReportIssue: skipping log (unreadable from this process)", "path", p, "err", err)
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
 }
 
 func parseIssueType(s string) issue.IssueType {
