@@ -23,7 +23,9 @@ import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
+import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.isServiceRunning
+import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.setupDirs
 
 
@@ -62,6 +64,17 @@ class MainActivity : FlutterFragmentActivity() {
         Log.d(TAG, "Config directories set up")
         AppLogger.init()
         AppLogger.d(TAG, "AppLogger initialized")
+        // Wire up Go-side logging before any Mobile.* call. Without this, every
+        // lantern-core / radiance slog call that fires before LanternVpnService's
+        // ACTION_START_RADIANCE coroutine reaches common.Init falls through to
+        // the stdlib default (text → stderr → logcat at INFO), so DEBUG logs
+        // disappear and the format diverges from the rest. common.Init is
+        // idempotent — the later call from backend.NewLocalBackend is a no-op.
+        try {
+            Mobile.initLogging(initConfigDir(), logDir(), "trace")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to init Go logging: ${e.message}")
+        }
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
