@@ -233,6 +233,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
+	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
@@ -249,6 +250,19 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Type:    string(event),
 		Message: message,
 	})
+}
+
+func (lc *LanternCore) fetchUserDataIfNeeded() {
+	userID, _ := lc.settings()[settings.UserIDKey].(string)
+	if userID == "" || userID == "0" {
+		slog.Debug("Skipping startup user-data fetch: no user ID set")
+		return
+	}
+	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
+		slog.Error("Startup user-data fetch failed", "error", err)
+		return
+	}
+	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
 }
 
 // listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
@@ -373,6 +387,7 @@ func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vp
 func (lc *LanternCore) settings() settings.Settings {
 	s, err := lc.client.Settings(lc.ctx)
 	if err != nil {
+		slog.Error("Error fetching settings", "error", err)
 		return settings.Settings{}
 	}
 	return s
