@@ -110,7 +110,6 @@ type uninstallEntryMetadata struct {
 	noDisplaySet       bool
 	noDisplay          uint64
 	releaseType        string
-	parentKeyName      string
 }
 
 type shortcutRecoveryHint struct {
@@ -135,6 +134,35 @@ func computeWindowsSystemRoots() []string {
 		filepath.Clean(normalizeKey(filepath.Join(winDir, "SysWOW64"))),
 		filepath.Clean(normalizeKey(filepath.Join(winDir, "WinSxS"))),
 	}
+}
+
+// isLanternSelfApp filters Lantern itself out of the apps list — there's
+// no point routing Lantern's own traffic through the split-tunnel UI.
+// Matches by exe path under any Lantern install dir AND by basename for
+// the known executables, so portable / non-default install paths still
+// get filtered. See Freshdesk #173827.
+func isLanternSelfApp(exePath, name string) bool {
+	normalizedPath := strings.ToLower(filepath.Clean(strings.Trim(strings.TrimSpace(exePath), `"`)))
+	if normalizedPath != "" {
+		base := strings.TrimSuffix(filepath.Base(normalizedPath), filepath.Ext(normalizedPath))
+		switch base {
+		case "lantern", "lanternsvc", "lanternd":
+			return true
+		}
+		if strings.Contains(normalizedPath, `\program files\lantern\`) ||
+			strings.Contains(normalizedPath, `\program files (x86)\lantern\`) {
+			return true
+		}
+	}
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "lantern", "lantern desktop", "lantern vpn":
+		return true
+	}
+	// Match the registry's verbose DisplayName ("Lantern version X.Y.Z+N").
+	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(name)), "lantern version ") {
+		return true
+	}
+	return false
 }
 
 func isWindowsSystemApp(exePath, name string) bool {
@@ -247,6 +275,38 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 	registryApps := collectAppsFromUninstallRegistry(seen, cb)
 	out = append(out, registryApps...)
 
+	// App Paths: HKLM\Software\Microsoft\Windows\CurrentVersion\App Paths.
+	// Apps register here so they're invocable via Win+R; (Default) is the
+	// full exe path. Catches browsers, IDEs, Office. Cheap.
+	appPathsApps := collectAppsFromAppPaths(seen, cb)
+	out = append(out, appPathsApps...)
+
+	// Run keys: HKLM/HKCU\...\CurrentVersion\Run. Squirrel/Electron apps
+	// (Slack, Discord, Claude, GitHub Desktop) register an auto-start
+	// command line here pointing at Update.exe --processStart "<App>.exe".
+	// We reuse the same processStart parsing as Start Menu shortcuts.
+	runApps := collectAppsFromRunRegistry(seen, cb)
+	out = append(out, runApps...)
+
+	// Squirrel pattern: walk %LOCALAPPDATA% one level deep looking for
+	// <AppName>\Update.exe. Backstop for Squirrel apps that don't show up
+	// in Start Menu or Run (e.g. user disabled auto-start).
+	squirrelApps := collectAppsFromSquirrelLocalAppData(seen, cb)
+	out = append(out, squirrelApps...)
+
+	// Always log a summary at Info so a single log read tells us how many
+	// apps each source produced. Helps diagnose tickets like
+	// engineering#3335 / Freshdesk #173774 without a second round-trip.
+	slog.Info(
+		"windows app scan summary",
+		"startMenuCount", len(startMenuApps),
+		"registryCount", len(registryApps),
+		"appPathsCount", len(appPathsApps),
+		"runCount", len(runApps),
+		"squirrelCount", len(squirrelApps),
+		"total", len(out),
+	)
+
 	// Fallback: recursive app scan
 	if len(out) == 0 {
 		if !windowsDirectoryFallbackEnabled() {
@@ -302,6 +362,8 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 	if err := ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED); err != nil {
 		// If COM is already initialized in a different mode, we can often still proceed
 		if !isRPCChangedMode(err) {
+			// Warn (not Debug) so an empty apps list surfaces the root cause.
+			slog.Warn("CoInitializeEx failed, skipping Start Menu app scan", "err", err)
 			return out
 		}
 	} else {
@@ -313,16 +375,32 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 
 	wshObj, err := oleutil.CreateObject("WScript.Shell")
 	if err != nil {
-		slog.Debug("WScript.Shell not available", "err", err)
+		slog.Warn("WScript.Shell not available, skipping Start Menu app scan", "err", err)
 		return out
 	}
 	defer wshObj.Release()
 
 	wsh, err := wshObj.QueryInterface(ole.IID_IDispatch)
 	if err != nil {
+		slog.Warn("WScript.Shell QueryInterface failed, skipping Start Menu app scan", "err", err)
 		return out
 	}
 	defer wsh.Release()
+
+	var totalShortcuts, droppedUnresolved, droppedSystem, droppedSelf, droppedUtilityOrExcluded, droppedDuplicate int
+	// Per-shortcut samples for diagnosing missing apps (e.g. a Squirrel
+	// shortcut that gets caught by isWindowsUtilityApp or an excluded path).
+	// 50-entry cap on unresolved is comfortably bigger than typical scans
+	// (~37 in the wild) so we don't truncate; the filtered buckets are
+	// usually small enough that 20 is plenty.
+	const maxUnresolvedSamples = 50
+	const maxFilteredSamples = 20
+	var (
+		droppedUnresolvedSamples       []string
+		droppedUtilityOrExcludedSample []string
+	)
+	rootsScanned := make([]string, 0, len(startDirs))
+	rootsMissing := make([]string, 0, len(startDirs))
 
 	for _, root := range startDirs {
 		root = strings.TrimSpace(root)
@@ -330,8 +408,10 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			continue
 		}
 		if st, err := os.Stat(root); err != nil || !st.IsDir() {
+			rootsMissing = append(rootsMissing, root)
 			continue
 		}
+		rootsScanned = append(rootsScanned, root)
 
 		_ = filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 			if err != nil || d == nil {
@@ -343,6 +423,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 			if !strings.HasSuffix(strings.ToLower(d.Name()), ".lnk") {
 				return nil
 			}
+			totalShortcuts++
 
 			targetExe, iconFile, iconIndex, shortcutArgs, shortcutWorkDir := resolveLnkViaWScript(wsh, p)
 			name := shortcutDisplayName(d.Name(), targetExe)
@@ -356,22 +437,42 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				shortcutWorkDir,
 			)
 			if targetExe == "" {
+				droppedUnresolved++
+				if len(droppedUnresolvedSamples) < maxUnresolvedSamples {
+					droppedUnresolvedSamples = append(droppedUnresolvedSamples,
+						fmt.Sprintf("%s (name=%q)", p, name))
+				}
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
 				return nil
 			}
 			if isWindowsSystemApp(targetExe, name) {
+				droppedSystem++
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
 				}
 				return nil
 			}
+			if isLanternSelfApp(targetExe, name) {
+				droppedSelf++
+				return nil
+			}
 			if isExcludedStartMenuShortcutPath(p) || isWindowsUtilityApp(targetExe, name) {
+				droppedUtilityOrExcluded++
+				if len(droppedUtilityOrExcludedSample) < maxFilteredSamples {
+					reason := "utility"
+					if isExcludedStartMenuShortcutPath(p) {
+						reason = "excluded-path"
+					}
+					droppedUtilityOrExcludedSample = append(droppedUtilityOrExcludedSample,
+						fmt.Sprintf("%s → %s (name=%q reason=%s)", p, targetExe, name, reason))
+				}
 				return nil
 			}
 			keyPath := normalizeKey(targetExe)
 			if seen[keyPath] {
+				droppedDuplicate++
 				return nil
 			}
 
@@ -396,11 +497,50 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 		})
 	}
 
+	var recovered int
 	if len(recoveryHints) > 0 {
-		recovered := collectAppsFromPackageCacheHints(recoveryHints, seen, cb)
-		out = append(out, recovered...)
+		recoveredApps := collectAppsFromPackageCacheHints(recoveryHints, seen, cb)
+		out = append(out, recoveredApps...)
+		recovered = len(recoveredApps)
 	}
 
+	slog.Info(
+		"start menu scan complete",
+		"appdata", os.Getenv("APPDATA"),
+		"programData", os.Getenv("ProgramData"),
+		"rootsScanned", rootsScanned,
+		"rootsMissing", rootsMissing,
+		"shortcuts", totalShortcuts,
+		"kept", len(out),
+		"droppedUnresolved", droppedUnresolved,
+		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
+		"droppedUtilityOrExcluded", droppedUtilityOrExcluded,
+		"droppedDuplicate", droppedDuplicate,
+		"packageCacheHintsRecovered", recovered,
+		"sampleKept", sampleAppNames(out, 20),
+		"sampleDroppedUnresolved", droppedUnresolvedSamples,
+		"sampleDroppedUtilityOrExcluded", droppedUtilityOrExcludedSample,
+	)
+
+	return out
+}
+
+// sampleAppNames returns up to n "name (executable)" strings, for use as a
+// slog slice attribute on scan summaries. The executable path is redacted to
+// its basename — these samples land in scan-summary log lines that get
+// bundled into "Report Issue" tickets, so we don't want full paths
+// (typically C:\Users\<username>\...) in there as PII. Basename keeps enough
+// signal for diagnostics ("did Slack get included? did chrome.exe get
+// included?") without leaking user filesystem layout.
+func sampleAppNames(apps []*AppData, n int) []string {
+	if n > len(apps) {
+		n = len(apps)
+	}
+	out := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		out = append(out, fmt.Sprintf("%s (%s)", apps[i].Name, filepath.Base(apps[i].AppPath)))
+	}
 	return out
 }
 
@@ -471,6 +611,18 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		{registry.CURRENT_USER, uninstallPath, registry.READ | registry.WOW64_32KEY},
 	}
 
+	var totalEntries, droppedNonUserFacing, droppedNoDisplayName, droppedNoExe,
+		droppedSystem, droppedSelf, droppedUtility, droppedExcluded, droppedDuplicate int
+	// Samples for diagnosing missing apps. NoExe = had a name but couldn't
+	// resolve an exe; NoDisplayName = the much bigger bucket where the
+	// registry entry skipped the DisplayName field entirely (Squirrel apps
+	// like Claude often show up here under their subkey names).
+	const maxRegistryDroppedSamples = 20
+	var (
+		droppedNoExeSamples         []string
+		droppedNoDisplayNameSamples []string
+	)
+
 	for _, r := range roots {
 		k, err := registry.OpenKey(r.key, r.path, r.flags)
 		if err != nil {
@@ -481,6 +633,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		k.Close()
 
 		for _, sub := range names {
+			totalEntries++
 			sk, err := registry.OpenKey(r.key, r.path+`\`+sub, r.flags)
 			if err != nil {
 				continue
@@ -488,6 +641,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			metadata := readUninstallEntryMetadata(sk)
 			if isNonUserFacingUninstallEntry(metadata) {
+				droppedNonUserFacing++
 				sk.Close()
 				continue
 			}
@@ -499,27 +653,49 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 
 			displayName = strings.TrimSpace(displayName)
 			if displayName == "" {
-				// No name usually indicates an app is “not user-facing”, so skip
+				// No name usually indicates an app is "not user-facing", so skip
+				droppedNoDisplayName++
+				if len(droppedNoDisplayNameSamples) < maxRegistryDroppedSamples {
+					droppedNoDisplayNameSamples = append(droppedNoDisplayNameSamples,
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", sub, displayIcon, installLoc))
+				}
 				continue
 			}
 
 			exePath := pickExePath(displayIcon, installLoc)
 			if exePath == "" || !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
+				droppedNoExe++
+				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
+					droppedNoExeSamples = append(droppedNoExeSamples,
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", displayName, displayIcon, installLoc))
+				}
 				continue
 			}
 			exePath = resolveWrappedExecutable(exePath, displayName)
 			if exePath == "" {
+				droppedNoExe++
+				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
+					droppedNoExeSamples = append(droppedNoExeSamples,
+						fmt.Sprintf("%s (wrapped resolve failed for %q)", displayName, displayIcon))
+				}
 				continue
 			}
 			if isWindowsSystemApp(exePath, displayName) {
+				droppedSystem++
+				continue
+			}
+			if isLanternSelfApp(exePath, displayName) {
+				droppedSelf++
 				continue
 			}
 			if isWindowsUtilityApp(exePath, displayName) {
+				droppedUtility++
 				continue
 			}
 
-			// Don’t show uninstallers/updaters
+			// Don't show uninstallers/updaters
 			if isExcludedName(filepathBaseNoExt(exePath)) {
+				droppedExcluded++
 				continue
 			}
 
@@ -527,6 +703,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 			keyID := normalizeKey(appID)
 			keyPath := normalizeKey(exePath)
 			if seen[keyID] || seen[keyPath] {
+				droppedDuplicate++
 				continue
 			}
 
@@ -547,7 +724,530 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 		}
 	}
 
+	slog.Info(
+		"uninstall registry scan complete",
+		"scanned", totalEntries,
+		"kept", len(out),
+		"droppedNonUserFacing", droppedNonUserFacing,
+		"droppedNoDisplayName", droppedNoDisplayName,
+		"droppedNoExe", droppedNoExe,
+		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
+		"droppedUtility", droppedUtility,
+		"droppedExcluded", droppedExcluded,
+		"droppedDuplicate", droppedDuplicate,
+		"sampleKept", sampleAppNames(out, 20),
+		"sampleDroppedNoExe", droppedNoExeSamples,
+		"sampleDroppedNoDisplayName", droppedNoDisplayNameSamples,
+	)
+
 	return out
+}
+
+// collectAppsFromAppPaths reads HKLM\Software\Microsoft\Windows\CurrentVersion\
+// App Paths. Each subkey's name is the executable filename (e.g. "chrome.exe")
+// and its (Default) value is the full path. Apps register here when they
+// want to be runnable via Win+R / shellexecute. Catches browsers, IDEs,
+// Office, and most third-party apps that don't go through Squirrel.
+func collectAppsFromAppPaths(seen map[string]bool, cb Callback) []*AppData {
+	const appPathsKey = `Software\Microsoft\Windows\CurrentVersion\App Paths`
+	type rootSpec struct {
+		root  registry.Key
+		flags uint32
+	}
+	roots := []rootSpec{
+		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_64KEY},
+		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_32KEY},
+		{registry.CURRENT_USER, registry.READ | registry.WOW64_64KEY},
+	}
+
+	var out []*AppData
+	var scanned, kept, droppedNoPath, droppedSystem, droppedSelf, droppedUtility, droppedNoise, droppedDuplicate int
+
+	for _, r := range roots {
+		k, err := registry.OpenKey(r.root, appPathsKey, r.flags)
+		if err != nil {
+			continue
+		}
+		names, _ := k.ReadSubKeyNames(-1)
+		k.Close()
+
+		for _, name := range names {
+			scanned++
+			sk, err := registry.OpenKey(r.root, appPathsKey+`\`+name, r.flags)
+			if err != nil {
+				continue
+			}
+			exePath, _, _ := sk.GetStringValue("")
+			sk.Close()
+
+			exePath = strings.Trim(strings.TrimSpace(exePath), `"`)
+			if exePath == "" {
+				droppedNoPath++
+				continue
+			}
+			exePath = filepath.Clean(expandPercentEnv(exePath))
+			if !filepath.IsAbs(exePath) || !fileExists(exePath) ||
+				!strings.EqualFold(filepath.Ext(exePath), ".exe") {
+				droppedNoPath++
+				continue
+			}
+
+			displayName := strings.TrimSuffix(name, filepath.Ext(name))
+			if isWindowsSystemApp(exePath, displayName) {
+				droppedSystem++
+				continue
+			}
+			if isLanternSelfApp(exePath, displayName) {
+				droppedSelf++
+				continue
+			}
+			if isWindowsUtilityApp(exePath, displayName) {
+				droppedUtility++
+				continue
+			}
+			if isLikelySystemDisplayName(displayName) {
+				droppedSystem++
+				continue
+			}
+			if isAppPathsNoise(exePath, displayName) {
+				droppedNoise++
+				continue
+			}
+
+			key := normalizeKey(exePath)
+			if seen[key] {
+				droppedDuplicate++
+				continue
+			}
+			seen[key] = true
+
+			app := &AppData{
+				Name:     displayName,
+				BundleID: exePath,
+				AppPath:  exePath,
+			}
+			if cb != nil {
+				cb(app)
+			}
+			out = append(out, app)
+			kept++
+		}
+	}
+
+	slog.Info(
+		"app paths scan complete",
+		"scanned", scanned,
+		"kept", kept,
+		"droppedNoPath", droppedNoPath,
+		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
+		"droppedUtility", droppedUtility,
+		"droppedNoise", droppedNoise,
+		"droppedDuplicate", droppedDuplicate,
+		"sampleKept", sampleAppNames(out, 20),
+	)
+	return out
+}
+
+// isAppPathsNoise filters App Paths-specific noise that escapes the
+// generic system / utility filters. App Paths is heavily polluted by
+// Microsoft-bundled tooling (IE relics, Office helpers, vestigial Mail
+// + tablet apps) and by UWP packages that register helper exes alongside
+// their main app. We keep those filters local to this scanner so they
+// can be aggressive without affecting Start Menu / Uninstall scans.
+//
+// Rules:
+//   - Drop entries under known system / vestigial paths.
+//   - Drop entries under \Microsoft Office\ unless the basename is a
+//     primary Office product exe (those normally arrive via Start Menu;
+//     anything else here is a background tool).
+//   - Drop helper-named basenames (containing "update", "helper",
+//     "browsersupport", etc.) anywhere in the path.
+//
+// Constant data (paths, hints, suffixes) is hoisted to package scope so
+// the per-entry hot path stays allocation-free — this runs once per
+// HKLM\...\App Paths entry, which is hundreds-to-thousands of calls per
+// scan.
+func isAppPathsNoise(exePath, displayName string) bool {
+	norm := strings.ToLower(filepath.Clean(strings.Trim(strings.TrimSpace(exePath), `"`)))
+	if norm == "" {
+		return false
+	}
+
+	for _, p := range appPathsNoiseSystemPaths {
+		if strings.Contains(norm, p) {
+			return true
+		}
+	}
+
+	// Office Root: drop everything except the primary product exes
+	// (those also come via Start Menu, so duplicates hit dedup).
+	if strings.Contains(norm, `\microsoft office\`) {
+		if !appPathsNoisePrimaryOfficeExes[strings.ToLower(filepath.Base(norm))] {
+			return true
+		}
+	}
+
+	// Helper-named basenames. Substring match (case-insensitive, after
+	// stripping non-alnum) so "ms-teamsupdate" → "msteamsupdate" matches
+	// "update", and "1Password-BrowserSupport" → "1passwordbrowsersupport"
+	// matches "browsersupport".
+	base := normalizeExecutableHint(filepath.Base(norm))
+	for _, h := range appPathsNoiseHelperHints {
+		if strings.Contains(base, h) {
+			return true
+		}
+	}
+	// Suffix-only check for words too generic to substring-match safely.
+	for _, suffix := range appPathsNoiseGenericSuffixes {
+		if strings.HasSuffix(base, suffix) && base != suffix {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Hoisted constant data for isAppPathsNoise. See the function comment for
+// what each list captures.
+var (
+	appPathsNoiseSystemPaths = []string{
+		`\program files\internet explorer\`,
+		`\program files (x86)\internet explorer\`,
+		`\program files\windows mail\`,
+		`\program files (x86)\windows mail\`,
+		`\program files\windows nt\`,
+		`\program files (x86)\windows nt\`,
+		`\program files\windows defender\`,
+		`\program files (x86)\windows defender\`,
+		`\common files\microsoft shared\`,
+		`\common files\microsoft.net\`,
+		// UWP package plumbing: winget + WindowsPackageManagerServer
+		// register App Paths entries but aren't user-facing GUI apps.
+		`\windowsapps\microsoft.desktopappinstaller_`,
+		// .NET helper assemblies under UWP packages (e.g. Power Automate
+		// Desktop registers PAD.BrowserNativeMessageHost, PAD.ChildSession.
+		// Service.Host under \dotnet\). The user-facing exe of a UWP
+		// package always sits at the package root, never under \dotnet\.
+		`\dotnet\`,
+	}
+
+	appPathsNoisePrimaryOfficeExes = map[string]bool{
+		"winword.exe":  true,
+		"excel.exe":    true,
+		"powerpnt.exe": true,
+		"outlook.exe":  true,
+		"msaccess.exe": true,
+		"mspub.exe":    true,
+		"onenote.exe":  true,
+		"lync.exe":     true,
+		"groove.exe":   true,
+		"visio.exe":    true,
+		"winproj.exe":  true,
+	}
+
+	appPathsNoiseHelperHints = []string{
+		"browsersupport",
+		"lastpassexporter",
+		"sshsign",
+		"sshagent",
+		"updater",
+		"helper",
+		"diagnostic",
+		"diagcmd",
+	}
+
+	appPathsNoiseGenericSuffixes = []string{
+		"update", "service", "agent", "sync", "broker",
+	}
+)
+
+// collectAppsFromRunRegistry reads HKLM\...\Run and HKCU\...\Run. Apps that
+// register for auto-start (the dominant case is Squirrel apps —
+// "com.squirrel.<App>.<App>" pointing at Update.exe --processStart) write
+// a command line here. We parse the command line the same way we parse
+// Start Menu .lnk targets, including the --processStart fallback.
+func collectAppsFromRunRegistry(seen map[string]bool, cb Callback) []*AppData {
+	const runKey = `Software\Microsoft\Windows\CurrentVersion\Run`
+	type rootSpec struct {
+		root  registry.Key
+		flags uint32
+	}
+	roots := []rootSpec{
+		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_64KEY},
+		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_32KEY},
+		{registry.CURRENT_USER, registry.READ | registry.WOW64_64KEY},
+	}
+
+	var out []*AppData
+	var scanned, kept, droppedNoExe, droppedSystem, droppedSelf, droppedUtility, droppedExcluded, droppedDuplicate int
+
+	for _, r := range roots {
+		k, err := registry.OpenKey(r.root, runKey, r.flags)
+		if err != nil {
+			continue
+		}
+		valueNames, _ := k.ReadValueNames(-1)
+		for _, valueName := range valueNames {
+			scanned++
+			cmdLine, _, err := k.GetStringValue(valueName)
+			if err != nil {
+				continue
+			}
+			exePath, displayName := parseRunEntry(valueName, cmdLine)
+			if exePath == "" {
+				droppedNoExe++
+				continue
+			}
+
+			if isWindowsSystemApp(exePath, displayName) {
+				droppedSystem++
+				continue
+			}
+			if isLanternSelfApp(exePath, displayName) {
+				droppedSelf++
+				continue
+			}
+			if isWindowsUtilityApp(exePath, displayName) {
+				droppedUtility++
+				continue
+			}
+			if isExcludedName(filepathBaseNoExt(exePath)) {
+				droppedExcluded++
+				continue
+			}
+
+			key := normalizeKey(exePath)
+			if seen[key] {
+				droppedDuplicate++
+				continue
+			}
+			seen[key] = true
+
+			app := &AppData{
+				Name:     displayName,
+				BundleID: exePath,
+				AppPath:  exePath,
+			}
+			if cb != nil {
+				cb(app)
+			}
+			out = append(out, app)
+			kept++
+		}
+		k.Close()
+	}
+
+	slog.Info(
+		"run registry scan complete",
+		"scanned", scanned,
+		"kept", kept,
+		"droppedNoExe", droppedNoExe,
+		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
+		"droppedUtility", droppedUtility,
+		"droppedExcluded", droppedExcluded,
+		"droppedDuplicate", droppedDuplicate,
+		"sampleKept", sampleAppNames(out, 20),
+	)
+	return out
+}
+
+// parseRunEntry extracts an absolute exe path from a Run-key command line.
+// Squirrel/Electron form: "<dir>\Update.exe" --processStart "<App>.exe"
+// — when the head exe is excluded (Update / Updater / etc.) we use the
+// existing --processStart hint to find the real app exe. Returns ("", "")
+// if we can't resolve a real exe.
+func parseRunEntry(valueName, cmdLine string) (string, string) {
+	cmdLine = strings.TrimSpace(cmdLine)
+	if cmdLine == "" {
+		return "", ""
+	}
+	tokens := parseWindowsCommandTokens(cmdLine)
+	if len(tokens) == 0 {
+		return "", ""
+	}
+	headExe := strings.Trim(strings.TrimSpace(tokens[0]), `"`)
+	if headExe == "" {
+		return "", ""
+	}
+	headExe = filepath.Clean(expandPercentEnv(headExe))
+	if !filepath.IsAbs(headExe) || !fileExists(headExe) {
+		return "", ""
+	}
+	args := ""
+	if len(tokens) > 1 {
+		args = strings.Join(tokens[1:], " ")
+	}
+	displayName := deriveRunDisplayName(valueName, headExe)
+
+	resolved := resolveWrappedExecutableWithContext(headExe, displayName, args, filepath.Dir(headExe))
+	if resolved == "" || !strings.EqualFold(filepath.Ext(resolved), ".exe") {
+		return "", ""
+	}
+	return resolved, displayName
+}
+
+// deriveRunDisplayName picks a human-readable name from the Run-key value
+// name, stripping common Squirrel prefixes ("com.squirrel.<App>.<App>").
+// Falls back to the head exe's basename.
+func deriveRunDisplayName(valueName, headExe string) string {
+	name := strings.TrimSpace(valueName)
+	const sq = "com.squirrel."
+	if strings.HasPrefix(name, sq) {
+		rest := name[len(sq):]
+		// "com.squirrel.<App>.<App>" → take the part after the last dot.
+		if idx := strings.LastIndex(rest, "."); idx >= 0 && idx < len(rest)-1 {
+			rest = rest[idx+1:]
+		}
+		name = rest
+	}
+	if name == "" {
+		name = filepathBaseNoExt(headExe)
+	}
+	return name
+}
+
+// collectAppsFromSquirrelLocalAppData walks %LOCALAPPDATA% one level deep
+// looking for the Squirrel pattern: <AppDir>\Update.exe with the actual
+// app exe at <AppDir>\<AppName>.exe (older Squirrel) or
+// <AppDir>\<current|app-X.Y.Z>\<AppName>.exe (newer Squirrel). Backstop
+// for Squirrel apps that don't show up in Start Menu or Run.
+func collectAppsFromSquirrelLocalAppData(seen map[string]bool, cb Callback) []*AppData {
+	localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
+	if localAppData == "" {
+		return nil
+	}
+	entries, err := os.ReadDir(localAppData)
+	if err != nil {
+		slog.Warn("squirrel scan: unable to read LOCALAPPDATA", "dir", localAppData, "err", err)
+		return nil
+	}
+
+	var out []*AppData
+	var scanned, kept, droppedNoExe, droppedSystem, droppedSelf, droppedUtility, droppedDuplicate int
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		appDir := filepath.Join(localAppData, entry.Name())
+		updateExe := filepath.Join(appDir, "Update.exe")
+		if !fileExists(updateExe) {
+			continue
+		}
+		scanned++
+
+		displayName := entry.Name()
+		exePath := findSquirrelAppExe(appDir, displayName)
+		if exePath == "" {
+			droppedNoExe++
+			continue
+		}
+
+		if isWindowsSystemApp(exePath, displayName) {
+			droppedSystem++
+			continue
+		}
+		if isLanternSelfApp(exePath, displayName) {
+			droppedSelf++
+			continue
+		}
+		if isWindowsUtilityApp(exePath, displayName) {
+			droppedUtility++
+			continue
+		}
+
+		key := normalizeKey(exePath)
+		if seen[key] {
+			droppedDuplicate++
+			continue
+		}
+		seen[key] = true
+
+		app := &AppData{
+			Name:     displayName,
+			BundleID: exePath,
+			AppPath:  exePath,
+		}
+		if cb != nil {
+			cb(app)
+		}
+		out = append(out, app)
+		kept++
+	}
+
+	slog.Info(
+		"squirrel localappdata scan complete",
+		"localAppData", localAppData,
+		"scanned", scanned,
+		"kept", kept,
+		"droppedNoExe", droppedNoExe,
+		"droppedSystem", droppedSystem,
+		"droppedSelf", droppedSelf,
+		"droppedUtility", droppedUtility,
+		"droppedDuplicate", droppedDuplicate,
+		"sampleKept", sampleAppNames(out, 20),
+	)
+	return out
+}
+
+// findSquirrelAppExe locates the real app exe inside a Squirrel install
+// directory. Tries (in order): a sibling <AppName>.exe, then any app-* /
+// current subdir's <AppName>.exe, then any non-excluded .exe in the
+// dir/subdirs. Returns "" if nothing usable is found.
+func findSquirrelAppExe(appDir, appName string) string {
+	candidates := []string{
+		filepath.Join(appDir, appName+".exe"),
+	}
+	subEntries, err := os.ReadDir(appDir)
+	if err == nil {
+		for _, se := range subEntries {
+			if !se.IsDir() {
+				continue
+			}
+			lower := strings.ToLower(se.Name())
+			if strings.HasPrefix(lower, "app-") || lower == "current" {
+				candidates = append(candidates, filepath.Join(appDir, se.Name(), appName+".exe"))
+			}
+		}
+	}
+	for _, c := range candidates {
+		if fileExists(c) {
+			return c
+		}
+	}
+	// Fallback: any non-excluded, non-Update .exe in appDir or its app-* subdirs.
+	searchDirs := []string{appDir}
+	if err == nil {
+		for _, se := range subEntries {
+			if !se.IsDir() {
+				continue
+			}
+			lower := strings.ToLower(se.Name())
+			if strings.HasPrefix(lower, "app-") || lower == "current" {
+				searchDirs = append(searchDirs, filepath.Join(appDir, se.Name()))
+			}
+		}
+	}
+	for _, dir := range searchDirs {
+		ents, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range ents {
+			if e.IsDir() || !strings.EqualFold(filepath.Ext(e.Name()), ".exe") {
+				continue
+			}
+			base := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name()))
+			if isExcludedName(base) {
+				continue
+			}
+			return filepath.Join(dir, e.Name())
+		}
+	}
+	return ""
 }
 
 func filepathBaseNoExt(p string) string {
@@ -598,9 +1298,7 @@ func readUninstallEntryMetadata(sk registry.Key) uninstallEntryMetadata {
 	if value, _, err := sk.GetStringValue("ReleaseType"); err == nil {
 		metadata.releaseType = strings.TrimSpace(value)
 	}
-	if value, _, err := sk.GetStringValue("ParentKeyName"); err == nil {
-		metadata.parentKeyName = strings.TrimSpace(value)
-	}
+	// ParentKeyName intentionally not read — see isNonUserFacingUninstallEntry.
 
 	return metadata
 }
@@ -612,9 +1310,11 @@ func isNonUserFacingUninstallEntry(metadata uninstallEntryMetadata) bool {
 	if metadata.noDisplaySet && metadata.noDisplay != 0 {
 		return true
 	}
-	if metadata.parentKeyName != "" {
-		return true
-	}
+	// ParentKeyName is NOT a reliable "non-user-facing" signal — Squirrel
+	// apps (Slack, Discord, VS Code Insiders), winget packages, and MSI
+	// bundle children all set it on legitimate user apps. SystemComponent=1
+	// and NoDisplay=1 are the documented signals; that's enough.
+	// See Freshdesk #173774 / engineering#3335.
 	if metadata.releaseType != "" {
 		releaseType := strings.ToLower(metadata.releaseType)
 		if strings.Contains(releaseType, "update") ||
