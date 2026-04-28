@@ -754,6 +754,9 @@ func TestIsAppPathsNoise(t *testing.T) {
 		// .NET helpers under UWP packages (Power Automate Desktop).
 		{"PAD BrowserNativeMessageHost", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.BrowserNativeMessageHost.exe`, "PAD.BrowserNativeMessageHost", true},
 		{"PAD ChildSession.Service.Host", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.ChildSession.Service.Host.exe`, "PAD.ChildSession.Service.Host", true},
+		// Non-UWP \dotnet\ subdir: a third-party installer bundling its own
+		// .NET runtime should NOT be treated as noise (UWP-only filter).
+		{"non-UWP dotnet subdir kept", `C:\Program Files\Acme\dotnet\acme.exe`, "Acme", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

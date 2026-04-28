@@ -881,6 +881,15 @@ func isAppPathsNoise(exePath, displayName string) bool {
 		}
 	}
 
+	// .NET helper assemblies under UWP packages (e.g. Power Automate Desktop
+	// registers PAD.BrowserNativeMessageHost, PAD.ChildSession.Service.Host
+	// under \dotnet\). The user-facing exe of a UWP package always sits at
+	// the package root, never under \dotnet\. Restricted to \windowsapps\
+	// so non-UWP installers that bundle a \dotnet\ runtime aren't affected.
+	if strings.Contains(norm, `\windowsapps\`) && strings.Contains(norm, `\dotnet\`) {
+		return true
+	}
+
 	// Office Root: drop everything except the primary product exes
 	// (those also come via Start Menu, so duplicates hit dedup).
 	if strings.Contains(norm, `\microsoft office\`) {
@@ -926,11 +935,6 @@ var (
 		// UWP package plumbing: winget + WindowsPackageManagerServer
 		// register App Paths entries but aren't user-facing GUI apps.
 		`\windowsapps\microsoft.desktopappinstaller_`,
-		// .NET helper assemblies under UWP packages (e.g. Power Automate
-		// Desktop registers PAD.BrowserNativeMessageHost, PAD.ChildSession.
-		// Service.Host under \dotnet\). The user-facing exe of a UWP
-		// package always sits at the package root, never under \dotnet\.
-		`\dotnet\`,
 	}
 
 	appPathsNoisePrimaryOfficeExes = map[string]bool{
