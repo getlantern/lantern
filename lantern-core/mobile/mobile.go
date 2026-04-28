@@ -88,6 +88,29 @@ func getClient() (*ipc.Client, error) {
 	return core.Client(), nil
 }
 
+// InitLogging wires the global slog handler (file + stdout) before any other
+// Mobile.* call. On Android the entire app runs in a single process, so once
+// common.Init runs `slog.SetDefault` covers all Go code — but it normally
+// only runs deep inside SetupRadiance / StartIPCServer, which the Android
+// side launches asynchronously from LanternVpnService after an intent. Any
+// lantern-core or radiance log emitted in the meantime (Flutter MethodChannel
+// handlers reach a wide surface before the VPN service is up) falls through
+// to the stdlib default — text → stderr → logcat at INFO — so debug logs
+// vanish and the format diverges from the rest. Calling this from
+// MainActivity.configureFlutterEngine before startLanternService closes that
+// gap.
+//
+// The first call wins: dataDir/logDir/logLevel here are what take effect.
+// Pass the same values that the later backend.NewLocalBackend → common.Init
+// will see (in practice both derive from LanternVpnService.opts()), otherwise
+// the early values silently override.
+func InitLogging(dataDir, logDir, logLevel string) error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		return struct{}{}, common.Init(dataDir, logDir, logLevel)
+	})
+	return err
+}
+
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		slog.Info("Setting up Radiance", "opts", opts)
