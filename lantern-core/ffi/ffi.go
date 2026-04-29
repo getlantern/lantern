@@ -461,6 +461,10 @@ func startStatusListener(c lanterncore.Core) {
 					statusListenerLastMu.Unlock()
 
 					if changed {
+						// [vpn-state-trace] hop=ffi_to_port — moment lantern-core forwards
+						// the parsed status to the Dart ReceivePort. The gap to dart_applied
+						// measures Dart isolate scheduling + Riverpod notify on Windows.
+						slog.Info("[vpn-state-trace]", "hop", "ffi_to_port", "status", ui, "ts_ms", time.Now().UnixMilli())
 						sendStatusToPort(VPNStatus(ui), errMsg)
 					}
 				})
