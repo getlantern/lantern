@@ -29,8 +29,11 @@ class VpnNotifier extends _$VpnNotifier {
       // after the FFI ReceivePort delivers a status. Pairs with ffi_to_port
       // (lantern-core) and ssehandler_flushed / sse_parsed / daemon_setstatus
       // (radiance) to localize the Windows lag in Freshdesk #174072.
+      // Use nextStatus.name (e.g. "disconnecting") rather than the default
+      // toString() ("VPNStatus.disconnecting") so the value matches the wire
+      // format emitted by radiance — makes cross-hop grep/correlation work.
       appLogger.info(
-        '[vpn-state-trace] hop=dart_applied status=$nextStatus '
+        '[vpn-state-trace] hop=dart_applied status=${nextStatus.name} '
         'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
       );
       final suppressConnectionNotifications =
