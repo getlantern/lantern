@@ -1,12 +1,24 @@
 import 'dart:io';
 
 import 'package:fpdart/fpdart.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'payment_notifier.g.dart';
+
+/// Notifier to manage the state of payment sessions
+@Riverpod(keepAlive: true)
+class PaymentSessionNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void markRedirectInitiated() => state = true;
+
+  void clearRedirect() => state = false;
+}
 
 @Riverpod()
 class PaymentNotifier extends _$PaymentNotifier {
@@ -20,8 +32,13 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
-    return ref.read(lanternServiceProvider).startInAppPurchaseFlow(
-        planId: planId, onSuccess: onSuccess, onError: onError);
+    return ref
+        .read(lanternServiceProvider)
+        .startInAppPurchaseFlow(
+          planId: planId,
+          onSuccess: onSuccess,
+          onError: onError,
+        );
   }
 
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
@@ -34,13 +51,23 @@ class PaymentNotifier extends _$PaymentNotifier {
   }
 
   Future<Either<Failure, String>> stripeSubscriptionLink(
-      BillingType type, String planId, String email) async {
-    return ref.read(lanternServiceProvider).stipeSubscriptionPaymentRedirect(
-        type: type, planId: planId, email: email);
+    BillingType type,
+    String planId,
+    String email,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .stipeSubscriptionPaymentRedirect(
+          type: type,
+          planId: planId,
+          email: email,
+        );
   }
 
   Future<Either<Failure, Map<String, dynamic>>> stripeSubscription(
-      String planId, String email) async {
+    String planId,
+    String email,
+  ) async {
     return ref
         .read(lanternServiceProvider)
         .stipeSubscription(planId: planId, email: email);
@@ -72,10 +99,7 @@ class PaymentNotifier extends _$PaymentNotifier {
         onError: onError,
       );
 
-      return result.match(
-        (failure) => left(failure),
-        (_) => right(null),
-      );
+      return result.match((failure) => left(failure), (_) => right(null));
     }
 
     // Desktop and Android sideload use Stripe/Shepherd

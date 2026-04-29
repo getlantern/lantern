@@ -8,6 +8,64 @@ part of 'payment_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Notifier to manage the state of payment sessions
+
+@ProviderFor(PaymentSessionNotifier)
+final paymentSessionProvider = PaymentSessionNotifierProvider._();
+
+/// Notifier to manage the state of payment sessions
+final class PaymentSessionNotifierProvider
+    extends $NotifierProvider<PaymentSessionNotifier, bool> {
+  /// Notifier to manage the state of payment sessions
+  PaymentSessionNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paymentSessionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$paymentSessionNotifierHash();
+
+  @$internal
+  @override
+  PaymentSessionNotifier create() => PaymentSessionNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$paymentSessionNotifierHash() =>
+    r'3e8d0ff7eced48455e2de71f4ff7046ca6135c7f';
+
+/// Notifier to manage the state of payment sessions
+
+abstract class _$PaymentSessionNotifier extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 @ProviderFor(PaymentNotifier)
 final paymentProvider = PaymentNotifierProvider._();
