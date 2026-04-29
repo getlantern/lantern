@@ -25,7 +25,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260429122120-a1539181aaf7
+	github.com/getlantern/radiance v0.0.0-20260429171416-08e8d202d60d
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.41.0
@@ -172,7 +172,7 @@ require (
 	github.com/getlantern/domainfront v0.0.0-20260419161617-0bff0b2169f4 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260422161259-54a4d9a93694 // indirect
 	github.com/getlantern/kindling v0.0.0-20260428171407-6143132aaf40 // indirect
-	github.com/getlantern/lantern-box v0.0.74 // indirect
+	github.com/getlantern/lantern-box v0.0.75 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260317143726-e0ee64a11d90 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
