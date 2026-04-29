@@ -133,11 +133,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final isDesktop = PlatformUtils.isDesktop;
     final isAndroid = PlatformUtils.isAndroid;
     final isAndroidSideload = isAndroid && !isStoreVersion();
-
+    appLogger.info('User initiated purchase with provider: ${provider.method}');
     switch (provider.providers.name) {
       case 'stripe':
         if (isDesktop) {
-          await desktopPurchaseFlow(provider, ref, context);
+          await desktopStripePurchaseFlow(provider, ref, context);
           return;
         }
 
@@ -201,7 +201,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
   }
 
-  Future<void> desktopPurchaseFlow(
+  Future<void> desktopStripePurchaseFlow(
     Android provider,
     WidgetRef ref,
     BuildContext context,
@@ -243,6 +243,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           appLogger.info('Successfully started stripe subscription flow');
           context.hideLoadingDialog();
           await Future.delayed(const Duration(milliseconds: 300));
+          ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
           UrlUtils.openWebview<bool>(
             normalizedStripeUrl,
             title: 'stripe_payment'.i18n,
@@ -277,19 +278,31 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (url) {
-        context.hideLoadingDialog();
-        final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
-        if (normalizedUrl.isEmpty) {
-          context.showSnackBar('empty_url'.i18n);
-          appLogger.error('Empty payment redirect URL');
-          return;
-        }
-        if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
+        try {
+          context.hideLoadingDialog();
+          final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
+          if (normalizedUrl.isEmpty) {
+            context.showSnackBar('empty_url'.i18n);
+            appLogger.error('Empty payment redirect URL');
+            return;
+          }
+          if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
+            context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+            appLogger.error('Invalid payment redirect URL: $url');
+            return;
+          }
+
+          ///Mark a redirect as initiated so the auth flow won't silently
+          /// delete the account
+          ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          UrlUtils.openWebview<bool>(
+            normalizedUrl,
+            onWebviewResult: (result) => onPurchaseResult(result, context, ref),
+          );
+        } catch (e) {
+          appLogger.error('Error opening payment redirect URL: $e');
           context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
-          appLogger.error('Invalid payment redirect URL: $url');
-          return;
         }
-        UrlUtils.openWebview(normalizedUrl);
       },
     );
   }
@@ -301,12 +314,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       return;
     }
     context.showLoadingDialog();
     final isPro = await checkUserAccountStatus(ref, context);
     context.hideLoadingDialog();
     if (isPro) {
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       resolveRoute(context);
     } else {
       context.showSnackBar('purchase_not_completed'.i18n);
