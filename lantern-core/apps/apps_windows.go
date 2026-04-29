@@ -440,7 +440,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 				droppedUnresolved++
 				if len(droppedUnresolvedSamples) < maxUnresolvedSamples {
 					droppedUnresolvedSamples = append(droppedUnresolvedSamples,
-						fmt.Sprintf("%s (name=%q)", p, name))
+						fmt.Sprintf("%s (name=%q)", logPathBase(p), name))
 				}
 				if recoveryHint.isValid() {
 					recoveryHints[recoveryHint.key()] = recoveryHint
@@ -466,7 +466,7 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 						reason = "excluded-path"
 					}
 					droppedUtilityOrExcludedSample = append(droppedUtilityOrExcludedSample,
-						fmt.Sprintf("%s → %s (name=%q reason=%s)", p, targetExe, name, reason))
+						fmt.Sprintf("%s -> %s (name=%q reason=%s)", logPathBase(p), logPathBase(targetExe), name, reason))
 				}
 				return nil
 			}
@@ -506,10 +506,10 @@ func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*App
 
 	slog.Info(
 		"start menu scan complete",
-		"appdata", os.Getenv("APPDATA"),
-		"programData", os.Getenv("ProgramData"),
-		"rootsScanned", rootsScanned,
-		"rootsMissing", rootsMissing,
+		"appdataSet", os.Getenv("APPDATA") != "",
+		"programDataSet", os.Getenv("ProgramData") != "",
+		"rootsScanned", len(rootsScanned),
+		"rootsMissing", len(rootsMissing),
 		"shortcuts", totalShortcuts,
 		"kept", len(out),
 		"droppedUnresolved", droppedUnresolved,
@@ -542,6 +542,26 @@ func sampleAppNames(apps []*AppData, n int) []string {
 		out = append(out, fmt.Sprintf("%s (%s)", apps[i].Name, filepath.Base(apps[i].AppPath)))
 	}
 	return out
+}
+
+func logPathBase(path string) string {
+	path = strings.Trim(strings.TrimSpace(path), `"`)
+	if path == "" {
+		return ""
+	}
+	base := filepath.Base(filepath.Clean(path))
+	if base == "." || base == string(filepath.Separator) {
+		return ""
+	}
+	return base
+}
+
+func logInstallLocationBase(path string) string {
+	base := logPathBase(path)
+	if base != "" {
+		return base
+	}
+	return "(empty)"
 }
 
 // isRPCChangedMode reports whether err is RPC_E_CHANGED_MODE
@@ -657,7 +677,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				droppedNoDisplayName++
 				if len(droppedNoDisplayNameSamples) < maxRegistryDroppedSamples {
 					droppedNoDisplayNameSamples = append(droppedNoDisplayNameSamples,
-						fmt.Sprintf("%s (icon=%q installLoc=%q)", sub, displayIcon, installLoc))
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", sub, logPathBase(parseDisplayIcon(displayIcon)), logInstallLocationBase(installLoc)))
 				}
 				continue
 			}
@@ -667,7 +687,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				droppedNoExe++
 				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
 					droppedNoExeSamples = append(droppedNoExeSamples,
-						fmt.Sprintf("%s (icon=%q installLoc=%q)", displayName, displayIcon, installLoc))
+						fmt.Sprintf("%s (icon=%q installLoc=%q)", displayName, logPathBase(parseDisplayIcon(displayIcon)), logInstallLocationBase(installLoc)))
 				}
 				continue
 			}
@@ -676,7 +696,7 @@ func collectAppsFromUninstallRegistry(seen map[string]bool, cb Callback) []*AppD
 				droppedNoExe++
 				if len(droppedNoExeSamples) < maxRegistryDroppedSamples {
 					droppedNoExeSamples = append(droppedNoExeSamples,
-						fmt.Sprintf("%s (wrapped resolve failed for %q)", displayName, displayIcon))
+						fmt.Sprintf("%s (wrapped resolve failed for %q)", displayName, logPathBase(parseDisplayIcon(displayIcon))))
 				}
 				continue
 			}
@@ -880,6 +900,9 @@ func isAppPathsNoise(exePath, displayName string) bool {
 			return true
 		}
 	}
+	if strings.Contains(norm, `\windowsapps\`) && strings.Contains(norm, `\dotnet\`) {
+		return true
+	}
 
 	// Office Root: drop everything except the primary product exes
 	// (those also come via Start Menu, so duplicates hit dedup).
@@ -926,11 +949,6 @@ var (
 		// UWP package plumbing: winget + WindowsPackageManagerServer
 		// register App Paths entries but aren't user-facing GUI apps.
 		`\windowsapps\microsoft.desktopappinstaller_`,
-		// .NET helper assemblies under UWP packages (e.g. Power Automate
-		// Desktop registers PAD.BrowserNativeMessageHost, PAD.ChildSession.
-		// Service.Host under \dotnet\). The user-facing exe of a UWP
-		// package always sits at the package root, never under \dotnet\.
-		`\dotnet\`,
 	}
 
 	appPathsNoisePrimaryOfficeExes = map[string]bool{
@@ -1121,7 +1139,7 @@ func collectAppsFromSquirrelLocalAppData(seen map[string]bool, cb Callback) []*A
 	}
 	entries, err := os.ReadDir(localAppData)
 	if err != nil {
-		slog.Warn("squirrel scan: unable to read LOCALAPPDATA", "dir", localAppData, "err", err)
+		slog.Warn("squirrel scan: unable to read LOCALAPPDATA", "localAppDataSet", true, "err", err)
 		return nil
 	}
 
@@ -1180,7 +1198,7 @@ func collectAppsFromSquirrelLocalAppData(seen map[string]bool, cb Callback) []*A
 
 	slog.Info(
 		"squirrel localappdata scan complete",
-		"localAppData", localAppData,
+		"localAppDataSet", true,
 		"scanned", scanned,
 		"kept", kept,
 		"droppedNoExe", droppedNoExe,
