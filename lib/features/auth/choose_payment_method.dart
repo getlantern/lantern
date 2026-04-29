@@ -278,26 +278,31 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (url) {
-        context.hideLoadingDialog();
-        final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
-        if (normalizedUrl.isEmpty) {
-          context.showSnackBar('empty_url'.i18n);
-          appLogger.error('Empty payment redirect URL');
-          return;
-        }
-        if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
+        try {
+          context.hideLoadingDialog();
+          final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
+          if (normalizedUrl.isEmpty) {
+            context.showSnackBar('empty_url'.i18n);
+            appLogger.error('Empty payment redirect URL');
+            return;
+          }
+          if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
+            context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+            appLogger.error('Invalid payment redirect URL: $url');
+            return;
+          }
+
+          ///Mark a redirect as initiated so the auth flow won't silently
+          /// delete the account
+          ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          UrlUtils.openWebview<bool>(
+            normalizedUrl,
+            onWebviewResult: (result) => onPurchaseResult(result, context, ref),
+          );
+        } catch (e) {
+          appLogger.error('Error opening payment redirect URL: $e');
           context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
-          appLogger.error('Invalid payment redirect URL: $url');
-          return;
         }
-        // Mark a redirect as initiated so the auth flow won't silently
-        // delete the anonymous account on Back press while the payment
-        // is being settled server-side (e.g. Alipay TRADE_SUCCESS).
-        ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-        UrlUtils.openWebview<bool>(
-          normalizedUrl,
-          onWebviewResult: (result) => onPurchaseResult(result, context, ref),
-        );
       },
     );
   }
@@ -309,6 +314,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       return;
     }
     context.showLoadingDialog();

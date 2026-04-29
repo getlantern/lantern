@@ -45,7 +45,7 @@ final class PaymentSessionNotifierProvider
 }
 
 String _$paymentSessionNotifierHash() =>
-    r'3e8d0ff7eced48455e2de71f4ff7046ca6135c7f';
+    r'c15fd9b434720884b8b9252b06ed22cb5f34d3a8';
 
 /// Notifier to manage the state of payment sessions
 

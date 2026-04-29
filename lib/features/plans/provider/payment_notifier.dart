@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fpdart/fpdart.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -11,7 +10,7 @@ part 'payment_notifier.g.dart';
 
 /// Notifier to manage the state of payment sessions
 @Riverpod(keepAlive: true)
-class PaymentSessionNotifier extends Notifier<bool> {
+class PaymentSessionNotifier extends _$PaymentSessionNotifier {
   @override
   bool build() => false;
 
