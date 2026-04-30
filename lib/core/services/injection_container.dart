@@ -1,4 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/models/developer_mode.dart'
+    show developerCountryOverrideSettingKey;
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -56,22 +59,20 @@ Future<void> injectServices() async {
         : MockLanternFFIService(),
   );
 
-  sl.registerSingletonAsync<LanternService>(
-    () async {
-      final service = LanternService(
-        ffiService: sl<LanternFFIService>(),
-        platformService: sl<LanternPlatformService>(),
-        appPurchase: sl<AppPurchase>(),
-      );
-      try {
-        await service.init();
-        appLogger.debug('LanternService initialized');
-      } catch (e, st) {
-        appLogger.error('LanternService init failed', e, st);
-      }
-      return service;
-    },
-  );
+  sl.registerSingletonAsync<LanternService>(() async {
+    final service = LanternService(
+      ffiService: sl<LanternFFIService>(),
+      platformService: sl<LanternPlatformService>(),
+      appPurchase: sl<AppPurchase>(),
+    );
+    try {
+      await service.init();
+      appLogger.debug('LanternService initialized');
+    } catch (e, st) {
+      appLogger.error('LanternService init failed', e, st);
+    }
+    return service;
+  });
 
   appLogger.debug('Initializing notification/Stripe services...');
   final notificationService = NotificationService();
@@ -94,5 +95,16 @@ Future<void> injectServices() async {
   appLogger.debug('NotificationService initialized');
 
   await sl.allReady();
+  if (!AppBuildInfo.isDevModeEnabled && PlatformUtils.isFFISupported) {
+    final result = await sl<LanternService>().patchSettings({
+      developerCountryOverrideSettingKey: '',
+    });
+    result.match(
+      (failure) => appLogger.warning(
+        'Unable to clear dev country override: ${failure.localizedErrorMessage}',
+      ),
+      (_) {},
+    );
+  }
   appLogger.info('All services injected ✅');
 }

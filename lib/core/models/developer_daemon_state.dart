@@ -7,6 +7,7 @@ class DeveloperDaemonState {
   final String logLevel;
   final bool configFetchEnabled;
   final String country;
+  final String devCountryOverride;
   final String version;
   final String featureOverrides;
   final bool loading;
@@ -15,6 +16,7 @@ class DeveloperDaemonState {
     this.logLevel = 'info',
     this.configFetchEnabled = true,
     this.country = '',
+    this.devCountryOverride = '',
     this.version = '',
     this.featureOverrides = '',
     this.loading = true,
@@ -24,6 +26,7 @@ class DeveloperDaemonState {
     String? logLevel,
     bool? configFetchEnabled,
     String? country,
+    String? devCountryOverride,
     String? version,
     String? featureOverrides,
     bool? loading,
@@ -32,6 +35,7 @@ class DeveloperDaemonState {
       logLevel: logLevel ?? this.logLevel,
       configFetchEnabled: configFetchEnabled ?? this.configFetchEnabled,
       country: country ?? this.country,
+      devCountryOverride: devCountryOverride ?? this.devCountryOverride,
       version: version ?? this.version,
       featureOverrides: featureOverrides ?? this.featureOverrides,
       loading: loading ?? this.loading,
@@ -45,17 +49,19 @@ class DeveloperDaemonState {
           logLevel == other.logLevel &&
           configFetchEnabled == other.configFetchEnabled &&
           country == other.country &&
+          devCountryOverride == other.devCountryOverride &&
           version == other.version &&
           featureOverrides == other.featureOverrides &&
           loading == other.loading;
 
   @override
   int get hashCode => Object.hash(
-        logLevel,
-        configFetchEnabled,
-        country,
-        version,
-        featureOverrides,
-        loading,
-      );
+    logLevel,
+    configFetchEnabled,
+    country,
+    devCountryOverride,
+    version,
+    featureOverrides,
+    loading,
+  );
 }

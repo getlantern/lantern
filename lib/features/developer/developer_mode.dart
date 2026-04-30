@@ -21,6 +21,28 @@ import '../../core/services/injection_container.dart' show sl;
 
 enum _DevAction { sendConfig, runURLTests, showState }
 
+const String _autoCountryOverride = '';
+
+const List<_CountryOverrideOption> _countryOverrideOptions = [
+  _CountryOverrideOption(_autoCountryOverride, 'Auto (real location)'),
+  _CountryOverrideOption('CN', '🇨🇳 China'),
+  _CountryOverrideOption('IR', '🇮🇷 Iran'),
+  _CountryOverrideOption('RU', '🇷🇺 Russia'),
+  _CountryOverrideOption('MO', '🇲🇴 Macao'),
+  _CountryOverrideOption('HK', '🇭🇰 Hong Kong'),
+  _CountryOverrideOption('US', '🇺🇸 United States'),
+  _CountryOverrideOption('BG', '🇧🇬 Bulgaria'),
+  _CountryOverrideOption('DE', '🇩🇪 Germany'),
+  _CountryOverrideOption('GB', '🇬🇧 United Kingdom'),
+];
+
+class _CountryOverrideOption {
+  final String code;
+  final String label;
+
+  const _CountryOverrideOption(this.code, this.label);
+}
+
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
   const DeveloperMode({super.key});
@@ -60,6 +82,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
 
     final user = ref.watch(homeProvider).value;
     final daemon = ref.watch(developerDaemonProvider);
+    final activeCountry = _activeCountryOverride(daemon);
 
     return BaseScreen(
       title: 'developer_mode'.i18n,
@@ -68,9 +91,15 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
         children: [
           InfoRow(text: 'developer_mode_note'.i18n),
           SizedBox(height: defaultSize),
+          if (activeCountry != null) ...[
+            _testingAsBanner(activeCountry, daemon.country.trim().isNotEmpty),
+            SizedBox(height: defaultSize),
+          ],
           _accountCard(user),
           SizedBox(height: defaultSize),
           _purchaseAndEnvironmentCard(),
+          SizedBox(height: defaultSize),
+          _countryOverrideCard(daemon),
           SizedBox(height: defaultSize),
           _overridesCard(),
           SizedBox(height: defaultSize),
@@ -79,6 +108,57 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           _actionsCard(),
           SizedBox(height: defaultSize),
         ],
+      ),
+    );
+  }
+
+  _CountryOverrideOption? _activeCountryOverride(DeveloperDaemonState daemon) {
+    final envCountry = daemon.country.trim().toUpperCase();
+    if (envCountry.isNotEmpty) {
+      return _optionForCountry(envCountry);
+    }
+    final devCountry = daemon.devCountryOverride.trim().toUpperCase();
+    return devCountry.isEmpty ? null : _optionForCountry(devCountry);
+  }
+
+  _CountryOverrideOption _optionForCountry(String code) {
+    return _countryOverrideOptions.firstWhere(
+      (option) => option.code == code,
+      orElse: () => _CountryOverrideOption(code, code),
+    );
+  }
+
+  List<_CountryOverrideOption> _optionsForCurrentCountry(String code) {
+    final normalizedCode = code.trim().toUpperCase();
+    if (normalizedCode.isEmpty ||
+        _countryOverrideOptions.any(
+          (option) => option.code == normalizedCode,
+        )) {
+      return _countryOverrideOptions;
+    }
+    return [
+      ..._countryOverrideOptions,
+      _CountryOverrideOption(normalizedCode, normalizedCode),
+    ];
+  }
+
+  Widget _testingAsBanner(_CountryOverrideOption country, bool fromEnv) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.bgElevated,
+        borderRadius: defaultBorderRadius,
+        border: Border.all(color: context.actionPrimaryBg),
+      ),
+      child: Text(
+        fromEnv
+            ? 'Testing as: ${country.label} (RADIANCE_COUNTRY)'
+            : 'Testing as: ${country.label}',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: context.textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -158,6 +238,73 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     );
   }
 
+  Widget _countryOverrideCard(DeveloperDaemonState daemon) {
+    final countryOptions = _optionsForCurrentCountry(daemon.devCountryOverride);
+    final selectedCountry = daemon.devCountryOverride.trim().toUpperCase();
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionLabel('Country testing'),
+          const SizedBox(height: 8),
+          Text(
+            'Config requests use this country until you switch back to Auto.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: context.textTertiary),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            key: ValueKey(selectedCountry),
+            initialValue: selectedCountry,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Testing country'),
+            items: countryOptions
+                .map(
+                  (option) => DropdownMenuItem<String>(
+                    value: option.code,
+                    child: Text(option.label),
+                  ),
+                )
+                .toList(),
+            onChanged: daemon.loading
+                ? null
+                : (value) => _setCountryOverride(value ?? _autoCountryOverride),
+          ),
+          if (daemon.country.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'RADIANCE_COUNTRY is set and takes precedence.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: context.textTertiary),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setCountryOverride(String country) async {
+    final normalizedCountry = country.trim().toUpperCase();
+    final daemon = ref.read(developerDaemonProvider.notifier);
+    final result = await daemon.setDevCountryOverride(normalizedCountry);
+    if (!mounted) return;
+    await result.match((failure) async => _snackFailure(failure), (_) async {
+      final refresh = await daemon.sendConfigRequest();
+      if (!mounted) return;
+      refresh.match(
+        _snackFailure,
+        (_) => context.showSnackBar(
+          normalizedCountry.isEmpty
+              ? 'Country override cleared and config refreshed.'
+              : 'Testing as: ${_optionForCountry(normalizedCountry).label}',
+        ),
+      );
+    });
+  }
+
   Widget _overridesCard() {
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -167,7 +314,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           const SectionLabel('Radiance env overrides'),
           const SizedBox(height: 8),
           _envField(
-            label: 'Country (e.g. IR, CN)',
+            label: 'RADIANCE_COUNTRY env (takes precedence)',
             controller: _countryController,
             envKey: kEnvCountry,
           ),
@@ -302,10 +449,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             icon: Icons.info_outline,
             action: () async {
               final result = await daemon.fetchStateJson();
-              result.match(
-                (f) => _snackFailure(f),
-                _showStateDialog,
-              );
+              result.match((f) => _snackFailure(f), _showStateDialog);
             },
           ),
           DividerSpace(),
@@ -385,10 +529,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   ) async {
     final result = await op();
     if (!mounted) return;
-    result.match(
-      _snackFailure,
-      (_) => context.showSnackBar(successMessage),
-    );
+    result.match(_snackFailure, (_) => context.showSnackBar(successMessage));
   }
 
   void _snackFailure(Failure f) {

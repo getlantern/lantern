@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/developer_daemon_state.dart';
+import 'package:lantern/core/models/developer_mode.dart'
+    show developerCountryOverrideSettingKey;
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,6 +26,7 @@ const List<String> kDaemonLogLevels = [
 const String kEnvCountry = 'RADIANCE_COUNTRY';
 const String kEnvVersion = 'RADIANCE_VERSION';
 const String kEnvFeatureOverrides = 'RADIANCE_FEATURE_OVERRIDES';
+const String kSettingDevCountryOverride = developerCountryOverrideSettingKey;
 
 /// Snapshot of dev-mode daemon state plus the IPC calls that mutate it.
 /// Auto-disposed so each visit to the developer screen re-fetches fresh
@@ -53,6 +56,12 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       if (disabled is bool) {
         next = next.copyWith(configFetchEnabled: !disabled);
       }
+      final devCountryOverride = settings[kSettingDevCountryOverride];
+      if (devCountryOverride is String) {
+        next = next.copyWith(
+          devCountryOverride: devCountryOverride.trim().toUpperCase(),
+        );
+      }
     });
     envResult.match((_) {}, (env) {
       next = next.copyWith(
@@ -65,8 +74,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> patchEnv(String key, String value) async {
-    final result =
-        await ref.read(lanternServiceProvider).patchEnvVars({key: value});
+    final result = await ref.read(lanternServiceProvider).patchEnvVars({
+      key: value,
+    });
     if (!ref.mounted) return result.map((_) => unit);
     return result.map((_) {
       state = switch (key) {
@@ -80,9 +90,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setLogLevel(String level) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .patchSettings({'log_level': level});
+    final result = await ref.read(lanternServiceProvider).patchSettings({
+      'log_level': level,
+    });
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(logLevel: level);
@@ -91,12 +101,24 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setConfigFetchEnabled(bool enabled) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .patchSettings({'config_fetch_disabled': !enabled});
+    final result = await ref.read(lanternServiceProvider).patchSettings({
+      'config_fetch_disabled': !enabled,
+    });
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(configFetchEnabled: enabled);
+      return unit;
+    });
+  }
+
+  Future<Either<Failure, Unit>> setDevCountryOverride(String country) async {
+    final normalizedCountry = country.trim().toUpperCase();
+    final result = await ref.read(lanternServiceProvider).patchSettings({
+      kSettingDevCountryOverride: normalizedCountry,
+    });
+    if (!ref.mounted) return result;
+    return result.map((_) {
+      state = state.copyWith(devCountryOverride: normalizedCountry);
       return unit;
     });
   }
@@ -111,7 +133,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   /// settings & env vars" dialog. Returns the first IPC error so callers
   /// can surface it via the standard failure snackbar.
   Future<Either<Failure, ({String settings, String env})>>
-      fetchStateJson() async {
+  fetchStateJson() async {
     final svc = ref.read(lanternServiceProvider);
     final (settingsResult, envResult) = await (
       svc.getSettings(),

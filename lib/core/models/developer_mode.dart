@@ -1,3 +1,5 @@
+const String developerCountryOverrideSettingKey = 'dev_country_override';
+
 class DeveloperMode {
   final bool testPlayPurchaseEnabled;
   final bool testStripePurchaseEnabled;
@@ -22,12 +24,12 @@ class DeveloperMode {
   }
 
   Map<String, dynamic> toJson() => {
-        'testPlayPurchaseEnabled': testPlayPurchaseEnabled,
-        'testStripePurchaseEnabled': testStripePurchaseEnabled,
-      };
+    'testPlayPurchaseEnabled': testPlayPurchaseEnabled,
+    'testStripePurchaseEnabled': testStripePurchaseEnabled,
+  };
 
   factory DeveloperMode.fromJson(Map<String, dynamic> json) => DeveloperMode(
-        testPlayPurchaseEnabled: json['testPlayPurchaseEnabled'] == true,
-        testStripePurchaseEnabled: json['testStripePurchaseEnabled'] == true,
-      );
+    testPlayPurchaseEnabled: json['testPlayPurchaseEnabled'] == true,
+    testStripePurchaseEnabled: json['testStripePurchaseEnabled'] == true,
+  );
 }
