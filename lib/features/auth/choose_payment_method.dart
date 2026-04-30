@@ -237,6 +237,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         userPlan.id,
         email,
       );
+      if (!context.mounted) {
+        finishPaymentRedirect(paymentRedirectInFlight);
+        return;
+      }
       await result.fold<Future<void>>(
         (error) async {
           context.showSnackBar(error.localizedErrorMessage);
@@ -296,7 +300,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     context.showLoadingDialog();
-    final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
+    final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     final result = await ref
         .read(paymentProvider.notifier)
         .paymentRedirect(provider: provider, planId: userPlan.id, email: email);
