@@ -581,7 +581,12 @@ class LanternFFIService implements LanternCoreService {
       // at which point both events fire back-to-back, leaving no frame for
       // the UI to render the "Connecting" state. See Freshdesk #174072.
       final result = await runInBackground<String>(() async {
-        return _ffiService.startVPN().cast<Utf8>().toDartString();
+        final resultPtr = _ffiService.startVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
@@ -657,7 +662,12 @@ class LanternFFIService implements LanternCoreService {
       // free to drain the status SendPort while the FFI call is running.
       // See the comment in startVPN for the full reasoning.
       final result = await runInBackground<String>(() async {
-        return _ffiService.stopVPN().cast<Utf8>().toDartString();
+        final resultPtr = _ffiService.stopVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
