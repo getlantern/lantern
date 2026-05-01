@@ -526,7 +526,7 @@ class LanternFFIService implements LanternCoreService {
       return left(
         Failure(
           error: errMsg,
-          localizedErrorMessage: Exception(errMsg).localizedDescription,
+          localizedErrorMessage: localizeRawError(errMsg),
         ),
       );
     } catch (e) {
@@ -598,7 +598,7 @@ class LanternFFIService implements LanternCoreService {
         return left(
           Failure(
             error: result,
-            localizedErrorMessage: Exception(result).localizedDescription,
+            localizedErrorMessage: localizeRawError(result),
           ),
         );
       }
@@ -685,7 +685,7 @@ class LanternFFIService implements LanternCoreService {
         return left(
           Failure(
             error: result,
-            localizedErrorMessage: Exception(result).localizedDescription,
+            localizedErrorMessage: localizeRawError(result),
           ),
         );
       }

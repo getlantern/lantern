@@ -100,16 +100,29 @@ extension ErrorExetension on Object {
   }
 }
 
-///classifies VPN-related errors into user-friendly categories based on regex patterns.
-const List<(String, String)> _vpnErrorPatterns = [
+/// Classifies VPN-related errors into user-friendly
+/// categories based on regex patterns.
+final List<(RegExp, String)> _vpnErrorPatterns = [
   (
-    r'no such host|dns|network is unreachable|i/o timeout|no route to host|connection refused',
+    RegExp(
+      r'no such host|dns|network is unreachable|i/o timeout|no route to host|connection refused',
+      caseSensitive: false,
+    ),
     'err_check_connection',
   ),
-  (r'\b503\b|service unavailable', 'err_service_unavailable'),
-  (r'ruleset|geosite|geoip|smart routing', 'err_ruleset_failed'),
   (
-    r'tunnel|tun device|setup failed|failed to start vpn|libbox',
+    RegExp(r'\b503\b|service unavailable', caseSensitive: false),
+    'err_service_unavailable',
+  ),
+  (
+    RegExp(r'ruleset|geosite|geoip|smart routing', caseSensitive: false),
+    'err_ruleset_failed',
+  ),
+  (
+    RegExp(
+      r'tunnel|tun device|setup failed|failed to start vpn|libbox',
+      caseSensitive: false,
+    ),
     'err_connection_failed',
   ),
 ];
@@ -117,11 +130,17 @@ const List<(String, String)> _vpnErrorPatterns = [
 String? _classifyVpnError(String description) {
   if (description.isEmpty) return null;
   for (final (pattern, key) in _vpnErrorPatterns) {
-    if (RegExp(pattern, caseSensitive: false).hasMatch(description)) {
-      return key;
-    }
+    if (pattern.hasMatch(description)) return key;
   }
   return null;
+}
+
+/// Returns a localized user-facing message for a raw error string. Use this
+/// at boundaries where errors arrive as plain strings (e.g. FFI results)
+/// rather than as `Exception` instances, instead of wrapping them in
+/// `Exception(...)` just to route through `localizedDescription`.
+String localizeRawError(String rawError) {
+  return (_classifyVpnError(rawError) ?? 'an_error_occurred').i18n;
 }
 
 /// Strips the radiance IPC prefix from error messages.
