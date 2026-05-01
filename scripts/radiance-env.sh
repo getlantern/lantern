@@ -61,7 +61,12 @@ if [[ ! -r "$SOCK" || ! -w "$SOCK" ]]; then
 fi
 
 curl_sock() {
-  $SUDO curl -sS --fail-with-body --unix-socket "$SOCK" "$@"
+  # The radiance IPC server speaks unencrypted HTTP/2 only (it's configured
+  # via http.Protocols.SetUnencryptedHTTP2(true) in radiance/ipc/server.go).
+  # An HTTP/1.1 request would be accepted at the TCP layer and then dropped
+  # without an HTTP response, surfacing as `curl: (52) Empty reply from
+  # server` — which is what we hit before adding --http2-prior-knowledge.
+  $SUDO curl -sS --fail-with-body --http2-prior-knowledge --unix-socket "$SOCK" "$@"
 }
 
 pretty() {
