@@ -1557,33 +1557,85 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates) =>
-      _unsupportedOnMobile('patchSettings');
+  Future<Either<Failure, Unit>> patchSettings(
+    Map<String, dynamic> updates,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('patchSettings', jsonEncode(updates));
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('patchSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getSettings() =>
-      _unsupportedOnMobile('getSettings');
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>('getSettings');
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, dynamic>{});
+      return right(Map<String, dynamic>.from(decoded));
+    } catch (e, st) {
+      appLogger.error('getSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
   Future<Either<Failure, Map<String, String>>> patchEnvVars(
     Map<String, String> updates,
-  ) => _unsupportedOnMobile('patchEnvVars');
+  ) async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>(
+        'patchEnvVars',
+        jsonEncode(updates),
+      );
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('patchEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
-  Future<Either<Failure, Map<String, String>>> getEnvVars() =>
-      _unsupportedOnMobile('getEnvVars');
+  Future<Either<Failure, Map<String, String>>> getEnvVars() async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>('getEnvVars');
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('getEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
-  Future<Either<Failure, Unit>> runURLTests() =>
-      _unsupportedOnMobile('runURLTests');
+  Future<Either<Failure, Unit>> runURLTests() async {
+    try {
+      await _methodChannel.invokeMethod('runURLTests');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('runURLTests error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 
   @override
-  Future<Either<Failure, Unit>> sendConfigRequest() =>
-      _unsupportedOnMobile('sendConfigRequest');
-
-  Future<Either<Failure, T>> _unsupportedOnMobile<T>(String name) async {
-    final msg = '$name is not supported ';
-    appLogger.warning(msg);
-    return left(Failure(error: msg, localizedErrorMessage: msg));
+  Future<Either<Failure, Unit>> sendConfigRequest() async {
+    try {
+      await _methodChannel.invokeMethod('sendConfigRequest');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('sendConfigRequest error', e, st);
+      return Left(e.toFailure());
+    }
   }
 }
