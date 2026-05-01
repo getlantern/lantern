@@ -1167,7 +1167,7 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "GET_SETTINGS_ERROR")
         return
       }
-      await MainActor.run { result(json) }
+      await MainActor.run { result(json ?? "{}") }
     }
   }
 
@@ -1179,7 +1179,7 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "PATCH_ENV_VARS_ERROR")
         return
       }
-      await MainActor.run { result(json) }
+      await MainActor.run { result(json ?? "{}") }
     }
   }
 
@@ -1191,7 +1191,7 @@ class MethodHandler {
         await self.handleFlutterError(error, result: result, code: "GET_ENV_VARS_ERROR")
         return
       }
-      await MainActor.run { result(json) }
+      await MainActor.run { result(json ?? "{}") }
     }
   }
 
