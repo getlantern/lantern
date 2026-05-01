@@ -41,16 +41,8 @@ func runOnGoStack(fn func() *C.char) *C.char {
 	return result
 }
 
-type VPNStatus string
-
 const (
 	enableLogging = false
-
-	Connecting    VPNStatus = "Connecting"
-	Connected     VPNStatus = "Connected"
-	Disconnecting VPNStatus = "Disconnecting"
-	Disconnected  VPNStatus = "Disconnected"
-	Error         VPNStatus = "Error"
 )
 
 var (
@@ -416,7 +408,7 @@ func getAvailableServers() *C.char {
 	})
 }
 
-func sendStatusToPort(status VPNStatus, errMsg string) {
+func sendStatusToPort(status vpn.VPNStatus, errMsg string) {
 	slog.Debug("sendStatusToPort called", "status", status)
 	port := statusPort.Load()
 	if port == 0 {
@@ -451,12 +443,12 @@ func startStatusListener(c lanterncore.Core) {
 					continue
 				}
 				c.VPNStatusEvents(context.Background(), func(evt vpn.StatusUpdateEvent) {
-					ui, errMsg := mapStatusEvent(evt)
+					status, errMsg := mapStatusEvent(evt)
 
 					statusListenerLastMu.Lock()
-					changed := ui != statusListenerLast
+					changed := string(status) != statusListenerLast
 					if changed {
-						statusListenerLast = ui
+						statusListenerLast = string(status)
 					}
 					statusListenerLastMu.Unlock()
 
@@ -464,8 +456,8 @@ func startStatusListener(c lanterncore.Core) {
 						// [vpn-state-trace] hop=ffi_to_port — moment lantern-core forwards
 						// the parsed status to the Dart ReceivePort. The gap to dart_applied
 						// measures Dart isolate scheduling + Riverpod notify on Windows.
-						slog.Info("[vpn-state-trace]", "hop", "ffi_to_port", "status", ui, "ts_ms", time.Now().UnixMilli())
-						sendStatusToPort(VPNStatus(ui), errMsg)
+						slog.Info("[vpn-state-trace]", "hop", "ffi_to_port", "status", status, "ts_ms", time.Now().UnixMilli())
+						sendStatusToPort(status, errMsg)
 					}
 				})
 				// SSE stream disconnected — retry after a short delay.
@@ -500,23 +492,27 @@ func startLogsListener(c lanterncore.Core) {
 	})
 }
 
-func mapStatusEvent(evt vpn.StatusUpdateEvent) (string, string) {
+// mapStatusEvent normalizes a radiance VPN status event for forwarding to
+// Dart. Most values pass through unchanged; the exceptions are:
+//   - vpn.Restarting collapses into vpn.Connecting so the UI shows a
+//     transitional state during a tunnel restart rather than an unknown
+//     "restarting" string the Dart parser falls back to disconnected on.
+//   - A non-empty evt.Error always maps to vpn.ErrorStatus (radiance also
+//     emits ErrorStatus in this case, but be explicit so the contract
+//     doesn't depend on radiance always agreeing).
+//   - An unrecognized status falls back to Disconnected so the UI never
+//     gets stuck on a stale connected indicator.
+func mapStatusEvent(evt vpn.StatusUpdateEvent) (vpn.VPNStatus, string) {
 	if evt.Error != "" {
-		return string(Error), evt.Error
+		return vpn.ErrorStatus, evt.Error
 	}
 	switch evt.Status {
-	case vpn.Connected:
-		return string(Connected), ""
-	case vpn.Connecting, vpn.Restarting:
-		return string(Connecting), ""
-	case vpn.Disconnecting:
-		return string(Disconnecting), ""
-	case vpn.Disconnected:
-		return string(Disconnected), ""
-	case vpn.ErrorStatus:
-		return string(Error), ""
+	case vpn.Connected, vpn.Connecting, vpn.Disconnecting, vpn.Disconnected, vpn.ErrorStatus:
+		return evt.Status, ""
+	case vpn.Restarting:
+		return vpn.Connecting, ""
 	default:
-		return string(Disconnected), ""
+		return vpn.Disconnected, ""
 	}
 }
 

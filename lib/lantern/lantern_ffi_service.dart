@@ -573,10 +573,21 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> startVPN() async {
     try {
       appLogger.debug('Starting VPN');
-      final result = _ffiService
-          .startVPN()
-          .cast<Utf8>()
-          .toDartString();
+      // Run on a background isolate. The FFI call performs ~1s of connect
+      // work and emits intermediate status updates ("connecting", then
+      // "connected") to the Dart status SendPort during that window. If we
+      // run it on the main isolate the event loop is blocked, so the port
+      // messages can't be delivered to listeners until the call returns —
+      // at which point both events fire back-to-back, leaving no frame for
+      // the UI to render the "Connecting" state. See Freshdesk #174072.
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.startVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
       }
@@ -647,8 +658,17 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
-
-      final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
+      // Run on a background isolate so the main isolate's event loop stays
+      // free to drain the status SendPort while the FFI call is running.
+      // See the comment in startVPN for the full reasoning.
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.stopVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         return left(Failure(error: result, localizedErrorMessage: result));
       }
