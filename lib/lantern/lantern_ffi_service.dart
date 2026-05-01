@@ -523,7 +523,12 @@ class LanternFFIService implements LanternCoreService {
         // Not JSON — fall through with the raw string.
       }
       appLogger.error('$action split tunnel error: $errMsg');
-      return left(Failure(error: errMsg, localizedErrorMessage: errMsg));
+      return left(
+        Failure(
+          error: errMsg,
+          localizedErrorMessage: Exception(errMsg).localizedDescription,
+        ),
+      );
     } catch (e) {
       return left(
         Failure(
@@ -589,7 +594,13 @@ class LanternFFIService implements LanternCoreService {
         }
       });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
-        return left(Failure(error: result, localizedErrorMessage: result));
+        appLogger.error('startVPN error: $result');
+        return left(
+          Failure(
+            error: result,
+            localizedErrorMessage: Exception(result).localizedDescription,
+          ),
+        );
       }
       appLogger.debug('startVPN result: $result');
       return right(result.isEmpty ? 'ok' : result);
@@ -670,7 +681,13 @@ class LanternFFIService implements LanternCoreService {
         }
       });
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
-        return left(Failure(error: result, localizedErrorMessage: result));
+        appLogger.error('stopVPN error: $result');
+        return left(
+          Failure(
+            error: result,
+            localizedErrorMessage: Exception(result).localizedDescription,
+          ),
+        );
       }
       appLogger.debug('stopVPN result: $result');
       return right(result.isEmpty ? 'ok' : result);

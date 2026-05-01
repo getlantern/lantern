@@ -104,7 +104,7 @@ class LanguageListView extends HookConsumerWidget {
       either.fold(
         (failure) {
           appLogger
-              .error('Error updating locale: ${failure.localizedErrorMessage}');
+              .error('Error updating locale: ${failure.error}');
         },
         (r) {
           appLogger.debug('Locale updated to: $newLocale');

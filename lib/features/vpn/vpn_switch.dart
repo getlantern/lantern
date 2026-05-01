@@ -113,7 +113,7 @@ class VPNSwitch extends HookConsumerWidget {
                 (failure) {
                   context.showSnackBar(failure.localizedErrorMessage);
                   appLogger.error(
-                      "Error changing VPN state: ${failure.localizedErrorMessage}");
+                      "Error changing VPN state: ${failure.error}");
                 },
                 (_) => null,
               );
@@ -122,7 +122,7 @@ class VPNSwitch extends HookConsumerWidget {
         } else {
           context.showSnackBar(failure.localizedErrorMessage);
           appLogger.error(
-              "Error changing VPN state: ${failure.localizedErrorMessage}");
+              "Error changing VPN state: ${failure.error}");
         }
       },
       (_) => null,

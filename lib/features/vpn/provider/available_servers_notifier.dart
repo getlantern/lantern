@@ -16,7 +16,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     return result.fold(
       (failure) {
         appLogger.error(
-          'Error getting available servers: ${failure.localizedErrorMessage}',
+          'Error getting available servers: ${failure.error}',
         );
         throw Exception('Failed to load available servers');
       },
@@ -40,7 +40,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-          'Error getting available servers: ${failure.localizedErrorMessage}',
+          'Error getting available servers: ${failure.error}',
         );
       },
       (servers) {

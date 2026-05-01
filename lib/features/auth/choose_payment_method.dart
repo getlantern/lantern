@@ -273,7 +273,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       (failure) {
         context.hideLoadingDialog();
         appLogger.error(
-          'Error redirecting to payment: ${failure.localizedErrorMessage}',
+          'Error redirecting to payment: ${failure.error}',
         );
         context.showSnackBar(failure.localizedErrorMessage);
       },

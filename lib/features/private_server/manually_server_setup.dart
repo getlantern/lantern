@@ -181,7 +181,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
     result.fold(
       (failure) {
         appLogger
-            .error("Failed to add server: ${failure.localizedErrorMessage}");
+            .error("Failed to add server: ${failure.error}");
         context.hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },

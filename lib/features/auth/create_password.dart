@@ -104,7 +104,7 @@ class CreatePassword extends HookConsumerWidget {
       (failure) {
         context.hideLoadingDialog();
         appLogger.error(
-          'Failed to create password: ${failure.localizedErrorMessage}',
+          'Failed to create password: ${failure.error}',
         );
         context.showSnackBarError(failure.localizedErrorMessage);
       },
