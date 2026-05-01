@@ -24,7 +24,17 @@
 set -euo pipefail
 
 usage() {
-  sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'
+  # Print the contiguous comment block starting at line 3 (after the
+  # shebang + blank-comment header) until the first non-comment line.
+  # Using a fixed line range here was lossy: the previous `sed -n '3,18p'`
+  # cut off the Examples section, so `-h/--help` silently hid half the
+  # documented usage. Driving the range off the comment shape instead
+  # keeps the help text and the header in sync as either grows.
+  awk '
+    NR <= 2 { next }
+    /^#/    { sub(/^# ?/, ""); print; next }
+              { exit }
+  ' "$0"
   exit "${1:-0}"
 }
 
@@ -98,9 +108,25 @@ cmd_set() {
     fi
     local key="${kv%%=*}"
     local val="${kv#*=}"
-    # JSON-escape backslashes and double quotes in the value. Other control
-    # chars are left as-is — radiance's env values are short ASCII strings
-    # in practice (force_track names, country codes, semvers).
+    # Validate the key shape: empty keys would silently produce invalid
+    # JSON like {"":"v"} which the server rejects with an unhelpful error,
+    # and non-shell-safe characters would slip through quoting in
+    # follow-on tooling. Match the conservative POSIX env-var pattern.
+    if [[ -z "$key" || ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      echo "radiance-env set: invalid env var name '$key' (must match [A-Za-z_][A-Za-z0-9_]*)" >&2
+      exit 64
+    fi
+    # Reject values that contain control chars (newline, tab, CR, etc.).
+    # The minimal escaping below only handles backslashes and quotes, so a
+    # raw newline would break the JSON request. Radiance env values are
+    # short ASCII strings in practice (force_track names, country codes,
+    # semvers); the operator hitting this almost certainly fat-fingered
+    # something rather than legitimately wanting a multiline value.
+    if [[ "$val" =~ [[:cntrl:]] ]]; then
+      echo "radiance-env set: value for '$key' contains control characters; not supported" >&2
+      exit 64
+    fi
+    # JSON-escape the surviving printable characters that need it.
     val="${val//\\/\\\\}"
     val="${val//\"/\\\"}"
     if (( first )); then
