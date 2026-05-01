@@ -12,11 +12,13 @@
 #   radiance-env set KEY=VALUE [KEY=VALUE ...]     # patch one or more vars
 #   radiance-env force-track <track-name>          # shortcut for the common case
 #   radiance-env force-track ""                    # clear force_track
+#   radiance-env poll                              # trigger an immediate config-fetch
 #   radiance-env -h | --help
 #
 # Examples:
 #   radiance-env
 #   radiance-env force-track unbounded-linode-free
+#   radiance-env poll                              # don't wait for the next adaptive interval
 #   radiance-env set RADIANCE_COUNTRY=IR RADIANCE_FEATURE_OVERRIDES=force_track=eevee
 
 set -euo pipefail
@@ -128,10 +130,20 @@ cmd_force_track() {
   fi
 }
 
+cmd_poll() {
+  # Trigger an immediate /v1/config-new poll. Without this, a setting
+  # change (e.g. via `force-track`) only takes effect on the next
+  # scheduled fetch — which can be minutes away under the adaptive
+  # interval. The endpoint is configUpdateEndpoint in
+  # radiance/ipc/server.go and returns 200 with no body on success.
+  curl_sock -X POST http://lantern/config/update -o /dev/null -w "config poll: HTTP %{http_code}\n"
+}
+
 case "${1:-get}" in
   -h|--help) usage 0 ;;
   get) shift; cmd_get "$@" ;;
   set) shift; cmd_set "$@" ;;
   force-track) shift; cmd_force_track "$@" ;;
+  poll) shift; cmd_poll "$@" ;;
   *) echo "radiance-env: unknown command: $1" >&2; usage 64 ;;
 esac
