@@ -1,5 +1,6 @@
 package org.getlantern.lantern
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ClipboardManager
 import android.content.Context
@@ -36,11 +37,11 @@ class LanternApp : Application() {
     private fun applyQAEnvOverrides() {
         if (!BuildConfig.DEVELOPMENT_MODE) return
 
-        val outboundSocks = systemProp("debug.lantern.outbound_socks")
-        val tz = systemProp("debug.lantern.tz")
-        if (outboundSocks.isEmpty() && tz.isEmpty()) return
-
         try {
+            val outboundSocks = systemProp("debug.lantern.outbound_socks").trim()
+            val tz = systemProp("debug.lantern.tz").trim()
+            if (outboundSocks.isEmpty() && tz.isEmpty()) return
+
             Mobile.setQAEnvOverrides(outboundSocks, tz)
             Log.i(TAG, "QA env overrides applied: outbound_socks=$outboundSocks tz=$tz")
         } catch (e: Throwable) {
@@ -48,6 +49,7 @@ class LanternApp : Application() {
         }
     }
 
+    @SuppressLint("PrivateApi")
     private fun systemProp(key: String): String {
         return try {
             val cls = Class.forName("android.os.SystemProperties")
