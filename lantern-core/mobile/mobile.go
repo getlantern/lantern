@@ -89,29 +89,44 @@ func getClient() (*ipc.Client, error) {
 	return core.Client(), nil
 }
 
-// SetQAEnvOverrides sets process environment variables that radiance reads
-// at init time, before SetupRadiance / StartIPCServer / StartVPN is called.
-// Used by QA / dev builds to point radiance at an upstream SOCKS5 (typically
-// the local pinger bridge running on the host) and to spoof the timezone so
-// the API treats the client as being in the corresponding country.
-//
-// Empty values are ignored — pass empty strings for any override you don't
-// want to apply. Must be called before any other Mobile.* function that
-// touches radiance to take effect.
+// SetQAEnvOverrides applies QA-only environment overrides before Radiance starts.
 func SetQAEnvOverrides(outboundSocks, tz string) error {
 	if outboundSocks != "" {
 		if err := os.Setenv("RADIANCE_OUTBOUND_SOCKS_ADDRESS", outboundSocks); err != nil {
-			return fmt.Errorf("setenv RADIANCE_OUTBOUND_SOCKS_ADDRESS: %w", err)
+			return fmt.Errorf("set RADIANCE_OUTBOUND_SOCKS_ADDRESS: %w", err)
 		}
-		slog.Info("QA: set RADIANCE_OUTBOUND_SOCKS_ADDRESS", "value", outboundSocks)
+		slog.Info("QA env override set", "name", "RADIANCE_OUTBOUND_SOCKS_ADDRESS", "value", outboundSocks)
 	}
 	if tz != "" {
 		if err := os.Setenv("TZ", tz); err != nil {
-			return fmt.Errorf("setenv TZ: %w", err)
+			return fmt.Errorf("set TZ: %w", err)
 		}
-		slog.Info("QA: set TZ", "value", tz)
+		slog.Info("QA env override set", "name", "TZ", "value", tz)
 	}
 	return nil
+}
+
+// InitLogging wires the global slog handler (file + stdout) before any other
+// Mobile.* call. On Android the entire app runs in a single process, so once
+// common.Init runs `slog.SetDefault` covers all Go code — but it normally
+// only runs deep inside SetupRadiance / StartIPCServer, which the Android
+// side launches asynchronously from LanternVpnService after an intent. Any
+// lantern-core or radiance log emitted in the meantime (Flutter MethodChannel
+// handlers reach a wide surface before the VPN service is up) falls through
+// to the stdlib default — text → stderr → logcat at INFO — so debug logs
+// vanish and the format diverges from the rest. Calling this from
+// MainActivity.configureFlutterEngine before startLanternService closes that
+// gap.
+//
+// The first call wins: dataDir/logDir/logLevel here are what take effect.
+// Pass the same values that the later backend.NewLocalBackend → common.Init
+// will see (in practice both derive from LanternVpnService.opts()), otherwise
+// the early values silently override.
+func InitLogging(dataDir, logDir, logLevel string) error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		return struct{}{}, common.Init(dataDir, logDir, logLevel)
+	})
+	return err
 }
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
@@ -712,6 +727,75 @@ func GetSplitTunnelItems(filterType string) (string, error) {
 func GetSplitTunnelStateJSON() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.GetSplitTunnelItems()
+	})
+}
+
+// Developer-mode bindings.
+//
+// Maps and structs aren't supported as gomobile parameters/returns, so these
+// mirror the FFI shape: callers exchange JSON strings. PatchSettings expects
+// settings.Settings JSON; PatchEnvVars / GetEnvVars use map[string]string JSON.
+
+func PatchSettings(patchJSON string) error {
+	return withCore(func(c lanterncore.Core) error {
+		var updates settings.Settings
+		if err := json.Unmarshal([]byte(patchJSON), &updates); err != nil {
+			return fmt.Errorf("invalid settings JSON: %w", err)
+		}
+		return c.PatchSettings(updates)
+	})
+}
+
+func GetSettings() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		data, err := c.GetSettingsJSON()
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func PatchEnvVars(patchJSON string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		var updates map[string]string
+		if err := json.Unmarshal([]byte(patchJSON), &updates); err != nil {
+			return "", fmt.Errorf("invalid env JSON: %w", err)
+		}
+		result, err := c.PatchEnvVars(updates)
+		if err != nil {
+			return "", err
+		}
+		data, err := json.Marshal(result)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func GetEnvVars() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		data, err := json.Marshal(c.GetEnvVars())
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func RunURLTests() error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.RunOfflineURLTests()
+	})
+}
+
+// SendConfigRequest triggers a config refresh on the daemon. Mirrors the FFI
+// `updateConfig` export — kept under the SendConfig name so the mobile
+// MethodChannel and Dart caller naming align.
+func SendConfigRequest() error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdateConfig()
 	})
 }
 

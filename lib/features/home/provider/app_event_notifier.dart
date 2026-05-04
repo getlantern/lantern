@@ -6,7 +6,6 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -50,8 +49,6 @@ class AppEventNotifier extends _$AppEventNotifier {
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
 
-          /// this will also refresh user data if needed
-          ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;
         case 'server-location':
           // Only consume this event when the user is actually in auto mode.

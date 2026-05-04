@@ -60,8 +60,12 @@ android {
         versionName = flutter.versionName
 
         ndk {
-            // Specifies the ABI configurations of native libraries Gradle should build and package with the app.
-            abiFilters = ["x86_64", "arm64-v8a"]
+            // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS
+            // in the top-level Makefile: android-arm + android-arm64). Listing an
+            // ABI here that Flutter didn't build for produces an empty per-ABI
+            // split on Play and crashes installs on that architecture with
+            // "Could not find 'libflutter.so'".
+            abiFilters = ["arm64-v8a", "armeabi-v7a"]
             debugSymbolLevel 'FULL'
         }
 

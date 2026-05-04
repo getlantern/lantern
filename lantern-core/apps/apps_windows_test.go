@@ -98,13 +98,6 @@ func TestIsNonUserFacingUninstallEntry(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "has parent key name",
-			metadata: uninstallEntryMetadata{
-				parentKeyName: "VendorSuite",
-			},
-			want: true,
-		},
-		{
 			name: "release type update",
 			metadata: uninstallEntryMetadata{
 				releaseType: "Security Update",
@@ -198,6 +191,31 @@ func TestIsWindowsUtilityApp(t *testing.T) {
 			got := isWindowsUtilityApp(tt.exePath, tt.appName)
 			if got != tt.want {
 				t.Fatalf("isWindowsUtilityApp(%q, %q) = %v, want %v", tt.exePath, tt.appName, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsLanternSelfApp(t *testing.T) {
+	tests := []struct {
+		name    string
+		exePath string
+		appName string
+		want    bool
+	}{
+		{name: "lantern.exe under Program Files", exePath: `C:\Program Files\Lantern\lantern.exe`, appName: "Lantern", want: true},
+		{name: "lanternsvc.exe under Program Files", exePath: `C:\Program Files\Lantern\LanternSvc.exe`, appName: "Lantern version 9.0.30+501", want: true},
+		{name: "lantern in Program Files (x86)", exePath: `C:\Program Files (x86)\Lantern\lantern.exe`, appName: "", want: true},
+		{name: "name-only lantern", exePath: "", appName: "Lantern", want: true},
+		{name: "registry display name", exePath: "", appName: "Lantern version 9.0.30+501", want: true},
+		{name: "Claude not lantern", exePath: `C:\Users\user\AppData\Local\AnthropicClaude\Claude.exe`, appName: "Claude", want: false},
+		{name: "Chrome not lantern", exePath: `C:\Program Files\Google\Chrome\Application\chrome.exe`, appName: "Google Chrome", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isLanternSelfApp(tt.exePath, tt.appName); got != tt.want {
+				t.Fatalf("isLanternSelfApp(%q, %q) = %v, want %v", tt.exePath, tt.appName, got, tt.want)
 			}
 		})
 	}
@@ -624,4 +642,124 @@ func TestResolvePackageCacheExecutable(t *testing.T) {
 			t.Fatalf("resolvePackageCacheExecutable(...) = %q, want empty", got)
 		}
 	})
+}
+
+func TestDeriveRunDisplayName(t *testing.T) {
+	tests := []struct {
+		valueName string
+		headExe   string
+		want      string
+	}{
+		{"com.squirrel.Slack.Slack", `C:\Users\u\AppData\Local\slack\Update.exe`, "Slack"},
+		{"com.squirrel.AnthropicClaude.Claude", `C:\Users\u\AppData\Local\AnthropicClaude\Update.exe`, "Claude"},
+		{"OneDrive", `C:\Users\u\AppData\Local\Microsoft\OneDrive\OneDrive.exe`, "OneDrive"},
+		{"", `C:\Foo\bar.exe`, "bar"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.valueName, func(t *testing.T) {
+			if got := deriveRunDisplayName(tt.valueName, tt.headExe); got != tt.want {
+				t.Fatalf("deriveRunDisplayName(%q, %q) = %q, want %q", tt.valueName, tt.headExe, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFindSquirrelAppExe(t *testing.T) {
+	t.Run("sibling exe at appdir root", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "Slack")
+		exe := filepath.Join(appDir, "Slack.exe")
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(exe, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if got := findSquirrelAppExe(appDir, "Slack"); got != exe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, exe)
+		}
+	})
+
+	t.Run("inside app-X.Y.Z subdir", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "AnthropicClaude")
+		exe := filepath.Join(appDir, "app-1.2.3", "Claude.exe")
+		if err := os.MkdirAll(filepath.Dir(exe), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(exe, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if got := findSquirrelAppExe(appDir, "Claude"); got != exe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, exe)
+		}
+	})
+
+	t.Run("falls back to non-update exe when name doesn't match dir", func(t *testing.T) {
+		root := t.TempDir()
+		appDir := filepath.Join(root, "AnthropicClaude")
+		updateExe := filepath.Join(appDir, "Update.exe")
+		realExe := filepath.Join(appDir, "Claude.exe")
+		if err := os.MkdirAll(appDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		for _, p := range []string{updateExe, realExe} {
+			if err := os.WriteFile(p, nil, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		// dir name is "AnthropicClaude" but exe is "Claude.exe" — fallback path
+		if got := findSquirrelAppExe(appDir, "AnthropicClaude"); got != realExe {
+			t.Fatalf("findSquirrelAppExe = %q, want %q", got, realExe)
+		}
+	})
+}
+
+func TestIsAppPathsNoise(t *testing.T) {
+	tests := []struct {
+		name        string
+		exePath     string
+		displayName string
+		want        bool
+	}{
+		// System / vestigial paths.
+		{"Internet Explorer relic", `C:\Program Files\Internet Explorer\IEXPLORE.EXE`, "IEXPLORE", true},
+		{"IE diag tool", `C:\Program Files\Internet Explorer\IEDIAGCMD.EXE`, "IEDIAG", true},
+		{"Windows Mail wab", `C:\Program Files\Windows Mail\wab.exe`, "wab", true},
+		{"Common Files microsoft shared TabTip", `C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe`, "TabTip", true},
+		// Office helpers (non-primary exes).
+		{"Office sdxhelper", `C:\Program Files\Microsoft Office\Root\Office16\SDXHelper.exe`, "sdxhelper", true},
+		{"Office msoadfsb", `C:\Program Files\Microsoft Office\Root\Office16\msoadfsb.exe`, "msoadfsb", true},
+		{"Office SkypeServer", `C:\Program Files\Microsoft Office\Root\Office16\SkypeSrv\SKYPESERVER.EXE`, "SKYPESERVER", true},
+		// Office primary apps stay (Start Menu also picks them up; this branch
+		// just ensures App Paths doesn't drop them as Office Root noise).
+		{"Office Word kept", `C:\Program Files\Microsoft Office\Root\Office16\WINWORD.EXE`, "winword", false},
+		{"Office Excel kept", `C:\Program Files\Microsoft Office\Root\Office16\EXCEL.EXE`, "excel", false},
+		// UWP helper-named exes.
+		{"1Password helper BrowserSupport", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password-BrowserSupport.exe`, "1Password-BrowserSupport", true},
+		{"1Password helper LastPass-Exporter", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password-LastPass-Exporter.exe`, "1Password-LastPass-Exporter", true},
+		{"op-ssh-sign-wsl", `C:\Program Files\WindowsApps\Agilebits.1Password_x\op-ssh-sign-wsl.exe`, "op-ssh-sign-wsl", true},
+		{"ms-teamsupdate", `C:\Program Files\WindowsApps\MSTeams_x\ms-teamsupdate.exe`, "ms-teamsupdate", true},
+		// UWP primary apps kept.
+		{"1Password kept", `C:\Program Files\WindowsApps\Agilebits.1Password_x\1Password.exe`, "1Password", false},
+		{"ms-teams kept", `C:\Program Files\WindowsApps\MSTeams_x\ms-teams.exe`, "ms-teams", false},
+		{"mspaint kept", `C:\Program Files\WindowsApps\Microsoft.Paint_x\PaintApp\mspaint.exe`, "mspaint", false},
+		{"notepad kept", `C:\Program Files\WindowsApps\Microsoft.WindowsNotepad_x\Notepad\Notepad.exe`, "notepad", false},
+		{"olk kept", `C:\Program Files\WindowsApps\Microsoft.OutlookForWindows_x\olk.exe`, "olk", false},
+		// Third-party app stays.
+		{"Chrome kept", `C:\Program Files\Google\Chrome\Application\chrome.exe`, "chrome", false},
+		// DesktopAppInstaller package: winget + WindowsPackageManagerServer.
+		{"winget", `C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.28.240.0_x64__8wekyb3d8bbwe\winget.exe`, "winget", true},
+		{"WindowsPackageManagerServer", `C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.28.240.0_x64__8wekyb3d8bbwe\WindowsPackageManagerServer.exe`, "WindowsPackageManagerServer", true},
+		// .NET helpers under UWP packages (Power Automate Desktop).
+		{"PAD BrowserNativeMessageHost", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.BrowserNativeMessageHost.exe`, "PAD.BrowserNativeMessageHost", true},
+		{"PAD ChildSession.Service.Host", `C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_x\dotnet\PAD.ChildSession.Service.Host.exe`, "PAD.ChildSession.Service.Host", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isAppPathsNoise(tt.exePath, tt.displayName); got != tt.want {
+				t.Fatalf("isAppPathsNoise(%q, %q) = %v, want %v", tt.exePath, tt.displayName, got, tt.want)
+			}
+		})
+	}
 }

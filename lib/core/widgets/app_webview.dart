@@ -195,6 +195,17 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return true;
     }
 
+    /// Alipay trade_status=TRADE_SUCCESS once the user has finished paying.
+    final tradeStatus = uri.queryParameters['trade_status'];
+    if (tradeStatus != null && tradeStatus.toUpperCase() == 'TRADE_SUCCESS') {
+      appLogger.info(
+        'Webview detected Alipay trade_status=TRADE_SUCCESS on ${uri.host}, closing',
+      );
+      loading.stop();
+      await appRouter.maybePop(true);
+      return true;
+    }
+
     if (isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {

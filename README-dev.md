@@ -430,6 +430,36 @@ If you want to generate a build for your changes to test, you can trigger a nigh
 
 > **Note:** Triggering from a non-default branch creates a draft release that is automatically deleted after the artifacts are uploaded. You can download the artifacts directly from the workflow run summary before they are cleaned up.
 
+### Tweaking a release-build daemon at runtime
+
+Release builds don't expose the dev-mode UI, but the radiance daemon still
+listens on a local IPC socket (`/var/run/lantern/lanternd.sock` on macOS and
+Linux). `scripts/radiance-env.sh` is a thin wrapper around that socket for
+inspecting and patching the daemon's environment without rebuilding.
+
+```bash
+# show current env
+./scripts/radiance-env.sh
+
+# force a specific track (handy for testing a track that the bandit isn't
+# yet selecting for your UID)
+./scripts/radiance-env.sh force-track unbounded-linode-free
+./scripts/radiance-env.sh poll          # trigger an immediate config-fetch
+
+# clear the override
+./scripts/radiance-env.sh force-track ""
+
+# arbitrary KEY=VALUE patches
+./scripts/radiance-env.sh set RADIANCE_COUNTRY=IR \
+    RADIANCE_FEATURE_OVERRIDES=force_track=eevee
+```
+
+The `poll` subcommand is useful after any `set` / `force-track` call —
+otherwise the change only takes effect on the next adaptive config fetch
+(can be minutes away). The script auto-detects whether to use `sudo` based
+on the socket permissions; Windows uses a named pipe and is not supported
+by this wrapper.
+
 ---
 
 ## 7. Testing

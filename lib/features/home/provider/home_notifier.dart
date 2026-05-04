@@ -20,7 +20,7 @@ class HomeNotifier extends _$HomeNotifier {
     return result.fold(
       (failure) {
         appLogger.error(
-          'Error getting user data: ${failure.localizedErrorMessage}',
+          'Error getting user data: ${failure.error}',
         );
         throw Exception('Failed to get user data');
       },
@@ -38,7 +38,7 @@ class HomeNotifier extends _$HomeNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-          'Error fetching user data: ${failure.localizedErrorMessage}',
+          'Error fetching user data: ${failure.error}',
         );
       },
       (userData) {
@@ -56,7 +56,7 @@ class HomeNotifier extends _$HomeNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-          'Error refreshing user data: ${failure.localizedErrorMessage}',
+          'Error refreshing user data: ${failure.error}',
         );
         state = AsyncValue.error(failure, StackTrace.current);
       },

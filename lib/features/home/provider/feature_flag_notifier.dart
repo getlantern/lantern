@@ -20,7 +20,7 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     result.fold(
       (failure) {
         appLogger.error(
-            'Error fetching feature flags: ${failure.localizedErrorMessage}');
+            'Error fetching feature flags: ${failure.error}');
       },
       (flags) {
         try {

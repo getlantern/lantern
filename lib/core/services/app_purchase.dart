@@ -309,7 +309,7 @@ class AppPurchase {
     final fetchResult = await lanternService.fetchUserData();
     final fetchedUser = fetchResult.fold((failure) {
       appLogger.warning(
-        '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.localizedErrorMessage}',
+        '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.error}',
       );
       return null;
     }, (user) => user);
@@ -317,7 +317,7 @@ class AppPurchase {
     final user = fetchedUser ??
         (await lanternService.getUserData()).fold((failure) {
           appLogger.warning(
-            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.localizedErrorMessage}',
+            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.error}',
           );
           return null;
         }, (user) => user);

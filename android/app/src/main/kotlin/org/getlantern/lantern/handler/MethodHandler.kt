@@ -132,6 +132,14 @@ enum class Methods(val method: String) {
 
     // VPN conflict detection
     CheckVpnConflict("checkVpnConflict"),
+
+    // Developer mode
+    PatchSettings("patchSettings"),
+    GetSettings("getSettings"),
+    PatchEnvVars("patchEnvVars"),
+    GetEnvVars("getEnvVars"),
+    RunURLTests("runURLTests"),
+    SendConfigRequest("sendConfigRequest"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -1171,6 +1179,46 @@ class MethodHandler : FlutterPlugin,
                             result.error("check_vpn_conflict", e.localizedMessage ?: "Error", e)
                         }
                     }
+                }
+            }
+
+            Methods.PatchSettings.method -> {
+                scope.handleResult(result, "patch_settings") {
+                    val payload = call.arguments as? String
+                        ?: error("Missing settings JSON")
+                    Mobile.patchSettings(payload)
+                }
+            }
+
+            Methods.GetSettings.method -> {
+                scope.handleValue(result, "get_settings") {
+                    Mobile.getSettings()
+                }
+            }
+
+            Methods.PatchEnvVars.method -> {
+                scope.handleValue(result, "patch_env_vars") {
+                    val payload = call.arguments as? String
+                        ?: error("Missing env JSON")
+                    Mobile.patchEnvVars(payload)
+                }
+            }
+
+            Methods.GetEnvVars.method -> {
+                scope.handleValue(result, "get_env_vars") {
+                    Mobile.getEnvVars()
+                }
+            }
+
+            Methods.RunURLTests.method -> {
+                scope.handleResult(result, "run_url_tests") {
+                    Mobile.runURLTests()
+                }
+            }
+
+            Methods.SendConfigRequest.method -> {
+                scope.handleResult(result, "send_config_request") {
+                    Mobile.sendConfigRequest()
                 }
             }
 

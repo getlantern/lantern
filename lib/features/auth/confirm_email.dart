@@ -9,6 +9,7 @@ import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -97,6 +98,7 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
+    appLogger.info('Back button pressed in ConfirmEmail screen');
     if (password == null) {
       appRouter.pop();
       return;
@@ -114,6 +116,19 @@ class ConfirmEmail extends HookConsumerWidget {
       appRouter.pop();
       return;
     }
+
+    /// If the user just initiated an external (e.g. Alipay/shepherd) payment,
+    /// Deleting that account here would orphan a paid subscription
+    final paymentRedirectInitiated = ref.read(paymentSessionProvider);
+    if (paymentRedirectInitiated) {
+      appLogger.info(
+        'Back press in ConfirmEmail with payment redirect in flight; '
+        'preserving anonymous account to avoid orphaning payment',
+      );
+      appRouter.pop();
+      return;
+    }
+
     appLogger.info(
       'Back button pressed in ConfirmEmail screen Deleting account',
     );

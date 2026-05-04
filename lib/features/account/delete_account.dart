@@ -171,7 +171,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     result.fold(
       (failure) {
         appLogger
-            .error('Account deletion failed: ${failure.localizedErrorMessage}');
+            .error('Account deletion failed: ${failure.error}');
         context.hideLoadingDialog();
         context.showSnackBarError(failure.localizedErrorMessage);
       },

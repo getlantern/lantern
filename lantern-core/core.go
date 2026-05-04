@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -233,6 +234,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
+	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
@@ -249,6 +251,40 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Type:    string(event),
 		Message: message,
 	})
+}
+
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup
+func (lc *LanternCore) fetchUserDataIfNeeded() {
+	raw := lc.settings()[settings.UserIDKey]
+	userID := userIDAsInt64(raw)
+	if userID == 0 {
+		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
+		return
+	}
+	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
+		slog.Error("Startup user-data fetch failed", "error", err)
+		return
+	}
+	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
+}
+
+// userIDAsInt64 normalizes the radiance UserIDKey value across the storage
+// types it can have: int64 (in-process), float64 (after JSON IPC round-trip),
+// int (defensive), or a decimal string (mobile.go purchase flow). Returns 0
+// for any unrecognized type so the caller treats the user as anonymous.
+func userIDAsInt64(v any) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case float64:
+		return int64(x)
+	case int:
+		return int64(x)
+	case string:
+		n, _ := strconv.ParseInt(x, 10, 64)
+		return n
+	}
+	return 0
 }
 
 // listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
@@ -373,6 +409,7 @@ func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vp
 func (lc *LanternCore) settings() settings.Settings {
 	s, err := lc.client.Settings(lc.ctx)
 	if err != nil {
+		slog.Error("Error fetching settings", "error", err)
 		return settings.Settings{}
 	}
 	return s

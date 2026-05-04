@@ -239,7 +239,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               retryResult.fold((failure) {
                 context.showSnackBar(failure.localizedErrorMessage);
                 appLogger.error(
-                  "Error changing VPN state: ${failure.localizedErrorMessage}",
+                  "Error changing VPN state: ${failure.error}",
                 );
               }, (_) => appRouter.popUntilRoot());
             },
