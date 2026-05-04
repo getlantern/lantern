@@ -78,18 +78,69 @@ extension ErrorExetension on Object {
       if (description.contains('Cannot use your own code for promotion')) {
         return "referral_code_own_invalid".i18n;
       }
-      return description;
+
+      final categoryKey = _classifyVpnError(description);
+      if (categoryKey != null) return categoryKey.i18n;
+
+      return "an_error_occurred".i18n;
     }
 
     if (this is StateError) {
-      return (this as StateError).message;
+      final categoryKey = _classifyVpnError((this as StateError).message);
+      if (categoryKey != null) return categoryKey.i18n;
+      return "an_error_occurred".i18n;
     }
     if (this is Exception) {
-      return (this as Exception).toString();
+      final categoryKey = _classifyVpnError((this as Exception).toString());
+      if (categoryKey != null) return categoryKey.i18n;
+      return "an_error_occurred".i18n;
     }
 
-    return "error_occurred".i18n;
+    return "an_error_occurred".i18n;
   }
+}
+
+/// Classifies VPN-related errors into user-friendly
+/// categories based on regex patterns.
+final List<(RegExp, String)> _vpnErrorPatterns = [
+  (
+    RegExp(
+      r'no such host|dns|network is unreachable|i/o timeout|no route to host|connection refused',
+      caseSensitive: false,
+    ),
+    'err_check_connection',
+  ),
+  (
+    RegExp(r'\b503\b|service unavailable', caseSensitive: false),
+    'err_service_unavailable',
+  ),
+  (
+    RegExp(r'ruleset|geosite|geoip|smart routing', caseSensitive: false),
+    'err_ruleset_failed',
+  ),
+  (
+    RegExp(
+      r'tunnel|tun device|setup failed|failed to start vpn|libbox',
+      caseSensitive: false,
+    ),
+    'err_connection_failed',
+  ),
+];
+
+String? _classifyVpnError(String description) {
+  if (description.isEmpty) return null;
+  for (final (pattern, key) in _vpnErrorPatterns) {
+    if (pattern.hasMatch(description)) return key;
+  }
+  return null;
+}
+
+/// Returns a localized user-facing message for a raw error string. Use this
+/// at boundaries where errors arrive as plain strings (e.g. FFI results)
+/// rather than as `Exception` instances, instead of wrapping them in
+/// `Exception(...)` just to route through `localizedDescription`.
+String localizeRawError(String rawError) {
+  return (_classifyVpnError(rawError) ?? 'an_error_occurred').i18n;
 }
 
 /// Strips the radiance IPC prefix from error messages.

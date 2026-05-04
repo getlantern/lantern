@@ -141,7 +141,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
 
     result.fold(
       (failure) {
-        appLogger.error("Failure: ${failure.localizedErrorMessage}");
+        appLogger.error("Failure: ${failure.error}");
         AppDialog.errorDialog(
           context: context,
           title: 'error'.i18n,

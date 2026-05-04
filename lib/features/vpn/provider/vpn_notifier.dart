@@ -25,6 +25,17 @@ class VpnNotifier extends _$VpnNotifier {
       final previousStatus = previous?.value?.status;
       final nextStatus = next.value!.status;
       final nextOrigin = next.value!.origin;
+      // [vpn-state-trace] hop=dart_applied — moment Riverpod fires the listener
+      // after the FFI ReceivePort delivers a status. Pairs with ffi_to_port
+      // (lantern-core) and ssehandler_flushed / sse_parsed / daemon_setstatus
+      // (radiance) to localize the Windows lag in Freshdesk #174072.
+      // Use nextStatus.name (e.g. "disconnecting") rather than the default
+      // toString() ("VPNStatus.disconnecting") so the value matches the wire
+      // format emitted by radiance — makes cross-hop grep/correlation work.
+      appLogger.info(
+        '[vpn-state-trace] hop=dart_applied status=${nextStatus.name} '
+        'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
+      );
       final suppressConnectionNotifications =
           nextOrigin == VPNStatusOrigin.settingsMutation &&
           (nextStatus == VPNStatus.connected ||

@@ -1523,3 +1523,15 @@ msgstr "Got it"
 
 msgid "vpn_conflict_connect_anyway"
 msgstr "Connect Anyway"
+
+msgid "err_check_connection"
+msgstr "Unable to connect. Check your internet connection."
+
+msgid "err_service_unavailable"
+msgstr "Service temporarily unavailable. Trying again..."
+
+msgid "err_connection_failed"
+msgstr "Connection failed. Please try again."
+
+msgid "err_ruleset_failed"
+msgstr "Unable to load routing configuration. Retrying..."

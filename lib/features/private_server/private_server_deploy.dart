@@ -179,7 +179,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
         context.hideLoadingDialog();
         // Handle failure case, e.g., show an error message
         appLogger
-            .error("Failed to cancel deployment: ${l.localizedErrorMessage}");
+            .error("Failed to cancel deployment: ${l.error}");
         context.showSnackBar(l.localizedErrorMessage);
       },
       (r) {

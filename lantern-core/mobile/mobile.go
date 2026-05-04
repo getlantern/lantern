@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -86,6 +87,23 @@ func getClient() (*ipc.Client, error) {
 		return nil, err
 	}
 	return core.Client(), nil
+}
+
+// SetQAEnvOverrides applies QA-only environment overrides before Radiance starts.
+func SetQAEnvOverrides(outboundSocks, tz string) error {
+	if outboundSocks != "" {
+		if err := os.Setenv("RADIANCE_OUTBOUND_SOCKS_ADDRESS", outboundSocks); err != nil {
+			return fmt.Errorf("set RADIANCE_OUTBOUND_SOCKS_ADDRESS: %w", err)
+		}
+		slog.Info("QA env override set", "name", "RADIANCE_OUTBOUND_SOCKS_ADDRESS", "value", outboundSocks)
+	}
+	if tz != "" {
+		if err := os.Setenv("TZ", tz); err != nil {
+			return fmt.Errorf("set TZ: %w", err)
+		}
+		slog.Info("QA env override set", "name", "TZ", "value", tz)
+	}
+	return nil
 }
 
 // InitLogging wires the global slog handler (file + stdout) before any other
@@ -719,6 +737,75 @@ func GetSplitTunnelItems(filterType string) (string, error) {
 func GetSplitTunnelStateJSON() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.GetSplitTunnelItems()
+	})
+}
+
+// Developer-mode bindings.
+//
+// Maps and structs aren't supported as gomobile parameters/returns, so these
+// mirror the FFI shape: callers exchange JSON strings. PatchSettings expects
+// settings.Settings JSON; PatchEnvVars / GetEnvVars use map[string]string JSON.
+
+func PatchSettings(patchJSON string) error {
+	return withCore(func(c lanterncore.Core) error {
+		var updates settings.Settings
+		if err := json.Unmarshal([]byte(patchJSON), &updates); err != nil {
+			return fmt.Errorf("invalid settings JSON: %w", err)
+		}
+		return c.PatchSettings(updates)
+	})
+}
+
+func GetSettings() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		data, err := c.GetSettingsJSON()
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func PatchEnvVars(patchJSON string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		var updates map[string]string
+		if err := json.Unmarshal([]byte(patchJSON), &updates); err != nil {
+			return "", fmt.Errorf("invalid env JSON: %w", err)
+		}
+		result, err := c.PatchEnvVars(updates)
+		if err != nil {
+			return "", err
+		}
+		data, err := json.Marshal(result)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func GetEnvVars() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		data, err := json.Marshal(c.GetEnvVars())
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	})
+}
+
+func RunURLTests() error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.RunOfflineURLTests()
+	})
+}
+
+// SendConfigRequest triggers a config refresh on the daemon. Mirrors the FFI
+// `updateConfig` export — kept under the SendConfig name so the mobile
+// MethodChannel and Dart caller naming align.
+func SendConfigRequest() error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.UpdateConfig()
 	})
 }
 

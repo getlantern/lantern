@@ -128,7 +128,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         .connectToServer(ServerLocationType.lanternLocation, server.tag);
     result.fold(
       (failure) => appLogger.error(
-        'Failed to connect: ${failure.localizedErrorMessage}',
+        'Failed to connect: ${failure.error}',
       ),
       (success) {
         appLogger.info('Connecting to ${server.location.country} - ${server.location.city}');

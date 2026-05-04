@@ -437,7 +437,7 @@ class Account extends HookConsumerWidget {
     result.fold(
       (l) {
         context.hideLoadingDialog();
-        appLogger.error('Logout error: ${l.localizedErrorMessage}');
+        appLogger.error('Logout error: ${l.error}');
         context.showSnackBar(l.localizedErrorMessage);
       },
       (user) {
