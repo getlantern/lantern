@@ -17,7 +17,7 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
-  final String? code
+  final String? code;
   final AuthFlow authFlow;
 
   const ChoosePaymentMethod({
@@ -215,6 +215,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           },
           onError: (error) {
             finishPaymentRedirect(paymentRedirectInFlight);
+
             ///error while subscribing
             appLogger.error('Error subscribing to plan: $error');
             if (error is StripeException) {
@@ -322,9 +323,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       await result.fold<Future<void>>(
         (failure) async {
           context.hideLoadingDialog();
-          appLogger.error(
-            'Error redirecting to payment: ${failure.localizedErrorMessage}',
-          );
+          appLogger.error('Error redirecting to payment: ${failure.error}');
           context.showSnackBar(failure.localizedErrorMessage);
         },
         (url) async {
