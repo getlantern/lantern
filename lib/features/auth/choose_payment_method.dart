@@ -155,7 +155,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         }
 
         if (isAndroidSideload) {
-          await androidStripeSubscription(provider, ref, context);
+          await androidStripeSubscription(
+            provider,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
           return;
         }
 
@@ -179,7 +184,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     Android provider,
     WidgetRef ref,
     BuildContext context,
+    ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
+    if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     final payments = ref.read(paymentProvider.notifier);
     context.showLoadingDialog();
@@ -191,19 +198,23 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
+        finishPaymentRedirect(paymentRedirectInFlight);
       },
       (stripeData) async {
         // Handle success
         context.hideLoadingDialog();
 
-        /// Start stripe SDK
+        /// Start stripe SDK. The flag is cleared inside the SDK callbacks
+        /// since startStripeSDK returns before the user finishes the flow.
         sl<StripeService>().startStripeSDK(
           context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
+            finishPaymentRedirect(paymentRedirectInFlight);
             onPurchaseResult(true, context, ref);
           },
           onError: (error) {
+            finishPaymentRedirect(paymentRedirectInFlight);
             ///error while subscribing
             appLogger.error('Error subscribing to plan: $error');
             if (error is StripeException) {
@@ -237,16 +248,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         userPlan.id,
         email,
       );
-      if (!context.mounted) {
-        finishPaymentRedirect(paymentRedirectInFlight);
-        return;
-      }
+      if (!context.mounted) return;
       await result.fold<Future<void>>(
         (error) async {
           context.showSnackBar(error.localizedErrorMessage);
           appLogger.error('Error subscribing to plan: $error');
           context.hideLoadingDialog();
-          finishPaymentRedirect(paymentRedirectInFlight);
         },
         (stripeUrl) async {
           final normalizedStripeUrl = UrlUtils.normalizeWebviewUrl(stripeUrl);
@@ -254,7 +261,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             context.showSnackBar('empty_url'.i18n);
             appLogger.error('Error subscribing to plan: empty redirect URL');
             context.hideLoadingDialog();
-            finishPaymentRedirect(paymentRedirectInFlight);
             return;
           }
           if (!UrlUtils.isSupportedWebviewUrl(normalizedStripeUrl)) {
@@ -263,32 +269,34 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               'Error subscribing to plan: invalid redirect URL: $stripeUrl',
             );
             context.hideLoadingDialog();
-            finishPaymentRedirect(paymentRedirectInFlight);
             return;
           }
           appLogger.info('Successfully started stripe subscription flow');
           context.hideLoadingDialog();
+          // Let the loading dialog finish dismissing before opening the webview.
           await Future.delayed(const Duration(milliseconds: 300));
-          if (!context.mounted) {
-            finishPaymentRedirect(paymentRedirectInFlight);
-            return;
-          }
+          if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          final purchaseResult = await UrlUtils.openWebview<bool>(
-            normalizedStripeUrl,
-            title: 'stripe_payment'.i18n,
-          );
-          finishPaymentRedirect(paymentRedirectInFlight);
-          if (!context.mounted || purchaseResult == null) return;
-          await onPurchaseResult(purchaseResult, context, ref);
+          try {
+            final purchaseResult = await UrlUtils.openWebview<bool>(
+              normalizedStripeUrl,
+              title: 'stripe_payment'.i18n,
+            );
+            if (!context.mounted || purchaseResult == null) return;
+            await onPurchaseResult(purchaseResult, context, ref);
+          } catch (_) {
+            ref.read(paymentSessionProvider.notifier).clearRedirect();
+            rethrow;
+          }
         },
       );
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
-      finishPaymentRedirect(paymentRedirectInFlight);
       if (!context.mounted) return;
       context.hideLoadingDialog();
       context.showSnackBar(e.localizedDescription);
+    } finally {
+      finishPaymentRedirect(paymentRedirectInFlight);
     }
   }
 
@@ -299,57 +307,58 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
-    context.showLoadingDialog();
-    final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
-    final result = await ref
-        .read(paymentProvider.notifier)
-        .paymentRedirect(provider: provider, planId: userPlan.id, email: email);
-    if (!context.mounted) {
-      finishPaymentRedirect(paymentRedirectInFlight);
-      return;
-    }
+    try {
+      context.showLoadingDialog();
+      final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
+      final result = await ref
+          .read(paymentProvider.notifier)
+          .paymentRedirect(
+            provider: provider,
+            planId: userPlan.id,
+            email: email,
+          );
+      if (!context.mounted) return;
 
-    await result.fold<Future<void>>(
-      (failure) async {
-        context.hideLoadingDialog();
-        appLogger.error(
-          'Error redirecting to payment: ${failure.localizedErrorMessage}',
-        );
-        context.showSnackBar(failure.localizedErrorMessage);
-        finishPaymentRedirect(paymentRedirectInFlight);
-      },
-      (url) async {
-        try {
+      await result.fold<Future<void>>(
+        (failure) async {
+          context.hideLoadingDialog();
+          appLogger.error(
+            'Error redirecting to payment: ${failure.localizedErrorMessage}',
+          );
+          context.showSnackBar(failure.localizedErrorMessage);
+        },
+        (url) async {
           context.hideLoadingDialog();
           final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
           if (normalizedUrl.isEmpty) {
             context.showSnackBar('empty_url'.i18n);
             appLogger.error('Empty payment redirect URL');
-            finishPaymentRedirect(paymentRedirectInFlight);
             return;
           }
           if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
             context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
             appLogger.error('Invalid payment redirect URL: $url');
-            finishPaymentRedirect(paymentRedirectInFlight);
             return;
           }
 
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          final purchaseResult = await UrlUtils.openWebview<bool>(
-            normalizedUrl,
-          );
-          finishPaymentRedirect(paymentRedirectInFlight);
-          if (!context.mounted || purchaseResult == null) return;
-          await onPurchaseResult(purchaseResult, context, ref);
-        } catch (e) {
-          appLogger.error('Error opening payment redirect URL: $e');
-          finishPaymentRedirect(paymentRedirectInFlight);
-          if (!context.mounted) return;
-          context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
-        }
-      },
-    );
+          try {
+            final purchaseResult = await UrlUtils.openWebview<bool>(
+              normalizedUrl,
+            );
+            if (!context.mounted || purchaseResult == null) return;
+            await onPurchaseResult(purchaseResult, context, ref);
+          } catch (e) {
+            ref.read(paymentSessionProvider.notifier).clearRedirect();
+            appLogger.error('Error opening payment redirect URL: $e');
+            if (!context.mounted) return;
+            context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+          }
+        },
+      );
+    } finally {
+      finishPaymentRedirect(paymentRedirectInFlight);
+    }
   }
 
   bool beginPaymentRedirect(ValueNotifier<bool> paymentRedirectInFlight) {
