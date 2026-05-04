@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -16,7 +17,7 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
-  final String? code;
+  final String? code
   final AuthFlow authFlow;
 
   const ChoosePaymentMethod({
@@ -30,6 +31,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
     final plansAsync = ref.watch(plansProvider);
+    final paymentRedirectInFlight = useState(false);
 
     return BaseScreen(
       title: '',
@@ -57,8 +59,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
                 return PaymentCheckoutMethods(
                   providers: providers,
                   userPlan: userPlan,
-                  onSubscribe: (provider) =>
-                      onSubscribe(provider, ref, context),
+                  isSubmitting: paymentRedirectInFlight.value,
+                  onSubscribe: (provider) => onSubscribe(
+                    provider,
+                    ref,
+                    context,
+                    paymentRedirectInFlight,
+                  ),
                 );
               },
             ),
@@ -129,6 +136,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     Android provider,
     WidgetRef ref,
     BuildContext context,
+    ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     final isDesktop = PlatformUtils.isDesktop;
     final isAndroid = PlatformUtils.isAndroid;
@@ -137,12 +145,22 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     switch (provider.providers.name) {
       case 'stripe':
         if (isDesktop) {
-          await desktopStripePurchaseFlow(provider, ref, context);
+          await desktopStripePurchaseFlow(
+            provider,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
           return;
         }
 
         if (isAndroidSideload) {
-          await androidStripeSubscription(provider, ref, context);
+          await androidStripeSubscription(
+            provider,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
           return;
         }
 
@@ -150,7 +168,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
       case 'shepherd':
         if (isDesktop || isAndroidSideload) {
-          await paymentRedirectFlow(provider.providers.name, ref, context);
+          await paymentRedirectFlow(
+            provider.providers.name,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
           return;
         }
         break;
@@ -161,7 +184,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     Android provider,
     WidgetRef ref,
     BuildContext context,
+    ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
+    if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     final payments = ref.read(paymentProvider.notifier);
     context.showLoadingDialog();
@@ -173,19 +198,23 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
+        finishPaymentRedirect(paymentRedirectInFlight);
       },
       (stripeData) async {
         // Handle success
         context.hideLoadingDialog();
 
-        /// Start stripe SDK
+        /// Start stripe SDK. The flag is cleared inside the SDK callbacks
+        /// since startStripeSDK returns before the user finishes the flow.
         sl<StripeService>().startStripeSDK(
           context: context,
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
+            finishPaymentRedirect(paymentRedirectInFlight);
             onPurchaseResult(true, context, ref);
           },
           onError: (error) {
+            finishPaymentRedirect(paymentRedirectInFlight);
             ///error while subscribing
             appLogger.error('Error subscribing to plan: $error');
             if (error is StripeException) {
@@ -205,7 +234,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     Android provider,
     WidgetRef ref,
     BuildContext context,
+    ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
+    if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     try {
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
@@ -217,14 +248,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         userPlan.id,
         email,
       );
-      result.fold(
-        (error) {
+      if (!context.mounted) return;
+      await result.fold<Future<void>>(
+        (error) async {
           context.showSnackBar(error.localizedErrorMessage);
           appLogger.error('Error subscribing to plan: $error');
           context.hideLoadingDialog();
         },
         (stripeUrl) async {
-          // Handle success
           final normalizedStripeUrl = UrlUtils.normalizeWebviewUrl(stripeUrl);
           if (normalizedStripeUrl.isEmpty) {
             context.showSnackBar('empty_url'.i18n);
@@ -242,19 +273,30 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           }
           appLogger.info('Successfully started stripe subscription flow');
           context.hideLoadingDialog();
+          // Let the loading dialog finish dismissing before opening the webview.
           await Future.delayed(const Duration(milliseconds: 300));
+          if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          UrlUtils.openWebview<bool>(
-            normalizedStripeUrl,
-            title: 'stripe_payment'.i18n,
-            onWebviewResult: (result) => onPurchaseResult(result, context, ref),
-          );
+          try {
+            final purchaseResult = await UrlUtils.openWebview<bool>(
+              normalizedStripeUrl,
+              title: 'stripe_payment'.i18n,
+            );
+            if (!context.mounted || purchaseResult == null) return;
+            await onPurchaseResult(purchaseResult, context, ref);
+          } catch (_) {
+            ref.read(paymentSessionProvider.notifier).clearRedirect();
+            rethrow;
+          }
         },
       );
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
+      if (!context.mounted) return;
       context.hideLoadingDialog();
       context.showSnackBar(e.localizedDescription);
+    } finally {
+      finishPaymentRedirect(paymentRedirectInFlight);
     }
   }
 
@@ -262,23 +304,30 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     String provider,
     WidgetRef ref,
     BuildContext context,
+    ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
-    context.showLoadingDialog();
-    final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
-    final result = await ref
-        .read(paymentProvider.notifier)
-        .paymentRedirect(provider: provider, planId: userPlan.id, email: email);
+    if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
+    try {
+      context.showLoadingDialog();
+      final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
+      final result = await ref
+          .read(paymentProvider.notifier)
+          .paymentRedirect(
+            provider: provider,
+            planId: userPlan.id,
+            email: email,
+          );
+      if (!context.mounted) return;
 
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        appLogger.error(
-          'Error redirecting to payment: ${failure.error}',
-        );
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (url) {
-        try {
+      await result.fold<Future<void>>(
+        (failure) async {
+          context.hideLoadingDialog();
+          appLogger.error(
+            'Error redirecting to payment: ${failure.localizedErrorMessage}',
+          );
+          context.showSnackBar(failure.localizedErrorMessage);
+        },
+        (url) async {
           context.hideLoadingDialog();
           final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
           if (normalizedUrl.isEmpty) {
@@ -292,19 +341,37 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             return;
           }
 
-          ///Mark a redirect as initiated so the auth flow won't silently
-          /// delete the account
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          UrlUtils.openWebview<bool>(
-            normalizedUrl,
-            onWebviewResult: (result) => onPurchaseResult(result, context, ref),
-          );
-        } catch (e) {
-          appLogger.error('Error opening payment redirect URL: $e');
-          context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
-        }
-      },
-    );
+          try {
+            final purchaseResult = await UrlUtils.openWebview<bool>(
+              normalizedUrl,
+            );
+            if (!context.mounted || purchaseResult == null) return;
+            await onPurchaseResult(purchaseResult, context, ref);
+          } catch (e) {
+            ref.read(paymentSessionProvider.notifier).clearRedirect();
+            appLogger.error('Error opening payment redirect URL: $e');
+            if (!context.mounted) return;
+            context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+          }
+        },
+      );
+    } finally {
+      finishPaymentRedirect(paymentRedirectInFlight);
+    }
+  }
+
+  bool beginPaymentRedirect(ValueNotifier<bool> paymentRedirectInFlight) {
+    if (paymentRedirectInFlight.value) {
+      appLogger.info('Payment redirect already in progress');
+      return false;
+    }
+    paymentRedirectInFlight.value = true;
+    return true;
+  }
+
+  void finishPaymentRedirect(ValueNotifier<bool> paymentRedirectInFlight) {
+    paymentRedirectInFlight.value = false;
   }
 
   Future<void> onPurchaseResult(
@@ -319,6 +386,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     }
     context.showLoadingDialog();
     final isPro = await checkUserAccountStatus(ref, context);
+    if (!context.mounted) return;
     context.hideLoadingDialog();
     if (isPro) {
       ref.read(paymentSessionProvider.notifier).clearRedirect();
@@ -366,12 +434,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 class PaymentCheckoutMethods extends HookConsumerWidget {
   final List<Android> providers;
   final Plan userPlan;
+  final bool isSubmitting;
   final Function(Android provider) onSubscribe;
 
   const PaymentCheckoutMethods({
     super.key,
     required this.providers,
     required this.userPlan,
+    required this.isSubmitting,
     required this.onSubscribe,
   });
 
@@ -481,6 +551,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 label: method.providers.supportSubscription
                     ? 'subscribe'.i18n
                     : 'checkout'.i18n,
+                enabled: !isSubmitting,
                 onPressed: () {
                   onSubscribe.call(method);
                 },

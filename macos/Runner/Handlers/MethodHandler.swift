@@ -335,6 +335,30 @@ class MethodHandler {
           await MainActor.run { result(MobileGetOAuthProvider()) }
         }
 
+      case "patchSettings":
+        guard let payload: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.patchSettings(payload: payload, result: result)
+
+      case "getSettings":
+        self.getSettings(result: result)
+
+      case "patchEnvVars":
+        guard let payload: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.patchEnvVars(payload: payload, result: result)
+
+      case "getEnvVars":
+        self.getEnvVars(result: result)
+
+      case "runURLTests":
+        self.runURLTests(result: result)
+
+      case "sendConfigRequest":
+        self.sendConfigRequest(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -1118,6 +1142,80 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  // MARK: - Developer mode
+
+  func patchSettings(payload: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobilePatchSettings(payload, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "PATCH_SETTINGS_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func getSettings(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileGetSettings(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SETTINGS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func patchEnvVars(payload: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobilePatchEnvVars(payload, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "PATCH_ENV_VARS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func getEnvVars(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileGetEnvVars(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_ENV_VARS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func runURLTests(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileRunURLTests(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RUN_URL_TESTS_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func sendConfigRequest(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileSendConfigRequest(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SEND_CONFIG_REQUEST_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
     }
   }
 
