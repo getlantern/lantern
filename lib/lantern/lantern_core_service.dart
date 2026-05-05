@@ -79,6 +79,10 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isPeerProxyEnabled();
+
   Future<Either<Failure, bool>> isSmartRoutingEnabled();
 
   Future<Either<Failure, bool>> isTelemetryEnabled();

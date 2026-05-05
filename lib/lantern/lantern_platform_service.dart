@@ -291,6 +291,30 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setPeerProxyEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isPeerProxyEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = await _methodChannel.invokeMethod<bool>(
