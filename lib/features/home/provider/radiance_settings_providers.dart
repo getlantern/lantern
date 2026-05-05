@@ -30,9 +30,10 @@ class RadianceSettings extends _$RadianceSettings {
     final telemetryF = svc.isTelemetryEnabled();
     final splitF = PlatformUtils.isIOS ? null : svc.isSplitTunnelingEnabled();
     // Peer-proxy probe runs only on platforms with native handlers
-    // (FFI-supported = Windows + Linux). On other platforms the call would
-    // fail with MissingPluginException on every settings init.
-    final peerF = PlatformUtils.isFFISupported ? svc.isPeerProxyEnabled() : null;
+    // (Windows + Linux via FFI, macOS via MethodChannel — i.e. all desktop).
+    // On iOS / Android the call would fail with MissingPluginException on
+    // every settings init.
+    final peerF = PlatformUtils.isDesktop ? svc.isPeerProxyEnabled() : null;
 
     final results = await Future.wait([
       blockAdsF,
