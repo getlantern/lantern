@@ -203,6 +203,23 @@ func SetSmartRoutingEnabled(enabled bool) error {
 	})
 }
 
+func SetPeerShareEnabled(enabled bool) error {
+	slog.Info("peer-share: SetPeerShareEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetPeerShareEnabled(enabled)
+	})
+}
+
+func IsPeerShareEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsPeerShareEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 func IsSmartRoutingEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsSmartRoutingEnabled(), nil
