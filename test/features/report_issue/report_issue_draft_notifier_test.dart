@@ -84,7 +84,7 @@ void main() {
 
       expect(
         container.read(reportIssueDraftProvider),
-        const ReportIssueDraftState(
+        ReportIssueDraftState(
           attachmentError: ReportIssueAttachmentRules.totalSizeExceededMessage,
         ),
       );

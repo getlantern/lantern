@@ -1,3 +1,4 @@
+import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:path/path.dart' as p;
 
@@ -5,20 +6,20 @@ class ReportIssueAttachmentRules {
   static const int maxCount = 3;
   static const int maxTotalBytes = 15 * 1024 * 1024;
 
-  static const String sectionLabel = 'Add screenshots';
-  static const String helperText = 'PNG, JPG, or GIF — 15 MB max total';
-  static const String uploadLabel = 'Add images';
+  static String get sectionLabel => 'report_issue_add_screenshots'.i18n;
+  static String get helperText => 'report_issue_screenshot_helper'.i18n;
+  static String get uploadLabel => 'report_issue_add_images'.i18n;
 
-  static const String unsupportedTypeMessage =
-      'Only PNG, JPG, and GIF images are supported.';
-  static const String tooManyAttachmentsMessage =
-      'You can attach up to 3 images.';
-  static const String totalSizeExceededMessage =
-      'Attachments must stay under 15 MB total.';
-  static const String duplicateAttachmentMessage =
-      'That image is already attached.';
-  static const String unreadableAttachmentMessage =
-      'We could not read one of those files.';
+  static String get unsupportedTypeMessage =>
+      'report_issue_attachments_unsupported_type'.i18n;
+  static String get tooManyAttachmentsMessage =>
+      'report_issue_attachments_too_many'.i18n;
+  static String get totalSizeExceededMessage =>
+      'report_issue_attachments_total_size_exceeded'.i18n;
+  static String get duplicateAttachmentMessage =>
+      'report_issue_attachments_duplicate'.i18n;
+  static String get unreadableAttachmentMessage =>
+      'report_issue_attachments_unreadable'.i18n;
 
   static const Map<String, String> _mimeTypesByExtension = <String, String>{
     'png': 'image/png',

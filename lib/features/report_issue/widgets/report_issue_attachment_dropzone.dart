@@ -50,6 +50,7 @@ class _ReportIssueAttachmentDropzoneState
             painter: _DashedBorderPainter(
               color: _borderColor(context, isEnabled),
               strokeWidth: 1.5,
+              borderRadius: defaultBorderRadius,
             ),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -178,8 +179,13 @@ class _CompactDropzoneContent extends StatelessWidget {
 class _DashedBorderPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
+  final BorderRadius borderRadius;
 
-  const _DashedBorderPainter({required this.color, required this.strokeWidth});
+  const _DashedBorderPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.borderRadius,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -188,10 +194,7 @@ class _DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
-    final path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(16)),
-      );
+    final path = Path()..addRRect(borderRadius.toRRect(Offset.zero & size));
 
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
@@ -205,6 +208,8 @@ class _DashedBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.borderRadius != borderRadius;
   }
 }

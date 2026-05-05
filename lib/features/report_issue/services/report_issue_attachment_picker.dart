@@ -45,7 +45,7 @@ class PlatformReportIssueAttachmentPicker
         error,
         stackTrace,
       );
-      throw const ReportIssueAttachmentPickerException(
+      throw ReportIssueAttachmentPickerException(
         ReportIssueAttachmentRules.unreadableAttachmentMessage,
       );
     }
@@ -63,7 +63,7 @@ class PlatformReportIssueAttachmentPicker
         error,
         stackTrace,
       );
-      throw const ReportIssueAttachmentPickerException(
+      throw ReportIssueAttachmentPickerException(
         ReportIssueAttachmentRules.unreadableAttachmentMessage,
       );
     }

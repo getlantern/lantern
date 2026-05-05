@@ -60,7 +60,7 @@ class PlatformReportIssueAttachmentAccess
       for (final bookmark in bookmarks) {
         final granted = await _startAccess(bookmark);
         if (!granted) {
-          throw const ReportIssueAttachmentAccessException(
+          throw ReportIssueAttachmentAccessException(
             ReportIssueAttachmentRules.unreadableAttachmentMessage,
           );
         }
@@ -76,7 +76,7 @@ class PlatformReportIssueAttachmentAccess
         error,
         stackTrace,
       );
-      throw const ReportIssueAttachmentAccessException(
+      throw ReportIssueAttachmentAccessException(
         ReportIssueAttachmentRules.unreadableAttachmentMessage,
       );
     } finally {

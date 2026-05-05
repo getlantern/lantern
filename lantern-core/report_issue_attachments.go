@@ -3,6 +3,7 @@ package lanterncore
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"os"
@@ -11,6 +12,17 @@ import (
 
 	"github.com/getlantern/radiance/issue"
 )
+
+const (
+	maxReportIssueAttachments     = 3
+	maxReportIssueAttachmentBytes = 15 * 1024 * 1024
+)
+
+var allowedReportIssueAttachmentTypes = map[string]struct{}{
+	"image/gif":  {},
+	"image/jpeg": {},
+	"image/png":  {},
+}
 
 type ReportIssueAttachment struct {
 	Name      string `json:"name"`
@@ -28,8 +40,13 @@ func loadReportIssueAttachments(raw string) ([]*issue.Attachment, error) {
 		return nil, nil
 	}
 
-	loaded := make([]*issue.Attachment, 0, len(attachments))
-	for _, attachment := range attachments {
+	prepared, err := validateReportIssueAttachmentMetadata(attachments)
+	if err != nil {
+		return nil, err
+	}
+
+	loaded := make([]*issue.Attachment, 0, len(prepared))
+	for _, attachment := range prepared {
 		loadedAttachment, err := buildReportIssueAttachment(attachment)
 		if err != nil {
 			return nil, err
@@ -51,42 +68,107 @@ func parseReportIssueAttachments(raw string) ([]ReportIssueAttachment, error) {
 	return attachments, nil
 }
 
-func buildReportIssueAttachment(attachment ReportIssueAttachment) (*issue.Attachment, error) {
+type preparedReportIssueAttachment struct {
+	name     string
+	path     string
+	mimeType string
+	size     int64
+}
+
+func validateReportIssueAttachmentMetadata(attachments []ReportIssueAttachment) ([]preparedReportIssueAttachment, error) {
+	if len(attachments) > maxReportIssueAttachments {
+		return nil, fmt.Errorf("too many attachments: max %d", maxReportIssueAttachments)
+	}
+
+	prepared := make([]preparedReportIssueAttachment, 0, len(attachments))
+	var totalBytes int64
+	for _, attachment := range attachments {
+		item, err := prepareReportIssueAttachment(attachment)
+		if err != nil {
+			return nil, err
+		}
+		totalBytes += item.size
+		if totalBytes > maxReportIssueAttachmentBytes {
+			return nil, fmt.Errorf("attachments exceed %d bytes total", maxReportIssueAttachmentBytes)
+		}
+		prepared = append(prepared, item)
+	}
+	return prepared, nil
+}
+
+func prepareReportIssueAttachment(attachment ReportIssueAttachment) (preparedReportIssueAttachment, error) {
 	name := sanitizeReportIssueAttachmentName(attachment.Name, attachment.Path)
 	if name == "" {
-		return nil, fmt.Errorf("attachment name is required")
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment name is required")
 	}
 
 	path := strings.TrimSpace(attachment.Path)
 	if path == "" {
-		return nil, fmt.Errorf("attachment %q path is required", name)
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment %q path is required", name)
 	}
 	if attachment.SizeBytes < 0 {
-		return nil, fmt.Errorf("attachment %q size must be non-negative", name)
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment %q size must be non-negative", name)
+	}
+
+	attachmentType := resolveDeclaredReportIssueAttachmentType(attachment.MimeType, name)
+	if !isAllowedReportIssueAttachmentType(attachmentType) {
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment %q type is not supported", name)
 	}
 
 	info, err := os.Stat(path)
 	if err != nil {
-		return nil, fmt.Errorf("stat attachment %q: %w", name, err)
+		return preparedReportIssueAttachment{}, fmt.Errorf("stat attachment %q: %w", name, err)
 	}
 	if info.IsDir() {
-		return nil, fmt.Errorf("attachment %q must be a file", name)
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment %q must be a file", name)
 	}
-	if attachment.SizeBytes > 0 && info.Size() != attachment.SizeBytes {
-		return nil, fmt.Errorf("attachment %q changed on disk before upload", name)
+	if info.Size() != attachment.SizeBytes {
+		return preparedReportIssueAttachment{}, fmt.Errorf("attachment %q changed on disk before upload", name)
 	}
 
-	data, err := os.ReadFile(path)
+	return preparedReportIssueAttachment{
+		name:     name,
+		path:     path,
+		mimeType: attachmentType,
+		size:     info.Size(),
+	}, nil
+}
+
+func buildReportIssueAttachment(attachment preparedReportIssueAttachment) (*issue.Attachment, error) {
+	data, err := readReportIssueAttachmentFile(attachment.path, attachment.size)
 	if err != nil {
-		return nil, fmt.Errorf("read attachment %q: %w", name, err)
+		return nil, fmt.Errorf("read attachment %q: %w", attachment.name, err)
+	}
+	attachmentType := canonicalReportIssueAttachmentType(
+		parseMediaType(http.DetectContentType(data)),
+	)
+	if !isAllowedReportIssueAttachmentType(attachmentType) {
+		return nil, fmt.Errorf("attachment %q content is not a supported image", attachment.name)
 	}
 
 	return &issue.Attachment{
-		Name:       name,
-		Type:       resolveReportIssueAttachmentType(attachment.MimeType, name, data),
+		Name:       attachment.name,
+		Type:       attachmentType,
 		Data:       data,
 		FirstClass: true,
 	}, nil
+}
+
+func readReportIssueAttachmentFile(path string, expectedSize int64) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(io.LimitReader(file, expectedSize+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) != expectedSize {
+		return nil, fmt.Errorf("file size changed during read")
+	}
+	return data, nil
 }
 
 func sanitizeReportIssueAttachmentName(name, path string) string {
@@ -97,22 +179,25 @@ func sanitizeReportIssueAttachmentName(name, path string) string {
 	return filepath.Base(strings.TrimSpace(path))
 }
 
-func resolveReportIssueAttachmentType(mimeType, name string, data []byte) string {
+func resolveDeclaredReportIssueAttachmentType(mimeType, name string) string {
 	if mediaType := parseMediaType(strings.TrimSpace(mimeType)); mediaType != "" {
-		return mediaType
+		return canonicalReportIssueAttachmentType(mediaType)
 	}
+	return canonicalReportIssueAttachmentType(
+		parseMediaType(mime.TypeByExtension(strings.ToLower(filepath.Ext(name)))),
+	)
+}
 
-	if mediaType := parseMediaType(
-		mime.TypeByExtension(strings.ToLower(filepath.Ext(name))),
-	); mediaType != "" {
-		return mediaType
+func canonicalReportIssueAttachmentType(mediaType string) string {
+	if mediaType == "image/jpg" {
+		return "image/jpeg"
 	}
+	return mediaType
+}
 
-	if len(data) == 0 {
-		return "application/octet-stream"
-	}
-
-	return parseMediaType(http.DetectContentType(data))
+func isAllowedReportIssueAttachmentType(mediaType string) bool {
+	_, ok := allowedReportIssueAttachmentTypes[mediaType]
+	return ok
 }
 
 func parseMediaType(value string) string {

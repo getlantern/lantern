@@ -157,7 +157,7 @@ void main() {
       () async {
         final fakeService = _FakeLanternService();
         final attachmentAccess = _FakeAttachmentAccess()
-          ..error = const ReportIssueAttachmentAccessException(
+          ..error = ReportIssueAttachmentAccessException(
             ReportIssueAttachmentRules.unreadableAttachmentMessage,
           );
 
