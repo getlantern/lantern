@@ -29,19 +29,22 @@ class RadianceSettings extends _$RadianceSettings {
     final routingF = svc.isSmartRoutingEnabled();
     final telemetryF = svc.isTelemetryEnabled();
     final splitF = PlatformUtils.isIOS ? null : svc.isSplitTunnelingEnabled();
-    final peerProxyF = svc.isPeerProxyEnabled();
+    // Peer-proxy probe runs only on platforms with native handlers
+    // (FFI-supported = Windows + Linux). On other platforms the call would
+    // fail with MissingPluginException on every settings init.
+    final peerF = PlatformUtils.isFFISupported ? svc.isPeerProxyEnabled() : null;
 
     final results = await Future.wait([
       blockAdsF,
       routingF,
       telemetryF,
       ?splitF,
-      peerProxyF,
+      ?peerF,
     ]);
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
-    final peerIdx = splitF == null ? 3 : 4;
+    final peerIdx = 3 + (splitF == null ? 0 : 1);
     state = RadianceSettingsState(
       blockAds: results[0].fold((_) => defaults.blockAds, (v) => v),
       routingMode: results[1].fold(
@@ -52,7 +55,9 @@ class RadianceSettings extends _$RadianceSettings {
       splitTunneling: splitF == null
           ? defaults.splitTunneling
           : results[3].fold((_) => defaults.splitTunneling, (v) => v),
-      peerProxy: results[peerIdx].fold((_) => defaults.peerProxy, (v) => v),
+      peerProxy: peerF == null
+          ? defaults.peerProxy
+          : results[peerIdx].fold((_) => defaults.peerProxy, (v) => v),
     );
   }
 
