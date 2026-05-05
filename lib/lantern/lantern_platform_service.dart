@@ -290,21 +290,28 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  // Peer-proxy has no native MethodChannel handler outside the FFI path.
-  // The toggle is gated to PlatformUtils.isFFISupported in the UI, so these
-  // implementations exist for interface conformance only and return a clear
-  // error rather than a MissingPluginException if ever invoked.
   @override
   Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
-    return Left(Failure(
-      error: 'peer-proxy not supported on this platform',
-      localizedErrorMessage: 'peer-proxy not supported on this platform',
-    ));
+    try {
+      await _methodChannel.invokeMethod('setPeerProxyEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, bool>> isPeerProxyEnabled() async {
-    return right(false);
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isPeerProxyEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override

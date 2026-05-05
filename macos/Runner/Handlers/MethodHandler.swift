@@ -245,6 +245,16 @@ class MethodHandler {
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
 
+      case "isPeerProxyEnabled":
+        Task {
+          await MainActor.run { result(MobileIsPeerShareEnabled()) }
+        }
+
+      case "setPeerProxyEnabled":
+        let data = call.arguments as? [String: Any]
+        let enabled = data?["enabled"] as? Bool ?? false
+        self.setPeerProxyEnabled(result: result, enabled: enabled)
+
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
@@ -1144,6 +1154,20 @@ class MethodHandler {
       MobileSetBlockAdsEnabled(enabled, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setPeerProxyEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetPeerShareEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_PROXY_ERROR")
         return
       }
       await MainActor.run {

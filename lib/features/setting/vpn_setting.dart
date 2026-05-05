@@ -120,7 +120,7 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
-        if (PlatformUtils.isFFISupported) ...{
+        if (PlatformUtils.isDesktop) ...{
           SizedBox(height: 16),
           AppCard(
             padding: EdgeInsets.zero,
