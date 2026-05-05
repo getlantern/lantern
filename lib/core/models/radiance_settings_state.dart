@@ -12,12 +12,14 @@ class RadianceSettingsState {
   final RoutingMode routingMode;
   final bool splitTunneling;
   final bool telemetry;
+  final bool peerProxy;
 
   const RadianceSettingsState({
     this.blockAds = false,
     this.routingMode = RoutingMode.full,
     this.splitTunneling = false,
     this.telemetry = false,
+    this.peerProxy = false,
   });
 
   RadianceSettingsState copyWith({
@@ -25,12 +27,14 @@ class RadianceSettingsState {
     RoutingMode? routingMode,
     bool? splitTunneling,
     bool? telemetry,
+    bool? peerProxy,
   }) {
     return RadianceSettingsState(
       blockAds: blockAds ?? this.blockAds,
       routingMode: routingMode ?? this.routingMode,
       splitTunneling: splitTunneling ?? this.splitTunneling,
       telemetry: telemetry ?? this.telemetry,
+      peerProxy: peerProxy ?? this.peerProxy,
     );
   }
 
@@ -41,9 +45,10 @@ class RadianceSettingsState {
           blockAds == other.blockAds &&
           routingMode == other.routingMode &&
           splitTunneling == other.splitTunneling &&
-          telemetry == other.telemetry;
+          telemetry == other.telemetry &&
+          peerProxy == other.peerProxy;
 
   @override
   int get hashCode =>
-      Object.hash(blockAds, routingMode, splitTunneling, telemetry);
+      Object.hash(blockAds, routingMode, splitTunneling, telemetry, peerProxy);
 }

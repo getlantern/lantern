@@ -35,6 +35,9 @@ class VPNSetting extends HookConsumerWidget {
     final telemetryConsent = ref.watch(
       radianceSettingsProvider.select((s) => s.telemetry),
     );
+    final peerProxy = ref.watch(
+      radianceSettingsProvider.select((s) => s.peerProxy),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(0),
@@ -117,6 +120,36 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
+        if (PlatformUtils.isDesktop) ...{
+          SizedBox(height: 16),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'share_my_connection'.i18n,
+              subtitle: Text(
+                'share_my_connection_subtitle'.i18n,
+                style: textTheme.labelMedium!.copyWith(
+                  color: context.textTertiary,
+                  letterSpacing: 0.0,
+                ),
+              ),
+              icon: AppImagePaths.share,
+              trailing: SwitchButton(
+                value: peerProxy,
+                onChanged: (bool? value) {
+                  ref
+                      .read(radianceSettingsProvider.notifier)
+                      .setPeerProxy(value ?? false);
+                },
+              ),
+              onPressed: () {
+                ref
+                    .read(radianceSettingsProvider.notifier)
+                    .setPeerProxy(!peerProxy);
+              },
+            ),
+          ),
+        },
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,

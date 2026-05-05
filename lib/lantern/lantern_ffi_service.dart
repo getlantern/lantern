@@ -1551,6 +1551,34 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setPeerProxyEnabled(enabled ? 1 : 0)
+            .cast<Utf8>()
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = _ffiService.isPeerProxyEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = _ffiService.isSmartRoutingEnabled();
