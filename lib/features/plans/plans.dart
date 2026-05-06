@@ -370,11 +370,17 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
+    // Mark a payment as in flight so that ConfirmEmail's back-press guard
+    // (confirm_email.dart) preserves the anonymous account if the user
+    // backs out before signup completes — same protection Stripe and the
+    // external paymentRedirect flow already get.
+    ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
       onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
+        ref.read(paymentSessionProvider.notifier).clearRedirect();
         if (!mounted) return;
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
@@ -383,6 +389,7 @@ class _PlansState extends ConsumerState<Plans> {
     );
     if (!mounted) return;
     result.fold((error) {
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       context.hideLoadingDialog();
       context.showSnackBar(error.localizedErrorMessage);
       appLogger.error('Error subscribing to plan: $error');
@@ -401,8 +408,9 @@ class _PlansState extends ConsumerState<Plans> {
 
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
-      /// If user logged in and purchase is successful then check user account status
-      /// to reflect new purchase and send user to pro flow
+      /// Renewal: user is already logged in, so the back-press protection
+      /// the redirect flag was guarding is no longer relevant.
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       userRenewalFlow();
       return;
     }
