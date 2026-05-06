@@ -471,7 +471,7 @@ class MethodHandler : FlutterPlugin,
                             map["provider"] as String,
                             map["planId"] as String,
                             map["email"] as String,
-                            map["idempotencyKey"] as String
+                            map["idempotencyKey"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(url)

@@ -84,13 +84,13 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> getOAuthProvider();
 
-
   ///Payments methods
-  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required BillingType type,
-      required String planId,
-      required String email,
-      required String idempotencyKey});
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+    required String idempotencyKey,
+  });
 
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
