@@ -1,4 +1,4 @@
-package lanterncore
+package reportissue
 
 import (
 	"encoding/json"
@@ -10,17 +10,17 @@ import (
 
 var testPNGData = []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0x00}
 
-func TestLoadReportIssueAttachmentsReturnsNilForEmptyInput(t *testing.T) {
-	attachments, err := loadReportIssueAttachments("")
+func TestLoadAttachmentsReturnsNilForEmptyInput(t *testing.T) {
+	attachments, err := LoadAttachments("")
 	if err != nil {
-		t.Fatalf("loadReportIssueAttachments returned error: %v", err)
+		t.Fatalf("LoadAttachments returned error: %v", err)
 	}
 	if attachments != nil {
 		t.Fatalf("expected nil attachments for empty input, got %d", len(attachments))
 	}
 }
 
-func TestBuildReportIssueAttachmentReadsAndMarksFirstClass(t *testing.T) {
+func TestBuildAttachmentReadsAndMarksFirstClass(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	data := testPNGData
@@ -28,7 +28,7 @@ func TestBuildReportIssueAttachmentReadsAndMarksFirstClass(t *testing.T) {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	raw, err := json.Marshal([]ReportIssueAttachment{{
+	raw, err := json.Marshal([]AttachmentMetadata{{
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
@@ -38,9 +38,9 @@ func TestBuildReportIssueAttachmentReadsAndMarksFirstClass(t *testing.T) {
 		t.Fatalf("marshal attachments: %v", err)
 	}
 
-	attachments, err := loadReportIssueAttachments(string(raw))
+	attachments, err := LoadAttachments(string(raw))
 	if err != nil {
-		t.Fatalf("loadReportIssueAttachments returned error: %v", err)
+		t.Fatalf("LoadAttachments returned error: %v", err)
 	}
 	if len(attachments) != 1 {
 		t.Fatalf("expected 1 attachment, got %d", len(attachments))
@@ -60,14 +60,14 @@ func TestBuildReportIssueAttachmentReadsAndMarksFirstClass(t *testing.T) {
 	}
 }
 
-func TestBuildReportIssueAttachmentRejectsChangedFiles(t *testing.T) {
+func TestBuildAttachmentRejectsChangedFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	if err := os.WriteFile(path, testPNGData, 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	_, err := validateReportIssueAttachmentMetadata([]ReportIssueAttachment{{
+	_, err := validateMetadata([]AttachmentMetadata{{
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
@@ -78,14 +78,14 @@ func TestBuildReportIssueAttachmentRejectsChangedFiles(t *testing.T) {
 	}
 }
 
-func TestBuildReportIssueAttachmentRejectsZeroSizeBypass(t *testing.T) {
+func TestBuildAttachmentRejectsZeroSizeBypass(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	if err := os.WriteFile(path, testPNGData, 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	_, err := validateReportIssueAttachmentMetadata([]ReportIssueAttachment{{
+	_, err := validateMetadata([]AttachmentMetadata{{
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
@@ -96,16 +96,16 @@ func TestBuildReportIssueAttachmentRejectsZeroSizeBypass(t *testing.T) {
 	}
 }
 
-func TestLoadReportIssueAttachmentsEnforcesLimitsBeforeReading(t *testing.T) {
+func TestLoadAttachmentsEnforcesLimitsBeforeReading(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	if err := os.WriteFile(path, testPNGData, 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	attachments := make([]ReportIssueAttachment, maxReportIssueAttachments+1)
+	attachments := make([]AttachmentMetadata, maxAttachments+1)
 	for i := range attachments {
-		attachments[i] = ReportIssueAttachment{
+		attachments[i] = AttachmentMetadata{
 			Name:      "vpn_error.png",
 			Path:      path,
 			MimeType:  "image/png",
@@ -117,46 +117,46 @@ func TestLoadReportIssueAttachmentsEnforcesLimitsBeforeReading(t *testing.T) {
 		t.Fatalf("marshal attachments: %v", err)
 	}
 
-	_, err = loadReportIssueAttachments(string(raw))
+	_, err = LoadAttachments(string(raw))
 	if err == nil || !strings.Contains(err.Error(), "too many attachments") {
 		t.Fatalf("expected too many attachments error, got %v", err)
 	}
 }
 
-func TestLoadReportIssueAttachmentsRejectsTotalSizeOverLimit(t *testing.T) {
+func TestLoadAttachmentsRejectsTotalSizeOverLimit(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "huge.png")
 	if err := os.WriteFile(path, nil, 0o644); err != nil {
 		t.Fatalf("create test attachment: %v", err)
 	}
-	if err := os.Truncate(path, maxReportIssueAttachmentBytes+1); err != nil {
+	if err := os.Truncate(path, maxAttachmentBytes+1); err != nil {
 		t.Fatalf("resize test attachment: %v", err)
 	}
 
-	raw, err := json.Marshal([]ReportIssueAttachment{{
+	raw, err := json.Marshal([]AttachmentMetadata{{
 		Name:      "huge.png",
 		Path:      path,
 		MimeType:  "image/png",
-		SizeBytes: maxReportIssueAttachmentBytes + 1,
+		SizeBytes: maxAttachmentBytes + 1,
 	}})
 	if err != nil {
 		t.Fatalf("marshal attachments: %v", err)
 	}
 
-	_, err = loadReportIssueAttachments(string(raw))
+	_, err = LoadAttachments(string(raw))
 	if err == nil || !strings.Contains(err.Error(), "attachments exceed") {
 		t.Fatalf("expected total size error, got %v", err)
 	}
 }
 
-func TestLoadReportIssueAttachmentsRejectsUnsupportedTypes(t *testing.T) {
+func TestLoadAttachmentsRejectsUnsupportedTypes(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "notes.txt")
 	if err := os.WriteFile(path, []byte("not an image"), 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	raw, err := json.Marshal([]ReportIssueAttachment{{
+	raw, err := json.Marshal([]AttachmentMetadata{{
 		Name:      "notes.txt",
 		Path:      path,
 		MimeType:  "text/plain",
@@ -166,13 +166,13 @@ func TestLoadReportIssueAttachmentsRejectsUnsupportedTypes(t *testing.T) {
 		t.Fatalf("marshal attachments: %v", err)
 	}
 
-	_, err = loadReportIssueAttachments(string(raw))
+	_, err = LoadAttachments(string(raw))
 	if err == nil || !strings.Contains(err.Error(), "type is not supported") {
 		t.Fatalf("expected unsupported type error, got %v", err)
 	}
 }
 
-func TestLoadReportIssueAttachmentsRejectsMismatchedImageContent(t *testing.T) {
+func TestLoadAttachmentsRejectsMismatchedImageContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	data := []byte("not an image")
@@ -180,7 +180,7 @@ func TestLoadReportIssueAttachmentsRejectsMismatchedImageContent(t *testing.T) {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	raw, err := json.Marshal([]ReportIssueAttachment{{
+	raw, err := json.Marshal([]AttachmentMetadata{{
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
@@ -190,7 +190,7 @@ func TestLoadReportIssueAttachmentsRejectsMismatchedImageContent(t *testing.T) {
 		t.Fatalf("marshal attachments: %v", err)
 	}
 
-	_, err = loadReportIssueAttachments(string(raw))
+	_, err = LoadAttachments(string(raw))
 	if err == nil || !strings.Contains(err.Error(), "content is not a supported image") {
 		t.Fatalf("expected content type error, got %v", err)
 	}

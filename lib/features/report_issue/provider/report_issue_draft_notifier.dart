@@ -24,7 +24,7 @@ class ReportIssueDraftState {
   });
 
   int get totalAttachmentBytes =>
-      ReportIssueAttachmentRules.totalBytes(attachments);
+      ReportIssueAttachmentRulesUtils.totalBytes(attachments);
 
   ReportIssueDraftState copyWith({
     String? email,
@@ -134,12 +134,13 @@ class ReportIssueDraft extends _$ReportIssueDraft {
 
     if (nextAttachments.length == state.attachments.length) {
       state = state.copyWith(
-        attachmentError: ReportIssueAttachmentRules.duplicateAttachmentMessage,
+        attachmentError:
+            ReportIssueAttachmentRulesUtils.duplicateAttachmentMessage,
       );
       return;
     }
 
-    final validationError = ReportIssueAttachmentRules.validateAttachments(
+    final validationError = ReportIssueAttachmentRulesUtils.validateAttachments(
       nextAttachments,
       reservedBytes: reservedBytes,
     );

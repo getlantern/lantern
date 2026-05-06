@@ -11,9 +11,9 @@ import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/report_issue.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_picker.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
-import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
+import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
+import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -182,10 +182,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('vpn_error.png'), findsOneWidget);
-      expect(
-        find.text(ReportIssueAttachmentRules.formatSize(attachment.sizeBytes)),
-        findsOneWidget,
-      );
+      expect(find.text(attachment.formattedSize), findsOneWidget);
       expect(
         tester
             .widget<ReportIssueAttachmentDropzone>(
@@ -208,7 +205,7 @@ void main() {
         name: 'huge.gif',
         path: '/tmp/huge.gif',
         mimeType: 'image/gif',
-        sizeBytes: ReportIssueAttachmentRules.maxTotalBytes - 512,
+        sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes - 512,
       );
       attachmentBudget.value = 1024;
       picker.enqueuePickResult(const <ReportIssueAttachment>[
@@ -226,7 +223,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text(ReportIssueAttachmentRules.totalSizeExceededMessage),
+        find.text(ReportIssueAttachmentRulesUtils.totalSizeExceededMessage),
         findsOneWidget,
       );
       expect(find.text('huge.gif'), findsNothing);

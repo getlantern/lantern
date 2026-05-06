@@ -5,9 +5,9 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_access.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
-import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
+import 'package:lantern/features/report_issue/provider/attachment_access.dart';
+import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 class _FakeLanternService implements LanternService {
@@ -136,7 +136,7 @@ void main() {
             name: 'huge.png',
             path: '/tmp/huge.png',
             mimeType: 'image/png',
-            sizeBytes: ReportIssueAttachmentRules.maxTotalBytes,
+            sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes,
           ),
         ],
       );
@@ -145,7 +145,7 @@ void main() {
       result.match(
         (failure) => expect(
           failure.localizedErrorMessage,
-          ReportIssueAttachmentRules.totalSizeExceededMessage,
+          ReportIssueAttachmentRulesUtils.totalSizeExceededMessage,
         ),
         (_) => fail('Expected submitter to reject the oversized payload'),
       );
@@ -158,7 +158,7 @@ void main() {
         final fakeService = _FakeLanternService();
         final attachmentAccess = _FakeAttachmentAccess()
           ..error = ReportIssueAttachmentAccessException(
-            ReportIssueAttachmentRules.unreadableAttachmentMessage,
+            ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
           );
 
         final submitter = ReportIssueSubmitter(
@@ -188,7 +188,7 @@ void main() {
         result.match(
           (failure) => expect(
             failure.localizedErrorMessage,
-            ReportIssueAttachmentRules.unreadableAttachmentMessage,
+            ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
           ),
           (_) => fail('Expected scoped access restoration to fail'),
         );

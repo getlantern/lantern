@@ -7,9 +7,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_picker.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
-import 'package:lantern/features/report_issue/services/report_issue_submitter.dart';
+import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
+import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 
 @RoutePage(name: 'ReportIssue')
@@ -213,7 +213,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
         stackTrace,
       );
       notifier.setAttachmentError(
-        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
       );
     }
   }
@@ -235,7 +235,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
         stackTrace,
       );
       notifier.setAttachmentError(
-        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
       );
     }
   }
@@ -353,7 +353,7 @@ class _AttachmentSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Text(
-            ReportIssueAttachmentRules.sectionLabel,
+            ReportIssueAttachmentRulesUtils.sectionLabel,
             style: Theme.of(
               context,
             ).textTheme.labelLarge?.copyWith(color: context.textSecondary),
@@ -373,15 +373,16 @@ class _AttachmentSection extends StatelessWidget {
         ] else
           const SizedBox(height: 8),
         ReportIssueAttachmentDropzone(
-          label: ReportIssueAttachmentRules.uploadLabel,
+          label: ReportIssueAttachmentRulesUtils.uploadLabel,
           onTap: onAdd,
           onDrop: onDrop,
           enableDesktopDrop: enableDesktopDrop,
-          enabled: attachments.length < ReportIssueAttachmentRules.maxCount,
+          enabled:
+              attachments.length < ReportIssueAttachmentRulesUtils.maxCount,
           compact: attachments.isNotEmpty,
         ),
         const SizedBox(height: 8),
-        Text(ReportIssueAttachmentRules.helperText, style: helperStyle),
+        Text(ReportIssueAttachmentRulesUtils.helperText, style: helperStyle),
         if (errorText != null) ...<Widget>[
           const SizedBox(height: 6),
           Text(errorText!, style: errorStyle),
@@ -417,7 +418,7 @@ class _AttachmentTile extends StatelessWidget {
               children: <Widget>[
                 Flexible(
                   child: Text(
-                    ReportIssueAttachmentRules.displayName(attachment),
+                    attachment.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -427,7 +428,7 @@ class _AttachmentTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  ReportIssueAttachmentRules.formatSize(attachment.sizeBytes),
+                  attachment.formattedSize,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: context.textTertiary),
@@ -441,8 +442,7 @@ class _AttachmentTile extends StatelessWidget {
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             padding: EdgeInsets.zero,
             onPressed: onRemove,
-            tooltip:
-                'Remove ${ReportIssueAttachmentRules.displayName(attachment)}',
+            tooltip: 'Remove ${attachment.displayName}',
           ),
         ],
       ),

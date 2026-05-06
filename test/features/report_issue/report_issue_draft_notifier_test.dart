@@ -74,7 +74,7 @@ void main() {
         name: 'large.gif',
         path: '/tmp/large.gif',
         mimeType: 'image/gif',
-        sizeBytes: ReportIssueAttachmentRules.maxTotalBytes + 1,
+        sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes + 1,
       );
 
       final notifier = container.read(reportIssueDraftProvider.notifier);
@@ -85,7 +85,8 @@ void main() {
       expect(
         container.read(reportIssueDraftProvider),
         ReportIssueDraftState(
-          attachmentError: ReportIssueAttachmentRules.totalSizeExceededMessage,
+          attachmentError:
+              ReportIssueAttachmentRulesUtils.totalSizeExceededMessage,
         ),
       );
     });

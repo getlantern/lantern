@@ -2,7 +2,7 @@ import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:path/path.dart' as p;
 
-class ReportIssueAttachmentRules {
+class ReportIssueAttachmentRulesUtils {
   static const int maxCount = 3;
   static const int maxTotalBytes = 15 * 1024 * 1024;
 
@@ -93,41 +93,6 @@ class ReportIssueAttachmentRules {
       return null;
     }
     return ext.substring(1);
-  }
-
-  static String displayName(ReportIssueAttachment attachment) {
-    final candidate = attachment.name.trim().isEmpty
-        ? attachment.path.trim()
-        : attachment.name.trim();
-    if (candidate.isEmpty) {
-      return 'attachment';
-    }
-    return p.basename(candidate);
-  }
-
-  static String formatSize(int bytes) {
-    if (bytes <= 0) {
-      return '0 B';
-    }
-
-    const kb = 1024;
-    const mb = 1024 * 1024;
-
-    if (bytes >= mb) {
-      final value = bytes / mb;
-      return '${_trim(value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1))} MB';
-    }
-
-    if (bytes >= kb) {
-      final value = bytes / kb;
-      return '${_trim(value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1))} KB';
-    }
-
-    return '$bytes B';
-  }
-
-  static String _trim(String value) {
-    return value.endsWith('.0') ? value.substring(0, value.length - 2) : value;
   }
 
   static String _normalizeMimeType(String value) {

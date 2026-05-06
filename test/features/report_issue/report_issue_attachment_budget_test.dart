@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lantern/features/report_issue/services/report_issue_attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
 
 void main() {
   group('PlatformReportIssueAttachmentBudget', () {

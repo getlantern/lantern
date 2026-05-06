@@ -26,6 +26,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/utils/reportissue"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
@@ -676,7 +677,7 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 		attachments = append(attachments, logFilePath)
 	}
 
-	firstClassAttachments, err := loadReportIssueAttachments(attachmentsJSON)
+	firstClassAttachments, err := reportissue.LoadAttachments(attachmentsJSON)
 	if err != nil {
 		return fmt.Errorf("load issue attachments: %w", err)
 	}

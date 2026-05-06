@@ -27,7 +27,7 @@ class PlatformReportIssueAttachmentPicker
   static final List<XTypeGroup> _acceptedTypeGroups = <XTypeGroup>[
     XTypeGroup(
       label: 'Images',
-      extensions: ReportIssueAttachmentRules.allowedExtensions,
+      extensions: ReportIssueAttachmentRulesUtils.allowedExtensions,
     ),
   ];
 
@@ -46,7 +46,7 @@ class PlatformReportIssueAttachmentPicker
         stackTrace,
       );
       throw ReportIssueAttachmentPickerException(
-        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
       );
     }
   }
@@ -64,7 +64,7 @@ class PlatformReportIssueAttachmentPicker
         stackTrace,
       );
       throw ReportIssueAttachmentPickerException(
-        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
       );
     }
   }
@@ -91,7 +91,7 @@ class PlatformReportIssueAttachmentPicker
           ? p.basename(path)
           : file.name.trim();
       final size = await file.length();
-      final mimeType = ReportIssueAttachmentRules.canonicalMimeType(
+      final mimeType = ReportIssueAttachmentRulesUtils.canonicalMimeType(
         name: name,
         path: path,
         mimeType: file.mimeType ?? '',

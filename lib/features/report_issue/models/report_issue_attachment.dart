@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 
 @immutable
 class ReportIssueAttachment {
@@ -23,22 +24,38 @@ class ReportIssueAttachment {
     'sizeBytes': sizeBytes,
   };
 
-  factory ReportIssueAttachment.fromJson(Map<String, dynamic> json) {
-    return ReportIssueAttachment(
-      name: json['name'] as String? ?? '',
-      path: json['path'] as String? ?? '',
-      mimeType: json['mimeType'] as String? ?? '',
-      sizeBytes: (json['sizeBytes'] as num?)?.toInt() ?? 0,
-      securityScopedBookmark: _bookmarkFromJson(json),
-    );
+  String get displayName {
+    final candidate = name.trim().isEmpty ? path.trim() : name.trim();
+    if (candidate.isEmpty) {
+      return 'attachment';
+    }
+    return p.basename(candidate);
   }
 
-  static String? _bookmarkFromJson(Map<String, dynamic> json) {
-    final bookmark = (json['securityScopedBookmark'] as String?)?.trim();
-    if (bookmark == null || bookmark.isEmpty) {
-      return null;
+  String get formattedSize {
+    final bytes = sizeBytes;
+    if (bytes <= 0) {
+      return '0 B';
     }
-    return bookmark;
+
+    const kb = 1024;
+    const mb = 1024 * 1024;
+
+    if (bytes >= mb) {
+      final value = bytes / mb;
+      return '${_trimSize(value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1))} MB';
+    }
+
+    if (bytes >= kb) {
+      final value = bytes / kb;
+      return '${_trimSize(value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1))} KB';
+    }
+
+    return '$bytes B';
+  }
+
+  static String _trimSize(String value) {
+    return value.endsWith('.0') ? value.substring(0, value.length - 2) : value;
   }
 
   @override

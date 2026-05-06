@@ -61,7 +61,7 @@ class PlatformReportIssueAttachmentAccess
         final granted = await _startAccess(bookmark);
         if (!granted) {
           throw ReportIssueAttachmentAccessException(
-            ReportIssueAttachmentRules.unreadableAttachmentMessage,
+            ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
           );
         }
         grantedBookmarks.add(bookmark);
@@ -77,7 +77,7 @@ class PlatformReportIssueAttachmentAccess
         stackTrace,
       );
       throw ReportIssueAttachmentAccessException(
-        ReportIssueAttachmentRules.unreadableAttachmentMessage,
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
       );
     } finally {
       for (final bookmark in grantedBookmarks.reversed) {
