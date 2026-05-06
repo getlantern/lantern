@@ -263,6 +263,8 @@ github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmI
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b/go.mod h1:NpfXdK4ldEKkjQ4P1R+DBF4ua5VFOlxmgHROTnYrApg=
 github.com/getlantern/radiance v0.0.0-20260506180721-4445a2040ede h1:RCf7U3JiNDMuhbS/lPp4qP6CbA2xmXBXEVk4gvRMysM=
 github.com/getlantern/radiance v0.0.0-20260506180721-4445a2040ede/go.mod h1:RG9PNWlBmS4HPFf6JTQ9CnsCD98zy75vvm7PnBIsdQI=
+github.com/getlantern/radiance v0.0.0-20260506192624-6309530dece6 h1:8139ZlUwUemO0whyBaGsmRP9kzzIyDENrEmwJsRQIqY=
+github.com/getlantern/radiance v0.0.0-20260506192624-6309530dece6/go.mod h1:RG9PNWlBmS4HPFf6JTQ9CnsCD98zy75vvm7PnBIsdQI=
 github.com/getlantern/samizdat v0.0.3-0.20260327203406-ef7323341974 h1:k+/qNo5YNO+8M8LVUp6G5Evm1OQdEs3Z4ye8top4AhI=
 github.com/getlantern/samizdat v0.0.3-0.20260327203406-ef7323341974/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb h1:c5YM7b3a4r2J8Eh89KkI6M/iTFe6Bi+b8AJlfkKdFq4=

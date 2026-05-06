@@ -867,6 +867,10 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.Payme
 }
 
 func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
 	deviceID := lc.MyDeviceId()
 	redirectBody := account.PaymentRedirectData{
 		Provider:       "stripe",
@@ -880,6 +884,10 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 }
 
 func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
 	deviceName := lc.MyDeviceId()
 	body := account.PaymentRedirectData{
 		Provider:       provider,
@@ -889,6 +897,14 @@ func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey s
 		IdempotencyKey: idempotencyKey,
 	}
 	return lc.client.PaymentRedirect(lc.ctx, body)
+}
+
+func normalizePaymentRedirectIdempotencyKey(idempotencyKey string) (string, error) {
+	idempotencyKey = strings.TrimSpace(idempotencyKey)
+	if idempotencyKey == "" {
+		return "", fmt.Errorf("payment redirect idempotency key is required")
+	}
+	return idempotencyKey, nil
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
