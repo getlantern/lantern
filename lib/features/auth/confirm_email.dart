@@ -112,6 +112,19 @@ class ConfirmEmail extends HookConsumerWidget {
       appRouter.pop();
       return;
     }
+
+    /// Defensive: never delete a Pro account on back-press, even if every other
+    /// guard somehow missed this case. A successful Apple/Google IAP promotes
+    /// the legacy user to `pro` inline server-side, so a paid user that
+    /// reaches this screen is already Pro and must be preserved.
+    if (ref.read(isUserProProvider)) {
+      appLogger.info(
+        'Back press in ConfirmEmail with pro user; preserving account',
+      );
+      appRouter.pop();
+      return;
+    }
+
     if (authFlow != AuthFlow.signUp) {
       appRouter.pop();
       return;
