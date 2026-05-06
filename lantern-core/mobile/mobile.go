@@ -555,17 +555,18 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 	})
 }
 
-func PaymentRedirect(provider, planId, email string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.PaymentRedirect(provider, planId, email) })
-
+func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.PaymentRedirect(provider, planId, email, idempotencyKey)
+	})
 }
 
 // /This is specifically for stripe subscriptions that require a redirect to complete the payment
 // This is only used for macos
-func StripeSubscriptionPaymentRedirect(subType, planId, email string) (string, error) {
+func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey string) (string, error) {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.StripeSubscriptionPaymentRedirect(subType, planId, email)
+		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey)
 	})
 }
 

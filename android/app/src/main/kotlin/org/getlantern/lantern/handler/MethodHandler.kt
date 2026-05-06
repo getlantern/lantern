@@ -470,7 +470,8 @@ class MethodHandler : FlutterPlugin,
                         val url = Mobile.paymentRedirect(
                             map["provider"] as String,
                             map["planId"] as String,
-                            map["email"] as String
+                            map["email"] as String,
+                            map["idempotencyKey"] as String
                         )
                         withContext(Dispatchers.Main) {
                             success(url)

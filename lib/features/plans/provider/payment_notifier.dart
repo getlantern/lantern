@@ -54,12 +54,14 @@ class PaymentNotifier extends _$PaymentNotifier {
     String planId,
     String email,
   ) async {
+    final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
         .stipeSubscriptionPaymentRedirect(
           type: type,
           planId: planId,
           email: email,
+          idempotencyKey: idempotencyKey,
         );
   }
 
@@ -77,9 +79,15 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String planId,
     required String email,
   }) async {
+    final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
-        .paymentRedirect(provider: provider, planId: planId, email: email);
+        .paymentRedirect(
+          provider: provider,
+          planId: planId,
+          email: email,
+          idempotencyKey: idempotencyKey,
+        );
   }
 
   Future<Either<Failure, String?>> startUpgradeFlow({

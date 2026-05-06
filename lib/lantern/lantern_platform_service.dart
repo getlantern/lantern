@@ -651,6 +651,7 @@ class LanternPlatformService implements LanternCoreService {
     required BillingType type,
     required String planId,
     required String email,
+    required String idempotencyKey,
   }) async {
     if (!PlatformUtils.isMacOS) {
       return left(
@@ -663,7 +664,12 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final redirectUrl = await _methodChannel.invokeMethod<String>(
         'stripeSubscriptionPaymentRedirect',
-        {"type": type.name, "planId": planId, "email": email},
+        {
+          "type": type.name,
+          "planId": planId,
+          "email": email,
+          "idempotencyKey": idempotencyKey,
+        },
       );
       return Right(redirectUrl!);
     } catch (e) {
@@ -758,6 +764,7 @@ class LanternPlatformService implements LanternCoreService {
     required String provider,
     required String planId,
     required String email,
+    required String idempotencyKey,
   }) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
@@ -765,7 +772,12 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final redirectUrl = await _methodChannel.invokeMethod<String>(
         'paymentRedirect',
-        {'provider': provider, 'planId': planId, 'email': email},
+        {
+          'provider': provider,
+          'planId': planId,
+          'email': email,
+          'idempotencyKey': idempotencyKey,
+        },
       );
       return Right(redirectUrl!);
     } catch (e, stackTrace) {

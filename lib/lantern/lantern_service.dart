@@ -175,18 +175,21 @@ class LanternService implements LanternCoreService {
     required BillingType type,
     required String planId,
     required String email,
+    required String idempotencyKey,
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
         type: type,
         planId: planId,
         email: email,
+        idempotencyKey: idempotencyKey,
       );
     }
     return _platformService.stipeSubscriptionPaymentRedirect(
       type: type,
       planId: planId,
       email: email,
+      idempotencyKey: idempotencyKey,
     );
   }
 
@@ -354,18 +357,21 @@ class LanternService implements LanternCoreService {
     required String provider,
     required String planId,
     required String email,
+    required String idempotencyKey,
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.paymentRedirect(
         provider: provider,
         planId: planId,
         email: email,
+        idempotencyKey: idempotencyKey,
       );
     }
     return _platformService.paymentRedirect(
       provider: provider,
       planId: planId,
       email: email,
+      idempotencyKey: idempotencyKey,
     );
   }
 

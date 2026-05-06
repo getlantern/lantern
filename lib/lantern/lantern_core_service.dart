@@ -89,12 +89,14 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,
       required String planId,
-      required String email});
+      required String email,
+      required String idempotencyKey});
 
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
     required String planId,
     required String email,
+    required String idempotencyKey,
   });
 
   // this is used for stripe subscription

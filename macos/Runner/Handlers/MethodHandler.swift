@@ -1225,8 +1225,15 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let type = data["type"] as? String ?? ""
+      let idempotencyKey = data["idempotencyKey"] as? String ?? ""
       var error: NSError?
-      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
+      let url = MobileStripeSubscriptionPaymentRedirect(
+        type,
+        planId,
+        email,
+        idempotencyKey,
+        &error
+      )
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
         return
@@ -1242,8 +1249,15 @@ class MethodHandler {
       let provider = data["provider"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let email = data["email"] as? String ?? ""
+      let idempotencyKey = data["idempotencyKey"] as? String ?? ""
       var error: NSError?
-      let url = MobilePaymentRedirect(provider, planId, email, &error)
+      let url = MobilePaymentRedirect(
+        provider,
+        planId,
+        email,
+        idempotencyKey,
+        &error
+      )
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
         return
