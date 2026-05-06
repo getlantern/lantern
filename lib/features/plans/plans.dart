@@ -408,8 +408,9 @@ class _PlansState extends ConsumerState<Plans> {
 
     final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
-      /// If user logged in and purchase is successful then check user account status
-      /// to reflect new purchase and send user to pro flow
+      /// Renewal: user is already logged in, so the back-press protection
+      /// the redirect flag was guarding is no longer relevant.
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
       userRenewalFlow();
       return;
     }

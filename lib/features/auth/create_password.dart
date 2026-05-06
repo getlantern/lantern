@@ -8,6 +8,7 @@ import 'package:lantern/core/widgets/password_criteria.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 
 
 @RoutePage(name: 'CreatePassword')
@@ -112,6 +113,10 @@ class CreatePassword extends HookConsumerWidget {
         context.hideLoadingDialog();
         appLogger.info('Password created successfully');
         ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+        // Signup completed: release any payment-in-flight flag set by an IAP
+        // (or other payment) flow that routed the user here, so future
+        // unrelated signup back-presses are not misprotected.
+        ref.read(paymentSessionProvider.notifier).clearRedirect();
         resolveRoutes(context, ref);
       },
     );

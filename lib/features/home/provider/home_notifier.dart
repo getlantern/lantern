@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -153,5 +154,8 @@ class HomeNotifier extends _$HomeNotifier {
   void clearLogoutData() {
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
+    // Defensive: a stale payment-in-flight flag would protect future
+    // unrelated signup back-presses from deleting orphaned anonymous accounts.
+    ref.read(paymentSessionProvider.notifier).clearRedirect();
   }
 }
