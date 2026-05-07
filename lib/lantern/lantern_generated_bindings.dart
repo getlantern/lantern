@@ -6295,6 +6295,26 @@ class LanternBindings {
   late final _isPeerProxyEnabled = _isPeerProxyEnabledPtr
       .asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> setPeerManualPort(int port) {
+    return _setPeerManualPort(port);
+  }
+
+  late final _setPeerManualPortPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setPeerManualPort',
+      );
+  late final _setPeerManualPort = _setPeerManualPortPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int getPeerManualPort() {
+    return _getPeerManualPort();
+  }
+
+  late final _getPeerManualPortPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('getPeerManualPort');
+  late final _getPeerManualPort = _getPeerManualPortPtr
+      .asFunction<int Function()>();
+
   ffi.Pointer<ffi.Char> setSmartRoutingEnabled(int enabled) {
     return _setSmartRoutingEnabled(enabled);
   }

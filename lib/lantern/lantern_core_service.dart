@@ -83,6 +83,14 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isPeerProxyEnabled();
 
+  /// Persists the manually-configured router port forward used as the
+  /// peer-share external port when set. Pass 0 to clear the override
+  /// and revert to UPnP-discovered port behavior.
+  Future<Either<Failure, Unit>> setPeerManualPort(int port);
+
+  /// Returns the persisted manual port (0 if unset).
+  Future<Either<Failure, int>> getPeerManualPort();
+
   Future<Either<Failure, bool>> isSmartRoutingEnabled();
 
   Future<Either<Failure, bool>> isTelemetryEnabled();
