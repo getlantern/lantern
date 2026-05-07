@@ -11,9 +11,11 @@
 // globe actually animates while the screen is visible.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
@@ -158,54 +160,75 @@ class ShareNotifier extends Notifier<ShareState> {
     state = const ShareState();
   }
 
-  // ── Mock connection event source ───────────────────────────────────────────
-  // A small canned set of (country, IP) pairs heavy on Lantern's priority
-  // censored regions, so the globe shows arcs landing where users actually
-  // benefit from the network. Real impl will subscribe to a radiance event.
+  // ── Live connection event source ───────────────────────────────────────────
+  // Polls the radiance peer client's localhost stats endpoint (see
+  // radiance/peer/connstats.go) every 3s, diffs against the last
+  // snapshot, and emits +1/-1 events to drive the globe arcs.
+  //
+  // The radiance side strips the port from "ip:port" before serving, so
+  // each entry in `sources` is a bare IP. Worker index is assigned
+  // monotonically per source; we keep a source→workerIdx map so the
+  // disconnect side fires the matching event for the same arc.
+  //
+  // Stats endpoint defaults to 127.0.0.1:17099; override with
+  // RADIANCE_PEER_STATS_ADDR in the radiance process if it conflicts.
 
-  static const _peerIPs = [
-    '5.190.10.5', // IR
-    '120.196.10.5', // CN
-    '95.165.10.5', // RU
-    '85.159.10.5', // TR
-    '113.161.10.5', // VN
-    '111.68.10.5', // PK
-    '156.197.10.5', // EG
-    '103.81.10.5', // MM
-    '37.156.10.5', // IR (second)
-    '202.108.10.5', // CN (second)
-  ];
+  static const _statsURL = 'http://127.0.0.1:17099/peer/connections';
+
+  final Map<String, int> _sourceToWorker = {};
+  Set<String> _lastSeen = const {};
 
   void _startMockEvents() {
-    final rand = Random();
-    _mockTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      // Bias toward connecting until we have ~4 active, then 50/50 churn.
-      final shouldConnect =
-          _activeWorkers.length < 4 || rand.nextDouble() < 0.5;
+    _lastSeen = const {};
+    _sourceToWorker.clear();
+    _mockTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      try {
+        final resp = await http
+            .get(Uri.parse(_statsURL))
+            .timeout(const Duration(seconds: 2));
+        if (resp.statusCode != 200) return;
+        final body = jsonDecode(resp.body) as Map<String, dynamic>;
+        final sourcesRaw = (body['sources'] as List?) ?? const [];
+        // Strip ":port" — the globe only cares about the IP.
+        final sources = <String>{
+          for (final s in sourcesRaw)
+            (s as String).split(':').first,
+        }..removeWhere((s) => s.isEmpty);
 
-      if (shouldConnect) {
-        final addr = _peerIPs[rand.nextInt(_peerIPs.length)];
-        final widx = _workerSeq++;
-        _activeWorkers.add(widx);
-        _eventController.add(UnboundedConnectionEvent(
-          state: 1,
-          workerIdx: widx,
-          addr: addr,
-        ));
+        // Disconnects: in last but not in current.
+        for (final gone in _lastSeen.difference(sources)) {
+          final widx = _sourceToWorker.remove(gone);
+          if (widx != null) {
+            _eventController.add(UnboundedConnectionEvent(
+              state: -1,
+              workerIdx: widx,
+              addr: '',
+            ));
+          }
+        }
+        // Connects: in current but not in last.
+        for (final fresh in sources.difference(_lastSeen)) {
+          final widx = _workerSeq++;
+          _sourceToWorker[fresh] = widx;
+          _eventController.add(UnboundedConnectionEvent(
+            state: 1,
+            workerIdx: widx,
+            addr: fresh,
+          ));
+        }
+        _lastSeen = sources;
+
+        // Refresh totals from the snapshot (active_count is authoritative;
+        // totalCount accumulates across the session for the status card).
+        final activeCount =
+            (body['active_count'] as num?)?.toInt() ?? sources.length;
         state = state.copyWith(
-          activeCount: state.activeCount + 1,
-          totalCount: state.totalCount + 1,
+          activeCount: activeCount,
+          totalCount: max(state.totalCount, _workerSeq),
         );
-      } else if (_activeWorkers.isNotEmpty) {
-        final widx = _activeWorkers.removeAt(0);
-        _eventController.add(UnboundedConnectionEvent(
-          state: -1,
-          workerIdx: widx,
-          addr: '',
-        ));
-        state = state.copyWith(
-          activeCount: max(0, state.activeCount - 1),
-        );
+      } catch (_) {
+        // Endpoint may not be up yet (peer.Client.Start in flight) or the
+        // user never had a real radiance peer attached. Silently retry.
       }
     });
   }
@@ -214,6 +237,8 @@ class ShareNotifier extends Notifier<ShareState> {
     _mockTimer?.cancel();
     _mockTimer = null;
     _activeWorkers.clear();
+    _sourceToWorker.clear();
+    _lastSeen = const {};
     _workerSeq = 0;
   }
 }

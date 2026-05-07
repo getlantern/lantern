@@ -2,7 +2,11 @@ module github.com/getlantern/lantern
 
 go 1.26.2
 
-// replace github.com/getlantern/radiance => ../radiance
+// Local while peer connection-stats endpoint is in flight; remove once
+// radiance tags a release that includes peer/connstats.go.
+replace github.com/getlantern/radiance => ../radiance
+
+replace github.com/getlantern/lantern-box => ../lantern-box
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
