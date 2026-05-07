@@ -467,13 +467,30 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // FlutterEarthGlobe positions the sphere relative to MediaQuery.size
+        // (i.e. the full screen). Without overriding it the globe ends up
+        // off-screen when it lives in a non-fullscreen layout slot. The
+        // MediaQuery override + Positioned.fill keeps the sphere centred
+        // within this widget's box; ClipRect keeps arcs from painting
+        // outside the box when they curve high.
+        final widgetSize = Size(constraints.maxWidth, constraints.maxHeight);
         final radius =
             min(constraints.maxWidth, constraints.maxHeight) / 2 * 0.7;
-        return FlutterEarthGlobe(
-          controller: _globeController,
-          radius: radius,
-          alignment: Alignment.center,
-          onZoomChanged: (_) {},
+        return ClipRect(
+          child: MediaQuery(
+            data: MediaQueryData(size: widgetSize),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: FlutterEarthGlobe(
+                    controller: _globeController,
+                    radius: radius,
+                    alignment: const Alignment(0.0, 0.1),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
