@@ -811,6 +811,22 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setPeerManualPort(port);
+    }
+    return _platformService.setPeerManualPort(port);
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getPeerManualPort();
+    }
+    return _platformService.getPeerManualPort();
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

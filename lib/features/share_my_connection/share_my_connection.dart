@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
@@ -289,6 +290,8 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
             ),
             const SizedBox(height: 8),
             _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
+            const SizedBox(height: 12),
+            const _AdvancedCard(),
             const SizedBox(height: 16),
           ],
         ),
@@ -539,6 +542,188 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
         );
       },
     );
+  }
+}
+
+// ─── Advanced section ────────────────────────────────────────────────────────
+
+/// _AdvancedCard exposes power-user knobs that don't belong in the
+/// always-visible status card. Today: manual port forward (for users on
+/// networks where UPnP doesn't work, who've configured a router-side
+/// port forward by hand).
+///
+/// Persisted via the existing FFI setPeerManualPort path; takes effect
+/// on the next peer.Client.Start (i.e. next time the toggle is flipped
+/// on after editing the field).
+class _AdvancedCard extends HookConsumerWidget {
+  const _AdvancedCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Theme(
+        // Strip the divider lines ExpansionTile draws by default — the
+        // container border already gives the section its own outline.
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Text('Advanced', style: textTheme.labelLarge),
+          subtitle: Text(
+            'For users whose router doesn\'t support UPnP',
+            style: textTheme.labelSmall,
+          ),
+          children: const [_ManualPortField()],
+        ),
+      ),
+    );
+  }
+}
+
+class _ManualPortField extends HookConsumerWidget {
+  const _ManualPortField();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final controller = useTextEditingController();
+    final loaded = useState(false);
+    final saving = useState(false);
+    final lastSaved = useState<int?>(null);
+
+    // Load the persisted port once. We deliberately don't watch a
+    // provider here — the value rarely changes and a one-shot read
+    // matches the rest of the radianceSettingsProvider's eager-load
+    // pattern.
+    useEffect(() {
+      Future.microtask(() async {
+        final result =
+            await ref.read(lanternServiceProvider).getPeerManualPort();
+        result.fold((_) => null, (port) {
+          if (port > 0) controller.text = port.toString();
+          lastSaved.value = port;
+        });
+        loaded.value = true;
+      });
+      return null;
+    }, const []);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Manual port forward',
+          style: textTheme.labelLarge,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'If your router doesn\'t support UPnP, configure a port forward '
+          'on your router and enter the port number here. Lantern will use '
+          'it as the external port instead of probing UPnP. Leave blank to '
+          'use UPnP (default).',
+          style: textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: false,
+                  signed: false,
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Port',
+                  hintText: 'e.g. 5698',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  enabled: loaded.value && !saving.value,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton(
+              onPressed: (loaded.value && !saving.value)
+                  ? () => _save(ref, context, controller, saving, lastSaved)
+                  : null,
+              child: saving.value
+                  ? const SizedBox(
+                      height: 16, width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save'),
+            ),
+          ],
+        ),
+        if (lastSaved.value != null && lastSaved.value! > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Currently set to port ${lastSaved.value}. Toggle Share My '
+            'Connection off and back on for the change to take effect.',
+            style: textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).hintColor,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _save(
+    WidgetRef ref,
+    BuildContext context,
+    TextEditingController controller,
+    ValueNotifier<bool> saving,
+    ValueNotifier<int?> lastSaved,
+  ) async {
+    saving.value = true;
+    try {
+      final raw = controller.text.trim();
+      int port = 0;
+      if (raw.isNotEmpty) {
+        port = int.tryParse(raw) ?? -1;
+        if (port < 1 || port > 65535) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Port must be between 1 and 65535')),
+            );
+          }
+          return;
+        }
+      }
+      final result =
+          await ref.read(lanternServiceProvider).setPeerManualPort(port);
+      result.fold(
+        (err) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(err.localizedErrorMessage)),
+            );
+          }
+        },
+        (_) {
+          lastSaved.value = port;
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(port == 0
+                    ? 'Manual port cleared — using UPnP'
+                    : 'Manual port set to $port'),
+              ),
+            );
+          }
+        },
+      );
+    } finally {
+      saving.value = false;
+    }
   }
 }
 

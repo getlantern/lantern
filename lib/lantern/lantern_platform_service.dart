@@ -314,6 +314,25 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  // Manual port forward setting — only the FFI path is wired today;
+  // the iOS / Android MethodChannel handlers don't yet implement these
+  // methods. Stub returns "unsupported" rather than throwing so the
+  // Advanced UI degrades gracefully on platforms that don't (yet) plumb
+  // the setting through their tunnel-extension IPC.
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    return Left(Failure(
+      error: 'setPeerManualPort: not implemented on this platform',
+      localizedErrorMessage:
+          'Manual port forwarding is not yet available on this platform.',
+    ));
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    return right(0);
+  }
+
   @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {

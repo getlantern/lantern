@@ -1579,6 +1579,34 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setPeerManualPort(port)
+            .cast<Utf8>()
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    try {
+      final res = _ffiService.getPeerManualPort();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = _ffiService.isSmartRoutingEnabled();

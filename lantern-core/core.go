@@ -163,6 +163,11 @@ type SmartRouting interface {
 type PeerShare interface {
 	SetPeerShareEnabled(bool) error
 	IsPeerShareEnabled() bool
+	// SetPeerManualPort persists the user's manually-configured router
+	// port forward (Advanced setting in the Share My Connection UI).
+	// 0 clears the override, restoring UPnP-discovered port behavior.
+	SetPeerManualPort(port int) error
+	GetPeerManualPort() int
 }
 
 type VPN interface {
@@ -496,6 +501,27 @@ func (lc *LanternCore) SetPeerShareEnabled(enabled bool) error {
 func (lc *LanternCore) IsPeerShareEnabled() bool {
 	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
 	return b
+}
+
+func (lc *LanternCore) SetPeerManualPort(port int) error {
+	if port < 0 || port > 65535 {
+		return fmt.Errorf("port %d out of range (0-65535)", port)
+	}
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerManualPortKey: port})
+	return err
+}
+
+func (lc *LanternCore) GetPeerManualPort() int {
+	// koanf typically stores numeric settings as float64 after JSON
+	// round-trip; handle both float64 and int paths so loads from disk
+	// and freshly-set values both work.
+	switch v := lc.settings()[settings.PeerManualPortKey].(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	}
+	return 0
 }
 
 func (lc *LanternCore) IsTelemetryEnabled() bool {

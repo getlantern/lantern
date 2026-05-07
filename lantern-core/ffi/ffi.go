@@ -1375,6 +1375,33 @@ func isPeerProxyEnabled() C.int {
 	return 0
 }
 
+// setPeerManualPort persists the manually-configured router port-forward
+// for the Share My Connection peer-share feature. 0 clears the override,
+// reverting to UPnP discovery on the next peer.Client.Start.
+//
+//export setPeerManualPort
+func setPeerManualPort(port C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetPeerManualPort(int(port)); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export getPeerManualPort
+func getPeerManualPort() C.int {
+	c, _ := requireCore()
+	if c == nil {
+		return 0
+	}
+	return C.int(c.GetPeerManualPort())
+}
+
 //export getSplitTunnelState
 func getSplitTunnelState() *C.char {
 	return runOnGoStack(func() *C.char {
