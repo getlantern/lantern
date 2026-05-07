@@ -24,6 +24,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
+import 'package:lantern/core/widgets/switch_button.dart';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -311,9 +312,16 @@ class _StatusCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch(
+              // Match the rest of the app's toggles (vpn_setting.dart etc.).
+              // SwitchButton has no built-in disabled state, so during the
+              // probe we render the switch but absorb the tap so the user
+              // doesn't double-fire toggle().
+              SwitchButton(
                 value: state.active || state.probing,
-                onChanged: state.probing ? null : (_) => onToggle(),
+                onChanged: (value) {
+                  if (state.probing) return;
+                  onToggle();
+                },
               ),
             ],
           ),
