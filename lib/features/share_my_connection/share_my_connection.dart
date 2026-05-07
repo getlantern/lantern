@@ -1,21 +1,23 @@
-// Share My Connection — UX prototype.
-// One unified screen for both protocols (Unbounded / Share-My-Connection):
+// Share My Connection — unified screen for both Unbounded and the
+// samizdat-over-UPnP "Share My Connection" modes:
 //   - Toggle ON triggers a (mocked) UPnP probe.
-//   - If UPnP works AND the user accepts the SmC disclosure, run SmC mode.
-//   - Otherwise fall back to Unbounded mode.
-//   - Globe animates connection arcs from a stream of UnboundedConnectionEvent.
+//   - If UPnP works AND the user accepts the SmC disclosure, run SmC mode
+//     (calls into radiance via the existing radianceSettingsProvider
+//     setPeerProxy path).
+//   - Otherwise fall back to Unbounded mode (UI-only for now; broflake
+//     wire-up follows once radiance#336 lands).
+//   - Globe animates connection arcs from peer-connection FlutterEvents
+//     streamed up from radiance.
 //
-// All wire-up to radiance / FFI is stubbed for this prototype: the UPnP probe
-// returns success after a short delay, and connection events are fired by a
-// timer cycling through a small set of canned residential peer IPs so the
-// globe actually animates while the screen is visible.
+// UPnP probe is still mocked (a coin-flip) until the FFI binding lands;
+// SmC mode is real — flipping the toggle starts the radiance peer
+// module on this branch.
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
@@ -27,6 +29,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -76,9 +80,9 @@ class ShareNotifier extends Notifier<ShareState> {
   // re-fires on app restart and is easy to demo.
   bool _smcAck = false;
 
-  Timer? _mockTimer;
+  StreamSubscription? _appEventSub;
   int _workerSeq = 0;
-  final List<int> _activeWorkers = [];
+  final Map<String, int> _sourceToWorker = {};
 
   final _eventController =
       StreamController<UnboundedConnectionEvent>.broadcast();
@@ -88,17 +92,18 @@ class ShareNotifier extends Notifier<ShareState> {
   @override
   ShareState build() {
     ref.onDispose(() {
-      _stopMockEvents();
+      _stopEventSubscription();
       _eventController.close();
     });
     return const ShareState();
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
-  /// disclosure modal inline.
-  Future<void> toggle(BuildContext context) async {
+  /// disclosure modal inline, and a WidgetRef so we can drive the radiance
+  /// peer-share toggle.
+  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
-      _stop();
+      await _stop(widgetRef);
       return;
     }
 
@@ -111,12 +116,12 @@ class ShareNotifier extends Notifier<ShareState> {
     await Future.delayed(const Duration(milliseconds: 1500));
     final upnpAvailable = Random().nextBool();
     if (!upnpAvailable) {
-      _start(ShareMode.unbounded);
+      await _start(widgetRef, ShareMode.unbounded);
       return;
     }
 
     if (_smcAck) {
-      _start(ShareMode.smc);
+      await _start(widgetRef, ShareMode.smc);
       return;
     }
 
@@ -138,13 +143,13 @@ class ShareNotifier extends Notifier<ShareState> {
     }
     if (accepted) {
       _smcAck = true;
-      _start(ShareMode.smc);
+      await _start(widgetRef, ShareMode.smc);
     } else {
-      _start(ShareMode.unbounded);
+      await _start(widgetRef, ShareMode.unbounded);
     }
   }
 
-  void _start(ShareMode mode) {
+  Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
     state = ShareState(
       active: true,
       probing: false,
@@ -152,93 +157,100 @@ class ShareNotifier extends Notifier<ShareState> {
       activeCount: 0,
       totalCount: 0,
     );
-    _startMockEvents();
+    _startEventSubscription(widgetRef);
+    if (mode == ShareMode.smc) {
+      // Flip the radiance peer-proxy setting; LocalBackend.PatchSettings
+      // routes that into peer.Client.Start, which spins up the UPnP map,
+      // registers with lantern-cloud, runs the samizdat inbound, and (via
+      // the lantern-box peerconn listener radiance/peer/peer.go now sets)
+      // emits ConnectionEvents that ride the radiance event bus → core.go
+      // listenPeerConnectionEvents → FlutterEvent → our Dart subscription.
+      await widgetRef
+          .read(radianceSettingsProvider.notifier)
+          .setPeerProxy(true);
+    }
+    // Unbounded mode is UI-only on this branch; broflake plumbing follows
+    // when radiance#336 lands.
   }
 
-  void _stop() {
-    _stopMockEvents();
+  Future<void> _stop(WidgetRef widgetRef) async {
+    _stopEventSubscription();
+    final wasSmc = state.mode == ShareMode.smc;
     state = const ShareState();
+    if (wasSmc) {
+      await widgetRef
+          .read(radianceSettingsProvider.notifier)
+          .setPeerProxy(false);
+    }
   }
 
   // ── Live connection event source ───────────────────────────────────────────
-  // Polls the radiance peer client's localhost stats endpoint (see
-  // radiance/peer/connstats.go) every 3s, diffs against the last
-  // snapshot, and emits +1/-1 events to drive the globe arcs.
+  // Subscribes to the existing FFI app-event stream (the same one
+  // AppEventNotifier uses for config / server-location / data-cap events)
+  // and filters for type=='peer-connection'. Each event's message is
+  // {state: +1|-1, source: "ip:port"} originally emitted from the
+  // lantern-box samizdat inbound via the peerconn listener registry, then
+  // rebroadcast by lantern-core/core.go listenPeerConnectionEvents.
   //
-  // The radiance side strips the port from "ip:port" before serving, so
-  // each entry in `sources` is a bare IP. Worker index is assigned
-  // monotonically per source; we keep a source→workerIdx map so the
-  // disconnect side fires the matching event for the same arc.
-  //
-  // Stats endpoint defaults to 127.0.0.1:17099; override with
-  // RADIANCE_PEER_STATS_ADDR in the radiance process if it conflicts.
+  // No local sockets, no fixed ports — the bridge rides on Dart api_dl,
+  // which is the same channel server-location updates and data-cap events
+  // already use.
 
-  static const _statsURL = 'http://127.0.0.1:17099/peer/connections';
-
-  final Map<String, int> _sourceToWorker = {};
-  Set<String> _lastSeen = const {};
-
-  void _startMockEvents() {
-    _lastSeen = const {};
+  void _startEventSubscription(WidgetRef widgetRef) {
     _sourceToWorker.clear();
-    _mockTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+    _appEventSub = widgetRef
+        .read(lanternServiceProvider)
+        .watchAppEvents()
+        .listen((event) {
+      if (event.eventType != 'peer-connection') return;
       try {
-        final resp = await http
-            .get(Uri.parse(_statsURL))
-            .timeout(const Duration(seconds: 2));
-        if (resp.statusCode != 200) return;
-        final body = jsonDecode(resp.body) as Map<String, dynamic>;
-        final sourcesRaw = (body['sources'] as List?) ?? const [];
-        // Strip ":port" — the globe only cares about the IP.
-        final sources = <String>{
-          for (final s in sourcesRaw)
-            (s as String).split(':').first,
-        }..removeWhere((s) => s.isEmpty);
+        final payload = jsonDecode(event.message) as Map<String, dynamic>;
+        final eventState = (payload['state'] as num?)?.toInt() ?? 0;
+        final source = (payload['source'] as String?) ?? '';
+        // Globe only cares about the IP — strip ":port".
+        final ip = source.split(':').first;
+        if (ip.isEmpty) return;
 
-        // Disconnects: in last but not in current.
-        for (final gone in _lastSeen.difference(sources)) {
-          final widx = _sourceToWorker.remove(gone);
-          if (widx != null) {
-            _eventController.add(UnboundedConnectionEvent(
-              state: -1,
-              workerIdx: widx,
-              addr: '',
-            ));
-          }
-        }
-        // Connects: in current but not in last.
-        for (final fresh in sources.difference(_lastSeen)) {
+        if (eventState == 1) {
+          // Each (source IP) gets a stable worker idx so the matching
+          // disconnect can find the arc to remove. Repeated +1 from the
+          // same source (re-connect after disconnect) gets a new idx.
+          if (_sourceToWorker.containsKey(ip)) return;
           final widx = _workerSeq++;
-          _sourceToWorker[fresh] = widx;
+          _sourceToWorker[ip] = widx;
           _eventController.add(UnboundedConnectionEvent(
             state: 1,
             workerIdx: widx,
-            addr: fresh,
+            addr: ip,
           ));
+          state = state.copyWith(
+            activeCount: state.activeCount + 1,
+            totalCount: state.totalCount + 1,
+          );
+        } else if (eventState == -1) {
+          final widx = _sourceToWorker.remove(ip);
+          if (widx == null) return;
+          _eventController.add(UnboundedConnectionEvent(
+            state: -1,
+            workerIdx: widx,
+            addr: '',
+          ));
+          state = state.copyWith(
+            activeCount: max(0, state.activeCount - 1),
+          );
         }
-        _lastSeen = sources;
-
-        // Refresh totals from the snapshot (active_count is authoritative;
-        // totalCount accumulates across the session for the status card).
-        final activeCount =
-            (body['active_count'] as num?)?.toInt() ?? sources.length;
-        state = state.copyWith(
-          activeCount: activeCount,
-          totalCount: max(state.totalCount, _workerSeq),
-        );
-      } catch (_) {
-        // Endpoint may not be up yet (peer.Client.Start in flight) or the
-        // user never had a real radiance peer attached. Silently retry.
+      } catch (e) {
+        // Malformed event — log via dev print to avoid bringing in the
+        // appLogger here. Real impl can switch to slog.
+        debugPrint('share-my-connection: bad peer-connection event: $e');
       }
     });
   }
 
-  void _stopMockEvents() {
-    _mockTimer?.cancel();
-    _mockTimer = null;
-    _activeWorkers.clear();
+  void _stopEventSubscription() {
+    _appEventSub?.cancel();
+    _appEventSub = null;
     _sourceToWorker.clear();
-    _lastSeen = const {};
     _workerSeq = 0;
   }
 }
@@ -276,7 +288,7 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
               child: _GlobeView(),
             ),
             const SizedBox(height: 8),
-            _StatusCard(state: state, onToggle: () => notifier.toggle(context)),
+            _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
             const SizedBox(height: 16),
           ],
         ),

@@ -18,8 +18,10 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
+	"github.com/getlantern/radiance/peer"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 
@@ -36,6 +38,11 @@ const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
 	EventTypeCountryCode    EventType = "country-code"
+	// EventTypePeerConnection signals a samizdat peer accept/close on the
+	// local Share My Connection inbound. Message is JSON
+	// {"state": +1|-1, "source": "ip:port"}; consumers extract the IP for
+	// geo-lookup or rate-limit attribution.
+	EventTypePeerConnection EventType = "peer-connection"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -246,6 +253,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
+	go lc.listenPeerConnectionEvents()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -358,6 +366,26 @@ func (lc *LanternCore) listenDataCapEvents() {
 	if err != nil && lc.ctx.Err() == nil {
 		slog.Error("datacap event stream exited unexpectedly", "error", err)
 	}
+}
+
+// listenPeerConnectionEvents forwards samizdat accept/close events from the
+// radiance peer client to the Flutter side via the existing FlutterEvent
+// emitter, so the Share My Connection globe can render arcs as remote
+// clients connect to the local peer's inbound. Subscription is process-
+// lifetime; events.Subscribe is decoupled from peer.Client lifecycle and
+// silently delivers nothing while no peer is active.
+func (lc *LanternCore) listenPeerConnectionEvents() {
+	events.Subscribe(func(evt peer.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":  evt.State,
+			"source": evt.Source,
+		})
+		if err != nil {
+			slog.Error("marshal peer connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
 }
 
 /////////////////
