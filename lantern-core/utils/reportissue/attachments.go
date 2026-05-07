@@ -148,10 +148,9 @@ func buildAttachment(attachment preparedAttachment) (*issue.Attachment, error) {
 	}
 
 	return &issue.Attachment{
-		Name:       attachment.name,
-		Type:       attachmentType,
-		Data:       data,
-		FirstClass: true,
+		Name: attachment.name,
+		Type: attachmentType,
+		Data: data,
 	}, nil
 }
 

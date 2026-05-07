@@ -20,7 +20,7 @@ func TestLoadAttachmentsReturnsNilForEmptyInput(t *testing.T) {
 	}
 }
 
-func TestBuildAttachmentReadsAndMarksFirstClass(t *testing.T) {
+func TestBuildAttachmentReadsImageData(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
 	data := testPNGData
@@ -51,9 +51,6 @@ func TestBuildAttachmentReadsAndMarksFirstClass(t *testing.T) {
 	}
 	if attachment.Type != "image/png" {
 		t.Fatalf("unexpected attachment type: %q", attachment.Type)
-	}
-	if !attachment.FirstClass {
-		t.Fatalf("expected attachment to be marked first class")
 	}
 	if string(attachment.Data) != string(data) {
 		t.Fatalf("attachment data mismatch: got %q want %q", string(attachment.Data), string(data))
