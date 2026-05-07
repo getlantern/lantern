@@ -493,7 +493,7 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
                   child: FlutterEarthGlobe(
                     controller: _globeController,
                     radius: radius,
-                    alignment: const Alignment(0.0, 0.1),
+                    alignment: const Alignment(0.0, -0.1),
                   ),
                 ),
               ],
