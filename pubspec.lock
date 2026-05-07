@@ -547,6 +547,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_earth_globe:
+    dependency: "direct main"
+    description:
+      name: flutter_earth_globe
+      sha256: a5461c43f4dbf1c1af4e8fa46293c83e97b8af7908969ccd6c324282e60d9a31
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   flutter_hooks:
     dependency: "direct main"
     description:
@@ -832,7 +840,7 @@ packages:
     source: hosted
     version: "4.3.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
