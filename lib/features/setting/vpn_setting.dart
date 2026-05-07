@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -127,25 +128,25 @@ class VPNSetting extends HookConsumerWidget {
             child: AppTile(
               label: 'share_my_connection'.i18n,
               subtitle: Text(
-                'share_my_connection_subtitle'.i18n,
+                peerProxy
+                    ? 'On — tap to view'
+                    : 'share_my_connection_subtitle'.i18n,
                 style: textTheme.labelMedium!.copyWith(
                   color: context.textTertiary,
                   letterSpacing: 0.0,
                 ),
               ),
               icon: AppImagePaths.share,
-              trailing: SwitchButton(
-                value: peerProxy,
-                onChanged: (bool? value) {
-                  ref
-                      .read(radianceSettingsProvider.notifier)
-                      .setPeerProxy(value ?? false);
-                },
+              trailing: AppImage(
+                path: AppImagePaths.arrowForward,
+                height: 20,
               ),
               onPressed: () {
-                ref
-                    .read(radianceSettingsProvider.notifier)
-                    .setPeerProxy(!peerProxy);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ShareMyConnectionScreen(),
+                  ),
+                );
               },
             ),
           ),
