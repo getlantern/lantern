@@ -90,7 +90,7 @@ class SignInEmail extends HookConsumerWidget {
                 boldOnPressed: () {
                   appRouter.push(Plans());
                 },
-              )
+              ),
             ],
           ),
         ),

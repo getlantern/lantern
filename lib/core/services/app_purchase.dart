@@ -28,6 +28,15 @@ class AppPurchase {
   // Track what plan the user selected
   String? _pendingPlanId;
 
+  // True while a restore flow is in progress; restored receipts should be
+  // acknowledged so the backend can reassociate the user, even when the
+  // device has no active subscription cached locally.
+  bool _isRestoreFlow = false;
+
+  // Set when a restore flow processes at least one purchase, so we can
+  // report "no purchases found" if the platform yields no receipts.
+  bool _restoreProcessedAny = false;
+
   void init() {
     if (PlatformUtils.isDesktop || _subscription != null) {
       return;
@@ -173,6 +182,32 @@ class AppPurchase {
     }
   }
 
+  /// Restores prior purchases from the platform store.
+  ///
+  /// On iOS this triggers StoreKit's restore flow; on Android it surfaces
+  /// active Google Play Billing purchases through the same purchase stream.
+  /// Restored receipts are acknowledged with the backend so the current user
+  /// (or the user matching the receipt, if unauthenticated) is associated
+  /// with the subscription.
+  Future<void> restorePurchases({
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  }) async {
+    _onSuccess = onSuccess;
+    _onError = onError;
+    _isRestoreFlow = true;
+    _pendingPlanId = null;
+
+    try {
+      appLogger.info('[AppPurchase] Initiating restore purchases');
+      await _inAppPurchase.restorePurchases();
+    } catch (e, st) {
+      appLogger.error('[AppPurchase] Error restoring purchases', e, st);
+      _isRestoreFlow = false;
+      _onError?.call('Error restoring purchases: $e');
+    }
+  }
+
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     appLogger.info(
       '[AppPurchase] Received purchase updates: ${purchases.length}',
@@ -214,7 +249,9 @@ class AppPurchase {
           status == PurchaseStatus.restored) {
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
-        if (await _checkIfAlreadyPurchased()) {
+        /// Skip the guard during an explicit restore flow — the whole point is
+        /// to re-acknowledge so the backend can reassociate the user.
+        if (!_isRestoreFlow && await _checkIfAlreadyPurchased()) {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
@@ -272,6 +309,7 @@ class AppPurchase {
       appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
       _pendingPlanId = null;
+      _isRestoreFlow = false;
     }
   }
 
@@ -362,5 +400,6 @@ class AppPurchase {
     _onSuccess = null;
     _onError = null;
     _pendingPlanId = null;
+    _isRestoreFlow = false;
   }
 }

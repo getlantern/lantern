@@ -10,6 +10,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -126,6 +127,17 @@ class _PlansState extends ConsumerState<Plans> {
                     onPressed: onGetLanternProTap,
                   ),
                 ),
+                if (isStoreVersion()) ...[
+                  SizedBox(height: defaultSize),
+                  Center(
+                    child: AppRichText(
+                      texts: '${'already_purchased'.i18n} ',
+                      boldTexts: 'restore_purchase'.i18n,
+                      boldUnderline: true,
+                      boldOnPressed: _restorePurchaseFlow,
+                    ),
+                  ),
+                ],
                 if (PlatformUtils.isIOS) ...{
                   SizedBox(height: defaultSize),
                   Padding(
@@ -205,14 +217,6 @@ class _PlansState extends ConsumerState<Plans> {
                 appRouter.popAndPush(
                   AddEmail(authFlow: AuthFlow.lanternProLicense),
                 );
-              },
-            ),
-            DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.restorePurchase,
-              label: 'restore_purchase'.i18n,
-              onPressed: () {
-                appRouter.popAndPush(SignInEmail());
               },
             ),
           ],
@@ -461,6 +465,23 @@ class _PlansState extends ConsumerState<Plans> {
             appRouter.popUntilRoot();
           });
         },
+      );
+    }
+  }
+
+  Future<void> _restorePurchaseFlow() async {
+    try {
+      final appPurchase = sl<AppPurchase>();
+      await appPurchase.restorePurchases(
+        onSuccess: (_) async {},
+        onError: (error) {},
+      );
+    } catch (e, st) {
+      appLogger.error('Error initiating restore purchase flow: $e', st);
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: e.localizedDescription,
       );
     }
   }

@@ -1014,6 +1014,15 @@ msgstr "Enter an Activation Code"
 msgid "restore_purchase"
 msgstr "Restore Purchase"
 
+msgid "already_purchased"
+msgstr "Already purchased?"
+
+msgid "restore_purchase_success"
+msgstr "Purchase restored successfully."
+
+msgid "restore_purchase_no_purchases"
+msgstr "No purchases were found to restore."
+
 
 msgid "do_private_server_setup"
 msgstr "DO Private Server Setup"

@@ -12,6 +12,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
+import '../../core/services/app_purchase.dart';
 import '../../core/services/injection_container.dart';
 
 enum _SettingType {
@@ -24,6 +25,7 @@ enum _SettingType {
   getPro,
   checkForUpdates,
   browserUnbounded,
+  restorePurchase,
 }
 
 @RoutePage(name: 'Setting')
@@ -44,7 +46,8 @@ class _SettingState extends ConsumerState<Setting> {
 
     final appSetting = ref.watch(appSettingProvider);
 
-    final hasProSession = (user?.legacyUserData.isPro ?? false) &&
+    final hasProSession =
+        (user?.legacyUserData.isPro ?? false) &&
         (user?.legacyUserData.unpassRegistered ?? false);
 
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
@@ -85,9 +88,10 @@ class _SettingState extends ConsumerState<Setting> {
                     Text('account'.i18n),
                     if (isUserPro || isExpired)
                       SubscriptionTags(
-                          type: isUserPro
-                              ? SubscriptionTagType.pro
-                              : SubscriptionTagType.expired)
+                        type: isUserPro
+                            ? SubscriptionTagType.pro
+                            : SubscriptionTagType.expired,
+                      ),
                   ],
                 ),
                 icon: AppImagePaths.accountSetting,
@@ -174,6 +178,15 @@ class _SettingState extends ConsumerState<Setting> {
                   icon: AppImagePaths.star,
                   onPressed: () => settingMenuTap(_SettingType.getPro),
                 ),
+                if (isStoreVersion() && !isUserPro) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'restore_purchase'.i18n,
+                    icon: AppImagePaths.restorePurchase,
+                    onPressed: () =>
+                        settingMenuTap(_SettingType.restorePurchase),
+                  ),
+                ],
               ],
             ),
           ),
@@ -263,7 +276,9 @@ class _SettingState extends ConsumerState<Setting> {
         final isPro = user.legacyUserData.isPro;
         if (isPro && !userSignedIn) {
           await showProAccountFlowDialog(
-              context: context, hasEmail: email.isNotEmpty);
+            context: context,
+            hasEmail: email.isNotEmpty,
+          );
           return;
         }
 
@@ -275,6 +290,9 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case _SettingType.restorePurchase:
+        _restorePurchaseFlow();
+        break;
     }
   }
 
@@ -283,6 +301,23 @@ class _SettingState extends ConsumerState<Setting> {
       await sl<Updater>().checkNow();
     } catch (e, st) {
       appLogger.error('Error checking for updates: $e', st);
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: e.localizedDescription,
+      );
+    }
+  }
+
+  Future<void> _restorePurchaseFlow() async {
+    try {
+      final appPurchase = sl<AppPurchase>();
+      await appPurchase.restorePurchases(
+        onSuccess: (_) async {},
+        onError: (error) {},
+      );
+    } catch (e, st) {
+      appLogger.error('Error initiating restore purchase flow: $e', st);
       AppDialog.errorDialog(
         context: context,
         title: 'error'.i18n,
