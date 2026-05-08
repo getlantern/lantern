@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"runtime/debug"
+	"strings"
+	"unicode/utf8"
 )
 
 // RunOffCgoStack executes fn on a new goroutine and returns its result.
@@ -16,6 +19,17 @@ import (
 //
 // If fn panics, the panic is recovered and a zero value + error are returned
 // instead of blocking the caller forever.
+//
+// Returned errors are normalized to a plain *errorString with a guaranteed
+// non-empty, valid-UTF-8 message before crossing back into gomobile's
+// objc bridge. The bridge wraps non-nil Go errors as a Universeerror whose
+// initWithRef calls [NSString initWithBytesNoCopy: ... encoding:UTF8] on the
+// raw error bytes; that returns nil for invalid UTF-8 (e.g. a gzipped 404
+// page, or a binary blob from an upstream LB), and the dictionary literal
+// `@{NSLocalizedDescriptionKey: nil}` then aborts the app with
+// "attempt to insert nil object from objects[0]". Sanitizing here means every
+// gomobile-exported function that funnels through RunOffCgoStack is safe by
+// construction, regardless of what shape of error its callee returns.
 func RunOffCgoStack[T any](fn func() (T, error)) (T, error) {
 	type result struct {
 		val T
@@ -34,5 +48,19 @@ func RunOffCgoStack[T any](fn func() (T, error)) (T, error) {
 		ch <- result{val: v, err: err}
 	}()
 	r := <-ch
-	return r.val, r.err
+	return r.val, sanitizeForGomobile(r.err)
+}
+
+func sanitizeForGomobile(err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	if !utf8.ValidString(msg) {
+		msg = strings.ToValidUTF8(msg, "?")
+	}
+	if msg == "" {
+		msg = "unknown error"
+	}
+	return errors.New(msg)
 }
