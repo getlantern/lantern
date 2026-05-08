@@ -1402,6 +1402,36 @@ func getPeerManualPort() C.int {
 	return C.int(c.GetPeerManualPort())
 }
 
+// setUnboundedEnabled is the local opt-in for the broflake / Unbounded
+// widget proxy ("Basic mode" in the SmC UI). The widget actually runs
+// only when this is true AND the server-side Features[unbounded] flag
+// is on AND the server provides UnboundedConfig — flipping this to
+// true on a network where the server hasn't enabled the feature is a
+// no-op until the next /config response opts the user in.
+//
+//export setUnboundedEnabled
+func setUnboundedEnabled(enabled C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetUnboundedEnabled(enabled != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export isUnboundedEnabled
+func isUnboundedEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsUnboundedEnabled() {
+		return 1
+	}
+	return 0
+}
+
 //export getSplitTunnelState
 func getSplitTunnelState() *C.char {
 	return runOnGoStack(func() *C.char {

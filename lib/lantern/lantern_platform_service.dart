@@ -334,6 +334,20 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    return Left(Failure(
+      error: 'setUnboundedEnabled: not implemented on this platform',
+      localizedErrorMessage:
+          'Unbounded is not yet available on this platform.',
+    ));
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    return right(false);
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = await _methodChannel.invokeMethod<bool>(
