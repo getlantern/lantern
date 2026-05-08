@@ -346,6 +346,16 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.restoreInAppPurchase(purchaseToken: purchaseToken);
+    }
+    return _platformService.restoreInAppPurchase(purchaseToken: purchaseToken);
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> logout(String email) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.logout(email);

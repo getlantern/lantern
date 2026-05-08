@@ -49,6 +49,14 @@ class PaymentNotifier extends _$PaymentNotifier {
         .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
   }
 
+  Future<Either<Failure, String>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) async {
+    return ref
+        .read(lanternServiceProvider)
+        .restoreInAppPurchase(purchaseToken: purchaseToken);
+  }
+
   Future<Either<Failure, String>> stripeSubscriptionLink(
     BillingType type,
     String planId,

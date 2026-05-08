@@ -893,6 +893,13 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) {
+    throw Exception("This not supported on desktop, this is only for mobile");
+  }
+
+  @override
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
     required String planId,

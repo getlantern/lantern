@@ -814,6 +814,22 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod<Uint8List>(
+        'restoreInAppPurchase',
+        {'purchaseToken': purchaseToken},
+      );
+      return Right(bytes != null ? utf8.decode(bytes) : '');
+    } catch (e, stackTrace) {
+      appLogger.error('Error restoring in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
     try {
       final loginUrl = await _methodChannel.invokeMethod<String>(

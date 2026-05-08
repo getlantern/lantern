@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.26.2
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 

@@ -119,6 +119,13 @@ abstract class LanternCoreService {
     required String planId,
   });
 
+  /// Restores a previously purchased subscription. Mobile-only.
+  /// `purchaseToken` is the Google Play purchase token on Android, or the
+  /// StoreKit receipt (server verification data) on iOS.
+  Future<Either<Failure, String>> restoreInAppPurchase({
+    required String purchaseToken,
+  });
+
   Future<Either<Failure, Unit>> showManageSubscriptions();
 
   /// Spilt tunnel methods

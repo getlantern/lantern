@@ -45,6 +45,7 @@ enum class Methods(val method: String) {
     StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
+    RestoreInAppPurchase("restoreInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     ReportIssue("reportIssue"),
 
@@ -458,6 +459,26 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "acknowledge_in_app_purchase",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.RestoreInAppPurchase.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val restoreData = Mobile.restoreGooglePlayPurchase(
+                            map["purchaseToken"] as String,
+                        )
+                        withContext(Dispatchers.Main) {
+                            success(restoreData.toByteArray(Charsets.UTF_8))
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "restore_in_app_purchase",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

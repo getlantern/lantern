@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
@@ -9,6 +10,7 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
@@ -311,18 +313,69 @@ class _SettingState extends ConsumerState<Setting> {
 
   Future<void> _restorePurchaseFlow() async {
     try {
-      final appPurchase = sl<AppPurchase>();
-      await appPurchase.restorePurchases(
-        onSuccess: (_) async {},
-        onError: (error) {},
+      await sl<AppPurchase>().restorePurchases(
+        onSuccess: _onRestoredPurchase,
+        onError: _showRestoreError,
       );
     } catch (e, st) {
       appLogger.error('Error initiating restore purchase flow: $e', st);
-      AppDialog.errorDialog(
+      _showRestoreError(e.localizedDescription);
+    }
+  }
+
+  Future<void> _onRestoredPurchase(PurchaseDetails purchaseDetails) async {
+    final purchaseToken =
+        purchaseDetails.verificationData.serverVerificationData;
+    if (purchaseToken.isEmpty) {
+      appLogger.info(
+        '[Restore] Skipping: empty token for ${purchaseDetails.productID}',
+      );
+      return;
+    }
+    if (!mounted) return;
+
+    appLogger.info(
+      '[Restore] Calling restoreInAppPurchase for ${purchaseDetails.productID}',
+    );
+    context.showLoadingDialog();
+    final result = await ref
+        .read(paymentProvider.notifier)
+        .restoreInAppPurchase(purchaseToken: purchaseToken);
+    if (!mounted) return;
+
+    if (result.isLeft()) {
+      final failure = result.swap().getOrElse((_) => throw StateError('left'));
+      appLogger.error('[Restore] Failed: ${failure.error}');
+      context.hideLoadingDialog();
+      _showRestoreError(failure.localizedErrorMessage);
+      return;
+    }
+
+    appLogger.info('[Restore] Succeeded, verifying Pro status');
+    final isPro = await checkUserAccountStatus(ref, context);
+    if (!mounted) return;
+    context.hideLoadingDialog();
+    if (isPro) {
+      AppDialog.showLanternProDialog(
         context: context,
-        title: 'error'.i18n,
-        content: e.localizedDescription,
+        onPressed: () => appRouter.popUntilRoot(),
+      );
+    } else {
+      AppDialog.dialog(
+        context: context,
+        title: 'restore_purchase'.i18n,
+        content: 'it_looks_like_something_went_wrong'.i18n,
       );
     }
+  }
+
+  void _showRestoreError(String message) {
+    appLogger.error('[Restore] $message');
+    if (!mounted) return;
+    AppDialog.errorDialog(
+      context: context,
+      title: 'error'.i18n,
+      content: message,
+    );
   }
 }

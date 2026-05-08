@@ -241,17 +241,29 @@ class AppPurchase {
         /// Purchase is pending (e.g. deferred payment method on Android).
         /// Dismiss loading and inform the user — the purchase will complete
         /// asynchronously when the payment is confirmed.
-        appLogger.info('[AppPurchase] Purchase is pending: ${purchaseDetails.productID}');
-        _onError?.call("Purchase is pending. You will be notified when it completes.");
+        appLogger.info(
+          '[AppPurchase] Purchase is pending: ${purchaseDetails.productID}',
+        );
+        _onError?.call(
+          "Purchase is pending. You will be notified when it completes.",
+        );
         return;
       }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
+        /// During an explicit restore flow, skip the backend acknowledge call
+        if (_isRestoreFlow) {
+          appLogger.info(
+            '[AppPurchase] Restore flow: delegating backend call to onSuccess',
+          );
+          await _finalize(purchaseDetails);
+          _onSuccess?.call(purchaseDetails);
+          return;
+        }
+
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
-        /// Skip the guard during an explicit restore flow — the whole point is
-        /// to re-acknowledge so the backend can reassociate the user.
-        if (!_isRestoreFlow && await _checkIfAlreadyPurchased()) {
+        if (await _checkIfAlreadyPurchased()) {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
@@ -352,7 +364,8 @@ class AppPurchase {
       return null;
     }, (user) => user);
 
-    final user = fetchedUser ??
+    final user =
+        fetchedUser ??
         (await lanternService.getUserData()).fold((failure) {
           appLogger.warning(
             '[AppPurchase] Failed to load cached user data for purchase check: ${failure.error}',
@@ -365,8 +378,8 @@ class AppPurchase {
     }
 
     final userLevel = user.legacyUserData.userLevel.toLowerCase();
-    final subscriptionStatus =
-        user.legacyUserData.subscriptionData.status.toLowerCase();
+    final subscriptionStatus = user.legacyUserData.subscriptionData.status
+        .toLowerCase();
 
     return userLevel == 'pro' || subscriptionStatus == 'active';
   }
