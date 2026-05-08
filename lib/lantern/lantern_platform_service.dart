@@ -21,6 +21,7 @@ import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -941,6 +942,7 @@ class LanternPlatformService implements LanternCoreService {
     String device,
     String model,
     String logFilePath,
+    List<ReportIssueAttachment> attachments,
   ) async {
     try {
       await _methodChannel.invokeMethod('reportIssue', {
@@ -950,6 +952,9 @@ class LanternPlatformService implements LanternCoreService {
         'device': device,
         'model': model,
         'logFilePath': logFilePath,
+        'attachments': attachments
+            .map((attachment) => attachment.toJson())
+            .toList(growable: false),
       });
       return right(unit);
     } catch (e, stackTrace) {

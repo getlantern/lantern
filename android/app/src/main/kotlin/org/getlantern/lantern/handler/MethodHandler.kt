@@ -387,13 +387,15 @@ class MethodHandler : FlutterPlugin,
                         val device = map["device"] as String? ?: ""
                         val model = map["model"] as String? ?: ""
                         val logFilePath = map["logFilePath"] as String? ?: ""
+                        val attachmentsJson = reportIssueAttachmentsJson(map["attachments"])
                         Mobile.reportIssue(
                             email,
                             issueType,
                             description,
                             device,
                             model,
-                            logFilePath
+                            logFilePath,
+                            attachmentsJson
                         )
                         withContext(Dispatchers.Main) {
                             success("ok")
@@ -1323,6 +1325,21 @@ private fun writeAppIconToCache(ctx: Context, packageName: String): String {
         bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
     }
     return file.absolutePath
+}
+
+private fun reportIssueAttachmentsJson(raw: Any?): String {
+    val attachments = raw as? List<*> ?: emptyList<Any?>()
+    val arr = JSONArray()
+    attachments.forEach { item ->
+        val attachment = item as? Map<*, *> ?: return@forEach
+        arr.put(JSONObject().apply {
+            put("name", attachment["name"] as? String ?: "")
+            put("path", attachment["path"] as? String ?: "")
+            put("mimeType", attachment["mimeType"] as? String ?: "")
+            put("sizeBytes", (attachment["sizeBytes"] as? Number)?.toLong() ?: 0L)
+        })
+    }
+    return arr.toString()
 }
 
 private fun drawableToBitmap(drawable: Drawable): Bitmap {

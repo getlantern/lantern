@@ -11,6 +11,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/core/models/user.dart';
 
 import '../core/services/app_purchase.dart';
@@ -28,7 +29,8 @@ Stream<List<String>> accumulateLogBatches(Stream<List<String>> batches) async* {
     if (batch.isEmpty) continue;
     buffer.addAll(batch);
     if (buffer.length > _maxBufferedLogLines) {
-      final targetLen = (_maxBufferedLogLines * (1.0 - _logTrimFraction)).round();
+      final targetLen = (_maxBufferedLogLines * (1.0 - _logTrimFraction))
+          .round();
       buffer.removeRange(0, buffer.length - targetLen);
     }
     yield List<String>.unmodifiable(buffer);
@@ -84,12 +86,12 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> getOAuthProvider();
 
-
   ///Payments methods
-  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required BillingType type,
-      required String planId,
-      required String email});
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+  });
 
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
@@ -98,8 +100,10 @@ abstract class LanternCoreService {
   });
 
   // this is used for stripe subscription
-  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId, required String email});
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
+    required String planId,
+    required String email,
+  });
 
   Future<Either<Failure, String>> stripeBillingPortal();
 
@@ -119,16 +123,24 @@ abstract class LanternCoreService {
 
   /// Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
-      SplitTunnelFilterType type, String value);
+    SplitTunnelFilterType type,
+    String value,
+  );
 
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
-      SplitTunnelFilterType type, String value);
+    SplitTunnelFilterType type,
+    String value,
+  );
 
   Future<Either<Failure, Unit>> addAllItems(
-      SplitTunnelFilterType type, List<String> value);
+    SplitTunnelFilterType type,
+    List<String> value,
+  );
 
   Future<Either<Failure, Unit>> removeAllItems(
-      SplitTunnelFilterType type, List<String> value);
+    SplitTunnelFilterType type,
+    List<String> value,
+  );
 
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled);
 
@@ -141,6 +153,7 @@ abstract class LanternCoreService {
     String device,
     String model,
     String logFilePath,
+    List<ReportIssueAttachment> attachments,
   );
 
   /// iOS only — returns paths to diagnostic log files.
@@ -158,15 +171,21 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
 
-  Future<Either<Failure, Unit>> activationCode(
-      {required String email, required String resellerCode});
+  Future<Either<Failure, Unit>> activationCode({
+    required String email,
+    required String resellerCode,
+  });
 
   ///User management methods
-  Future<Either<Failure, UserResponseModel>> login(
-      {required String email, required String password});
+  Future<Either<Failure, UserResponseModel>> login({
+    required String email,
+    required String password,
+  });
 
-  Future<Either<Failure, Unit>> signUp(
-      {required String email, required String password});
+  Future<Either<Failure, Unit>> signUp({
+    required String email,
+    required String password,
+  });
 
   Future<Either<Failure, UserResponseModel>> getUserData();
 
@@ -178,7 +197,9 @@ abstract class LanternCoreService {
 
   //Change email
   Future<Either<Failure, String>> startChangeEmail(
-      String newEmail, String password);
+    String newEmail,
+    String password,
+  );
 
   Future<Either<Failure, String>> completeChangeEmail({
     required String newEmail,
@@ -189,8 +210,10 @@ abstract class LanternCoreService {
   //Forgot password
   Future<Either<Failure, Unit>> startRecoveryByEmail(String email);
 
-  Future<Either<Failure, Unit>> validateRecoveryCode(
-      {required String email, required String code});
+  Future<Either<Failure, Unit>> validateRecoveryCode({
+    required String email,
+    required String code,
+  });
 
   Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
@@ -199,13 +222,14 @@ abstract class LanternCoreService {
   });
 
   //Delete account
-  Future<Either<Failure, UserResponseModel>> deleteAccount(
-      {required String email, required String password, bool isSSO = false});
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
+    required String email,
+    required String password,
+    bool isSSO = false,
+  });
 
   //Device Remove
-  Future<Either<Failure, String>> deviceRemove({
-    required String deviceId,
-  });
+  Future<Either<Failure, String>> deviceRemove({required String deviceId});
 
   //Referral attachment
   Future<Either<Failure, String>> attachReferralCode(String code);
@@ -217,19 +241,24 @@ abstract class LanternCoreService {
 
   Stream<PrivateServerStatus> watchPrivateServerStatus();
 
-  Future<Either<Failure, Unit>> setUserInput(
-      {required PrivateServerInput methodType, required String input});
+  Future<Either<Failure, Unit>> setUserInput({
+    required PrivateServerInput methodType,
+    required String input,
+  });
 
   Future<Either<Failure, Unit>> validateSession();
 
-  Future<Either<Failure, Unit>> startDeployment(
-      {required String location, required String serverName});
+  Future<Either<Failure, Unit>> startDeployment({
+    required String location,
+    required String serverName,
+  });
 
-  Future<Either<Failure, Unit>> addServerManually(
-      {required String ip,
-      required String port,
-      required String accessToken,
-      required String serverName});
+  Future<Either<Failure, Unit>> addServerManually({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String serverName,
+  });
 
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
@@ -270,7 +299,9 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> deletePrivateServerByName(String serverName);
 
   Future<Either<Failure, Unit>> updatePrivateServerName(
-      String oldName, String newName);
+    String oldName,
+    String newName,
+  );
 
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,

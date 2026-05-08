@@ -5529,8 +5529,17 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> deviceC,
     ffi.Pointer<ffi.Char> modelC,
     ffi.Pointer<ffi.Char> logPathC,
+    ffi.Pointer<ffi.Char> attachmentsJSONC,
   ) {
-    return _reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC);
+    return _reportIssue(
+      emailC,
+      typeC,
+      descC,
+      deviceC,
+      modelC,
+      logPathC,
+      attachmentsJSONC,
+    );
   }
 
   late final _reportIssuePtr =
@@ -5543,12 +5552,14 @@ class LanternBindings {
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('reportIssue');
   late final _reportIssue = _reportIssuePtr
       .asFunction<
         ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,

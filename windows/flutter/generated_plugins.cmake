@@ -5,7 +5,9 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   auto_updater_windows
+  desktop_drop
   desktop_webview_window
+  file_selector_windows
   flutter_inappwebview_windows
   flutter_timezone
   screen_retriever_windows

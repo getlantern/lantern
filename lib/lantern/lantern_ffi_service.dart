@@ -17,6 +17,7 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -552,8 +553,14 @@ class LanternFFIService implements LanternCoreService {
     String device,
     String model,
     String logFilePath,
+    List<ReportIssueAttachment> attachments,
   ) async {
     try {
+      final attachmentsJson = jsonEncode(
+        attachments
+            .map((attachment) => attachment.toJson())
+            .toList(growable: false),
+      );
       final result = await runInBackground<String>(() async {
         return _ffiService
             .reportIssue(
@@ -563,6 +570,7 @@ class LanternFFIService implements LanternCoreService {
               device.toCharPtr,
               model.toCharPtr,
               logFilePath.toCharPtr,
+              attachmentsJson.toCharPtr,
             )
             .toDartString();
       });
@@ -653,9 +661,7 @@ class LanternFFIService implements LanternCoreService {
   ) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .connectToServer(tag.toCharPtr)
-            .toDartString();
+        return _ffiService.connectToServer(tag.toCharPtr).toDartString();
       });
       checkAPIError(result);
       return Right('ok');
@@ -824,7 +830,9 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) async {
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
+    String token,
+  ) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
@@ -1210,10 +1218,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .addServerBasedOnURLs(
-              urls.toCharPtr,
-              skipCertVerification ? 1 : 0,
-            )
+            .addServerBasedOnURLs(urls.toCharPtr, skipCertVerification ? 1 : 0)
             .toDartString();
       });
       checkAPIError(result);
@@ -1351,8 +1356,9 @@ class LanternFFIService implements LanternCoreService {
         return _ffiService.getAvailableServers().toDartString();
       });
       checkAPIError(result);
-      final servers =
-          AvailableServers.fromJson(jsonDecode(result) as List<dynamic>);
+      final servers = AvailableServers.fromJson(
+        jsonDecode(result) as List<dynamic>,
+      );
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error('Error getting available servers', e, stackTrace);
@@ -1460,20 +1466,22 @@ class LanternFFIService implements LanternCoreService {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final serverJson = json['server'] as Map<String, dynamic>?;
       if (serverJson == null) {
-        return Right(ServerLocation(
-          serverType: ServerLocationType.auto.name,
-          serverName: '',
-        ));
+        return Right(
+          ServerLocation(
+            serverType: ServerLocationType.auto.name,
+            serverName: '',
+          ),
+        );
       }
       final server = Server.fromJson(serverJson);
       final isLantern = server.isLantern;
-      return Right(ServerLocation.fromServer(
-        server: server,
-      ).copyWith(
-        serverType: isLantern
-            ? ServerLocationType.lanternLocation.name
-            : ServerLocationType.privateServer.name,
-      ));
+      return Right(
+        ServerLocation.fromServer(server: server).copyWith(
+          serverType: isLantern
+              ? ServerLocationType.lanternLocation.name
+              : ServerLocationType.privateServer.name,
+        ),
+      );
     } catch (e, stackTrace) {
       appLogger.error('Error while getting selected server', e, stackTrace);
       return Left(e.toFailure());

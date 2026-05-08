@@ -162,7 +162,7 @@ class AppTextField extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
-        alignment: isMultiline ? Alignment.topCenter : Alignment.center,
+        alignment: isMultiline ? Alignment.topLeft : Alignment.center,
         widthFactor: 1.0,
         heightFactor: 1.0,
         child: appAsset,
