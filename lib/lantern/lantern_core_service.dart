@@ -91,6 +91,13 @@ abstract class LanternCoreService {
   /// Returns the persisted manual port (0 if unset).
   Future<Either<Failure, int>> getPeerManualPort();
 
+  /// Local opt-in for the broflake / Unbounded widget proxy ("Basic
+  /// mode" in the Share My Connection UI). Actual run state also
+  /// depends on server feature-flag and config availability.
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isUnboundedEnabled();
+
   Future<Either<Failure, bool>> isSmartRoutingEnabled();
 
   Future<Either<Failure, bool>> isTelemetryEnabled();

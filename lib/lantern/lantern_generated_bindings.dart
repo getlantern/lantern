@@ -6315,6 +6315,26 @@ class LanternBindings {
   late final _getPeerManualPort = _getPeerManualPortPtr
       .asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> setUnboundedEnabled(int enabled) {
+    return _setUnboundedEnabled(enabled);
+  }
+
+  late final _setUnboundedEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setUnboundedEnabled',
+      );
+  late final _setUnboundedEnabled = _setUnboundedEnabledPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isUnboundedEnabled() {
+    return _isUnboundedEnabled();
+  }
+
+  late final _isUnboundedEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isUnboundedEnabled');
+  late final _isUnboundedEnabled = _isUnboundedEnabledPtr
+      .asFunction<int Function()>();
+
   ffi.Pointer<ffi.Char> setSmartRoutingEnabled(int enabled) {
     return _setSmartRoutingEnabled(enabled);
   }

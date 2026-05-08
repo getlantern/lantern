@@ -23,6 +23,7 @@ import (
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/peer"
 	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/unbounded"
 	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
@@ -168,6 +169,13 @@ type PeerShare interface {
 	// 0 clears the override, restoring UPnP-discovered port behavior.
 	SetPeerManualPort(port int) error
 	GetPeerManualPort() int
+	// SetUnboundedEnabled is the local opt-in for the broflake /
+	// Unbounded widget proxy ("Basic mode" in the SmC UI). The
+	// proxy actually runs only when this is true AND the server-side
+	// Features[unbounded] flag is on AND the server provides
+	// UnboundedConfig — see radiance/unbounded.shouldRunUnbounded.
+	SetUnboundedEnabled(bool) error
+	IsUnboundedEnabled() bool
 }
 
 type VPN interface {
@@ -373,12 +381,20 @@ func (lc *LanternCore) listenDataCapEvents() {
 	}
 }
 
-// listenPeerConnectionEvents forwards samizdat accept/close events from the
-// radiance peer client to the Flutter side via the existing FlutterEvent
-// emitter, so the Share My Connection globe can render arcs as remote
-// clients connect to the local peer's inbound. Subscription is process-
-// lifetime; events.Subscribe is decoupled from peer.Client lifecycle and
-// silently delivers nothing while no peer is active.
+// listenPeerConnectionEvents forwards inbound accept/close events from
+// either of the two donor protocols (samizdat-over-UPnP "Share My
+// Connection" and broflake "Unbounded") to the Flutter side via the
+// existing FlutterEvent emitter, so the same globe widget can render
+// arcs without caring which protocol produced them. Subscription is
+// process-lifetime; events.Subscribe silently delivers nothing while
+// no peer / widget is active.
+//
+// The wire format unifies both protocols on a single event type
+// (EventTypePeerConnection) with a {state, source} payload. Unbounded
+// has a workerIdx in addition to source IP — surfaced as part of the
+// JSON in case the Dart side eventually wants to disambiguate same-IP
+// reconnects (broflake's WebRTC sessions are short and same-IP churn
+// is more common than for SmC's long-lived TCP).
 func (lc *LanternCore) listenPeerConnectionEvents() {
 	events.Subscribe(func(evt peer.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
@@ -387,6 +403,18 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 		})
 		if err != nil {
 			slog.Error("marshal peer connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	events.Subscribe(func(evt unbounded.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":     evt.State,
+			"source":    evt.Addr,
+			"workerIdx": evt.WorkerIdx,
+		})
+		if err != nil {
+			slog.Error("marshal unbounded connection event", "error", err)
 			return
 		}
 		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
@@ -522,6 +550,16 @@ func (lc *LanternCore) GetPeerManualPort() int {
 		return int(v)
 	}
 	return 0
+}
+
+func (lc *LanternCore) SetUnboundedEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.UnboundedKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsUnboundedEnabled() bool {
+	b, _ := lc.settings()[settings.UnboundedKey].(bool)
+	return b
 }
 
 func (lc *LanternCore) IsTelemetryEnabled() bool {

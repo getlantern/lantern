@@ -827,6 +827,22 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setUnboundedEnabled(enabled);
+    }
+    return _platformService.setUnboundedEnabled(enabled);
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isUnboundedEnabled();
+    }
+    return _platformService.isUnboundedEnabled();
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

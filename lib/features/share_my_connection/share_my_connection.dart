@@ -159,29 +159,54 @@ class ShareNotifier extends Notifier<ShareState> {
       totalCount: 0,
     );
     _startEventSubscription(widgetRef);
-    if (mode == ShareMode.smc) {
-      // Flip the radiance peer-proxy setting; LocalBackend.PatchSettings
-      // routes that into peer.Client.Start, which spins up the UPnP map,
-      // registers with lantern-cloud, runs the samizdat inbound, and (via
-      // the lantern-box peerconn listener radiance/peer/peer.go now sets)
-      // emits ConnectionEvents that ride the radiance event bus → core.go
-      // listenPeerConnectionEvents → FlutterEvent → our Dart subscription.
-      await widgetRef
-          .read(radianceSettingsProvider.notifier)
-          .setPeerProxy(true);
+    switch (mode) {
+      case ShareMode.smc:
+        // Flip the radiance peer-proxy setting; LocalBackend.PatchSettings
+        // routes that into peer.Client.Start, which spins up the UPnP map
+        // (or honours PeerManualPortKey), registers with lantern-cloud,
+        // runs the samizdat inbound, and (via the lantern-box peerconn
+        // listener) emits ConnectionEvents that ride the radiance event
+        // bus → core.go listenPeerConnectionEvents → FlutterEvent → our
+        // Dart subscription.
+        await widgetRef
+            .read(radianceSettingsProvider.notifier)
+            .setPeerProxy(true);
+        break;
+      case ShareMode.unbounded:
+        // Unbounded is the broflake / WebRTC widget-proxy mode. Local
+        // opt-in only — actual run state also depends on the server's
+        // Features[unbounded] flag and supplied UnboundedConfig (see
+        // radiance/unbounded/unbounded.go shouldRunUnbounded). When
+        // running, broflake's OnConnectionChange callback emits
+        // unbounded.ConnectionEvent → forwarded by lantern-core as the
+        // same EventTypePeerConnection FlutterEvent the SmC path uses,
+        // so this Dart subscription consumes both protocols uniformly.
+        await widgetRef
+            .read(lanternServiceProvider)
+            .setUnboundedEnabled(true);
+        break;
+      case ShareMode.off:
+        break;
     }
-    // Unbounded mode is UI-only on this branch; broflake plumbing follows
-    // when radiance#336 lands.
   }
 
   Future<void> _stop(WidgetRef widgetRef) async {
     _stopEventSubscription();
-    final wasSmc = state.mode == ShareMode.smc;
+    final priorMode = state.mode;
     state = const ShareState();
-    if (wasSmc) {
-      await widgetRef
-          .read(radianceSettingsProvider.notifier)
-          .setPeerProxy(false);
+    switch (priorMode) {
+      case ShareMode.smc:
+        await widgetRef
+            .read(radianceSettingsProvider.notifier)
+            .setPeerProxy(false);
+        break;
+      case ShareMode.unbounded:
+        await widgetRef
+            .read(lanternServiceProvider)
+            .setUnboundedEnabled(false);
+        break;
+      case ShareMode.off:
+        break;
     }
   }
 
