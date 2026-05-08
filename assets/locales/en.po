@@ -15,6 +15,30 @@ msgstr "Settings"
 msgid "report_an_issue"
 msgstr "Report an Issue"
 
+msgid "report_issue_add_screenshots"
+msgstr "Add screenshots"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG, or GIF — 15 MB max total"
+
+msgid "report_issue_add_images"
+msgstr "Add images"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Only PNG, JPG, and GIF images are supported."
+
+msgid "report_issue_attachments_too_many"
+msgstr "You can attach up to 3 images."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Attachments must stay under 15 MB total."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "That image is already attached."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "We could not read one of those files."
+
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
 

@@ -1006,9 +1006,20 @@ class MethodHandler {
       let device = data["device"] as? String ?? ""
       let model = data["model"] as? String ?? ""
       let logFilePath = data["logFilePath"] as? String ?? ""
+      let attachments = data["attachments"] as? [[String: Any]] ?? []
+      let attachmentsJSON = reportIssueAttachmentsJSON(attachments)
 
       var error: NSError?
-      MobileReportIssue(email, issueType, description, device, model, logFilePath, &error)
+      MobileReportIssue(
+        email,
+        issueType,
+        description,
+        device,
+        model,
+        logFilePath,
+        attachmentsJSON,
+        &error
+      )
       if let error {
         await self.handleFlutterError(error, result: result, code: "REPORT_ISSUE_ERROR")
         return
@@ -1017,6 +1028,16 @@ class MethodHandler {
         result("ok")
       }
     }
+  }
+
+  private func reportIssueAttachmentsJSON(_ attachments: [[String: Any]]) -> String {
+    guard JSONSerialization.isValidJSONObject(attachments),
+      let data = try? JSONSerialization.data(withJSONObject: attachments),
+      let json = String(data: data, encoding: .utf8)
+    else {
+      return "[]"
+    }
+    return json
   }
 
   func diagnosticLogFiles(result: @escaping FlutterResult) {

@@ -437,9 +437,19 @@ func IsSplitTunnelingEnabled() bool {
 	return ok
 }
 
-func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
+func ReportIssue(
+	email, issueType, description, device, model, logFilePath, attachmentsJSON string,
+) error {
 	return withCore(func(c lanterncore.Core) error {
-		return c.ReportIssue(email, issueType, description, device, model, logFilePath)
+		return c.ReportIssue(
+			email,
+			issueType,
+			description,
+			device,
+			model,
+			logFilePath,
+			attachmentsJSON,
+		)
 	})
 }
 

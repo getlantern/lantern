@@ -1,12 +1,16 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/device_utils.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
+import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/submitter.dart';
+import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends ConsumerStatefulWidget {
@@ -20,14 +24,12 @@ class ReportIssue extends ConsumerStatefulWidget {
 }
 
 class _ReportIssueState extends ConsumerState<ReportIssue> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  GlobalKey<FormFieldState<String>> _issueTypeFieldKey =
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormFieldState<String>> _issueTypeFieldKey =
       GlobalKey<FormFieldState<String>>();
 
   late final TextEditingController _emailController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _issueTypeController;
-  late final FocusNode _issueTypeFocusNode;
 
   String? _selectedIssue;
 
@@ -46,24 +48,30 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   void initState() {
     super.initState();
 
-    ref
-        .read(reportIssueDraftProvider.notifier)
-        .seedFromRoute(
-          description: widget.description,
-          issueType: _resolveInitialIssueType(),
-        );
-
     final draft = ref.read(reportIssueDraftProvider);
-    _selectedIssue = draft.issueType.isEmpty ? null : draft.issueType;
+    final initialIssueType = _resolveInitialIssueType();
+    final seededDescription = _seededValue(
+      draft.description,
+      widget.description,
+    );
+    final seededIssueType = _seededValue(draft.issueType, initialIssueType);
+
+    _selectedIssue = seededIssueType.isEmpty ? null : seededIssueType;
 
     _emailController = TextEditingController(text: draft.email);
-    _descriptionController = TextEditingController(text: draft.description);
-    _issueTypeController = TextEditingController(text: _selectedIssue ?? '');
-    _issueTypeFocusNode = FocusNode();
+    _descriptionController = TextEditingController(text: seededDescription);
 
     _emailController.addListener(_syncEmailDraft);
     _descriptionController.addListener(_syncDescriptionDraft);
-    _issueTypeController.addListener(_syncIssueSelection);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(reportIssueDraftProvider.notifier)
+          .seedFromRoute(
+            description: widget.description,
+            issueType: initialIssueType,
+          );
+    });
   }
 
   @override
@@ -74,15 +82,14 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     _descriptionController
       ..removeListener(_syncDescriptionDraft)
       ..dispose();
-    _issueTypeController
-      ..removeListener(_syncIssueSelection)
-      ..dispose();
-    _issueTypeFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(reportIssueDraftProvider);
+    final attachmentPicker = ref.watch(reportIssueAttachmentPickerProvider);
+
     return BaseScreen(
       title: 'report_an_issue'.i18n,
       body: SingleChildScrollView(
@@ -109,8 +116,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               const SizedBox(height: 16),
               _IssueTypeField(
                 fieldKey: _issueTypeFieldKey,
-                controller: _issueTypeController,
-                focusNode: _issueTypeFocusNode,
                 options: issueOptions,
                 selectedIssue: _selectedIssue,
                 onSelected: _setSelectedIssue,
@@ -126,8 +131,18 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 textInputAction: TextInputAction.newline,
                 maxLines: 10,
               ),
+              const SizedBox(height: 16),
+              _AttachmentSection(
+                attachments: draft.attachments,
+                errorText: draft.attachmentError,
+                enableDesktopDrop: attachmentPicker.supportsDesktopDropTarget,
+                onAdd: _pickAttachments,
+                onDrop: _handleDroppedFiles,
+                onRemove: _removeAttachment,
+              ),
               const SizedBox(height: size24),
               PrimaryButton(
+                buttonKey: const Key('report_issue.submit_button'),
                 label: 'submit_issue_report'.i18n,
                 isTaller: true,
                 onPressed: submitReport,
@@ -148,9 +163,16 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     try {
       return issueOptions[int.parse(widget.type.toString())];
     } catch (e) {
-      appLogger.error("Error parsing issue type: $e");
+      appLogger.error('Error parsing issue type: $e');
       return null;
     }
+  }
+
+  String _seededValue(String currentValue, String? incomingValue) {
+    if (currentValue.isNotEmpty) {
+      return currentValue;
+    }
+    return incomingValue?.trim() ?? '';
   }
 
   void _syncEmailDraft() {
@@ -161,15 +183,6 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     ref
         .read(reportIssueDraftProvider.notifier)
         .setDescription(_descriptionController.text);
-  }
-
-  void _syncIssueSelection() {
-    if (_selectedIssue == null || _issueTypeController.text == _selectedIssue) {
-      return;
-    }
-
-    _issueTypeFieldKey.currentState?.didChange(null);
-    _setSelectedIssue(null);
   }
 
   void _setSelectedIssue(String? issueType) {
@@ -183,12 +196,79 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     ref.read(reportIssueDraftProvider.notifier).setIssueType(issueType ?? '');
   }
 
+  Future<void> _pickAttachments() async {
+    final notifier = ref.read(reportIssueDraftProvider.notifier);
+
+    try {
+      final attachments = await ref
+          .read(reportIssueAttachmentPickerProvider)
+          .pickImages();
+      await _addAttachmentsToDraft(attachments);
+    } on ReportIssueAttachmentPickerException catch (error) {
+      notifier.setAttachmentError(error.message);
+    } catch (error, stackTrace) {
+      appLogger.error(
+        'Unable to add report issue attachments',
+        error,
+        stackTrace,
+      );
+      notifier.setAttachmentError(
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
+      );
+    }
+  }
+
+  Future<void> _handleDroppedFiles(List<XFile> files) async {
+    final notifier = ref.read(reportIssueDraftProvider.notifier);
+
+    try {
+      final attachments = await ref
+          .read(reportIssueAttachmentPickerProvider)
+          .loadDroppedFiles(files);
+      await _addAttachmentsToDraft(attachments);
+    } on ReportIssueAttachmentPickerException catch (error) {
+      notifier.setAttachmentError(error.message);
+    } catch (error, stackTrace) {
+      appLogger.error(
+        'Unable to drop report issue attachments',
+        error,
+        stackTrace,
+      );
+      notifier.setAttachmentError(
+        ReportIssueAttachmentRulesUtils.unreadableAttachmentMessage,
+      );
+    }
+  }
+
+  void _removeAttachment(ReportIssueAttachment attachment) {
+    ref.read(reportIssueDraftProvider.notifier).removeAttachment(attachment);
+  }
+
+  Future<void> _addAttachmentsToDraft(
+    List<ReportIssueAttachment> attachments,
+  ) async {
+    if (attachments.isEmpty) {
+      return;
+    }
+
+    final reservedBytes = await ref
+        .read(reportIssueAttachmentBudgetProvider)
+        .reservedBytes();
+
+    if (!mounted) {
+      return;
+    }
+
+    ref
+        .read(reportIssueDraftProvider.notifier)
+        .addAttachments(attachments, reservedBytes: reservedBytes);
+  }
+
   void _clearDraft() {
     ref.read(reportIssueDraftProvider.notifier).clear();
     _formKey.currentState?.reset();
     _emailController.clear();
     _descriptionController.clear();
-    _issueTypeController.clear();
     _issueTypeFieldKey.currentState?.didChange(null);
 
     setState(() {
@@ -203,30 +283,22 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     hideKeyboard();
 
+    final draft = ref.read(reportIssueDraftProvider);
     final issueType = _selectedIssue ?? '';
     final email = _emailController.text.trim();
     final description = _descriptionController.text.trim();
 
     context.showLoadingDialog();
-    appLogger.debug("Submitting issue report: $issueType, $description");
-    final deviceInfo = await DeviceUtils.getDeviceAndModel();
-    final device = deviceInfo.$1;
-    final model = deviceInfo.$2;
-    String logFilePath = "";
-
-    try {
-      if (PlatformUtils.isIOS) {
-        logFilePath = (await AppStorageUtils.flutterLogFile()).path;
-      }
-    } catch (e, st) {
-      // Don't block reporting if logs fail. Just report without logs
-      appLogger.error("Unable to resolve log file: $e", st);
-      logFilePath = "";
-    }
+    appLogger.debug('Submitting issue report: $issueType, $description');
 
     final result = await ref
-        .read(lanternServiceProvider)
-        .reportIssue(email, issueType, description, device, model, logFilePath);
+        .read(reportIssueSubmitterProvider)
+        .submit(
+          email: email,
+          issueType: issueType,
+          description: description,
+          attachments: draft.attachments,
+        );
 
     if (!mounted) {
       return;
@@ -251,18 +323,141 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   }
 }
 
+class _AttachmentSection extends StatelessWidget {
+  final List<ReportIssueAttachment> attachments;
+  final String? errorText;
+  final bool enableDesktopDrop;
+  final VoidCallback onAdd;
+  final Future<void> Function(List<XFile> files) onDrop;
+  final ValueChanged<ReportIssueAttachment> onRemove;
+
+  const _AttachmentSection({
+    required this.attachments,
+    required this.errorText,
+    required this.enableDesktopDrop,
+    required this.onAdd,
+    required this.onDrop,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final helperStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: context.textTertiary);
+    final errorStyle = helperStyle?.copyWith(color: context.statusErrorText);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            ReportIssueAttachmentRulesUtils.sectionLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: context.textSecondary),
+          ),
+        ),
+        if (attachments.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 8),
+          ...attachments.map(
+            (attachment) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _AttachmentTile(
+                attachment: attachment,
+                onRemove: () => onRemove(attachment),
+              ),
+            ),
+          ),
+        ] else
+          const SizedBox(height: 8),
+        ReportIssueAttachmentDropzone(
+          label: ReportIssueAttachmentRulesUtils.uploadLabel,
+          onTap: onAdd,
+          onDrop: onDrop,
+          enableDesktopDrop: enableDesktopDrop,
+          enabled:
+              attachments.length < ReportIssueAttachmentRulesUtils.maxCount,
+          compact: attachments.isNotEmpty,
+        ),
+        const SizedBox(height: 8),
+        Text(ReportIssueAttachmentRulesUtils.helperText, style: helperStyle),
+        if (errorText != null) ...<Widget>[
+          const SizedBox(height: 6),
+          Text(errorText!, style: errorStyle),
+        ],
+      ],
+    );
+  }
+}
+
+class _AttachmentTile extends StatelessWidget {
+  final ReportIssueAttachment attachment;
+  final VoidCallback onRemove;
+
+  const _AttachmentTile({required this.attachment, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: Key('report_issue.attachment.${attachment.path}'),
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.bgElevated,
+        borderRadius: defaultBorderRadius,
+        border: Border.all(color: context.borderInput),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.image_outlined, color: context.textPrimary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  child: Text(
+                    attachment.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  attachment.formattedSize,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: context.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            key: Key('report_issue.remove.${attachment.path}'),
+            icon: Icon(Icons.close, color: context.textSecondary),
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            padding: EdgeInsets.zero,
+            onPressed: onRemove,
+            tooltip: 'Remove ${attachment.displayName}',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _IssueTypeField extends StatelessWidget {
   final GlobalKey<FormFieldState<String>> fieldKey;
-  final TextEditingController controller;
-  final FocusNode focusNode;
   final List<String> options;
   final String? selectedIssue;
   final ValueChanged<String?> onSelected;
 
   const _IssueTypeField({
     required this.fieldKey,
-    required this.controller,
-    required this.focusNode,
     required this.options,
     required this.selectedIssue,
     required this.onSelected,
@@ -283,49 +478,41 @@ class _IssueTypeField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return DropdownMenuFormField<String>(
-              key: fieldKey,
-              controller: controller,
-              focusNode: focusNode,
-              width: constraints.maxWidth,
-              menuHeight: 320,
-              initialSelection: selectedIssue,
-              requestFocusOnTap: true,
-              enableFilter: true,
-              enableSearch: true,
-              textInputAction: TextInputAction.next,
-              textStyle: textTheme.bodyMedium?.copyWith(
-                color: context.textPrimary,
+        DropdownButtonFormField<String>(
+          key: fieldKey,
+          initialValue: selectedIssue,
+          isExpanded: true,
+          menuMaxHeight: 320,
+          style: textTheme.bodyMedium?.copyWith(color: context.textPrimary),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: context.textPrimary,
+          ),
+          hint: const SizedBox.shrink(),
+          decoration: InputDecoration(
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Align(
+                alignment: Alignment.center,
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Icon(Icons.error_outline, color: context.textPrimary),
               ),
-              leadingIcon: Icon(
-                Icons.error_outline,
-                color: context.textPrimary,
-              ),
-              trailingIcon: Icon(
-                Icons.arrow_drop_down,
-                color: context.textPrimary,
-              ),
-              selectedTrailingIcon: Icon(
-                Icons.arrow_drop_up,
-                color: context.textPrimary,
-              ),
-              dropdownMenuEntries: options
-                  .map(
-                    (issue) =>
-                        DropdownMenuEntry<String>(value: issue, label: issue),
-                  )
-                  .toList(),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'please_select_an_issue'.i18n;
-                }
-                return null;
-              },
-              onSelected: onSelected,
-            );
+            ),
+          ),
+          items: options
+              .map(
+                (issue) =>
+                    DropdownMenuItem<String>(value: issue, child: Text(issue)),
+              )
+              .toList(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'please_select_an_issue'.i18n;
+            }
+            return null;
           },
+          onChanged: onSelected,
         ),
       ],
     );

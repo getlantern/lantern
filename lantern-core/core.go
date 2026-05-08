@@ -26,6 +26,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/utils/reportissue"
 	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
 )
 
@@ -53,7 +54,9 @@ var (
 
 type App interface {
 	AvailableFeatures() []byte
-	ReportIssue(email, issueType, description, device, model, logFilePath string) error
+	ReportIssue(
+		email, issueType, description, device, model, logFilePath, attachmentsJSON string,
+	) error
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
@@ -659,7 +662,7 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 // Issue Report //
 /////////////////
 
-func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
+func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath, attachmentsJSON string) error {
 	it := parseIssueType(issueType)
 	var attachments []string
 	// Windows + Linux have separate UI and daemon logDirs, so the daemon's
@@ -673,7 +676,13 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
-	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments)
+
+	firstClassAttachments, err := reportissue.LoadAttachments(attachmentsJSON)
+	if err != nil {
+		return fmt.Errorf("load issue attachments: %w", err)
+	}
+
+	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments, firstClassAttachments)
 }
 
 // collectLocalLogs returns every *.log directly under dir, with paths shaped

@@ -122,6 +122,9 @@ dependencies:
   package_info_plus: ^9.0.0
   shared_preferences: ^2.5.4
   flutter_carousel_widget: ^3.1.0
+  file_selector: ^1.1.0
+  desktop_drop: ^0.7.1
+  cross_file: ^0.3.5+2
 
 dev_dependencies:
   flutter_test:
