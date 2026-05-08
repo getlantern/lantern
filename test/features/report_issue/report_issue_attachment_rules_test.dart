@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
+import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
 
 void main() {
   group('ReportIssueAttachmentRulesUtils', () {
@@ -20,6 +21,20 @@ void main() {
           mimeType: 'image/png; charset=binary',
         ),
         'image/png',
+      );
+    });
+
+    test('picker image type group includes iOS uniform type identifiers', () {
+      final typeGroup =
+          PlatformReportIssueAttachmentPicker.acceptedTypeGroups.single;
+
+      expect(
+        typeGroup.extensions,
+        ReportIssueAttachmentRulesUtils.allowedExtensions,
+      );
+      expect(
+        typeGroup.uniformTypeIdentifiers,
+        ReportIssueAttachmentRulesUtils.allowedAppleUniformTypeIdentifiers,
       );
     });
   });

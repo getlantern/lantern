@@ -32,6 +32,12 @@ class ReportIssueAttachmentRulesUtils {
     'image/jpg': 'image/jpeg',
   };
 
+  static const List<String> allowedAppleUniformTypeIdentifiers = <String>[
+    'public.png',
+    'public.jpeg',
+    'com.compuserve.gif',
+  ];
+
   static List<String> get allowedExtensions =>
       List<String>.unmodifiable(_mimeTypesByExtension.keys);
 

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
@@ -24,10 +25,13 @@ abstract interface class ReportIssueAttachmentPicker {
 
 class PlatformReportIssueAttachmentPicker
     implements ReportIssueAttachmentPicker {
-  static final List<XTypeGroup> _acceptedTypeGroups = <XTypeGroup>[
+  @visibleForTesting
+  static final List<XTypeGroup> acceptedTypeGroups = <XTypeGroup>[
     XTypeGroup(
       label: 'Images',
       extensions: ReportIssueAttachmentRulesUtils.allowedExtensions,
+      uniformTypeIdentifiers:
+          ReportIssueAttachmentRulesUtils.allowedAppleUniformTypeIdentifiers,
     ),
   ];
 
@@ -37,7 +41,7 @@ class PlatformReportIssueAttachmentPicker
   @override
   Future<List<ReportIssueAttachment>> pickImages() async {
     try {
-      final files = await openFiles(acceptedTypeGroups: _acceptedTypeGroups);
+      final files = await openFiles(acceptedTypeGroups: acceptedTypeGroups);
       return _load(files);
     } catch (error, stackTrace) {
       appLogger.error(
