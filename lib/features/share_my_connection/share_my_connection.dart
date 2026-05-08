@@ -102,6 +102,15 @@ class ShareNotifier extends Notifier<ShareState> {
   /// Toggle entry point. Caller passes its BuildContext so we can show the
   /// disclosure modal inline, and a WidgetRef so we can drive the radiance
   /// peer-share toggle.
+  ///
+  /// Resolution order on enable:
+  ///   1. If the user has set a manual port in Advanced settings, that
+  ///      is an explicit opt-in — go straight to SmC mode. No UPnP
+  ///      probe, no disclosure (user already crossed that line by
+  ///      configuring the port forward on their router).
+  ///   2. Otherwise probe UPnP. If UPnP works AND the user accepts
+  ///      the SmC disclosure, run SmC. Decline → Unbounded.
+  ///   3. UPnP unavailable → Unbounded fallback.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
@@ -110,10 +119,21 @@ class ShareNotifier extends Notifier<ShareState> {
 
     state = state.copyWith(probing: true);
 
-    // MOCK: real impl will FFI into radiance/portforward to probe UPnP.
-    // Coin-flip the result so the demo exercises both the SmC and Unbounded
-    // paths across runs; flip to `true` for the SmC path while iterating on
-    // the disclosure copy.
+    // Manual port forward bypasses both the UPnP probe and the SmC
+    // disclosure dialog. Configuring a port in Advanced is an explicit
+    // user-driven SmC opt-in — they wouldn't have set it up if they
+    // weren't sure they wanted to share via the residential-IP path.
+    final manualPortRes =
+        await widgetRef.read(lanternServiceProvider).getPeerManualPort();
+    final manualPort = manualPortRes.fold((_) => 0, (p) => p);
+    if (manualPort > 0) {
+      await _start(widgetRef, ShareMode.smc);
+      return;
+    }
+
+    // MOCK: real UPnP probe via FFI is not yet wired; coin-flip the
+    // result so the demo exercises both paths across runs without a
+    // manual port set.
     await Future.delayed(const Duration(milliseconds: 1500));
     final upnpAvailable = Random().nextBool();
     if (!upnpAvailable) {
