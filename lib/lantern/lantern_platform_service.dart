@@ -314,37 +314,61 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  // Manual port forward setting — only the FFI path is wired today;
-  // the iOS / Android MethodChannel handlers don't yet implement these
-  // methods. Stub returns "unsupported" rather than throwing so the
-  // Advanced UI degrades gracefully on platforms that don't (yet) plumb
-  // the setting through their tunnel-extension IPC.
+  // Manual port forward setting — wired through MethodChannel to the
+  // platform-specific handler (Swift on macOS calls Mobile.SetPeerManualPort,
+  // similar pattern needed for iOS / Android when the user-facing toggle
+  // ships there).
   @override
   Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
-    return Left(Failure(
-      error: 'setPeerManualPort: not implemented on this platform',
-      localizedErrorMessage:
-          'Manual port forwarding is not yet available on this platform.',
-    ));
+    try {
+      await _methodChannel.invokeMethod('setPeerManualPort', {
+        'port': port,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, int>> getPeerManualPort() async {
-    return right(0);
+    try {
+      final res = await _methodChannel.invokeMethod<int>('getPeerManualPort');
+      return right(res ?? 0);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
+  // Unbounded toggle wired through MethodChannel to the platform-specific
+  // handler (Swift on macOS calls Mobile.SetUnboundedEnabled). Mobile
+  // platforms (iOS / Android) don't implement these handlers yet — they
+  // will throw MissingPluginException, which `e.toFailure()` translates
+  // into a localized error so the Advanced UI degrades cleanly.
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
-    return Left(Failure(
-      error: 'setUnboundedEnabled: not implemented on this platform',
-      localizedErrorMessage:
-          'Unbounded is not yet available on this platform.',
-    ));
+    try {
+      await _methodChannel.invokeMethod('setUnboundedEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, bool>> isUnboundedEnabled() async {
-    return right(false);
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isUnboundedEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   @override

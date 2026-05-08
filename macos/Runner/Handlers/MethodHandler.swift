@@ -255,6 +255,26 @@ class MethodHandler {
         let enabled = data?["enabled"] as? Bool ?? false
         self.setPeerProxyEnabled(result: result, enabled: enabled)
 
+      case "setPeerManualPort":
+        let data = call.arguments as? [String: Any]
+        let port = data?["port"] as? Int ?? 0
+        self.setPeerManualPort(result: result, port: port)
+
+      case "getPeerManualPort":
+        Task {
+          await MainActor.run { result(Int(MobileGetPeerManualPort())) }
+        }
+
+      case "setUnboundedEnabled":
+        let data = call.arguments as? [String: Any]
+        let enabled = data?["enabled"] as? Bool ?? false
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        Task {
+          await MainActor.run { result(MobileIsUnboundedEnabled()) }
+        }
+
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
@@ -1168,6 +1188,34 @@ class MethodHandler {
       MobileSetPeerShareEnabled(enabled, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SET_PEER_PROXY_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setPeerManualPort(result: @escaping FlutterResult, port: Int) {
+    Task {
+      var error: NSError?
+      MobileSetPeerManualPort(port, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_MANUAL_PORT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_UNBOUNDED_ENABLED_ERROR")
         return
       }
       await MainActor.run {
