@@ -26,14 +26,18 @@ abstract interface class ReportIssueAttachmentPicker {
 class PlatformReportIssueAttachmentPicker
     implements ReportIssueAttachmentPicker {
   @visibleForTesting
-  static final List<XTypeGroup> acceptedTypeGroups = <XTypeGroup>[
-    XTypeGroup(
-      label: 'Images',
-      extensions: ReportIssueAttachmentRulesUtils.allowedExtensions,
-      uniformTypeIdentifiers:
-          ReportIssueAttachmentRulesUtils.allowedAppleUniformTypeIdentifiers,
-    ),
-  ];
+  static List<XTypeGroup> get acceptedTypeGroups => _acceptedTypeGroups;
+
+  static final List<XTypeGroup> _acceptedTypeGroups = List.unmodifiable(
+    <XTypeGroup>[
+      XTypeGroup(
+        label: 'Images',
+        extensions: ReportIssueAttachmentRulesUtils.allowedExtensions,
+        uniformTypeIdentifiers:
+            ReportIssueAttachmentRulesUtils.allowedAppleUniformTypeIdentifiers,
+      ),
+    ],
+  );
 
   @override
   bool get supportsDesktopDropTarget => PlatformUtils.isDesktop;
@@ -41,7 +45,7 @@ class PlatformReportIssueAttachmentPicker
   @override
   Future<List<ReportIssueAttachment>> pickImages() async {
     try {
-      final files = await openFiles(acceptedTypeGroups: acceptedTypeGroups);
+      final files = await openFiles(acceptedTypeGroups: _acceptedTypeGroups);
       return _load(files);
     } catch (error, stackTrace) {
       appLogger.error(
