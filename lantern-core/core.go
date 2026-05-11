@@ -405,6 +405,16 @@ func (lc *LanternCore) listenDataCapEvents() {
 // is more common than for SmC's long-lived TCP).
 func (lc *LanternCore) listenPeerConnectionEvents() {
 	events.Subscribe(func(evt peer.ConnectionEvent) {
+		// Diagnostic: every time this fires, we know events.Emit reached
+		// the subscriber. Pairs with the breadcrumb in radiance peer.go's
+		// peerconn listener — if the radiance side logs "forwarding" but
+		// we don't see this, the events bus is dropping between Emit and
+		// Subscribe (process boundary in gomobile builds, etc.). If both
+		// fire but Flutter sees nothing, the FlutterEvent bridge is the
+		// culprit. Spam-friendly: ~1 per accept/close, bounded by peer
+		// inbound throughput.
+		slog.Info("peer-connection subscriber: forwarding to Flutter",
+			"state", evt.State, "source", evt.Source)
 		jsonBytes, err := json.Marshal(map[string]any{
 			"state":  evt.State,
 			"source": evt.Source,
