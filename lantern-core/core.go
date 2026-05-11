@@ -404,6 +404,12 @@ func (lc *LanternCore) listenDataCapEvents() {
 // reconnects (broflake's WebRTC sessions are short and same-IP churn
 // is more common than for SmC's long-lived TCP).
 func (lc *LanternCore) listenPeerConnectionEvents() {
+	// One-shot diagnostic: confirms this goroutine was actually started by
+	// the LanternCore init path. If we see "peer listener: forwarding..."
+	// from radiance but never see this line, listenPeerConnectionEvents
+	// was never called — init bailed out earlier or the goroutine was
+	// dropped.
+	slog.Info("peer-connection subscriber: registering events.Subscribe")
 	events.Subscribe(func(evt peer.ConnectionEvent) {
 		// Diagnostic: every time this fires, we know events.Emit reached
 		// the subscriber. Pairs with the breadcrumb in radiance peer.go's
