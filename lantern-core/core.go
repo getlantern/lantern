@@ -404,33 +404,33 @@ func (lc *LanternCore) listenDataCapEvents() {
 // reconnects (broflake's WebRTC sessions are short and same-IP churn
 // is more common than for SmC's long-lived TCP).
 func (lc *LanternCore) listenPeerConnectionEvents() {
-	// One-shot diagnostic: confirms this goroutine was actually started by
-	// the LanternCore init path. If we see "peer listener: forwarding..."
-	// from radiance but never see this line, listenPeerConnectionEvents
-	// was never called — init bailed out earlier or the goroutine was
-	// dropped.
-	slog.Info("peer-connection subscriber: registering events.Subscribe")
-	events.Subscribe(func(evt peer.ConnectionEvent) {
-		// Diagnostic: every time this fires, we know events.Emit reached
-		// the subscriber. Pairs with the breadcrumb in radiance peer.go's
-		// peerconn listener — if the radiance side logs "forwarding" but
-		// we don't see this, the events bus is dropping between Emit and
-		// Subscribe (process boundary in gomobile builds, etc.). If both
-		// fire but Flutter sees nothing, the FlutterEvent bridge is the
-		// culprit. Spam-friendly: ~1 per accept/close, bounded by peer
-		// inbound throughput.
-		slog.Info("peer-connection subscriber: forwarding to Flutter",
-			"state", evt.State, "source", evt.Source)
-		jsonBytes, err := json.Marshal(map[string]any{
-			"state":  evt.State,
-			"source": evt.Source,
+	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
+	// The events package's globals are process-scoped — events.Emit in
+	// lanternd (where radiance/peer runs) doesn't reach events.Subscribe
+	// in Liblantern. The /peer/connection/events SSE endpoint in
+	// radiance/ipc/server.go bridges the two processes.
+	go func() {
+		err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
+			jsonBytes, err := json.Marshal(map[string]any{
+				"state":  evt.State,
+				"source": evt.Source,
+			})
+			if err != nil {
+				slog.Error("marshal peer connection event", "error", err)
+				return
+			}
+			lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
 		})
-		if err != nil {
-			slog.Error("marshal peer connection event", "error", err)
-			return
+		if err != nil && lc.ctx.Err() == nil {
+			slog.Error("peer-connection event stream exited unexpectedly", "error", err)
 		}
-		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
-	})
+	}()
+	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
+	// now. Unbounded runs in the same process as the consumer in mobile
+	// builds (broflake-as-library); the desktop path doesn't yet have a
+	// gomobile-bridged Unbounded peer, so the cross-process gap doesn't
+	// hit here today. Worth revisiting if Unbounded ever moves out of
+	// process.
 	events.Subscribe(func(evt unbounded.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
 			"state":     evt.State,
@@ -457,7 +457,11 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 // carries phase, error, active, sharing_since, external_ip,
 // external_port, route_id with stable JSON tags.
 func (lc *LanternCore) listenPeerStatusEvents() {
-	events.Subscribe(func(evt peer.StatusEvent) {
+	// Same cross-process bridging story as listenPeerConnectionEvents: the
+	// peer.StatusEvent emits live in lanternd, so subscribing in this
+	// process via events.Subscribe gets us nothing. /peer/status/events
+	// SSE in radiance/ipc/server.go is the canonical source.
+	err := lc.client.PeerStatusEvents(lc.ctx, func(evt peer.StatusEvent) {
 		jsonBytes, err := json.Marshal(evt.Status)
 		if err != nil {
 			slog.Error("marshal peer status event", "error", err)
@@ -465,6 +469,9 @@ func (lc *LanternCore) listenPeerStatusEvents() {
 		}
 		lc.notifyFlutter(EventTypePeerStatus, string(jsonBytes))
 	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-status event stream exited unexpectedly", "error", err)
+	}
 }
 
 /////////////////
