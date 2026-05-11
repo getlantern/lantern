@@ -32,6 +32,9 @@ class AppTextField extends StatelessWidget {
   final Widget? counter;
   final List<String>? autofillHints;
   final bool? autofocus;
+  final double? inputHeight;
+  final bool expands;
+  final double? labelLeftPadding;
 
   const AppTextField({
     super.key,
@@ -60,6 +63,9 @@ class AppTextField extends StatelessWidget {
     this.counter,
     this.autofillHints,
     this.autofocus,
+    this.inputHeight,
+    this.expands = false,
+    this.labelLeftPadding,
   });
 
   @override
@@ -99,7 +105,8 @@ class AppTextField extends StatelessWidget {
         fontSize: spCap(context, 14),
       ),
       textInputAction: textInputAction,
-      maxLines: maxLines,
+      maxLines: expands ? null : maxLines,
+      expands: expands,
       buildCounter:
           (
             context, {
@@ -116,22 +123,35 @@ class AppTextField extends StatelessWidget {
             : context.bgCallout, // bg.callout for disabled
         hintText: hintText,
         prefixIcon: prefixIcon != null
-            ? _buildFix(prefixIcon!, iconColor: context.textPrimary)
+            ? _buildFix(
+                prefixIcon!,
+                iconColor: context.textPrimary,
+                multilineAlignment: Alignment.topLeft,
+              )
             : null,
         suffixIcon: suffixIcon != null
-            ? _buildFix(suffixIcon!, iconColor: context.textPrimary)
+            ? _buildFix(
+                suffixIcon!,
+                iconColor: context.textPrimary,
+                multilineAlignment: Alignment.topRight,
+              )
             : null,
       ),
     );
 
+    if (inputHeight != null) {
+      inputField = SizedBox(height: inputHeight, child: inputField);
+    }
+
     // If a label is provided, wrap the input field in a Column with a Text widget above.
     if (label != null) {
-      final double labelLeftPadding = prefixIcon != null ? 16.0 : 8.0;
+      final double resolvedLabelLeftPadding =
+          labelLeftPadding ?? (prefixIcon != null ? 16.0 : 8.0);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: labelLeftPadding),
+            padding: EdgeInsets.only(left: resolvedLabelLeftPadding),
             child: Text(
               label!,
               style: textTheme.labelLarge?.copyWith(
@@ -149,7 +169,11 @@ class AppTextField extends StatelessWidget {
     return inputField;
   }
 
-  Widget _buildFix(Object iconPath, {Color? iconColor}) {
+  Widget _buildFix(
+    Object iconPath, {
+    Color? iconColor,
+    required Alignment multilineAlignment,
+  }) {
     final isMultiline = maxLines > 1;
     Widget? appAsset;
     if (iconPath is IconData) {
@@ -162,7 +186,7 @@ class AppTextField extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
-        alignment: isMultiline ? Alignment.topLeft : Alignment.center,
+        alignment: isMultiline ? multilineAlignment : Alignment.center,
         widthFactor: 1.0,
         heightFactor: 1.0,
         child: appAsset,

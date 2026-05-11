@@ -199,9 +199,9 @@ class _DashedBorderPainter extends CustomPainter {
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {
-        final next = math.min(distance + 8, metric.length);
+        final next = math.min(distance + 4, metric.length);
         canvas.drawPath(metric.extractPath(distance, next), paint);
-        distance = next + 6;
+        distance = next + 4;
       }
     }
   }
