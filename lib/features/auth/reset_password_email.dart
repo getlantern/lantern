@@ -10,10 +10,7 @@ import '../../core/common/common.dart';
 class ResetPasswordEmail extends HookConsumerWidget {
   final String? email;
 
-  const ResetPasswordEmail({
-    super.key,
-    this.email,
-  });
+  const ResetPasswordEmail({super.key, this.email});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,6 +38,12 @@ class ResetPasswordEmail extends HookConsumerWidget {
               maxLines: 1,
               prefixIcon: AppImagePaths.email,
               label: 'email'.i18n,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [
+                AutofillHints.email,
+                AutofillHints.username,
+              ],
               onSubmitted: (_) => onNext(context, emailController.text, ref),
               validator: (value) {
                 if (value!.isEmpty) {
@@ -73,8 +76,9 @@ class ResetPasswordEmail extends HookConsumerWidget {
       return;
     }
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
+    final result = await ref
+        .read(authProvider.notifier)
+        .startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -82,8 +86,9 @@ class ResetPasswordEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        appRouter
-            .push(ConfirmEmail(email: email, authFlow: AuthFlow.resetPassword));
+        appRouter.push(
+          ConfirmEmail(email: email, authFlow: AuthFlow.resetPassword),
+        );
       },
     );
   }
