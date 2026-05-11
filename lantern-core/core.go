@@ -875,7 +875,8 @@ func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string,
 
 func (lc *LanternCore) RestoreGooglePlayPurchase(purchaseToken string) (string, error) {
 	params := map[string]string{
-		"purchaseToken": purchaseToken,
+		"purchaseToken":  purchaseToken,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
 	}
 	resp, err := lc.client.RestoreSubscription(lc.ctx, account.GoogleService, params)
 	if err != nil {
@@ -890,7 +891,8 @@ func (lc *LanternCore) RestoreGooglePlayPurchase(purchaseToken string) (string, 
 
 func (lc *LanternCore) RestoreApplePurchase(receipt string) (string, error) {
 	params := map[string]string{
-		"receipt": receipt,
+		"receipt":        receipt,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
 	}
 	resp, err := lc.client.RestoreSubscription(lc.ctx, account.AppleService, params)
 	if err != nil {

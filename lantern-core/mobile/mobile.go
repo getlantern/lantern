@@ -587,7 +587,6 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 		return "", fmt.Errorf("error unmarshalling restore subscription response: %v", err)
 	}
 	if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
-		/// Restore was made on a different account; switch to it
 		slog.Info("Restore made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
 		if err := c.PatchSettings(settings.Settings{
 			settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
@@ -595,15 +594,8 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 		}); err != nil {
 			return "", fmt.Errorf("error updating settings after account switch: %v", err)
 		}
-		userData, err := FetchUserData()
-		if err != nil {
-			return "", err
-		}
-		slog.Debug("fetched user data after account switch", "userdata", userData)
-		return userData, nil
 	}
-	/// Restore was made on the same account, just return "" to indicate success
-	return "", nil
+	return data, nil
 }
 
 func PaymentRedirect(provider, planId, email string) (string, error) {

@@ -14,6 +14,7 @@ import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
+import '../../core/models/user.dart';
 import '../../core/services/app_purchase.dart';
 import '../../core/services/injection_container.dart';
 
@@ -343,30 +344,48 @@ class _SettingState extends ConsumerState<Setting> {
         .restoreInAppPurchase(purchaseToken: purchaseToken);
     if (!mounted) return;
 
-    if (result.isLeft()) {
-      final failure = result.swap().getOrElse((_) => throw StateError('left'));
-      appLogger.error('[Restore] Failed: ${failure.error}');
-      context.hideLoadingDialog();
-      _showRestoreError(failure.localizedErrorMessage);
-      return;
-    }
+    result.fold(
+      (failure) {
+        appLogger.error(
+          '[Restore] restoreInAppPurchase failed for token $purchaseToken: ${failure.error}',
+        );
+        context.hideLoadingDialog();
+        _showRestoreError(failure.localizedErrorMessage);
+      },
+      (restorePurchase) {
+        context.hideLoadingDialog();
 
-    appLogger.info('[Restore] Succeeded, verifying Pro status');
-    final isPro = await checkUserAccountStatus(ref, context);
-    if (!mounted) return;
-    context.hideLoadingDialog();
-    if (isPro) {
-      AppDialog.showLanternProDialog(
-        context: context,
-        onPressed: () => appRouter.popUntilRoot(),
-      );
-    } else {
-      AppDialog.dialog(
-        context: context,
-        title: 'restore_purchase'.i18n,
-        content: 'it_looks_like_something_went_wrong'.i18n,
-      );
-    }
+        if (restorePurchase.status == 'ok' &&
+            restorePurchase.devices.isNotEmpty) {
+          appLogger.info(
+            '[Restore] Account restored with ${restorePurchase.devices.length} linked device(s); showing device list',
+          );
+          _showRestoredDevicesDialog(restorePurchase.devices);
+          return;
+        }
+        appLogger.info('[Restore] Account restored; showing success dialog');
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () => appRouter.popUntilRoot(),
+        );
+      },
+    );
+  }
+
+  void _showRestoredDevicesDialog(List<DeviceModel> devices) {
+    appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
+      if (value != null && value is bool) {
+        // Give the backend time to propagate the device removal before
+        // retrying sign-in, otherwise the request may still hit the
+        // device limit.
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () => appRouter.popUntilRoot(),
+        );
+      }
+    });
   }
 
   void _showRestoreError(String message) {

@@ -12,6 +12,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
@@ -814,7 +815,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> restoreInAppPurchase({
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
     required String purchaseToken,
   }) async {
     try {
@@ -822,7 +823,10 @@ class LanternPlatformService implements LanternCoreService {
         'restoreInAppPurchase',
         {'purchaseToken': purchaseToken},
       );
-      return Right(bytes != null ? utf8.decode(bytes) : '');
+      final jsonStr = bytes != null ? utf8.decode(bytes) : '{}';
+      return Right(
+        RestoreSubscriptionResponse.fromJson(jsonDecode(jsonStr)),
+      );
     } catch (e, stackTrace) {
       appLogger.error('Error restoring in-app purchase', e, stackTrace);
       return Left(e.toFailure());
