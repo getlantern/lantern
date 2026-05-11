@@ -43,12 +43,54 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 ///               higher risk; gated on a one-time disclosure)
 enum ShareMode { off, unbounded, smc }
 
+/// Lifecycle phase for SmC mode, sourced from radiance peer.Status.Phase
+/// via the `peer-status` FlutterEvent. Stable strings — must stay in
+/// sync with radiance/peer/peer.go's Phase constants.
+///
+///   idle           — nothing running
+///   mappingPort    — UPnP / manual port mapping in flight
+///   detectingIp    — public-IP detection
+///   registering    — POST /v1/peer/register against lantern-cloud
+///   startingProxy  — libbox samizdat inbound coming up
+///   verifying      — POST /v1/peer/verify, lantern-cloud is dialing back
+///   serving        — peer is live and assignable to censored clients
+///   stopping       — teardown in progress
+///   error          — Start failed; SharePhase.errorMessage holds the cause
+enum SharePhase {
+  idle,
+  mappingPort,
+  detectingIp,
+  registering,
+  startingProxy,
+  verifying,
+  serving,
+  stopping,
+  error;
+
+  static SharePhase fromWire(String? s) => switch (s) {
+        'mapping_port' => SharePhase.mappingPort,
+        'detecting_ip' => SharePhase.detectingIp,
+        'registering' => SharePhase.registering,
+        'starting_proxy' => SharePhase.startingProxy,
+        'verifying' => SharePhase.verifying,
+        'serving' => SharePhase.serving,
+        'stopping' => SharePhase.stopping,
+        'error' => SharePhase.error,
+        _ => SharePhase.idle,
+      };
+}
+
 class ShareState {
   final bool active;
   final bool probing;
   final ShareMode mode;
   final int activeCount;
   final int totalCount;
+  // SmC-only: granular Start/Stop phase from radiance peer.Status. For
+  // Unbounded mode this stays SharePhase.idle (no equivalent staged
+  // lifecycle on the broflake side yet).
+  final SharePhase phase;
+  final String? errorMessage;
 
   const ShareState({
     this.active = false,
@@ -56,6 +98,8 @@ class ShareState {
     this.mode = ShareMode.off,
     this.activeCount = 0,
     this.totalCount = 0,
+    this.phase = SharePhase.idle,
+    this.errorMessage,
   });
 
   ShareState copyWith({
@@ -64,6 +108,8 @@ class ShareState {
     ShareMode? mode,
     int? activeCount,
     int? totalCount,
+    SharePhase? phase,
+    String? errorMessage,
   }) =>
       ShareState(
         active: active ?? this.active,
@@ -71,6 +117,8 @@ class ShareState {
         mode: mode ?? this.mode,
         activeCount: activeCount ?? this.activeCount,
         totalCount: totalCount ?? this.totalCount,
+        phase: phase ?? this.phase,
+        errorMessage: errorMessage ?? this.errorMessage,
       );
 }
 
@@ -248,6 +296,10 @@ class ShareNotifier extends Notifier<ShareState> {
         .read(lanternServiceProvider)
         .watchAppEvents()
         .listen((event) {
+      if (event.eventType == 'peer-status') {
+        _handlePeerStatus(event.message);
+        return;
+      }
       if (event.eventType != 'peer-connection') return;
       try {
         final payload = jsonDecode(event.message) as Map<String, dynamic>;
@@ -298,6 +350,26 @@ class ShareNotifier extends Notifier<ShareState> {
     _appEventSub = null;
     _sourceToWorker.clear();
     _workerSeq = 0;
+  }
+
+  // Parses a `peer-status` FlutterEvent and folds the new phase / error
+  // into ShareState. Payload is the JSON-marshalled radiance peer.Status
+  // (see lantern-core/core.go EventTypePeerStatus). Phase strings come
+  // from radiance/peer/peer.go's Phase constants; we map them through
+  // SharePhase.fromWire so an unknown future phase falls back to idle
+  // instead of crashing the consumer.
+  void _handlePeerStatus(String message) {
+    try {
+      final payload = jsonDecode(message) as Map<String, dynamic>;
+      final phase = SharePhase.fromWire(payload['phase'] as String?);
+      final errMsg = payload['error'] as String?;
+      state = state.copyWith(
+        phase: phase,
+        errorMessage: (errMsg == null || errMsg.isEmpty) ? null : errMsg,
+      );
+    } catch (e) {
+      debugPrint('share-my-connection: bad peer-status event: $e');
+    }
   }
 }
 
@@ -356,11 +428,40 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final modeLabel = switch (state.mode) {
-      ShareMode.off => state.probing ? 'Probing your network…' : 'Off',
-      ShareMode.unbounded =>
+    // Status text source-of-truth, in priority order:
+    //   1. Off and not probing → "Off"
+    //   2. Probing UPnP locally → "Probing your network…"
+    //   3. SmC mode → granular phase from radiance peer.Status. The
+    //      backend emits one phase per stage during Start so the user
+    //      sees real progress instead of "Active" for several seconds.
+    //   4. Unbounded mode → static "Active — Unbounded" (no equivalent
+    //      staged lifecycle on the broflake side yet).
+    final modeLabel = switch ((state.mode, state.phase)) {
+      (ShareMode.off, _) =>
+        state.probing ? 'Probing your network…' : 'Off',
+      (ShareMode.unbounded, _) =>
         'Active — sharing via Unbounded (WebRTC)',
-      ShareMode.smc =>
+      (ShareMode.smc, SharePhase.mappingPort) =>
+        'Opening port on your router…',
+      (ShareMode.smc, SharePhase.detectingIp) =>
+        'Detecting your public IP…',
+      (ShareMode.smc, SharePhase.registering) =>
+        'Registering with Lantern…',
+      (ShareMode.smc, SharePhase.startingProxy) =>
+        'Starting local proxy…',
+      (ShareMode.smc, SharePhase.verifying) =>
+        'Verifying connectivity…',
+      (ShareMode.smc, SharePhase.serving) =>
+        'Sharing — ready to serve users in censored regions',
+      (ShareMode.smc, SharePhase.stopping) => 'Stopping…',
+      (ShareMode.smc, SharePhase.error) =>
+        state.errorMessage != null
+            ? "Couldn't share: ${state.errorMessage}"
+            : "Couldn't share — try toggling again",
+      // SmC active but no phase yet (e.g. very first frame after toggle
+      // before the backend's first event arrives) — fall back to the
+      // legacy active label so the UI isn't blank.
+      (ShareMode.smc, SharePhase.idle) =>
         'Active — sharing via Share My Connection (residential proxy)',
     };
 

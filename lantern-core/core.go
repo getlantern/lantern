@@ -44,7 +44,14 @@ const (
 	// {"state": +1|-1, "source": "ip:port"}; consumers extract the IP for
 	// geo-lookup or rate-limit attribution.
 	EventTypePeerConnection EventType = "peer-connection"
-	DefaultLogLevel                   = "trace"
+	// EventTypePeerStatus signals a peer.Client lifecycle phase change
+	// (mapping_port → registering → verifying → serving on the way up,
+	// stopping → idle on the way down, error on failure). Message is the
+	// JSON-marshalled peer.Status struct. The Dart side switches on
+	// .phase to render progress text and on .error to surface
+	// diagnostics on the failure path.
+	EventTypePeerStatus EventType = "peer-status"
+	DefaultLogLevel               = "trace"
 )
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
@@ -267,6 +274,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
+	go lc.listenPeerStatusEvents()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -418,6 +426,28 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 			return
 		}
 		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+}
+
+// listenPeerStatusEvents forwards peer.Client lifecycle phase changes to
+// the Flutter side. radiance's peer module emits one StatusEvent per
+// stage during Start (mapping_port → detecting_ip → registering →
+// starting_proxy → verifying → serving) and during Stop (stopping →
+// idle), plus an "error" terminal event with Status.Error populated on
+// failure. The Dart side renders each phase as user-facing progress
+// text instead of a single active/inactive flip.
+//
+// Message body is the JSON-marshalled peer.Status — the struct already
+// carries phase, error, active, sharing_since, external_ip,
+// external_port, route_id with stable JSON tags.
+func (lc *LanternCore) listenPeerStatusEvents() {
+	events.Subscribe(func(evt peer.StatusEvent) {
+		jsonBytes, err := json.Marshal(evt.Status)
+		if err != nil {
+			slog.Error("marshal peer status event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerStatus, string(jsonBytes))
 	})
 }
 
