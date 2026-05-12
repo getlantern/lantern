@@ -321,6 +321,10 @@ class _SettingState extends ConsumerState<Setting> {
         onError: (error) {
           if (!mounted) return;
           context.hideLoadingDialog();
+          if (error.contains('No previous purchases found')) {
+            AppDialog.noPurchaseFoundDialog(context: context);
+            return;
+          }
           _showRestoreError(error);
         },
       );

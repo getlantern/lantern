@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
@@ -95,6 +97,61 @@ class AppDialog {
           actions: [
             AppTextButton(
               label: 'continue'.i18n,
+              onPressed: () {
+                appRouter.maybePop();
+                Future.delayed(
+                  const Duration(milliseconds: 400),
+                  () => onPressed?.call(),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static void noPurchaseFoundDialog({
+    required BuildContext context,
+    OnPressed? onPressed,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    final body = Platform.isIOS
+        ? 'no_purchase_found_body_ios'.i18n
+        : 'no_purchase_found_body_android'.i18n;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(height: 24),
+              Icon(
+                Icons.info_outline,
+                color: Colors.orange,
+                size: 48,
+              ),
+              SizedBox(height: 24),
+              Text(
+                'no_purchase_found_title'.i18n,
+                style: textTheme.headlineMedium,
+              ),
+              SizedBox(height: defaultSize),
+              Text(
+                body,
+                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+                textAlign: TextAlign.left,
+              ),
+            ],
+          ),
+          actions: [
+            AppTextButton(
+              label: 'ok'.i18n,
               onPressed: () {
                 appRouter.maybePop();
                 Future.delayed(
