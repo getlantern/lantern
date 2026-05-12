@@ -490,7 +490,22 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
             const SizedBox(height: 16),
             Expanded(
               flex: 3,
-              child: _GlobeView(),
+              child: Stack(
+                children: [
+                  Positioned.fill(child: _GlobeView()),
+                  // Floating "new connection from X" toast — overlays the
+                  // bottom of the globe area rather than the peer's exact
+                  // location on the sphere. Anchoring to projected coords
+                  // forced the burst to repaint every globe rotation
+                  // frame, which made the rotation jittery.
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 8,
+                    child: Center(child: _ArrivalToast()),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
@@ -700,9 +715,6 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   // workerIdx +1's again before it fires.
   final Map<int, Timer> _pendingRemovals = {};
   static const _arcLinger = Duration(seconds: 5);
-  // Matches the explosion.json timeline (4.55s at 30fps) so the Lottie
-  // plays to completion before the anchor point is removed.
-  static const _burstDuration = Duration(milliseconds: 4600);
 
   @override
   void initState() {
@@ -761,7 +773,6 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       // Cancel any lingering removal — same workerIdx is back.
       _pendingRemovals.remove(event.workerIdx)?.cancel();
       _addPeer(event);
-      if (!event.isReplay) _announceArrival(event);
     } else if (event.state == -1) {
       // Linger the arc so brief connections still register visually.
       _pendingRemovals[event.workerIdx]?.cancel();
@@ -813,33 +824,6 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     ));
   }
 
-  void _announceArrival(UnboundedConnectionEvent event) {
-    if (!mounted) return;
-    final coords = _jittered(event.coordinates!, event.workerIdx);
-    final burstId = 'burst_${event.workerIdx}_${DateTime.now().microsecondsSinceEpoch}';
-    // Anchor a zero-size point at the peer's location. flutter_earth_globe
-    // calls labelBuilder with the projected on-screen position, so the
-    // burst widget renders directly on top of the peer's spot on the map
-    // (rotating + projecting along with the globe).
-    _globeController.addPoint(Point(
-      id: burstId,
-      coordinates: coords,
-      style: const PointStyle(color: Colors.transparent, size: 0.1),
-      isLabelVisible: true,
-      labelBuilder: (ctx, _, isHovering, isVisible) {
-        if (!isVisible) return const SizedBox.shrink();
-        return _HeartBurst(
-          countryName: event.countryName,
-          flagEmoji: event.flagEmoji,
-        );
-      },
-    ));
-    Future.delayed(_burstDuration, () {
-      if (!mounted) return;
-      _globeController.removePoint(burstId);
-    });
-  }
-
   void _removePeer(int workerIdx) {
     _globeController.removePointConnection('conn_$workerIdx');
     _globeController.removePoint('peer_$workerIdx');
@@ -879,20 +863,140 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   }
 }
 
-// ─── Heart burst ─────────────────────────────────────────────────────────────
+// ─── Arrival toast ───────────────────────────────────────────────────────────
 
-/// Heart-burst anchored to a peer point on the globe — same visual as
-/// unbounded.lantern.io. The pink heart is the inline SVG path from
-/// `unbounded/ui/.../notification/explosion.tsx` (FF5A79 fill, 32×27
-/// viewBox); the burst is `unbounded/.../explosion.json` played once
-/// via the `lottie` Flutter package. A small `flag country` label sits
-/// just below and fades alongside. Self-disposes when the anchor point
-/// is removed (~1.2s after creation by the caller).
-class _HeartBurst extends StatefulWidget {
-  const _HeartBurst({this.countryName = '', this.flagEmoji = ''});
+/// Floating notification overlay shown under the globe when a new peer
+/// arrives. Mirrors the unbounded.lantern.io notification pattern:
+/// heart-burst on the left, `New connection from <country>` text on
+/// the right. Slides up + fades in, auto-hides after ~3.5s. Listens
+/// directly to ShareNotifier.connectionEvents so we don't depend on
+/// the globe widget for triggering.
+class _ArrivalToast extends ConsumerStatefulWidget {
+  const _ArrivalToast();
+
+  @override
+  ConsumerState<_ArrivalToast> createState() => _ArrivalToastState();
+}
+
+class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
+  StreamSubscription<UnboundedConnectionEvent>? _sub;
+  Timer? _hideTimer;
+  UnboundedConnectionEvent? _current;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = ref
+        .read(shareProvider.notifier)
+        .connectionEvents
+        .listen(_onEvent);
+  }
+
+  void _onEvent(UnboundedConnectionEvent event) {
+    if (event.state != 1 || event.isReplay) return;
+    if (event.countryName.isEmpty) return;
+    if (!mounted) return;
+    _hideTimer?.cancel();
+    setState(() => _current = event);
+    _hideTimer = Timer(const Duration(milliseconds: 3500), () {
+      if (!mounted) return;
+      setState(() => _current = null);
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    _hideTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final event = _current;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: SlideTransition(
+          position: Tween<Offset>(
+                  begin: const Offset(0, 0.4), end: Offset.zero)
+              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+          child: child,
+        ),
+      ),
+      child: event == null
+          ? const SizedBox.shrink(key: ValueKey('arrival-hidden'))
+          : _ArrivalCard(
+              // ValueKey forces AnimatedSwitcher to swap children when a
+              // new arrival lands while the previous toast is still up,
+              // so the Lottie restarts cleanly.
+              key: ValueKey('arrival-${event.workerIdx}'),
+              countryName: event.countryName,
+              flagEmoji: event.flagEmoji,
+            ),
+    );
+  }
+}
+
+class _ArrivalCard extends StatelessWidget {
+  const _ArrivalCard({
+    super.key,
+    required this.countryName,
+    required this.flagEmoji,
+  });
 
   final String countryName;
   final String flagEmoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 16, 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: Colors.black12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 40, height: 40, child: _HeartBurst()),
+            const SizedBox(width: 12),
+            Text(
+              flagEmoji.isEmpty
+                  ? 'New connection from $countryName'
+                  : '$flagEmoji  New connection from $countryName',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Heart burst ─────────────────────────────────────────────────────────────
+
+/// Heart + Lottie explosion lifted from getlantern/unbounded. The pink
+/// heart is the inline SVG path from `notification/explosion.tsx`
+/// (FF5A79 fill, 32×27 viewBox); the burst is `explosion.json` played
+/// once via the `lottie` Flutter package. Rendered inside _ArrivalCard
+/// (under the globe), NOT anchored to globe coords — anchoring forced
+/// a repaint per globe rotation frame and made rotation jittery.
+class _HeartBurst extends StatefulWidget {
+  const _HeartBurst();
 
   @override
   State<_HeartBurst> createState() => _HeartBurstState();
@@ -900,109 +1004,49 @@ class _HeartBurst extends StatefulWidget {
 
 class _HeartBurstState extends State<_HeartBurst>
     with TickerProviderStateMixin {
-  // Drives only the label's fade in/out — the Lottie file owns its own
-  // animation timeline.
-  late final AnimationController _labelCtrl;
-  late final Animation<double> _labelOpacity;
-
-  // The lottie controller is driven by Lottie's own composition once
-  // it loads; we kick it off with goToAndPlay equivalent (forward).
   AnimationController? _lottieCtrl;
 
   @override
-  void initState() {
-    super.initState();
-    // Matches unbounded's notification auto-hide (3.5s visible + 0.7s
-    // fade-out) so the country label stays readable through the bulk
-    // of the explosion animation.
-    _labelCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4200),
-    );
-    _labelOpacity = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 15),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 55),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
-    ]).animate(_labelCtrl);
-    _labelCtrl.forward();
-  }
-
-  @override
   void dispose() {
-    _labelCtrl.dispose();
     _lottieCtrl?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final label = widget.countryName.isEmpty
-        ? null
-        : '${widget.flagEmoji} ${widget.countryName}'.trim();
     return IgnorePointer(
-      child: SizedBox(
-        width: 120,
-        height: 120,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Lottie explosion sits behind the heart, sized larger so
-            // particle spray extends past the heart bounds. Matches
-            // unbounded's LottieWrapper sizing (420px wide canvas
-            // around a 32×27 heart) scaled for our anchor.
-            SizedBox(
-              width: 120,
-              height: 120,
-              child: Lottie.asset(
-                'assets/unbounded/explosion.json',
-                repeat: false,
-                fit: BoxFit.contain,
-                onLoaded: (composition) {
-                  _lottieCtrl = AnimationController(
-                    vsync: this,
-                    duration: composition.duration,
-                  )..forward();
-                  setState(() {});
-                },
-                controller: _lottieCtrl,
-              ),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Lottie explosion sized so particle spray extends slightly
+          // past the card bounds (Clip.none on parent lets it overflow).
+          // Mirrors unbounded's LottieWrapper sizing, scaled down for an
+          // inline card slot.
+          Positioned(
+            width: 110,
+            height: 110,
+            child: Lottie.asset(
+              'assets/unbounded/explosion.json',
+              repeat: false,
+              fit: BoxFit.contain,
+              onLoaded: (composition) {
+                _lottieCtrl = AnimationController(
+                  vsync: this,
+                  duration: composition.duration,
+                )..forward();
+                setState(() {});
+              },
+              controller: _lottieCtrl,
             ),
-            // Heart SVG path — same coords as unbounded's inline SVG
-            // (FF5A79, 32x27 viewBox).
-            const SizedBox(
-              width: 32,
-              height: 27,
-              child: CustomPaint(painter: _HeartPainter()),
-            ),
-            if (label != null)
-              Positioned(
-                top: 78,
-                child: AnimatedBuilder(
-                  animation: _labelCtrl,
-                  builder: (context, _) => Opacity(
-                    opacity: _labelOpacity.value,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+          ),
+          // Heart SVG path — exact coords from unbounded's inline SVG.
+          const SizedBox(
+            width: 22,
+            height: 19,
+            child: CustomPaint(painter: _HeartPainter()),
+          ),
+        ],
       ),
     );
   }
