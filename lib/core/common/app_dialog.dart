@@ -41,9 +41,7 @@ class AppDialog {
               SizedBox(height: defaultSize),
               Text(
                 'lantern_pro_description'.i18n,
-                style: textTheme.bodyMedium?.copyWith(
-                  height: 23 / 16,
-                ),
+                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
               ),
             ],
           ),
@@ -52,14 +50,59 @@ class AppDialog {
               label: label ?? 'continue'.i18n,
               onPressed: () {
                 appRouter.maybePop();
+                Future.delayed(const Duration(milliseconds: 400), () {
+                  onPressed?.call();
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static void purchaseRestoredDialog({
+    required BuildContext context,
+    OnPressed? onPressed,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(height: 24),
+              Center(child: AppImage(path: AppImagePaths.roundCorrect)),
+              SizedBox(height: 24),
+              Text(
+                'purchase_restored_title'.i18n,
+                style: textTheme.headlineMedium,
+              ),
+              SizedBox(height: defaultSize),
+              Text(
+                'purchase_restored_description'.i18n,
+                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+                textAlign: TextAlign.left,
+              ),
+            ],
+          ),
+          actions: [
+            AppTextButton(
+              label: 'continue'.i18n,
+              onPressed: () {
+                appRouter.maybePop();
                 Future.delayed(
                   const Duration(milliseconds: 400),
-                  () {
-                    onPressed?.call();
-                  },
+                  () => onPressed?.call(),
                 );
               },
-            )
+            ),
           ],
         );
       },
@@ -81,12 +124,14 @@ class AppDialog {
           actionsOverflowAlignment: OverflowBarAlignment.end,
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: size24),
-          actionsPadding: actionPadding ??
+          actionsPadding:
+              actionPadding ??
               EdgeInsets.only(
-                  top: defaultSize,
-                  bottom: defaultSize,
-                  left: defaultSize,
-                  right: defaultSize),
+                top: defaultSize,
+                bottom: defaultSize,
+                left: defaultSize,
+                right: defaultSize,
+              ),
           content: content,
           actions: action,
         );
@@ -108,20 +153,18 @@ class AppDialog {
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
-              top: defaultSize,
-              bottom: defaultSize,
-              left: defaultSize,
-              right: defaultSize),
+            top: defaultSize,
+            bottom: defaultSize,
+            left: defaultSize,
+            right: defaultSize,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SizedBox(height: 24),
               Text(title, style: Theme.of(context).textTheme.headlineMedium),
               SizedBox(height: defaultSize),
-              Text(
-                content,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(content, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
           actions: [
@@ -130,7 +173,7 @@ class AppDialog {
               onPressed: () {
                 appRouter.maybePop();
               },
-            )
+            ),
           ],
         );
       },
@@ -148,16 +191,19 @@ class AppDialog {
         return AlertDialog(
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
-              top: defaultSize,
-              bottom: defaultSize,
-              left: defaultSize,
-              right: defaultSize),
+            top: defaultSize,
+            bottom: defaultSize,
+            left: defaultSize,
+            right: defaultSize,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SizedBox(height: 24),
-              Text('vpn_conflict_title'.i18n,
-                  style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                'vpn_conflict_title'.i18n,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
               SizedBox(height: defaultSize),
               Text(
                 'vpn_conflict_body'.i18n,
@@ -197,30 +243,29 @@ class AppDialog {
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
-              top: defaultSize,
-              bottom: defaultSize,
-              left: defaultSize,
-              right: defaultSize),
+            top: defaultSize,
+            bottom: defaultSize,
+            left: defaultSize,
+            right: defaultSize,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SizedBox(height: 24),
               Text(title, style: Theme.of(context).textTheme.headlineMedium),
               SizedBox(height: defaultSize),
-              Text(
-                content,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(content, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
           actions: [
             AppTextButton(
               label: action ?? 'ok'.i18n,
-              onPressed: onPressed ??
+              onPressed:
+                  onPressed ??
                   () {
                     appRouter.maybePop();
                   },
-            )
+            ),
           ],
         );
       },

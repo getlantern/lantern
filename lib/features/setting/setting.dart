@@ -313,6 +313,7 @@ class _SettingState extends ConsumerState<Setting> {
   }
 
   Future<void> _restorePurchaseFlow() async {
+    if (!mounted) return;
     context.showLoadingDialog();
     try {
       await sl<AppPurchase>().restorePurchases(
@@ -343,7 +344,6 @@ class _SettingState extends ConsumerState<Setting> {
     final result = await ref
         .read(paymentProvider.notifier)
         .restoreInAppPurchase(purchaseToken: purchaseToken);
-    if (!mounted) return;
 
     await result.fold(
       (failure) async {
@@ -355,12 +355,11 @@ class _SettingState extends ConsumerState<Setting> {
       },
       (restorePurchase) async {
         if (!mounted) return;
-        context.hideLoadingDialog();
 
         /// Once the purchase is successfully restored, we need to fetch the
         /// latest user data to get the updated subscription status and linked devices.
         await ref.read(homeProvider.notifier).fetchUserData();
-
+        context.hideLoadingDialog();
         if (restorePurchase.status == 'ok' &&
             restorePurchase.devices.isNotEmpty) {
           appLogger.info(
@@ -371,7 +370,7 @@ class _SettingState extends ConsumerState<Setting> {
           return;
         }
         appLogger.info('[Restore] Account restored; showing success dialog');
-        AppDialog.showLanternProDialog(
+        AppDialog.purchaseRestoredDialog(
           context: context,
           onPressed: () => appRouter.popUntilRoot(),
         );
@@ -387,7 +386,7 @@ class _SettingState extends ConsumerState<Setting> {
         // device limit.
         await Future.delayed(const Duration(seconds: 1));
         if (!mounted) return;
-        AppDialog.showLanternProDialog(
+        AppDialog.purchaseRestoredDialog(
           context: context,
           onPressed: () => appRouter.popUntilRoot(),
         );

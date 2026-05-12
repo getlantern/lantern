@@ -482,6 +482,12 @@ msgstr "Welcome to Lantern!"
 msgid "lantern_pro_description"
 msgstr "Your Pro features are unlocked—enjoy unlimited data, faster speeds, and premium servers."
 
+msgid "purchase_restored_title"
+msgstr "Purchase Restored"
+
+msgid "purchase_restored_description"
+msgstr "Your Lantern Pro subscription is now active on this device."
+
 msgid "plans_fetch_error"
 msgstr "Error fetching plans. Please try again later."
 

@@ -70,7 +70,7 @@ class _PlansState extends ConsumerState<Plans> {
           child: SizedBox(
             height: context.isSmallDevice
                 ? size.height * 0.4
-                : size.height * 0.39,
+                : size.height * 0.37,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -128,7 +128,7 @@ class _PlansState extends ConsumerState<Plans> {
                   ),
                 ),
                 if (isStoreVersion()) ...[
-                  SizedBox(height: defaultSize),
+                  SizedBox(height: 8),
                   Center(
                     child: AppRichText(
                       texts: '${'already_purchased'.i18n} ',
@@ -139,7 +139,7 @@ class _PlansState extends ConsumerState<Plans> {
                   ),
                 ],
                 if (PlatformUtils.isIOS) ...{
-                  SizedBox(height: defaultSize),
+                  SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Text(

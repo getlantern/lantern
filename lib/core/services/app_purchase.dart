@@ -33,6 +33,11 @@ class AppPurchase {
   // device has no active subscription cached locally.
   bool _isRestoreFlow = false;
 
+  // Set true when a restored receipt is delivered through the stream during
+  // a restore flow. Used on iOS to detect "no purchases" (StoreKit doesn't
+  // emit an empty stream event the way Play Billing does).
+  bool _restoreReceivedAny = false;
+
   void init() {
     if (PlatformUtils.isDesktop || _subscription != null) {
       return;
@@ -192,11 +197,24 @@ class AppPurchase {
     _onSuccess = onSuccess;
     _onError = onError;
     _isRestoreFlow = true;
+    _restoreReceivedAny = false;
     _pendingPlanId = null;
 
     try {
       appLogger.info('[AppPurchase] Initiating restore purchases');
       await _inAppPurchase.restorePurchases();
+      if (Platform.isIOS) {
+        // StoreKit doesn't emit an empty stream event when there's nothing to
+        // restore. Give it a brief window for real receipts to arrive, then
+        // surface "no purchases" if none did.
+        Future.delayed(const Duration(seconds: 5), () {
+          if (_isRestoreFlow && !_restoreReceivedAny) {
+            appLogger.info('[AppPurchase] iOS restore: no purchases delivered');
+            _isRestoreFlow = false;
+            _onError?.call('No previous purchases found to restore.');
+          }
+        });
+      }
     } catch (e, st) {
       appLogger.error('[AppPurchase] Error restoring purchases', e, st);
       _isRestoreFlow = false;
@@ -260,6 +278,7 @@ class AppPurchase {
           appLogger.info(
             '[AppPurchase] Found restore purchase calling success',
           );
+          _restoreReceivedAny = true;
           await _finalize(purchaseDetails);
           _onSuccess?.call(purchaseDetails);
           return;
