@@ -259,6 +259,142 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.change, .install)
   }
 
+  func testResolveInstalledContentHashCachesByURL() throws {
+    SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+
+    let bundleURL = try createExtensionBundle(
+      name: "Cached.systemextension",
+      shortVersion: "9.0.18",
+      buildVersion: "220",
+      executableContents: "cache-test-binary"
+    )
+    defer {
+      try? FileManager.default.removeItem(at: bundleURL.deletingLastPathComponent())
+      SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+    }
+
+    XCTAssertNil(SystemExtensionDescriptor.cachedInstalled(url: bundleURL))
+
+    let firstHash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: false
+    )
+    XCTAssertNotNil(firstHash)
+    XCTAssertEqual(SystemExtensionDescriptor.cachedInstalled(url: bundleURL), firstHash)
+
+    // Mutate the bundle on disk. If the second call re-hashed, it would
+    // produce a different hash; if it served from the cache, it returns the
+    // original. The URL-keyed cache is safe in production because installed
+    // bundles live at immutable per-UUID paths macOS never overwrites in place.
+    let executableURL = bundleURL.appendingPathComponent("Contents/MacOS/PacketTunnel")
+    try Data("mutated-binary".utf8).write(to: executableURL)
+
+    let secondHash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: false
+    )
+    XCTAssertEqual(
+      secondHash, firstHash,
+      "Second call should hit the URL cache and return the original hash"
+    )
+
+    // Sanity check: hashing the mutated bundle directly produces a different
+    // value, proving the cache is what made the second resolve return the old hash.
+    let mutatedHash = SystemExtensionBundleHasher.hashBundle(at: bundleURL)
+    XCTAssertNotEqual(mutatedHash, firstHash)
+  }
+
+  func testResolveInstalledContentHashSkipsHashingForUninstalling() throws {
+    SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+
+    let bundleURL = try createExtensionBundle(
+      name: "Uninstalling.systemextension",
+      shortVersion: "9.0.18",
+      buildVersion: "220",
+      executableContents: "uninstalling-binary"
+    )
+    defer {
+      try? FileManager.default.removeItem(at: bundleURL.deletingLastPathComponent())
+      SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+    }
+
+    let hash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: true
+    )
+    XCTAssertNil(hash, "Uninstalling extensions should not be hashed")
+    XCTAssertNil(
+      SystemExtensionDescriptor.cachedInstalled(url: bundleURL),
+      "Uninstalling extensions should not populate the cache"
+    )
+  }
+
+  // An uninstalling descriptor with a nil content hash (because we skip hashing
+  // for isUninstalling=true) must NOT slip through matches() via the
+  // graceful-degradation path in matchesContent. Otherwise an uninstalling
+  // extension with stale bytes could mask a legitimate same-version
+  // content-change replacement.
+  func testMatchesReturnsFalseWhenUninstalling() {
+    let bundled = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: "hash-a"
+    )
+    let uninstalling = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: nil,
+      isEnabled: true,
+      isUninstalling: true
+    )
+
+    XCTAssertFalse(
+      uninstalling.matches(bundled),
+      "Uninstalling descriptor must not match the bundled extension even when versions agree"
+    )
+    XCTAssertFalse(
+      bundled.matches(uninstalling),
+      "matches() should be symmetric — bundled vs uninstalling should also not match"
+    )
+  }
+
+  // Integration-level: the reconciler given an enabled+uninstalling installed
+  // extension (with hash skipped, mimicking what init(properties:) now produces)
+  // must NOT return .activated/.none. It should fall through to the
+  // isUninstalling handling and produce a replacement.
+  func testReconcileReplacesEnabledUninstallingExtensionWithSkippedHash() {
+    let bundled = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: "hash-a"
+    )
+    let enabledUninstalling = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: nil, // skipped because isUninstalling
+      isEnabled: true,
+      isUninstalling: true
+    )
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [enabledUninstalling]
+    )
+
+    XCTAssertNotEqual(
+      reconciliation.status, .activated,
+      "An enabled+uninstalling extension with skipped hash must not be treated as activated"
+    )
+    XCTAssertNotEqual(
+      reconciliation.action, .none,
+      "Reconciler must take action rather than leaving a draining extension in place"
+    )
+  }
+
   func testClassifyFallsBackToVersionMatchWhenSameVersionHashesAreUnavailable() {
     let bundled = SystemExtensionDescriptor(
       bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
