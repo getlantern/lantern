@@ -492,7 +492,7 @@ class _IssueTypeField extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         CardDropdown<String>(
-          key: fieldKey,
+          formFieldKey: fieldKey,
           value: selectedIssue,
           prefixIcon: Icon(Icons.error_outline, color: context.textPrimary),
           items: options

@@ -12,6 +12,7 @@ class CardDropdown<T> extends StatelessWidget {
   final String? hintText;
   final Object? prefixIcon;
   final bool enabled;
+  final Key? formFieldKey;
 
   const CardDropdown({
     super.key,
@@ -22,6 +23,7 @@ class CardDropdown<T> extends StatelessWidget {
     this.hintText,
     this.prefixIcon,
     this.enabled = true,
+    this.formFieldKey,
   });
 
   Widget? _buildPrefix(Object? iconPath, BuildContext context) {
@@ -46,6 +48,7 @@ class CardDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
+      key: formFieldKey,
       initialValue: value,
       items: items,
       onChanged: enabled ? onChanged : null,
