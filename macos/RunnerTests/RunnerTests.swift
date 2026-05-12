@@ -329,6 +329,72 @@ final class RunnerTests: XCTestCase {
     )
   }
 
+  // An uninstalling descriptor with a nil content hash (because we skip hashing
+  // for isUninstalling=true) must NOT slip through matches() via the
+  // graceful-degradation path in matchesContent. Otherwise an uninstalling
+  // extension with stale bytes could mask a legitimate same-version
+  // content-change replacement.
+  func testMatchesReturnsFalseWhenUninstalling() {
+    let bundled = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: "hash-a"
+    )
+    let uninstalling = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: nil,
+      isEnabled: true,
+      isUninstalling: true
+    )
+
+    XCTAssertFalse(
+      uninstalling.matches(bundled),
+      "Uninstalling descriptor must not match the bundled extension even when versions agree"
+    )
+    XCTAssertFalse(
+      bundled.matches(uninstalling),
+      "matches() should be symmetric — bundled vs uninstalling should also not match"
+    )
+  }
+
+  // Integration-level: the reconciler given an enabled+uninstalling installed
+  // extension (with hash skipped, mimicking what init(properties:) now produces)
+  // must NOT return .activated/.none. It should fall through to the
+  // isUninstalling handling and produce a replacement.
+  func testReconcileReplacesEnabledUninstallingExtensionWithSkippedHash() {
+    let bundled = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: "hash-a"
+    )
+    let enabledUninstalling = SystemExtensionDescriptor(
+      bundleIdentifier: "org.getlantern.lantern.PacketTunnel",
+      bundleShortVersion: "9.0.18",
+      bundleVersion: "220",
+      contentHash: nil, // skipped because isUninstalling
+      isEnabled: true,
+      isUninstalling: true
+    )
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [enabledUninstalling]
+    )
+
+    XCTAssertNotEqual(
+      reconciliation.status, .activated,
+      "An enabled+uninstalling extension with skipped hash must not be treated as activated"
+    )
+    XCTAssertNotEqual(
+      reconciliation.action, .none,
+      "Reconciler must take action rather than leaving a draining extension in place"
+    )
+  }
+
   func testClassifyFallsBackToVersionMatchWhenSameVersionHashesAreUnavailable() {
     let bundled = SystemExtensionDescriptor(
       bundleIdentifier: "org.getlantern.lantern.PacketTunnel",

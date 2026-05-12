@@ -564,7 +564,14 @@ internal struct SystemExtensionDescriptor: Equatable {
   }
 
   func matches(_ other: SystemExtensionDescriptor) -> Bool {
-    matchesVersion(other) && matchesContent(other)
+    // Uninstalling extensions are going away — treating one as "matched"
+    // can mask a stale-content replacement (the matchesContent path
+    // gracefully returns true when either hash is nil, so an uninstalling
+    // descriptor with skipped hash + same version would otherwise match).
+    if isUninstalling || other.isUninstalling {
+      return false
+    }
+    return matchesVersion(other) && matchesContent(other)
   }
 
   private static func buildInt(_ value: String?) -> Int? {
