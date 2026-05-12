@@ -313,13 +313,19 @@ class _SettingState extends ConsumerState<Setting> {
   }
 
   Future<void> _restorePurchaseFlow() async {
+    context.showLoadingDialog();
     try {
       await sl<AppPurchase>().restorePurchases(
         onSuccess: _onRestoredPurchase,
-        onError: _showRestoreError,
+        onError: (error) {
+          if (!mounted) return;
+          context.hideLoadingDialog();
+          _showRestoreError(error);
+        },
       );
     } catch (e, st) {
       appLogger.error('Error initiating restore purchase flow: $e', st);
+      if (mounted) context.hideLoadingDialog();
       _showRestoreError(e.localizedDescription);
     }
   }
@@ -328,38 +334,39 @@ class _SettingState extends ConsumerState<Setting> {
     final purchaseToken =
         purchaseDetails.verificationData.serverVerificationData;
     if (purchaseToken.isEmpty) {
-      appLogger.info(
-        '[Restore] Skipping: empty token for ${purchaseDetails.productID}',
-      );
+      appLogger.info('Skipping: empty token for ${purchaseDetails.productID}');
       return;
     }
     if (!mounted) return;
 
-    appLogger.info(
-      '[Restore] Calling restoreInAppPurchase for ${purchaseDetails.productID}',
-    );
-    context.showLoadingDialog();
+    appLogger.info('Found the restore purchase calling restore subscription');
     final result = await ref
         .read(paymentProvider.notifier)
         .restoreInAppPurchase(purchaseToken: purchaseToken);
     if (!mounted) return;
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         appLogger.error(
           '[Restore] restoreInAppPurchase failed for token $purchaseToken: ${failure.error}',
         );
         context.hideLoadingDialog();
         _showRestoreError(failure.localizedErrorMessage);
       },
-      (restorePurchase) {
+      (restorePurchase) async {
+        if (!mounted) return;
         context.hideLoadingDialog();
+
+        /// Once the purchase is successfully restored, we need to fetch the
+        /// latest user data to get the updated subscription status and linked devices.
+        await ref.read(homeProvider.notifier).fetchUserData();
 
         if (restorePurchase.status == 'ok' &&
             restorePurchase.devices.isNotEmpty) {
           appLogger.info(
             '[Restore] Account restored with ${restorePurchase.devices.length} linked device(s); showing device list',
           );
+
           _showRestoredDevicesDialog(restorePurchase.devices);
           return;
         }

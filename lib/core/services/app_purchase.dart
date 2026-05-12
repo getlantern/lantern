@@ -33,10 +33,6 @@ class AppPurchase {
   // device has no active subscription cached locally.
   bool _isRestoreFlow = false;
 
-  // Set when a restore flow processes at least one purchase, so we can
-  // report "no purchases found" if the platform yields no receipts.
-  bool _restoreProcessedAny = false;
-
   void init() {
     if (PlatformUtils.isDesktop || _subscription != null) {
       return;
@@ -212,6 +208,14 @@ class AppPurchase {
     appLogger.info(
       '[AppPurchase] Received purchase updates: ${purchases.length}',
     );
+    if (_isRestoreFlow && purchases.isEmpty) {
+      appLogger.info(
+        '[AppPurchase] Restore flow: purchase stream emitted empty list',
+      );
+      _isRestoreFlow = false;
+      _onError?.call('No previous purchases found to restore.');
+      return;
+    }
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
@@ -254,7 +258,7 @@ class AppPurchase {
         /// During an explicit restore flow, skip the backend acknowledge call
         if (_isRestoreFlow) {
           appLogger.info(
-            '[AppPurchase] Restore flow: delegating backend call to onSuccess',
+            '[AppPurchase] Found restore purchase calling success',
           );
           await _finalize(purchaseDetails);
           _onSuccess?.call(purchaseDetails);
