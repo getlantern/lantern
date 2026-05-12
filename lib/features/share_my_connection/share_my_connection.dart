@@ -26,6 +26,7 @@ import 'package:flutter_earth_globe/point.dart';
 import 'package:flutter_earth_globe/point_connection.dart';
 import 'package:flutter_earth_globe/point_connection_style.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
@@ -124,6 +125,15 @@ class ShareState {
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
 
+class _PeerArc {
+  _PeerArc(this.workerIdx) : streamCount = 1;
+  final int workerIdx;
+  int streamCount;
+  // Geo is resolved async after the first +1 lands. Until then the peer is
+  // tracked but no arc is emitted — avoids a flash of "unknown" arcs.
+  PeerGeo? geo;
+}
+
 class ShareNotifier extends Notifier<ShareState> {
   // Persisted in real impl; in-process for the prototype so the disclosure
   // re-fires on app restart and is easy to demo.
@@ -131,7 +141,10 @@ class ShareNotifier extends Notifier<ShareState> {
 
   StreamSubscription? _appEventSub;
   int _workerSeq = 0;
-  final Map<String, int> _sourceToWorker = {};
+  // Per-peer arc + active-stream count. samizdat multiplexes many H2 streams
+  // over one TCP conn, all sharing the same RemoteAddr — ref-count so the arc
+  // persists until the peer's LAST stream closes, not its first.
+  final Map<String, _PeerArc> _peerArcs = {};
 
   final _eventController =
       StreamController<UnboundedConnectionEvent>.broadcast();
@@ -291,7 +304,7 @@ class ShareNotifier extends Notifier<ShareState> {
   // already use.
 
   void _startEventSubscription(WidgetRef widgetRef) {
-    _sourceToWorker.clear();
+    _peerArcs.clear();
     _appEventSub = widgetRef
         .read(lanternServiceProvider)
         .watchAppEvents()
@@ -310,29 +323,38 @@ class ShareNotifier extends Notifier<ShareState> {
         if (ip.isEmpty) return;
 
         if (eventState == 1) {
-          // Each (source IP) gets a stable worker idx so the matching
-          // disconnect can find the arc to remove. Repeated +1 from the
-          // same source (re-connect after disconnect) gets a new idx.
-          if (_sourceToWorker.containsKey(ip)) return;
+          final existing = _peerArcs[ip];
+          if (existing != null) {
+            existing.streamCount++;
+            return;
+          }
           final widx = _workerSeq++;
-          _sourceToWorker[ip] = widx;
-          _eventController.add(UnboundedConnectionEvent(
-            state: 1,
-            workerIdx: widx,
-            addr: ip,
-          ));
+          final arc = _PeerArc(widx);
+          _peerArcs[ip] = arc;
           state = state.copyWith(
             activeCount: state.activeCount + 1,
             totalCount: state.totalCount + 1,
           );
+          // Resolve country async. Emit the +1 only after lookup so the
+          // globe can render the arc at the right coords and the UI can
+          // surface the country name in the connection banner.
+          unawaited(_resolveAndEmit(ip, arc));
         } else if (eventState == -1) {
-          final widx = _sourceToWorker.remove(ip);
-          if (widx == null) return;
-          _eventController.add(UnboundedConnectionEvent(
-            state: -1,
-            workerIdx: widx,
-            addr: '',
-          ));
+          final entry = _peerArcs[ip];
+          if (entry == null) return;
+          entry.streamCount--;
+          if (entry.streamCount > 0) return;
+          _peerArcs.remove(ip);
+          // Only emit -1 if we already emitted a +1 for this peer (i.e.
+          // the geo lookup completed). Otherwise the globe never saw it
+          // and a -1 with no preceding +1 would just be noise.
+          if (entry.geo != null) {
+            _eventController.add(UnboundedConnectionEvent(
+              state: -1,
+              workerIdx: entry.workerIdx,
+              addr: '',
+            ));
+          }
           state = state.copyWith(
             activeCount: max(0, state.activeCount - 1),
           );
@@ -345,10 +367,75 @@ class ShareNotifier extends Notifier<ShareState> {
     });
   }
 
+  Future<void> _resolveAndEmit(String ip, _PeerArc arc) async {
+    PeerGeo geo;
+    try {
+      geo = await GeoLookupService.peerLookup(ip);
+    } catch (_) {
+      geo = PeerGeo.unknown;
+    }
+    // Peer may have disconnected before the lookup returned. The map
+    // entry's identity (workerIdx) is the cheapest check.
+    final current = _peerArcs[ip];
+    if (current == null || current.workerIdx != arc.workerIdx) return;
+    // Skip arcs we couldn't geo-locate. The peer is still counted in
+    // activeCount, but we don't draw a wrong-country arc.
+    if (geo.countryCode.isEmpty) return;
+    arc.geo = geo;
+    _eventController.add(UnboundedConnectionEvent(
+      state: 1,
+      workerIdx: arc.workerIdx,
+      addr: ip,
+      countryName: geo.countryName,
+      countryCode: geo.countryCode,
+      flagEmoji: geo.flagEmoji,
+      coordinates: geo.coordinates,
+    ));
+  }
+
+  /// Replays a synthetic +1 for every currently-active peer that has a
+  /// resolved geo. Callers (e.g. the globe widget when it mounts after
+  /// the user navigates into the screen) get a one-shot seed of the
+  /// current world state so they don't render an empty globe despite
+  /// active connections. Replayed events have isReplay=true so the UI
+  /// can suppress the "new connection" burst.
+  void replayCurrentPeers() {
+    for (final entry in _peerArcs.entries) {
+      final arc = entry.value;
+      final geo = arc.geo;
+      if (geo == null) continue;
+      _eventController.add(UnboundedConnectionEvent(
+        state: 1,
+        workerIdx: arc.workerIdx,
+        addr: entry.key,
+        countryName: geo.countryName,
+        countryCode: geo.countryCode,
+        flagEmoji: geo.flagEmoji,
+        coordinates: geo.coordinates,
+        isReplay: true,
+      ));
+    }
+  }
+
   void _stopEventSubscription() {
+    // Synthesize -1 for every active peer BEFORE killing the source
+    // stream. peer.Client.Stop on the Go side suppresses the box.Close
+    // disconnect cascade (correct — avoids a flood of post-Stop noise),
+    // so without this loop the globe would never see -1's for peers
+    // that were live at toggle-time. Their arcs would orphan and rotate
+    // with the globe indefinitely. With this loop, the globe sees real
+    // -1's and runs them through the normal linger-then-remove path.
+    for (final arc in _peerArcs.values) {
+      if (arc.geo == null) continue;
+      _eventController.add(UnboundedConnectionEvent(
+        state: -1,
+        workerIdx: arc.workerIdx,
+        addr: '',
+      ));
+    }
     _appEventSub?.cancel();
     _appEventSub = null;
-    _sourceToWorker.clear();
+    _peerArcs.clear();
     _workerSeq = 0;
   }
 
@@ -515,11 +602,44 @@ class _StatusCard extends StatelessWidget {
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Stack(
               children: [
-                _Stat(label: 'Active now', value: '${state.activeCount}'),
-                _Stat(label: 'Total today', value: '${state.totalCount}'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _Stat(label: 'Active now', value: '${state.activeCount}'),
+                    _Stat(label: 'Total today', value: '${state.totalCount}'),
+                  ],
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    waitDuration: const Duration(milliseconds: 200),
+                    showDuration: const Duration(seconds: 8),
+                    preferBelow: false,
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    message:
+                        'Most connections are short liveness probes — Lantern '
+                        'clients periodically check that this peer is reachable '
+                        'before sending real traffic. A quick burst from many '
+                        'locations is normal; an arc that lingers represents an '
+                        'actual user session.',
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -574,6 +694,15 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   StreamSubscription<UnboundedConnectionEvent>? _eventSub;
   GlobeCoordinates? _originCoords;
+  // Pending arc removals: peer goes idle → we don't yank the arc
+  // immediately so brief URL-test probes (which dominate samizdat-peer
+  // traffic) still register visually. Timer is cancelled if the same
+  // workerIdx +1's again before it fires.
+  final Map<int, Timer> _pendingRemovals = {};
+  static const _arcLinger = Duration(seconds: 5);
+  // Matches the explosion.json timeline (4.55s at 30fps) so the Lottie
+  // plays to completion before the anchor point is removed.
+  static const _burstDuration = Duration(milliseconds: 4600);
 
   @override
   void initState() {
@@ -583,15 +712,24 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       _applyTheme();
     };
     _initOrigin();
+    // Subscribe BEFORE the replay call so we don't miss any concurrent
+    // +1 events. The broadcast stream delivers synchronously when added,
+    // but the replay events come from inside the same notifier so order
+    // is preserved.
     _eventSub = ref
         .read(shareProvider.notifier)
         .connectionEvents
         .listen(_handleEvent);
+    ref.read(shareProvider.notifier).replayCurrentPeers();
   }
 
   @override
   void dispose() {
     _eventSub?.cancel();
+    for (final t in _pendingRemovals.values) {
+      t.cancel();
+    }
+    _pendingRemovals.clear();
     _globeController.dispose();
     super.dispose();
   }
@@ -618,21 +756,44 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     ));
   }
 
-  Future<void> _handleEvent(UnboundedConnectionEvent event) async {
-    if (event.state == 1 && event.addr.isNotEmpty) {
-      await _addPeer(event.workerIdx, event.addr);
+  void _handleEvent(UnboundedConnectionEvent event) {
+    if (event.state == 1 && event.coordinates != null) {
+      // Cancel any lingering removal — same workerIdx is back.
+      _pendingRemovals.remove(event.workerIdx)?.cancel();
+      _addPeer(event);
+      if (!event.isReplay) _announceArrival(event);
     } else if (event.state == -1) {
-      _removePeer(event.workerIdx);
+      // Linger the arc so brief connections still register visually.
+      _pendingRemovals[event.workerIdx]?.cancel();
+      _pendingRemovals[event.workerIdx] = Timer(_arcLinger, () {
+        _pendingRemovals.remove(event.workerIdx);
+        if (!mounted) return;
+        _removePeer(event.workerIdx);
+      });
     }
   }
 
-  Future<void> _addPeer(int workerIdx, String addr) async {
-    final coords = await GeoLookupService.peerLookup(addr);
+  // Jitter coords by a workerIdx-derived offset so multiple peers from
+  // the same country don't draw arcs on top of each other. Hash-based so
+  // the same widx always lands in the same slot — no jitter drift on
+  // replay.
+  GlobeCoordinates _jittered(GlobeCoordinates base, int widx) {
+    final hash = widx * 2654435761; // Knuth multiplicative hash
+    final dLat = ((hash >> 4) & 0xff) / 255.0 * 4.0 - 2.0; // [-2, +2]°
+    final dLng = ((hash >> 12) & 0xff) / 255.0 * 4.0 - 2.0;
+    return GlobeCoordinates(base.latitude + dLat, base.longitude + dLng);
+  }
+
+  void _addPeer(UnboundedConnectionEvent event) {
     if (!mounted) return;
+    final coords = _jittered(event.coordinates!, event.workerIdx);
+    // Arc direction is censored user → uncensored peer (us). The dash
+    // animation flows from start to end, so the visual "travel" reads
+    // as traffic arriving at our peer to escape censorship.
     _globeController.addPointConnection(PointConnection(
-      id: 'conn_$workerIdx',
-      start: _originCoords ?? const GlobeCoordinates(0, 0),
-      end: coords,
+      id: 'conn_${event.workerIdx}',
+      start: coords,
+      end: _originCoords ?? const GlobeCoordinates(0, 0),
       curveScale: .6,
       style: PointConnectionStyle(
         color: _arcColor,
@@ -646,10 +807,37 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       ),
     ));
     _globeController.addPoint(Point(
-      id: 'peer_$workerIdx',
+      id: 'peer_${event.workerIdx}',
       coordinates: coords,
       style: PointStyle(color: _peerPointColor, size: 6),
     ));
+  }
+
+  void _announceArrival(UnboundedConnectionEvent event) {
+    if (!mounted) return;
+    final coords = _jittered(event.coordinates!, event.workerIdx);
+    final burstId = 'burst_${event.workerIdx}_${DateTime.now().microsecondsSinceEpoch}';
+    // Anchor a zero-size point at the peer's location. flutter_earth_globe
+    // calls labelBuilder with the projected on-screen position, so the
+    // burst widget renders directly on top of the peer's spot on the map
+    // (rotating + projecting along with the globe).
+    _globeController.addPoint(Point(
+      id: burstId,
+      coordinates: coords,
+      style: const PointStyle(color: Colors.transparent, size: 0.1),
+      isLabelVisible: true,
+      labelBuilder: (ctx, _, isHovering, isVisible) {
+        if (!isVisible) return const SizedBox.shrink();
+        return _HeartBurst(
+          countryName: event.countryName,
+          flagEmoji: event.flagEmoji,
+        );
+      },
+    ));
+    Future.delayed(_burstDuration, () {
+      if (!mounted) return;
+      _globeController.removePoint(burstId);
+    });
   }
 
   void _removePeer(int workerIdx) {
@@ -689,6 +877,163 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       },
     );
   }
+}
+
+// ─── Heart burst ─────────────────────────────────────────────────────────────
+
+/// Heart-burst anchored to a peer point on the globe — same visual as
+/// unbounded.lantern.io. The pink heart is the inline SVG path from
+/// `unbounded/ui/.../notification/explosion.tsx` (FF5A79 fill, 32×27
+/// viewBox); the burst is `unbounded/.../explosion.json` played once
+/// via the `lottie` Flutter package. A small `flag country` label sits
+/// just below and fades alongside. Self-disposes when the anchor point
+/// is removed (~1.2s after creation by the caller).
+class _HeartBurst extends StatefulWidget {
+  const _HeartBurst({this.countryName = '', this.flagEmoji = ''});
+
+  final String countryName;
+  final String flagEmoji;
+
+  @override
+  State<_HeartBurst> createState() => _HeartBurstState();
+}
+
+class _HeartBurstState extends State<_HeartBurst>
+    with TickerProviderStateMixin {
+  // Drives only the label's fade in/out — the Lottie file owns its own
+  // animation timeline.
+  late final AnimationController _labelCtrl;
+  late final Animation<double> _labelOpacity;
+
+  // The lottie controller is driven by Lottie's own composition once
+  // it loads; we kick it off with goToAndPlay equivalent (forward).
+  AnimationController? _lottieCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // Matches unbounded's notification auto-hide (3.5s visible + 0.7s
+    // fade-out) so the country label stays readable through the bulk
+    // of the explosion animation.
+    _labelCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4200),
+    );
+    _labelOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 55),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
+    ]).animate(_labelCtrl);
+    _labelCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _labelCtrl.dispose();
+    _lottieCtrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = widget.countryName.isEmpty
+        ? null
+        : '${widget.flagEmoji} ${widget.countryName}'.trim();
+    return IgnorePointer(
+      child: SizedBox(
+        width: 120,
+        height: 120,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // Lottie explosion sits behind the heart, sized larger so
+            // particle spray extends past the heart bounds. Matches
+            // unbounded's LottieWrapper sizing (420px wide canvas
+            // around a 32×27 heart) scaled for our anchor.
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: Lottie.asset(
+                'assets/unbounded/explosion.json',
+                repeat: false,
+                fit: BoxFit.contain,
+                onLoaded: (composition) {
+                  _lottieCtrl = AnimationController(
+                    vsync: this,
+                    duration: composition.duration,
+                  )..forward();
+                  setState(() {});
+                },
+                controller: _lottieCtrl,
+              ),
+            ),
+            // Heart SVG path — same coords as unbounded's inline SVG
+            // (FF5A79, 32x27 viewBox).
+            const SizedBox(
+              width: 32,
+              height: 27,
+              child: CustomPaint(painter: _HeartPainter()),
+            ),
+            if (label != null)
+              Positioned(
+                top: 78,
+                child: AnimatedBuilder(
+                  animation: _labelCtrl,
+                  builder: (context, _) => Opacity(
+                    opacity: _labelOpacity.value,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pink heart from `getlantern/unbounded` — exact SVG path coords
+/// (viewBox 0 0 32 27, fill #FF5A79).
+class _HeartPainter extends CustomPainter {
+  const _HeartPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = const Color(0xFFFF5A79);
+    final path = Path()
+      ..moveTo(31.5035, 5.87209)
+      ..cubicTo(28.0938, -3.18494, 17.0123, 0.864084, 16, 5.3926)
+      ..cubicTo(14.6148, 0.597701, 3.79965, -2.97183, 0.496497, 5.87209)
+      ..cubicTo(-3.17959, 15.7283, 14.7214, 24.5722, 16, 26.0107)
+      ..cubicTo(17.2786, 24.8386, 35.1796, 15.5684, 31.5035, 5.87209)
+      ..close();
+    // Scale path from native 32x27 to the canvas size.
+    final scaled = path.transform(Matrix4.diagonal3Values(
+      size.width / 32.0,
+      size.height / 27.0,
+      1.0,
+    ).storage);
+    canvas.drawPath(scaled, paint);
+  }
+
+  @override
+  bool shouldRepaint(_HeartPainter oldDelegate) => false;
 }
 
 // ─── Advanced section ────────────────────────────────────────────────────────

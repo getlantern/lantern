@@ -3,11 +3,38 @@ import 'dart:convert';
 import 'package:flutter_earth_globe/globe_coordinates.dart';
 import 'package:http/http.dart' as http;
 
-class GeoLookupService {
-  static const _geoUrl = 'https://geo.getiantem.org';
+/// Result of a peer geo lookup. Country/flag default to empty when the
+/// lookup fails; coordinates default to a centre-of-the-globe sentinel.
+class PeerGeo {
+  const PeerGeo({
+    required this.coordinates,
+    required this.countryName,
+    required this.countryCode,
+    required this.flagEmoji,
+  });
 
-  // ISO country code → approximate centre coordinates
-  static const _countries = {
+  final GlobeCoordinates coordinates;
+  final String countryName;
+  final String countryCode;
+  final String flagEmoji;
+
+  static const unknown = PeerGeo(
+    coordinates: GlobeCoordinates(0, 0),
+    countryName: '',
+    countryCode: '',
+    flagEmoji: '',
+  );
+}
+
+class GeoLookupService {
+  static const _selfUrl = 'https://geo.getiantem.org';
+  // ipwho.is: HTTPS, no auth, 10k req/month free. Returns country + lat/lon
+  // + flag emoji in one shot.
+  static const _peerUrl = 'https://ipwho.is';
+
+  // ISO country code → approximate centre coordinates. Used as a fallback
+  // when ipwho.is doesn't return city-level coords.
+  static const _countryCenters = {
     'AF': (lat: 33.0, lng: 65.0),
     'AL': (lat: 41.0, lng: 20.0),
     'DZ': (lat: 28.0, lng: 3.0),
@@ -133,7 +160,7 @@ class GeoLookupService {
   };
 
   static GlobeCoordinates _isoToCoords(String iso) {
-    final c = _countries[iso] ?? _countries['US']!;
+    final c = _countryCenters[iso] ?? _countryCenters['US']!;
     return GlobeCoordinates(c.lat, c.lng);
   }
 
@@ -141,7 +168,7 @@ class GeoLookupService {
   static Future<GlobeCoordinates> selfLookup() async {
     try {
       final response = await http
-          .get(Uri.parse('$_geoUrl/'))
+          .get(Uri.parse('$_selfUrl/'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -154,20 +181,31 @@ class GeoLookupService {
     return _isoToCoords('US');
   }
 
-  /// Looks up the country for a peer [ip] address.
-  static Future<GlobeCoordinates> peerLookup(String ip) async {
+  /// Looks up country, flag, and coordinates for a peer [ip] address.
+  /// Returns [PeerGeo.unknown] on any failure so callers can suppress the
+  /// arc / banner rather than displaying a wrong country.
+  static Future<PeerGeo> peerLookup(String ip) async {
     try {
       final response = await http
-          .get(Uri.parse('$_geoUrl/$ip'))
+          .get(Uri.parse('$_peerUrl/$ip'))
           .timeout(const Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final iso =
-            (data['Country'] as Map<String, dynamic>?)?['IsoCode'] as String? ??
-                'IR';
-        return _isoToCoords(iso);
-      }
+      if (response.statusCode != 200) return PeerGeo.unknown;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (data['success'] != true) return PeerGeo.unknown;
+      final iso = (data['country_code'] as String?) ?? '';
+      final lat = (data['latitude'] as num?)?.toDouble();
+      final lng = (data['longitude'] as num?)?.toDouble();
+      final coords = (lat != null && lng != null)
+          ? GlobeCoordinates(lat, lng)
+          : _isoToCoords(iso);
+      final flagObj = data['flag'] as Map<String, dynamic>?;
+      return PeerGeo(
+        coordinates: coords,
+        countryName: (data['country'] as String?) ?? '',
+        countryCode: iso,
+        flagEmoji: (flagObj?['emoji'] as String?) ?? '',
+      );
     } catch (_) {}
-    return _isoToCoords('IR');
+    return PeerGeo.unknown;
   }
 }
