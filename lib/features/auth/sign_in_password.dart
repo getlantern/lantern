@@ -179,7 +179,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     BuildContext context,
   ) {
     appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
-      if (value != null && value is bool) {
+      if (value == true) {
         // Give the backend time to propagate the device removal before
         // retrying sign-in, otherwise the request may still hit the
         // device limit.
