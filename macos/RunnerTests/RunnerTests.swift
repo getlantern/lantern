@@ -259,6 +259,76 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.change, .install)
   }
 
+  func testResolveInstalledContentHashCachesByURL() throws {
+    SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+
+    let bundleURL = try createExtensionBundle(
+      name: "Cached.systemextension",
+      shortVersion: "9.0.18",
+      buildVersion: "220",
+      executableContents: "cache-test-binary"
+    )
+    defer {
+      try? FileManager.default.removeItem(at: bundleURL.deletingLastPathComponent())
+      SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+    }
+
+    XCTAssertNil(SystemExtensionDescriptor.cachedInstalled(url: bundleURL))
+
+    let firstHash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: false
+    )
+    XCTAssertNotNil(firstHash)
+    XCTAssertEqual(SystemExtensionDescriptor.cachedInstalled(url: bundleURL), firstHash)
+
+    // Mutate the bundle on disk. If the second call re-hashed, it would
+    // produce a different hash; if it served from the cache, it returns the
+    // original. The URL-keyed cache is safe in production because installed
+    // bundles live at immutable per-UUID paths macOS never overwrites in place.
+    let executableURL = bundleURL.appendingPathComponent("Contents/MacOS/PacketTunnel")
+    try Data("mutated-binary".utf8).write(to: executableURL)
+
+    let secondHash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: false
+    )
+    XCTAssertEqual(
+      secondHash, firstHash,
+      "Second call should hit the URL cache and return the original hash"
+    )
+
+    // Sanity check: hashing the mutated bundle directly produces a different
+    // value, proving the cache is what made the second resolve return the old hash.
+    let mutatedHash = SystemExtensionBundleHasher.hashBundle(at: bundleURL)
+    XCTAssertNotEqual(mutatedHash, firstHash)
+  }
+
+  func testResolveInstalledContentHashSkipsHashingForUninstalling() throws {
+    SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+
+    let bundleURL = try createExtensionBundle(
+      name: "Uninstalling.systemextension",
+      shortVersion: "9.0.18",
+      buildVersion: "220",
+      executableContents: "uninstalling-binary"
+    )
+    defer {
+      try? FileManager.default.removeItem(at: bundleURL.deletingLastPathComponent())
+      SystemExtensionDescriptor._resetInstalledHashCacheForTesting()
+    }
+
+    let hash = SystemExtensionDescriptor.resolveInstalledContentHash(
+      url: bundleURL,
+      isUninstalling: true
+    )
+    XCTAssertNil(hash, "Uninstalling extensions should not be hashed")
+    XCTAssertNil(
+      SystemExtensionDescriptor.cachedInstalled(url: bundleURL),
+      "Uninstalling extensions should not populate the cache"
+    )
+  }
+
   func testClassifyFallsBackToVersionMatchWhenSameVersionHashesAreUnavailable() {
     let bundled = SystemExtensionDescriptor(
       bundleIdentifier: "org.getlantern.lantern.PacketTunnel",

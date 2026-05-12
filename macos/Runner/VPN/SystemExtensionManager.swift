@@ -383,6 +383,12 @@ internal struct SystemExtensionDescriptor: Equatable {
   private static let _cacheQueue = DispatchQueue(
     label: "org.getlantern.lantern.SystemExtensionDescriptor.cache")
   private static var _cache: [String: SystemExtensionDescriptor] = [:]
+  // Installed-bundle hashes keyed by URL. macOS installs system extensions at
+  // immutable per-UUID paths under /Library/SystemExtensions/<uuid>/, so once a
+  // URL has been hashed it never needs to be hashed again. Stores just the hash
+  // because mutable fields (isEnabled, isUninstalling, isAwaitingUserApproval)
+  // change between queries even when bundle bytes don't.
+  private static var _installedHashCache: [URL: String] = [:]
 
   static func cachedBundled(bundleID: String) -> SystemExtensionDescriptor? {
     _cacheQueue.sync { _cache[bundleID] }
@@ -390,6 +396,21 @@ internal struct SystemExtensionDescriptor: Equatable {
 
   private static func setCached(_ descriptor: SystemExtensionDescriptor) {
     _cacheQueue.async { _cache[descriptor.bundleIdentifier] = descriptor }
+  }
+
+  static func cachedInstalled(url: URL) -> String? {
+    _cacheQueue.sync { _installedHashCache[url] }
+  }
+
+  private static func setCachedInstalled(url: URL, hash: String) {
+    _cacheQueue.async { _installedHashCache[url] = hash }
+  }
+
+  // Test-only seam: clears the installed-hash cache so tests can observe a
+  // fresh state. Production code never invalidates this cache because installed
+  // bundle URLs are immutable per-installation on macOS.
+  internal static func _resetInstalledHashCacheForTesting() {
+    _cacheQueue.sync { _installedHashCache.removeAll() }
   }
 
   init(
@@ -414,16 +435,44 @@ internal struct SystemExtensionDescriptor: Equatable {
   }
 
   init(properties: OSSystemExtensionProperties) {
+    let contentHash = Self.resolveInstalledContentHash(for: properties)
     self.init(
       bundleIdentifier: properties.bundleIdentifier,
       bundleShortVersion: properties.bundleShortVersion,
       bundleVersion: properties.bundleVersion,
-      contentHash: SystemExtensionBundleHasher.hashBundle(at: properties.url),
+      contentHash: contentHash,
       isEnabled: properties.isEnabled,
       isAwaitingUserApproval: properties.isAwaitingUserApproval,
       isUninstalling: properties.isUninstalling,
       url: properties.url
     )
+  }
+
+  // Resolves the content hash for an installed system extension while avoiding
+  // redundant work. Skips hashing entirely for uninstalling extensions (the
+  // reconciler short-circuits on isUninstalling, so the hash never participates
+  // in a useful comparison) and consults the URL-keyed cache otherwise.
+  private static func resolveInstalledContentHash(
+    for properties: OSSystemExtensionProperties
+  ) -> String? {
+    resolveInstalledContentHash(url: properties.url, isUninstalling: properties.isUninstalling)
+  }
+
+  internal static func resolveInstalledContentHash(
+    url: URL,
+    isUninstalling: Bool
+  ) -> String? {
+    if isUninstalling {
+      return nil
+    }
+    if let cached = cachedInstalled(url: url) {
+      return cached
+    }
+    guard let hash = SystemExtensionBundleHasher.hashBundle(at: url) else {
+      return nil
+    }
+    setCachedInstalled(url: url, hash: hash)
+    return hash
   }
 
   static func bundled(bundleID: String) -> SystemExtensionDescriptor? {
