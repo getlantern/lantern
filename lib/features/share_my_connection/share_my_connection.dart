@@ -551,13 +551,19 @@ class UnboundedTab extends HookConsumerWidget {
             Expanded(
               flex: 3,
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(child: _GlobeView()),
+                  // Lottie burst overlay — fills the globe area so the
+                  // heart spray can spread across the whole sphere,
+                  // matching unbounded.lantern.io. Plays once on each
+                  // new arrival; the layer manages its own restart.
+                  const Positioned.fill(child: _LottieBurstLayer()),
                   // Floating arrival toast — overlays the bottom of the
                   // globe area rather than the peer's exact location on
-                  // the sphere. Anchoring to projected coords forced the
-                  // burst to repaint every globe rotation frame, which
-                  // made the rotation jittery.
+                  // the sphere. Anchoring to projected coords forced
+                  // the burst to repaint every globe rotation frame,
+                  // which made the rotation jittery.
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -1032,8 +1038,15 @@ class _ArrivalCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(width: 40, height: 40, child: _HeartBurst()),
-            const SizedBox(width: 12),
+            // Static heart inside the pill. The animated burst is its
+            // own layer covering the globe (see _LottieBurstLayer); the
+            // pill stays small and clean — matches unbounded.lantern.io.
+            const SizedBox(
+              width: 22,
+              height: 19,
+              child: CustomPaint(painter: _HeartPainter()),
+            ),
+            const SizedBox(width: 10),
             Text(
               flagEmoji.isEmpty
                   ? 'Helping a new person in $countryName'
@@ -1079,67 +1092,92 @@ class _WaitingCard extends StatelessWidget {
   }
 }
 
-// ─── Heart burst ─────────────────────────────────────────────────────────────
+// ─── Lottie burst layer ──────────────────────────────────────────────────────
 
-/// Heart + Lottie explosion lifted from getlantern/unbounded. The pink
-/// heart is the inline SVG path from `notification/explosion.tsx`
-/// (FF5A79 fill, 32×27 viewBox); the burst is `explosion.json` played
-/// once via the `lottie` Flutter package. Rendered inside _ArrivalCard
-/// (under the globe), NOT anchored to globe coords — anchoring forced
-/// a repaint per globe rotation frame and made rotation jittery.
-class _HeartBurst extends StatefulWidget {
-  const _HeartBurst();
+/// Full-area Lottie heart-spray layer that overlays the globe and
+/// plays the `explosion.json` animation each time a new peer arrives.
+/// Matches unbounded.lantern.io's behaviour where dozens of small
+/// hearts spray outward across the globe — NOT confined to the toast
+/// pill (the pill stays clean with just a static heart icon).
+///
+/// Subscribes to ShareNotifier.connectionEvents directly. On each
+/// non-replay state=1 event, swaps the `key` on the inner Lottie via
+/// a counter so AnimatedSwitcher cross-fades / Lottie restarts from
+/// frame 0 every time.
+class _LottieBurstLayer extends ConsumerStatefulWidget {
+  const _LottieBurstLayer();
 
   @override
-  State<_HeartBurst> createState() => _HeartBurstState();
+  ConsumerState<_LottieBurstLayer> createState() => _LottieBurstLayerState();
 }
 
-class _HeartBurstState extends State<_HeartBurst>
-    with TickerProviderStateMixin {
-  AnimationController? _lottieCtrl;
+class _LottieBurstLayerState extends ConsumerState<_LottieBurstLayer> {
+  StreamSubscription<UnboundedConnectionEvent>? _sub;
+  int _burstId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = ref
+        .read(shareProvider.notifier)
+        .connectionEvents
+        .listen(_onEvent);
+  }
+
+  void _onEvent(UnboundedConnectionEvent event) {
+    if (event.state != 1 || event.isReplay) return;
+    if (event.countryName.isEmpty) return;
+    if (!mounted) return;
+    setState(() => _burstId++);
+  }
 
   @override
   void dispose() {
-    _lottieCtrl?.dispose();
+    _sub?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // Lottie explosion sized so particle spray extends slightly
-          // past the card bounds (Clip.none on parent lets it overflow).
-          // Mirrors unbounded's LottieWrapper sizing, scaled down for an
-          // inline card slot.
-          Positioned(
-            width: 110,
-            height: 110,
-            child: Lottie.asset(
-              'assets/unbounded/explosion.json',
-              repeat: false,
-              fit: BoxFit.contain,
-              onLoaded: (composition) {
-                _lottieCtrl = AnimationController(
-                  vsync: this,
-                  duration: composition.duration,
-                )..forward();
-                setState(() {});
-              },
-              controller: _lottieCtrl,
-            ),
-          ),
-          // Heart SVG path — exact coords from unbounded's inline SVG.
-          const SizedBox(
-            width: 22,
-            height: 19,
-            child: CustomPaint(painter: _HeartPainter()),
-          ),
-        ],
-      ),
+      child: _burstId == 0
+          ? const SizedBox.shrink()
+          : _BurstAnimation(key: ValueKey(_burstId)),
+    );
+  }
+}
+
+class _BurstAnimation extends StatefulWidget {
+  const _BurstAnimation({super.key});
+
+  @override
+  State<_BurstAnimation> createState() => _BurstAnimationState();
+}
+
+class _BurstAnimationState extends State<_BurstAnimation>
+    with TickerProviderStateMixin {
+  AnimationController? _ctrl;
+
+  @override
+  void dispose() {
+    _ctrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Lottie.asset(
+      'assets/unbounded/explosion.json',
+      repeat: false,
+      fit: BoxFit.contain,
+      onLoaded: (composition) {
+        _ctrl = AnimationController(
+          vsync: this,
+          duration: composition.duration,
+        )..forward();
+        setState(() {});
+      },
+      controller: _ctrl,
     );
   }
 }
