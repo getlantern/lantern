@@ -105,6 +105,15 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     if (value) unawaited(_writeInitMarker());
   }
 
+  void setUnboundedAutoEnable(bool value) =>
+      update(state.copyWith(unboundedAutoEnable: value));
+
+  void setUnboundedHidden(bool value) =>
+      update(state.copyWith(unboundedHidden: value));
+
+  void setUnboundedWelcomeSeen(bool value) =>
+      update(state.copyWith(unboundedWelcomeSeen: value));
+
   Future<void> _writeInitMarker() async {
     try {
       final dataDir = await AppStorageUtils.getAppDirectory();

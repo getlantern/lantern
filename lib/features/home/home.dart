@@ -37,6 +37,9 @@ class Home extends HookConsumerWidget {
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),
     );
+    final unboundedHidden = ref.watch(
+      appSettingProvider.select((s) => s.unboundedHidden),
+    );
     final featureFlag = ref.watch(featureFlagProvider);
     final vpnStatus = ref.watch(vpnProvider);
     final shareActive = ref.watch(shareProvider.select((s) => s.active));
@@ -125,21 +128,30 @@ class Home extends HookConsumerWidget {
               onPressed: () => appRouter.push(const SignInEmail()),
             ),
         ],
-        bottom: TabBar(
-          controller: tabController,
-          tabs: [
-            _TabLabel(label: 'VPN', active: vpnStatus == VPNStatus.connected),
-            _TabLabel(label: 'Unbounded', active: shareActive),
-          ],
-        ),
+        // Tab strip collapses when the user has hidden the Unbounded
+        // tab in Unbounded Settings — with only one tab left, a strip
+        // is just noise. Body falls back to VpnTab directly.
+        bottom: unboundedHidden
+            ? null
+            : TabBar(
+                controller: tabController,
+                tabs: [
+                  _TabLabel(
+                      label: 'VPN',
+                      active: vpnStatus == VPNStatus.connected),
+                  _TabLabel(label: 'Unbounded', active: shareActive),
+                ],
+              ),
       ),
-      body: TabBarView(
-        controller: tabController,
-        children: const [
-          VpnTab(),
-          UnboundedTab(),
-        ],
-      ),
+      body: unboundedHidden
+          ? const VpnTab()
+          : TabBarView(
+              controller: tabController,
+              children: const [
+                VpnTab(),
+                UnboundedTab(),
+              ],
+            ),
     );
   }
 }
