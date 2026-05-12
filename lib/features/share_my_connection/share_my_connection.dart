@@ -706,18 +706,17 @@ class UnboundedTab extends HookConsumerWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(child: _GlobeView()),
-                  // Floating arrival toast — overlays the bottom of the
-                  // globe area rather than the peer's exact location on
-                  // the sphere. The Lottie heart-spray now lives INSIDE
-                  // the toast pill (with negative-offset positioning so
-                  // it overflows upward/rightward into the globe area),
-                  // mirroring unbounded's CSS: the static heart anchors
-                  // the burst, hearts spray outward from there.
+                  // Floating arrival toast — anchored at the bottom-LEFT
+                  // of the globe area per unbounded.lantern.io. The
+                  // Lottie heart-spray lives INSIDE the pill (negative-
+                  // offset positioning, overflows upward/rightward into
+                  // the globe), mirroring unbounded's CSS: the static
+                  // heart anchors the burst origin, hearts spray
+                  // outward from there.
                   const Positioned(
-                    left: 0,
-                    right: 0,
+                    left: 12,
                     bottom: 8,
-                    child: Center(child: _ArrivalToast()),
+                    child: _ArrivalToast(),
                   ),
                 ],
               ),
@@ -1241,10 +1240,13 @@ class _ArrivalCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
+            // unbounded.lantern.io renders just `heart + text`, no flag
+            // emoji — matching that exactly so the pill width stays in
+            // bounds and the layout reads cleanly. flagEmoji is still
+            // carried on the event for future use (e.g. label above
+            // the peer's arc on the globe).
             Text(
-              flagEmoji.isEmpty
-                  ? 'smc_arrival_toast'.i18n.fill([countryName])
-                  : '$flagEmoji  ${'smc_arrival_toast'.i18n.fill([countryName])}',
+              'smc_arrival_toast'.i18n.fill([countryName]),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
