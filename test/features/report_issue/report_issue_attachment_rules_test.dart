@@ -22,6 +22,24 @@ void main() {
         ),
         'image/png',
       );
+
+      expect(
+        ReportIssueAttachmentRulesUtils.canonicalMimeType(
+          name: 'photo.HEIC',
+          path: '',
+          mimeType: '',
+        ),
+        'image/heic',
+      );
+
+      expect(
+        ReportIssueAttachmentRulesUtils.canonicalMimeType(
+          name: 'photo.bin',
+          path: '',
+          mimeType: 'image/heic-sequence',
+        ),
+        'image/heic',
+      );
     });
 
     test('picker image type group includes iOS uniform type identifiers', () {
