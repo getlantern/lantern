@@ -12,6 +12,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
+import 'package:lantern/features/setting/unbounded_setting.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -19,6 +20,7 @@ enum _SettingType {
   account,
   signIn,
   vpnSetting,
+  unboundedSetting,
   language,
   appearance,
   support,
@@ -141,6 +143,13 @@ class _SettingState extends ConsumerState<Setting>
                   label: 'vpn_settings'.i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'Unbounded Settings',
+                  icon: AppImagePaths.share,
+                  onPressed: () =>
+                      settingMenuTap(_SettingType.unboundedSetting),
                 ),
                 DividerSpace(),
                 AppTile(
@@ -316,6 +325,11 @@ class _SettingState extends ConsumerState<Setting>
         break;
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());
+        break;
+      case _SettingType.unboundedSetting:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const UnboundedSetting()),
+        );
         break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
