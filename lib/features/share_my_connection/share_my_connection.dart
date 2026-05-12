@@ -297,6 +297,30 @@ class ShareNotifier extends Notifier<ShareState> {
     }
   }
 
+  /// Programmatic entry point used by the Home shell's auto-enable
+  /// listener (VPN-connected → Unbounded on). Mirrors `toggle()` but
+  /// skips the disclosure dialog because the user has already opted
+  /// in via the Unbounded Settings sheet. No-ops if already active or
+  /// in flight.
+  Future<void> autoStart(WidgetRef widgetRef) async {
+    if (state.active || state.probing) return;
+    state = state.copyWith(probing: true);
+    final manualPortRes =
+        await widgetRef.read(lanternServiceProvider).getPeerManualPort();
+    final manualPort = manualPortRes.fold((_) => 0, (p) => p);
+    if (manualPort > 0) {
+      await _start(widgetRef, ShareMode.smc);
+      return;
+    }
+    // MOCK UPnP probe — same as toggle(), pending real FFI.
+    await Future.delayed(const Duration(milliseconds: 1500));
+    final upnpAvailable = Random().nextBool();
+    await _start(
+      widgetRef,
+      upnpAvailable ? ShareMode.smc : ShareMode.unbounded,
+    );
+  }
+
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
     state = ShareState(
       active: true,

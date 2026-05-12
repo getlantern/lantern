@@ -94,6 +94,25 @@ class Home extends HookConsumerWidget {
 
     ref.read(appEventProvider);
 
+    // Auto-enable Unbounded on VPN-connected transitions, gated on the
+    // "Auto-enable Unbounded" toggle from Unbounded Settings. The actual
+    // start (UPnP probe + radiance peer_share_enabled setting) happens
+    // inside ShareNotifier.autoStart; the user has already consented in
+    // settings, so we skip the disclosure dialog.
+    ref.listen<VPNStatus>(vpnProvider, (prev, next) {
+      if (prev == next) return;
+      if (next != VPNStatus.connected) return;
+      final autoEnable =
+          ref.read(appSettingProvider).unboundedAutoEnable;
+      if (!autoEnable) return;
+      final share = ref.read(shareProvider);
+      if (share.active || share.probing) return;
+      // Defer to avoid mutating provider state inside the listen callback.
+      Future.microtask(
+        () => ref.read(shareProvider.notifier).autoStart(ref),
+      );
+    });
+
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
