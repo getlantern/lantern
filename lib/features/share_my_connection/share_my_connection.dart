@@ -158,7 +158,13 @@ class ShareNotifier extends Notifier<ShareState> {
       _stopEventSubscription();
       _eventController.close();
     });
-    return const ShareState();
+    // Seed totalCount from the persisted lifetime running total so the
+    // "Total people helped to date" stat survives app restarts. New
+    // arrivals (line further down) increment both ShareState.totalCount
+    // and the persisted value via setUnboundedTotalHelped.
+    final persistedTotal =
+        ref.read(appSettingProvider).unboundedTotalHelped;
+    return ShareState(totalCount: persistedTotal);
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
@@ -262,7 +268,9 @@ class ShareNotifier extends Notifier<ShareState> {
       probing: false,
       mode: mode,
       activeCount: 0,
-      totalCount: 0,
+      // Preserve the running total across off→on cycles so toggling
+      // doesn't reset the user's lifetime count.
+      totalCount: state.totalCount,
     );
     _startEventSubscription(widgetRef);
     switch (mode) {
@@ -299,7 +307,9 @@ class ShareNotifier extends Notifier<ShareState> {
   Future<void> _stop(WidgetRef widgetRef) async {
     _stopEventSubscription();
     final priorMode = state.mode;
-    state = const ShareState();
+    // Preserve totalCount across toggle-off (same reason as _start —
+    // user's lifetime count shouldn't reset on a toggle cycle).
+    state = ShareState(totalCount: state.totalCount);
     switch (priorMode) {
       case ShareMode.smc:
         await widgetRef
@@ -356,10 +366,18 @@ class ShareNotifier extends Notifier<ShareState> {
           final widx = _workerSeq++;
           final arc = _PeerArc(widx);
           _peerArcs[ip] = arc;
+          final newTotal = state.totalCount + 1;
           state = state.copyWith(
             activeCount: state.activeCount + 1,
-            totalCount: state.totalCount + 1,
+            totalCount: newTotal,
           );
+          // Persist so the "Total people helped to date" stat
+          // survives restarts. Write happens per-arrival, but arrivals
+          // are bursty rather than continuous so SharedPreferences I/O
+          // pressure is fine.
+          ref
+              .read(appSettingProvider.notifier)
+              .setUnboundedTotalHelped(newTotal);
           // Resolve country async. Emit the +1 only after lookup so the
           // globe can render the arc at the right coords and the UI can
           // surface the country name in the connection banner.
@@ -686,8 +704,12 @@ class _StatusCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _Stat(label: 'Active now', value: '${state.activeCount}'),
-                    _Stat(label: 'Total today', value: '${state.totalCount}'),
+                    _Stat(
+                        label: 'People helping right now',
+                        value: '${state.activeCount}'),
+                    _Stat(
+                        label: 'Total people helped to date',
+                        value: '${state.totalCount}'),
                   ],
                 ),
                 Positioned(

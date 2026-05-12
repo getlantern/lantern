@@ -16,6 +16,12 @@ class AppSetting {
   final bool unboundedAutoEnable;
   final bool unboundedHidden;
   final bool unboundedWelcomeSeen;
+  // Lifetime running total of peers this device has helped. Survives
+  // restarts so the "Total people helped to date" stat in the
+  // Unbounded tab can keep climbing — that's the spec wording in the
+  // Figma. ShareNotifier seeds totalCount from this on build, and
+  // writes back each time the count increments.
+  final int unboundedTotalHelped;
 
   const AppSetting({
     this.themeMode = 'system',
@@ -30,6 +36,7 @@ class AppSetting {
     this.unboundedAutoEnable = true,
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
+    this.unboundedTotalHelped = 0,
   });
 
   AppSetting copyWith({
@@ -45,6 +52,7 @@ class AppSetting {
     bool? unboundedAutoEnable,
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
+    int? unboundedTotalHelped,
   }) {
     return AppSetting(
       locale: newLocale ?? locale,
@@ -59,6 +67,8 @@ class AppSetting {
       unboundedAutoEnable: unboundedAutoEnable ?? this.unboundedAutoEnable,
       unboundedHidden: unboundedHidden ?? this.unboundedHidden,
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
+      unboundedTotalHelped:
+          unboundedTotalHelped ?? this.unboundedTotalHelped,
     );
   }
 
@@ -75,6 +85,7 @@ class AppSetting {
         'unboundedAutoEnable': unboundedAutoEnable,
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
+        'unboundedTotalHelped': unboundedTotalHelped,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -92,5 +103,7 @@ class AppSetting {
         unboundedAutoEnable: json['unboundedAutoEnable'] != false,
         unboundedHidden: json['unboundedHidden'] == true,
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
+        unboundedTotalHelped:
+            (json['unboundedTotalHelped'] as num?)?.toInt() ?? 0,
       );
 }

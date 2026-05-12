@@ -114,6 +114,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void setUnboundedWelcomeSeen(bool value) =>
       update(state.copyWith(unboundedWelcomeSeen: value));
 
+  void setUnboundedTotalHelped(int value) =>
+      update(state.copyWith(unboundedTotalHelped: value));
+
   Future<void> _writeInitMarker() async {
     try {
       final dataDir = await AppStorageUtils.getAppDirectory();
