@@ -616,10 +616,14 @@ class ShareNotifier extends Notifier<ShareState> {
 final shareProvider =
     NotifierProvider<ShareNotifier, ShareState>(ShareNotifier.new);
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
+// ─── Tab body ────────────────────────────────────────────────────────────────
 
-class ShareMyConnectionScreen extends HookConsumerWidget {
-  const ShareMyConnectionScreen({super.key});
+/// Unbounded tab content, rendered inside the Home tab shell (see
+/// home.dart). Hosts the description text, globe + arrival toast, the
+/// status card with the toggle, and the advanced section. No Scaffold
+/// or AppBar — the shell provides the chrome and the tab strip.
+class UnboundedTab extends HookConsumerWidget {
+  const UnboundedTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -627,9 +631,8 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
     final notifier = ref.read(shareProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
-    return BaseScreen(
-      title: 'share_my_connection'.i18n,
-      body: Padding(
+    return SafeArea(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
@@ -644,11 +647,11 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
               child: Stack(
                 children: [
                   Positioned.fill(child: _GlobeView()),
-                  // Floating "new connection from X" toast — overlays the
-                  // bottom of the globe area rather than the peer's exact
-                  // location on the sphere. Anchoring to projected coords
-                  // forced the burst to repaint every globe rotation
-                  // frame, which made the rotation jittery.
+                  // Floating arrival toast — overlays the bottom of the
+                  // globe area rather than the peer's exact location on
+                  // the sphere. Anchoring to projected coords forced the
+                  // burst to repaint every globe rotation frame, which
+                  // made the rotation jittery.
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -1036,12 +1039,12 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
 // ─── Arrival toast ───────────────────────────────────────────────────────────
 
-/// Floating notification overlay shown under the globe when a new peer
-/// arrives. Mirrors the unbounded.lantern.io notification pattern:
-/// heart-burst on the left, `New connection from <country>` text on
-/// the right. Slides up + fades in, auto-hides after ~3.5s. Listens
-/// directly to ShareNotifier.connectionEvents so we don't depend on
-/// the globe widget for triggering.
+/// Floating notification overlay shown under the globe. Mirrors the
+/// unbounded.lantern.io notification pattern: heart-burst on the left,
+/// `Helping a new person in <country>` text on the right while a peer
+/// is connecting. When no peer has arrived recently, falls back to
+/// `Waiting for connections...` (no heart) per the Figma spec. Slides
+/// up + fades in, auto-hides connection arrivals after ~3.5s.
 class _ArrivalToast extends ConsumerStatefulWidget {
   const _ArrivalToast();
 
@@ -1097,7 +1100,10 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
         ),
       ),
       child: event == null
-          ? const SizedBox.shrink(key: ValueKey('arrival-hidden'))
+          // Idle state — the spec wants a "Waiting for connections..."
+          // pill rather than empty space, so the user knows the screen
+          // is live and just nothing has arrived yet.
+          ? const _WaitingCard(key: ValueKey('arrival-waiting'))
           : _ArrivalCard(
               // ValueKey forces AnimatedSwitcher to swap children when a
               // new arrival lands while the previous toast is still up,
@@ -1152,6 +1158,35 @@ class _ArrivalCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Idle-state companion to _ArrivalCard. Same pill chrome, no heart,
+/// `Waiting for connections...` text. Shown whenever the toast switch
+/// has no current arrival to display.
+class _WaitingCard extends StatelessWidget {
+  const _WaitingCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Text(
+          'Waiting for connections...',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).hintColor,
+          ),
         ),
       ),
     );

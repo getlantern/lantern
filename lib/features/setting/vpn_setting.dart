@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -36,19 +35,6 @@ class VPNSetting extends HookConsumerWidget {
     final telemetryConsent = ref.watch(
       radianceSettingsProvider.select((s) => s.telemetry),
     );
-    final peerProxy = ref.watch(
-      radianceSettingsProvider.select((s) => s.peerProxy),
-    );
-    final unboundedEnabled = ref.watch(
-      radianceSettingsProvider.select((s) => s.unboundedEnabled),
-    );
-    // The tile reads "On" when EITHER donor protocol is active —
-    // the disclosure dialog flips peerProxy for "Full mode" and
-    // unboundedEnabled for "Basic mode", and the user shouldn't
-    // see a stale "Off" subtitle just because they picked the
-    // lower-friction Unbounded path.
-    final shareActive = peerProxy || unboundedEnabled;
-
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -130,36 +116,10 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
-        if (PlatformUtils.isDesktop) ...[
-          SizedBox(height: 16),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: AppTile(
-              label: 'share_my_connection'.i18n,
-              subtitle: Text(
-                shareActive
-                    ? 'share_my_connection_on_tap_to_view'.i18n
-                    : 'share_my_connection_subtitle'.i18n,
-                style: textTheme.labelMedium!.copyWith(
-                  color: context.textTertiary,
-                  letterSpacing: 0.0,
-                ),
-              ),
-              icon: AppImagePaths.share,
-              trailing: AppImage(
-                path: AppImagePaths.arrowForward,
-                height: 20,
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ShareMyConnectionScreen(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+        // The "Share My Connection" entry that used to push a SmC
+        // screen from here moved to a top-level Unbounded tab in the
+        // Home shell — see lib/features/home/home.dart. Toggling peer
+        // share now happens inside that tab.
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,

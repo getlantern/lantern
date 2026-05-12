@@ -560,9 +560,11 @@ msgstr "Let other Lantern users route through your connection to bypass censorsh
 msgid "share_my_connection_on_tap_to_view"
 msgstr "On — tap to view"
 
-# Share My Connection screen — body / hero copy
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
 msgid "smc_intro"
-msgstr "Help others bypass censorship by sharing a small portion of your home internet connection. While sharing is on, traffic from users in censored regions will egress through your IP."
+msgstr "Help others bypass censorship by securely sharing your connection."
 
 # Status card — phase labels
 msgid "smc_status_label"
@@ -617,9 +619,11 @@ msgstr "Total this session"
 msgid "smc_connections_tooltip"
 msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
 
-# Arrival toast — "New connection from {country}"
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
 msgid "smc_arrival_toast"
-msgstr "New connection from %s"
+msgstr "Helping a new person in %s"
 
 # Advanced section / manual port forward
 msgid "smc_advanced"
