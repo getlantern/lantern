@@ -706,17 +706,19 @@ class UnboundedTab extends HookConsumerWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(child: _GlobeView()),
-                  // Floating arrival toast — anchored at the bottom-LEFT
-                  // of the globe area per unbounded.lantern.io. The
-                  // Lottie heart-spray lives INSIDE the pill (negative-
-                  // offset positioning, overflows upward/rightward into
-                  // the globe), mirroring unbounded's CSS: the static
-                  // heart anchors the burst origin, hearts spray
-                  // outward from there.
+                  // Floating arrival toast — centered horizontally
+                  // under the globe per unbounded.lantern.io
+                  // (frame-020 of unbounded-russia.mp4 shows the pill
+                  // sitting roughly under the globe's centre, not at
+                  // a corner). The Lottie heart-spray lives INSIDE the
+                  // pill via Stack(Clip.none) + negative offsets, so
+                  // hearts originate from the pill's static heart and
+                  // overflow upward/leftward into the globe area.
                   const Positioned(
-                    left: 12,
+                    left: 0,
+                    right: 0,
                     bottom: 8,
-                    child: _ArrivalToast(),
+                    child: Center(child: _ArrivalToast()),
                   ),
                 ],
               ),
