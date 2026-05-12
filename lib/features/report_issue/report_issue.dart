@@ -11,6 +11,7 @@ import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
 import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
+import 'package:lantern/core/widgets/card_dropdown.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends ConsumerStatefulWidget {
@@ -126,10 +127,13 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 controller: _descriptionController,
                 hintText: '',
                 label: 'issue_description'.i18n,
-                prefixIcon: Icons.description_outlined,
+                suffixIcon: Icons.description_outlined,
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 maxLines: 10,
+                expands: true,
+                inputHeight: 132,
+                labelLeftPadding: 16,
               ),
               const SizedBox(height: 16),
               _AttachmentSection(
@@ -382,10 +386,19 @@ class _AttachmentSection extends StatelessWidget {
           compact: attachments.isNotEmpty,
         ),
         const SizedBox(height: 8),
-        Text(ReportIssueAttachmentRulesUtils.helperText, style: helperStyle),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(
+            ReportIssueAttachmentRulesUtils.helperText,
+            style: helperStyle,
+          ),
+        ),
         if (errorText != null) ...<Widget>[
           const SizedBox(height: 6),
-          Text(errorText!, style: errorStyle),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(errorText!, style: errorStyle),
+          ),
         ],
       ],
     );
@@ -478,28 +491,10 @@ class _IssueTypeField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        DropdownButtonFormField<String>(
-          key: fieldKey,
-          initialValue: selectedIssue,
-          isExpanded: true,
-          menuMaxHeight: 320,
-          style: textTheme.bodyMedium?.copyWith(color: context.textPrimary),
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: context.textPrimary,
-          ),
-          hint: const SizedBox.shrink(),
-          decoration: InputDecoration(
-            prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16),
-              child: Align(
-                alignment: Alignment.center,
-                widthFactor: 1,
-                heightFactor: 1,
-                child: Icon(Icons.error_outline, color: context.textPrimary),
-              ),
-            ),
-          ),
+        CardDropdown<String>(
+          formFieldKey: fieldKey,
+          value: selectedIssue,
+          prefixIcon: Icon(Icons.error_outline, color: context.textPrimary),
           items: options
               .map(
                 (issue) =>

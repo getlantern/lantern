@@ -9,6 +9,11 @@ import (
 )
 
 var testPNGData = []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0x00}
+var testHEICData = []byte{
+	0x00, 0x00, 0x00, 0x18, 'f', 't', 'y', 'p',
+	'h', 'e', 'i', 'c', 0x00, 0x00, 0x00, 0x00,
+	'm', 'i', 'f', '1', 'h', 'e', 'i', 'c',
+}
 
 func TestLoadAttachmentsReturnsNilForEmptyInput(t *testing.T) {
 	attachments, err := LoadAttachments("")
@@ -54,6 +59,36 @@ func TestBuildAttachmentReadsImageData(t *testing.T) {
 	}
 	if string(attachment.Data) != string(data) {
 		t.Fatalf("attachment data mismatch: got %q want %q", string(attachment.Data), string(data))
+	}
+}
+
+func TestBuildAttachmentReadsHEICData(t *testing.T) {
+	tmpDir := t.TempDir()
+	path := filepath.Join(tmpDir, "ios_screenshot.HEIC")
+	data := testHEICData
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatalf("write test attachment: %v", err)
+	}
+
+	raw, err := json.Marshal([]AttachmentMetadata{{
+		Name:      "ios_screenshot.HEIC",
+		Path:      path,
+		MimeType:  "",
+		SizeBytes: int64(len(data)),
+	}})
+	if err != nil {
+		t.Fatalf("marshal attachments: %v", err)
+	}
+
+	attachments, err := LoadAttachments(string(raw))
+	if err != nil {
+		t.Fatalf("LoadAttachments returned error: %v", err)
+	}
+	if len(attachments) != 1 {
+		t.Fatalf("expected 1 attachment, got %d", len(attachments))
+	}
+	if attachments[0].Type != "image/heic" {
+		t.Fatalf("unexpected attachment type: %q", attachments[0].Type)
 	}
 }
 
