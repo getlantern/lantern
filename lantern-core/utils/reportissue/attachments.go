@@ -20,8 +20,19 @@ const (
 
 var allowedAttachmentTypes = map[string]struct{}{
 	"image/gif":  {},
+	"image/heic": {},
+	"image/heif": {},
 	"image/jpeg": {},
 	"image/png":  {},
+}
+
+var attachmentTypesByExtension = map[string]string{
+	".gif":  "image/gif",
+	".heic": "image/heic",
+	".heif": "image/heif",
+	".jpg":  "image/jpeg",
+	".jpeg": "image/jpeg",
+	".png":  "image/png",
 }
 
 type AttachmentMetadata struct {
@@ -140,9 +151,7 @@ func buildAttachment(attachment preparedAttachment) (*issue.Attachment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read attachment %q: %w", attachment.name, err)
 	}
-	attachmentType := canonicalAttachmentType(
-		parseMediaType(http.DetectContentType(data)),
-	)
+	attachmentType := resolveAttachmentContentType(data, attachment.mimeType)
 	if !isAllowedAttachmentType(attachmentType) {
 		return nil, fmt.Errorf("attachment %q content is not a supported image", attachment.name)
 	}
@@ -183,14 +192,36 @@ func resolveDeclaredAttachmentType(mimeType, name string) string {
 	if mediaType := parseMediaType(strings.TrimSpace(mimeType)); mediaType != "" {
 		return canonicalAttachmentType(mediaType)
 	}
-	return canonicalAttachmentType(
-		parseMediaType(mime.TypeByExtension(strings.ToLower(filepath.Ext(name)))),
+
+	ext := strings.ToLower(filepath.Ext(name))
+	if mediaType := parseMediaType(mime.TypeByExtension(ext)); mediaType != "" {
+		return canonicalAttachmentType(mediaType)
+	}
+	return attachmentTypesByExtension[ext]
+}
+
+func resolveAttachmentContentType(data []byte, declaredType string) string {
+	detectedType := canonicalAttachmentType(
+		parseMediaType(http.DetectContentType(data)),
 	)
+	if isAllowedAttachmentType(detectedType) {
+		return detectedType
+	}
+	if isHEIFAttachmentType(declaredType) && hasHEIFSignature(data) {
+		return declaredType
+	}
+	return detectedType
 }
 
 func canonicalAttachmentType(mediaType string) string {
 	if mediaType == "image/jpg" {
 		return "image/jpeg"
+	}
+	if mediaType == "image/heic-sequence" || mediaType == "image/x-heic" {
+		return "image/heic"
+	}
+	if mediaType == "image/heif-sequence" || mediaType == "image/x-heif" {
+		return "image/heif"
 	}
 	return mediaType
 }
@@ -198,6 +229,38 @@ func canonicalAttachmentType(mediaType string) string {
 func isAllowedAttachmentType(mediaType string) bool {
 	_, ok := allowedAttachmentTypes[mediaType]
 	return ok
+}
+
+func isHEIFAttachmentType(mediaType string) bool {
+	return mediaType == "image/heic" || mediaType == "image/heif"
+}
+
+func hasHEIFSignature(data []byte) bool {
+	if len(data) < 12 || string(data[4:8]) != "ftyp" {
+		return false
+	}
+
+	brands := map[string]struct{}{
+		"heic": {},
+		"heix": {},
+		"hevc": {},
+		"hevx": {},
+		"heim": {},
+		"heis": {},
+		"hevm": {},
+		"hevs": {},
+		"mif1": {},
+	}
+	limit := len(data)
+	if limit > 64 {
+		limit = 64
+	}
+	for i := 8; i+4 <= limit; i += 4 {
+		if _, ok := brands[string(data[i:i+4])]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func parseMediaType(value string) string {
