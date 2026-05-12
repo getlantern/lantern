@@ -94,11 +94,30 @@ class Home extends HookConsumerWidget {
 
     ref.read(appEventProvider);
 
-    // Auto-enable Unbounded on VPN-connected transitions, gated on the
-    // "Auto-enable Unbounded" toggle from Unbounded Settings. The actual
-    // start (UPnP probe + radiance peer_share_enabled setting) happens
-    // inside ShareNotifier.autoStart; the user has already consented in
-    // settings, so we skip the disclosure dialog.
+    // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
+    // toggle from Unbounded Settings (default ON). Fires from two
+    // entry points so the spec's subtitle "Turn on automatically when
+    // Lantern is open" is honoured whether the user connects the VPN
+    // or not:
+    //   1. App launch (useEffect below) — once on Home mount.
+    //   2. VPN connect (ref.listen further down) — on every
+    //      disconnected → connected transition, in case the toggle
+    //      flipped on after launch or the user finally connects.
+    // Both paths gate on (active || probing) to avoid re-triggering
+    // while a Start is in flight, and skip the disclosure dialog
+    // because the user has already opted in via settings.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final appSetting = ref.read(appSettingProvider);
+        if (!appSetting.onboardingCompleted) return;
+        if (!appSetting.unboundedAutoEnable) return;
+        final share = ref.read(shareProvider);
+        if (share.active || share.probing) return;
+        ref.read(shareProvider.notifier).autoStart(ref);
+      });
+      return null;
+    }, const []);
+
     ref.listen<VPNStatus>(vpnProvider, (prev, next) {
       if (prev == next) return;
       if (next != VPNStatus.connected) return;
