@@ -25,6 +25,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -655,15 +656,48 @@ class UnboundedTab extends HookConsumerWidget {
     final notifier = ref.read(shareProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
+    // First-visit welcome popup. Fires once per device (persisted via
+    // appSettingProvider.unboundedWelcomeSeen) when the user first lands
+    // on the Unbounded tab. Re-openable via the info-bubble icon in the
+    // header.
+    useEffect(() {
+      final seen = ref.read(appSettingProvider).unboundedWelcomeSeen;
+      if (!seen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          showUnboundedWelcomeDialog(context, ref);
+        });
+      }
+      return null;
+    }, const []);
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Text(
-              'smc_intro'.i18n,
-              style: textTheme.bodyMedium,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    'smc_intro'.i18n,
+                    style: textTheme.bodyMedium,
+                  ),
+                ),
+                // Info bubble — re-opens the welcome popup. Mirrors the
+                // Figma spec, which calls out the info-bubble as the
+                // way back into the explanatory dialog.
+                IconButton(
+                  icon: const Icon(Icons.info_outline, size: 20),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'about_unbounded'.i18n,
+                  onPressed: () => showUnboundedWelcomeDialog(context, ref),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -1551,6 +1585,105 @@ class SmcDisclosureDialog extends StatelessWidget {
           child: Text('smc_disclosure_full'.i18n),
         ),
       ],
+    );
+  }
+}
+
+// ─── Welcome dialog ──────────────────────────────────────────────────────────
+
+/// Shows the first-visit Unbounded welcome popup per Figma
+/// (figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=2403-19287).
+/// Idempotent: dismissing the dialog (either button OR scrim tap)
+/// flips appSettingProvider.unboundedWelcomeSeen → true so the dialog
+/// only fires on the first visit. The info-bubble icon in the
+/// Unbounded tab header calls this same function to re-open it later.
+void showUnboundedWelcomeDialog(BuildContext context, WidgetRef ref) {
+  showDialog<void>(
+    context: context,
+    builder: (_) => const _UnboundedWelcomeDialog(),
+  ).whenComplete(() {
+    ref.read(appSettingProvider.notifier).setUnboundedWelcomeSeen(true);
+  });
+}
+
+class _UnboundedWelcomeDialog extends StatelessWidget {
+  const _UnboundedWelcomeDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Heart logo, matching the Figma's heart-Lantern motif.
+              const Center(
+                child: SizedBox(
+                  width: 40,
+                  height: 34,
+                  child: CustomPaint(painter: _HeartPainter()),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'Welcome to Unbounded',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "When you enable Unbounded, your device becomes part of a "
+                "network of 'digital bridges' to the open internet. "
+                "Censored users connect to these bridges, allowing them "
+                "to bypass government-imposed restrictors and access the "
+                "information they need.",
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This collective effort makes censorship harder to '
+                'enforce, expanding access to the open internet.',
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You can remove Unbounded from the interface anytime in '
+                'Settings.',
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      // TODO: deep-link to the Unbounded explainer page
+                      // once the URL is wired (AppUrls.unbounded?).
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 14),
+                    label: const Text('Learn more'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Got it'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
