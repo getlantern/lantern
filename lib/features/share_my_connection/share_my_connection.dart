@@ -706,16 +706,13 @@ class UnboundedTab extends HookConsumerWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(child: _GlobeView()),
-                  // Lottie burst overlay — fills the globe area so the
-                  // heart spray can spread across the whole sphere,
-                  // matching unbounded.lantern.io. Plays once on each
-                  // new arrival; the layer manages its own restart.
-                  const Positioned.fill(child: _LottieBurstLayer()),
                   // Floating arrival toast — overlays the bottom of the
                   // globe area rather than the peer's exact location on
-                  // the sphere. Anchoring to projected coords forced
-                  // the burst to repaint every globe rotation frame,
-                  // which made the rotation jittery.
+                  // the sphere. The Lottie heart-spray now lives INSIDE
+                  // the toast pill (with negative-offset positioning so
+                  // it overflows upward/rightward into the globe area),
+                  // mirroring unbounded's CSS: the static heart anchors
+                  // the burst, hearts spray outward from there.
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -1195,6 +1192,10 @@ class _ArrivalCard extends StatelessWidget {
     return IgnorePointer(
       child: Container(
         padding: const EdgeInsets.fromLTRB(10, 8, 16, 8),
+        // clipBehavior:none lets the absolutely-positioned Lottie burst
+        // (inside the heart slot below) overflow the pill's rounded
+        // bounds and spray upward across the globe.
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(100),
@@ -1210,13 +1211,34 @@ class _ArrivalCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Static heart inside the pill. The animated burst is its
-            // own layer covering the globe (see _LottieBurstLayer); the
-            // pill stays small and clean — matches unbounded.lantern.io.
-            const SizedBox(
+            // Heart slot with the static heart icon + a Lottie burst
+            // that overflows upward and rightward into the globe area.
+            // Layout mirrors unbounded's CSS one-for-one: heart in a
+            // 22×19 slot, Lottie absolute-positioned at bottom:-55,
+            // left:-105, width:420 (scaled to the slot's natural
+            // bottom/left = pill heart's bottom/left).
+            SizedBox(
               width: 22,
               height: 19,
-              child: CustomPaint(painter: _HeartPainter()),
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: const [
+                  // Lottie spreads upward + rightward from the heart.
+                  // height is auto from BoxFit.contain on its 420-wide
+                  // canvas; explosion.json is roughly square so ~420
+                  // tall, but most of that is above the heart due to
+                  // the negative bottom offset.
+                  Positioned(
+                    bottom: -55,
+                    left: -105,
+                    width: 420,
+                    height: 420,
+                    child: _ArrivalLottie(),
+                  ),
+                  CustomPaint(painter: _HeartPainter()),
+                ],
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -1231,6 +1253,43 @@ class _ArrivalCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Plays explosion.json once per build. Stateful so each _ArrivalCard
+/// instance (keyed on workerIdx) gets its own clean Lottie playback.
+class _ArrivalLottie extends StatefulWidget {
+  const _ArrivalLottie();
+
+  @override
+  State<_ArrivalLottie> createState() => _ArrivalLottieState();
+}
+
+class _ArrivalLottieState extends State<_ArrivalLottie>
+    with TickerProviderStateMixin {
+  AnimationController? _ctrl;
+
+  @override
+  void dispose() {
+    _ctrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Lottie.asset(
+      'assets/unbounded/explosion.json',
+      repeat: false,
+      fit: BoxFit.contain,
+      onLoaded: (composition) {
+        _ctrl = AnimationController(
+          vsync: this,
+          duration: composition.duration,
+        )..forward();
+        setState(() {});
+      },
+      controller: _ctrl,
     );
   }
 }
@@ -1363,6 +1422,7 @@ class _BurstAnimationState extends State<_BurstAnimation>
     );
   }
 }
+
 
 /// Pink heart from `getlantern/unbounded` — exact SVG path coords
 /// (viewBox 0 0 32 27, fill #FF5A79).
