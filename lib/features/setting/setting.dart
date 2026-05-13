@@ -38,8 +38,20 @@ class Setting extends StatefulHookConsumerWidget {
 
 class _SettingState extends ConsumerState<Setting>
     with RestorePurchaseMixin<Setting> {
-  late final Future<bool> _canCheckForUpdates = sl<Updater>()
-      .canCheckForUpdates();
+  late final Future<bool> _canCheckForUpdates = _canCheckForUpdatesSafely();
+
+  Future<bool> _canCheckForUpdatesSafely() async {
+    if (!sl.isRegistered<Updater>()) {
+      appLogger.warning('Updater not registered, hiding update check setting');
+      return false;
+    }
+    try {
+      return await sl<Updater>().canCheckForUpdates();
+    } catch (e, st) {
+      appLogger.error('Failed to determine update check availability', e, st);
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

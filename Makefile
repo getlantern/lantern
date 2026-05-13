@@ -104,14 +104,14 @@ ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
-ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
-ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
-ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
+ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-sideload-debug.apk
+ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-sideload-release.apk
+ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/playRelease/app-play-release.aab
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
-ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
-ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+ANDROID_MAPPING_SRC := build/app/outputs/mapping/playRelease/mapping.txt
+ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/playRelease/native-debug-symbols.zip
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
@@ -501,16 +501,16 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+	flutter build apk --flavor sideload --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
 
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build apk --flavor sideload --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 .PHONY: android-aab-release
 android-aab-release:
-	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build appbundle --flavor play --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
@@ -519,8 +519,8 @@ android-aab-release:
 
 	@if [ -f "$(ANDROID_SYMBOLS_SRC)" ]; then \
 	  cp "$(ANDROID_SYMBOLS_SRC)" debug-symbols.zip; \
-	elif [ -d "build/app/intermediates/merged_native_libs/release/out/lib" ]; then \
-	  (cd build/app/intermediates/merged_native_libs/release/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
+	elif [ -d "build/app/intermediates/merged_native_libs/playRelease/out/lib" ]; then \
+	  (cd build/app/intermediates/merged_native_libs/playRelease/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
 	fi
 
 

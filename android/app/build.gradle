@@ -96,6 +96,16 @@ android {
         }
     }
 
+    flavorDimensions += "distribution"
+    productFlavors {
+        sideload {
+            dimension "distribution"
+        }
+        play {
+            dimension "distribution"
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false

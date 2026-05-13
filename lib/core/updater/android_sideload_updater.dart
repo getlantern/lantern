@@ -415,13 +415,14 @@ class AndroidSideloadInstallerBridge {
   );
 
   Future<String> install(AndroidSideloadUpdate update) async {
-    final status = await _methodChannel
-        .invokeMethod<String>('installSideloadUpdate', {
-          'url': update.url,
-          'checksum': update.checksum,
-          'signature': update.signature,
-          'version': update.version,
-        });
+    final status = await _methodChannel.invokeMethod<String>(
+      'installSideloadUpdate',
+      {
+        'url': update.url,
+        'checksum': update.checksum,
+        'version': update.version,
+      },
+    );
     return status ?? '';
   }
 }
@@ -466,13 +467,11 @@ class AndroidSideloadUpdate {
     required this.url,
     required this.version,
     required this.checksum,
-    required this.signature,
   });
 
   final String url;
   final String version;
   final String checksum;
-  final String signature;
 
   factory AndroidSideloadUpdate.fromJson(Map<String, dynamic> json) {
     final patchType = (json['patch_type'] as String?) ?? '';
@@ -504,7 +503,6 @@ class AndroidSideloadUpdate {
       url: url,
       version: version,
       checksum: checksum,
-      signature: (json['signature'] as String?) ?? '',
     );
   }
 }

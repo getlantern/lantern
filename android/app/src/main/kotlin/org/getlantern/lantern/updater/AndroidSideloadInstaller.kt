@@ -24,7 +24,6 @@ data class AndroidSideloadUpdateRequest(
     val url: String,
     val checksum: String,
     val version: String,
-    val signature: String,
 )
 
 object AndroidSideloadInstallStatus {

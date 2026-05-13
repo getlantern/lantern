@@ -52,13 +52,11 @@ void main() {
         'patch_type': '',
         'version': '9.1.0',
         'checksum': 'abc123',
-        'signature': 'def456',
       });
 
       expect(update.url, 'https://downloads.example.com/lantern-installer.apk');
       expect(update.version, '9.1.0');
       expect(update.checksum, 'abc123');
-      expect(update.signature, 'def456');
     });
 
     test('rejects patch responses and non-https URLs', () {

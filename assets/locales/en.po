@@ -171,9 +171,6 @@ msgstr "Update available"
 msgid "android_sideload_update_available_message"
 msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
 
-msgid "install_update"
-msgstr "Install update"
-
 msgid "download_and_install_update"
 msgstr "Download and install"
 

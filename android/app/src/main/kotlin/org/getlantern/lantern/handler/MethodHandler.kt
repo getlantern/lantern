@@ -1085,7 +1085,6 @@ class MethodHandler : FlutterPlugin,
                             url = call.argument<String>("url") ?: error("Missing url"),
                             checksum = call.argument<String>("checksum") ?: error("Missing checksum"),
                             version = call.argument<String>("version") ?: error("Missing version"),
-                            signature = call.argument<String>("signature") ?: "",
                         )
                         val status = AndroidSideloadInstaller.install(MainActivity.instance, update)
                         withContext(Dispatchers.Main) {
