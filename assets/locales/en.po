@@ -165,6 +165,18 @@ msgstr "Sign Out"
 msgid "check_for_updates"
 msgstr "Check for Updates"
 
+msgid "update_available"
+msgstr "Update available"
+
+msgid "android_sideload_update_available_message"
+msgstr "Lantern %s is available. Download the APK to update this sideloaded install."
+
+msgid "download_update"
+msgstr "Download update"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern is up to date."
+
 msgid "support"
 msgstr "Support"
 
