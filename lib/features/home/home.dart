@@ -41,6 +41,12 @@ class Home extends HookConsumerWidget {
       appSettingProvider.select((s) => s.unboundedHidden),
     );
     final featureFlag = ref.watch(featureFlagProvider);
+    // Server-side gate for the whole Unbounded UI surface. Censored
+    // regions get the flag off, so the tab, strip, and any auto-enable
+    // hook disappear. The user's own "Hide Unbounded tab" toggle still
+    // wins on top of this for non-censored users who want it hidden.
+    final unboundedAvailable = featureFlag.getBool(FeatureFlag.unbounded);
+    final showUnboundedTab = unboundedAvailable && !unboundedHidden;
     final vpnStatus = ref.watch(vpnProvider);
     final shareActive = ref.watch(shareProvider.select((s) => s.active));
 
@@ -108,6 +114,7 @@ class Home extends HookConsumerWidget {
     // because the user has already opted in via settings.
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!unboundedAvailable) return;
         final appSetting = ref.read(appSettingProvider);
         if (!appSetting.onboardingCompleted) return;
         if (!appSetting.unboundedAutoEnable) return;
@@ -116,11 +123,12 @@ class Home extends HookConsumerWidget {
         ref.read(shareProvider.notifier).autoStart(ref);
       });
       return null;
-    }, const []);
+    }, [unboundedAvailable]);
 
     ref.listen<VPNStatus>(vpnProvider, (prev, next) {
       if (prev == next) return;
       if (next != VPNStatus.connected) return;
+      if (!unboundedAvailable) return;
       final autoEnable =
           ref.read(appSettingProvider).unboundedAutoEnable;
       if (!autoEnable) return;
@@ -166,10 +174,11 @@ class Home extends HookConsumerWidget {
               onPressed: () => appRouter.push(const SignInEmail()),
             ),
         ],
-        // Tab strip collapses when the user has hidden the Unbounded
-        // tab in Unbounded Settings — with only one tab left, a strip
-        // is just noise. Body falls back to VpnTab directly.
-        bottom: unboundedHidden
+        // Tab strip collapses when Unbounded is unavailable — either the
+        // server flag is off (censored region) or the user hid the tab
+        // in Unbounded Settings. With only one tab left, a strip is just
+        // noise; body falls back to VpnTab directly.
+        bottom: !showUnboundedTab
             ? null
             : TabBar(
                 controller: tabController,
@@ -181,7 +190,7 @@ class Home extends HookConsumerWidget {
                 ],
               ),
       ),
-      body: unboundedHidden
+      body: !showUnboundedTab
           ? const VpnTab()
           : TabBarView(
               controller: tabController,
