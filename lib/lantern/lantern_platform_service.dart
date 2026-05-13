@@ -671,7 +671,14 @@ class LanternPlatformService implements LanternCoreService {
             "email": email,
             "idempotencyKey": idempotencyKey,
           });
-      return Right(redirectUrl!);
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(
+          Exception(
+            'No subscription payment redirect URL returned',
+          ).toFailure(),
+        );
+      }
+      return Right(redirectUrl);
     } catch (e) {
       return Left(
         Failure(
@@ -777,7 +784,10 @@ class LanternPlatformService implements LanternCoreService {
             'email': email,
             'idempotencyKey': idempotencyKey,
           });
-      return Right(redirectUrl!);
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(Exception('No payment redirect URL returned').toFailure());
+      }
+      return Right(redirectUrl);
     } catch (e, stackTrace) {
       appLogger.error('Error getting payment redirect URL', e, stackTrace);
       return Left(
