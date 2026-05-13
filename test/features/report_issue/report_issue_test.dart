@@ -250,5 +250,24 @@ void main() {
         expect(submitter.calls.single.description, isEmpty);
       },
     );
+
+    testWidgets('clears selected issue after successful submit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildScreen(screen: const ReportIssue(type: '0')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('cannot_complete_purchase'), findsOneWidget);
+
+      final submitButton = find.byKey(const Key('report_issue.submit_button'));
+      await tester.ensureVisible(submitButton);
+      await tester.tap(submitButton);
+      await tester.pumpAndSettle();
+
+      expect(submitter.calls, hasLength(1));
+      expect(find.text('cannot_complete_purchase'), findsNothing);
+    });
   });
 }
