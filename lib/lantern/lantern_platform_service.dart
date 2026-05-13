@@ -12,6 +12,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
@@ -663,16 +664,21 @@ class LanternPlatformService implements LanternCoreService {
       );
     }
     try {
-      final redirectUrl = await _methodChannel.invokeMethod<String>(
-        'stripeSubscriptionPaymentRedirect',
-        {
-          "type": type.name,
-          "planId": planId,
-          "email": email,
-          "idempotencyKey": idempotencyKey,
-        },
-      );
-      return Right(redirectUrl!);
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
+            "type": type.name,
+            "planId": planId,
+            "email": email,
+            "idempotencyKey": idempotencyKey,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(
+          Exception(
+            'No subscription payment redirect URL returned',
+          ).toFailure(),
+        );
+      }
+      return Right(redirectUrl);
     } catch (e) {
       return Left(
         Failure(
@@ -771,16 +777,17 @@ class LanternPlatformService implements LanternCoreService {
       throw UnimplementedError("This not supported on IOS");
     }
     try {
-      final redirectUrl = await _methodChannel.invokeMethod<String>(
-        'paymentRedirect',
-        {
-          'provider': provider,
-          'planId': planId,
-          'email': email,
-          'idempotencyKey': idempotencyKey,
-        },
-      );
-      return Right(redirectUrl!);
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('paymentRedirect', {
+            'provider': provider,
+            'planId': planId,
+            'email': email,
+            'idempotencyKey': idempotencyKey,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(Exception('No payment redirect URL returned').toFailure());
+      }
+      return Right(redirectUrl);
     } catch (e, stackTrace) {
       appLogger.error('Error getting payment redirect URL', e, stackTrace);
       return Left(
@@ -821,6 +828,32 @@ class LanternPlatformService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod<Uint8List>(
+        'restoreInAppPurchase',
+        {'purchaseToken': purchaseToken},
+      );
+      if (bytes == null) {
+        appLogger.error(
+          'restoreInAppPurchase returned null bytes from native side',
+        );
+        return Left(
+          Exception('Empty response from restore purchase').toFailure(),
+        );
+      }
+      return Right(
+        RestoreSubscriptionResponse.fromJson(jsonDecode(utf8.decode(bytes))),
+      );
+    } catch (e, stackTrace) {
+      appLogger.error('Error restoring in-app purchase', e, stackTrace);
       return Left(e.toFailure());
     }
   }

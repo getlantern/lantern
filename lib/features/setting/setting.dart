@@ -9,6 +9,7 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
@@ -24,6 +25,7 @@ enum _SettingType {
   getPro,
   checkForUpdates,
   browserUnbounded,
+  restorePurchase,
 }
 
 @RoutePage(name: 'Setting')
@@ -34,7 +36,8 @@ class Setting extends StatefulHookConsumerWidget {
   ConsumerState<Setting> createState() => _SettingState();
 }
 
-class _SettingState extends ConsumerState<Setting> {
+class _SettingState extends ConsumerState<Setting>
+    with RestorePurchaseMixin<Setting> {
   late final Future<bool> _canCheckForUpdates = sl<Updater>()
       .canCheckForUpdates();
 
@@ -193,6 +196,15 @@ class _SettingState extends ConsumerState<Setting> {
                   icon: AppImagePaths.star,
                   onPressed: () => settingMenuTap(_SettingType.getPro),
                 ),
+                if (isStoreVersion() && !isUserPro) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'restore_purchase'.i18n,
+                    icon: AppImagePaths.restorePurchase,
+                    onPressed: () =>
+                        settingMenuTap(_SettingType.restorePurchase),
+                  ),
+                ],
               ],
             ),
           ),
@@ -296,6 +308,9 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case _SettingType.restorePurchase:
+        restorePurchaseFlow();
+        break;
     }
   }
 

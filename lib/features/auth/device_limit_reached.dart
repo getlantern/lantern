@@ -11,10 +11,7 @@ import 'package:lantern/core/models/user.dart';
 class DeviceLimitReached extends HookConsumerWidget {
   final List<DeviceModel> devices;
 
-  const DeviceLimitReached({
-    super.key,
-    required this.devices,
-  });
+  const DeviceLimitReached({super.key, required this.devices});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,44 +33,50 @@ class DeviceLimitReached extends HookConsumerWidget {
           SizedBox(height: 24.0),
           Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Text("lantern_pro_devices".i18n,
-                style: textTheme.labelLarge!.copyWith(
-                  color: context.textSecondary,
-                )),
+            child: Text(
+              "lantern_pro_devices".i18n,
+              style: textTheme.labelLarge!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
           ),
           AppCard(
-              child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(0),
-            children: devices.map((device) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppTile(
-                    contentPadding: EdgeInsets.zero,
-                    label: device.name,
-                    trailing: AppRadioButton<DeviceModel>(
-                      value: device,
-                      groupValue: selectedDevice.value,
-                      onChanged: (value) {
-                        selectedDevice.value = value;
-                      },
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0),
+              children: devices.map((device) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppTile(
+                      contentPadding: EdgeInsets.zero,
+                      label: device.name.isEmpty
+                          ? device.deviceId
+                          : device.name,
+                      trailing: AppRadioButton<DeviceModel>(
+                        value: device,
+                        groupValue: selectedDevice.value,
+                        onChanged: (value) {
+                          selectedDevice.value = value;
+                        },
+                      ),
                     ),
-                  ),
-                  DividerSpace(
-                    padding: EdgeInsetsGeometry.zero,
-                  ),
-                ],
-              );
-            }).toList(),
-          )),
+                    DividerSpace(padding: EdgeInsetsGeometry.zero),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
           SizedBox(height: 32.0),
           PrimaryButton(
             label: 'remove_device_and_sign_in'.i18n,
             isTaller: true,
             enabled: selectedDevice.value != null,
-            onPressed: () =>
-                removeDeviceAndLogin(ref, selectedDevice.value!.deviceId, context),
+            onPressed: () => removeDeviceAndLogin(
+              ref,
+              selectedDevice.value!.deviceId,
+              context,
+            ),
           ),
           SizedBox(height: 30.0),
           Center(
@@ -84,14 +87,17 @@ class DeviceLimitReached extends HookConsumerWidget {
                 appRouter.popUntilRoot();
               },
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
   Future<void> removeDeviceAndLogin(
-      WidgetRef ref, String deviceId, BuildContext context) async {
+    WidgetRef ref,
+    String deviceId,
+    BuildContext context,
+  ) async {
     context.showLoadingDialog();
     final result = await ref.read(authProvider.notifier).deviceRemove(deviceId);
     result.fold(

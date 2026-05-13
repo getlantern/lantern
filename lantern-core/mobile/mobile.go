@@ -565,6 +565,39 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 	})
 }
 
+func RestoreGooglePlayPurchase(purchaseToken string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return restoreSubscription(c, c.RestoreGooglePlayPurchase, purchaseToken)
+	})
+}
+
+func RestoreApplePurchase(receipt string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return restoreSubscription(c, c.RestoreApplePurchase, receipt)
+	})
+}
+
+func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), token string) (string, error) {
+	data, err := fn(token)
+	if err != nil {
+		return "", err
+	}
+	var resp account.RestoreSubscriptionResponse
+	if err := json.Unmarshal([]byte(data), &resp); err != nil {
+		return "", fmt.Errorf("error unmarshalling restore subscription response: %v", err)
+	}
+	if resp.ActualUserID != 0 && resp.ActualUserToken != "" {
+		slog.Info("Restore made on a different account, switching accounts", "actualUserId", resp.ActualUserID)
+		if err := c.PatchSettings(settings.Settings{
+			settings.UserIDKey: fmt.Sprintf("%d", resp.ActualUserID),
+			settings.TokenKey:  resp.ActualUserToken,
+		}); err != nil {
+			return "", fmt.Errorf("error updating settings after account switch: %v", err)
+		}
+	}
+	return data, nil
+}
+
 func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.PaymentRedirect(provider, planId, email, idempotencyKey)

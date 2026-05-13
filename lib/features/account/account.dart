@@ -5,15 +5,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
-import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'Account')
 class Account extends HookConsumerWidget {
@@ -102,10 +102,7 @@ class Account extends HookConsumerWidget {
                 label: 'change_email'.i18n,
                 onPressed: () {
                   appRouter.push(
-                    SignInPassword(
-                      email: email,
-                      fromChangeEmail: true,
-                    ),
+                    SignInPassword(email: email, fromChangeEmail: true),
                   );
                 },
               ),
@@ -430,9 +427,7 @@ class Account extends HookConsumerWidget {
     }
     if (!context.mounted) return;
     context.showLoadingDialog();
-    final result = await ref
-        .read(lanternServiceProvider)
-        .logout(email);
+    final result = await ref.read(lanternServiceProvider).logout(email);
     if (!context.mounted) return;
     result.fold(
       (l) {
@@ -445,7 +440,7 @@ class Account extends HookConsumerWidget {
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
-        appLogger.info('Logout success: $user');
+        appLogger.info('Logout success: got user data userId=${user.toJson()}');
       },
     );
   }

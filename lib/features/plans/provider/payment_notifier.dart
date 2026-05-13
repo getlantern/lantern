@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -47,6 +48,14 @@ class PaymentNotifier extends _$PaymentNotifier {
     return ref
         .read(lanternServiceProvider)
         .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+  }
+
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) async {
+    return ref
+        .read(lanternServiceProvider)
+        .restoreInAppPurchase(purchaseToken: purchaseToken);
   }
 
   Future<Either<Failure, String>> stripeSubscriptionLink(

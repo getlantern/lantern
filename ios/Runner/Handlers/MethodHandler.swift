@@ -92,6 +92,22 @@ class MethodHandler {
         }
         self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
 
+      case "restoreInAppPurchase":
+        guard
+          let map = call.arguments as? [String: Any],
+          let token = map["purchaseToken"] as? String
+        else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid purchaseToken",
+              details: nil
+            )
+          )
+          return
+        }
+        self.restoreInAppPurchase(token: token, result: result)
+
       // user management
       case "startRecoveryByEmail":
         let map = (call.arguments as? [String: Any]) ?? [:]
@@ -545,6 +561,20 @@ class MethodHandler {
       let json = MobileAcknowledgeApplePurchase(token, planId, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  func restoreInAppPurchase(token: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileRestoreApplePurchase(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RESTORE_FAILED")
         return
       }
       await MainActor.run {
