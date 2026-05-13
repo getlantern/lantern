@@ -704,6 +704,11 @@ internal enum SystemExtensionReconciler {
     }
 
     if current.matchesVersion(desired) {
+      if current.isUninstalling {
+        // Same-version copy is draining; the nil-hash fallback below would
+        // otherwise mis-classify it as .matched and leave it in place.
+        return .contentChange
+      }
       guard let currentHash = current.contentHash, let desiredHash = desired.contentHash else {
         return .matched
       }
