@@ -49,6 +49,7 @@ class AppPurchase {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
+    fetchSubscriptions();
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -234,9 +235,64 @@ class AppPurchase {
       _onError?.call('No previous purchases found to restore.');
       return;
     }
+
+    /// During restore, if more than one restored receipt comes back, batch
+    /// them: pick one to surface and finalize the rest. Otherwise _finalize
+    /// would clear _isRestoreFlow after the first item and the second
+    /// iteration would fall into the regular acknowledge path.
+    if (_isRestoreFlow && purchases.length > 1) {
+      final restored = purchases
+          .where(
+            (p) =>
+                p.status == PurchaseStatus.purchased ||
+                p.status == PurchaseStatus.restored,
+          )
+          .toList();
+      if (restored.length > 1) {
+        await _handleRestoreBatch(restored);
+        return;
+      }
+    }
+
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
+  }
+
+  /// Picks the latest restored receipt, finalizes every restored receipt
+  /// with the store, and fires `_onSuccess` once.
+  Future<void> _handleRestoreBatch(List<PurchaseDetails> restored) async {
+    ///Pick the latest purchase
+    restored.sort((a, b) {
+      final aDate = int.tryParse(a.transactionDate ?? '') ?? 0;
+      final bDate = int.tryParse(b.transactionDate ?? '') ?? 0;
+      return bDate.compareTo(aDate);
+    });
+
+    final chosen = restored.first;
+    appLogger.info(
+      '[AppPurchase] Restore batch: ${restored.length} purchases, choosing ${chosen.productID}',
+    );
+
+    _restoreReceivedAny = true;
+
+    // Complete each receipt inline (don't call _finalize — its `finally`
+    // clears _isRestoreFlow, which would mis-route any re-entrant stream
+    // emissions through the regular acknowledge path mid-batch and fire
+    // a stray error before our success callback.
+    for (final purchase in restored) {
+      try {
+        if (purchase.pendingCompletePurchase) {
+          await _inAppPurchase.completePurchase(purchase);
+        }
+      } catch (e) {
+        appLogger.error('[AppPurchase] Error completing restored purchase: $e');
+      }
+    }
+
+    _onSuccess?.call(chosen);
+    _isRestoreFlow = false;
+    _pendingPlanId = null;
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {

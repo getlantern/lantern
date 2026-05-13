@@ -80,16 +80,24 @@ class AppDialog {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(height: 24),
-              Center(child: AppImage(path: AppImagePaths.roundCorrect)),
-              SizedBox(height: 24),
-              Text(
-                'purchase_restored_title'.i18n,
-                style: textTheme.headlineMedium,
+              Center(
+                child: AppImage(
+                  path: AppImagePaths.greenCheck,
+                  height: 50,
+                  useThemeColor: false,
+                ),
               ),
               SizedBox(height: defaultSize),
+              Center(
+                child: Text(
+                  'purchase_restored_title'.i18n,
+                  style: textTheme.headlineMedium,
+                ),
+              ),
+              SizedBox(height: 8),
               Text(
                 'purchase_restored_description'.i18n,
-                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+                style: textTheme.bodyMedium,
                 textAlign: TextAlign.left,
               ),
             ],
@@ -131,20 +139,18 @@ class AppDialog {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(height: 24),
-              Icon(
-                Icons.info_outline,
-                color: Colors.orange,
-                size: 48,
+              Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+              SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'no_purchase_found_title'.i18n,
+                  style: textTheme.headlineMedium,
+                ),
               ),
-              SizedBox(height: 24),
-              Text(
-                'no_purchase_found_title'.i18n,
-                style: textTheme.headlineMedium,
-              ),
-              SizedBox(height: defaultSize),
+              SizedBox(height: 8),
               Text(
                 body,
-                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+                style: textTheme.bodyMedium,
                 textAlign: TextAlign.left,
               ),
             ],
