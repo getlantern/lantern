@@ -1246,8 +1246,21 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let type = data["type"] as? String ?? ""
+      let idempotencyKey: String
+      do {
+        idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
+      } catch {
+        await self.handleFlutterError(error, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
+        return
+      }
       var error: NSError?
-      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
+      let url = MobileStripeSubscriptionPaymentRedirect(
+        type,
+        planId,
+        email,
+        idempotencyKey,
+        &error
+      )
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
         return
@@ -1263,8 +1276,21 @@ class MethodHandler {
       let provider = data["provider"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let email = data["email"] as? String ?? ""
+      let idempotencyKey: String
+      do {
+        idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
+      } catch {
+        await self.handleFlutterError(error, result: result, code: "PAYMENT_REDIRECT_ERROR")
+        return
+      }
       var error: NSError?
-      let url = MobilePaymentRedirect(provider, planId, email, &error)
+      let url = MobilePaymentRedirect(
+        provider,
+        planId,
+        email,
+        idempotencyKey,
+        &error
+      )
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
         return
@@ -1445,6 +1471,19 @@ class MethodHandler {
   }
 
   // MARK: - Utils
+
+  private func paymentRedirectIdempotencyKey(from data: [String: Any]) throws -> String {
+    let idempotencyKey = (data["idempotencyKey"] as? String ?? "")
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    if idempotencyKey.isEmpty {
+      throw NSError(
+        domain: "LanternPayment",
+        code: 0,
+        userInfo: [NSLocalizedDescriptionKey: "Payment redirect idempotency key is required"]
+      )
+    }
+    return idempotencyKey
+  }
 
   /// Helper for handling Flutter errors
   private func handleFlutterError(

@@ -5,13 +5,14 @@ import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 class CardDropdown<T> extends StatelessWidget {
-  final T value;
+  final T? value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
   final FormFieldValidator<T>? validator;
   final String? hintText;
   final Object? prefixIcon;
   final bool enabled;
+  final Key? formFieldKey;
 
   const CardDropdown({
     super.key,
@@ -22,6 +23,7 @@ class CardDropdown<T> extends StatelessWidget {
     this.hintText,
     this.prefixIcon,
     this.enabled = true,
+    this.formFieldKey,
   });
 
   Widget? _buildPrefix(Object? iconPath, BuildContext context) {
@@ -46,20 +48,25 @@ class CardDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
+      key: formFieldKey,
       initialValue: value,
       items: items,
       onChanged: enabled ? onChanged : null,
       validator: validator,
       decoration: InputDecoration(
         prefixIcon: _buildPrefix(prefixIcon, context),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         filled: true,
-        fillColor:
-            enabled ? context.bgElevated : context.borderInput.withOpacity(0.3),
+        fillColor: enabled
+            ? context.bgElevated
+            : context.borderInput.withValues(alpha: 0.3),
         hintText: hintText,
-        hintStyle:
-            AppTextStyles.bodyMedium.copyWith(color: context.textDisabled),
+        hintStyle: AppTextStyles.bodyMedium.copyWith(
+          color: context.textDisabled,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: context.borderInput, width: 1),
@@ -78,15 +85,19 @@ class CardDropdown<T> extends StatelessWidget {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide:
-              BorderSide(color: context.borderInput.withOpacity(0.5), width: 1),
+          borderSide: BorderSide(
+            color: context.borderInput.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
       ),
       style: AppTextStyles.bodyMedium.copyWith(
         color: enabled ? context.textPrimary : context.textDisabled,
       ),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-          color: null), // uses default IconTheme
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: null,
+      ), // uses default IconTheme
       isExpanded: true,
     );
   }

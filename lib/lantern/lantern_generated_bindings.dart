@@ -5680,14 +5680,21 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> subType,
     ffi.Pointer<ffi.Char> _planId,
     ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _idempotencyKey,
   ) {
-    return _stripeSubscriptionPaymentRedirect(subType, _planId, _email);
+    return _stripeSubscriptionPaymentRedirect(
+      subType,
+      _planId,
+      _email,
+      _idempotencyKey,
+    );
   }
 
   late final _stripeSubscriptionPaymentRedirectPtr =
       _lookup<
         ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
@@ -5701,6 +5708,7 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
             )
           >();
 
@@ -5708,8 +5716,9 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _plan,
     ffi.Pointer<ffi.Char> _provider,
     ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _idempotencyKey,
   ) {
-    return _paymentRedirect(_plan, _provider, _email);
+    return _paymentRedirect(_plan, _provider, _email, _idempotencyKey);
   }
 
   late final _paymentRedirectPtr =
@@ -5719,12 +5728,14 @@ class LanternBindings {
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('paymentRedirect');
   late final _paymentRedirect = _paymentRedirectPtr
       .asFunction<
         ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,

@@ -124,10 +124,10 @@ type Payment interface {
 	AcknowledgeApplePurchase(receipt, planII string) (string, error)
 	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
 	RestoreApplePurchase(receipt string) (string, error)
-	PaymentRedirect(provider, planID, email string) (string, error)
+	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
-	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
+	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error)
 }
 
 type SplitTunnel interface {
@@ -909,27 +909,45 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.Payme
 	return lc.client.SubscriptionPaymentRedirectURL(lc.ctx, redirectBody)
 }
 
-func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
+func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
 	deviceID := lc.MyDeviceId()
 	redirectBody := account.PaymentRedirectData{
-		Provider:    "stripe",
-		Plan:        planID,
-		DeviceName:  deviceID,
-		Email:       email,
-		BillingType: account.SubscriptionType(subscriptionType),
+		Provider:       "stripe",
+		Plan:           planID,
+		DeviceName:     deviceID,
+		Email:          email,
+		BillingType:    account.SubscriptionType(subscriptionType),
+		IdempotencyKey: idempotencyKey,
 	}
 	return lc.SubscriptionPaymentRedirectURL(redirectBody)
 }
 
-func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, error) {
+func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
 	deviceName := lc.MyDeviceId()
 	body := account.PaymentRedirectData{
-		Provider:   provider,
-		Plan:       planId,
-		DeviceName: deviceName,
-		Email:      email,
+		Provider:       provider,
+		Plan:           planId,
+		DeviceName:     deviceName,
+		Email:          email,
+		IdempotencyKey: idempotencyKey,
 	}
 	return lc.client.PaymentRedirect(lc.ctx, body)
+}
+
+func normalizePaymentRedirectIdempotencyKey(idempotencyKey string) (string, error) {
+	idempotencyKey = strings.TrimSpace(idempotencyKey)
+	if idempotencyKey == "" {
+		return "", fmt.Errorf("payment redirect idempotency key is required")
+	}
+	return idempotencyKey, nil
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {

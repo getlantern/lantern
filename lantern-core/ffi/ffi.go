@@ -645,16 +645,17 @@ func fetchUserData() *C.char {
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey *C.char) *C.char {
 	subscriptionType := C.GoString(subType)
 	planID := C.GoString(_planId)
 	email := C.GoString(_email)
+	idempotencyKey := C.GoString(_idempotencyKey)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email)
+		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey)
 		if err != nil {
 			return SendError(err)
 		}
@@ -665,16 +666,17 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 // Fetch payment redirect link for providers like alipay
 //
 //export paymentRedirect
-func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
+func paymentRedirect(_plan, _provider, _email, _idempotencyKey *C.char) *C.char {
 	plan := C.GoString(_plan)
 	provider := C.GoString(_provider)
 	email := C.GoString(_email)
+	idempotencyKey := C.GoString(_idempotencyKey)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.PaymentRedirect(provider, plan, email)
+		redirect, err := c.PaymentRedirect(provider, plan, email, idempotencyKey)
 		if err != nil {
 			return SendError(err)
 		}

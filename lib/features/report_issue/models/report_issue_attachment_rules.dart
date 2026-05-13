@@ -26,11 +26,25 @@ class ReportIssueAttachmentRulesUtils {
     'jpg': 'image/jpeg',
     'jpeg': 'image/jpeg',
     'gif': 'image/gif',
+    'heic': 'image/heic',
+    'heif': 'image/heif',
   };
 
   static const Map<String, String> _mimeTypeAliases = <String, String>{
     'image/jpg': 'image/jpeg',
+    'image/heic-sequence': 'image/heic',
+    'image/heif-sequence': 'image/heif',
+    'image/x-heic': 'image/heic',
+    'image/x-heif': 'image/heif',
   };
+
+  static const List<String> allowedAppleUniformTypeIdentifiers = <String>[
+    'public.png',
+    'public.jpeg',
+    'com.compuserve.gif',
+    'public.heic',
+    'public.heif',
+  ];
 
   static List<String> get allowedExtensions =>
       List<String>.unmodifiable(_mimeTypesByExtension.keys);

@@ -490,10 +490,15 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
+                        val idempotencyKey = map["idempotencyKey"] as? String
+                        if (idempotencyKey.isNullOrBlank()) {
+                            throw IllegalArgumentException("Payment redirect idempotency key is required")
+                        }
                         val url = Mobile.paymentRedirect(
                             map["provider"] as String,
                             map["planId"] as String,
-                            map["email"] as String
+                            map["email"] as String,
+                            idempotencyKey
                         )
                         withContext(Dispatchers.Main) {
                             success(url)
