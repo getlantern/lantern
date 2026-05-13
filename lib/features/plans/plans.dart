@@ -9,6 +9,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
+import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -382,18 +383,32 @@ class _PlansState extends ConsumerState<Plans> {
       onError: (error) {
         ref.read(paymentSessionProvider.notifier).clearRedirect();
         if (!mounted) return;
+        context.hideLoadingDialog();
+        if (_redirectToSignupIfPlayBlocked()) return;
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
       },
     );
     if (!mounted) return;
     result.fold((error) {
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       context.hideLoadingDialog();
+      if (_redirectToSignupIfPlayBlocked()) return;
       context.showSnackBar(error.localizedErrorMessage);
       appLogger.error('Error subscribing to plan: $error');
     }, (_) {});
+  }
+
+  /// When Play Billing fails to load products, [AppPurchase.fetchSubscriptions]
+  /// flips [IPUtils.isCensoredRegion]. Route the user straight to the Stripe
+  /// signup flow on the same tap so they don't have to retry.
+  bool _redirectToSignupIfPlayBlocked() {
+    if (!Platform.isAndroid || !IPUtils.isCensoredRegion) return false;
+    appLogger.info(
+      'Play Billing unavailable; redirecting to default signup (Stripe) flow',
+    );
+    signUpFlow();
+    return true;
   }
 
   Future<void> processPurchase(PurchaseDetails purchase, Plan plan) async {
