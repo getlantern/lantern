@@ -80,7 +80,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     hardwareAcceleration: true,
     // userAgent: _getUserAgent(),
     supportZoom: true,
-    preferredContentMode: UserPreferredContentMode.DESKTOP,
+    preferredContentMode: PlatformUtils.isMobile
+        ? UserPreferredContentMode.MOBILE
+        : UserPreferredContentMode.DESKTOP,
   );
   late final URLRequest _initialRequest;
 
@@ -108,6 +110,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
           return false;
         }
         if (req.url != null) {
+          final uri = Uri.tryParse(req.url.toString());
+          if (uri != null && await _consumeExternalAppUrlIfNeeded(uri)) {
+            return true;
+          }
           await controller.loadUrl(urlRequest: req);
           return true;
         }
@@ -240,6 +246,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
+    if (await _consumeExternalAppUrlIfNeeded(u)) {
+      return NavigationActionPolicy.CANCEL;
+    }
+
     if (isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
       return NavigationActionPolicy.ALLOW;
     }
@@ -247,5 +257,25 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     appLogger.debug("shouldOverrideUrlLoading: $uri");
 
     return NavigationActionPolicy.ALLOW;
+  }
+
+  Future<bool> _consumeExternalAppUrlIfNeeded(Uri uri) async {
+    if (!UrlUtils.shouldOpenExternallyFromWebView(uri)) {
+      return false;
+    }
+
+    ref.read(webViewLoadingProvider.notifier).stop();
+    final launched = await UrlUtils.tryLaunchExternalAppUrl(context, uri);
+    final host = uri.host.isEmpty ? '<none>' : uri.host;
+    if (launched) {
+      appLogger.info(
+        'Webview opened external app URL: scheme=${uri.scheme}, host=$host',
+      );
+    } else {
+      appLogger.warning(
+        'Webview could not open external app URL: scheme=${uri.scheme}, host=$host',
+      );
+    }
+    return true;
   }
 }

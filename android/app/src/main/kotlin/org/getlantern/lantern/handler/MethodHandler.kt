@@ -1,5 +1,6 @@
 package org.getlantern.lantern.handler
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -9,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -47,6 +49,7 @@ enum class Methods(val method: String) {
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     RestoreInAppPurchase("restoreInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
+    LaunchExternalUrl("launchExternalUrl"),
     ReportIssue("reportIssue"),
 
     //Oauth
@@ -509,6 +512,18 @@ class MethodHandler : FlutterPlugin,
                             e.localizedMessage ?: "Please try again",
                             e
                         )
+                    }
+                }
+            }
+
+            Methods.LaunchExternalUrl.method -> {
+                scope.handleValue(result, "launch_external_url") {
+                    val url = call.arguments<String>()
+                    if (url.isNullOrBlank()) {
+                        throw IllegalArgumentException("External URL is required")
+                    }
+                    withContext(Dispatchers.Main) {
+                        launchExternalUrl(url)
                     }
                 }
             }
@@ -1255,6 +1270,46 @@ class MethodHandler : FlutterPlugin,
             }
         }
 
+    }
+
+    private fun launchExternalUrl(url: String): Boolean {
+        val rawUrl = url.trim()
+        if (rawUrl.isEmpty()) return false
+
+        return try {
+            if (rawUrl.startsWith("intent:", ignoreCase = true)) {
+                val intent = Intent.parseUri(rawUrl, Intent.URI_INTENT_SCHEME)
+                if (startExternalIntent(intent)) {
+                    true
+                } else {
+                    val fallbackUrl = intent.getStringExtra("browser_fallback_url")
+                    !fallbackUrl.isNullOrBlank() && launchExternalUrl(fallbackUrl)
+                }
+            } else {
+                startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(rawUrl)))
+            }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
+            false
+        }
+    }
+
+    private fun startExternalIntent(intent: Intent): Boolean {
+        intent.addCategory(Intent.CATEGORY_BROWSABLE)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.component = null
+        intent.selector = null
+
+        return try {
+            appContext.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            AppLogger.d(TAG, "No activity found for external URL")
+            false
+        } catch (e: SecurityException) {
+            AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
+            false
+        }
     }
 
     private fun isAnotherVpnActive(context: Context): Boolean {
