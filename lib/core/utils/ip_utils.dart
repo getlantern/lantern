@@ -7,6 +7,11 @@ class IPUtils {
   static final censoredRegion = ['CN', 'RU', 'IR'];
   static String cacheCountry = '';
 
+  /// Sync flag set once getUserCountry() confirms the user is in a censored
+  /// region. Read by isStoreVersion() so Play-Store builds fall back to the
+  /// Stripe flow where Google Play Billing is unreachable.
+  static bool isCensoredRegion = false;
+
   static Future<String?> getUserCountry() async {
     try {
       if (cacheCountry != '') {
@@ -16,7 +21,11 @@ class IPUtils {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         cacheCountry = data['country'] ?? '';
-        return data['country'].toString().toUpperCase();
+        final country = data['country'].toString().toUpperCase();
+        if (censoredRegion.contains(country)) {
+          isCensoredRegion = true;
+        }
+        return country;
       }
     } catch (e) {
       print('Failed to get user location: $e');

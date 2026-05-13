@@ -14,6 +14,7 @@ import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -93,6 +94,13 @@ String generatePaymentRedirectIdempotencyKey() {
 
 bool isStoreVersion() {
   if (!PlatformUtils.isMobile) {
+    return false;
+  }
+
+  /// In censored regions Google Play Billing is unreachable, so Play-Store
+  /// builds must take the non-store payment path (Stripe). iOS is excluded
+  /// because StoreKit works in CN/RU/IR.
+  if (PlatformUtils.isAndroid && IPUtils.isCensoredRegion) {
     return false;
   }
   if (PlatformUtils.isIOS) {
