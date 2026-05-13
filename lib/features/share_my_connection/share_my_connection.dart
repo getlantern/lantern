@@ -457,7 +457,7 @@ class ShareNotifier extends Notifier<ShareState> {
         .watchAppEvents()
         .listen((event) {
       if (event.eventType == 'peer-status') {
-        _handlePeerStatus(event.message);
+        _handlePeerStatus(event.message, widgetRef);
         return;
       }
       if (event.eventType != 'peer-connection') return;
@@ -618,32 +618,38 @@ class ShareNotifier extends Notifier<ShareState> {
   // from radiance/peer/peer.go's Phase constants; we map them through
   // SharePhase.fromWire so an unknown future phase falls back to idle
   // instead of crashing the consumer.
-  void _handlePeerStatus(String message) {
+  //
+  // SmC Start failures (UPnP miss, /v1/peer/register 404/4xx/5xx,
+  // samizdat verify timeout, …) arrive as phase=error. Treat any such
+  // failure as a signal to switch transparently to Unbounded mode —
+  // the user's intent ("I want to share") is honoured via broflake
+  // regardless of SmC's outcome, and raw protocol error text never
+  // reaches the status card.
+  void _handlePeerStatus(String message, WidgetRef widgetRef) {
     try {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
       final errMsg = payload['error'] as String?;
       final hasErr = errMsg != null && errMsg.isNotEmpty;
 
-      // Terminal-phase reset: when radiance reports the backend is
-      // idle (clean stop) or error (start failed / runtime collapse),
-      // the SmC active/mode bits also need to flip — otherwise the
-      // toggle stays ON while the backend is off. Both terminal
-      // phases tear down the event subscription and return to the
-      // off-state; the error phase additionally preserves the
-      // backend's error message so the StatusCard's (off, error)
-      // arm renders it.
-      if ((phase == SharePhase.idle || phase == SharePhase.error) &&
-          state.mode == ShareMode.smc) {
+      // Terminal-phase reset in SmC mode:
+      //   error → automatically fall back to Unbounded so the user
+      //           keeps helping via the lower-friction path instead
+      //           of seeing the screen flip off; SmC failures during
+      //           Start are surfaced via this phase=error event.
+      //   idle  → clean stop (user toggled off, or radiance
+      //           transitioned through stopping → idle). Tear down
+      //           the event subscription and return to off.
+      if (phase == SharePhase.error && state.mode == ShareMode.smc) {
+        appLogger.info(
+          'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
+        );
+        unawaited(_fallbackToUnbounded(widgetRef));
+        return;
+      }
+      if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
         _stopEventSubscription();
-        if (phase == SharePhase.error) {
-          state = ShareState(
-            phase: SharePhase.error,
-            errorMessage: hasErr ? errMsg : null,
-          );
-        } else {
-          state = const ShareState();
-        }
+        state = const ShareState();
         return;
       }
       state = state.copyWith(
@@ -653,6 +659,35 @@ class ShareNotifier extends Notifier<ShareState> {
     } catch (e) {
       debugPrint('share-my-connection: bad peer-status event: $e');
     }
+  }
+
+  // Seamlessly switches an in-flight SmC session to Unbounded. Called when
+  // the radiance peer client reports phase=error — the SmC Start has
+  // already failed and radiance has rolled the PeerShareEnabledKey
+  // setting back to false, so all we owe is to flip our local state to
+  // Unbounded and enable broflake.
+  //
+  // Constructs ShareState directly (rather than copyWith) so errorMessage
+  // gets cleared — copyWith's `?? this.errorMessage` keeps the previous
+  // SmC failure string around otherwise.
+  Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+    state = ShareState(
+      active: true,
+      probing: false,
+      mode: ShareMode.unbounded,
+      activeCount: 0,
+      totalCount: state.totalCount,
+      phase: SharePhase.idle,
+    );
+    final result = await widgetRef
+        .read(lanternServiceProvider)
+        .setUnboundedEnabled(true);
+    result.fold(
+      (err) => appLogger.error(
+        'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
+      ),
+      (_) => {},
+    );
   }
 }
 
