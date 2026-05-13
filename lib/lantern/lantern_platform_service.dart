@@ -664,16 +664,21 @@ class LanternPlatformService implements LanternCoreService {
       );
     }
     try {
-      final redirectUrl = await _methodChannel.invokeMethod<String>(
-        'stripeSubscriptionPaymentRedirect',
-        {
-          "type": type.name,
-          "planId": planId,
-          "email": email,
-          "idempotencyKey": idempotencyKey,
-        },
-      );
-      return Right(redirectUrl!);
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
+            "type": type.name,
+            "planId": planId,
+            "email": email,
+            "idempotencyKey": idempotencyKey,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(
+          Exception(
+            'No subscription payment redirect URL returned',
+          ).toFailure(),
+        );
+      }
+      return Right(redirectUrl);
     } catch (e) {
       return Left(
         Failure(
@@ -772,16 +777,17 @@ class LanternPlatformService implements LanternCoreService {
       throw UnimplementedError("This not supported on IOS");
     }
     try {
-      final redirectUrl = await _methodChannel.invokeMethod<String>(
-        'paymentRedirect',
-        {
-          'provider': provider,
-          'planId': planId,
-          'email': email,
-          'idempotencyKey': idempotencyKey,
-        },
-      );
-      return Right(redirectUrl!);
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('paymentRedirect', {
+            'provider': provider,
+            'planId': planId,
+            'email': email,
+            'idempotencyKey': idempotencyKey,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(Exception('No payment redirect URL returned').toFailure());
+      }
+      return Right(redirectUrl);
     } catch (e, stackTrace) {
       appLogger.error('Error getting payment redirect URL', e, stackTrace);
       return Left(

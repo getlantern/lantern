@@ -309,5 +309,4 @@ class _SettingState extends ConsumerState<Setting>
       );
     }
   }
-
 }
