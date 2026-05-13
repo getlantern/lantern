@@ -59,7 +59,7 @@ mixin RestorePurchaseMixin<T extends ConsumerStatefulWidget>
     await result.fold(
       (failure) async {
         appLogger.error(
-          '[Restore] restoreInAppPurchase failed for token $purchaseToken: ${failure.error}',
+          '[Restore] restoreInAppPurchase failed: ${failure.error}',
         );
         if (mounted) context.hideLoadingDialog();
         _showRestoreError(failure.localizedErrorMessage);
@@ -92,7 +92,7 @@ mixin RestorePurchaseMixin<T extends ConsumerStatefulWidget>
 
   void _showRestoredDevicesDialog(List<DeviceModel> devices) {
     appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
-      if (value != null && value is bool) {
+      if (value == true) {
         await Future.delayed(const Duration(seconds: 1));
         if (!mounted) return;
         AppDialog.purchaseRestoredDialog(

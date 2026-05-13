@@ -526,10 +526,7 @@ class LanternFFIService implements LanternCoreService {
       }
       appLogger.error('$action split tunnel error: $errMsg');
       return left(
-        Failure(
-          error: errMsg,
-          localizedErrorMessage: localizeRawError(errMsg),
-        ),
+        Failure(error: errMsg, localizedErrorMessage: localizeRawError(errMsg)),
       );
     } catch (e) {
       return left(

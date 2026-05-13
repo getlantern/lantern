@@ -98,10 +98,7 @@ class SignInEmail extends HookConsumerWidget {
     );
   }
 
-  void signInWithEmail(
-    String email,
-    BuildContext context,
-  ) {
+  void signInWithEmail(String email, BuildContext context) {
     if (!email.isValidEmail()) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
@@ -109,13 +106,18 @@ class SignInEmail extends HookConsumerWidget {
     appRouter.push(SignInPassword(email: email));
   }
 
-  Future<void> onOAuthResult(Map<String, dynamic> result, BuildContext context,
-      WidgetRef ref, SignUpMethodType type) async {
+  Future<void> onOAuthResult(
+    Map<String, dynamic> result,
+    BuildContext context,
+    WidgetRef ref,
+    SignUpMethodType type,
+  ) async {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result =
-          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
+      final result = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
@@ -126,7 +128,8 @@ class SignInEmail extends HookConsumerWidget {
           ref.read(homeProvider.notifier).updateUserData(response);
 
           appLogger.info(
-              'OAuth login successful, updating app settings with token and user data provider: ${type.name}');
+            'OAuth login successful, updating app settings with token and user data provider: ${type.name}',
+          );
           ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
           appRouter.popUntilRoot();
         },
