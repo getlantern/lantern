@@ -11,6 +11,10 @@ def hasReleaseKeystore =
         hasRelProp('KEYSTORE_PWD') &&
         hasRelProp('KEY_ALIAS') &&
         hasRelProp('KEY_PWD')
+def sideloadSigningCertificateSha256 =
+        hasRelProp('SIDELOAD_SIGNING_CERTIFICATE_SHA256')
+                ? project.property('SIDELOAD_SIGNING_CERTIFICATE_SHA256').toString().trim()
+                : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
 
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
@@ -58,6 +62,7 @@ android {
         targetSdk = 36
         versionCode = code
         versionName = flutter.versionName
+        buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
 
         ndk {
             // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS
@@ -98,6 +103,7 @@ android {
             debuggable true
             signingConfig signingConfigs.debug
             buildConfigField "boolean", "DEVELOPMENT_MODE", "true"
+            buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"\""
         }
 
         release {

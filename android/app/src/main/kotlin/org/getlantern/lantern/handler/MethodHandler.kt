@@ -21,6 +21,8 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.updater.AndroidSideloadInstaller
+import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -118,6 +120,7 @@ enum class Methods(val method: String) {
     GetDataCapInfo("getDataCapInfo"),
     UpdateLocale("updateLocale"),
     UpdateTelemetryEvents("updateTelemetryEvents"),
+    InstallSideloadUpdate("installSideloadUpdate"),
 
     // Smart routing
     SetRoutingMode("setRoutingMode"),
@@ -223,7 +226,7 @@ class MethodHandler : FlutterPlugin,
                         withContext(Dispatchers.Main) {
                             result.success(available)
                         }
-                    } catch (e: Throwable) {
+                    } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
                             result.error("tag_check_failed", e.localizedMessage ?: "Error", e)
                         }
@@ -1053,6 +1056,32 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
+            Methods.InstallSideloadUpdate.method -> {
+                scope.launch {
+                    try {
+                        val update = AndroidSideloadUpdateRequest(
+                            url = call.argument<String>("url") ?: error("Missing url"),
+                            checksum = call.argument<String>("checksum") ?: error("Missing checksum"),
+                            version = call.argument<String>("version") ?: error("Missing version"),
+                            signature = call.argument<String>("signature") ?: "",
+                        )
+                        val status = AndroidSideloadInstaller.install(MainActivity.instance, update)
+                        withContext(Dispatchers.Main) {
+                            success(status)
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            result.error(
+                                "install_sideload_update",
+                                e.localizedMessage ?: "Failed to install sideload update",
+                                e
+                            )
+                        }
+                    }
+                }
+            }
+
             //Change Email
             Methods.StartChangeEmail.method -> {
                 scope.launch {
