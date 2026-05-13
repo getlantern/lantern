@@ -49,7 +49,11 @@ class AppPurchase {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
-    fetchSubscriptions();
+    unawaited(
+      fetchSubscriptions().catchError((Object e, StackTrace st) {
+        appLogger.error('[AppPurchase] init: fetchSubscriptions failed', e, st);
+      }),
+    );
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -205,21 +209,25 @@ class AppPurchase {
       appLogger.info('[AppPurchase] Initiating restore purchases');
       await _inAppPurchase.restorePurchases();
       if (Platform.isIOS) {
-        // StoreKit doesn't emit an empty stream event when there's nothing to
-        // restore. Give it a brief window for real receipts to arrive, then
-        // surface "no purchases" if none did.
-        Future.delayed(const Duration(seconds: 5), () {
+        // StoreKit doesn't emit anything via the stream when there are no
+        // purchases to restore, so the only signal "nothing to restore" is
+        // the absence of a stream event within a reasonable window.
+        Future.delayed(const Duration(seconds: 10), () {
           if (_isRestoreFlow && !_restoreReceivedAny) {
             appLogger.info('[AppPurchase] iOS restore: no purchases delivered');
             _isRestoreFlow = false;
-            _onError?.call('No previous purchases found to restore.');
+            final onError = _onError;
+            clearCallbacks();
+            onError?.call('No previous purchases found to restore.');
           }
         });
       }
     } catch (e, st) {
       appLogger.error('[AppPurchase] Error restoring purchases', e, st);
       _isRestoreFlow = false;
-      _onError?.call('Error restoring purchases: $e');
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call('Error restoring purchases: $e');
     }
   }
 
@@ -232,7 +240,9 @@ class AppPurchase {
         '[AppPurchase] Restore flow: purchase stream emitted empty list',
       );
       _isRestoreFlow = false;
-      _onError?.call('No previous purchases found to restore.');
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call('No previous purchases found to restore.');
       return;
     }
 
@@ -290,9 +300,11 @@ class AppPurchase {
       }
     }
 
-    _onSuccess?.call(chosen);
+    final onSuccess = _onSuccess;
     _isRestoreFlow = false;
     _pendingPlanId = null;
+    clearCallbacks();
+    onSuccess?.call(chosen);
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
@@ -336,7 +348,9 @@ class AppPurchase {
           );
           _restoreReceivedAny = true;
           await _finalize(purchaseDetails);
-          _onSuccess?.call(purchaseDetails);
+          final onSuccess = _onSuccess;
+          clearCallbacks();
+          onSuccess?.call(purchaseDetails);
           return;
         }
 

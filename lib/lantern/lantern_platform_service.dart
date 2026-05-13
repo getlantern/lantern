@@ -835,9 +835,16 @@ class LanternPlatformService implements LanternCoreService {
         'restoreInAppPurchase',
         {'purchaseToken': purchaseToken},
       );
-      final jsonStr = bytes != null ? utf8.decode(bytes) : '{}';
+      if (bytes == null) {
+        appLogger.error(
+          'restoreInAppPurchase returned null bytes from native side',
+        );
+        return Left(
+          Exception('Empty response from restore purchase').toFailure(),
+        );
+      }
       return Right(
-        RestoreSubscriptionResponse.fromJson(jsonDecode(jsonStr)),
+        RestoreSubscriptionResponse.fromJson(jsonDecode(utf8.decode(bytes))),
       );
     } catch (e, stackTrace) {
       appLogger.error('Error restoring in-app purchase', e, stackTrace);

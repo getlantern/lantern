@@ -19,6 +19,7 @@ import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
+import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 
 import '../../core/models/plan_data.dart';
 
@@ -30,7 +31,8 @@ class Plans extends StatefulHookConsumerWidget {
   ConsumerState<Plans> createState() => _PlansState();
 }
 
-class _PlansState extends ConsumerState<Plans> {
+class _PlansState extends ConsumerState<Plans>
+    with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
 
   @override
@@ -469,20 +471,5 @@ class _PlansState extends ConsumerState<Plans> {
     }
   }
 
-  Future<void> _restorePurchaseFlow() async {
-    try {
-      final appPurchase = sl<AppPurchase>();
-      await appPurchase.restorePurchases(
-        onSuccess: (_) async {},
-        onError: (error) {},
-      );
-    } catch (e, st) {
-      appLogger.error('Error initiating restore purchase flow: $e', st);
-      AppDialog.errorDialog(
-        context: context,
-        title: 'error'.i18n,
-        content: e.localizedDescription,
-      );
-    }
-  }
+  Future<void> _restorePurchaseFlow() => restorePurchaseFlow();
 }

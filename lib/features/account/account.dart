@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+annotations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -440,7 +440,7 @@ class Account extends HookConsumerWidget {
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
-        appLogger.info('Logout success: got user data ${user.toJson()}');
+        appLogger.info('Logout success: got user data userId=${user.toJson()}');
       },
     );
   }

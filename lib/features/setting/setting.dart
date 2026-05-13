@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
@@ -10,12 +9,10 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/plans/provider/payment_notifier.dart';
+import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
 
-import '../../core/models/user.dart';
-import '../../core/services/app_purchase.dart';
 import '../../core/services/injection_container.dart';
 
 enum _SettingType {
@@ -39,7 +36,8 @@ class Setting extends StatefulHookConsumerWidget {
   ConsumerState<Setting> createState() => _SettingState();
 }
 
-class _SettingState extends ConsumerState<Setting> {
+class _SettingState extends ConsumerState<Setting>
+    with RestorePurchaseMixin<Setting> {
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
@@ -294,7 +292,7 @@ class _SettingState extends ConsumerState<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.restorePurchase:
-        _restorePurchaseFlow();
+        restorePurchaseFlow();
         break;
     }
   }
@@ -312,99 +310,4 @@ class _SettingState extends ConsumerState<Setting> {
     }
   }
 
-  Future<void> _restorePurchaseFlow() async {
-    if (!mounted) return;
-    context.showLoadingDialog();
-    try {
-      await sl<AppPurchase>().restorePurchases(
-        onSuccess: _onRestoredPurchase,
-        onError: (error) {
-          if (!mounted) return;
-          context.hideLoadingDialog();
-          if (error.contains('No previous purchases found')) {
-            AppDialog.noPurchaseFoundDialog(context: context);
-            return;
-          }
-          _showRestoreError(error);
-        },
-      );
-    } catch (e, st) {
-      appLogger.error('Error initiating restore purchase flow: $e', st);
-      if (mounted) context.hideLoadingDialog();
-      _showRestoreError(e.localizedDescription);
-    }
-  }
-
-  Future<void> _onRestoredPurchase(PurchaseDetails purchaseDetails) async {
-    final purchaseToken =
-        purchaseDetails.verificationData.serverVerificationData;
-    if (purchaseToken.isEmpty) {
-      appLogger.info('Skipping: empty token for ${purchaseDetails.productID}');
-      return;
-    }
-    if (!mounted) return;
-
-    appLogger.info('Found the restore purchase calling restore subscription');
-    final result = await ref
-        .read(paymentProvider.notifier)
-        .restoreInAppPurchase(purchaseToken: purchaseToken);
-
-    await result.fold(
-      (failure) async {
-        appLogger.error(
-          '[Restore] restoreInAppPurchase failed for token $purchaseToken: ${failure.error}',
-        );
-        context.hideLoadingDialog();
-        _showRestoreError(failure.localizedErrorMessage);
-      },
-      (restorePurchase) async {
-        if (!mounted) return;
-
-        /// Once the purchase is successfully restored, we need to fetch the
-        /// latest user data to get the updated subscription status and linked devices.
-        await ref.read(homeProvider.notifier).fetchUserData();
-        context.hideLoadingDialog();
-        if (restorePurchase.status == 'ok' &&
-            restorePurchase.devices.isNotEmpty) {
-          appLogger.info(
-            '[Restore] Account restored with ${restorePurchase.devices.length} linked device(s); showing device list',
-          );
-
-          _showRestoredDevicesDialog(restorePurchase.devices);
-          return;
-        }
-        appLogger.info('[Restore] Account restored; showing success dialog');
-        AppDialog.purchaseRestoredDialog(
-          context: context,
-          onPressed: () => appRouter.popUntilRoot(),
-        );
-      },
-    );
-  }
-
-  void _showRestoredDevicesDialog(List<DeviceModel> devices) {
-    appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
-      if (value != null && value is bool) {
-        // Give the backend time to propagate the device removal before
-        // retrying sign-in, otherwise the request may still hit the
-        // device limit.
-        await Future.delayed(const Duration(seconds: 1));
-        if (!mounted) return;
-        AppDialog.purchaseRestoredDialog(
-          context: context,
-          onPressed: () => appRouter.popUntilRoot(),
-        );
-      }
-    });
-  }
-
-  void _showRestoreError(String message) {
-    appLogger.error('[Restore] $message');
-    if (!mounted) return;
-    AppDialog.errorDialog(
-      context: context,
-      title: 'error'.i18n,
-      content: message,
-    );
-  }
 }

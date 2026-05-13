@@ -868,7 +868,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() {
-    throw Exception("This not supported on desktop, this is only for mobile");
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
   }
 
   @override
@@ -892,14 +894,18 @@ class LanternFFIService implements LanternCoreService {
     required String purchaseToken,
     required String planId,
   }) {
-    throw Exception("This not supported on desktop, this is only for mobile");
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
   }
 
   @override
   Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
     required String purchaseToken,
   }) {
-    throw Exception("This not supported on desktop, this is only for mobile");
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
   }
 
   @override
