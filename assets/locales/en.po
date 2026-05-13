@@ -482,6 +482,21 @@ msgstr "Welcome to Lantern!"
 msgid "lantern_pro_description"
 msgstr "Your Pro features are unlocked—enjoy unlimited data, faster speeds, and premium servers."
 
+msgid "purchase_restored_title"
+msgstr "Purchase Restored"
+
+msgid "purchase_restored_description"
+msgstr "Your Lantern Pro subscription is now active on this device."
+
+msgid "no_purchase_found_title"
+msgstr "No purchase found"
+
+msgid "no_purchase_found_body_ios"
+msgstr "No active subscription is tied to this Apple ID."
+
+msgid "no_purchase_found_body_android"
+msgstr "No active subscription is tied to this Google account."
+
 msgid "plans_fetch_error"
 msgstr "Error fetching plans. Please try again later."
 
@@ -1037,6 +1052,15 @@ msgstr "Enter an Activation Code"
 
 msgid "restore_purchase"
 msgstr "Restore Purchase"
+
+msgid "already_purchased"
+msgstr "Already purchased?"
+
+msgid "restore_purchase_success"
+msgstr "Purchase restored successfully."
+
+msgid "restore_purchase_no_purchases"
+msgstr "No purchases were found to restore."
 
 
 msgid "do_private_server_setup"

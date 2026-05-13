@@ -10,6 +10,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/core/models/user.dart';
@@ -119,6 +120,13 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+  });
+
+  /// Restores a previously purchased subscription. Mobile-only.
+  /// `purchaseToken` is the Google Play purchase token on Android, or the
+  /// StoreKit receipt (server verification data) on iOS.
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
   });
 
   Future<Either<Failure, Unit>> showManageSubscriptions();

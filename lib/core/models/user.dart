@@ -58,7 +58,7 @@ class DeviceModel {
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) => DeviceModel(
-    deviceId: (json['id'] ?? '').toString(),
+    deviceId: DeviceModel._firstNonEmpty([json['id'], json['deviceId']]),
     name: (json['name'] ?? '').toString(),
     created: (json['created'] as num?)?.toInt() ?? 0,
   );
@@ -68,6 +68,15 @@ class DeviceModel {
     'name': name,
     'created': created,
   };
+
+  static String _firstNonEmpty(List<dynamic> values) {
+    for (final v in values) {
+      if (v == null) continue;
+      final s = v.toString();
+      if (s.isNotEmpty) return s;
+    }
+    return '';
+  }
 }
 
 class UserDataModel {

@@ -10,6 +10,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -18,6 +19,7 @@ import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
+import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 
 import '../../core/models/plan_data.dart';
 
@@ -29,7 +31,8 @@ class Plans extends StatefulHookConsumerWidget {
   ConsumerState<Plans> createState() => _PlansState();
 }
 
-class _PlansState extends ConsumerState<Plans> {
+class _PlansState extends ConsumerState<Plans>
+    with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
 
   @override
@@ -69,7 +72,7 @@ class _PlansState extends ConsumerState<Plans> {
           child: SizedBox(
             height: context.isSmallDevice
                 ? size.height * 0.4
-                : size.height * 0.39,
+                : size.height * 0.37,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -126,8 +129,19 @@ class _PlansState extends ConsumerState<Plans> {
                     onPressed: onGetLanternProTap,
                   ),
                 ),
+                if (isStoreVersion()) ...[
+                  SizedBox(height: 8),
+                  Center(
+                    child: AppRichText(
+                      texts: '${'already_purchased'.i18n} ',
+                      boldTexts: 'restore_purchase'.i18n,
+                      boldUnderline: true,
+                      boldOnPressed: _restorePurchaseFlow,
+                    ),
+                  ),
+                ],
                 if (PlatformUtils.isIOS) ...{
-                  SizedBox(height: defaultSize),
+                  SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Text(
@@ -205,14 +219,6 @@ class _PlansState extends ConsumerState<Plans> {
                 appRouter.popAndPush(
                   AddEmail(authFlow: AuthFlow.lanternProLicense),
                 );
-              },
-            ),
-            DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.restorePurchase,
-              label: 'restore_purchase'.i18n,
-              onPressed: () {
-                appRouter.popAndPush(SignInEmail());
               },
             ),
           ],
@@ -464,4 +470,6 @@ class _PlansState extends ConsumerState<Plans> {
       );
     }
   }
+
+  Future<void> _restorePurchaseFlow() => restorePurchaseFlow();
 }
