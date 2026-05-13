@@ -74,47 +74,53 @@ object AndroidSideloadInstaller {
     }
 
     private fun downloadApk(activity: MainActivity, rawUrl: String): File {
-        val parsedUrl = URL(rawUrl)
-        require(parsedUrl.protocol == "https") {
-            "Android sideload update URL must use HTTPS"
-        }
-
-        val updatesDir = File(activity.cacheDir, "updates")
-        check(updatesDir.exists() || updatesDir.mkdirs()) {
-            "Unable to create update cache directory"
-        }
-
-        val partialFile = File(updatesDir, "Lantern.apk.part")
-        val apkFile = File(updatesDir, "Lantern.apk")
-        if (partialFile.exists()) partialFile.delete()
-
-        AppLogger.d(TAG, "Downloading sideload APK from $rawUrl")
-        val connection = (parsedUrl.openConnection() as HttpURLConnection).apply {
-            connectTimeout = DOWNLOAD_TIMEOUT_MS
-            readTimeout = DOWNLOAD_TIMEOUT_MS
-            instanceFollowRedirects = true
-            requestMethod = "GET"
-        }
-
         try {
-            val statusCode = connection.responseCode
-            check(statusCode in 200..299) {
-                "APK download failed with HTTP $statusCode"
+            val parsedUrl = URL(rawUrl)
+            require(parsedUrl.protocol == "https") {
+                "Android sideload update URL must use HTTPS"
             }
-            connection.inputStream.use { input ->
-                FileOutputStream(partialFile).use { output ->
-                    input.copyTo(output)
-                }
-            }
-        } finally {
-            connection.disconnect()
-        }
 
-        if (apkFile.exists()) apkFile.delete()
-        check(partialFile.renameTo(apkFile)) {
-            "Unable to finalize APK download"
+            val updatesDir = File(activity.cacheDir, "updates")
+            check(updatesDir.exists() || updatesDir.mkdirs()) {
+                "Unable to create update cache directory"
+            }
+
+            val partialFile = File(updatesDir, "Lantern.apk.part")
+            val apkFile = File(updatesDir, "Lantern.apk")
+            if (partialFile.exists()) partialFile.delete()
+
+            AppLogger.d(TAG, "Downloading sideload APK from $rawUrl")
+            val connection = (parsedUrl.openConnection() as HttpURLConnection).apply {
+                connectTimeout = DOWNLOAD_TIMEOUT_MS
+                readTimeout = DOWNLOAD_TIMEOUT_MS
+                instanceFollowRedirects = true
+                requestMethod = "GET"
+            }
+
+            try {
+                val statusCode = connection.responseCode
+                check(statusCode in 200..299) {
+                    "APK download failed with HTTP $statusCode"
+                }
+                connection.inputStream.use { input ->
+                    FileOutputStream(partialFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            } finally {
+                connection.disconnect()
+            }
+
+            if (apkFile.exists()) apkFile.delete()
+            check(partialFile.renameTo(apkFile)) {
+                "Unable to finalize APK download"
+            }
+
+            return apkFile
+        } catch (e: Exception) {
+            val reason = e.localizedMessage ?: e.javaClass.simpleName
+            throw IllegalStateException("APK download failed: $reason", e)
         }
-        return apkFile
     }
 
     private fun verifyDownloadedApk(

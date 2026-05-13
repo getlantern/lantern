@@ -41,6 +41,19 @@ class Updater {
     await _initDesktopUpdater(flags);
   }
 
+  Future<bool> canCheckForUpdates() async {
+    if (_isDesktopSupportedPlatform) return true;
+    if (!_isAndroidPlatform) return false;
+
+    try {
+      final flags = await _featureFlags();
+      return _androidSideloadUpdater.isEnabled(flags, logDisabled: false);
+    } catch (e, st) {
+      appLogger.error('Failed to determine update-check availability', e, st);
+      return false;
+    }
+  }
+
   Future<void> _initDesktopUpdater(Map<String, dynamic> flags) async {
     if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
       appLogger.info('autoUpdater disabled by feature flag');
@@ -78,7 +91,9 @@ class Updater {
     if (_isAndroidPlatform) {
       final flags = await _featureFlags();
       if (!_androidSideloadUpdater.isEnabled(flags)) return;
-      final update = await _androidSideloadUpdater.checkNow();
+      final update = await _androidSideloadUpdater.checkNow(
+        source: AndroidSideloadUpdateCheckSource.manual,
+      );
       if (update == null) {
         _showNoUpdateDialog();
       }

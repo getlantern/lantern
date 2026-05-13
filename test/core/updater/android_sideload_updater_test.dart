@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
 
@@ -88,6 +89,75 @@ void main() {
           'version': '9.1.0',
         }),
         throwsFormatException,
+      );
+    });
+  });
+
+  group('isAndroidSideloadStartupCheckDue', () {
+    final now = DateTime.utc(2026, 5, 13, 12);
+
+    test('runs when there is no usable previous startup check', () {
+      expect(
+        isAndroidSideloadStartupCheckDue(now: now, lastCheckAt: null),
+        isTrue,
+      );
+      expect(
+        isAndroidSideloadStartupCheckDue(now: now, lastCheckAt: 'not a date'),
+        isTrue,
+      );
+    });
+
+    test('throttles checks within the configured window', () {
+      expect(
+        isAndroidSideloadStartupCheckDue(
+          now: now,
+          lastCheckAt: now
+              .subtract(const Duration(hours: 23))
+              .toIso8601String(),
+        ),
+        isFalse,
+      );
+    });
+
+    test('runs after the configured window elapses', () {
+      expect(
+        isAndroidSideloadStartupCheckDue(
+          now: now,
+          lastCheckAt: now
+              .subtract(const Duration(hours: 25))
+              .toIso8601String(),
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('androidSideloadInstallFailureTelemetryEvent', () {
+    test('classifies checksum and download failures', () {
+      expect(
+        androidSideloadInstallFailureTelemetryEvent(
+          PlatformException(
+            code: 'install_sideload_update',
+            message: 'APK checksum mismatch',
+          ),
+        ),
+        AndroidSideloadUpdateTelemetryEvent.checksumFailed,
+      );
+      expect(
+        androidSideloadInstallFailureTelemetryEvent(
+          PlatformException(
+            code: 'install_sideload_update',
+            message: 'APK download failed with HTTP 500',
+          ),
+        ),
+        AndroidSideloadUpdateTelemetryEvent.downloadFailed,
+      );
+    });
+
+    test('falls back to a generic install failure', () {
+      expect(
+        androidSideloadInstallFailureTelemetryEvent(Exception('bad package')),
+        AndroidSideloadUpdateTelemetryEvent.installFailed,
       );
     });
   });

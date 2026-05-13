@@ -35,6 +35,9 @@ class Setting extends StatefulHookConsumerWidget {
 }
 
 class _SettingState extends ConsumerState<Setting> {
+  late final Future<bool> _canCheckForUpdates = sl<Updater>()
+      .canCheckForUpdates();
+
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
@@ -44,7 +47,8 @@ class _SettingState extends ConsumerState<Setting> {
 
     final appSetting = ref.watch(appSettingProvider);
 
-    final hasProSession = (user?.legacyUserData.isPro ?? false) &&
+    final hasProSession =
+        (user?.legacyUserData.isPro ?? false) &&
         (user?.legacyUserData.unpassRegistered ?? false);
 
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
@@ -85,9 +89,10 @@ class _SettingState extends ConsumerState<Setting> {
                     Text('account'.i18n),
                     if (isUserPro || isExpired)
                       SubscriptionTags(
-                          type: isUserPro
-                              ? SubscriptionTagType.pro
-                              : SubscriptionTagType.expired)
+                        type: isUserPro
+                            ? SubscriptionTagType.pro
+                            : SubscriptionTagType.expired,
+                      ),
                   ],
                 ),
                 icon: AppImagePaths.accountSetting,
@@ -159,15 +164,29 @@ class _SettingState extends ConsumerState<Setting> {
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
-                if (PlatformUtils.isDesktop) ...{
-                  DividerSpace(),
-                  AppTile(
-                    label: 'check_for_updates'.i18n,
-                    icon: AppImagePaths.update,
-                    onPressed: () async =>
-                        await settingMenuTap(_SettingType.checkForUpdates),
-                  ),
-                },
+                FutureBuilder<bool>(
+                  future: _canCheckForUpdates,
+                  builder: (context, snapshot) {
+                    final show =
+                        PlatformUtils.isDesktop ||
+                        (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.data == true);
+                    if (!show) return const SizedBox.shrink();
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DividerSpace(),
+                        AppTile(
+                          label: 'check_for_updates'.i18n,
+                          icon: AppImagePaths.update,
+                          onPressed: () async => await settingMenuTap(
+                            _SettingType.checkForUpdates,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
                 DividerSpace(),
                 AppTile(
                   label: 'get_30_days_of_pro_free'.i18n,
@@ -263,7 +282,9 @@ class _SettingState extends ConsumerState<Setting> {
         final isPro = user.legacyUserData.isPro;
         if (isPro && !userSignedIn) {
           await showProAccountFlowDialog(
-              context: context, hasEmail: email.isNotEmpty);
+            context: context,
+            hasEmail: email.isNotEmpty,
+          );
           return;
         }
 
@@ -283,6 +304,7 @@ class _SettingState extends ConsumerState<Setting> {
       await sl<Updater>().checkNow();
     } catch (e, st) {
       appLogger.error('Error checking for updates: $e', st);
+      if (!mounted) return;
       AppDialog.errorDialog(
         context: context,
         title: 'error'.i18n,
