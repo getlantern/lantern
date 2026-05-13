@@ -21,8 +21,9 @@ class IPUtils {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         cacheCountry = data['country'] ?? '';
-        final country = data['country'].toString().toUpperCase();
-        if (censoredRegion.contains(country)) {
+        final country = data['country'].toString();
+
+        if (censoredRegion.contains(country.toUpperCase())) {
           isCensoredRegion = true;
         }
         return country;

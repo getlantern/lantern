@@ -27,8 +27,11 @@ Future<void> main() async {
 
   // Resolve user country in the background so isStoreVersion() can flip to
   // the non-store (Stripe) flow on Android in censored regions where Google
-  // Play Billing is unreachable.
-  unawaited(IPUtils.getUserCountry());
+  // Play Billing is unreachable. Only the Android Play branch consumes the
+  // flag, so skip the network call on other platforms.
+  if (PlatformUtils.isAndroid) {
+    unawaited(IPUtils.getUserCountry());
+  }
 
   await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();
