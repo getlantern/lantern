@@ -385,6 +385,10 @@ final class RunnerTests: XCTestCase {
       installed: [enabledUninstalling]
     )
 
+    XCTAssertEqual(
+      reconciliation.change, .contentChange,
+      "classifyChange must return .contentChange for an uninstalling same-version copy with a nil contentHash — otherwise the nil-hash fallback would mark it .matched and leave the draining extension in place"
+    )
     XCTAssertNotEqual(
       reconciliation.status, .activated,
       "An enabled+uninstalling extension with skipped hash must not be treated as activated"
