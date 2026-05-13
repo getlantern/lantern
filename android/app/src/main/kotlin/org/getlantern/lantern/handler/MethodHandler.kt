@@ -226,7 +226,7 @@ class MethodHandler : FlutterPlugin,
                         withContext(Dispatchers.Main) {
                             result.success(available)
                         }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         withContext(Dispatchers.Main) {
                             result.error("tag_check_failed", e.localizedMessage ?: "Error", e)
                         }

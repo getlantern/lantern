@@ -194,7 +194,10 @@ class AndroidSideloadUpdater {
       });
 
       if (promptIfAvailable) {
-        await _promptUpdate(response);
+        await _promptUpdate(
+          response,
+          forcePrompt: source == AndroidSideloadUpdateCheckSource.manual,
+        );
       }
       return response;
     } catch (e) {
@@ -251,8 +254,11 @@ class AndroidSideloadUpdater {
     }
   }
 
-  Future<void> _promptUpdate(AndroidSideloadUpdate update) async {
-    if (_lastPromptedVersion == update.version) return;
+  Future<void> _promptUpdate(
+    AndroidSideloadUpdate update, {
+    bool forcePrompt = false,
+  }) async {
+    if (!forcePrompt && _lastPromptedVersion == update.version) return;
     _lastPromptedVersion = update.version;
 
     final context = appRouter.navigatorKey.currentContext;
