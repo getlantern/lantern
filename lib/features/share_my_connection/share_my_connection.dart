@@ -1138,7 +1138,7 @@ class _ArrivalCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 14),
             // unbounded.lantern.io renders just `heart + text`, no flag
             // emoji — matching that exactly so the pill width stays in
             // bounds and the layout reads cleanly. flagEmoji is still
