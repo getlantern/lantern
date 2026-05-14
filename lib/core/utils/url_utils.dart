@@ -21,6 +21,13 @@ class UrlUtils {
     'https',
     'javascript',
   };
+  // Keep this list intentionally narrow. These are the schemes we currently
+  // need for payment app handoff from the in-app webview.
+  static const Set<String> _externalAppSchemes = {
+    'alipays',
+    'intent',
+    'market',
+  };
 
   static String normalizeWebviewUrl(String url) => url.trim();
 
@@ -41,7 +48,10 @@ class UrlUtils {
 
   static bool shouldOpenExternallyFromWebView(Uri uri) {
     final scheme = uri.scheme.toLowerCase();
-    return scheme.isNotEmpty && !_webviewHandledSchemes.contains(scheme);
+    if (scheme.isEmpty || _webviewHandledSchemes.contains(scheme)) {
+      return false;
+    }
+    return _externalAppSchemes.contains(scheme);
   }
 
   static Future<bool> launchExternalAppUrl(Uri uri) async {

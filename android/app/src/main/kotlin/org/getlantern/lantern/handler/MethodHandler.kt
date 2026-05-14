@@ -155,6 +155,7 @@ class MethodHandler : FlutterPlugin,
     companion object {
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
+        private const val MAX_EXTERNAL_URL_FALLBACK_DEPTH = 3
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -1273,25 +1274,47 @@ class MethodHandler : FlutterPlugin,
     }
 
     private fun launchExternalUrl(url: String): Boolean {
-        val rawUrl = url.trim()
-        if (rawUrl.isEmpty()) return false
+        var currentUrl = url.trim()
+        if (currentUrl.isEmpty()) return false
 
-        return try {
-            if (rawUrl.startsWith("intent:", ignoreCase = true)) {
-                val intent = Intent.parseUri(rawUrl, Intent.URI_INTENT_SCHEME)
-                if (startExternalIntent(intent)) {
-                    true
-                } else {
-                    val fallbackUrl = intent.getStringExtra("browser_fallback_url")
-                    !fallbackUrl.isNullOrBlank() && launchExternalUrl(fallbackUrl)
-                }
-            } else {
-                startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(rawUrl)))
+        val visitedUrls = mutableSetOf<String>()
+        var fallbackDepth = 0
+
+        while (currentUrl.isNotEmpty()) {
+            if (!visitedUrls.add(currentUrl)) {
+                AppLogger.w(TAG, "Detected cycle in external URL fallback chain")
+                return false
             }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
-            false
+
+            try {
+                if (!currentUrl.startsWith("intent:", ignoreCase = true)) {
+                    return startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl)))
+                }
+
+                val intent = Intent.parseUri(currentUrl, Intent.URI_INTENT_SCHEME)
+                if (startExternalIntent(intent)) {
+                    return true
+                }
+
+                val fallbackUrl = intent.getStringExtra("browser_fallback_url")?.trim()
+                if (fallbackUrl.isNullOrEmpty()) {
+                    return false
+                }
+
+                fallbackDepth += 1
+                if (fallbackDepth > MAX_EXTERNAL_URL_FALLBACK_DEPTH) {
+                    AppLogger.w(TAG, "External URL fallback chain exceeded max depth")
+                    return false
+                }
+
+                currentUrl = fallbackUrl
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
+                return false
+            }
         }
+
+        return false
     }
 
     private fun startExternalIntent(intent: Intent): Boolean {

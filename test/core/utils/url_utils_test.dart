@@ -44,5 +44,20 @@ void main() {
         isTrue,
       );
     });
+
+    test('keeps unrelated custom schemes out of external dispatch', () {
+      expect(
+        UrlUtils.shouldOpenExternallyFromWebView(
+          Uri.parse('mailto:support@lantern.io'),
+        ),
+        isFalse,
+      );
+      expect(
+        UrlUtils.shouldOpenExternallyFromWebView(
+          Uri.parse('whatsapp://send?text=hi'),
+        ),
+        isFalse,
+      );
+    });
   });
 }
