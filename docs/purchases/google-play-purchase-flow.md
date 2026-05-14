@@ -1,11 +1,34 @@
 # Google Play purchase flow (Android, v9.x)
 
 How an in-app purchase made on Google Play is supposed to make its way from
-the user's tap to a row in `pro_server.purchases` — and where it currently
-falls down when any single link in that chain fails.
+the user's tap to a row in `pro_server.purchases` (or `pro_server.subscriptions`,
+depending on the product type) — and where it currently falls down when any
+single link in that chain fails.
 
 This document covers the Android Google Play path only. iOS StoreKit and
 Shepherd (AliPay/WeChat) have separate flows.
+
+## Two product types in play
+
+Lantern's Android Google Play catalog has changed over time, and both
+flavors are still live in our customer base:
+
+| Product type | Sold by | Server table populated | Google notification |
+|---|---|---|---|
+| **Subscription** (e.g. `1m_sub`, `1y_sub`) | v9.x (radiance / Flutter) — the **current** client | `pro_server.subscriptions` | `subscriptionNotification` RTDN |
+| **One-time product** (e.g. `1y` legacy SKU) | v8.x (flashlight / lantern-client) — the **legacy** client | `pro_server.purchases` | `oneTimeProductNotification` RTDN (must be explicitly subscribed to in Play Console) |
+
+The new VPN sells subscriptions only. Legacy one-time-product purchases
+are ~2-3% of the volume (Jigar's estimate from the engineering#3464
+thread) but they're a real population — they're users who bought on a
+prior install of the v8 client and may now be on v9 trying to redeem
+that entitlement.
+
+**The two flows share most of the pipeline (Flutter → Kotlin → gomobile →
+radiance → kindling → api.getiantem.org) but diverge at the server side
+and in which DB tables they populate.** The diagrams below show the
+subscription path; legacy one-time-product purchases follow a parallel
+shape that writes to `pro_server.purchases` instead of `subscriptions`.
 
 ## Layers involved
 
@@ -154,9 +177,13 @@ The server-side endpoint already handles replays correctly (`purchase_token` is 
 
 ## Open follow-ups
 
-- **Action item #1** (engineering#3464): on-disk retry queue for the original ack moment. Catches the case where step 4 in Diagram 2 fails before `queryPurchases` would have a chance to see the unack'd purchase. Strict superset of #2 in coverage but bigger surface; #2 is the fast fix.
-- **Action item #3** (engineering#3464): server-side RTDN handler for one-time products. Belt-and-braces fallback for cases where the client never has another chance to call `queryPurchases` (uninstall before retry, etc.).
-- **Action item #4** (engineering#3464): re-bind tool for stranded purchases where the `obfuscatedExternalProfileId` user_id no longer exists in `pro_users`. Required for the long tail and the broader v9.1.x "Pro lost on upgrade" pattern.
+Priority order, accounting for the legacy vs subscription split:
+
+1. **Server-side: honor Google's RTDN as authoritative source of truth** (Adam's proposal on the #3464 Slack thread; analogous to the Stripe fix that landed earlier). For both `subscriptionNotification` and `oneTimeProductNotification` events, when the RTDN arrives the server should be able to INSERT the purchase / subscription row + apply Pro level *without* requiring a prior client-driven row to update. This is the highest-leverage server-side change because it makes every Google-charged purchase recoverable regardless of client delivery failures. **The customer in ticket 174862 (a legacy one-time-product purchase) is in this gap and is unrecoverable without it.**
+2. **Server-side: enable `oneTimeProductNotification` subscriptions in Play Console + Pub/Sub** if they aren't already. RTDNs for one-time products are not on by default — they require explicit per-product opt-in via the Play Console's Real-Time Developer Notifications setup, and a matching Pub/Sub topic/subscription on our side. Worth checking before assuming the handler from item 1 has anything to consume.
+3. **Action item #1** (engineering#3464): client-side on-disk retry queue for the original ack moment. Catches the case where step 4 in Diagram 2 fails before `queryPurchases` would have a chance to see the unack'd purchase. Strict superset of the startup-replay in coverage but bigger surface.
+4. **Action item #2** (engineering#3464): client-side `BillingClient.queryPurchases(SUBS + INAPP)` startup replay — Diagram 3 above. Reduced priority vs the original framing: with items 1 + 2 in place, the server side becomes the source of truth and the client retry is a nice-to-have rather than the only path. Still worth shipping because it shortens the time to recovery for users who reopen their app.
+5. **Action item #4** (engineering#3464): re-bind tool for stranded purchases where the `obfuscatedExternalProfileId` user_id no longer exists in `pro_users`. Required for the long tail and the broader v9.1.x "Pro lost on upgrade" pattern.
 
 ## References
 
