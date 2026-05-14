@@ -3,7 +3,15 @@
 #include <windows.h>
 
 #include "flutter_window.h"
+#include "single_instance.h"
 #include "utils.h"
+
+namespace {
+
+constexpr const wchar_t kSingleInstanceMutexName[] =
+    L"Local\\org.getlantern.lantern.single-instance";
+
+}  // namespace
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
@@ -11,6 +19,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
     CreateAndAttachConsole();
+  }
+
+  SingleInstanceLock single_instance(kSingleInstanceMutexName);
+  if (!single_instance.IsPrimaryInstance()) {
+    ActivateExistingLanternWindow();
+    return EXIT_SUCCESS;
+  }
+  if (ActivateExistingLanternWindow()) {
+    return EXIT_SUCCESS;
   }
 
   // Initialize COM, so that it is available for use in the library and/or
