@@ -10,6 +10,11 @@ namespace {
 
 constexpr const wchar_t kSingleInstanceMutexName[] =
     L"Local\\org.getlantern.lantern.single-instance";
+constexpr const wchar_t kSingleInstanceReadyEventName[] =
+    L"Local\\org.getlantern.lantern.window-ready";
+constexpr DWORD kWindowReadyTimeoutMs = 5000;
+constexpr DWORD kActivationRetryTimeoutMs = 1000;
+constexpr DWORD kActivationRetryIntervalMs = 100;
 
 }  // namespace
 
@@ -21,10 +26,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     CreateAndAttachConsole();
   }
 
+  SingleInstanceReadyEvent window_ready(kSingleInstanceReadyEventName);
   SingleInstanceLock single_instance(kSingleInstanceMutexName);
   if (!single_instance.IsPrimaryInstance()) {
-    ActivateExistingLanternWindow();
-    return EXIT_SUCCESS;
+    window_ready.Wait(kWindowReadyTimeoutMs);
+    return ActivateExistingLanternWindowWithRetry(kActivationRetryTimeoutMs,
+                                                  kActivationRetryIntervalMs)
+               ? EXIT_SUCCESS
+               : EXIT_FAILURE;
   }
   if (ActivateExistingLanternWindow()) {
     return EXIT_SUCCESS;
@@ -48,6 +57,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
+  window_ready.Signal();
 
   ::MSG msg;
   while (::GetMessage(&msg, nullptr, 0, 0)) {

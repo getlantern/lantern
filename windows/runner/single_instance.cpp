@@ -64,6 +64,29 @@ bool SingleInstanceLock::IsPrimaryInstance() const {
   return is_primary_instance_;
 }
 
+SingleInstanceReadyEvent::SingleInstanceReadyEvent(const wchar_t* event_name) {
+  event_ = CreateEventW(nullptr, TRUE, FALSE, event_name);
+}
+
+SingleInstanceReadyEvent::~SingleInstanceReadyEvent() {
+  if (event_ != nullptr) {
+    CloseHandle(event_);
+  }
+}
+
+void SingleInstanceReadyEvent::Signal() {
+  if (event_ != nullptr) {
+    SetEvent(event_);
+  }
+}
+
+bool SingleInstanceReadyEvent::Wait(DWORD timeout_ms) const {
+  if (event_ == nullptr) {
+    return false;
+  }
+  return WaitForSingleObject(event_, timeout_ms) == WAIT_OBJECT_0;
+}
+
 bool ActivateExistingLanternWindow() {
   HWND existing_window = FindExistingLanternWindow();
   if (existing_window == nullptr) {
@@ -104,4 +127,28 @@ bool ActivateExistingLanternWindow() {
     FlashTaskbar(existing_window);
   }
   return true;
+}
+
+bool ActivateExistingLanternWindowWithRetry(DWORD timeout_ms,
+                                            DWORD retry_interval_ms) {
+  const ULONGLONG deadline = GetTickCount64() + timeout_ms;
+
+  do {
+    if (ActivateExistingLanternWindow()) {
+      return true;
+    }
+
+    const ULONGLONG now = GetTickCount64();
+    if (now >= deadline) {
+      break;
+    }
+
+    DWORD sleep_ms = static_cast<DWORD>(deadline - now);
+    if (sleep_ms > retry_interval_ms) {
+      sleep_ms = retry_interval_ms;
+    }
+    Sleep(sleep_ms);
+  } while (true);
+
+  return false;
 }
