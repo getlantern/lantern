@@ -8,7 +8,6 @@ import 'package:lantern/features/report_issue/models/report_issue_attachment.dar
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
-import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 import 'package:lantern/core/widgets/card_dropdown.dart';
@@ -255,17 +254,11 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       return;
     }
 
-    final reservedBytes = await ref
-        .read(reportIssueAttachmentBudgetProvider)
-        .reservedBytes();
-
     if (!mounted) {
       return;
     }
 
-    ref
-        .read(reportIssueDraftProvider.notifier)
-        .addAttachments(attachments, reservedBytes: reservedBytes);
+    ref.read(reportIssueDraftProvider.notifier).addAttachments(attachments);
   }
 
   void _clearDraft() {

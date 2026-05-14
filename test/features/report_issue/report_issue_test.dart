@@ -12,7 +12,6 @@ import 'package:lantern/features/report_issue/models/report_issue_attachment.dar
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/report_issue.dart';
 import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
-import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -47,13 +46,6 @@ class _FakeAttachmentPicker implements ReportIssueAttachmentPicker {
 class _NoopLanternService implements LanternService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeAttachmentBudget implements ReportIssueAttachmentBudget {
-  int value = 0;
-
-  @override
-  Future<int> reservedBytes() async => value;
 }
 
 class _SubmitCall {
@@ -98,20 +90,15 @@ class _FakeReportIssueSubmitter extends ReportIssueSubmitter {
 void main() {
   group('ReportIssue', () {
     late _FakeAttachmentPicker picker;
-    late _FakeAttachmentBudget attachmentBudget;
     late _FakeReportIssueSubmitter submitter;
     late ProviderContainer container;
 
     setUp(() {
       picker = _FakeAttachmentPicker();
-      attachmentBudget = _FakeAttachmentBudget();
       submitter = _FakeReportIssueSubmitter();
       container = ProviderContainer(
         overrides: [
           reportIssueAttachmentPickerProvider.overrideWithValue(picker),
-          reportIssueAttachmentBudgetProvider.overrideWithValue(
-            attachmentBudget,
-          ),
           reportIssueSubmitterProvider.overrideWithValue(submitter),
         ],
       );
@@ -198,18 +185,17 @@ void main() {
       expect(find.text('vpn_error.png'), findsNothing);
     });
 
-    testWidgets('shows validation error for oversized selections', (
+    testWidgets('shows validation error for oversized screenshot selections', (
       tester,
     ) async {
-      const almostFullAttachment = ReportIssueAttachment(
+      const oversizedAttachment = ReportIssueAttachment(
         name: 'huge.gif',
         path: '/tmp/huge.gif',
         mimeType: 'image/gif',
-        sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes - 512,
+        sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes + 1,
       );
-      attachmentBudget.value = 1024;
       picker.enqueuePickResult(const <ReportIssueAttachment>[
-        almostFullAttachment,
+        oversizedAttachment,
       ]);
 
       await tester.pumpWidget(buildScreen());

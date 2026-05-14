@@ -7,7 +7,7 @@ import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/attachment_access.dart';
-import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/log_file_resolver.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -15,7 +15,6 @@ final reportIssueSubmitterProvider = Provider<ReportIssueSubmitter>(
   (ref) => ReportIssueSubmitter(
     ref.read(lanternServiceProvider),
     attachmentAccess: ref.read(reportIssueAttachmentAccessProvider),
-    attachmentBudget: ref.read(reportIssueAttachmentBudgetProvider),
   ),
 );
 
@@ -25,21 +24,17 @@ class ReportIssueSubmitter {
   final LanternService _lanternService;
   final ReportIssueDeviceInfoLoader _deviceInfoLoader;
   final ReportIssueAttachmentAccess _attachmentAccess;
-  final ReportIssueAttachmentBudget _attachmentBudget;
   final ReportIssueLogFileResolver _logFileResolver;
 
   ReportIssueSubmitter(
     LanternService lanternService, {
     ReportIssueDeviceInfoLoader? deviceInfoLoader,
     ReportIssueAttachmentAccess? attachmentAccess,
-    ReportIssueAttachmentBudget? attachmentBudget,
     ReportIssueLogFileResolver? logFileResolver,
   }) : _lanternService = lanternService,
        _deviceInfoLoader = deviceInfoLoader ?? DeviceUtils.getDeviceAndModel,
        _attachmentAccess =
            attachmentAccess ?? PlatformReportIssueAttachmentAccess(),
-       _attachmentBudget =
-           attachmentBudget ?? PlatformReportIssueAttachmentBudget(),
        _logFileResolver = logFileResolver ?? defaultReportIssueLogFileResolver;
 
   Future<Either<Failure, Unit>> submit({
@@ -48,10 +43,8 @@ class ReportIssueSubmitter {
     required String description,
     required List<ReportIssueAttachment> attachments,
   }) async {
-    final reservedBytes = await _attachmentBudget.reservedBytes();
     final validationError = ReportIssueAttachmentRulesUtils.validateAttachments(
       attachments,
-      reservedBytes: reservedBytes,
     );
     if (validationError != null) {
       return Left(
