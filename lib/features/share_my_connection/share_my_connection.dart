@@ -1119,15 +1119,19 @@ class _ArrivalCard extends StatelessWidget {
                 alignment: Alignment.center,
                 children: const [
                   // Lottie spreads upward + rightward from the heart.
-                  // height is auto from BoxFit.contain on its 420-wide
-                  // canvas; explosion.json is roughly square so ~420
-                  // tall, but most of that is above the heart due to
-                  // the negative bottom offset.
+                  // The size matches explosion.json's native 420×502
+                  // canvas — unbounded.lantern.io's CSS uses width:420
+                  // with height:auto for the same effect. Forcing the
+                  // height to 420 (as we did before) scaled the
+                  // animation down by ~83% via BoxFit.contain and lost
+                  // ~82px of upward spread, leaving the hearts visibly
+                  // smaller and clustered just above the pill instead
+                  // of fanning out across the globe.
                   Positioned(
                     bottom: -55,
                     left: -105,
                     width: 420,
-                    height: 420,
+                    height: 502,
                     child: _ArrivalLottie(),
                   ),
                   CustomPaint(painter: _HeartPainter()),
