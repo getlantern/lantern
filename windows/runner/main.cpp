@@ -35,9 +35,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                ? EXIT_SUCCESS
                : EXIT_FAILURE;
   }
-  if (ActivateExistingLanternWindow()) {
-    return EXIT_SUCCESS;
-  }
+  // If we acquire the mutex, start this build. Normal installer upgrades close
+  // running Lantern instances before launch; handing off here could silently
+  // keep a pre-single-instance build alive.
 
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.

@@ -3,20 +3,49 @@
 #include "app_links/app_links_plugin_c_api.h"
 #include "win32_window.h"
 
+#include <shellapi.h>
+
 namespace {
 
 HWND FindExistingLanternWindow() {
-  if (HWND window = FindWindowW(Win32Window::GetWindowClassName(), nullptr)) {
-    return window;
+  return FindWindowW(Win32Window::GetWindowClassName(), nullptr);
+}
+
+bool IsSchemeFirstChar(wchar_t value) {
+  return (value >= L'A' && value <= L'Z') || (value >= L'a' && value <= L'z');
+}
+
+bool IsSchemeChar(wchar_t value) {
+  return IsSchemeFirstChar(value) || (value >= L'0' && value <= L'9') ||
+         value == L'+' || value == L'.' || value == L'-';
+}
+
+bool HasUriScheme(const wchar_t* value) {
+  if (value == nullptr || !IsSchemeFirstChar(value[0])) {
+    return false;
   }
 
-  // Older builds used Flutter's default class name before the single-instance
-  // guard existed. Keep these fallbacks so upgrading while Lantern is already
-  // running still activates that window instead of opening a duplicate.
-  if (HWND window = FindWindowW(L"FLUTTER_RUNNER_WIN32_WINDOW", L"Lantern")) {
-    return window;
+  for (int i = 1; value[i] != L'\0'; ++i) {
+    if (value[i] == L':') {
+      return true;
+    }
+    if (!IsSchemeChar(value[i])) {
+      return false;
+    }
   }
-  return FindWindowW(L"FLUTTER_RUNNER_WIN32_WINDOW", L"lantern");
+  return false;
+}
+
+bool HasLaunchAppLink() {
+  int argc = 0;
+  wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+  if (argv == nullptr) {
+    return false;
+  }
+
+  const bool has_launch_app_link = argc == 2 && HasUriScheme(argv[1]);
+  LocalFree(argv);
+  return has_launch_app_link;
 }
 
 void FlashTaskbar(HWND window) {
@@ -93,7 +122,11 @@ bool ActivateExistingLanternWindow() {
     return false;
   }
 
-  SendAppLink(existing_window);
+  // SendAppLink reads this process's command line. Guard it so plain launches
+  // only focus the existing window and never emit an empty app-link event.
+  if (HasLaunchAppLink()) {
+    SendAppLink(existing_window);
+  }
 
   if (IsIconic(existing_window)) {
     ShowWindow(existing_window, SW_RESTORE);
