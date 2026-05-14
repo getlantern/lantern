@@ -16,7 +16,7 @@ Shepherd (AliPay/WeChat) have separate flows.
 | **Kotlin bridge** | Translates Flutter method-channel calls to gomobile FFI | `getlantern/lantern` | `android/app/src/main/kotlin/org/getlantern/lantern/handler/MethodHandler.kt` |
 | **lantern-core** | Gomobile-exposed Go layer; forwards the ack to the radiance daemon over IPC | `getlantern/lantern-core` | `core.go:860` |
 | **radiance daemon** | Local long-running process; speaks HTTP through kindling to Lantern's backend | `getlantern/radiance` | `ipc/client.go:636`, `backend/radiance.go:1132`, `account/subscription.go:112` |
-| **pro-server** (HTTP API) | Receives the ack, verifies the token with Google, writes the entitlement | `getlantern/lantern-cloud` | `cmd/api/pro-server/handlers/subscription_gooleplay.go` |
+| **pro-server** (HTTP API) | Receives the ack, verifies the token with Google, writes the entitlement | `getlantern/lantern-cloud` | `cmd/api/pro-server/handlers/subscription_gooleplay.go` (sic — upstream filename misses the second `g` in "googleplay"; the matching `_test.go` file is spelled correctly. Grep both spellings.) |
 | **Postgres** | `pro_server.purchases` + `pro_users.level` | `lantern-cloud` Cloud SQL | n/a |
 
 ## 1. Happy path — what's supposed to happen
@@ -104,6 +104,8 @@ We can't tell from the evidence whether the call was never made (steps 4-7) or m
 
 Google's documented recovery pattern for *exactly* this case. `BillingClient.queryPurchases()` is a **local-only** call — it asks the on-device Play Store service "what purchases does this Google account hold against this app that haven't been acknowledged/consumed yet?" — no network, no auth, no Lantern backend involvement. The Play Store returns the list (including any that we failed to ack previously) and we re-fire the existing pipeline against each one.
 
+**Product types**: Lantern's current Android catalog is subscription-only (`1m_sub`, `1y_sub` via `buyNonConsumable` at `app_purchase.dart:180`), so the relevant Play Billing query is `ProductType.SUBS`. The Flutter `in_app_purchase` plugin's `restorePurchases()` (which already wraps this) queries both `SUBS` and `INAPP` on Android, so we don't need to special-case either — using the existing helper is enough. Querying `INAPP` is still worth keeping in the loop in case legacy one-time-product purchases from older Lantern versions need to be recovered (e.g. some pre-9.0 purchases on Google have `oneTimePurchaseDetails`).
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -115,7 +117,7 @@ sequenceDiagram
     participant DB as Postgres
 
     AppLifecycle->>Replay: init() / onResume() / on tunnel-up
-    Replay->>Play: queryPurchases(INAPP)
+    Replay->>Play: queryPurchases(SUBS + INAPP)<br/>(the Flutter in_app_purchase plugin's<br/>restorePurchases() queries both types)
     Play-->>Replay: list of purchases the device holds
     loop For each purchase not already acked by Lantern's backend
         Replay->>Pipeline: acknowledgeInAppPurchase(token, planId)
