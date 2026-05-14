@@ -13,7 +13,8 @@ set -euo pipefail
 # Examples:
 #   version.sh validate v1.2.3          → 1.2.3
 #   version.sh validate v1.2.3-beta     → 1.2.3-beta
-#   version.sh generate nightly         → 1.2.4-abc123-20260206T120000Z
+#   version.sh generate nightly         → 1.2.3-abc123-20260206T120000Z
+#   version.sh generate beta            → 1.2.4-beta
 #   version.sh extract 1.2.3-beta       → 1.2.3
 
 COMMAND="${1:?Command required: validate, generate, or extract}"
@@ -126,12 +127,23 @@ generate)
       exit 1
     fi
 
+    # Nightlies reuse the latest tagged base version — they do NOT bump the
+    # patch. Uniqueness comes from the SHA+timestamp suffix in the tag, and
+    # from CFBundleVersion (github.run_number) at pubspec-write time.
+    #
+    # Why: macOS pins system-extension upgrade/downgrade decisions on
+    # CFBundleShortVersionString. If a nightly advertises a higher base
+    # than the latest beta (e.g. beta 9.1.9 → nightly 9.1.10), a user who
+    # tests the nightly and then reverts to the beta hits the OS downgrade
+    # path, which returns OSSystemExtensionErrorDomain code 4 and bricks
+    # the network extension. Keeping the base equal makes the transition
+    # a same-version content change, which the reconciler handles via
+    # .deactivateThenActivate. See engineering#3474 bug #5.
     BASELINE=$(max_semver "${PROD:-0.0.0}" "${BETA:-0.0.0}")
-    NEXT=$(increment_patch "$BASELINE")
     SHA=$(git rev-parse --short=7 HEAD)
     TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
 
-    echo "${NEXT}-${SHA}-${TIMESTAMP}"
+    echo "${BASELINE}-${SHA}-${TIMESTAMP}"
     ;;
 
   beta)
