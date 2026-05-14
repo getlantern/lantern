@@ -3,6 +3,26 @@ import CryptoKit
 import Foundation
 import SystemExtensions
 
+/// Decides whether a failed system extension request should trigger a
+/// stale-registry recovery attempt. macOS occasionally surfaces
+/// `extensionNotFound` on an activation request when its registry holds a
+/// reference to a previously-installed extension that no longer matches the
+/// app on disk — e.g. after the .app bundle was replaced under an existing
+/// install. Submitting a deactivation request first clears that state and
+/// gives the subsequent activation a clean slot. The decision is gated to a
+/// single attempt per session so a persistent failure doesn't loop.
+internal enum StaleRegistryRecovery {
+  static func shouldRecover(
+    from error: NSError,
+    activationFailed: Bool,
+    alreadyAttempted: Bool
+  ) -> Bool {
+    guard !alreadyAttempted, activationFailed else { return false }
+    return error.domain == OSSystemExtensionErrorDomain
+      && error.code == OSSystemExtensionError.extensionNotFound.rawValue
+  }
+}
+
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
@@ -24,6 +44,12 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   @Published private(set) var initialized = false
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
+
+  /// Set when we've issued a stale-registry recovery (deactivate-then-activate
+  /// in response to `extensionNotFound`). Reset on the next successful
+  /// completion. Single-shot per session to prevent an infinite retry loop if
+  /// the same error reproduces after the recovery deactivation.
+  private var didAttemptStaleRegistryRecovery = false
 
   override init() {
     super.init()
@@ -84,12 +110,21 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       switch context {
       case .deactivateThenActivate(_, let activateAfter):
         if activateAfter {
+          // Mid-flow: the recovery's deactivation just finished, the
+          // activation it queued hasn't run yet. Do NOT clear the recovery
+          // latch here — if the upcoming activation also fails with
+          // extensionNotFound, we must surface that as a real error
+          // instead of re-entering the recovery loop.
           submitActivationRequest(
             reason: "activating bundled extension after removing mismatched version")
         } else {
+          didAttemptStaleRegistryRecovery = false
           submitPropertiesRequest(context: .inspectStatus)
         }
-      case .inspectStatus, .reconcile, .activate:
+      case .activate:
+        didAttemptStaleRegistryRecovery = false
+        submitPropertiesRequest(context: .inspectStatus)
+      case .inspectStatus, .reconcile:
         submitPropertiesRequest(context: .inspectStatus)
       }
     case .willCompleteAfterReboot:
@@ -127,6 +162,21 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
       )
       submitPropertiesRequest(context: .inspectStatus)
+      return
+    }
+
+    if StaleRegistryRecovery.shouldRecover(
+      from: nsError,
+      activationFailed: context?.isActivation ?? false,
+      alreadyAttempted: didAttemptStaleRegistryRecovery)
+    {
+      didAttemptStaleRegistryRecovery = true
+      appLogger.info(
+        "Activation failed with extensionNotFound — attempting stale-registry recovery via deactivate-then-activate (context=\(context?.logDescription ?? "unknown"))"
+      )
+      submitDeactivationRequest(
+        reason: "stale-registry recovery after extensionNotFound",
+        activateAfter: true)
       return
     }
 
@@ -316,6 +366,11 @@ private enum RequestContext: Equatable {
   case reconcile
   case activate(reason: String)
   case deactivateThenActivate(reason: String, activateAfter: Bool)
+
+  var isActivation: Bool {
+    if case .activate = self { return true }
+    return false
+  }
 
   var logDescription: String {
     switch self {
