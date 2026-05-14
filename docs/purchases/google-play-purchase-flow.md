@@ -1,11 +1,8 @@
 # Google Play purchase flow (Android, v9.x)
 
-How an in-app purchase made on Google Play is supposed to make its way from
-the user's tap to a row in `pro_server.purchases` — and where it currently
-falls down when any single link in that chain fails.
+**Scope**: this document covers the **v9.x Android Google Play subscription flow only** — the path used by the radiance + Flutter client to sell subscription products (e.g. `1m_sub`, `1y_sub`). iOS StoreKit, Shepherd (AliPay/WeChat), Stripe, and the legacy pre-radiance Lantern client all have separate flows and are out of scope.
 
-This document covers the Android Google Play path only. iOS StoreKit and
-Shepherd (AliPay/WeChat) have separate flows.
+How an in-app purchase made on Google Play is supposed to make its way from the user's tap to a row in `pro_server.subscriptions` and a `level = pro` update on `pro_server.pro_users` — and where it can fall down when any single link in that chain fails.
 
 ## Layers involved
 
@@ -17,7 +14,7 @@ Shepherd (AliPay/WeChat) have separate flows.
 | **lantern-core** | Gomobile-exposed Go layer; forwards the ack to the radiance daemon over IPC | `getlantern/lantern-core` | `core.go:860` |
 | **radiance daemon** | Local long-running process; speaks HTTP through kindling to Lantern's backend | `getlantern/radiance` | `ipc/client.go:636`, `backend/radiance.go:1132`, `account/subscription.go:112` |
 | **pro-server** (HTTP API) | Receives the ack, verifies the token with Google, writes the entitlement | `getlantern/lantern-cloud` | `cmd/api/pro-server/handlers/subscription_gooleplay.go` (sic — upstream filename misses the second `g` in "googleplay"; the matching `_test.go` file is spelled correctly. Grep both spellings.) |
-| **Postgres** | `pro_server.purchases` + `pro_users.level` | `lantern-cloud` Cloud SQL | n/a |
+| **Postgres** | `pro_server.subscriptions` (purchase metadata + status) + `pro_server.pro_users` (level/expiration) | `lantern-cloud` Cloud SQL | n/a |
 
 ## 1. Happy path — what's supposed to happen
 
@@ -44,7 +41,7 @@ sequenceDiagram
     Radiance->>Pro: POST /v0/pro-server/purchase-googleplay-subscription<br/>account/subscription.go:112<br/>via kindling.HTTPClient()
     Pro->>Play: Google Purchases.Subscriptionsv2.Get(token) [verify]
     Play-->>Pro: verified, ACTIVE
-    Pro->>DB: INSERT INTO pro_server.purchases (purchase_token, user, ...)
+    Pro->>DB: INSERT INTO pro_server.subscriptions (subscription_id=purchaseToken, user, plan_id, status, ...)
     Pro->>DB: UPDATE pro_server.pro_users SET level='pro', expiration=...
     Pro-->>Radiance: 200 OK<br/>VerifySubscriptionResponse
     Radiance-->>Core: result
@@ -56,9 +53,9 @@ sequenceDiagram
 
 Every link is single-shot. **There is no on-disk retry queue between steps 4 and 10**, and there is **no recovery mechanism** if the chain breaks anywhere in there.
 
-## 2. What goes wrong in practice (today)
+## 2. What can go wrong
 
-This is the failure pattern we've seen on multiple v9.1.x "paid but not upgraded" tickets (engineering#3464, support 173542, 173795, 174378/174862).
+The chain has no on-disk persistence and no retry. Any single failure in steps 4–10 of Diagram 1 silently strands the purchase — the user has paid Google but our backend never gets the message.
 
 ```mermaid
 sequenceDiagram
@@ -87,24 +84,24 @@ sequenceDiagram
         Pro-xDB: FK violation if user_id was rolled back / GC'd ⛔
     end
 
-    Note over DB: No purchases row ever written
-    Note over User: User restarts the app 8x over 6 days.<br/>Nothing replays. They file a refund ticket. 🐛
+    Note over DB: No subscriptions row ever written
+    Note over User: User reopens the app — nothing replays automatically.<br/>They file a refund ticket. 🐛
 ```
 
-**Forensic signature of this failure** (from ticket 174862):
+**Forensic signature** of a stranded purchase:
 
-- Google Play `orders_get` shows the purchase as `PROCESSED`, `ACKNOWLEDGED`, `CONSUMED`.
-- `pro_server.purchases` has **zero rows** for the purchase token.
-- SigNoz: **zero log lines** mention the purchase token, the user_id, or `/v0/pro-server/purchase-googleplay-subscription` for that user over a 14-day window.
-- The device IS communicating with the backend (datacap polling succeeds). So the device is not network-isolated; the ack call specifically didn't land.
+- Google Play `orders_get` / `purchases_subscriptions_v2_get` shows the purchase as `PURCHASED` / `ACKNOWLEDGED`
+- `pro_server.subscriptions` has zero rows for the purchase token (`subscription_id` column is the purchase token)
+- SigNoz: zero log lines mention the purchase token, the user_id, or any `handleGooglePlayPurchase` activity for that user
+- The device IS communicating with the backend (datacap polling, config-new, etc. succeed) — so the device is not network-isolated; the ack call specifically didn't reach our backend
 
-We can't tell from the evidence whether the call was never made (steps 4-7) or made and failed at kindling (step 8). Both fit the data, and **both are bugs we have no recovery for**. The mitigation has to assume either failure mode.
+Once the chain breaks, there is currently no automatic recovery — the client doesn't queue the failed ack to disk, doesn't reattempt on app launch, and the server has no parallel path that can recover the entitlement from Google directly. The mitigations in section 3 below close those gaps.
 
 ## 3. The fix — startup-replay via `BillingClient.queryPurchases()`
 
 Google's documented recovery pattern for *exactly* this case. `BillingClient.queryPurchases()` is a **local-only** call — it asks the on-device Play Store service "what purchases does this Google account hold against this app that haven't been acknowledged/consumed yet?" — no network, no auth, no Lantern backend involvement. The Play Store returns the list (including any that we failed to ack previously) and we re-fire the existing pipeline against each one.
 
-**Product types**: Lantern's current Android catalog is subscription-only (`1m_sub`, `1y_sub` via `buyNonConsumable` at `app_purchase.dart:180`), so the relevant Play Billing query is `ProductType.SUBS`. The Flutter `in_app_purchase` plugin's `restorePurchases()` (which already wraps this) queries both `SUBS` and `INAPP` on Android, so we don't need to special-case either — using the existing helper is enough. Querying `INAPP` is still worth keeping in the loop in case legacy one-time-product purchases from older Lantern versions need to be recovered (e.g. some pre-9.0 purchases on Google have `oneTimePurchaseDetails`).
+**Product type**: the v9.x Android catalog is subscription-only (`1m_sub`, `1y_sub` via `buyNonConsumable` at `app_purchase.dart:180`), so the relevant Play Billing query is `ProductType.SUBS`. The Flutter `in_app_purchase` plugin's `restorePurchases()` (which already wraps this) handles `BillingClient.queryPurchases` on Android automatically, so the existing helper is enough — see "Where this connects to existing code" below.
 
 ```mermaid
 sequenceDiagram
@@ -117,12 +114,12 @@ sequenceDiagram
     participant DB as Postgres
 
     AppLifecycle->>Replay: init() / onResume() / on tunnel-up
-    Replay->>Play: queryPurchases(SUBS + INAPP)<br/>(the Flutter in_app_purchase plugin's<br/>restorePurchases() queries both types)
-    Play-->>Replay: list of purchases the device holds
+    Replay->>Play: queryPurchases(SUBS)<br/>(via in_app_purchase plugin's restorePurchases)
+    Play-->>Replay: list of subscriptions the device holds
     loop For each purchase not already acked by Lantern's backend
         Replay->>Pipeline: acknowledgeInAppPurchase(token, planId)
         Pipeline->>Pro: POST /v0/pro-server/purchase-googleplay-subscription
-        Pro->>DB: INSERT purchases row if missing<br/>UPDATE pro_users.level=pro
+        Pro->>DB: INSERT pro_server.subscriptions row if missing<br/>UPDATE pro_users.level=pro
         Pro-->>Pipeline: 200 OK
         Pipeline-->>Replay: success — local Play purchase stays "acknowledged" with Google
     end
@@ -132,7 +129,7 @@ sequenceDiagram
 Key properties of this fix:
 
 - **Local-only on the client side.** No call to Lantern's backend in step 2; no call to Google's servers from our app. Just Play Store IPC, which is always available when the Play Store is installed.
-- **Idempotent on the server side.** `pro_server.purchases.purchase_token` is `UNIQUE` (`purchases_purchase_token_key`); duplicate inserts no-op cleanly. So replaying a purchase that already landed is safe.
+- **Idempotent on the server side.** `pro_server.subscriptions.subscription_id` is `UNIQUE` (`unique_subscription_id`) and is set to the purchase token; duplicate inserts no-op cleanly. So replaying a purchase that already landed is safe.
 - **Fires at three lifecycle moments**: app launch (`init()`), foreground resume (`onResume`), and successful tunnel-up. Each gives the next chance to recover.
 - **Doesn't require user action.** Today's `restorePurchases()` works the same way but only fires on a manual "Restore" tap — most affected users never find that button before filing a support ticket.
 
@@ -154,9 +151,12 @@ The server-side endpoint already handles replays correctly (`purchase_token` is 
 
 ## Open follow-ups
 
-- **Action item #1** (engineering#3464): on-disk retry queue for the original ack moment. Catches the case where step 4 in Diagram 2 fails before `queryPurchases` would have a chance to see the unack'd purchase. Strict superset of #2 in coverage but bigger surface; #2 is the fast fix.
-- **Action item #3** (engineering#3464): server-side RTDN handler for one-time products. Belt-and-braces fallback for cases where the client never has another chance to call `queryPurchases` (uninstall before retry, etc.).
-- **Action item #4** (engineering#3464): re-bind tool for stranded purchases where the `obfuscatedExternalProfileId` user_id no longer exists in `pro_users`. Required for the long tail and the broader v9.1.x "Pro lost on upgrade" pattern.
+Coverage gaps in the current v9 pipeline. Priority order:
+
+1. **Server-side: honor Google's `subscriptionNotification` RTDN as authoritative source of truth**, analogous to the Stripe fix. When the RTDN arrives, the server should INSERT the subscription row + apply Pro level if no row exists yet, instead of dropping the message after retries. Makes every Google-charged subscription recoverable regardless of whether the client ack ever landed.
+2. **Client-side: on-disk retry queue for the original ack moment.** Catches the case where step 4 in Diagram 1 fails before `queryPurchases` would have a chance to see the unack'd purchase. Strict superset of the startup-replay in coverage, larger surface.
+3. **Client-side: `BillingClient.queryPurchases(SUBS)` startup replay** — Diagram 3 above. Lower priority once item 1 lands (server becomes the source of truth), but worth shipping because it shortens time to recovery for users who reopen their app before the RTDN-replay path catches up. Touches `lib/core/services/app_purchase.dart` only.
+4. **Operations: re-bind / manual remediation tool** for stranded purchases that fall outside the automated recovery paths. Customer-support relief lever.
 
 ## References
 

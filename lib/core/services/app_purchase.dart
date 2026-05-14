@@ -323,7 +323,21 @@ class AppPurchase {
         return;
       }
       if (status == PurchaseStatus.canceled) {
-        /// User has cancelled the purchase
+        // `canceled` is not necessarily a real user cancel — the
+        // in_app_purchase plugin also maps several silent Google Play
+        // rejections (offer ineligibility, missing payment method, region
+        // mismatch, billing-service hiccups) to the same status. Without
+        // capturing the underlying error we can't distinguish those from a
+        // user who actually X'd the dialog, which is the difference between
+        // "expected" and "a bug to fix." For Android, `error.details`
+        // typically contains a Map with the raw BillingClient
+        // `response_code` and `debug_message`.
+        appLogger.info(
+          '[AppPurchase] Purchase canceled: productID=${purchaseDetails.productID}'
+          ' errorCode=${purchaseDetails.error?.code}'
+          ' message=${purchaseDetails.error?.message}'
+          ' details=${purchaseDetails.error?.details}',
+        );
         _onError?.call("Purchase canceled");
         return;
       }
