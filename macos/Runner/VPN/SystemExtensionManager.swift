@@ -110,18 +110,20 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       switch context {
       case .deactivateThenActivate(_, let activateAfter):
         if activateAfter {
-          // Mid-flow: the recovery's deactivation just finished, the
-          // activation it queued hasn't run yet. Do NOT clear the recovery
-          // latch here — if the upcoming activation also fails with
-          // extensionNotFound, we must surface that as a real error
-          // instead of re-entering the recovery loop.
           submitActivationRequest(
             reason: "activating bundled extension after removing mismatched version")
         } else {
-          didAttemptStaleRegistryRecovery = false
           submitPropertiesRequest(context: .inspectStatus)
         }
       case .activate:
+        // Activation succeeded — recovery is either complete or wasn't
+        // needed. Clear the latch so a future trap (after the user
+        // relaunches) can attempt recovery again. The latch is
+        // intentionally NOT cleared elsewhere: a successful manual
+        // deactivation doesn't re-arm recovery, and the recovery's own
+        // intermediate deactivation must leave it set so a failure of the
+        // post-recovery activation surfaces as a real error rather than
+        // re-entering the loop.
         didAttemptStaleRegistryRecovery = false
         submitPropertiesRequest(context: .inspectStatus)
       case .inspectStatus, .reconcile:
