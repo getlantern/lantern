@@ -66,6 +66,12 @@ msgstr "VPN Settings"
 msgid "split_tunneling"
 msgstr "Split Tunneling"
 
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
 msgid "server_locations"
 msgstr "Server Locations"
 
@@ -359,6 +365,9 @@ msgstr "Lantern automatically chooses which apps and websites bypass the VPN bas
 
 msgid "apps_bypassing_vpn"
 msgstr "Apps bypassing the VPN (%d)"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"
 
 msgid "websites_bypassing_vpn"
 msgstr "Websites bypassing the VPN (%d)"

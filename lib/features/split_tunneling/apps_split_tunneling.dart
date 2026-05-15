@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -28,6 +29,10 @@ class AppsSplitTunneling extends ConsumerWidget {
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
+    final directConnectionApps = AppBuildInfo.stealthDirectConnectionApps;
+    final title = directConnectionApps
+        ? 'direct_connection_apps'.i18n
+        : 'apps_split_tunneling'.i18n;
 
     final allApps = dedupeAndSortApps(
       (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
@@ -50,10 +55,10 @@ class AppsSplitTunneling extends ConsumerWidget {
         .toList();
 
     return BaseScreen(
-      title: 'apps_split_tunneling'.i18n,
+      title: title,
       appBar: AppSearchBar(
         ref: ref,
-        title: 'apps_split_tunneling'.i18n,
+        title: title,
         hintText: 'search_apps'.i18n,
       ),
       body: CustomScrollView(
@@ -62,7 +67,11 @@ class AppsSplitTunneling extends ConsumerWidget {
             child: Row(
               children: [
                 SectionLabel(
-                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                  directConnectionApps
+                      ? 'apps_using_direct_connection'.i18n.fill([
+                          enabledApps.length,
+                        ])
+                      : 'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
                 ),
                 const Spacer(),
               ],

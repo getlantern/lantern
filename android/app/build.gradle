@@ -42,6 +42,27 @@ def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 
+def dartDefines = [:]
+if (project.hasProperty('dart-defines')) {
+    project.property('dart-defines').toString().split(',').each { encoded ->
+        if (encoded?.trim()) {
+            def decoded = new String(encoded.decodeBase64(), 'UTF-8')
+            def separator = decoded.indexOf('=')
+            if (separator > 0) {
+                dartDefines[decoded.substring(0, separator)] = decoded.substring(separator + 1)
+            }
+        }
+    }
+}
+
+def buildConfigBoolean = { name, defaultValue = false ->
+    def raw = dartDefines[name] ?: System.getenv(name) ?: project.findProperty(name)
+    if (raw == null) {
+        return defaultValue.toString()
+    }
+    return (raw.toString().trim().toLowerCase() in ['1', 'true', 'yes', 'on']) ? 'true' : 'false'
+}
+
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = 36
@@ -132,6 +153,8 @@ android {
         buildFeatures {
             buildConfig true
         }
+        buildConfigField "boolean", "STEALTH_DIRECT_CONNECTION_APPS",
+                buildConfigBoolean("STEALTH_DIRECT_CONNECTION_APPS")
     }
 
     signingConfigs {

@@ -25,6 +25,7 @@ import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -523,6 +524,7 @@ class LanternVpnService :
 
         // Disallow traffic from our own app to the VPN.
         builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
+        DirectConnectionAppExclusionStore.applyToBuilder(builder, this)
 
         if (options.autoRoute) {
             builder.addDnsServer(options.dnsServerAddress.value)

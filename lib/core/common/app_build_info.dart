@@ -17,6 +17,11 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
+  static const bool stealthDirectConnectionApps = bool.fromEnvironment(
+    'STEALTH_DIRECT_CONNECTION_APPS',
+    defaultValue: false,
+  );
+
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';
 }
