@@ -43,6 +43,7 @@ def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH_ICON_SEED"))?.toString()?.trim()
 def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
+def generatedStealthIconMetadata = layout.buildDirectory.file("generated/stealth-icons/stealth-icon-metadata.json")
 def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
 def roundLauncherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher_round" : "@mipmap/ic_launcher_round"
 
@@ -188,6 +189,7 @@ tasks.register("generateStealthAndroidIcons", Exec) {
     onlyIf { stealthIconSeed }
     inputs.property("stealthIconSeed", stealthIconSeed ?: "")
     outputs.dir(generatedStealthIconResDir)
+    outputs.file(generatedStealthIconMetadata)
     commandLine "python3",
             "${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py",
             "--seed", stealthIconSeed ?: "",

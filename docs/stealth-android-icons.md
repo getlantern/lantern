@@ -14,11 +14,14 @@ This writes Android resources under
 
 - adaptive launcher icon: `@mipmap/stealth_ic_launcher`
 - adaptive round launcher icon: `@mipmap/stealth_ic_launcher_round`
+- pre-26 fallback launcher icons in `mipmap-anydpi`
 - foreground vector: `@drawable/stealth_launcher_foreground`
 - notification icon candidate: `@drawable/stealth_notification_icon`
-- private metadata: `stealth-icon-metadata.json`
 
-The metadata stores only the seed hash, not the raw seed.
+Private metadata is written outside the resource tree at
+`android/app/build/generated/stealth-icons/stealth-icon-metadata.json`. It
+stores only the seed hash, not the raw seed, and is not packaged as an Android
+resource.
 
 ## Build Wiring
 
