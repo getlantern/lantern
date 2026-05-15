@@ -126,6 +126,7 @@ PYTHON ?= python3
 STEALTH_LEAKAGE_MODE ?= stealth
 STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
 STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
@@ -559,7 +560,7 @@ stealth-leakage-check:
 	$(PYTHON) scripts/stealth/check_leakage.py \
 		--config "$(STEALTH_LEAKAGE_CONFIG)" \
 		--mode "$(STEALTH_LEAKAGE_MODE)" \
-		--missing-ok \
+		$(if $(filter 1 true yes,$(STEALTH_LEAKAGE_MISSING_OK)),--missing-ok,) \
 		$(STEALTH_LEAKAGE_PATHS)
 
 stealth-novpn-leakage-check:
