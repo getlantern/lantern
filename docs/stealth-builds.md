@@ -1,0 +1,237 @@
+# Stealth build QA and release policy
+
+This document defines the verification, release, and support policy for Android
+stealth artifacts. It covers the normal, `stealth-vpn`, and `stealth-novpn`
+profiles used by the Stealth Lantern epic.
+
+## Build profiles
+
+Android stealth manifest minimization is opt-in through the Gradle project
+property `STEALTH_MODE`.
+
+```sh
+gradle -p android :app:assembleRelease -PSTEALTH_MODE=vpn
+gradle -p android :app:assembleRelease -PSTEALTH_MODE=novpn
+```
+
+`vpn` keeps the Android `VpnService` surface but removes app links, broad package
+visibility, write-settings access, payment query declarations, wallet metadata,
+and cleartext traffic allowance from the generated manifest.
+
+`novpn` applies the same filtering and also removes Android VPN service
+components, quick-tile VPN controls, boot receiver, and VPN-related permissions.
+Runtime startup is routed through a normal Android `Service`, which configures
+radiance with:
+
+```text
+RADIANCE_USE_SOCKS_PROXY=true
+RADIANCE_SOCKS_ADDRESS=127.0.0.1:8787
+```
+
+At the pinned radiance version, that env pair replaces the TUN inbound with a
+loopback mixed HTTP/SOCKS inbound. Build Flutter with
+`--dart-define=STEALTH_NOVPN=true` for matching UI gating so VPN controls,
+full-device routing, and split tunneling are hidden.
+
+## Static checks
+
+Every stealth release candidate must publish the normal Android artifact plus
+the two stealth Android artifacts from the same source revision. CI should fail
+the release candidate when any of these checks fail.
+
+| Check | Normal | Stealth VPN | Stealth No-VPN |
+| --- | --- | --- | --- |
+| Build mode | `assembleRelease` | `assembleRelease -PSTEALTH_MODE=vpn` | `assembleRelease -PSTEALTH_MODE=novpn` |
+| Package identity | canonical package | private profile package name | private profile package name |
+| Manifest parser | baseline manifest is valid | no app links, broad queries, wallet metadata, write-settings, or cleartext allowance | same as VPN plus no `VpnService`, quick tile, boot receiver, or VPN permission |
+| Dart defines | default | default | `STEALTH_NOVPN=true` required |
+| Asset policy | public assets allowed | private profile assets only | private profile assets only |
+| Dependency policy | normal allowlist | no new detector-facing SDKs without review | no new detector-facing SDKs without review |
+| Symbol and metadata review | standard release checks | no public profile names in artifact metadata | no public profile names in artifact metadata |
+
+Minimum automated CI coverage:
+
+- Build the three Android release variants from a clean checkout.
+- Decode each generated APK or AAB manifest and compare it with the expected
+  profile allowlist.
+- Verify the no-VPN artifact has no `android.permission.BIND_VPN_SERVICE`,
+  `android.net.VpnService`, quick-settings VPN tile, boot-time VPN startup path,
+  split-tunneling UI entry point, or full-device-routing UI entry point.
+- Verify the VPN artifact still has the expected `VpnService` declaration and
+  excluded-app configuration path.
+- Verify package name, app label, icon, supported schemes, exported components,
+  permissions, queries, services, receivers, providers, and metadata match the
+  private profile manifest contract.
+- Save the manifest diff and build metadata as CI artifacts for support
+  traceability.
+
+## Dynamic Android validation
+
+Run dynamic validation on a physical Android device for every new stealth
+profile, every package-name rotation, and every release candidate that changes
+Android networking, manifest generation, startup, payments, account flows,
+updates, or support metadata.
+
+| Scenario | Normal | Stealth VPN | Stealth No-VPN |
+| --- | --- | --- | --- |
+| Fresh install | installs from official channel | installs from private channel | installs from private channel |
+| First launch | public app identity visible | private app identity visible | private app identity visible |
+| Connect | full-device VPN can connect | full-device VPN can connect | local proxy mode can connect |
+| Android VPN indicator | visible when connected | visible when connected | never visible |
+| TUN interface | present when connected | present when connected | absent |
+| Split tunneling | available when supported | excluded-app behavior works | hidden or disabled |
+| Non-excluded traffic | routed through Lantern | routed through Lantern | routes only through app-local proxy integrations |
+| Excluded traffic | follows normal split rules | does not see Lantern-routed network state | not applicable |
+| Reboot | expected normal behavior | no unexpected public identity exposure | no VPN startup exposure |
+| Uninstall/reinstall | normal state cleanup | private profile cleanup | private profile cleanup |
+
+Required device evidence:
+
+- Android version, device model, build fingerprint, profile name, package name,
+  version code, version name, source commit, artifact hash, and tester.
+- Screenshots or command output showing VPN indicator behavior for both stealth
+  profiles.
+- `adb shell dumpsys package <package>` output confirming package and component
+  exposure.
+- `adb shell dumpsys connectivity` or equivalent evidence showing VPN/TUN state
+  for `stealth-vpn` and absence of VPN/TUN state for `stealth-novpn`.
+- Traffic evidence from at least one non-excluded browser or test app for
+  `stealth-vpn`.
+- Traffic evidence from each hostile excluded app listed for the profile.
+
+## Hostile app detection matrix
+
+Each private profile owns a hostile-app list. The list is private support
+metadata and must not be embedded in public release notes. QA must validate the
+apps that are active for the profile and record the exact app versions tested.
+
+| Detector class | Example observation | Stealth VPN expectation | Stealth No-VPN expectation |
+| --- | --- | --- | --- |
+| VPN state readers | `ConnectivityManager`, active network, VPN transport | excluded hostile apps do not see Lantern-routed network state | no VPN transport is exposed |
+| TUN/interface readers | `/proc/net`, network interfaces, local routing table | excluded hostile apps do not observe Lantern TUN routing | no TUN interface is created |
+| Package scanners | installed packages, launcher labels, signatures | rotated private package and labels are used | rotated private package and labels are used |
+| Intent/app-link scanners | supported schemes, app links, exported components | public Lantern app links are absent | public Lantern app links and VPN components are absent |
+| Permission scanners | requested permissions and metadata | only profile-approved permissions remain | VPN-related permissions are absent |
+| Traffic probes | DNS, HTTP, TCP route checks from hostile app | hostile app traffic bypasses Lantern | hostile app traffic is not routed by a VPN |
+| Non-hostile control app | browser or QA traffic probe | traffic routes through Lantern | only explicitly proxy-aware flows use Lantern |
+
+Pass criteria:
+
+- Every hostile app in the profile is tested on a clean install.
+- Hostile apps excluded from `stealth-vpn` do not see Lantern-routed network
+  state and their traffic does not traverse Lantern.
+- At least one non-excluded app still routes through Lantern in `stealth-vpn`.
+- `stealth-novpn` never exposes Android VPN state, TUN interfaces, VPN
+  permissions, VPN service components, or VPN controls.
+- Any detector result that differs from the private profile contract blocks the
+  release until the profile owner approves a documented exception.
+
+## Release package rotation policy
+
+Stealth artifacts are direct-distribution builds. They are not uploaded to
+public app stores unless a profile explicitly says otherwise.
+
+Package-name rotation rules:
+
+- Rotate the private package name when a hostile app begins matching the current
+  package, label, icon, signing lineage, app-link surface, metadata, or other
+  artifact fingerprint.
+- Rotate when a distribution channel, support channel, or telemetry path leaks a
+  private profile identifier.
+- Rotate when a profile owner intentionally changes the user population,
+  distribution partner, or risk model.
+- Do not rotate only to ship routine bug fixes; unnecessary rotation increases
+  support and migration risk.
+
+Release package requirements:
+
+- Each private package name maps to one profile, one distribution channel, one
+  release train, and one support retention policy.
+- Release notes for recipients must explicitly state feature sacrifices, update
+  behavior, migration behavior, and rollback expectations.
+- Public release notes must not disclose private profile names, hostile-app
+  lists, distribution partners, or package-name mappings.
+- The release owner must retain artifact hashes, signing certificate lineage,
+  source commit, CI run, build profile, package name, version code, version
+  name, distribution channel, and rollout window.
+- Rollback means distributing the previous approved artifact for the same
+  private package. Cross-package rollback is a migration and requires support
+  approval.
+
+## Manual update implications
+
+Direct-distribution stealth builds cannot assume public store update behavior.
+
+- Users installed on one private package name will not receive updates for a new
+  package name through Android package replacement. A package-name rotation is a
+  parallel install or manual migration unless a profile-specific migration path
+  is implemented.
+- Automatic in-app update prompts must be reviewed for each profile because
+  update URLs, app labels, package names, and support copy can expose profile
+  identity.
+- A direct APK/AAB update can replace an installed app only when package name and
+  signing lineage are compatible.
+- Manual migration instructions must explain whether account login, Pro status,
+  private-server configuration, diagnostics, and local settings carry over.
+- If account or purchase flows are disabled or hidden in a stealth profile, the
+  release notes must tell support how the user receives entitlement or recovery
+  help.
+- Users must be told when a new stealth package is a replacement, a parallel
+  install, or a rollback.
+
+## Support mapping and runbook
+
+Support needs to map build IDs to private profiles without exposing that mapping
+inside the artifact or in public issue trackers.
+
+Retain the mapping in a private support source of truth with access limited to
+release, QA, and support leads. The mapping must include:
+
+- Private profile identifier.
+- Package name.
+- App label and icon set identifier.
+- Version code and version name.
+- Source commit and CI run.
+- Artifact hashes.
+- Signing certificate lineage.
+- Distribution channel and rollout window.
+- Hostile-app list version.
+- Feature sacrifices and disabled flows.
+- Migration, rollback, and uninstall guidance.
+- Support escalation owner.
+
+Support workflow:
+
+1. Ask the user for the visible app label, version name, version code when
+   available, distribution channel, and installation date.
+2. If diagnostics are available, collect the build ID and artifact channel but
+   do not ask the user to post private profile names publicly.
+3. Resolve the build ID to the private profile in the private support mapping.
+4. Use the profile runbook to answer feature availability, update, migration,
+   entitlement, and rollback questions.
+5. Escalate to release and QA when a user report suggests detector exposure,
+   package collision, signing mismatch, or update failure.
+6. Record any hostile-app detection report against the private profile and app
+   version tested.
+
+## Acceptance criteria
+
+A stealth release candidate is acceptable only when all of the following are
+true:
+
+- CI builds the normal, `stealth-vpn`, and `stealth-novpn` Android artifacts and
+  runs automated static manifest/profile checks.
+- Manual dynamic Android validation is complete for `stealth-vpn` and
+  `stealth-novpn`.
+- Hostile excluded apps do not see Lantern-routed network state in
+  `stealth-vpn`.
+- Non-excluded apps still route through Lantern in `stealth-vpn`.
+- `stealth-novpn` exposes no VPN/TUN state, VPN controls, VPN permissions, or
+  VPN service components.
+- Release notes describe feature sacrifices, direct-distribution behavior,
+  update behavior, package-name rotation implications, migration behavior, and
+  rollback expectations.
+- Support can map build IDs to private profiles through private metadata without
+  exposing that mapping in the artifact or public channels.
+- Artifact hashes, source commit, CI run, package name, version code, version
+  name, signing lineage, distribution channel, and rollout window are retained.
