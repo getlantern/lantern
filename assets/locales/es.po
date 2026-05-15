@@ -1653,3 +1653,6 @@ msgstr "Tu cuenta ha sido eliminada permanentemente. "
 
 msgid "verify_with"
 msgstr "Verificar con %s"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

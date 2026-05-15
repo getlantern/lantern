@@ -1642,3 +1642,6 @@ msgstr "Akaun anda telah dipadamkan secara kekal. "
 
 msgid "verify_with"
 msgstr "Sahkan dengan %s"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

@@ -1659,3 +1659,6 @@ msgstr "ستاسو حساب د تل لپاره حذف شو."
 
 msgid "verify_with"
 msgstr "د %s سره تایید وکړئ"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"
