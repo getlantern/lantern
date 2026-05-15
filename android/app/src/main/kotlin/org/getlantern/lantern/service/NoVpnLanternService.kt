@@ -95,6 +95,7 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
                 Mobile.startIPCServer(this@NoVpnLanternService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
+            DefaultNetworkMonitor.start()
             // Radiance exposes its no-VPN SOCKS/HTTP CONNECT listener through
             // the existing connect path when RADIANCE_USE_SOCKS_PROXY is set.
             Mobile.startVPN()
@@ -117,6 +118,11 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             }
         }.onFailure { e ->
             AppLogger.e(TAG, "Failed to stop local proxy", e)
+        }
+        runCatching {
+            DefaultNetworkMonitor.stop()
+        }.onFailure { e ->
+            AppLogger.e(TAG, "Failed to stop default network monitor", e)
         }
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
         stopForeground(STOP_FOREGROUND_REMOVE)
