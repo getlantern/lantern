@@ -107,7 +107,7 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-ANDROID_TARGET_PLATFORMS := android-arm,android-arm64
+ANDROID_TARGET_PLATFORMS := android-arm64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
@@ -143,7 +143,7 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 UNAME_S := $(shell uname -s)
 endif
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
-GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
+GOMOBILE_ANDROID_TARGET ?= android/arm64
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \

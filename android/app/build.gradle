@@ -61,11 +61,17 @@ android {
 
         ndk {
             // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS
-            // in the top-level Makefile: android-arm + android-arm64). Listing an
-            // ABI here that Flutter didn't build for produces an empty per-ABI
-            // split on Play and crashes installs on that architecture with
-            // "Could not find 'libflutter.so'".
-            abiFilters = ["arm64-v8a", "armeabi-v7a"]
+            // in the top-level Makefile). Listing an ABI here that Flutter
+            // didn't build for produces an empty per-ABI split on Play and
+            // crashes installs on that architecture with "Could not find
+            // 'libflutter.so'".
+            //
+            // armeabi-v7a (32-bit ARM) dropped 2026-05-15: minSdk=24 already
+            // filters out most legacy 32-bit hardware, and the duplicate
+            // libgojni.so adds ~36 MB compressed to the APK. Tooling
+            // (Flutter, gomobile, Go runtime) still supports it; revisit if
+            // we get sideload-user complaints from the Slack release.
+            abiFilters = ["arm64-v8a"]
             debugSymbolLevel 'FULL'
         }
 
