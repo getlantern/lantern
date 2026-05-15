@@ -44,6 +44,7 @@ class NotificationHelper {
 
     private lateinit var dataUsageNotificationChannel: NotificationChannel
     private lateinit var vpnNotificationChannel: NotificationChannel
+    private val notificationSmallIconId: Int by lazy { resolveNotificationSmallIcon() }
 
 
     init {
@@ -98,7 +99,7 @@ class NotificationHelper {
             .setContentTitle(BuildConfig.NOTIFICATION_TITLE)
             .setContentText(BuildConfig.NOTIFICATION_CONNECTED_TEXT)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(notificationSmallIcon())
+            .setSmallIcon(notificationSmallIconId)
             .addAction(
                 NotificationCompat.Action.Builder(
                     android.R.drawable.ic_menu_close_clear_cancel,
@@ -125,7 +126,7 @@ class NotificationHelper {
             .setContentTitle(BuildConfig.NOTIFICATION_TITLE)
             .setContentText(BuildConfig.NOTIFICATION_STARTING_TEXT)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(notificationSmallIcon())
+            .setSmallIcon(notificationSmallIconId)
             .setContentIntent(contentIntent)
             .setSilent(true)
             .build()
@@ -208,7 +209,7 @@ class NotificationHelper {
             .setContentTitle(notification.title)
             .setContentText(notification.body)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(notificationSmallIcon())
+            .setSmallIcon(notificationSmallIconId)
             .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -233,7 +234,7 @@ class NotificationHelper {
         notificationManager.notify(notification.typeID, builder.build())
     }
 
-    private fun notificationSmallIcon(): Int {
+    private fun resolveNotificationSmallIcon(): Int {
         val configured = BuildConfig.NOTIFICATION_SMALL_ICON.removePrefix("@")
         val parts = configured.split("/", limit = 2)
         if (parts.size == 2) {

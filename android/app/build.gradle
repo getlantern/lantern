@@ -98,6 +98,10 @@ android {
         jvmTarget = "17"
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     // Use legacy packaging to helps reduce apk size
     packagingOptions {
         exclude "DebugProbesKt.bin"
@@ -139,9 +143,6 @@ android {
                 cppFlags "-std=c++14 -fexceptions -frtti"
                 arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
-        }
-        buildFeatures {
-            buildConfig true
         }
         buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)
         buildConfigField "String", "ANDROID_IDENTITY_PROFILE_ID", buildConfigString(androidIdentity.identityProfileId)
