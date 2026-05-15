@@ -11,7 +11,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
-import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,14 +23,6 @@ Future<void> main() async {
   // Timezone is only needed for notification scheduling (data-cap alerts),
   // not for the first frame. Run it in the background from the very start.
   unawaited(_configureLocalTimeZone());
-
-  // Resolve user country in the background so isStoreVersion() can flip to
-  // the non-store (Stripe) flow on Android in censored regions where Google
-  // Play Billing is unreachable. Only the Android Play branch consumes the
-  // flag, so skip the network call on other platforms.
-  if (PlatformUtils.isAndroid) {
-    unawaited(IPUtils.getUserCountry());
-  }
 
   await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();

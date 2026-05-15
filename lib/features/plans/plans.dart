@@ -9,7 +9,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
-import 'package:lantern/core/utils/ip_utils.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -400,10 +400,10 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   /// When Play Billing fails to load products, [AppPurchase.fetchSubscriptions]
-  /// flips [IPUtils.isCensoredRegion]. Route the user straight to the Stripe
+  /// flips [CountryCode.isCensoredRegion]. Route the user straight to the Stripe
   /// signup flow on the same tap so they don't have to retry.
   bool _redirectToSignupIfPlayBlocked() {
-    if (!Platform.isAndroid || !IPUtils.isCensoredRegion) return false;
+    if (!Platform.isAndroid || !CountryCode.isCensoredRegion) return false;
     appLogger.info(
       'Play Billing unavailable; redirecting to default signup (Stripe) flow',
     );

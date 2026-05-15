@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/ip_utils.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
@@ -92,16 +92,16 @@ class AppPurchase {
       }
     }
 
-    // All retries exhausted. On Android, treat this as a strong signal that
-    // Google Play Billing is unreachable (typical in CN/RU/IR even when the
-    // ipinfo.io country lookup itself is blocked) and flip the censored-region
-    // flag so isStoreVersion() routes the user to the Stripe flow.
-    if (Platform.isAndroid && !IPUtils.isCensoredRegion) {
+    /// All retries exhausted. On Android, treat this as a strong signal that
+    /// Google Play Billing is unreachable (typical in CN/RU/IR even when the
+    /// ipinfo.io country lookup itself is blocked) and flip the censored-region
+    /// flag so isStoreVersion() routes the user to the Stripe flow.
+    if (Platform.isAndroid && !CountryCode.isCensoredRegion) {
       appLogger.warning(
         '[AppPurchase] Play Billing unreachable after $maxAttempts attempts; '
         'marking region as censored to fall back to Stripe.',
       );
-      IPUtils.isCensoredRegion = true;
+      CountryCode.markCensored();
     }
 
     final error = StateError(
