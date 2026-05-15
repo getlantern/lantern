@@ -121,6 +121,11 @@ SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdk
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+ANDROID_STEALTH_IDENTITY ?= $(if $(filter stealth,$(BUILD_TYPE)),1,0)
+ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
+ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
+ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
+ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(ANDROID_IDENTITY_PROFILE)",)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -473,6 +478,23 @@ install-android-sdk: check-android-sdk
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
 
+.PHONY: android-identity-profile
+android-identity-profile:
+	@if [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "yes" ]; then \
+	  if [ -z "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
+	    exit 1; \
+	  fi; \
+	  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+	    python3 scripts/stealth/generate_android_identity.py \
+	      --output "$(ANDROID_IDENTITY_PROFILE)" \
+	      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
+	  else \
+	    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
+	  fi; \
+	fi
+
 .PHONY: android
 android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
@@ -500,17 +522,17 @@ build-android: check-android-sdk check-gomobile
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) android-identity-profile
+	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
 
 .PHONY: android-apk-release
-android-apk-release:
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+android-apk-release: android-identity-profile
+	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 .PHONY: android-aab-release
-android-aab-release:
-	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+android-aab-release: android-identity-profile
+	$(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
@@ -525,10 +547,10 @@ android-aab-release:
 
 
 .PHONY: android-release
-android-release: clean android pubget gen android-apk-release
+android-release: clean android pubget gen android-identity-profile android-apk-release
 
 .PHONY: android-release-ci
-android-release-ci: android pubget gen android-apk-release android-aab-release
+android-release-ci: android pubget gen android-identity-profile android-apk-release android-aab-release
 
 # iOS Build
 .PHONY: install-ios-deps
