@@ -137,7 +137,6 @@
         "android.net.VpnService",
         "android.permission.BIND_VPN_SERVICE",
         "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
-        "android.permission.FOREGROUND_SERVICE_SPECIAL_USE",
         "VpnService",
         "VpnService.Builder",
         "LanternVpnService",
