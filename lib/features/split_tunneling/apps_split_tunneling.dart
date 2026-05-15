@@ -29,7 +29,8 @@ class AppsSplitTunneling extends ConsumerWidget {
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
-    final directConnectionApps = AppBuildInfo.stealthDirectConnectionApps;
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
     final title = directConnectionApps
         ? 'direct_connection_apps'.i18n
         : 'apps_split_tunneling'.i18n;
