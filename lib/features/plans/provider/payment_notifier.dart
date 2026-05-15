@@ -33,7 +33,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentErrorCallback onError,
   }) async {
     if (!AppBuildInfo.enableStorePayments) {
-      return left(_featureDisabled('In-app purchase'));
+      return left(Failure.featureDisabled('In-app purchase'));
     }
     return ref
         .read(lanternServiceProvider)
@@ -49,7 +49,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String planId,
   }) async {
     if (!AppBuildInfo.enableStorePayments) {
-      return left(_featureDisabled('In-app purchase'));
+      return left(Failure.featureDisabled('In-app purchase'));
     }
     return ref
         .read(lanternServiceProvider)
@@ -60,7 +60,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String purchaseToken,
   }) async {
     if (!AppBuildInfo.enableStorePayments) {
-      return left(_featureDisabled('Restore purchase'));
+      return left(Failure.featureDisabled('Restore purchase'));
     }
     return ref
         .read(lanternServiceProvider)
@@ -73,7 +73,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     String email,
   ) async {
     if (!AppBuildInfo.enablePayments) {
-      return left(_featureDisabled('Payment'));
+      return left(Failure.featureDisabled('Payment'));
     }
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
@@ -91,7 +91,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     String email,
   ) async {
     if (!AppBuildInfo.enablePayments) {
-      return left(_featureDisabled('Payment'));
+      return left(Failure.featureDisabled('Payment'));
     }
     return ref
         .read(lanternServiceProvider)
@@ -104,7 +104,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String email,
   }) async {
     if (!AppBuildInfo.enablePayments) {
-      return left(_featureDisabled('Payment'));
+      return left(Failure.featureDisabled('Payment'));
     }
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
@@ -126,7 +126,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String provider,
   }) async {
     if (!AppBuildInfo.enablePayments) {
-      return left(_featureDisabled('Payment'));
+      return left(Failure.featureDisabled('Payment'));
     }
     if (_isAndroidStoreBuild) {
       // Google Play build uses IAP
@@ -151,9 +151,4 @@ class PaymentNotifier extends _$PaymentNotifier {
       (url) => right(url),
     );
   }
-
-  Failure _featureDisabled(String feature) => Failure(
-    error: '$feature disabled for this build',
-    localizedErrorMessage: 'This feature is not available in this build',
-  );
 }

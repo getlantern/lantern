@@ -35,6 +35,7 @@ class AppBuildInfo {
   /// Removes high-identification UI and runtime flows from stealth artifacts.
   static const bool stealthMode =
       stealthBuild ||
+      stealthNoVpn ||
       stealthModeName == 'stealth-vpn' ||
       stealthModeName == 'stealth-novpn' ||
       stealthModeName == 'true';

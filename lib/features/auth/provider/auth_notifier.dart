@@ -16,7 +16,7 @@ class AuthNotifier extends _$AuthNotifier {
 
   Future<Either<Failure, String>> oAuthLogin(String provider) async {
     if (!AppBuildInfo.enableOAuth) {
-      return left(_featureDisabled('OAuth login'));
+      return left(Failure.featureDisabled('OAuth login'));
     }
     return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
   }
@@ -25,7 +25,7 @@ class AuthNotifier extends _$AuthNotifier {
     String authToken,
   ) async {
     if (!AppBuildInfo.enableOAuth) {
-      return left(_featureDisabled('OAuth login'));
+      return left(Failure.featureDisabled('OAuth login'));
     }
     return ref.read(lanternServiceProvider).oAuthLoginCallback(authToken);
   }
@@ -112,9 +112,4 @@ class AuthNotifier extends _$AuthNotifier {
   Future<Either<Failure, String>> deviceRemove(String deviceID) async {
     return ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceID);
   }
-
-  Failure _featureDisabled(String feature) => Failure(
-    error: '$feature disabled for this build',
-    localizedErrorMessage: 'This feature is not available in this build',
-  );
 }
