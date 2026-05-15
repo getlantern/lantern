@@ -140,11 +140,7 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_conntrack,with_dhcp,with_acme
-# Android ships the largest installer and does not use sing-box's Clash API,
-# DHCP, or ACME server/control-plane features. Keep the slimmer tag set scoped
-# to gomobile so desktop/iOS behavior is unchanged.
-ANDROID_TAGS ?= with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,with_conntrack
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,with_conntrack
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
@@ -508,7 +504,7 @@ build-android: check-android-sdk check-gomobile
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=lantern.io \
-		-tags=$(ANDROID_TAGS) -trimpath \
+		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
