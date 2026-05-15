@@ -254,6 +254,7 @@ desktop-lib:
 
 .PHONY: desktop-lib-obfuscated
 desktop-lib-obfuscated: check-garble-seed
+	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
 		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
