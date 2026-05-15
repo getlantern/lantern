@@ -124,7 +124,7 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		return struct{}{}, common.Init(dataDir, logDir, logLevel)
+		return struct{}{}, common.Init(dataDir, logDir, lanterncore.EffectiveLogLevel(logLevel))
 	})
 	return err
 }
@@ -288,13 +288,15 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if ipcServer != nil {
 			return struct{}{}, nil
 		}
+		logLevel := lanterncore.EffectiveLogLevel(opts.LogLevel)
+		telemetryConsent := lanterncore.EffectiveTelemetryConsent(opts.TelemetryConsent)
 		bopts := backend.Options{
 			DataDir:           opts.DataDir,
 			LogDir:            opts.LogDir,
 			Locale:            opts.Locale,
-			LogLevel:          opts.LogLevel,
+			LogLevel:          logLevel,
 			DeviceID:          opts.Deviceid,
-			TelemetryConsent:  opts.TelemetryConsent,
+			TelemetryConsent:  telemetryConsent,
 			PlatformInterface: platform,
 		}
 		be, err := backend.NewLocalBackend(context.Background(), bopts)

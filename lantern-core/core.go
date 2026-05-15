@@ -35,7 +35,6 @@ type EventType = string
 const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
-	DefaultLogLevel                   = "trace"
 )
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
@@ -180,9 +179,8 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 	}
 
 	core.initOnce.Do(func() {
-		if opts.LogLevel == "" {
-			opts.LogLevel = DefaultLogLevel
-		}
+		opts.LogLevel = EffectiveLogLevel(opts.LogLevel)
+		opts.TelemetryConsent = EffectiveTelemetryConsent(opts.TelemetryConsent)
 		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
 		if err := core.initialize(opts, eventEmitter); err != nil {
 			initError.Store(&err)

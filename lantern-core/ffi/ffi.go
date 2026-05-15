@@ -115,7 +115,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 			Locale:           locale,
 			Env:              env,
 			Deviceid:         "",
-			LogLevel:         lanterncore.DefaultLogLevel,
+			LogLevel:         lanterncore.EffectiveLogLevel(""),
 			TelemetryConsent: consent == 1,
 		}, &ffiFlutterEventEmitter{})
 
