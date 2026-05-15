@@ -1,0 +1,98 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+import generate_profile
+
+
+class GenerateProfileTest(unittest.TestCase):
+    def test_generates_profile_outputs_and_redacts_seed_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_path = root / "profile.json"
+            defines_path = root / "dart-defines.json"
+            metadata_path = root / "metadata.json"
+
+            exit_code = generate_profile.main(
+                [
+                    "--mode",
+                    "stealth-vpn",
+                    "--package-name",
+                    "org.example.safe.s123",
+                    "--app-name",
+                    "Beacon",
+                    "--session-name",
+                    "BeaconLink",
+                    "--native-library-name",
+                    "libbeacon.so",
+                    "--go-obfuscation-seed",
+                    "seed-for-test",
+                    "--denylist-version",
+                    "7",
+                    "--output",
+                    str(profile_path),
+                    "--dart-defines-output",
+                    str(defines_path),
+                    "--artifact-metadata-output",
+                    str(metadata_path),
+                ]
+            )
+
+            self.assertEqual(exit_code, 0)
+
+            profile = json.loads(profile_path.read_text())
+            self.assertEqual(profile["mode"], "stealth-vpn")
+            self.assertEqual(profile["packageName"], "org.example.safe.s123")
+            self.assertEqual(profile["appName"], "Beacon")
+            self.assertEqual(profile["sessionName"], "BeaconLink")
+            self.assertEqual(profile["nativeLibraryName"], "libbeacon")
+            self.assertEqual(profile["goObfuscationSeed"], "seed-for-test")
+            self.assertEqual(profile["denylistVersion"], 7)
+
+            defines = json.loads(defines_path.read_text())
+            self.assertEqual(defines["STEALTH_MODE"], "stealth-vpn")
+            self.assertEqual(
+                defines["STEALTH_PACKAGE_NAME"], "org.example.safe.s123"
+            )
+            self.assertEqual(defines["STEALTH_GO_OBFUSCATION_SEED"], "seed-for-test")
+
+            metadata = json.loads(metadata_path.read_text())
+            self.assertNotIn("goObfuscationSeed", metadata)
+            self.assertIn("goObfuscationSeedSha256", metadata)
+
+    def test_go_tags_suffix_from_profile(self):
+        profile = {
+            "mode": "stealth-novpn",
+            "packageName": "org.example.safe.s456",
+            "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "nativeLibraryName": "libbeacon",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": 0,
+        }
+
+        normalized = generate_profile.validate_profile(profile)
+
+        self.assertEqual(
+            generate_profile.go_tags_suffix(normalized),
+            ",stealth,stealth_novpn",
+        )
+
+    def test_rejects_invalid_package_name(self):
+        profile = {
+            "mode": "stealth-vpn",
+            "packageName": "bad package",
+            "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "nativeLibraryName": "libbeacon",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": 0,
+        }
+
+        with self.assertRaises(generate_profile.ProfileError):
+            generate_profile.validate_profile(profile)
+
+
+if __name__ == "__main__":
+    unittest.main()

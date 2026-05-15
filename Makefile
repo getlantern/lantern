@@ -161,6 +161,25 @@ APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
 
+STEALTH_PROFILE_TOOL := python3 scripts/stealth/generate_profile.py
+STEALTH_PROFILE ?=
+STEALTH_MODE ?=
+STEALTH_PACKAGE_NAME ?=
+STEALTH_APP_NAME ?=
+STEALTH_SESSION_NAME ?=
+STEALTH_NATIVE_LIBRARY_NAME ?=
+STEALTH_OBFUSCATION_SEED ?=
+STEALTH_GO_OBFUSCATION_SEED ?= $(STEALTH_OBFUSCATION_SEED)
+STEALTH_DENYLIST_VERSION ?=
+STEALTH_PROFILE_OUT ?= $(BUILD_DIR)/stealth/profile.json
+STEALTH_DART_DEFINES_FILE ?= $(BUILD_DIR)/stealth/dart-defines.json
+STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
+STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
+STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
+STEALTH_GO_TAGS := $(if $(STEALTH_ENABLED),$$(python3 scripts/stealth/generate_profile.py --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix),)
+STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),STEALTH_PROFILE="$(CURDIR)/$(STEALTH_PROFILE_OUT)",)
+MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),stealth-profile,)
+
 INSTALLER_RESOURCES := installer-resources
 
 # Missing and Guards
@@ -169,6 +188,21 @@ guard-%:
 
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
+
+.PHONY: stealth-profile
+stealth-profile:
+	$(STEALTH_PROFILE_TOOL) \
+		$(if $(STEALTH_PROFILE),--input "$(STEALTH_PROFILE)",) \
+		$(if $(STEALTH_MODE),--mode "$(STEALTH_MODE)",) \
+		$(if $(STEALTH_PACKAGE_NAME),--package-name "$(STEALTH_PACKAGE_NAME)",) \
+		$(if $(STEALTH_APP_NAME),--app-name "$(STEALTH_APP_NAME)",) \
+		$(if $(STEALTH_SESSION_NAME),--session-name "$(STEALTH_SESSION_NAME)",) \
+		$(if $(STEALTH_NATIVE_LIBRARY_NAME),--native-library-name "$(STEALTH_NATIVE_LIBRARY_NAME)",) \
+		$(if $(STEALTH_GO_OBFUSCATION_SEED),--go-obfuscation-seed "$(STEALTH_GO_OBFUSCATION_SEED)",) \
+		$(if $(STEALTH_DENYLIST_VERSION),--denylist-version "$(STEALTH_DENYLIST_VERSION)",) \
+		--output "$(STEALTH_PROFILE_OUT)" \
+		--dart-defines-output "$(STEALTH_DART_DEFINES_FILE)" \
+		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"
 
 
 .PHONY: require-appdmg
@@ -189,9 +223,9 @@ else
 endif
 
 .PHONY: desktop-lib
-desktop-lib:
+desktop-lib: $(MAYBE_STEALTH_PROFILE)
 	$(SETENV) go build -v -trimpath -buildmode=c-shared \
-		-tags="$(TAGS)" \
+		-tags="$(TAGS)$(STEALTH_GO_TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
@@ -209,11 +243,11 @@ install-macos-deps: install-gomobile
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_BUILD)
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo  -trimpath \
+		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
@@ -248,10 +282,10 @@ macos-unit-tests: $(MACOS_FRAMEWORK_BUILD)
 		CODE_SIGNING_REQUIRED=NO \
 		CODE_SIGN_IDENTITY=""
 
-$(DARWIN_RELEASE_BUILD):
+$(DARWIN_RELEASE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for macOS..."
 	rm -vf $(MACOS_INSTALLER)
-	flutter build macos --release $(DART_DEFINES)
+	flutter build macos --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
@@ -298,13 +332,13 @@ install-linux-deps:
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
 
-$(LINUX_LIB_ARM64): $(GO_SOURCES)
+$(LINUX_LIB_ARM64): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	CC=$(LINUX_CC_ARM64) GOOS=linux GOARCH=arm64 LIB_NAME=$@ $(MAKE) desktop-lib
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_LIB_AMD64)
 
-$(LINUX_LIB_AMD64): $(GO_SOURCES)
+$(LINUX_LIB_AMD64): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	CC=$(LINUX_CC_AMD64) GOOS=linux GOARCH=amd64 LIB_NAME=$@ $(MAKE) desktop-lib
 
 .PHONY: linux
@@ -314,18 +348,18 @@ linux: linux-$(LINUX_TARGET_ARCH)
 
 .PHONY: lanternd-linux-amd64 lanternd-linux-arm64
 
-lanternd-linux-amd64: $(GO_SOURCES)
+lanternd-linux-amd64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
-		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
 		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
-lanternd-linux-arm64: $(GO_SOURCES)
+lanternd-linux-arm64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
-		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
 		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
@@ -338,9 +372,9 @@ linux-debug:
 .PHONY: linux-release linux-release-ci
 linux-release: clean linux-release-ci
 
-linux-release-ci: linux pubget gen
+linux-release-ci: linux pubget gen $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for Linux..."
-	flutter build linux --release $(DART_DEFINES)
+	flutter build linux --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	$(MAKE) lanternd-linux-$(LINUX_TARGET_ARCH)
 
 	@if [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
@@ -381,12 +415,12 @@ windows: windows-amd64
 
 windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
-windows-amd64:
+windows-amd64: $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
-windows-arm64:
+windows-arm64: $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
@@ -394,18 +428,18 @@ lanternd-windows-amd64: $(LANTERND_WINDOWS_AMD64)
 
 lanternd-windows-arm64: $(LANTERND_WINDOWS_ARM64)
 
-$(LANTERND_WINDOWS_AMD64):
+$(LANTERND_WINDOWS_AMD64): $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
 		-ldflags "$(EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
 
-$(LANTERND_WINDOWS_ARM64):
+$(LANTERND_WINDOWS_ARM64): $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
 	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
-		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
 		-ldflags "$(EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
@@ -476,10 +510,10 @@ install-android-deps: install-gomobile
 .PHONY: android
 android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
-$(ANDROID_LIB_BUILD): $(GO_SOURCES)
+$(ANDROID_LIB_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) build-android
 
-build-android: check-android-sdk check-gomobile
+build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
@@ -489,7 +523,7 @@ build-android: check-android-sdk check-gomobile
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=lantern.io \
-		-tags=$(TAGS) -trimpath \
+		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
@@ -500,17 +534,17 @@ build-android: check-android-sdk check-gomobile
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
+	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug $(STEALTH_DART_DEFINES)
 
 .PHONY: android-apk-release
-android-apk-release:
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+android-apk-release: $(MAYBE_STEALTH_PROFILE)
+	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 .PHONY: android-aab-release
-android-aab-release:
-	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+android-aab-release: $(MAYBE_STEALTH_PROFILE)
+	$(STEALTH_PROFILE_ENV) flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
@@ -542,15 +576,15 @@ ios: $(IOS_FRAMEWORK_BUILD)
 .PHONY: ios
 ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
 
-$(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+$(IOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) build-ios
 
-build-ios:
+build-ios: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
 	GOOS=ios gomobile bind -v \
-		-tags=$(TAGS),with_low_memory, -trimpath \
+		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
@@ -570,8 +604,8 @@ format:
 	@echo "Formatting Swift code..."
 	$(MAKE) swift-format
 
-ios-release: clean pubget ios
-	flutter build ipa --release --export-options-plist ./ExportOptions.plist $(DART_DEFINES)
+ios-release: clean pubget ios $(MAYBE_STEALTH_PROFILE)
+	flutter build ipa --release --export-options-plist ./ExportOptions.plist $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	@set -e; \
 	  IPA_DIR="$(CURDIR)/build/ios/ipa"; \
 	  IPA_SRC=$$(ls -t "$$IPA_DIR"/*.ipa 2>/dev/null | head -n 1); \

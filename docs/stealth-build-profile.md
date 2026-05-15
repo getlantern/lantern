@@ -1,0 +1,100 @@
+# Stealth Build Profile
+
+Stealth builds use the normal Lantern source tree. The build is switched by
+passing either a generated profile mode or a private profile JSON file into the
+existing Makefile targets.
+
+Normal builds are unchanged when neither `STEALTH_MODE` nor `STEALTH_PROFILE`
+is set.
+
+## Generate a Profile
+
+Generate a private profile under `build/stealth/`:
+
+```sh
+make stealth-profile STEALTH_MODE=stealth-vpn
+```
+
+Supported modes are:
+
+- `stealth-vpn`
+- `stealth-novpn`
+
+The generated profile includes:
+
+- `mode`
+- `packageName`
+- `appName`
+- `sessionName`
+- `nativeLibraryName`
+- `goObfuscationSeed`
+- `denylistVersion`
+
+Override generated values with Make variables:
+
+```sh
+make stealth-profile \
+  STEALTH_MODE=stealth-vpn \
+  STEALTH_PACKAGE_NAME=org.example.client.s123 \
+  STEALTH_APP_NAME=Client \
+  STEALTH_SESSION_NAME=ClientVpn \
+  STEALTH_GO_OBFUSCATION_SEED=0123456789abcdef \
+  STEALTH_DENYLIST_VERSION=1
+```
+
+Use an existing private profile:
+
+```sh
+make stealth-profile STEALTH_PROFILE=/secure/profiles/client.json
+```
+
+## Build With a Profile
+
+Android build targets generate or normalize the profile before invoking Flutter:
+
+```sh
+make android-release STEALTH_MODE=stealth-vpn
+make android-release STEALTH_PROFILE=/secure/profiles/client.json
+```
+
+The Makefile writes:
+
+- `build/stealth/profile.json`: private normalized profile for support/debugging
+- `build/stealth/dart-defines.json`: Flutter `--dart-define-from-file` input
+- `build/stealth/artifact-metadata.json`: private CI artifact metadata
+
+Do not publish these files in public release artifacts. They contain profile
+values that identify a build stream; the metadata omits the raw obfuscation
+seed and includes its hash for support correlation.
+
+## Android Plumbing
+
+`android/app/build.gradle` reads the normalized profile from either the
+`STEALTH_PROFILE` environment variable or a `-PstealthProfile=/path/to/profile`
+Gradle property.
+
+The profile sets:
+
+- Android `applicationId`
+- Android manifest app label
+- `BuildConfig.STEALTH_*` constants
+
+The Android namespace and Kotlin package remain `org.getlantern.lantern`, so no
+separate source tree is needed.
+
+## Dart and Go Plumbing
+
+Flutter receives profile values through `--dart-define-from-file`, exposed in
+`AppBuildInfo.stealth*` constants. Go builds receive tags:
+
+- `stealth`
+- `stealth_vpn` or `stealth_novpn`
+
+## Package Name Migration Tradeoff
+
+Generated stealth profiles use a per-profile Android package name by default.
+Android treats each package name as a different app, so a build with a new
+`packageName` does not update an existing install and does not share that app's
+data directory. Release and support workflows need to keep the private profile
+for each distributed build so they can identify which package name, app label,
+session name, denylist version, and Go obfuscation seed were used.

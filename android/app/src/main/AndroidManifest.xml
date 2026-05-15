@@ -19,7 +19,7 @@
     <application
         android:name=".LanternApp"
         android:icon="@mipmap/ic_launcher"
-        android:label="Lantern"
+        android:label="${appName}"
         android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round">
 

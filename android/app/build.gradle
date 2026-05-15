@@ -16,6 +16,58 @@ def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 
+def defaultStealthProfile = [
+        mode             : "normal",
+        packageName      : "org.getlantern.lantern",
+        appName          : "Lantern",
+        sessionName      : "LanternVpn",
+        nativeLibraryName: "liblantern",
+        goObfuscationSeed: "",
+        denylistVersion  : 0,
+]
+
+def buildConfigString = { value ->
+    def escaped = value.toString().replace("\\", "\\\\").replace("\"", "\\\"")
+    return "\"${escaped}\""
+}
+
+def resolveRepoRelativeFile = { path ->
+    def candidate = new File(path.toString())
+    if (candidate.isAbsolute()) {
+        return candidate
+    }
+    def fromRepoRoot = new File(rootProject.projectDir.parentFile, path.toString())
+    if (fromRepoRoot.exists()) {
+        return fromRepoRoot
+    }
+    return file(path.toString())
+}
+
+def loadStealthProfile = {
+    def profilePath = (findProperty("stealthProfile") ?: System.getenv("STEALTH_PROFILE"))?.toString()?.trim()
+    if (!profilePath) {
+        return defaultStealthProfile
+    }
+
+    def profileFile = resolveRepoRelativeFile(profilePath)
+    if (!profileFile.exists()) {
+        throw new GradleException("Stealth profile not found: ${profilePath}")
+    }
+
+    def parsed = new groovy.json.JsonSlurper().parse(profileFile)
+    if (!(parsed instanceof Map)) {
+        throw new GradleException("Stealth profile must be a JSON object: ${profileFile}")
+    }
+
+    def profile = defaultStealthProfile + parsed.findAll { it.value != null }
+    if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode.toString())) {
+        throw new GradleException("Unsupported Stealth mode '${profile.mode}' in ${profileFile}")
+    }
+    return profile
+}
+
+def stealthProfile = loadStealthProfile()
+
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = 36
@@ -53,11 +105,20 @@ android {
     }
 
     defaultConfig {
-        applicationId = "org.getlantern.lantern"
+        applicationId = stealthProfile.packageName.toString()
         minSdkVersion = 24
         targetSdk = 36
         versionCode = code
         versionName = flutter.versionName
+        manifestPlaceholders = [appName: stealthProfile.appName.toString()]
+        buildConfigField "boolean", "STEALTH_ENABLED", (stealthProfile.mode.toString() != "normal").toString()
+        buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
+        buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
+        buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
+        buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
+        buildConfigField "String", "STEALTH_NATIVE_LIBRARY_NAME", buildConfigString(stealthProfile.nativeLibraryName)
+        buildConfigField "String", "STEALTH_GO_OBFUSCATION_SEED", buildConfigString(stealthProfile.goObfuscationSeed)
+        buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
 
         ndk {
             // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS

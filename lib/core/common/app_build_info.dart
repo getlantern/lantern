@@ -17,6 +17,43 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
+  static const String stealthMode = String.fromEnvironment(
+    'STEALTH_MODE',
+    defaultValue: 'normal',
+  );
+
+  static const String stealthPackageName = String.fromEnvironment(
+    'STEALTH_PACKAGE_NAME',
+    defaultValue: 'org.getlantern.lantern',
+  );
+
+  static const String stealthAppName = String.fromEnvironment(
+    'STEALTH_APP_NAME',
+    defaultValue: 'Lantern',
+  );
+
+  static const String stealthSessionName = String.fromEnvironment(
+    'STEALTH_SESSION_NAME',
+    defaultValue: 'LanternVpn',
+  );
+
+  static const String stealthNativeLibraryName = String.fromEnvironment(
+    'STEALTH_NATIVE_LIBRARY_NAME',
+    defaultValue: 'liblantern',
+  );
+
+  static const String stealthGoObfuscationSeed = String.fromEnvironment(
+    'STEALTH_GO_OBFUSCATION_SEED',
+    defaultValue: '',
+  );
+
+  static const int stealthDenylistVersion = int.fromEnvironment(
+    'STEALTH_DENYLIST_VERSION',
+    defaultValue: 0,
+  );
+
+  static bool get isStealthBuild => stealthMode.startsWith('stealth-');
+
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';
 }
