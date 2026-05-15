@@ -163,6 +163,22 @@ GOMOBILE_REPOS = \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
+GARBLE ?= garble
+GARBLE_VERSION ?= latest
+GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
+GARBLE_FLAGS ?= -literals
+GARBLE_GOGARBLE ?=
+GARBLE_LDFLAGS ?= -w -s -buildid=
+
+ifeq ($(OS),Windows_NT)
+GARBLE_REAL_GO ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Get-Command go -ErrorAction SilentlyContinue).Source')
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),set GOGARBLE=$(GARBLE_GOGARBLE)&& ,)
+else
+GARBLE_REAL_GO ?= $(shell command -v go 2>/dev/null)
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),GOGARBLE="$(GARBLE_GOGARBLE)",)
+endif
+GARBLE_BUILD = $(GARBLE) $(GARBLE_FLAGS) -seed="$(GARBLE_SEED)" build
+
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
@@ -182,6 +198,33 @@ guard-%:
 
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
+
+.PHONY: check-garble require-garble-seed check-garble-seed check-garble-go
+check-garble:
+	@command -v $(GARBLE) >/dev/null 2>&1 || \
+		{ echo "garble not found. Run 'make install-garble' or set GARBLE=/path/to/garble."; exit 1; }
+	@command -v git >/dev/null 2>&1 || \
+		{ echo "git not found. garble requires git to patch the Go linker."; exit 1; }
+	@$(GARBLE) -h >/dev/null 2>&1 || \
+		{ echo "garble was found but could not run. Check GARBLE=$(GARBLE) and your Go toolchain."; exit 1; }
+
+require-garble-seed:
+	@if [ -z "$(GARBLE_SEED)" ]; then \
+		echo "GARBLE_SEED is required for obfuscated builds."; \
+		echo "Set GARBLE_SEED=<base64 profile seed> or STEALTH_GARBLE_SEED=<base64 profile seed>."; \
+		echo "Use GARBLE_SEED=random only for unreproducible local smoke builds."; \
+		exit 1; \
+	fi
+
+check-garble-seed: check-garble require-garble-seed
+	@$(GARBLE) -seed="$(GARBLE_SEED)" version >/dev/null 2>&1 || \
+		{ echo "GARBLE_SEED must be 'random' or a base64-encoded seed accepted by garble."; exit 1; }
+
+check-garble-go:
+	@if [ -z "$(GARBLE_REAL_GO)" ]; then \
+		echo "go not found. Install Go or set GARBLE_REAL_GO=/path/to/go for gomobile garble builds."; \
+		exit 1; \
+	fi
 
 
 .PHONY: require-appdmg
@@ -208,6 +251,14 @@ desktop-lib:
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
+
+.PHONY: desktop-lib-obfuscated
+desktop-lib-obfuscated: check-garble-seed
+	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
+		-tags="$(TAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
+	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
 # macOS build tools need to be installed when generating release builds,
 # but are not necessarily required for debug builds
@@ -314,18 +365,32 @@ linux-arm64: $(LINUX_LIB_ARM64)
 $(LINUX_LIB_ARM64): $(GO_SOURCES)
 	CC=$(LINUX_CC_ARM64) GOOS=linux GOARCH=arm64 LIB_NAME=$@ $(MAKE) desktop-lib
 
+.PHONY: linux-arm64-obfuscated
+linux-arm64-obfuscated: $(GO_SOURCES)
+	CC=$(LINUX_CC_ARM64) GOOS=linux GOARCH=arm64 LIB_NAME=$(LINUX_LIB_ARM64) $(MAKE) desktop-lib-obfuscated
+
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_LIB_AMD64)
 
 $(LINUX_LIB_AMD64): $(GO_SOURCES)
 	CC=$(LINUX_CC_AMD64) GOOS=linux GOARCH=amd64 LIB_NAME=$@ $(MAKE) desktop-lib
 
+.PHONY: linux-amd64-obfuscated
+linux-amd64-obfuscated: $(GO_SOURCES)
+	CC=$(LINUX_CC_AMD64) GOOS=linux GOARCH=amd64 LIB_NAME=$(LINUX_LIB_AMD64) $(MAKE) desktop-lib-obfuscated
+
 .PHONY: linux
 linux: linux-$(LINUX_TARGET_ARCH)
 	mkdir -p $(BIN_DIR)/linux
 	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
 
-.PHONY: lanternd-linux-amd64 lanternd-linux-arm64
+.PHONY: linux-obfuscated
+linux-obfuscated: linux-$(LINUX_TARGET_ARCH)-obfuscated
+	mkdir -p $(BIN_DIR)/linux
+	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
+
+.PHONY: lanternd-linux-amd64 lanternd-linux-arm64 \
+        lanternd-linux-amd64-obfuscated lanternd-linux-arm64-obfuscated
 
 lanternd-linux-amd64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
@@ -342,6 +407,22 @@ lanternd-linux-arm64: $(GO_SOURCES)
 		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
+
+lanternd-linux-amd64-obfuscated: check-garble-seed $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
+	@$(GARBLE_ENV) GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
+		$(GARBLE_BUILD) -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
+	@echo "Built obfuscated lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
+
+lanternd-linux-arm64-obfuscated: check-garble-seed $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
+	@$(GARBLE_ENV) GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+		$(GARBLE_BUILD) -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
+	@echo "Built obfuscated lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
 .PHONY: linux-debug
 linux-debug:
@@ -466,6 +547,10 @@ install-gomobile:
 		echo "Skipping gomobile init (cached for $(GO_VERSION))"; \
 	fi
 
+.PHONY: install-garble
+install-garble:
+	GOTOOLCHAIN=$(GO_VERSION) go install -v mvdan.cc/garble@$(GARBLE_VERSION)
+
 # Android Build
 .PHONY: check-android-sdk
 check-android-sdk:
@@ -510,6 +595,35 @@ build-android: check-android-sdk check-gomobile
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
+.PHONY: android-obfuscated
+android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go
+	$(MAKE) build-android-obfuscated
+
+.PHONY: build-android-obfuscated
+build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go
+	@echo "Building obfuscated Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
+
+	@PATH="$(CURDIR)/scripts/garble-go:$$PATH" \
+	GARBLE_REAL_GO="$(GARBLE_REAL_GO)" \
+	GARBLE_BIN="$(GARBLE)" \
+	GARBLE_SEED="$(GARBLE_SEED)" \
+	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
+	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
+	GOMOBILECACHE="$(GOMOBILECACHE)" \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+		-androidapi=23 \
+		-target="$(GOMOBILE_ANDROID_TARGET)" \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(ANDROID_LIB_BUILD) \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		$(GOMOBILE_REPOS)
+
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
+	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
@@ -549,6 +663,12 @@ android-release: clean android pubget gen android-apk-release
 
 .PHONY: android-release-ci
 android-release-ci: android pubget gen android-apk-release android-aab-release
+
+.PHONY: android-release-obfuscated
+android-release-obfuscated: clean android-obfuscated pubget gen android-apk-release
+
+.PHONY: android-release-ci-obfuscated
+android-release-ci-obfuscated: android-obfuscated pubget gen android-apk-release android-aab-release
 
 # iOS Build
 .PHONY: install-ios-deps

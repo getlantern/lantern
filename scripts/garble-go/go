@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+real_go="${GARBLE_REAL_GO:-}"
+garble_bin="${GARBLE_BIN:-garble}"
+seed="${GARBLE_SEED:-}"
+
+if [[ -z "$real_go" ]]; then
+  echo "garble go wrapper: GARBLE_REAL_GO is not set" >&2
+  exit 2
+fi
+
+if [[ ! -x "$real_go" ]]; then
+  echo "garble go wrapper: GARBLE_REAL_GO is not executable: $real_go" >&2
+  exit 2
+fi
+
+if [[ $# -eq 0 ]]; then
+  exec "$real_go"
+fi
+
+case "$1" in
+  build)
+    if [[ -z "$seed" ]]; then
+      echo "garble go wrapper: GARBLE_SEED is required for obfuscated go build" >&2
+      exit 2
+    fi
+    if ! command -v "$garble_bin" >/dev/null 2>&1; then
+      echo "garble go wrapper: garble not found. Set GARBLE_BIN or run 'make install-garble'." >&2
+      exit 2
+    fi
+
+    if [[ -n "${GARBLE_GOGARBLE:-}" ]]; then
+      export GOGARBLE="$GARBLE_GOGARBLE"
+    else
+      unset GOGARBLE
+    fi
+
+    garble_flags=()
+    if [[ -n "${GARBLE_FLAGS:-}" ]]; then
+      # GARBLE_FLAGS is intentionally simple make/CI input such as "-literals -tiny".
+      # shellcheck disable=SC2206
+      garble_flags=(${GARBLE_FLAGS})
+    fi
+
+    real_go_dir="$(dirname "$real_go")"
+    exec env PATH="$real_go_dir:$PATH" "$garble_bin" "${garble_flags[@]}" -seed="$seed" "$@"
+    ;;
+  *)
+    exec "$real_go" "$@"
+    ;;
+esac
