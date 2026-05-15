@@ -31,6 +31,9 @@ class OAuthLogin extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!AppBuildInfo.enableOAuth) {
+      return const SizedBox.shrink();
+    }
     if (methodType == SignUpMethodType.apple) {
       return SecondaryButton(
         label: label ?? 'continue_with_apple'.i18n,
@@ -59,6 +62,7 @@ class OAuthLogin extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) async {
+    if (!AppBuildInfo.enableOAuth) return;
     if (await _isRegionAllowed(ref, context)) {
       await oAuthLogin(type, ref, context);
     }
@@ -86,21 +90,21 @@ class OAuthLogin extends HookConsumerWidget {
     }
   }
 
-  Future<bool> _promptVpn(
-    WidgetRef ref,
-    BuildContext context,
-  ) async {
+  Future<bool> _promptVpn(WidgetRef ref, BuildContext context) async {
     await showDialog(
       context: context,
-      builder: (context) => CensoredDialog(
-        done: () => oAuthLogin(methodType, ref, context),
-      ),
+      builder: (context) =>
+          CensoredDialog(done: () => oAuthLogin(methodType, ref, context)),
     );
     return true;
   }
 
   Future<void> oAuthLogin(
-      SignUpMethodType type, WidgetRef ref, BuildContext context) async {
+    SignUpMethodType type,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
+    if (!AppBuildInfo.enableOAuth) return;
     context.showLoadingDialog();
     final result = await ref.read(authProvider.notifier).oAuthLogin(type.name);
     result.fold(

@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -22,6 +21,10 @@ class Updater {
 
     if (kDebugMode) return;
     if (!_isSupportedPlatform) return;
+    if (!AppBuildInfo.enableAutoUpdate) {
+      appLogger.info('autoUpdater disabled for this build');
+      return;
+    }
 
     final flagResult = await sl<LanternService>().featureFlag();
     final flags = flagResult.fold((_) => <String, dynamic>{}, (jsonStr) {
@@ -39,6 +42,10 @@ class Updater {
 
     final buildType = AppBuildInfo.buildType;
     final feedUrl = AppUrls.appcastFor(buildType);
+    if (feedUrl == null || feedUrl.isEmpty) {
+      appLogger.info('autoUpdater disabled: no appcast URL for this build');
+      return;
+    }
 
     try {
       final updater = AutoUpdater.instance;
@@ -66,6 +73,7 @@ class Updater {
   }
 
   Future<void> checkNow() async {
+    if (!AppBuildInfo.enableAutoUpdate) return;
     if (!_isSupportedPlatform) return;
     await AutoUpdater.instance.checkForUpdates();
   }

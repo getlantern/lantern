@@ -13,6 +13,9 @@ import 'package:lantern/features/plans/provider/payment_notifier.dart';
 mixin RestorePurchaseMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   Future<void> restorePurchaseFlow() async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return;
+    }
     if (!mounted) return;
     context.showLoadingDialog();
     try {
@@ -38,6 +41,9 @@ mixin RestorePurchaseMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _onRestoredPurchase(PurchaseDetails purchaseDetails) async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return;
+    }
     sl<AppPurchase>().clearCallbacks();
     final purchaseToken =
         purchaseDetails.verificationData.serverVerificationData;

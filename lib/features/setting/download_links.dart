@@ -3,13 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
 
-enum _PlatformType {
-  android,
-  ios,
-  windows,
-  macos,
-  linux,
-}
+enum _PlatformType { android, ios, windows, macos, linux }
 
 @RoutePage(name: 'DownloadLinks')
 class DownloadLinks extends StatelessWidget {
@@ -17,6 +11,12 @@ class DownloadLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!AppBuildInfo.enableSocialLinks) {
+      return BaseScreen(
+        title: 'download_links'.i18n,
+        body: const SizedBox.shrink(),
+      );
+    }
     return BaseScreen(title: 'download_links'.i18n, body: _buildBody(context));
   }
 

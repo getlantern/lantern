@@ -32,6 +32,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return left(_featureDisabled('In-app purchase'));
+    }
     return ref
         .read(lanternServiceProvider)
         .startInAppPurchaseFlow(
@@ -45,6 +48,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String purchaseToken,
     required String planId,
   }) async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return left(_featureDisabled('In-app purchase'));
+    }
     return ref
         .read(lanternServiceProvider)
         .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
@@ -53,6 +59,9 @@ class PaymentNotifier extends _$PaymentNotifier {
   Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
     required String purchaseToken,
   }) async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return left(_featureDisabled('Restore purchase'));
+    }
     return ref
         .read(lanternServiceProvider)
         .restoreInAppPurchase(purchaseToken: purchaseToken);
@@ -63,6 +72,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     String planId,
     String email,
   ) async {
+    if (!AppBuildInfo.enablePayments) {
+      return left(_featureDisabled('Payment'));
+    }
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
@@ -78,6 +90,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     String planId,
     String email,
   ) async {
+    if (!AppBuildInfo.enablePayments) {
+      return left(_featureDisabled('Payment'));
+    }
     return ref
         .read(lanternServiceProvider)
         .stipeSubscription(planId: planId, email: email);
@@ -88,6 +103,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String planId,
     required String email,
   }) async {
+    if (!AppBuildInfo.enablePayments) {
+      return left(_featureDisabled('Payment'));
+    }
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
@@ -107,6 +125,9 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentErrorCallback onError,
     required String provider,
   }) async {
+    if (!AppBuildInfo.enablePayments) {
+      return left(_featureDisabled('Payment'));
+    }
     if (_isAndroidStoreBuild) {
       // Google Play build uses IAP
       final result = await startInAppPurchaseFlow(
@@ -130,4 +151,9 @@ class PaymentNotifier extends _$PaymentNotifier {
       (url) => right(url),
     );
   }
+
+  Failure _featureDisabled(String feature) => Failure(
+    error: '$feature disabled for this build',
+    localizedErrorMessage: 'This feature is not available in this build',
+  );
 }
