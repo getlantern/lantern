@@ -1,21 +1,32 @@
 package org.getlantern.lantern.service
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.system.Os
+import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import lantern.io.libbox.Notification
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
 import org.getlantern.lantern.BuildConfig
+import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.R
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
@@ -25,6 +36,7 @@ import org.getlantern.lantern.utils.getRadianceEnv
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.isTelemetryEnabled
 import org.getlantern.lantern.utils.logDir
+import java.util.concurrent.atomic.AtomicBoolean
 
 class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     companion object {
@@ -32,10 +44,14 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         const val ACTION_START_PROXY = "org.getlantern.START_LOCAL_PROXY"
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.LOCAL_PROXY_CONNECT_TO_SERVER"
         const val ACTION_STOP_PROXY = "org.getlantern.STOP_LOCAL_PROXY"
+        private const val PROXY_START_TIMEOUT_MS = 60_000L
+        private const val PROXY_NOTIFICATION_ID = 8787
+        private const val PROXY_CHANNEL_ID = "local_connection"
     }
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val flutterEventListener = FlutterEventListener()
+    private val connectInFlight = AtomicBoolean(false)
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -47,11 +63,13 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             }
 
             ACTION_CONNECT_TO_SERVER -> {
+                showProxyNotification("Starting local connection")
                 serviceScope.launch { connectToServer(intent.getStringExtra("tag") ?: "") }
                 START_STICKY
             }
 
             else -> {
+                showProxyNotification("Starting local connection")
                 serviceScope.launch { startProxy() }
                 START_STICKY
             }
@@ -59,12 +77,19 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     override fun onDestroy() {
+        runBlocking(Dispatchers.IO) {
+            cleanupProxy(stopService = false)
+        }
         serviceScope.cancel()
         super.onDestroy()
     }
 
     private suspend fun startProxy() = withContext(Dispatchers.IO) {
-        runCatching {
+        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
+        val started = runBlockingMobileOperation(
+            errorCode = "start_proxy",
+            errorMessage = "Failed to start local proxy",
+        ) {
             configureProxyEnv()
             if (!Mobile.isRadianceConnected()) {
                 Mobile.startIPCServer(this@NoVpnLanternService, opts())
@@ -73,19 +98,19 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             // Radiance exposes its no-VPN SOCKS/HTTP CONNECT listener through
             // the existing connect path when RADIANCE_USE_SOCKS_PROXY is set.
             Mobile.startVPN()
+        }
+        if (started) {
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+            showProxyNotification("Local connection active")
             AppLogger.i(TAG, "Local proxy started at ${proxyAddress()}")
-        }.onFailure { e ->
-            AppLogger.e(TAG, "Failed to start local proxy", e)
-            VpnStatusManager.postVPNError(
-                errorCode = "start_proxy",
-                errorMessage = "Failed to start local proxy",
-                error = e,
-            )
         }
     }
 
     private suspend fun stopProxy() = withContext(Dispatchers.IO) {
+        cleanupProxy(stopService = true)
+    }
+
+    private suspend fun cleanupProxy(stopService: Boolean) = withContext(Dispatchers.IO) {
         runCatching {
             if (Mobile.isRadianceConnected()) {
                 Mobile.stopVPN()
@@ -94,21 +119,68 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             AppLogger.e(TAG, "Failed to stop local proxy", e)
         }
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-        stopSelf()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        if (stopService) {
+            stopSelf()
+        }
     }
 
     private suspend fun connectToServer(tag: String) = withContext(Dispatchers.IO) {
-        startProxy()
-        runCatching {
+        if (!startProxyForConnect()) {
+            return@withContext
+        }
+        val connected = runBlockingMobileOperation(
+            errorCode = "connect_proxy_server",
+            errorMessage = "Failed to switch local proxy server",
+        ) {
             Mobile.connectToServer(tag)
+        }
+        if (connected) {
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-        }.onFailure { e ->
-            AppLogger.e(TAG, "Failed to switch local proxy server", e)
-            VpnStatusManager.postVPNError(
-                errorCode = "connect_proxy_server",
-                errorMessage = "Failed to switch local proxy server",
-                error = e,
-            )
+            showProxyNotification("Local connection active")
+        }
+    }
+
+    private suspend fun startProxyForConnect(): Boolean {
+        startProxy()
+        return Mobile.isRadianceConnected()
+    }
+
+    private suspend fun runBlockingMobileOperation(
+        errorCode: String,
+        errorMessage: String,
+        block: suspend () -> Unit,
+    ): Boolean {
+        if (!connectInFlight.compareAndSet(false, true)) {
+            val error = IllegalStateException("previous local proxy operation still in flight")
+            AppLogger.e(TAG, errorMessage, error)
+            VpnStatusManager.postVPNError(errorCode, errorMessage, error)
+            return false
+        }
+
+        val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val deferred = connectScope.async { block() }
+        deferred.invokeOnCompletion {
+            connectInFlight.set(false)
+        }
+
+        return try {
+            withTimeout(PROXY_START_TIMEOUT_MS) { deferred.await() }
+            true
+        } catch (e: TimeoutCancellationException) {
+            deferred.cancel()
+            AppLogger.e(TAG, "$errorMessage timed out after ${PROXY_START_TIMEOUT_MS}ms", e)
+            VpnStatusManager.postVPNError("${errorCode}_timeout", "$errorMessage timed out", e)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            false
+        } catch (e: Exception) {
+            AppLogger.e(TAG, errorMessage, e)
+            VpnStatusManager.postVPNError(errorCode, errorMessage, e)
+            cleanupProxy(stopService = true)
+            false
+        } finally {
+            connectScope.cancel()
         }
     }
 
@@ -139,6 +211,41 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     override fun sendNotification(notification: Notification?) {
+    }
+
+    private fun showProxyNotification(text: String) {
+        createProxyNotificationChannel()
+        startForeground(PROXY_NOTIFICATION_ID, buildProxyNotification(text))
+    }
+
+    private fun buildProxyNotification(text: String): android.app.Notification {
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return NotificationCompat.Builder(this, PROXY_CHANNEL_ID)
+            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(text)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
+    private fun createProxyNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+        val channel = NotificationChannel(
+            PROXY_CHANNEL_ID,
+            "Connection",
+            NotificationManager.IMPORTANCE_LOW,
+        )
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     override fun systemCertificates(): StringIterator {

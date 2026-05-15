@@ -132,11 +132,10 @@ class MainActivity : FlutterFragmentActivity() {
 
     private fun startNoVpnProxyService() {
         if (isServiceRunning(this, NoVpnLanternService::class.java)) {
-            AppLogger.d(TAG, "NoVpnLanternService is already running")
-            return
+            AppLogger.d(TAG, "NoVpnLanternService is already running; sending start action")
         }
         try {
-            startService(Intent(this, NoVpnLanternService::class.java).apply {
+            ContextCompat.startForegroundService(this, Intent(this, NoVpnLanternService::class.java).apply {
                 action = NoVpnLanternService.ACTION_START_PROXY
             })
             AppLogger.d(TAG, "NoVpnLanternService started")
@@ -212,7 +211,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun connectToServer(tag: String) {
         if (BuildConfig.STEALTH_NO_VPN) {
-            startService(Intent(this, NoVpnLanternService::class.java).apply {
+            ContextCompat.startForegroundService(this, Intent(this, NoVpnLanternService::class.java).apply {
                 action = NoVpnLanternService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
             })
