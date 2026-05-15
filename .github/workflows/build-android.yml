@@ -12,6 +12,14 @@ on:
       installer_base_name:
         required: true
         type: string
+      obfuscate_go:
+        description: "Build Android Go/native libraries through garble"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      STEALTH_GARBLE_SEED:
+        required: false
 
 jobs:
   build-android:
@@ -148,13 +156,24 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Install garble
+        if: ${{ inputs.obfuscate_go }}
+        run: make install-garble
+
       - name: Build Android (APK + AAB)
-        run: make android-release-ci
+        shell: bash
+        run: |
+          if [[ "${{ inputs.obfuscate_go }}" == "true" ]]; then
+            make android-release-ci-obfuscated
+          else
+            make android-release-ci
+          fi
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          STEALTH_GARBLE_SEED: ${{ secrets.STEALTH_GARBLE_SEED }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
