@@ -44,6 +44,15 @@ on:
         required: false
         type: boolean
         default: false
+      stealth_leakage_mode:
+        description: "Run Android stealth leakage scanner for manual Android builds"
+        required: false
+        type: choice
+        options:
+          - none
+          - stealth
+          - stealth-novpn
+        default: none
 
 permissions:
   contents: write
@@ -69,6 +78,7 @@ jobs:
       linux_arch: ${{ steps.meta.outputs.linux_arch }}
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
+      stealth_leakage_mode: ${{ steps.meta.outputs.stealth_leakage_mode }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -202,6 +212,13 @@ jobs:
           fi
 
           SMOKE_ENABLE_IP_CHECK="false"
+          STEALTH_LEAKAGE_MODE=""
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            requested_stealth_leakage_mode="${{ github.event.inputs.stealth_leakage_mode }}"
+            if [[ "$requested_stealth_leakage_mode" != "none" ]]; then
+              STEALTH_LEAKAGE_MODE="$requested_stealth_leakage_mode"
+            fi
+          fi
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
@@ -211,6 +228,7 @@ jobs:
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
+          echo "stealth_leakage_mode=$STEALTH_LEAKAGE_MODE" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -355,6 +373,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      stealth_leakage_mode: ${{ needs.set-metadata.outputs.stealth_leakage_mode }}
 
   release-create:
     needs: set-metadata
