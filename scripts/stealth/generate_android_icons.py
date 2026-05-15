@@ -100,7 +100,6 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path android:fillColor="#FFFFFFFF" android:pathData="M12,3 L21,12 L12,21 L3,12 Z"/>
-    <path android:fillColor="#00000000" android:pathData="M12,8 L16,12 L12,16 L8,12 Z"/>
 </vector>
 """,
     )
