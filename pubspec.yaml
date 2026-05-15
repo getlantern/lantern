@@ -99,7 +99,7 @@ dependencies:
   # Utils
   fpdart: ^1.2.0
   jwt_decoder: ^2.0.1
-  mobile_scanner: ^7.2.0
+  flutter_zxing: ^2.3.0
   device_info_plus: ^12.3.0
 
   flutter_inappwebview: ^6.1.5
