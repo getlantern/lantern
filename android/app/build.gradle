@@ -177,6 +177,7 @@ def androidIdentityDefaults = [
         appIcon: "@mipmap/ic_launcher",
         appRoundIcon: "@mipmap/ic_launcher_round",
         notificationSmallIcon: "@drawable/lantern_notification_icon",
+        quickTileIcon: "@drawable/lantern_notification_icon",
         appAuthScheme: "lantern",
 ]
 
@@ -293,6 +294,7 @@ android {
                 identityLabel: androidIdentity.identityLabel,
                 identityProfileId: androidIdentity.identityProfileId,
                 identityMetadata: androidIdentity.identityMetadata,
+                quickTileIcon: androidIdentity.quickTileIcon,
                 appAuthScheme: androidIdentity.appAuthScheme,
         ]
         resValue "string", "app_name", androidIdentity.appLabel

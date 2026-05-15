@@ -20,6 +20,7 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
         self.assertNotEqual(first.application_id, "org.getlantern.lantern")
         self.assertNotIn("Lantern", first.app_label)
         self.assertNotIn("VPN", first.notification_connected_text)
+        self.assertEqual(first.quick_tile_icon, "@drawable/neutral_notification_icon")
         self.assertRegex(
             first.application_id,
             re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$"),
@@ -49,6 +50,7 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
 
         self.assertIn(f"applicationId={identity.application_id}", content)
         self.assertIn(f"appLabel={identity.app_label}", content)
+        self.assertIn(f"quickTileIcon={identity.quick_tile_icon}", content)
         metadata_line = next(
             line for line in content.splitlines() if line.startswith("identityMetadata=")
         )

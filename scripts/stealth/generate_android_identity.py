@@ -78,6 +78,7 @@ class AndroidIdentity:
     app_icon: str
     app_round_icon: str
     notification_small_icon: str
+    quick_tile_icon: str
     app_auth_scheme: str
 
     def as_properties(self) -> dict[str, str]:
@@ -100,6 +101,7 @@ class AndroidIdentity:
             "appIcon": self.app_icon,
             "appRoundIcon": self.app_round_icon,
             "notificationSmallIcon": self.notification_small_icon,
+            "quickTileIcon": self.quick_tile_icon,
             "appAuthScheme": self.app_auth_scheme,
         }
 
@@ -127,6 +129,7 @@ def generate_identity(
     app_icon: str = "@drawable/neutral_app_icon",
     app_round_icon: str = "@drawable/neutral_app_icon",
     notification_small_icon: str = "@drawable/neutral_notification_icon",
+    quick_tile_icon: str = "@drawable/neutral_notification_icon",
 ) -> AndroidIdentity:
     seed_value, random_seed = _seed_material(seed)
     digest = hashlib.sha256(seed_value.encode("utf-8")).hexdigest()
@@ -175,6 +178,7 @@ def generate_identity(
         app_icon=app_icon,
         app_round_icon=app_round_icon,
         notification_small_icon=notification_small_icon,
+        quick_tile_icon=quick_tile_icon,
         app_auth_scheme=f"{adjective_slug}{noun_slug}{suffix[:8]}",
     )
 
@@ -220,6 +224,7 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--notification-small-icon", default="@drawable/neutral_notification_icon"
     )
+    parser.add_argument("--quick-tile-icon", default="@drawable/neutral_notification_icon")
     return parser.parse_args(argv)
 
 
@@ -231,6 +236,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         app_icon=args.app_icon,
         app_round_icon=args.app_round_icon,
         notification_small_icon=args.notification_small_icon,
+        quick_tile_icon=args.quick_tile_icon,
     )
     write_properties(identity, args.output)
     print(f"Wrote Android identity profile: {args.output}")
