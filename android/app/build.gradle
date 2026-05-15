@@ -11,9 +11,6 @@ def hasReleaseKeystore =
         hasRelProp('KEYSTORE_PWD') &&
         hasRelProp('KEY_ALIAS') &&
         hasRelProp('KEY_PWD')
-def stealthNoVpn = hasRelProp('stealthNovpn') &&
-        project.property('stealthNovpn').toString().toBoolean()
-def noVpnProxyAddress = '127.0.0.1:8787'
 
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
@@ -24,6 +21,7 @@ if (stealthMode && !stealthModes.contains(stealthMode)) {
     throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")
 }
 def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
+def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
 
 android {
     namespace = "org.getlantern.lantern"
@@ -70,14 +68,6 @@ android {
         targetSdk = 36
         versionCode = code
         versionName = flutter.versionName
-        manifestPlaceholders = [
-                stealthNoVpn        : stealthNoVpn.toString(),
-                lanternVpnServiceNode: stealthNoVpn ? "remove" : "merge",
-                quickTileServiceNode : stealthNoVpn ? "remove" : "merge",
-        ]
-        buildConfigField "boolean", "STEALTH_NOVPN", stealthNoVpn.toString()
-        buildConfigField "String", "NO_VPN_PROXY_ADDRESS", "\"${noVpnProxyAddress}\""
-
         ndk {
             // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS
             // in the top-level Makefile: android-arm + android-arm64). Listing an
@@ -97,8 +87,6 @@ android {
         buildFeatures {
             buildConfig true
         }
-        buildConfigField "String", "STEALTH_MODE", "\"${stealthMode}\""
-        buildConfigField "boolean", "STEALTH_NO_VPN", stealthMode == "novpn" ? "true" : "false"
     }
 
     signingConfigs {
@@ -139,10 +127,12 @@ android {
 if (stealthMode) {
     tasks.register("generateStealthManifest", Exec) {
         inputs.file(file("src/main/AndroidManifest.xml"))
+        inputs.file(stealthManifestFilter)
+        inputs.property("stealthMode", stealthMode)
         outputs.file(stealthManifest)
         commandLine(
                 "python3",
-                "${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py",
+                stealthManifestFilter.absolutePath,
                 "--mode", stealthMode,
                 "--input", "${projectDir}/src/main/AndroidManifest.xml",
                 "--output", stealthManifest.absolutePath,

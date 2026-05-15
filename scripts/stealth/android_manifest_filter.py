@@ -137,7 +137,8 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
             and android_attr(el, ANDROID_NAME) in PAYMENT_QUERY_PACKAGES,
         )
 
-    ET.indent(tree, space="    ")
+    if hasattr(ET, "indent"):
+        ET.indent(tree, space="    ")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     tree.write(output_path, encoding="utf-8", xml_declaration=False)
     output_path.write_text(output_path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
