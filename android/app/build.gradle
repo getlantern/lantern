@@ -62,7 +62,9 @@ android {
             }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
-            res.srcDirs += [generatedStealthIconResDir.get().asFile]
+            if (stealthIconSeed) {
+                res.srcDirs += [generatedStealthIconResDir.get().asFile]
+            }
         }
     }
 
