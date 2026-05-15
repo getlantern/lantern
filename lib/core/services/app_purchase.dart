@@ -42,14 +42,9 @@ class AppPurchase {
     if (PlatformUtils.isDesktop || _subscription != null) {
       return;
     }
-    // Skip BillingClient initialization on non-store Android builds
-    // (sideload, nightly, emulator/dev). Subscribing to purchaseStream
-    // triggers BillingClient.startConnection, and in_app_purchase_android's
-    // BillingClientManager auto-reconnects on every serviceDisconnected
-    // without backoff — on builds where Play Billing isn't available the
-    // reconnect runs hot and queues ~100 PLAY_BILLING_LIBRARY datatransport
-    // events per second, OOMing the Dalvik heap in ~3 minutes.
-    // See getlantern/engineering#3485.
+    // Subscribing to purchaseStream initializes BillingClient, which OOMs
+    // the Dalvik heap via an internal reconnect loop when Play Billing
+    // isn't reachable. See getlantern/engineering#3485.
     if (Platform.isAndroid && !isStoreVersion()) {
       return;
     }
