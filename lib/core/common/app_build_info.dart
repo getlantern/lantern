@@ -37,16 +37,6 @@ class AppBuildInfo {
     defaultValue: 'LanternVpn',
   );
 
-  static const String stealthNativeLibraryName = String.fromEnvironment(
-    'STEALTH_NATIVE_LIBRARY_NAME',
-    defaultValue: 'liblantern',
-  );
-
-  static const String stealthGoObfuscationSeed = String.fromEnvironment(
-    'STEALTH_GO_OBFUSCATION_SEED',
-    defaultValue: '',
-  );
-
   static const int stealthDenylistVersion = int.fromEnvironment(
     'STEALTH_DENYLIST_VERSION',
     defaultValue: 0,
