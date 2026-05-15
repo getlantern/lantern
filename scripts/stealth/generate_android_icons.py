@@ -7,6 +7,7 @@ import argparse
 import colorsys
 import hashlib
 import json
+import os
 import secrets
 from pathlib import Path
 
@@ -144,12 +145,12 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     return metadata
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--seed",
         default="",
-        help="private per-variant seed; random if omitted",
+        help="private per-variant seed; defaults to STEALTH_ICON_SEED; random if omitted",
     )
     parser.add_argument(
         "--output-res-dir",
@@ -157,12 +158,12 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Android generated resource directory",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
-    args = parse_args()
-    seed = args.seed or secrets.token_urlsafe(24)
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    seed = args.seed or os.environ.get("STEALTH_ICON_SEED", "") or secrets.token_urlsafe(24)
     metadata = generate(seed, args.output_res_dir)
     print(
         "Generated stealth Android icons:",

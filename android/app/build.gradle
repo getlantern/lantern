@@ -42,6 +42,13 @@ def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH_ICON_SEED"))?.toString()?.trim()
+def sha256Hex = { value ->
+    java.security.MessageDigest.getInstance("SHA-256")
+            .digest(value.getBytes("UTF-8"))
+            .collect { String.format("%02x", it) }
+            .join()
+}
+def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""
 def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
 def generatedStealthIconMetadata = layout.buildDirectory.file("generated/stealth-icons/stealth-icon-metadata.json")
 def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
@@ -189,12 +196,12 @@ if (sideloadUpdates) {
 
 tasks.register("generateStealthAndroidIcons", Exec) {
     onlyIf { stealthIconSeed }
-    inputs.property("stealthIconSeed", stealthIconSeed ?: "")
+    inputs.property("stealthIconSeedSha256", stealthIconSeedSha256)
     outputs.dir(generatedStealthIconResDir)
     outputs.file(generatedStealthIconMetadata)
+    environment "STEALTH_ICON_SEED", stealthIconSeed ?: ""
     commandLine "python3",
             "${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py",
-            "--seed", stealthIconSeed ?: "",
             "--output-res-dir", generatedStealthIconResDir.get().asFile.absolutePath
 }
 

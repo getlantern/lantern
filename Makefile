@@ -189,7 +189,6 @@ check-gomobile:
 .PHONY: stealth-android-icons
 stealth-android-icons: guard-STEALTH_ICON_SEED
 	python3 scripts/stealth/generate_android_icons.py \
-		--seed "$(STEALTH_ICON_SEED)" \
 		--output-res-dir "$(STEALTH_ICON_RES_DIR)"
 
 

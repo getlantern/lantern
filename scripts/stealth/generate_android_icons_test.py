@@ -1,6 +1,9 @@
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 import generate_android_icons
 
@@ -61,6 +64,21 @@ class GenerateAndroidIconsTest(unittest.TestCase):
                 (first / "drawable/stealth_launcher_foreground.xml").read_text(),
                 (second / "drawable/stealth_launcher_foreground.xml").read_text(),
             )
+
+    def test_main_reads_seed_from_environment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "res"
+
+            with patch.dict("os.environ", {"STEALTH_ICON_SEED": "variant-env"}):
+                with redirect_stdout(StringIO()):
+                    exit_code = generate_android_icons.main(
+                        ["--output-res-dir", str(out)]
+                    )
+
+            expected = generate_android_icons.generate("variant-env", Path(tmp) / "expected")
+            metadata = (out.parent / "stealth-icon-metadata.json").read_text()
+            self.assertEqual(exit_code, 0)
+            self.assertIn(expected["seedSha256"], metadata)
 
 
 if __name__ == "__main__":
