@@ -1,7 +1,10 @@
+import 'package:lantern/core/common/app_build_info.dart';
+
 class AppUrls {
   static String lanternOfficial = 'https://lantern.io';
   static String support = 'https://support.lantern.io';
-  static String lanternForums = 'https://lantern.io/forums';
+  static String get lanternForums =>
+      AppBuildInfo.enableSocialLinks ? 'https://lantern.io/forums' : '';
   static String faq = '$lanternOfficial/faq';
   static String privacyPolicy = '$lanternOfficial/privacy';
   static String termsOfService = '$lanternOfficial/terms';
@@ -10,13 +13,12 @@ class AppUrls {
   static String downloadIos = '$lanternOfficial/download?os=ios';
   static String downloadMac = '$lanternOfficial/download?os=mac';
   static String downloadLinux = '$lanternOfficial/download?os=linux';
-  static String lanternGithub = 'https://github.com/getlantern/lantern';
-  static String telegramBot = 'https://t.me/lantern_official_bot';
+  static String get lanternGithub => AppBuildInfo.enableSocialLinks
+      ? 'https://github.com/getlantern/lantern'
+      : '';
+  static String get telegramBot =>
+      AppBuildInfo.enableSocialLinks ? 'https://t.me/lantern_official_bot' : '';
   static String unbounded = 'https://unbounded.lantern.io';
-  static const appcastProd =
-      'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
-  static const appcastBeta =
-      'https://s3.amazonaws.com/lantern.io/releases/beta/latest/appcast.xml';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
@@ -24,14 +26,20 @@ class AppUrls {
   static String androidSideloadUpdateEndpoint =
       'https://update.getlantern.org/update/lantern';
 
-  static String appcastFor(String buildType) {
+  static String? appcastFor(String buildType) {
+    if (!AppBuildInfo.enableAutoUpdate) {
+      return null;
+    }
     switch (buildType) {
       case 'production':
-        return appcastProd;
+        return 'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
       case 'beta':
-        return appcastBeta;
+        return 'https://s3.amazonaws.com/lantern.io/releases/beta/latest/appcast.xml';
       default:
-        return appcastProd;
+        return 'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
     }
   }
+
+  static bool isLanternHost(String host) =>
+      host == 'lantern.io' || host == 'www.lantern.io';
 }

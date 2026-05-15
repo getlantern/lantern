@@ -79,7 +79,7 @@ class _SettingState extends ConsumerState<Setting>
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
-          if (!isUserPro)
+          if (!isUserPro && AppBuildInfo.enablePayments)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
@@ -179,35 +179,38 @@ class _SettingState extends ConsumerState<Setting>
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
-                FutureBuilder<bool>(
-                  future: _canCheckForUpdates,
-                  builder: (context, snapshot) {
-                    final show =
-                        PlatformUtils.isDesktop ||
-                        (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.data == true);
-                    if (!show) return const SizedBox.shrink();
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DividerSpace(),
-                        AppTile(
-                          label: 'check_for_updates'.i18n,
-                          icon: AppImagePaths.update,
-                          onPressed: () async => await settingMenuTap(
-                            _SettingType.checkForUpdates,
+                if (AppBuildInfo.enableAutoUpdate)
+                  FutureBuilder<bool>(
+                    future: _canCheckForUpdates,
+                    builder: (context, snapshot) {
+                      final show =
+                          PlatformUtils.isDesktop ||
+                          (snapshot.connectionState == ConnectionState.done &&
+                              snapshot.data == true);
+                      if (!show) return const SizedBox.shrink();
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DividerSpace(),
+                          AppTile(
+                            label: 'check_for_updates'.i18n,
+                            icon: AppImagePaths.update,
+                            onPressed: () async => await settingMenuTap(
+                              _SettingType.checkForUpdates,
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                DividerSpace(),
-                AppTile(
-                  label: 'get_30_days_of_pro_free'.i18n,
-                  icon: AppImagePaths.star,
-                  onPressed: () => settingMenuTap(_SettingType.getPro),
-                ),
+                        ],
+                      );
+                    },
+                  ),
+                if (AppBuildInfo.enableSocialLinks) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'get_30_days_of_pro_free'.i18n,
+                    icon: AppImagePaths.star,
+                    onPressed: () => settingMenuTap(_SettingType.getPro),
+                  ),
+                ],
                 if (isStoreVersion() && !isUserPro) ...[
                   DividerSpace(),
                   AppTile(
@@ -233,35 +236,37 @@ class _SettingState extends ConsumerState<Setting>
               ),
             ),
           },
-          const SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'lantern_projects'.i18n,
-              style: textTheme.labelLarge!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Card(
-            child: AppTile(
-              minHeight: 72,
-              icon: AppImagePaths.lanternLogoRounded,
-              iconUseThemeColor: false,
-              trailing: AppImage(path: AppImagePaths.outsideBrowser),
-              label: 'unbounded'.i18n,
-              subtitle: Text(
-                'help_fight_global_internet_censorship'.i18n,
-                style: textTheme.labelMedium!.copyWith(
-                  color: context.textTertiary,
+          if (AppBuildInfo.enableSocialLinks) ...[
+            const SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'lantern_projects'.i18n,
+                style: textTheme.labelLarge!.copyWith(
+                  color: context.textSecondary,
                 ),
               ),
-              onPressed: () {
-                UrlUtils.openUrl(AppUrls.unbounded);
-              },
             ),
-          ),
+            const SizedBox(height: 4),
+            Card(
+              child: AppTile(
+                minHeight: 72,
+                icon: AppImagePaths.lanternLogoRounded,
+                iconUseThemeColor: false,
+                trailing: AppImage(path: AppImagePaths.outsideBrowser),
+                label: 'unbounded'.i18n,
+                subtitle: Text(
+                  'help_fight_global_internet_censorship'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.textTertiary,
+                  ),
+                ),
+                onPressed: () {
+                  UrlUtils.openUrl(AppUrls.unbounded);
+                },
+              ),
+            ),
+          ],
           SizedBox(height: defaultSize),
         ],
       ),

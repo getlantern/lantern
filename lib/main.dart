@@ -55,9 +55,9 @@ Future<void> main() async {
   // (registered at injection_container.dart:40) may not be in the registry,
   // and the synchronous lookup would throw and prevent runApp.
   try {
-    if (sl.isRegistered<Updater>()) {
+    if (AppBuildInfo.enableAutoUpdate && sl.isRegistered<Updater>()) {
       unawaited(sl<Updater>().init());
-    } else {
+    } else if (AppBuildInfo.enableAutoUpdate) {
       appLogger.warning('Updater not registered, skipping init');
     }
   } catch (e, st) {

@@ -1,0 +1,41 @@
+# Stealth feature gates
+
+Stealth artifacts disable high-identification product surfaces at compile time
+with Dart environment defines. Normal builds remain unchanged.
+
+## Build flags
+
+Use either profile-style mode names or an explicit boolean flag:
+
+```sh
+flutter build apk --dart-define=STEALTH_MODE=stealth-vpn
+flutter build apk --dart-define=STEALTH_MODE=stealth-novpn
+flutter build apk --dart-define=STEALTH_BUILD=true
+```
+
+The app derives these gates from the stealth flag:
+
+- `enableOAuth`
+- `enablePayments`
+- `enableStorePayments`
+- `enableAppLinks`
+- `enableSocialLinks`
+- `enableAutoUpdate`
+
+## Disabled surfaces
+
+Stealth builds hide or short-circuit:
+
+- OAuth login buttons, callbacks, and SSO account deletion verification.
+- Store purchase initialization, restore purchase, Google Play subscription
+  management, Stripe/payment redirect entry points, and upgrade CTAs.
+- Runtime app-link handling in Flutter.
+- Follow-us, forum, alternate download, referral/social, and project-link
+  surfaces.
+- Desktop auto-update initialization, manual update checks, and appcast URL
+  resolution.
+
+Native manifest and entitlement removal is handled by the stealth manifest
+filtering build step. Artifact leakage checks should still scan final APK/IPA
+and desktop bundles for OAuth provider names, app-link hosts/schemes, billing
+entry points, social URLs, and appcast/update URLs.

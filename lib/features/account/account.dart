@@ -54,7 +54,7 @@ class Account extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          if (isUserFree)
+          if (isUserFree && AppBuildInfo.enablePayments)
             ProButton(
               onPressed: () {
                 appRouter.push(const Plans());
@@ -71,12 +71,13 @@ class Account extends HookConsumerWidget {
               text: 'pro_subscription_expired_message'.i18n,
             ),
             SizedBox(height: defaultSize),
-            ProButton(
-              label: 'renew_pro_subscription'.i18n,
-              onPressed: () {
-                appRouter.push(const Plans());
-              },
-            ),
+            if (AppBuildInfo.enablePayments)
+              ProButton(
+                label: 'renew_pro_subscription'.i18n,
+                onPressed: () {
+                  appRouter.push(const Plans());
+                },
+              ),
           },
           SizedBox(height: defaultSize),
           Padding(
@@ -196,6 +197,9 @@ class Account extends HookConsumerWidget {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
     final isUserExpired = user.legacyUserData.userLevel == 'expired';
     final isUserPro = user.legacyUserData.isPro;
+    if (!AppBuildInfo.enablePayments) {
+      return null;
+    }
 
     ///User has an active subscription with auto-renew enabled
     if (!isUserExpired && autoRenew) {
@@ -220,6 +224,9 @@ class Account extends HookConsumerWidget {
     BuildContext buildContext,
     UserResponseModel user,
   ) async {
+    if (!AppBuildInfo.enablePayments) {
+      return;
+    }
     final provider = user.legacyUserData.subscriptionData.provider;
     switch (provider) {
       case 'apple':
@@ -255,6 +262,10 @@ class Account extends HookConsumerWidget {
   }
 
   void onRenewTap() {
+    if (!AppBuildInfo.enablePayments) {
+      return;
+    }
+
     /// Most user renewal attempts are one-time purchases.
     /// Send the user to the plans page.
     appRouter.push(const Plans());

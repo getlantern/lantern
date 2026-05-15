@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -47,7 +48,9 @@ Future<void> injectServices() async {
   appLogger.debug('Registering AppPurchase...');
   final appPurchase = AppPurchase();
   sl.registerSingleton<AppPurchase>(appPurchase);
-  if (PlatformUtils.isIOS) {
+  if (PlatformUtils.isIOS &&
+      AppBuildInfo.enablePayments &&
+      AppBuildInfo.enableStorePayments) {
     // StoreKit can deliver pending transaction updates at launch; init()
     // only subscribes to the stream and does not fetch product details.
     appPurchase.init();
