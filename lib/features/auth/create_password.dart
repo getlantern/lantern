@@ -37,8 +37,8 @@ class CreatePassword extends HookConsumerWidget {
       },
       child: BaseScreen(
         title: 'create_password'.i18n,
-        body: AutofillGroup(
-          child: SingleChildScrollView(
+        body: SingleChildScrollView(
+          child: AutofillGroup(
             child: Column(
               children: <Widget>[
                 SizedBox(height: defaultSize),
