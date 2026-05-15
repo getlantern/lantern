@@ -1,6 +1,5 @@
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -113,13 +112,9 @@ class LocationListItem extends StatelessWidget {
             onLocationSelected(location);
           },
           contentPadding: EdgeInsets.zero,
-          icon: CountryFlag.fromCountryCode(
-            location.countryCode,
-            theme: const ImageTheme(
-              shape: RoundedRectangle(5),
-              width: 30,
-              height: 20,
-            ),
+          icon: Flag(
+            countryCode: location.countryCode,
+            size: const Size(30, 20),
           ),
           label: location.locationName,
           trailing: AppRadioButton<String>(

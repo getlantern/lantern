@@ -1,4 +1,3 @@
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -57,12 +56,9 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
                 // Country flag and location name
                 Row(
                   children: [
-                    CountryFlag.fromCountryCode(
-                      countryCode,
-                      theme: const ImageTheme(
-                        width: 24,
-                        height: 16,
-                      ),
+                    Flag(
+                      countryCode: countryCode,
+                      size: const Size(24, 16),
                     ),
                     const SizedBox(width: 12),
                     Text(
