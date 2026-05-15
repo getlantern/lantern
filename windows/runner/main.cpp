@@ -3,7 +3,20 @@
 #include <windows.h>
 
 #include "flutter_window.h"
+#include "single_instance.h"
 #include "utils.h"
+
+namespace {
+
+constexpr const wchar_t kSingleInstanceMutexName[] =
+    L"Local\\org.getlantern.lantern.single-instance";
+constexpr const wchar_t kSingleInstanceReadyEventName[] =
+    L"Local\\org.getlantern.lantern.window-ready";
+constexpr DWORD kWindowReadyTimeoutMs = 5000;
+constexpr DWORD kActivationRetryTimeoutMs = 1000;
+constexpr DWORD kActivationRetryIntervalMs = 100;
+
+}  // namespace
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
@@ -12,6 +25,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
     CreateAndAttachConsole();
   }
+
+  SingleInstanceReadyEvent window_ready(kSingleInstanceReadyEventName);
+  SingleInstanceLock single_instance(kSingleInstanceMutexName);
+  if (!single_instance.IsPrimaryInstance()) {
+    window_ready.Wait(kWindowReadyTimeoutMs);
+    return ActivateExistingLanternWindowWithRetry(kActivationRetryTimeoutMs,
+                                                  kActivationRetryIntervalMs)
+               ? EXIT_SUCCESS
+               : EXIT_FAILURE;
+  }
+  // If we acquire the mutex, start this build. Normal installer upgrades close
+  // running Lantern instances before launch; handing off here could silently
+  // keep a pre-single-instance build alive.
 
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
@@ -31,6 +57,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
+  window_ready.Signal();
 
   ::MSG msg;
   while (::GetMessage(&msg, nullptr, 0, 0)) {
