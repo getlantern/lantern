@@ -157,6 +157,53 @@ def loadStealthProfile = {
 
 def stealthProfile = loadStealthProfile()
 
+// Android identity — UI strings for notification channels, quick tile, etc.
+// applicationId always comes from stealthProfile.packageName (single source of truth).
+def androidIdentityDefaults = [
+        appLabel: "Lantern",
+        launcherLabel: "Lantern",
+        identityLabel: "Lantern",
+        identityProfileId: "standard",
+        identityMetadata: "{}",
+        vpnSessionName: "LanternVpn",
+        notificationChannelVpn: "VPN",
+        notificationChannelDataUsage: "Data Usage",
+        notificationTitle: "Lantern",
+        notificationConnectedText: "Lantern VPN is running",
+        notificationStartingText: "Starting Lantern VPN...",
+        notificationDisconnectAction: "Disconnect",
+        quickTileActiveLabel: "VPN Connected",
+        quickTileInactiveLabel: "VPN Disconnected",
+        appIcon: "@mipmap/ic_launcher",
+        appRoundIcon: "@mipmap/ic_launcher_round",
+        notificationSmallIcon: "@drawable/lantern_notification_icon",
+        appAuthScheme: "lantern",
+]
+
+def androidIdentityProfilePath =
+        (project.findProperty("androidIdentityProfile") ?: System.getenv("ANDROID_IDENTITY_PROFILE"))?.toString()?.trim()
+def androidIdentity = new LinkedHashMap(androidIdentityDefaults)
+if (androidIdentityProfilePath) {
+    def profileFile = new File(androidIdentityProfilePath)
+    if (!profileFile.isAbsolute()) {
+        profileFile = new File(rootProject.projectDir.parentFile, androidIdentityProfilePath)
+    }
+    if (!profileFile.exists()) {
+        throw new GradleException("Android identity profile not found: ${profileFile}")
+    }
+    def props = new java.util.Properties()
+    profileFile.withReader("UTF-8") { props.load(it) }
+    props.each { key, value ->
+        def name = key.toString()
+        if (name == "applicationId") {
+            return  // applicationId comes from stealthProfile.packageName only
+        }
+        if (!androidIdentity.containsKey(name)) {
+            throw new GradleException("Unknown Android identity profile key '${name}' in ${profileFile}")
+        }
+        androidIdentity[name] = value.toString()
+    }
+}
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = 36
@@ -233,7 +280,18 @@ android {
         targetSdk = 36
         versionCode = code
         versionName = flutter.versionName
-        manifestPlaceholders = [appName: stealthProfile.appName.toString()]
+        manifestPlaceholders = [
+                appName: stealthProfile.appName.toString(),
+                appLabel: androidIdentity.appLabel,
+                launcherLabel: androidIdentity.launcherLabel,
+                appIcon: androidIdentity.appIcon,
+                appRoundIcon: androidIdentity.appRoundIcon,
+                identityLabel: androidIdentity.identityLabel,
+                identityProfileId: androidIdentity.identityProfileId,
+                identityMetadata: androidIdentity.identityMetadata,
+                appAuthScheme: androidIdentity.appAuthScheme,
+        ]
+        resValue "string", "app_name", androidIdentity.appLabel
         buildConfigField "boolean", "STEALTH_ENABLED", (stealthProfile.mode.toString() != "normal").toString()
         buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
         buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
@@ -255,6 +313,19 @@ android {
                 arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
         }
+        buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)
+        buildConfigField "String", "ANDROID_IDENTITY_PROFILE_ID", buildConfigString(androidIdentity.identityProfileId)
+        buildConfigField "String", "ANDROID_IDENTITY_METADATA", buildConfigString(androidIdentity.identityMetadata)
+        buildConfigField "String", "VPN_SESSION_NAME", buildConfigString(androidIdentity.vpnSessionName)
+        buildConfigField "String", "NOTIFICATION_CHANNEL_VPN", buildConfigString(androidIdentity.notificationChannelVpn)
+        buildConfigField "String", "NOTIFICATION_CHANNEL_DATA_USAGE", buildConfigString(androidIdentity.notificationChannelDataUsage)
+        buildConfigField "String", "NOTIFICATION_TITLE", buildConfigString(androidIdentity.notificationTitle)
+        buildConfigField "String", "NOTIFICATION_CONNECTED_TEXT", buildConfigString(androidIdentity.notificationConnectedText)
+        buildConfigField "String", "NOTIFICATION_STARTING_TEXT", buildConfigString(androidIdentity.notificationStartingText)
+        buildConfigField "String", "NOTIFICATION_DISCONNECT_ACTION", buildConfigString(androidIdentity.notificationDisconnectAction)
+        buildConfigField "String", "QUICK_TILE_ACTIVE_LABEL", buildConfigString(androidIdentity.quickTileActiveLabel)
+        buildConfigField "String", "QUICK_TILE_INACTIVE_LABEL", buildConfigString(androidIdentity.quickTileInactiveLabel)
+        buildConfigField "String", "NOTIFICATION_SMALL_ICON", buildConfigString(androidIdentity.notificationSmallIcon)
     }
 
     signingConfigs {

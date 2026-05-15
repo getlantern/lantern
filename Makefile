@@ -131,6 +131,11 @@ SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdk
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+ANDROID_STEALTH_IDENTITY ?= $(if $(filter stealth,$(BUILD_TYPE)),1,0)
+ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
+ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
+ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
+ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(ANDROID_IDENTITY_PROFILE)",)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -571,6 +576,23 @@ install-android-sdk: check-android-sdk
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
 
+.PHONY: android-identity-profile
+android-identity-profile:
+	@if [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "yes" ]; then \
+	  if [ -z "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
+	    exit 1; \
+	  fi; \
+	  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+	    python3 scripts/stealth/generate_android_identity.py \
+	      --output "$(ANDROID_IDENTITY_PROFILE)" \
+	      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
+	  else \
+	    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
+	  fi; \
+	fi
+
 .PHONY: android
 android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
@@ -598,24 +620,24 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES) -Plantern.sideloadUpdates=true
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE) android-identity-profile
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
-android-apk-release: $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) -Plantern.sideloadUpdates=true
+android-apk-release: $(MAYBE_STEALTH_PROFILE) android-identity-profile
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 # AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on
 # 32-bit). 32-bit-only devices no longer get Play updates; they were
 # crash-looping on Android 8-10 regardless.
 .PHONY: android-aab-release
-android-aab-release: $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+android-aab-release: $(MAYBE_STEALTH_PROFILE) android-identity-profile
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
@@ -630,10 +652,10 @@ android-aab-release: $(MAYBE_STEALTH_PROFILE)
 
 
 .PHONY: android-release
-android-release: clean android pubget gen android-apk-release
+android-release: clean android pubget gen android-identity-profile android-apk-release
 
 .PHONY: android-release-ci
-android-release-ci: android pubget gen android-apk-release android-aab-release
+android-release-ci: android pubget gen android-identity-profile android-apk-release android-aab-release
 
 # iOS Build
 .PHONY: install-ios-deps
