@@ -8,7 +8,7 @@ class Failure {
 
   factory Failure.featureDisabled(String feature) => Failure(
     error: '$feature disabled for this build',
-    localizedErrorMessage: 'This feature is not available in this build',
+    localizedErrorMessage: 'feature_disabled_for_build'.i18n,
   );
 
   @override

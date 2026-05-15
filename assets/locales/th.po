@@ -1649,3 +1649,7 @@ msgstr "Couldn't check for updates"
 
 msgid "check_connection_and_retry"
 msgstr "Check your connection and try again"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"
+

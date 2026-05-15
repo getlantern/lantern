@@ -143,9 +143,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     );
   }
 
-  bool isLanternHost(String host) =>
-      host == 'lantern.io' || host == 'www.lantern.io';
-
   String? _extractPurchaseResult(Uri uri) {
     var purchaseResult = uri.queryParameters['purchaseResult'];
     if (purchaseResult != null) {
@@ -195,7 +192,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     }
 
     final purchaseResult = _extractPurchaseResult(uri);
-    if (purchaseResult != null && isLanternHost(uri.host)) {
+    if (purchaseResult != null && AppUrls.isLanternHost(uri.host)) {
       loading.stop();
       await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
       return true;
@@ -212,7 +209,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return true;
     }
 
-    if (isLanternHost(uri.host) &&
+    if (AppUrls.isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {
       loading.stop();
@@ -250,7 +247,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    if (isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
+    if (AppUrls.isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
       return NavigationActionPolicy.ALLOW;
     }
 
