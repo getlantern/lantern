@@ -26,7 +26,6 @@ The generated profile includes:
 - `packageName`
 - `appName`
 - `sessionName`
-- `nativeLibraryName`
 - `goObfuscationSeed`
 - `denylistVersion`
 
@@ -62,10 +61,11 @@ The Makefile writes:
 - `build/stealth/profile.json`: private normalized profile for support/debugging
 - `build/stealth/dart-defines.json`: Flutter `--dart-define-from-file` input
 - `build/stealth/artifact-metadata.json`: private CI artifact metadata
+- `build/stealth/go-tags-suffix.txt`: Go build tag suffix consumed by Make
 
 Do not publish these files in public release artifacts. They contain profile
-values that identify a build stream; the metadata omits the raw obfuscation
-seed and includes its hash for support correlation.
+values that identify a build stream. Dart defines and metadata omit the raw Go
+obfuscation seed; metadata includes the seed hash for support correlation.
 
 ## Android Plumbing
 

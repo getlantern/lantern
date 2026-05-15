@@ -19,7 +19,6 @@ VALID_MODES = ("stealth-vpn", "stealth-novpn")
 DEFAULTS = {
     "appName": "Lantern",
     "sessionName": "LanternVpn",
-    "nativeLibraryName": "liblantern",
     "denylistVersion": 0,
 }
 DART_DEFINE_KEYS = {
@@ -27,12 +26,9 @@ DART_DEFINE_KEYS = {
     "packageName": "STEALTH_PACKAGE_NAME",
     "appName": "STEALTH_APP_NAME",
     "sessionName": "STEALTH_SESSION_NAME",
-    "nativeLibraryName": "STEALTH_NATIVE_LIBRARY_NAME",
-    "goObfuscationSeed": "STEALTH_GO_OBFUSCATION_SEED",
     "denylistVersion": "STEALTH_DENYLIST_VERSION",
 }
 PACKAGE_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
-NATIVE_LIB_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
 class ProfileError(ValueError):
@@ -78,21 +74,6 @@ def coerce_denylist_version(value: Any) -> int:
     return version
 
 
-def normalize_native_library_name(value: Any) -> str:
-    name = str(value).strip()
-    if name.startswith("lib"):
-        name = name[3:]
-    for suffix in (".so", ".dylib", ".dll", ".aar"):
-        if name.endswith(suffix):
-            name = name[: -len(suffix)]
-            break
-    if not name or not NATIVE_LIB_RE.fullmatch(name):
-        raise ProfileError(
-            "nativeLibraryName must contain only letters, numbers, and underscores"
-        )
-    return f"lib{name}"
-
-
 def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     mode = str(profile.get("mode", "")).strip()
     if mode not in VALID_MODES:
@@ -123,9 +104,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     normalized["packageName"] = package_name
     normalized["appName"] = app_name
     normalized["sessionName"] = session_name
-    normalized["nativeLibraryName"] = normalize_native_library_name(
-        profile.get("nativeLibraryName", DEFAULTS["nativeLibraryName"])
-    )
+    normalized.pop("nativeLibraryName", None)
     normalized.pop("obfuscationSeed", None)
     normalized["goObfuscationSeed"] = go_obfuscation_seed
     normalized["denylistVersion"] = coerce_denylist_version(
@@ -160,9 +139,6 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
         "sessionName": args.session_name
         or loaded.get("sessionName")
         or DEFAULTS["sessionName"],
-        "nativeLibraryName": args.native_library_name
-        or loaded.get("nativeLibraryName")
-        or DEFAULTS["nativeLibraryName"],
         "goObfuscationSeed": args.go_obfuscation_seed
         or loaded.get("goObfuscationSeed")
         or loaded.get("obfuscationSeed")
@@ -216,7 +192,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--package-name")
     parser.add_argument("--app-name")
     parser.add_argument("--session-name")
-    parser.add_argument("--native-library-name")
     parser.add_argument("--go-obfuscation-seed")
     parser.add_argument("--denylist-version", type=int)
     return parser.parse_args(argv)

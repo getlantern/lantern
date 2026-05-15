@@ -24,8 +24,6 @@ class GenerateProfileTest(unittest.TestCase):
                     "Beacon",
                     "--session-name",
                     "BeaconLink",
-                    "--native-library-name",
-                    "libbeacon.so",
                     "--go-obfuscation-seed",
                     "seed-for-test",
                     "--denylist-version",
@@ -46,7 +44,7 @@ class GenerateProfileTest(unittest.TestCase):
             self.assertEqual(profile["packageName"], "org.example.safe.s123")
             self.assertEqual(profile["appName"], "Beacon")
             self.assertEqual(profile["sessionName"], "BeaconLink")
-            self.assertEqual(profile["nativeLibraryName"], "libbeacon")
+            self.assertNotIn("nativeLibraryName", profile)
             self.assertEqual(profile["goObfuscationSeed"], "seed-for-test")
             self.assertEqual(profile["denylistVersion"], 7)
 
@@ -55,7 +53,8 @@ class GenerateProfileTest(unittest.TestCase):
             self.assertEqual(
                 defines["STEALTH_PACKAGE_NAME"], "org.example.safe.s123"
             )
-            self.assertEqual(defines["STEALTH_GO_OBFUSCATION_SEED"], "seed-for-test")
+            self.assertNotIn("STEALTH_NATIVE_LIBRARY_NAME", defines)
+            self.assertNotIn("STEALTH_GO_OBFUSCATION_SEED", defines)
 
             metadata = json.loads(metadata_path.read_text())
             self.assertNotIn("goObfuscationSeed", metadata)
@@ -67,7 +66,6 @@ class GenerateProfileTest(unittest.TestCase):
             "packageName": "org.example.safe.s456",
             "appName": "Beacon",
             "sessionName": "BeaconLink",
-            "nativeLibraryName": "libbeacon",
             "goObfuscationSeed": "seed-for-test",
             "denylistVersion": 0,
         }
@@ -90,7 +88,6 @@ class GenerateProfileTest(unittest.TestCase):
             "packageName": "bad package",
             "appName": "Beacon",
             "sessionName": "BeaconLink",
-            "nativeLibraryName": "libbeacon",
             "goObfuscationSeed": "seed-for-test",
             "denylistVersion": 0,
         }

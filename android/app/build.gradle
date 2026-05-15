@@ -21,8 +21,6 @@ def defaultStealthProfile = [
         packageName      : "org.getlantern.lantern",
         appName          : "Lantern",
         sessionName      : "LanternVpn",
-        nativeLibraryName: "liblantern",
-        goObfuscationSeed: "",
         denylistVersion  : 0,
 ]
 
@@ -103,6 +101,10 @@ android {
         jvmTarget = "17"
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     // Use legacy packaging to helps reduce apk size
     packagingOptions {
         exclude "DebugProbesKt.bin"
@@ -123,8 +125,6 @@ android {
         buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
         buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
         buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
-        buildConfigField "String", "STEALTH_NATIVE_LIBRARY_NAME", buildConfigString(stealthProfile.nativeLibraryName)
-        buildConfigField "String", "STEALTH_GO_OBFUSCATION_SEED", buildConfigString(stealthProfile.goObfuscationSeed)
         buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
 
         ndk {
@@ -142,9 +142,6 @@ android {
                 cppFlags "-std=c++14 -fexceptions -frtti"
                 arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
-        }
-        buildFeatures {
-            buildConfig true
         }
     }
 
