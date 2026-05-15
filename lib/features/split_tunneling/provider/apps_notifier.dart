@@ -107,11 +107,11 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   Set<String> _stateIds() => _current().map(normalizedAppId).toSet();
 
-  Future<void> toggleApp(AppData app) async {
+  Future<bool> toggleApp(AppData app) async {
     final id = normalizedAppId(app);
     final value = splitTunnelValue(app);
     if (value == null) {
-      return;
+      return false;
     }
     final current = _current();
     final isEnabled = current.any((a) => normalizedAppId(a) == id);
@@ -120,13 +120,14 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         ? await _lanternService.removeSplitTunnelItem(getFilterType(), value)
         : await _lanternService.addSplitTunnelItem(getFilterType(), value);
 
-    await result.match(
-      (failure) async {
+    return result.match(
+      (failure) {
         appLogger.error(
           'Failed to ${isEnabled ? "remove" : "add"} item: ${failure.error}',
         );
+        return false;
       },
-      (_) async {
+      (_) {
         // Optional optimistic UI update
         final next = isEnabled
             ? current.where((a) => normalizedAppId(a) != id).toSet()
@@ -136,18 +137,19 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
         // Re-sync from lantern-core (authoritative)
         ref.invalidateSelf();
+        return true;
       },
     );
   }
 
   /// Select exactly these apps
-  Future<void> selectApps(Iterable<AppData> apps) async {
+  Future<bool> selectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
     final toAdd = apps
         .where((a) => !currentIds.contains(normalizedAppId(a)))
         .toList();
-    if (toAdd.isEmpty) return;
+    if (toAdd.isEmpty) return false;
 
     final validToAdd = <AppData>[];
     final paths = <String>[];
@@ -159,30 +161,34 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       }
     }
 
-    if (paths.isEmpty) return;
+    if (paths.isEmpty) return false;
 
     final result = await _lanternService.addAllItems(getFilterType(), paths);
 
-    await result.match(
-      (l) async => appLogger.error('Failed to add apps: ${l.error}'),
-      (_) async {
+    return result.match(
+      (l) {
+        appLogger.error('Failed to add apps: ${l.error}');
+        return false;
+      },
+      (_) {
         state = AsyncData({
           ...current,
           ...validToAdd.map((a) => a.copyWith(isEnabled: true)),
         });
 
         ref.invalidateSelf();
+        return true;
       },
     );
   }
 
-  Future<void> deselectApps(Iterable<AppData> apps) async {
+  Future<bool> deselectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
     final toRemove = apps
         .where((a) => currentIds.contains(normalizedAppId(a)))
         .toList();
-    if (toRemove.isEmpty) return;
+    if (toRemove.isEmpty) return false;
 
     final validToRemove = <AppData>[];
     final paths = <String>[];
@@ -194,19 +200,23 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       }
     }
 
-    if (paths.isEmpty) return;
+    if (paths.isEmpty) return false;
 
     final result = await _lanternService.removeAllItems(getFilterType(), paths);
 
-    await result.match(
-      (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
-      (_) async {
+    return result.match(
+      (l) {
+        appLogger.error('Failed to remove apps: ${l.error}');
+        return false;
+      },
+      (_) {
         final removeIds = validToRemove.map(normalizedAppId).toSet();
         state = AsyncData(
           current.where((a) => !removeIds.contains(normalizedAppId(a))).toSet(),
         );
 
         ref.invalidateSelf();
+        return true;
       },
     );
   }

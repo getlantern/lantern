@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -16,6 +15,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -33,6 +33,15 @@ class AppsSplitTunneling extends ConsumerWidget {
     final title = directConnectionApps
         ? 'direct_connection_apps'.i18n
         : 'apps_split_tunneling'.i18n;
+    void showReconnectNoticeIfNeeded(bool changed) {
+      if (!changed ||
+          !directConnectionApps ||
+          ref.read(vpnProvider) != VPNStatus.connected ||
+          !context.mounted) {
+        return;
+      }
+      context.showSnackBar('changes_applied_after_restart'.i18n);
+    }
 
     final allApps = dedupeAndSortApps(
       (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
@@ -104,7 +113,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                           label: 'deselect_all'.i18n,
                           fontSize: 14,
                           onPressed: () async {
-                            await notifier.deselectApps(filteredEnabled);
+                            final changed = await notifier.deselectApps(
+                              filteredEnabled,
+                            );
+                            showReconnectNoticeIfNeeded(changed);
                           },
                         ),
                       );
@@ -113,7 +125,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                     return AppRow(
                       app: app,
                       enabled: true,
-                      onToggle: () => notifier.toggleApp(app),
+                      onToggle: () async {
+                        final changed = await notifier.toggleApp(app);
+                        showReconnectNoticeIfNeeded(changed);
+                      },
                     );
                   },
                 ),
@@ -146,9 +161,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                                     label: 'select_all'.i18n,
                                     fontSize: 14,
                                     onPressed: () async {
-                                      await notifier.selectApps(
+                                      final changed = await notifier.selectApps(
                                         filteredDisabled,
                                       );
+                                      showReconnectNoticeIfNeeded(changed);
                                     },
                                   ),
                                 );
@@ -157,7 +173,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () => notifier.toggleApp(app),
+                                onToggle: () async {
+                                  final changed = await notifier.toggleApp(app);
+                                  showReconnectNoticeIfNeeded(changed);
+                                },
                               );
                             },
                           ),
