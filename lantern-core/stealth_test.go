@@ -2,9 +2,17 @@ package lanterncore
 
 import "testing"
 
-func TestEffectiveLogLevelNonStealthPreservesDefaultTrace(t *testing.T) {
+func clearStealthEnv(t *testing.T) {
 	t.Setenv("LANTERN_STEALTH_BUILD", "")
 	t.Setenv("STEALTH_BUILD", "")
+	t.Setenv("LANTERN_STEALTH_LOG_LEVEL", "")
+	t.Setenv("STEALTH_LOG_LEVEL", "")
+	t.Setenv("LANTERN_STEALTH_TELEMETRY_DEFAULT_ENABLED", "")
+	t.Setenv("STEALTH_TELEMETRY_DEFAULT_ENABLED", "")
+}
+
+func TestEffectiveLogLevelNonStealthPreservesDefaultTrace(t *testing.T) {
+	clearStealthEnv(t)
 	origStealthBuild := StealthBuild
 	StealthBuild = "false"
 	t.Cleanup(func() { StealthBuild = origStealthBuild })
@@ -18,6 +26,7 @@ func TestEffectiveLogLevelNonStealthPreservesDefaultTrace(t *testing.T) {
 }
 
 func TestEffectiveLogLevelStealthReplacesTraceDefault(t *testing.T) {
+	clearStealthEnv(t)
 	t.Setenv("STEALTH_BUILD", "true")
 	t.Setenv("STEALTH_LOG_LEVEL", "")
 	origStealthBuild := StealthBuild
@@ -40,6 +49,7 @@ func TestEffectiveLogLevelStealthReplacesTraceDefault(t *testing.T) {
 }
 
 func TestEffectiveLogLevelStealthRejectsTraceFallback(t *testing.T) {
+	clearStealthEnv(t)
 	t.Setenv("STEALTH_BUILD", "true")
 	t.Setenv("STEALTH_LOG_LEVEL", "trace")
 	origStealthBuild := StealthBuild
@@ -56,16 +66,27 @@ func TestEffectiveLogLevelStealthRejectsTraceFallback(t *testing.T) {
 	}
 }
 
-func TestEffectiveTelemetryConsent(t *testing.T) {
+func TestIsStealthBuildLinkedValueCannotBeDisabledByEnv(t *testing.T) {
+	clearStealthEnv(t)
+	t.Setenv("LANTERN_STEALTH_BUILD", "false")
+	t.Setenv("STEALTH_BUILD", "false")
 	origStealthBuild := StealthBuild
-	origTelemetryDefault := StealthTelemetryDefaultEnabled
+	StealthBuild = "true"
+	t.Cleanup(func() { StealthBuild = origStealthBuild })
+
+	if !IsStealthBuild() {
+		t.Fatal("linked stealth build should remain enabled despite false env fallbacks")
+	}
+}
+
+func TestEffectiveTelemetryConsent(t *testing.T) {
+	clearStealthEnv(t)
+	origStealthBuild := StealthBuild
 	t.Cleanup(func() {
 		StealthBuild = origStealthBuild
-		StealthTelemetryDefaultEnabled = origTelemetryDefault
 	})
 
 	StealthBuild = "false"
-	t.Setenv("STEALTH_BUILD", "")
 	if got := EffectiveTelemetryConsent(false); got {
 		t.Fatal("non-stealth false consent should remain false")
 	}
@@ -74,13 +95,13 @@ func TestEffectiveTelemetryConsent(t *testing.T) {
 	}
 
 	StealthBuild = "true"
-	StealthTelemetryDefaultEnabled = "false"
 	if got := EffectiveTelemetryConsent(false); got {
-		t.Fatal("stealth false consent should default to false")
+		t.Fatal("stealth false consent should preserve explicit opt-out")
 	}
 
-	StealthTelemetryDefaultEnabled = "true"
-	if got := EffectiveTelemetryConsent(false); !got {
-		t.Fatal("stealth telemetry build default should allow explicit opt-in default")
+	t.Setenv("LANTERN_STEALTH_TELEMETRY_DEFAULT_ENABLED", "true")
+	t.Setenv("STEALTH_TELEMETRY_DEFAULT_ENABLED", "true")
+	if got := EffectiveTelemetryConsent(false); got {
+		t.Fatal("stealth telemetry env defaults must not override explicit opt-out")
 	}
 }

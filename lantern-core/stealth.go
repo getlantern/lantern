@@ -25,17 +25,15 @@ var (
 	// Empty and trace-level defaults are deliberately replaced by
 	// EffectiveLogLevel.
 	StealthLogLevel = safeStealthLogLevel
-
-	// StealthTelemetryDefaultEnabled lets an explicit stealth build opt back in
-	// to telemetry. The default remains false.
-	StealthTelemetryDefaultEnabled = "false"
 )
 
 func IsStealthBuild() bool {
+	if buildBool(StealthBuild) {
+		return true
+	}
 	return buildBool(firstNonEmpty(
 		os.Getenv("LANTERN_STEALTH_BUILD"),
 		os.Getenv("STEALTH_BUILD"),
-		StealthBuild,
 	))
 }
 
@@ -55,17 +53,10 @@ func EffectiveLogLevel(configured string) string {
 }
 
 func EffectiveTelemetryConsent(configured bool) bool {
-	if configured {
-		return true
-	}
-	if !IsStealthBuild() {
-		return false
-	}
-	return buildBool(firstNonEmpty(
-		os.Getenv("LANTERN_STEALTH_TELEMETRY_DEFAULT_ENABLED"),
-		os.Getenv("STEALTH_TELEMETRY_DEFAULT_ENABLED"),
-		StealthTelemetryDefaultEnabled,
-	))
+	// The current platform callers pass a stored consent bool, not a tri-state
+	// value. Preserve explicit user opt-out until callers can distinguish
+	// "unset" from "disabled" before applying any build default.
+	return configured
 }
 
 func effectiveStealthLogLevel() string {
