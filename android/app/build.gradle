@@ -49,6 +49,22 @@ android {
         exclude "DebugProbesKt.bin"
         jniLibs {
             useLegacyPackaging true
+            // abiFilters above is meant to keep only arm64-v8a in the APK,
+            // but some transitive AAR dependencies (notably ML Kit's
+            // barcode-scanning AAR pre-unbundling) ship x86 / x86_64 /
+            // armeabi .so files that slip past the filter — observed
+            // 5.9 MB libbarhopper_v3.so + 1.2 MB libc++_shared.so +
+            // 0.7 MB libnative-imagetranscoder.so under lib/x86_64/ in
+            // v9.1.9-beta. Explicit excludes here strip them at packaging
+            // time so the produced APK has only the ABI(s) we ship for.
+            excludes += [
+                "lib/x86/**",
+                "lib/x86_64/**",
+                "lib/armeabi/**",
+                "lib/armeabi-v7a/**",
+                "lib/mips/**",
+                "lib/mips64/**",
+            ]
         }
     }
 
