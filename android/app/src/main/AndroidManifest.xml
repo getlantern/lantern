@@ -148,7 +148,7 @@
             android:name=".service.QuickTileService"
             android:directBootAware="true"
             android:exported="true"
-            android:icon="@drawable/lantern_notification_icon"
+            android:icon="${quickTileIcon}"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="n">
             <intent-filter>
