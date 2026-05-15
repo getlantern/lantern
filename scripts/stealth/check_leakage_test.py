@@ -77,6 +77,17 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 1)
 
+    def test_scans_zip_archive_comment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"no content leak here")
+                zf.comment = b"archive comment mentions Lantern"
+
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
     def test_mode_specific_allowlist(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -85,6 +96,18 @@ class LeakageScannerTest(unittest.TestCase):
             target.write_bytes(b"Lantern")
 
             self.assertEqual(self.scan(config, "stealth", target), 0)
+
+    def test_rejects_allowlist_entries_without_matchers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            data = json.loads(config.read_text(encoding="utf-8"))
+            data["modes"]["stealth"]["allowlist"] = [{"reason": "too broad"}]
+            config.write_text(json.dumps(data), encoding="utf-8")
+            target = root / "classes.dex"
+            target.write_bytes(b"Lantern")
+
+            self.assertEqual(self.scan(config, "stealth", target), 2)
 
     def test_stealth_novpn_extends_base_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -25,6 +25,7 @@ import zipfile
 ARCHIVE_SUFFIXES = {".apk", ".aab", ".zip", ".jar", ".aar", ".ap_"}
 DEFAULT_CONFIG = Path(__file__).with_name("forbidden_tokens.json")
 TEXT_ENCODINGS = ("utf-8", "utf-16le", "utf-16be")
+ALLOWLIST_MATCH_FIELDS = frozenset(("token", "category", "location", "path", "encoding"))
 
 
 class ConfigError(Exception):
@@ -135,6 +136,7 @@ def resolve_mode(config: dict[str, Any], mode: str) -> tuple[list[str], list[dic
         for item in mode_allowlist:
             if not isinstance(item, dict):
                 raise ConfigError(f"mode '{name}' allowlist entries must be objects")
+            validate_allowlist_entry(item, f"mode '{name}' allowlist")
             allowlist.append(item)
 
         visiting.remove(name)
@@ -146,10 +148,19 @@ def resolve_mode(config: dict[str, Any], mode: str) -> tuple[list[str], list[dic
     for item in global_allowlist:
         if not isinstance(item, dict):
             raise ConfigError("top-level allowlist entries must be objects")
+        validate_allowlist_entry(item, "top-level allowlist")
         allowlist.append(item)
 
     visit(mode)
     return categories, allowlist
+
+
+def validate_allowlist_entry(item: dict[str, Any], context: str) -> None:
+    if not any(item.get(field) is not None for field in ALLOWLIST_MATCH_FIELDS):
+        raise ConfigError(
+            f"{context} entries must include at least one matcher field: "
+            f"{', '.join(sorted(ALLOWLIST_MATCH_FIELDS))}"
+        )
 
 
 def compile_rules(config: dict[str, Any], categories: list[str]) -> list[Rule]:
@@ -310,7 +321,7 @@ class Scanner:
         self.scan_bytes(f"{logical}[path]", logical.encode("utf-8", "surrogateescape"))
         try:
             if is_archive_name(path.name) and zipfile.is_zipfile(path):
-                self.scan_archive_file(path, logical, depth=0)
+                self.scan_archive_bytes(path.read_bytes(), logical, depth=0)
             else:
                 self.scan_bytes(logical, path.read_bytes())
         except OSError as exc:
@@ -332,11 +343,12 @@ class Scanner:
         if depth > self.max_depth:
             self.errors.append(f"{logical}: exceeded nested archive depth {self.max_depth}")
             return
+        self.scan_bytes(f"{logical}[archive]", data)
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
                 self.scan_archive_members(archive, logical, depth)
         except zipfile.BadZipFile:
-            self.scan_bytes(logical, data)
+            return
         except NotImplementedError as exc:
             self.errors.append(f"{logical}: unsupported nested archive compression: {exc}")
 
