@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -22,7 +21,8 @@ class SplitTunneling extends HookConsumerWidget {
     final splitTunnelingEnabled = ref.watch(
       radianceSettingsProvider.select((s) => s.splitTunneling),
     );
-    final directConnectionApps = AppBuildInfo.stealthDirectConnectionApps;
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
     final showSplitTunnelingItems =
         directConnectionApps || splitTunnelingEnabled;
     final title = directConnectionApps
