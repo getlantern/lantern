@@ -42,6 +42,12 @@ class AppPurchase {
     if (PlatformUtils.isDesktop || _subscription != null) {
       return;
     }
+    // Subscribing to purchaseStream initializes BillingClient, which OOMs
+    // the Dalvik heap via an internal reconnect loop when Play Billing
+    // isn't reachable. See getlantern/engineering#3485.
+    if (Platform.isAndroid && !isStoreVersion()) {
+      return;
+    }
 
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(
