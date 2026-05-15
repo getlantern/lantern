@@ -1632,3 +1632,12 @@ msgstr "আপনার অ্যাকাউন্ট স্থায়ীভ�
 
 msgid "verify_with"
 msgstr "%s দিয়ে যাচাই করুন"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"

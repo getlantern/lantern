@@ -26,8 +26,8 @@ flutter build apk \
   --dart-define=STEALTH_DIRECT_CONNECTION_APPS=true
 ```
 
-The Android Gradle file reads Flutter `dart-defines`, project properties, and
-environment variables in that order. CI may also use:
+The Android Gradle file reads Flutter `dart-defines`, environment variables,
+and project properties in that order. CI may also use:
 
 ```sh
 STEALTH_DIRECT_CONNECTION_APPS=true make android-release-ci

@@ -1596,3 +1596,12 @@ msgstr "تم حذف حسابك بشكل دائم."
 
 msgid "verify_with"
 msgstr "التحقق عبر %s"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"

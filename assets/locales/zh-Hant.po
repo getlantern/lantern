@@ -1498,3 +1498,12 @@ msgstr "您的帳戶已永久刪除。"
 
 msgid "verify_with"
 msgstr "透過 %s 驗證"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"

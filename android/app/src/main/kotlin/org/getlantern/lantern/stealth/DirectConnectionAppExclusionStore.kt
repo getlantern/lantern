@@ -107,9 +107,14 @@ class DirectConnectionAppExclusionStore(
                     continue
                 }
 
-                return runCatching { DirectConnectionAppExclusions.parseDefaults(json) }
-                    .onFailure { e -> AppLogger.w(TAG, "Failed to parse $path", e) }
-                    .getOrDefault(emptyList())
+                val parsed = runCatching {
+                    DirectConnectionAppExclusions.parseDefaults(json)
+                }.onFailure { e ->
+                    AppLogger.w(TAG, "Failed to parse $path", e)
+                }.getOrNull()
+                if (parsed != null) {
+                    return parsed
+                }
             }
 
             AppLogger.w(TAG, "No default direct-connection app exclusions asset found")

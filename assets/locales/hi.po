@@ -1632,3 +1632,12 @@ msgstr "आपका खाता स्थायी रूप से हटा 
 
 msgid "verify_with"
 msgstr "%s से सत्यापित करें"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"

@@ -1659,3 +1659,12 @@ msgstr "ستاسو حساب د تل لپاره حذف شو."
 
 msgid "verify_with"
 msgstr "د %s سره تایید وکړئ"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"
