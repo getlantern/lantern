@@ -123,7 +123,11 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
-                  label: 'vpn_settings'.i18n,
+                  label:
+                      (AppBuildInfo.stealthNoVpn
+                              ? 'proxy_setup'
+                              : 'vpn_settings')
+                          .i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
@@ -302,6 +306,7 @@ class _SettingState extends ConsumerState<Setting>
       await sl<Updater>().checkNow();
     } catch (e, st) {
       appLogger.error('Error checking for updates: $e', st);
+      if (!mounted) return;
       AppDialog.errorDialog(
         context: context,
         title: 'error'.i18n,

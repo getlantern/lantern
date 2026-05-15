@@ -14,6 +14,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/no_vpn_proxy_panel.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -160,7 +161,10 @@ class _HomeState extends ConsumerState<Home> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           if (isUserPro) SizedBox(height: 0) else ProBanner(),
-          VPNSwitch(),
+          if (AppBuildInfo.stealthNoVpn)
+            const NoVpnProxyPanel()
+          else
+            VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -206,10 +210,9 @@ class _HomeState extends ConsumerState<Home> {
         margin: EdgeInsets.zero,
         child: Column(
           children: [
-            VpnStatus(),
-            DividerSpace(),
+            if (!AppBuildInfo.stealthNoVpn) ...[VpnStatus(), DividerSpace()],
             LocationSetting(),
-            if (!PlatformUtils.isIOS) ...{
+            if (!AppBuildInfo.stealthNoVpn && !PlatformUtils.isIOS) ...{
               DividerSpace(),
               SettingTile(
                 label: 'routing_mode'.i18n,
@@ -230,9 +233,10 @@ class _HomeState extends ConsumerState<Home> {
                 onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
             },
-            if (PlatformUtils.isAndroid ||
-                PlatformUtils.isMacOS ||
-                PlatformUtils.isWindows) ...{
+            if (!AppBuildInfo.stealthNoVpn &&
+                (PlatformUtils.isAndroid ||
+                    PlatformUtils.isMacOS ||
+                    PlatformUtils.isWindows)) ...{
               DividerSpace(),
               SettingTile(
                 label: 'split_tunneling'.i18n,

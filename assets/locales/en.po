@@ -63,6 +63,39 @@ msgstr "Help Fight Global Internet Censorship"
 msgid "vpn_settings"
 msgstr "VPN Settings"
 
+msgid "proxy_setup"
+msgstr "Proxy Setup"
+
+msgid "proxy_mode"
+msgstr "Proxy Mode"
+
+msgid "proxy_mode_description"
+msgstr "Lantern is available as a local proxy for apps and browsers that let you set a manual proxy."
+
+msgid "manual_proxy_setup"
+msgstr "Manual Proxy Setup"
+
+msgid "manual_proxy_setup_description"
+msgstr "In a supported app or browser, set the proxy type to SOCKS5 or HTTP CONNECT and use the local address below."
+
+msgid "proxy_host"
+msgstr "Host"
+
+msgid "proxy_port"
+msgstr "Port"
+
+msgid "socks5_proxy"
+msgstr "SOCKS5 Proxy"
+
+msgid "http_connect_proxy"
+msgstr "HTTP CONNECT Proxy"
+
+msgid "start_proxy"
+msgstr "Start Proxy"
+
+msgid "stop_proxy"
+msgstr "Stop Proxy"
+
 msgid "split_tunneling"
 msgstr "Split Tunneling"
 

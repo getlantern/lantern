@@ -15,6 +15,7 @@ def hasReleaseKeystore =
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
+def stealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
 
 android {
     namespace = "org.getlantern.lantern"
@@ -23,6 +24,7 @@ android {
 
     sourceSets {
         main {
+            manifest.srcFile stealthNoVpn ? 'src/main/AndroidManifest.novpn.xml' : 'src/main/AndroidManifest.xml'
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
         }
@@ -78,6 +80,9 @@ android {
         buildFeatures {
             buildConfig true
         }
+        buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
+        buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
+        buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
     }
 
     signingConfigs {
@@ -110,6 +115,9 @@ android {
             }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (stealthNoVpn) {
+                proguardFiles 'proguard-stealth-novpn.pro'
+            }
         }
     }
 
