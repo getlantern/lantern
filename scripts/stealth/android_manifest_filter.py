@@ -2,6 +2,7 @@
 """Generate minimized Android manifests for stealth build modes."""
 
 import argparse
+import io
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -140,8 +141,12 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
     if hasattr(ET, "indent"):
         ET.indent(tree, space="    ")
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    tree.write(output_path, encoding="utf-8", xml_declaration=False)
-    output_path.write_text(output_path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    output = io.BytesIO()
+    tree.write(output, encoding="utf-8", xml_declaration=False)
+    xml = output.getvalue().decode("utf-8")
+    if not xml.endswith("\n"):
+        xml += "\n"
+    output_path.write_text(xml, encoding="utf-8")
 
 
 def main() -> None:
