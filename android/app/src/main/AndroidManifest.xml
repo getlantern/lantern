@@ -18,10 +18,10 @@
 
     <application
         android:name=".LanternApp"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="${launcherIcon}"
         android:label="Lantern"
         android:usesCleartextTraffic="true"
-        android:roundIcon="@mipmap/ic_launcher_round">
+        android:roundIcon="${roundLauncherIcon}">
 
         <activity
             android:name=".MainActivity"

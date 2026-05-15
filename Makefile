@@ -173,6 +173,9 @@ get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which
 APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+STEALTH_ICON_SEED ?=
+STEALTH_ICON_RES_DIR ?= android/app/build/generated/stealth-icons/res
+export STEALTH_ICON_SEED
 
 INSTALLER_RESOURCES := installer-resources
 
@@ -182,6 +185,12 @@ guard-%:
 
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
+
+.PHONY: stealth-android-icons
+stealth-android-icons: guard-STEALTH_ICON_SEED
+	python3 scripts/stealth/generate_android_icons.py \
+		--seed "$(STEALTH_ICON_SEED)" \
+		--output-res-dir "$(STEALTH_ICON_RES_DIR)"
 
 
 .PHONY: require-appdmg

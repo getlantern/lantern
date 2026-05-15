@@ -41,6 +41,10 @@ def generateSideloadManifest = tasks.register("generateSideloadManifest") {
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
+def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH_ICON_SEED"))?.toString()?.trim()
+def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
+def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
+def roundLauncherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher_round" : "@mipmap/ic_launcher_round"
 
 android {
     namespace = "org.getlantern.lantern"
@@ -57,6 +61,7 @@ android {
             }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
+            res.srcDirs += [generatedStealthIconResDir.get().asFile]
         }
     }
 
@@ -115,6 +120,10 @@ android {
         versionCode = code
         versionName = flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
+        manifestPlaceholders += [
+                launcherIcon     : launcherIconResource,
+                roundLauncherIcon: roundLauncherIconResource,
+        ]
 
         ndk {
             // arm64 only (APK + AAB) — armeabi-v7a dropped, see the comment
@@ -174,6 +183,18 @@ if (sideloadUpdates) {
     tasks.matching { it.name.startsWith("process") && it.name.endsWith("MainManifest") }
             .configureEach { dependsOn(generateSideloadManifest) }
 }
+
+tasks.register("generateStealthAndroidIcons", Exec) {
+    onlyIf { stealthIconSeed }
+    inputs.property("stealthIconSeed", stealthIconSeed ?: "")
+    outputs.dir(generatedStealthIconResDir)
+    commandLine "python3",
+            "${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py",
+            "--seed", stealthIconSeed ?: "",
+            "--output-res-dir", generatedStealthIconResDir.get().asFile.absolutePath
+}
+
+preBuild.dependsOn("generateStealthAndroidIcons")
 
 flutter {
     source = "../.."
