@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,7 +11,14 @@ part 'country_code_notifier.g.dart';
 class CountryCodeNotifier extends _$CountryCodeNotifier {
   @override
   String build() {
-    return '';
+    /// Seed with the system locale's country as a best-effort guess.
+    final initial =
+        PlatformDispatcher.instance.locale.countryCode?.toUpperCase() ?? '';
+    if (initial.isNotEmpty) {
+      appLogger.debug('Seeding country code from system locale: $initial');
+      CountryCode.update(initial);
+    }
+    return initial;
   }
 
   void update(String code) {
