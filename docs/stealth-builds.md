@@ -6,10 +6,11 @@ profiles used by the Stealth Lantern epic.
 
 ## Build profiles
 
-After the companion stealth build implementation PRs are integrated, Android
-stealth artifacts must be built through the Makefile release path so the
-gomobile AAR, Flutter artifacts, generated profile, and manifest filtering are
-produced from the same inputs.
+Target Android stealth artifacts must be built through the Makefile release path
+so the gomobile AAR, Flutter artifacts, generated profile, and manifest
+filtering are produced from the same inputs. The command shape below becomes
+actionable only after the companion build-profile and manifest-selection PRs are
+integrated; this policy PR does not make `STEALTH_MODE` runnable by itself.
 
 ```sh
 STEALTH_MODE=vpn make android-release-ci
