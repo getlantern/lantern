@@ -66,6 +66,7 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
 
     values_dir = output_res_dir / "values"
     drawable_dir = output_res_dir / "drawable"
+    legacy_mipmap_dir = output_res_dir / "mipmap-anydpi"
     mipmap_dir = output_res_dir / "mipmap-anydpi-v26"
 
     write_text(
@@ -114,6 +115,19 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     write_text(mipmap_dir / "stealth_ic_launcher.xml", adaptive_icon)
     write_text(mipmap_dir / "stealth_ic_launcher_round.xml", adaptive_icon)
 
+    legacy_icon = f"""
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="{background}" android:pathData="M0,0 L108,0 L108,108 L0,108 Z"/>
+{shape_paths(data, primary, secondary, accent)}
+</vector>
+"""
+    write_text(legacy_mipmap_dir / "stealth_ic_launcher.xml", legacy_icon)
+    write_text(legacy_mipmap_dir / "stealth_ic_launcher_round.xml", legacy_icon)
+
     metadata = {
         "seedSha256": hashlib.sha256(seed.encode("utf-8")).hexdigest(),
         "background": background,
@@ -125,7 +139,7 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
         "notificationIcon": "@drawable/stealth_notification_icon",
     }
     write_text(
-        output_res_dir / "stealth-icon-metadata.json",
+        output_res_dir.parent / "stealth-icon-metadata.json",
         json.dumps(metadata, indent=2, sort_keys=True),
     )
     return metadata
