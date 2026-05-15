@@ -27,7 +27,14 @@ def defaultStealthProfile = [
 ]
 
 def buildConfigString = { value ->
-    def escaped = value.toString().replace("\\", "\\\\").replace("\"", "\\\"")
+    def escaped = value.toString()
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replace("\b", "\\b")
+            .replace("\f", "\\f")
+            .replace("\"", "\\\"")
     return "\"${escaped}\""
 }
 

@@ -176,7 +176,7 @@ STEALTH_DART_DEFINES_FILE ?= $(BUILD_DIR)/stealth/dart-defines.json
 STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
 STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
-STEALTH_GO_TAGS := $(if $(STEALTH_ENABLED),$$(python3 scripts/stealth/generate_profile.py --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix),)
+STEALTH_GO_TAGS := $(if $(STEALTH_ENABLED),$$($(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),STEALTH_PROFILE="$(CURDIR)/$(STEALTH_PROFILE_OUT)",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),stealth-profile,)
 

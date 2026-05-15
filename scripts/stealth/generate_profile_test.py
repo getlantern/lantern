@@ -79,6 +79,11 @@ class GenerateProfileTest(unittest.TestCase):
             ",stealth,stealth_novpn",
         )
 
+    def test_go_tags_suffix_requires_input(self):
+        exit_code = generate_profile.main(["--go-tags-suffix"])
+
+        self.assertEqual(exit_code, 2)
+
     def test_rejects_invalid_package_name(self):
         profile = {
             "mode": "stealth-vpn",

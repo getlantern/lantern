@@ -199,6 +199,12 @@ def go_tags_suffix(profile: dict[str, Any]) -> str:
     return f",stealth,{mode_tag}"
 
 
+def load_go_tags_profile(args: argparse.Namespace) -> dict[str, Any]:
+    if not args.input:
+        raise ProfileError("--input is required when using --go-tags-suffix")
+    return validate_profile(load_json(args.input))
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, help="optional input profile JSON")
@@ -219,11 +225,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
-        profile = (
-            validate_profile(load_json(args.input))
-            if args.go_tags_suffix
-            else build_profile(args)
-        )
+        profile = load_go_tags_profile(args) if args.go_tags_suffix else build_profile(args)
         if args.go_tags_suffix:
             print(go_tags_suffix(profile), end="")
             return 0
