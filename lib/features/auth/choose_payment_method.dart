@@ -30,7 +30,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!AppBuildInfo.enablePayments) {
-      return BaseScreen(title: '', body: const SizedBox.shrink());
+      return BaseScreen(
+        title: 'payment'.i18n,
+        body: Center(
+          child: Text(
+            Failure.featureDisabled('Payment').localizedErrorMessage,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
     final plansAsync = ref.watch(plansProvider);
