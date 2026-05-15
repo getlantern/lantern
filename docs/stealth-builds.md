@@ -6,8 +6,9 @@ profiles used by the Stealth Lantern epic.
 
 ## Build profiles
 
-Android stealth manifest minimization is opt-in through the Gradle project
-property `STEALTH_MODE`.
+After the companion stealth build implementation PRs are integrated, Android
+stealth manifest minimization is opt-in through the Gradle project property
+`STEALTH_MODE`.
 
 ```sh
 gradle -p android :app:assembleRelease -PSTEALTH_MODE=vpn
@@ -20,8 +21,8 @@ and cleartext traffic allowance from the generated manifest.
 
 `novpn` applies the same filtering and also removes Android VPN service
 components, quick-tile VPN controls, boot receiver, and VPN-related permissions.
-Runtime startup is routed through a normal Android `Service`, which configures
-radiance with:
+The companion no-VPN runtime PR routes startup through a normal Android
+`Service`, which configures radiance with:
 
 ```text
 RADIANCE_USE_SOCKS_PROXY=true
@@ -29,9 +30,9 @@ RADIANCE_SOCKS_ADDRESS=127.0.0.1:8787
 ```
 
 At the pinned radiance version, that env pair replaces the TUN inbound with a
-loopback mixed HTTP/SOCKS inbound. Build Flutter with
-`--dart-define=STEALTH_NOVPN=true` for matching UI gating so VPN controls,
-full-device routing, and split tunneling are hidden.
+loopback mixed HTTP/SOCKS inbound. Build Flutter with the no-VPN profile's
+generated Dart defines so VPN controls, full-device routing, and split
+tunneling are hidden.
 
 ## Static checks
 
@@ -44,7 +45,7 @@ the release candidate when any of these checks fail.
 | Build mode | `assembleRelease` | `assembleRelease -PSTEALTH_MODE=vpn` | `assembleRelease -PSTEALTH_MODE=novpn` |
 | Package identity | canonical package | private profile package name | private profile package name |
 | Manifest parser | baseline manifest is valid | no app links, broad queries, wallet metadata, write-settings, or cleartext allowance | same as VPN plus no `VpnService`, quick tile, boot receiver, or VPN permission |
-| Dart defines | default | default | `STEALTH_NOVPN=true` required |
+| Dart defines | default | default | no-VPN profile defines required |
 | Asset policy | public assets allowed | private profile assets only | private profile assets only |
 | Dependency policy | normal allowlist | no new detector-facing SDKs without review | no new detector-facing SDKs without review |
 | Symbol and metadata review | standard release checks | no public profile names in artifact metadata | no public profile names in artifact metadata |
@@ -169,8 +170,9 @@ Direct-distribution stealth builds cannot assume public store update behavior.
 - Automatic in-app update prompts must be reviewed for each profile because
   update URLs, app labels, package names, and support copy can expose profile
   identity.
-- A direct APK/AAB update can replace an installed app only when package name and
-  signing lineage are compatible.
+- A direct APK update can replace an installed app only when package name and
+  signing lineage are compatible. AABs are not directly installable device
+  updates; they require store delivery or conversion to APK/split APK artifacts.
 - Manual migration instructions must explain whether account login, Pro status,
   private-server configuration, diagnostics, and local settings carry over.
 - If account or purchase flows are disabled or hidden in a stealth profile, the
