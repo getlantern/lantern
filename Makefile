@@ -172,10 +172,10 @@ GARBLE_LDFLAGS ?= -w -s -buildid=
 
 ifeq ($(OS),Windows_NT)
 GARBLE_REAL_GO ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Get-Command go -ErrorAction SilentlyContinue).Source')
-GARBLE_ENV = $(if $(GARBLE_GOGARBLE),set GOGARBLE=$(GARBLE_GOGARBLE)&& ,)
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),set GOGARBLE=$(GARBLE_GOGARBLE)&& ,set GOGARBLE=&& )
 else
 GARBLE_REAL_GO ?= $(shell command -v go 2>/dev/null)
-GARBLE_ENV = $(if $(GARBLE_GOGARBLE),GOGARBLE="$(GARBLE_GOGARBLE)",)
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),GOGARBLE="$(GARBLE_GOGARBLE)",env -u GOGARBLE)
 endif
 GARBLE_BUILD = $(GARBLE) $(GARBLE_FLAGS) -seed="$(GARBLE_SEED)" build
 

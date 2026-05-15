@@ -22,7 +22,9 @@ Stealth Go/native builds are opt-in. Normal Makefile targets continue to use
 Treat release seeds as private support material. The Makefile suppresses command
 echo for seed-bearing garble invocations, but release automation should still
 keep the profile seed in a secret store alongside any private release metadata
-needed for `garble reverse`.
+needed for `garble reverse`. Record the exact `GARBLE_VERSION` and Go toolchain
+version with each release; the Makefile defaults `GARBLE_VERSION` to `latest`,
+which is convenient locally but not enough to reproduce a support build later.
 
 Install garble:
 

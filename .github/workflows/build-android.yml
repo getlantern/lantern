@@ -160,20 +160,24 @@ jobs:
         if: ${{ inputs.obfuscate_go }}
         run: make install-garble
 
-      - name: Build Android (APK + AAB)
-        shell: bash
-        run: |
-          if [[ "${{ inputs.obfuscate_go }}" == "true" ]]; then
-            make android-release-ci-obfuscated
-          else
-            make android-release-ci
-          fi
+      - name: Build Android obfuscated (APK + AAB)
+        if: ${{ inputs.obfuscate_go }}
+        run: make android-release-ci-obfuscated
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
           STEALTH_GARBLE_SEED: ${{ secrets.STEALTH_GARBLE_SEED }}
+
+      - name: Build Android (APK + AAB)
+        if: ${{ !inputs.obfuscate_go }}
+        run: make android-release-ci
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
