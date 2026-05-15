@@ -131,7 +131,7 @@
             android:value="${identityProfileId}" />
         <meta-data
             android:name="app.identity.metadata"
-            android:value="${identityMetadata}" />
+            android:value='${identityMetadata}' />
 
 
         <service

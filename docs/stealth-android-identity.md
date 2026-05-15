@@ -66,8 +66,9 @@ BUILD_TYPE=stealth ANDROID_IDENTITY_SEED="$GITHUB_RUN_ID" make android-release-c
 
 `BUILD_TYPE=stealth` defaults the generated profile path to
 `build/stealth/android-identity.properties`, so the APK and AAB from the same
-`make android-release-ci` invocation share one identity. Different runs without a
-seed generate different installable package names and labels.
+`make android-release-ci` invocation share one identity. Passing
+`ANDROID_IDENTITY_SEED` regenerates that profile for the requested seed. For an
+unseeded fresh random identity, pass `ANDROID_FORCE_IDENTITY_PROFILE=1`.
 
 Gradle also accepts the profile as a project property:
 

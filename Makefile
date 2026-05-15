@@ -583,7 +583,7 @@ android-identity-profile:
 	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
 	    exit 1; \
 	  fi; \
-	  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
 	    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
 	    python3 scripts/stealth/generate_android_identity.py \
 	      --output "$(ANDROID_IDENTITY_PROFILE)" \
