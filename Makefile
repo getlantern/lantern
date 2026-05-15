@@ -597,8 +597,7 @@ build-android: check-android-sdk check-gomobile
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
 .PHONY: android-obfuscated
-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go
-	$(MAKE) build-android-obfuscated
+android-obfuscated: build-android-obfuscated
 
 .PHONY: build-android-obfuscated
 build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go
