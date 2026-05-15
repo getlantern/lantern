@@ -59,7 +59,7 @@ jobs:
 ```
 
 The workflow consumes `secrets.STEALTH_GARBLE_SEED` when `obfuscate_go` is true.
-This ticket does not generate Android app identities or stealth profiles.
+This workflow does not generate Android app identities or stealth profiles.
 
 ## Other native targets
 
