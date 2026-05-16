@@ -30,7 +30,7 @@ def shape_paths(data: bytes, primary: str, secondary: str, accent: str) -> str:
     template = data[4] % 4
     if template == 0:
         return f"""
-    <path android:fillColor="{primary}" android:pathData="M54,14 L92,54 L54,94 L16,54 Z"/>
+    <path android:fillColor="{primary}" android:pathData="M54,18 L90,54 L54,90 L18,54 Z"/>
     <path android:fillColor="{secondary}" android:pathData="M54,28 L78,54 L54,80 L30,54 Z"/>
     <path android:fillColor="{accent}" android:pathData="M47,47 L61,47 L61,61 L47,61 Z"/>
 """
@@ -42,7 +42,7 @@ def shape_paths(data: bytes, primary: str, secondary: str, accent: str) -> str:
 """
     if template == 2:
         return f"""
-    <path android:fillColor="{primary}" android:pathData="M54,12 L78,22 L96,46 L88,74 L64,94 L36,90 L16,68 L14,38 L34,18 Z"/>
+    <path android:fillColor="{primary}" android:pathData="M54,18 L76,26 L90,48 L84,72 L64,90 L38,86 L20,68 L20,40 L36,22 Z"/>
     <path android:fillColor="{secondary}" android:pathData="M54,28 L70,36 L82,54 L74,72 L54,80 L34,72 L26,54 L38,36 Z"/>
     <path android:fillColor="{accent}" android:pathData="M54,43 L65,54 L54,65 L43,54 Z"/>
 """
@@ -105,11 +105,24 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
 """,
     )
 
+    write_text(
+        drawable_dir / "stealth_launcher_monochrome.xml",
+        f"""
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+{shape_paths(data, "#FFFFFFFF", "#FFFFFFFF", "#FFFFFFFF")}
+</vector>
+""",
+    )
+
     adaptive_icon = """
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/stealth_launcher_background"/>
     <foreground android:drawable="@drawable/stealth_launcher_foreground"/>
-    <monochrome android:drawable="@drawable/stealth_notification_icon"/>
+    <monochrome android:drawable="@drawable/stealth_launcher_monochrome"/>
 </adaptive-icon>
 """
     write_text(mipmap_dir / "stealth_ic_launcher.xml", adaptive_icon)
@@ -136,6 +149,7 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
         "accent": accent,
         "launcherIcon": "@mipmap/stealth_ic_launcher",
         "roundLauncherIcon": "@mipmap/stealth_ic_launcher_round",
+        "monochromeIcon": "@drawable/stealth_launcher_monochrome",
         "notificationIcon": "@drawable/stealth_notification_icon",
     }
     write_text(
