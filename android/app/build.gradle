@@ -15,7 +15,7 @@ def hasReleaseKeystore =
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
-def stealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString().trim().toLowerCase()
+def stealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString().trim().toLowerCase(java.util.Locale.ROOT)
 def stealthModes = ["vpn", "novpn"]
 if (stealthMode && !stealthModes.contains(stealthMode)) {
     throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")

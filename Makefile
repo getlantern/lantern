@@ -112,6 +112,7 @@ ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+PYTHON ?= python3
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
