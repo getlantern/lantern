@@ -64,6 +64,19 @@ def nonNegativeInteger = { fieldName, value ->
     }
 }
 
+def androidApplicationId = { fieldName, value ->
+    if (!(value instanceof CharSequence)) {
+        throw new GradleException("Stealth profile ${fieldName} must be a string")
+    }
+    def text = value.toString().trim()
+    if (!(text ==~ /[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+/)) {
+        throw new GradleException(
+                "Stealth profile ${fieldName} must be a valid Android applicationId"
+        )
+    }
+    return text
+}
+
 def resolveRepoRelativeFile = { path ->
     def candidate = new File(path.toString())
     if (candidate.isAbsolute()) {
@@ -99,6 +112,7 @@ def loadStealthProfile = {
     profile.appName = manifestPlaceholderString("appName", profile.appName)
     profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
     profile.denylistVersion = nonNegativeInteger("denylistVersion", profile.denylistVersion)
+    profile.packageName = androidApplicationId("packageName", profile.packageName)
     return profile
 }
 
