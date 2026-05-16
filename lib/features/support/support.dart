@@ -50,12 +50,12 @@ class Support extends StatelessWidget {
                 ],
               ),
             ),
-            if (AppBuildInfo.enableSocialLinks) ...[
-              gap16,
-              AppCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
+            gap16,
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  if (AppBuildInfo.enableSocialLinks) ...[
                     AppTile.link(
                       icon: Icons.forum_outlined,
                       label: 'lantern_user_forum'.i18n,
@@ -66,36 +66,38 @@ class Support extends StatelessWidget {
                     const DividerSpace(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    AppTile.link(
-                      icon: Icons.info_outlined,
-                      label: 'frequently_asked_questions'.i18n,
-                      url: AppUrls.faq,
-                      open: (u) =>
-                          UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
-                    ),
-                    const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    AppTile.link(
-                      icon: Icons.privacy_tip_outlined,
-                      label: 'privacy_policy'.i18n,
-                      url: AppUrls.privacyPolicy,
-                      open: (u) =>
-                          UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
-                    ),
-                    const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    AppTile.link(
-                      icon: Icons.description_outlined,
-                      label: 'terms_of_service'.i18n,
-                      url: AppUrls.termsOfService,
-                      open: (u) =>
-                          UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
-                    ),
                   ],
-                ),
+                  AppTile.link(
+                    icon: Icons.info_outlined,
+                    label: 'frequently_asked_questions'.i18n,
+                    url: AppUrls.faq,
+                    open: (u) =>
+                        UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
+                  ),
+                  const DividerSpace(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  AppTile.link(
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'privacy_policy'.i18n,
+                    url: AppUrls.privacyPolicy,
+                    open: (u) =>
+                        UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
+                  ),
+                  const DividerSpace(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  AppTile.link(
+                    icon: Icons.description_outlined,
+                    label: 'terms_of_service'.i18n,
+                    url: AppUrls.termsOfService,
+                    open: (u) =>
+                        UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
+                  ),
+                ],
               ),
+            ),
+            if (AppBuildInfo.enableSocialLinks) ...[
               const SizedBox(height: defaultSize),
               AppCard(
                 padding: EdgeInsets.zero,
