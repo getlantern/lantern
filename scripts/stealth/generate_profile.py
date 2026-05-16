@@ -85,6 +85,22 @@ def coerce_denylist_version(value: Any) -> int:
     return version
 
 
+def coerce_schema_version(value: Any) -> int:
+    if isinstance(value, bool):
+        raise ProfileError("schemaVersion must be an integer")
+    if isinstance(value, int):
+        version = value
+    elif isinstance(value, str) and re.fullmatch(r"\d+", value.strip()):
+        version = int(value.strip())
+    else:
+        raise ProfileError("schemaVersion must be an integer")
+    if version != SCHEMA_VERSION:
+        raise ProfileError(
+            f"unsupported schemaVersion {version}; expected {SCHEMA_VERSION}"
+        )
+    return version
+
+
 def validate_manifest_placeholder_text(field: str, value: str) -> str:
     if not value:
         raise ProfileError(f"{field} is required")
@@ -99,6 +115,8 @@ def validate_manifest_placeholder_text(field: str, value: str) -> str:
 
 
 def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
+    schema_version = coerce_schema_version(profile.get("schemaVersion", SCHEMA_VERSION))
+
     mode = str(profile.get("mode", "")).strip()
     if mode not in VALID_MODES:
         raise ProfileError(f"mode must be one of: {', '.join(VALID_MODES)}")
@@ -132,7 +150,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     normalized["denylistVersion"] = coerce_denylist_version(
         profile.get("denylistVersion", DEFAULTS["denylistVersion"])
     )
-    normalized["schemaVersion"] = SCHEMA_VERSION
+    normalized["schemaVersion"] = schema_version
     return normalized
 
 
@@ -150,7 +168,7 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     profile = {
-        "schemaVersion": SCHEMA_VERSION,
+        "schemaVersion": loaded.get("schemaVersion", SCHEMA_VERSION),
         "profileId": profile_id,
         "generatedAt": generated_at,
         "mode": args.mode or loaded.get("mode"),

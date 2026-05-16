@@ -227,8 +227,8 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE
 		--dart-defines-output "$(STEALTH_DART_DEFINES_FILE)" \
 		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"; \
 	  $(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix > "$(STEALTH_GO_TAGS_FILE)"; \
+	  touch "$@"; \
 	fi
-	@touch "$@"
 
 
 .PHONY: require-appdmg
