@@ -16,7 +16,7 @@ class DeleteAccount extends StatefulHookConsumerWidget {
   const DeleteAccount({super.key});
 
   @override
-  _DeleteAccountState createState() => _DeleteAccountState();
+  ConsumerState<DeleteAccount> createState() => _DeleteAccountState();
 }
 
 class _DeleteAccountState extends ConsumerState<DeleteAccount> {
@@ -102,7 +102,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             ),
           ],
           SizedBox(height: size24),
-          if (isSSOUser && AppBuildInfo.enableOAuth)
+          if (isSSOUser)
             OAuthLogin(
               label: 'verify_with'.i18n.fill([oAuthProviderName.capitalize]),
               methodType: oAuthMethodType,

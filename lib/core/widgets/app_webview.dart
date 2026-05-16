@@ -192,7 +192,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return true;
     }
 
-    if (AppBuildInfo.enablePayments && AppBuildInfo.enableStorePayments) {
+    if (AppBuildInfo.enablePayments) {
       final purchaseResult = _extractPurchaseResult(uri);
       if (purchaseResult != null && AppUrls.isLanternHost(uri.host)) {
         loading.stop();
