@@ -47,11 +47,11 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         private const val PROXY_START_TIMEOUT_MS = 60_000L
         private const val PROXY_NOTIFICATION_ID = 8787
         private const val PROXY_CHANNEL_ID = "local_connection"
+        private val connectInFlight = AtomicBoolean(false)
     }
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val flutterEventListener = FlutterEventListener()
-    private val connectInFlight = AtomicBoolean(false)
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -210,10 +210,17 @@ class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     override fun restartService() {
-        serviceScope.launch {
-            stopProxy()
+        AppLogger.i(TAG, "restartService called")
+        runBlocking(Dispatchers.IO) {
+            cleanupProxy(stopService = false)
             startProxy()
+            if (!Mobile.isRadianceConnected()) {
+                val msg = "restartService failed: local proxy not connected after restart"
+                AppLogger.e(TAG, msg)
+                throw IllegalStateException(msg)
+            }
         }
+        AppLogger.i(TAG, "restartService completed")
     }
 
     override fun sendNotification(notification: Notification?) {
