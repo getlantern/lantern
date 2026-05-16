@@ -336,6 +336,7 @@ class Scanner:
             return
         try:
             with zipfile.ZipFile(path) as archive:
+                self.scan_archive_metadata(archive, logical)
                 self.scan_archive_members(archive, logical, depth)
         except (OSError, zipfile.BadZipFile, NotImplementedError) as exc:
             self.errors.append(f"{logical}: unable to read archive: {exc}")
@@ -344,14 +345,18 @@ class Scanner:
         if depth > self.max_depth:
             self.errors.append(f"{logical}: exceeded nested archive depth {self.max_depth}")
             return
-        self.scan_bytes(f"{logical}[archive]", data)
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                self.scan_archive_metadata(archive, logical)
                 self.scan_archive_members(archive, logical, depth)
         except zipfile.BadZipFile:
             return
         except NotImplementedError as exc:
             self.errors.append(f"{logical}: unsupported nested archive compression: {exc}")
+
+    def scan_archive_metadata(self, archive: zipfile.ZipFile, logical: str) -> None:
+        if archive.comment:
+            self.scan_bytes(f"{logical}[archive-comment]", archive.comment)
 
     def scan_archive_members(self, archive: zipfile.ZipFile, logical: str, depth: int) -> None:
         for info in archive.infolist():
@@ -493,6 +498,10 @@ def print_text_result(mode: str, result: ScanResult, max_findings: int) -> None:
                 f"Stealth leakage check passed for mode '{mode}' "
                 f"({result.scanned_blobs} scanned blobs from {joined})."
             )
+        return
+
+    if not result.findings:
+        print(f"Stealth leakage check failed for mode '{mode}' due to scanner errors.")
         return
 
     print(f"Forbidden identifiers found for mode '{mode}':")
