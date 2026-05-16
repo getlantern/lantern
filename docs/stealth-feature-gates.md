@@ -10,9 +10,14 @@ Use either profile-style mode names or an explicit boolean flag:
 ```sh
 flutter build apk --dart-define=STEALTH_MODE=stealth-vpn
 flutter build apk --dart-define=STEALTH_MODE=stealth-novpn
+flutter build apk --dart-define=STEALTH_MODE=true
 flutter build apk --dart-define=STEALTH_BUILD=true
 flutter build apk --dart-define=STEALTH_NOVPN=true
 ```
+
+`STEALTH_MODE=true` is kept as a compatibility alias for generic stealth
+artifacts; profile-specific builds should prefer `stealth-vpn` or
+`stealth-novpn`.
 
 The app derives these gates from the stealth flag:
 
