@@ -60,6 +60,7 @@ class GenerateProfileTest(unittest.TestCase):
 
             metadata = json.loads(metadata_path.read_text())
             self.assertNotIn("goObfuscationSeed", metadata)
+            self.assertNotIn("unexpectedPrivateField", metadata)
             self.assertIn("goObfuscationSeedSha256", metadata)
 
     def test_go_tags_suffix_from_profile(self):
@@ -70,6 +71,7 @@ class GenerateProfileTest(unittest.TestCase):
             "sessionName": "BeaconLink",
             "goObfuscationSeed": "seed-for-test",
             "denylistVersion": 0,
+            "unexpectedPrivateField": "do-not-export",
         }
 
         normalized = generate_profile.validate_profile(profile)
@@ -77,6 +79,10 @@ class GenerateProfileTest(unittest.TestCase):
         self.assertEqual(
             generate_profile.go_tags_suffix(normalized),
             ",stealth,stealth_novpn",
+        )
+        self.assertNotIn(
+            "unexpectedPrivateField",
+            generate_profile.artifact_metadata(normalized),
         )
 
     def test_go_tags_suffix_requires_input(self):

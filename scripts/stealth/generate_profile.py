@@ -28,6 +28,16 @@ DART_DEFINE_KEYS = {
     "sessionName": "STEALTH_SESSION_NAME",
     "denylistVersion": "STEALTH_DENYLIST_VERSION",
 }
+ARTIFACT_METADATA_KEYS = (
+    "appName",
+    "denylistVersion",
+    "generatedAt",
+    "mode",
+    "packageName",
+    "profileId",
+    "schemaVersion",
+    "sessionName",
+)
 PACKAGE_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 XML_ATTRIBUTE_RESERVED = set("\"'&<>")
 
@@ -173,9 +183,7 @@ def dart_defines(profile: dict[str, Any]) -> dict[str, str]:
 
 
 def artifact_metadata(profile: dict[str, Any]) -> dict[str, Any]:
-    metadata = {
-        key: value for key, value in profile.items() if key != "goObfuscationSeed"
-    }
+    metadata = {key: profile[key] for key in ARTIFACT_METADATA_KEYS if key in profile}
     metadata["goObfuscationSeedSha256"] = hashlib.sha256(
         str(profile["goObfuscationSeed"]).encode("utf-8")
     ).hexdigest()
