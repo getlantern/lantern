@@ -237,6 +237,20 @@ class LeakageScannerTest(unittest.TestCase):
             self.assertIn("failed", stdout.getvalue())
             self.assertIn("Scanner errors", stderr.getvalue())
 
+    def test_corrupt_nested_archive_reports_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            raw_config = check_leakage.load_config(config)
+            categories, allowlist = check_leakage.resolve_mode(raw_config, "stealth")
+            rules = check_leakage.compile_rules(raw_config, categories)
+            scanner = check_leakage.Scanner(rules, allowlist, max_depth=1)
+
+            scanner.scan_archive_bytes(self.corrupt_zip_with_signature(), "inner.apk", 0)
+
+            self.assertEqual(len(scanner.errors), 1)
+            self.assertIn("inner.apk: unable to read archive", scanner.errors[0])
+
     def insert_before_central_directory(self, data: bytes, payload: bytes) -> bytes:
         eocd_offset = data.rfind(b"PK\x05\x06")
         self.assertNotEqual(eocd_offset, -1)
@@ -272,6 +286,21 @@ class LeakageScannerTest(unittest.TestCase):
         struct.pack_into("<H", out, header_offset + 28, extra_len + len(payload))
         struct.pack_into("<I", out, eocd_offset + len(payload) + 16, central_dir_offset + len(payload))
         return bytes(out)
+
+    def corrupt_zip_with_signature(self) -> bytes:
+        bogus_central_directory = b"\x00" * 46
+        eocd = struct.pack(
+            "<4s4H2LH",
+            b"PK\x05\x06",
+            0,
+            0,
+            1,
+            1,
+            46,
+            0,
+            0,
+        )
+        return bogus_central_directory + eocd
 
 
 if __name__ == "__main__":
