@@ -70,13 +70,21 @@ BUILD_TYPE=stealth ANDROID_IDENTITY_SEED="$GITHUB_RUN_ID" make android-release-c
 `ANDROID_IDENTITY_SEED` regenerates that profile for the requested seed. For an
 unseeded fresh random identity, pass `ANDROID_FORCE_IDENTITY_PROFILE=1`.
 
-Gradle also accepts the profile as a project property:
+Gradle also accepts the profile as a project property for Android-side
+manifest/`BuildConfig` validation:
 
 ```sh
 cd android
 ./gradlew assembleRelease \
   -PandroidIdentityProfile=../build/stealth/android-identity.properties
 ```
+
+Do not use the Gradle-only command as the release build path for randomized
+auth schemes. It does not pass `APP_AUTH_SCHEME` into Dart, so
+`AppBuildInfo.isAppAuthUri()` would still use its default scheme. Use the
+Makefile Android targets, or pass the matching Flutter
+`--dart-define=APP_AUTH_SCHEME=<appAuthScheme>` value when invoking
+`flutter build`.
 
 ## Profile schema
 
@@ -91,14 +99,14 @@ identityLabel=clear-notes-2f143e88f4
 identityProfileId=clear-notes-2f143e88f4
 identityMetadata={"generator":"android-identity-v1"}
 vpnSessionName=Clear Notes Session
-notificationChannelVpn=Connection
-notificationChannelDataUsage=Usage
+notificationChannelVpn=Clear Notes Status
+notificationChannelDataUsage=Clear Notes Usage
 notificationTitle=Clear Notes
-notificationConnectedText=Connection is active
-notificationStartingText=Starting connection...
-notificationDisconnectAction=Disconnect
-quickTileActiveLabel=Connected
-quickTileInactiveLabel=Disconnected
+notificationConnectedText=Clear Notes is active
+notificationStartingText=Starting Clear Notes...
+notificationDisconnectAction=Stop Clear Notes
+quickTileActiveLabel=Clear Notes on
+quickTileInactiveLabel=Clear Notes off
 appIcon=@drawable/neutral_app_icon
 appRoundIcon=@drawable/neutral_app_icon
 notificationSmallIcon=@drawable/neutral_notification_icon
