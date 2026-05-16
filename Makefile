@@ -40,6 +40,7 @@ STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 STEALTH_GO_LDFLAGS := $(if $(filter stealth stealth-%,$(BUILD_TYPE)),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
+LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -335,7 +336,7 @@ lanternd-linux-amd64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "-w -s $(GO_EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
@@ -343,7 +344,7 @@ lanternd-linux-arm64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "-w -s $(GO_EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
@@ -415,7 +416,7 @@ $(LANTERND_WINDOWS_AMD64):
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "$(GO_EXTRA_LDFLAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
 
@@ -423,7 +424,7 @@ $(LANTERND_WINDOWS_ARM64):
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
 	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "$(GO_EXTRA_LDFLAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
 
