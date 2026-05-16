@@ -59,13 +59,16 @@ make android-release STEALTH_PROFILE=/secure/profiles/client.json
 The Makefile writes:
 
 - `build/stealth/profile.json`: private normalized profile for support/debugging
+- `build/stealth/profile.inputs`: private Make cache key for profile inputs
 - `build/stealth/dart-defines.json`: Flutter `--dart-define-from-file` input
 - `build/stealth/artifact-metadata.json`: private CI artifact metadata
 - `build/stealth/go-tags-suffix.txt`: Go build tag suffix consumed by Make
 
-Do not publish these files in public release artifacts. They contain profile
-values that identify a build stream. Dart defines and metadata omit the raw Go
-obfuscation seed; metadata includes the seed hash for support correlation.
+Treat the entire `build/stealth/` directory as private and do not publish these
+files in public release artifacts. They contain profile values that identify a
+build stream. Dart defines, metadata, and the Make cache key omit the raw Go
+obfuscation seed; metadata and the cache key include seed hashes for change
+detection and support correlation.
 
 ## Android Plumbing
 

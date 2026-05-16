@@ -210,7 +210,12 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 	  printf 'STEALTH_PACKAGE_NAME=%s\n' "$(STEALTH_PACKAGE_NAME)"; \
 	  printf 'STEALTH_APP_NAME=%s\n' "$(STEALTH_APP_NAME)"; \
 	  printf 'STEALTH_SESSION_NAME=%s\n' "$(STEALTH_SESSION_NAME)"; \
-	  printf 'STEALTH_GO_OBFUSCATION_SEED=%s\n' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
+	  printf 'STEALTH_GO_OBFUSCATION_SEED_SHA256='; \
+	  if [ -n "$(STEALTH_GO_OBFUSCATION_SEED)" ]; then \
+	    python3 -c 'import hashlib, sys; print(hashlib.sha256(sys.argv[1].encode("utf-8")).hexdigest())' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
+	  else \
+	    printf '\n'; \
+	  fi; \
 	  printf 'STEALTH_DENYLIST_VERSION=%s\n' "$(STEALTH_DENYLIST_VERSION)"; \
 	} > "$(STEALTH_PROFILE_INPUTS_FILE).tmp"
 	@set -e; \

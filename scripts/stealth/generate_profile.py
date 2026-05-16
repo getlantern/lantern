@@ -76,6 +76,8 @@ def default_package_name(profile_id: str) -> str:
 
 
 def coerce_denylist_version(value: Any) -> int:
+    if isinstance(value, bool):
+        raise ProfileError("denylistVersion must be a non-negative integer")
     try:
         version = int(value)
     except (TypeError, ValueError) as exc:

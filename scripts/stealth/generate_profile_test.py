@@ -117,6 +117,19 @@ class GenerateProfileTest(unittest.TestCase):
         with self.assertRaises(generate_profile.ProfileError):
             generate_profile.validate_profile(profile)
 
+    def test_rejects_boolean_denylist_version(self):
+        profile = {
+            "mode": "stealth-vpn",
+            "packageName": "org.example.safe.s123",
+            "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": True,
+        }
+
+        with self.assertRaises(generate_profile.ProfileError):
+            generate_profile.validate_profile(profile)
+
     def test_rejects_manifest_placeholder_xml_characters(self):
         profile = {
             "mode": "stealth-vpn",
