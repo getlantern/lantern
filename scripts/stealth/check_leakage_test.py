@@ -108,6 +108,16 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 1)
 
+    def test_archive_entry_allowlist_is_not_shadowed_by_raw_archive_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/allowed.txt", b"Lantern")
+
+            self.assertEqual(self.scan(config, "stealth", archive), 0)
+
     def test_mode_specific_allowlist(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -178,6 +188,8 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(code, 2)
             self.assertNotIn("Stealth leakage check passed", stdout.getvalue())
+            self.assertNotIn("Forbidden identifiers found", stdout.getvalue())
+            self.assertIn("failed", stdout.getvalue())
             self.assertIn("Scanner errors", stderr.getvalue())
 
 
