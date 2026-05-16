@@ -87,10 +87,12 @@ ifeq ($(OS),Windows_NT)
   MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
   COPY_FILE = $(PS) "Copy-Item -Force -LiteralPath '$(1)' -Destination '$(2)'"
   RM_RF = $(PS) "Remove-Item -Recurse -Force -LiteralPath '$(1)'"
+  WRITE_TEXT_FILE = $(PS) "Set-Content -LiteralPath '$(2)' -Value '$(1)' -Encoding ASCII"
 else
   MKDIR_P = mkdir -p -- '$(1)'
   COPY_FILE = cp -f -- '$(1)' '$(2)'
   RM_RF = rm -rf -- '$(1)'
+  WRITE_TEXT_FILE = printf '%s\n' '$(1)' > '$(2)'
 endif
 
 LANTERND_WINDOWS_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERND).exe
@@ -446,7 +448,7 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release
 	$(MAKE) copy-lanternd-release-arm64
-	printf '%s\n' "$(LANTERND_SERVICE_LOG_LEVEL)" > "$(WINDOWS_RELEASE_DIR)/lanternd-log-level"
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_RELEASE_DIR)/lanternd-log-level)
 
 .PHONY: windows-debug
 windows-debug: windows
