@@ -36,6 +36,10 @@ ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
 $(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
 endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
+STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
+STEALTH_GO_LOG_LEVEL ?= warn
+STEALTH_GO_LDFLAGS := $(if $(filter stealth stealth-%,$(BUILD_TYPE)),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
+GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -205,7 +209,7 @@ endif
 desktop-lib:
 	$(SETENV) go build -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s $(GO_EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
 
@@ -229,7 +233,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
@@ -331,7 +335,7 @@ lanternd-linux-amd64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(GO_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
@@ -339,7 +343,7 @@ lanternd-linux-arm64: $(GO_SOURCES)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(GO_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
@@ -411,7 +415,7 @@ $(LANTERND_WINDOWS_AMD64):
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "$(EXTRA_LDFLAGS)" \
+		-ldflags "$(GO_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
 
@@ -419,7 +423,7 @@ $(LANTERND_WINDOWS_ARM64):
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
 	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)" \
-		-ldflags "$(EXTRA_LDFLAGS)" \
+		-ldflags "$(GO_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
 
@@ -504,7 +508,7 @@ build-android: check-android-sdk check-gomobile
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
@@ -573,7 +577,7 @@ build-ios:
 		-tags=$(TAGS),with_low_memory, -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
