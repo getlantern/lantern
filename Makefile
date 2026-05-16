@@ -161,7 +161,8 @@ APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
 
-STEALTH_PROFILE_TOOL := python3 scripts/stealth/generate_profile.py
+STEALTH_PROFILE_SCRIPT := scripts/stealth/generate_profile.py
+STEALTH_PROFILE_TOOL := python3 $(STEALTH_PROFILE_SCRIPT)
 STEALTH_PROFILE ?=
 STEALTH_MODE ?=
 STEALTH_PACKAGE_NAME ?=
@@ -174,11 +175,12 @@ STEALTH_PROFILE_OUT ?= $(BUILD_DIR)/stealth/profile.json
 STEALTH_DART_DEFINES_FILE ?= $(BUILD_DIR)/stealth/dart-defines.json
 STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
 STEALTH_GO_TAGS_FILE ?= $(BUILD_DIR)/stealth/go-tags-suffix.txt
+STEALTH_PROFILE_STAMP ?= $(BUILD_DIR)/stealth/profile.stamp
 STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
-STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(shell cat "$(STEALTH_GO_TAGS_FILE)"),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
+STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(shell cat "$(STEALTH_GO_TAGS_FILE)" 2>/dev/null),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),STEALTH_PROFILE="$(abspath $(STEALTH_PROFILE_OUT))",)
-MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),stealth-profile,)
+MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
 
 INSTALLER_RESOURCES := installer-resources
 
@@ -191,6 +193,9 @@ check-gomobile:
 
 .PHONY: stealth-profile
 stealth-profile:
+	$(MAKE) -B "$(STEALTH_PROFILE_STAMP)"
+
+$(STEALTH_PROFILE_STAMP): $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(STEALTH_PROFILE),)
 	$(STEALTH_PROFILE_TOOL) \
 		$(if $(STEALTH_PROFILE),--input "$(STEALTH_PROFILE)",) \
 		$(if $(STEALTH_MODE),--mode "$(STEALTH_MODE)",) \
@@ -204,6 +209,7 @@ stealth-profile:
 		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"
 	$(call MKDIR_P,$(dir $(STEALTH_GO_TAGS_FILE)))
 	$(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix > "$(STEALTH_GO_TAGS_FILE)"
+	touch "$@"
 
 
 .PHONY: require-appdmg
@@ -264,14 +270,14 @@ macos-framework: $(MACOS_FRAMEWORK_BUILD)
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
 
-$(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
+$(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (debug) for macOS..."
-	flutter build macos --debug
+	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: macos-unit-tests
-macos-unit-tests: $(MACOS_FRAMEWORK_BUILD)
+macos-unit-tests: $(MACOS_FRAMEWORK_BUILD) $(MAYBE_STEALTH_PROFILE)
 	@echo "Preparing macOS test project (building native assets)..."
-	flutter build macos --debug
+	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	@echo "Running macOS Runner unit tests..."
 	xcodebuild test \
 		-workspace macos/Runner.xcworkspace \
@@ -366,9 +372,9 @@ lanternd-linux-arm64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
 .PHONY: linux-debug
-linux-debug:
+linux-debug: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (debug) for Linux..."
-	flutter build linux --debug
+	flutter build linux --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: linux-release linux-release-ci
 linux-release: clean linux-release-ci
@@ -463,14 +469,14 @@ prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release-arm64
 
 .PHONY: windows-debug
-windows-debug: windows
+windows-debug: windows $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (debug) for Windows..."
-	flutter build windows --debug
+	flutter build windows --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: build-windows-release
-build-windows-release:
+build-windows-release: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for Windows..."
-	flutter build windows --release --verbose
+	flutter build windows --release --verbose $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release

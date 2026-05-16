@@ -73,6 +73,12 @@ obfuscation seed; metadata includes the seed hash for support correlation.
 `STEALTH_PROFILE` environment variable or a `-PstealthProfile=/path/to/profile`
 Gradle property.
 
+Gradle profile loading only affects Android manifest and `BuildConfig` values.
+It does not populate Dart constants by itself. Use the Make targets, or pass
+the generated `build/stealth/dart-defines.json` explicitly with
+`flutter build --dart-define-from-file=build/stealth/dart-defines.json`, so
+`AppBuildInfo` and `AppSecrets` see the same profile values as Gradle.
+
 The profile sets:
 
 - Android `applicationId`
