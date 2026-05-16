@@ -198,8 +198,14 @@ stealth-profile:
 
 $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(STEALTH_PROFILE),)
 	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
-	@{ \
+	@set -e; { \
 	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
+	  printf 'STEALTH_PROFILE_SHA256='; \
+	  if [ -n "$(STEALTH_PROFILE)" ]; then \
+	    python3 -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE)"; \
+	  else \
+	    printf '\n'; \
+	  fi; \
 	  printf 'STEALTH_MODE=%s\n' "$(STEALTH_MODE)"; \
 	  printf 'STEALTH_PACKAGE_NAME=%s\n' "$(STEALTH_PACKAGE_NAME)"; \
 	  printf 'STEALTH_APP_NAME=%s\n' "$(STEALTH_APP_NAME)"; \
