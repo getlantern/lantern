@@ -176,9 +176,10 @@ STEALTH_DART_DEFINES_FILE ?= $(BUILD_DIR)/stealth/dart-defines.json
 STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
 STEALTH_GO_TAGS_FILE ?= $(BUILD_DIR)/stealth/go-tags-suffix.txt
 STEALTH_PROFILE_STAMP ?= $(BUILD_DIR)/stealth/profile.stamp
+STEALTH_PROFILE_INPUTS_FILE ?= $(BUILD_DIR)/stealth/profile.inputs
 STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
-STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(shell cat "$(STEALTH_GO_TAGS_FILE)" 2>/dev/null),)
+STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(shell cat "$(STEALTH_GO_TAGS_FILE)"),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),STEALTH_PROFILE="$(abspath $(STEALTH_PROFILE_OUT))",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
 
@@ -191,12 +192,30 @@ guard-%:
 check-gomobile:
 	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
 
-.PHONY: stealth-profile
+.PHONY: stealth-profile FORCE
 stealth-profile:
 	$(MAKE) -B "$(STEALTH_PROFILE_STAMP)"
 
-$(STEALTH_PROFILE_STAMP): $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(STEALTH_PROFILE),)
-	$(STEALTH_PROFILE_TOOL) \
+$(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(STEALTH_PROFILE),)
+	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
+	@{ \
+	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
+	  printf 'STEALTH_MODE=%s\n' "$(STEALTH_MODE)"; \
+	  printf 'STEALTH_PACKAGE_NAME=%s\n' "$(STEALTH_PACKAGE_NAME)"; \
+	  printf 'STEALTH_APP_NAME=%s\n' "$(STEALTH_APP_NAME)"; \
+	  printf 'STEALTH_SESSION_NAME=%s\n' "$(STEALTH_SESSION_NAME)"; \
+	  printf 'STEALTH_GO_OBFUSCATION_SEED=%s\n' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
+	  printf 'STEALTH_DENYLIST_VERSION=%s\n' "$(STEALTH_DENYLIST_VERSION)"; \
+	} > "$(STEALTH_PROFILE_INPUTS_FILE).tmp"
+	@if cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+		test -s "$(STEALTH_PROFILE_OUT)" && \
+		test -s "$(STEALTH_DART_DEFINES_FILE)" && \
+		test -s "$(STEALTH_ARTIFACT_METADATA)" && \
+		test -s "$(STEALTH_GO_TAGS_FILE)"; then \
+	  rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp"; \
+	else \
+	  mv "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)"; \
+	  $(STEALTH_PROFILE_TOOL) \
 		$(if $(STEALTH_PROFILE),--input "$(STEALTH_PROFILE)",) \
 		$(if $(STEALTH_MODE),--mode "$(STEALTH_MODE)",) \
 		$(if $(STEALTH_PACKAGE_NAME),--package-name "$(STEALTH_PACKAGE_NAME)",) \
@@ -206,10 +225,10 @@ $(STEALTH_PROFILE_STAMP): $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(ST
 		$(if $(STEALTH_DENYLIST_VERSION),--denylist-version "$(STEALTH_DENYLIST_VERSION)",) \
 		--output "$(STEALTH_PROFILE_OUT)" \
 		--dart-defines-output "$(STEALTH_DART_DEFINES_FILE)" \
-		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"
-	$(call MKDIR_P,$(dir $(STEALTH_GO_TAGS_FILE)))
-	$(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix > "$(STEALTH_GO_TAGS_FILE)"
-	touch "$@"
+		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"; \
+	  $(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix > "$(STEALTH_GO_TAGS_FILE)"; \
+	fi
+	@touch "$@"
 
 
 .PHONY: require-appdmg
