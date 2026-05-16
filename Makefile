@@ -199,6 +199,8 @@ stealth-profile:
 $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
 	@set -e; { \
+	  printf 'STEALTH_PROFILE_SCRIPT_SHA256='; \
+	  python3 -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE_SCRIPT)"; \
 	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
 	  printf 'STEALTH_PROFILE_SHA256='; \
 	  if [ -n "$(STEALTH_PROFILE)" ] && [ -f "$(STEALTH_PROFILE)" ]; then \
