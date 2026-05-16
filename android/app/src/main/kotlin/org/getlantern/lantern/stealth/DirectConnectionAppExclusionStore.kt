@@ -33,19 +33,44 @@ class DirectConnectionAppExclusionStore(
     }
 
     fun addPackage(rawPackageName: String) {
-        val packageName = DirectConnectionAppExclusions.normalizePackageName(rawPackageName)
-        require(DirectConnectionAppExclusions.isValidPackageName(packageName)) {
-            "Invalid package name"
-        }
+        updatePackages(listOf(rawPackageName), adding = true)
+    }
 
+    fun addPackages(rawPackageNames: Iterable<String>) {
+        updatePackages(rawPackageNames, adding = true)
+    }
+
+    fun removePackage(rawPackageName: String) {
+        updatePackages(listOf(rawPackageName), adding = false)
+    }
+
+    fun removePackages(rawPackageNames: Iterable<String>) {
+        updatePackages(rawPackageNames, adding = false)
+    }
+
+    private fun updatePackages(rawPackageNames: Iterable<String>, adding: Boolean) {
+        val packageNames = rawPackageNames.map(::requirePackageName)
+        if (packageNames.isEmpty()) {
+            return
+        }
         val defaults = defaultPackageNames()
         val added = stringSet(KEY_USER_ADDED).toMutableSet()
         val removedDefaults = stringSet(KEY_USER_REMOVED_DEFAULTS).toMutableSet()
 
-        if (packageName in defaults) {
-            removedDefaults -= packageName
-        } else {
-            added += packageName
+        for (packageName in packageNames) {
+            if (adding) {
+                if (packageName in defaults) {
+                    removedDefaults -= packageName
+                } else {
+                    added += packageName
+                }
+            } else {
+                if (packageName in defaults) {
+                    removedDefaults += packageName
+                } else {
+                    added -= packageName
+                }
+            }
         }
 
         prefs.edit()
@@ -54,26 +79,12 @@ class DirectConnectionAppExclusionStore(
             .apply()
     }
 
-    fun removePackage(rawPackageName: String) {
+    private fun requirePackageName(rawPackageName: String): String {
         val packageName = DirectConnectionAppExclusions.normalizePackageName(rawPackageName)
         require(DirectConnectionAppExclusions.isValidPackageName(packageName)) {
-            "Invalid package name"
+            "Invalid package name: raw='$rawPackageName', normalized='$packageName'"
         }
-
-        val defaults = defaultPackageNames()
-        val added = stringSet(KEY_USER_ADDED).toMutableSet()
-        val removedDefaults = stringSet(KEY_USER_REMOVED_DEFAULTS).toMutableSet()
-
-        if (packageName in defaults) {
-            removedDefaults += packageName
-        } else {
-            added -= packageName
-        }
-
-        prefs.edit()
-            .putStringSet(KEY_USER_ADDED, added)
-            .putStringSet(KEY_USER_REMOVED_DEFAULTS, removedDefaults)
-            .apply()
+        return packageName
     }
 
     private fun stringSet(key: String): Set<String> {

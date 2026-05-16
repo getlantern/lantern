@@ -1,5 +1,6 @@
 package org.getlantern.lantern.stealth
 
+import org.getlantern.lantern.utils.AppLogger
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -16,6 +17,9 @@ data class DirectConnectionAppExclusion(
 object DirectConnectionAppExclusions {
     const val DEFAULT_ASSET_PATH = "flutter_assets/assets/stealth/default_exclusions.json"
 
+    private const val TAG = "DirectAppExclusions"
+    private const val SUPPORTED_SCHEMA_VERSION = 1
+
     private val packageNamePattern =
         Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$")
 
@@ -29,6 +33,15 @@ object DirectConnectionAppExclusions {
 
     fun parseDefaults(json: String): List<DirectConnectionAppExclusion> {
         val root = JSONObject(json)
+        val schemaVersion = root.optInt("schema_version", -1)
+        if (schemaVersion != SUPPORTED_SCHEMA_VERSION) {
+            AppLogger.w(
+                TAG,
+                "Unsupported direct-connection defaults schema_version=$schemaVersion",
+            )
+            return emptyList()
+        }
+
         val defaults = root.optJSONArray("defaults") ?: JSONArray()
         val out = ArrayList<DirectConnectionAppExclusion>(defaults.length())
         val seen = LinkedHashSet<String>()

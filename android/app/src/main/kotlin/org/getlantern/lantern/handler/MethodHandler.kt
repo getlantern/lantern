@@ -345,8 +345,8 @@ class MethodHandler : FlutterPlugin,
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val items = call.argument<String>("value")
                         if (useDirectConnectionApps(filterType)) {
-                            val store = DirectConnectionAppExclusionStore(appContext)
-                            splitCsvClean(items).forEach(store::addPackage)
+                            DirectConnectionAppExclusionStore(appContext)
+                                .addPackages(splitCsvClean(items))
                             noteDirectConnectionAppsReconnect()
                         } else {
                             Mobile.addSplitTunnelItems(items)
@@ -369,8 +369,8 @@ class MethodHandler : FlutterPlugin,
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val items = call.argument<String>("value")
                         if (useDirectConnectionApps(filterType)) {
-                            val store = DirectConnectionAppExclusionStore(appContext)
-                            splitCsvClean(items).forEach(store::removePackage)
+                            DirectConnectionAppExclusionStore(appContext)
+                                .removePackages(splitCsvClean(items))
                             noteDirectConnectionAppsReconnect()
                         } else {
                             Mobile.removeSplitTunnelItems(items)
