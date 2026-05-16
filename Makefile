@@ -207,14 +207,19 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE
 	  printf 'STEALTH_GO_OBFUSCATION_SEED=%s\n' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
 	  printf 'STEALTH_DENYLIST_VERSION=%s\n' "$(STEALTH_DENYLIST_VERSION)"; \
 	} > "$(STEALTH_PROFILE_INPUTS_FILE).tmp"
-	@if cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+	@set -e; \
+	tmp_profile="$(STEALTH_PROFILE_OUT).tmp"; \
+	tmp_dart_defines="$(STEALTH_DART_DEFINES_FILE).tmp"; \
+	tmp_artifact_metadata="$(STEALTH_ARTIFACT_METADATA).tmp"; \
+	tmp_go_tags="$(STEALTH_GO_TAGS_FILE).tmp"; \
+	trap 'rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$$tmp_profile" "$$tmp_dart_defines" "$$tmp_artifact_metadata" "$$tmp_go_tags"' EXIT; \
+	if cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
 		test -s "$(STEALTH_PROFILE_OUT)" && \
 		test -s "$(STEALTH_DART_DEFINES_FILE)" && \
 		test -s "$(STEALTH_ARTIFACT_METADATA)" && \
 		test -s "$(STEALTH_GO_TAGS_FILE)"; then \
 	  rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp"; \
 	else \
-	  mv "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)"; \
 	  $(STEALTH_PROFILE_TOOL) \
 		$(if $(STEALTH_PROFILE),--input "$(STEALTH_PROFILE)",) \
 		$(if $(STEALTH_MODE),--mode "$(STEALTH_MODE)",) \
@@ -223,10 +228,15 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE
 		$(if $(STEALTH_SESSION_NAME),--session-name "$(STEALTH_SESSION_NAME)",) \
 		$(if $(STEALTH_GO_OBFUSCATION_SEED),--go-obfuscation-seed "$(STEALTH_GO_OBFUSCATION_SEED)",) \
 		$(if $(STEALTH_DENYLIST_VERSION),--denylist-version "$(STEALTH_DENYLIST_VERSION)",) \
-		--output "$(STEALTH_PROFILE_OUT)" \
-		--dart-defines-output "$(STEALTH_DART_DEFINES_FILE)" \
-		--artifact-metadata-output "$(STEALTH_ARTIFACT_METADATA)"; \
-	  $(STEALTH_PROFILE_TOOL) --input "$(STEALTH_PROFILE_OUT)" --go-tags-suffix > "$(STEALTH_GO_TAGS_FILE)"; \
+		--output "$$tmp_profile" \
+		--dart-defines-output "$$tmp_dart_defines" \
+		--artifact-metadata-output "$$tmp_artifact_metadata"; \
+	  $(STEALTH_PROFILE_TOOL) --input "$$tmp_profile" --go-tags-suffix > "$$tmp_go_tags"; \
+	  mv "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)"; \
+	  mv "$$tmp_profile" "$(STEALTH_PROFILE_OUT)"; \
+	  mv "$$tmp_dart_defines" "$(STEALTH_DART_DEFINES_FILE)"; \
+	  mv "$$tmp_artifact_metadata" "$(STEALTH_ARTIFACT_METADATA)"; \
+	  mv "$$tmp_go_tags" "$(STEALTH_GO_TAGS_FILE)"; \
 	  touch "$@"; \
 	fi
 
