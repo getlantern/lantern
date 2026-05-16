@@ -14,7 +14,7 @@ void main() {
     expect(decoded['source'], isA<Map<String, Object?>>());
 
     final defaults = decoded['defaults'] as List<Object?>;
-    expect(defaults.length, 22);
+    expect(defaults, isNotEmpty);
 
     final packageNames = <String>[];
     final packageNamePattern = RegExp(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$');

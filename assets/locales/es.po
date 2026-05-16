@@ -339,6 +339,9 @@ msgstr "Aplicaciones que omiten la VPN (%d)"
 msgid "websites_bypassing_vpn"
 msgstr "Sitios web que omiten la VPN (%d)"
 
+msgid "items_added_count"
+msgstr "%d added"
+
 msgid "logs_share_message"
 msgstr "Aquí están mis registros de diagnóstico de Lantern."
 

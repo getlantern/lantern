@@ -13,7 +13,7 @@ class DirectConnectionAppExclusionStore(
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     private val defaultExclusions: List<DirectConnectionAppExclusion> by lazy {
-        loadDefaultExclusions(context)
+        cachedDefaultExclusions(context.applicationContext)
     }
 
     fun defaultPackageNames(): Set<String> {
@@ -105,8 +105,21 @@ class DirectConnectionAppExclusionStore(
             "assets/stealth/default_exclusions.json",
             "stealth/default_exclusions.json",
         )
+        @Volatile
+        private var defaultExclusionsCache: List<DirectConnectionAppExclusion>? = null
 
         fun enabled(): Boolean = BuildConfig.STEALTH_DIRECT_CONNECTION_APPS
+
+        private fun cachedDefaultExclusions(
+            context: Context,
+        ): List<DirectConnectionAppExclusion> {
+            defaultExclusionsCache?.let { return it }
+            return synchronized(this) {
+                defaultExclusionsCache ?: loadDefaultExclusions(context).also {
+                    defaultExclusionsCache = it
+                }
+            }
+        }
 
         fun loadDefaultExclusions(context: Context): List<DirectConnectionAppExclusion> {
             for (path in assetCandidates) {
