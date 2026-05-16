@@ -133,7 +133,7 @@ def generate_identity(
 ) -> AndroidIdentity:
     seed_value, random_seed = _seed_material(seed)
     digest = hashlib.sha256(seed_value.encode("utf-8")).hexdigest()
-    rng = random.Random(digest)
+    rng = random.Random(int(digest, 16))
 
     adjective = rng.choice(ADJECTIVES)
     noun = rng.choice(NOUNS)
