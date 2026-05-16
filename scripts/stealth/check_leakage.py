@@ -305,7 +305,7 @@ class Scanner:
         if target.is_dir():
             self.scan_directory(target)
             return
-        self.scan_file(target, str(target))
+        self.scan_file(target, str(target), scan_path=False)
 
     def scan_directory(self, root: Path) -> None:
         for dirpath, _, filenames in os.walk(root):
@@ -317,8 +317,9 @@ class Scanner:
                     logical = str(path)
                 self.scan_file(path, logical)
 
-    def scan_file(self, path: Path, logical: str) -> None:
-        self.scan_bytes(f"{logical}[path]", logical.encode("utf-8", "surrogateescape"))
+    def scan_file(self, path: Path, logical: str, scan_path: bool = True) -> None:
+        if scan_path:
+            self.scan_bytes(f"{logical}[path]", logical.encode("utf-8", "surrogateescape"))
         try:
             if is_archive_name(path.name) and zipfile.is_zipfile(path):
                 self.scan_archive_bytes(path.read_bytes(), logical, depth=0)
@@ -485,7 +486,7 @@ def print_text_result(mode: str, result: ScanResult, max_findings: int) -> None:
         for error in result.errors:
             print(f"  - {error}", file=sys.stderr)
 
-    if not result.findings:
+    if not result.findings and not result.errors:
         if result.targets:
             joined = ", ".join(result.targets)
             print(
