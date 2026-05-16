@@ -102,7 +102,10 @@ class MainActivity : FlutterFragmentActivity() {
     private fun startLanternService() {
         AppLogger.d(TAG, "Starting LanternService")
         if (BuildConfig.STEALTH_NO_VPN) {
-            startNoVpnProxyService()
+            AppLogger.d(TAG, "Stealth no-VPN build skips proxy autostart")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume = 0
             return
         }
         if (isServiceRunning(this, LanternVpnService::class.java)) {
