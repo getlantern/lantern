@@ -1,3 +1,4 @@
+import hashlib
 import sys
 import tempfile
 import unittest
@@ -86,10 +87,10 @@ class GenerateAndroidIconsTest(unittest.TestCase):
                         ["--output-res-dir", str(out)]
                     )
 
-            expected = generate_android_icons.generate("variant-env", Path(tmp) / "expected")
+            expected_sha = hashlib.sha256(b"variant-env").hexdigest()
             metadata = (out.parent / "stealth-icon-metadata.json").read_text()
             self.assertEqual(exit_code, 0)
-            self.assertIn(expected["seedSha256"], metadata)
+            self.assertIn(expected_sha, metadata)
 
     def read(self, root: Path, relative_path: str) -> str:
         return (root / relative_path).read_text(encoding="utf-8")
