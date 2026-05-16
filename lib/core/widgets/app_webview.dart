@@ -183,7 +183,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     }
 
     // OAuth callback.
-    if (uri.scheme == 'lantern' &&
+    if (AppBuildInfo.enableOAuth &&
+        uri.scheme == 'lantern' &&
         uri.host == 'auth' &&
         uri.queryParameters.containsKey('token')) {
       loading.stop();
@@ -191,25 +192,28 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return true;
     }
 
-    final purchaseResult = _extractPurchaseResult(uri);
-    if (purchaseResult != null && AppUrls.isLanternHost(uri.host)) {
-      loading.stop();
-      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
-      return true;
+    if (AppBuildInfo.enablePayments && AppBuildInfo.enableStorePayments) {
+      final purchaseResult = _extractPurchaseResult(uri);
+      if (purchaseResult != null && AppUrls.isLanternHost(uri.host)) {
+        loading.stop();
+        await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
+        return true;
+      }
+
+      /// Alipay trade_status=TRADE_SUCCESS once the user has finished paying.
+      final tradeStatus = uri.queryParameters['trade_status'];
+      if (tradeStatus != null && tradeStatus.toUpperCase() == 'TRADE_SUCCESS') {
+        appLogger.info(
+          'Webview detected Alipay trade_status=TRADE_SUCCESS on ${uri.host}, closing',
+        );
+        loading.stop();
+        await appRouter.maybePop(true);
+        return true;
+      }
     }
 
-    /// Alipay trade_status=TRADE_SUCCESS once the user has finished paying.
-    final tradeStatus = uri.queryParameters['trade_status'];
-    if (tradeStatus != null && tradeStatus.toUpperCase() == 'TRADE_SUCCESS') {
-      appLogger.info(
-        'Webview detected Alipay trade_status=TRADE_SUCCESS on ${uri.host}, closing',
-      );
-      loading.stop();
-      await appRouter.maybePop(true);
-      return true;
-    }
-
-    if (AppUrls.isLanternHost(uri.host) &&
+    if (AppBuildInfo.enableOAuth &&
+        AppUrls.isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {
       loading.stop();
