@@ -132,6 +132,22 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 1)
 
+    def test_scans_zip_local_header_extra_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"clean")
+
+            archive.write_bytes(self.insert_local_extra(
+                archive.read_bytes(),
+                "assets/clean.txt",
+                b"\x99\x99\x07\x00Lantern",
+            ))
+
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
     def test_scans_non_entry_archive_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -229,6 +245,32 @@ class LeakageScannerTest(unittest.TestCase):
         new_eocd_offset = eocd_offset + len(payload)
         out = bytearray(out)
         struct.pack_into("<I", out, new_eocd_offset + 16, central_dir_offset + len(payload))
+        return bytes(out)
+
+    def insert_local_extra(self, data: bytes, entry_name: str, payload: bytes) -> bytes:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            header_offset = zf.getinfo(entry_name).header_offset
+        (
+            signature,
+            _version,
+            _flags,
+            _compression,
+            _mtime,
+            _mdate,
+            _crc,
+            _compressed_size,
+            _file_size,
+            filename_len,
+            extra_len,
+        ) = struct.unpack_from("<IHHHHHIIIHH", data, header_offset)
+        self.assertEqual(signature, 0x04034B50)
+        insert_at = header_offset + 30 + filename_len + extra_len
+        eocd_offset = data.rfind(b"PK\x05\x06")
+        self.assertNotEqual(eocd_offset, -1)
+        central_dir_offset = struct.unpack_from("<I", data, eocd_offset + 16)[0]
+        out = bytearray(data[:insert_at] + payload + data[insert_at:])
+        struct.pack_into("<H", out, header_offset + 28, extra_len + len(payload))
+        struct.pack_into("<I", out, eocd_offset + len(payload) + 16, central_dir_offset + len(payload))
         return bytes(out)
 
 
