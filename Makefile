@@ -73,6 +73,7 @@ LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
 LANTERND := lanternd
 LANTERND_SRC := $(RADIANCE_REPO)/cmd/lanternd
+LANTERND_SERVICE_LOG_LEVEL ?= $(if $(filter stealth stealth-%,$(BUILD_TYPE)),warn,trace)
 LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
 LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
 LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
@@ -373,6 +374,7 @@ linux-release-ci: linux pubget gen
 	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
 	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
 	cp "$(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LANTERND)" "$$BUNDLE_DIR"; \
+	printf '%s\n' "$(LANTERND_SERVICE_LOG_LEVEL)" > "$$BUNDLE_DIR/lanternd-log-level"; \
 	patchelf --set-rpath '$$ORIGIN/lib' "$$BUNDLE_DIR/lantern" || true; \
 	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB); \
@@ -444,6 +446,7 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release
 	$(MAKE) copy-lanternd-release-arm64
+	printf '%s\n' "$(LANTERND_SERVICE_LOG_LEVEL)" > "$(WINDOWS_RELEASE_DIR)/lanternd-log-level"
 
 .PHONY: windows-debug
 windows-debug: windows
