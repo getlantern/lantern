@@ -60,6 +60,15 @@ class Finding:
     excerpt: str
 
 
+@dataclasses.dataclass(frozen=True)
+class LocalEntryLayout:
+    start: int
+    data_start: int
+    data_end: int
+    filename: bytes
+    extra: bytes
+
+
 @dataclasses.dataclass
 class ScanResult:
     targets: list[str]
@@ -368,9 +377,10 @@ class Scanner:
     ) -> None:
         covered: list[tuple[int, int]] = []
         for info in archive.infolist():
-            entry_range = self.local_entry_range(data, info)
-            if entry_range is not None:
-                covered.append(entry_range)
+            layout = self.local_entry_layout(data, info)
+            if layout is not None:
+                self.scan_local_entry_metadata(logical, info, layout)
+                covered.append((layout.start, layout.data_end))
 
         start_dir = getattr(archive, "start_dir", None)
         if isinstance(start_dir, int):
@@ -386,11 +396,24 @@ class Scanner:
         if cursor < len(data):
             self.scan_bytes(f"{logical}[non-entry]", data[cursor:])
 
-    def local_entry_range(
+    def scan_local_entry_metadata(
+        self,
+        logical: str,
+        info: zipfile.ZipInfo,
+        layout: LocalEntryLayout,
+    ) -> None:
+        entry_location = f"{logical}!{info.filename}"
+        central_filename = info.filename.encode("utf-8", "surrogateescape")
+        if layout.filename and layout.filename != central_filename:
+            self.scan_bytes(f"{entry_location}[local-entry-name]", layout.filename)
+        if layout.extra and layout.extra != info.extra:
+            self.scan_bytes(f"{entry_location}[local-entry-extra]", layout.extra)
+
+    def local_entry_layout(
         self,
         data: bytes,
         info: zipfile.ZipInfo,
-    ) -> tuple[int, int] | None:
+    ) -> LocalEntryLayout | None:
         start = info.header_offset
         if start < 0 or start + 30 > len(data):
             return None
@@ -412,8 +435,22 @@ class Scanner:
             return None
         if signature != 0x04034B50:
             return None
-        data_start = start + 30 + filename_len + extra_len
-        return start, data_start + compressed_size
+        filename_start = start + 30
+        extra_start = filename_start + filename_len
+        data_start = extra_start + extra_len
+        if data_start > len(data):
+            return None
+        compressed_size = info.compress_size if info.compress_size >= 0 else compressed_size
+        data_end = data_start + compressed_size
+        if data_end < data_start or data_end > len(data):
+            return None
+        return LocalEntryLayout(
+            start=start,
+            data_start=data_start,
+            data_end=data_end,
+            filename=data[filename_start:extra_start],
+            extra=data[extra_start:data_start],
+        )
 
     def scan_archive_members(self, archive: zipfile.ZipFile, logical: str, depth: int) -> None:
         for info in archive.infolist():
