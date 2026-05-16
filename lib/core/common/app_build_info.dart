@@ -23,7 +23,7 @@ class AppBuildInfo {
   );
 
   static bool isAppAuthUri(Uri uri) {
-    return uri.scheme == appAuthScheme || uri.scheme == 'lantern';
+    return uri.scheme == appAuthScheme;
   }
 
   /// Developer mode is exposed in debug and nightly builds only.

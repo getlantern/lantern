@@ -22,6 +22,8 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
         self.assertNotEqual(first.application_id, "org.getlantern.lantern")
         self.assertNotIn("Lantern", first.app_label)
         self.assertNotIn("VPN", first.notification_connected_text)
+        self.assertIn(first.app_label, first.notification_connected_text)
+        self.assertIn(first.app_label, first.quick_tile_active_label)
         self.assertEqual(first.quick_tile_icon, "@drawable/neutral_notification_icon")
         self.assertRegex(
             first.application_id,
@@ -34,6 +36,8 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
 
         self.assertNotEqual(first.application_id, second.application_id)
         self.assertNotEqual(first.identity_profile_id, second.identity_profile_id)
+        self.assertNotEqual(first.notification_connected_text, second.notification_connected_text)
+        self.assertNotEqual(first.quick_tile_active_label, second.quick_tile_active_label)
 
     def test_random_generation_changes_identity(self) -> None:
         first = generator.generate_identity()
