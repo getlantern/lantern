@@ -39,8 +39,8 @@ case "$1" in
     garble_flags=()
     if [[ -n "${GARBLE_FLAGS:-}" ]]; then
       # GARBLE_FLAGS is intentionally simple make/CI input such as "-literals -tiny".
-      # shellcheck disable=SC2206
-      garble_flags=(${GARBLE_FLAGS})
+      # Split on shell whitespace without pathname expansion.
+      read -r -a garble_flags <<< "${GARBLE_FLAGS}"
     fi
 
     real_go_dir="$(dirname "$real_go")"
