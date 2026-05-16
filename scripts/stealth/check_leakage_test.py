@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import sys
+import struct
 import tempfile
 import unittest
 import zipfile
@@ -118,6 +119,34 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 0)
 
+    def test_scans_zip_entry_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            info = zipfile.ZipInfo("assets/clean.txt")
+            info.extra = b"\x99\x99\x07\x00Lantern"
+            info.comment = b"Lantern comment metadata"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr(info, b"clean")
+
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
+    def test_scans_non_entry_archive_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"clean")
+
+            archive.write_bytes(self.insert_before_central_directory(
+                archive.read_bytes(),
+                b"Lantern signing block",
+            ))
+
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
     def test_mode_specific_allowlist(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -191,6 +220,16 @@ class LeakageScannerTest(unittest.TestCase):
             self.assertNotIn("Forbidden identifiers found", stdout.getvalue())
             self.assertIn("failed", stdout.getvalue())
             self.assertIn("Scanner errors", stderr.getvalue())
+
+    def insert_before_central_directory(self, data: bytes, payload: bytes) -> bytes:
+        eocd_offset = data.rfind(b"PK\x05\x06")
+        self.assertNotEqual(eocd_offset, -1)
+        central_dir_offset = struct.unpack_from("<I", data, eocd_offset + 16)[0]
+        out = data[:central_dir_offset] + payload + data[central_dir_offset:]
+        new_eocd_offset = eocd_offset + len(payload)
+        out = bytearray(out)
+        struct.pack_into("<I", out, new_eocd_offset + 16, central_dir_offset + len(payload))
+        return bytes(out)
 
 
 if __name__ == "__main__":

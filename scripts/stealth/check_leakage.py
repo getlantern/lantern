@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import shlex
+import struct
 import sys
 from typing import Any
 import zipfile
@@ -347,6 +348,7 @@ class Scanner:
             return
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                self.scan_archive_non_entry_bytes(data, archive, logical)
                 self.scan_archive_metadata(archive, logical)
                 self.scan_archive_members(archive, logical, depth)
         except zipfile.BadZipFile:
@@ -358,6 +360,61 @@ class Scanner:
         if archive.comment:
             self.scan_bytes(f"{logical}[archive-comment]", archive.comment)
 
+    def scan_archive_non_entry_bytes(
+        self,
+        data: bytes,
+        archive: zipfile.ZipFile,
+        logical: str,
+    ) -> None:
+        covered: list[tuple[int, int]] = []
+        for info in archive.infolist():
+            entry_range = self.local_entry_range(data, info)
+            if entry_range is not None:
+                covered.append(entry_range)
+
+        start_dir = getattr(archive, "start_dir", None)
+        if isinstance(start_dir, int):
+            covered.append((start_dir, len(data)))
+
+        cursor = 0
+        for start, end in sorted(covered):
+            start = max(0, min(start, len(data)))
+            end = max(start, min(end, len(data)))
+            if cursor < start:
+                self.scan_bytes(f"{logical}[non-entry]", data[cursor:start])
+            cursor = max(cursor, end)
+        if cursor < len(data):
+            self.scan_bytes(f"{logical}[non-entry]", data[cursor:])
+
+    def local_entry_range(
+        self,
+        data: bytes,
+        info: zipfile.ZipInfo,
+    ) -> tuple[int, int] | None:
+        start = info.header_offset
+        if start < 0 or start + 30 > len(data):
+            return None
+        try:
+            (
+                signature,
+                _version,
+                _flags,
+                _compression,
+                _mtime,
+                _mdate,
+                _crc,
+                compressed_size,
+                _file_size,
+                filename_len,
+                extra_len,
+            ) = struct.unpack_from("<IHHHHHIIIHH", data, start)
+        except struct.error:
+            return None
+        if signature != 0x04034B50:
+            return None
+        data_start = start + 30 + filename_len + extra_len
+        return start, data_start + compressed_size
+
     def scan_archive_members(self, archive: zipfile.ZipFile, logical: str, depth: int) -> None:
         for info in archive.infolist():
             entry_location = f"{logical}!{info.filename}"
@@ -365,6 +422,10 @@ class Scanner:
                 f"{entry_location}[entry-name]",
                 info.filename.encode("utf-8", "surrogateescape"),
             )
+            if info.extra:
+                self.scan_bytes(f"{entry_location}[entry-extra]", info.extra)
+            if info.comment:
+                self.scan_bytes(f"{entry_location}[entry-comment]", info.comment)
             if info.is_dir():
                 continue
             try:
