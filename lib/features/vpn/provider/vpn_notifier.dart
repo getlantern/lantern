@@ -37,9 +37,10 @@ class VpnNotifier extends _$VpnNotifier {
         'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
       );
       final suppressConnectionNotifications =
+          AppBuildInfo.stealthNoVpn ||
           nextOrigin == VPNStatusOrigin.settingsMutation &&
-          (nextStatus == VPNStatus.connected ||
-              nextStatus == VPNStatus.disconnected);
+              (nextStatus == VPNStatus.connected ||
+                  nextStatus == VPNStatus.disconnected);
 
       final isFirstEvent = previous == null || previous.value == null;
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;

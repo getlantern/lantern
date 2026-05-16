@@ -22,7 +22,7 @@ class VPNSetting extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     if (AppBuildInfo.stealthNoVpn) {
-      return _buildNoVpnBody(context);
+      return _buildNoVpnBody(context, ref);
     }
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
@@ -192,8 +192,15 @@ class VPNSetting extends HookConsumerWidget {
     );
   }
 
-  Widget _buildNoVpnBody(BuildContext context) {
+  Widget _buildNoVpnBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
+    final isUserPro = ref.watch(isUserProProvider);
+    final blockAds = ref.watch(
+      radianceSettingsProvider.select((s) => s.blockAds),
+    );
+    final telemetryConsent = ref.watch(
+      radianceSettingsProvider.select((s) => s.telemetry),
+    );
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -243,6 +250,68 @@ class VPNSetting extends HookConsumerWidget {
                 value: StealthNoVpnProxy.address,
               ),
             ],
+          ),
+        ),
+        SizedBox(height: 16),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
+            label: 'block_ads'.i18n,
+            subtitle: Text(
+              'only_active'.i18n,
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textTertiary,
+                letterSpacing: 0.0,
+              ),
+            ),
+            icon: AppImagePaths.blockAds,
+            trailing: SwitchButton(
+              value: blockAds,
+              onChanged: (bool? value) {
+                if (!isUserPro) {
+                  appRouter.push(Plans());
+                  return;
+                }
+                ref
+                    .read(radianceSettingsProvider.notifier)
+                    .setBlockAds(value ?? false);
+              },
+            ),
+            onPressed: () {
+              if (!isUserPro) {
+                appRouter.push(Plans());
+                return;
+              }
+              ref
+                  .read(radianceSettingsProvider.notifier)
+                  .setBlockAds(!blockAds);
+            },
+          ),
+        ),
+        SizedBox(height: 16),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
+            minHeight: PlatformUtils.isWindows ? 82.0 : 72.0,
+            label: 'anonymous_usage_data'.i18n,
+            icon: AppImagePaths.assessment,
+            subtitle: AutoSizeText(
+              'helps_improve_lantern_performance'.i18n,
+              minFontSize: 12,
+              maxFontSize: 12,
+              maxLines: 2,
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textTertiary,
+                letterSpacing: 0.0,
+              ),
+            ),
+            trailing: SwitchButton(
+              value: telemetryConsent,
+              onChanged: (value) {
+                appLogger.info('Anonymous usage data consent changed: $value');
+                ref.read(radianceSettingsProvider.notifier).setTelemetry(value);
+              },
+            ),
           ),
         ),
       ],

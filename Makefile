@@ -515,6 +515,10 @@ android-apk-release:
 android-aab-release:
 	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+	$(MAKE) android-copy-play-artifacts
+
+.PHONY: android-copy-play-artifacts
+android-copy-play-artifacts:
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
 	  cp "$(ANDROID_MAPPING_SRC)" mapping.txt; \
@@ -535,6 +539,7 @@ android-stealth-novpn-apk-release:
 android-stealth-novpn-aab-release:
 	ORG_GRADLE_PROJECT_stealthNoVpn=true flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(STEALTH_NOVPN_DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_STEALTH_NOVPN_AAB)
+	$(MAKE) android-copy-play-artifacts
 
 .PHONY: android-stealth-novpn-release
 android-stealth-novpn-release: android pubget gen android-stealth-novpn-apk-release android-stealth-novpn-aab-release
