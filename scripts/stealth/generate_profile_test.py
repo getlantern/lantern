@@ -1,8 +1,10 @@
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import generate_profile
 
 
@@ -87,6 +89,19 @@ class GenerateProfileTest(unittest.TestCase):
             "mode": "stealth-vpn",
             "packageName": "bad package",
             "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": 0,
+        }
+
+        with self.assertRaises(generate_profile.ProfileError):
+            generate_profile.validate_profile(profile)
+
+    def test_rejects_manifest_placeholder_xml_characters(self):
+        profile = {
+            "mode": "stealth-vpn",
+            "packageName": "org.example.safe.s123",
+            "appName": 'Bad "Label"',
             "sessionName": "BeaconLink",
             "goObfuscationSeed": "seed-for-test",
             "denylistVersion": 0,

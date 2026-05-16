@@ -29,6 +29,7 @@ DART_DEFINE_KEYS = {
     "denylistVersion": "STEALTH_DENYLIST_VERSION",
 }
 PACKAGE_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
+XML_ATTRIBUTE_RESERVED = set("\"'&<>")
 
 
 class ProfileError(ValueError):
@@ -74,6 +75,16 @@ def coerce_denylist_version(value: Any) -> int:
     return version
 
 
+def validate_manifest_placeholder_text(field: str, value: str) -> str:
+    if not value:
+        raise ProfileError(f"{field} is required")
+    if any(char in XML_ATTRIBUTE_RESERVED or ord(char) < 32 for char in value):
+        raise ProfileError(
+            f"{field} must not contain XML-reserved or control characters"
+        )
+    return value
+
+
 def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     mode = str(profile.get("mode", "")).strip()
     if mode not in VALID_MODES:
@@ -86,12 +97,10 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
         )
 
     app_name = str(profile.get("appName", "")).strip()
-    if not app_name:
-        raise ProfileError("appName is required")
+    validate_manifest_placeholder_text("appName", app_name)
 
     session_name = str(profile.get("sessionName", "")).strip()
-    if not session_name:
-        raise ProfileError("sessionName is required")
+    validate_manifest_placeholder_text("sessionName", session_name)
 
     go_obfuscation_seed = str(
         profile.get("goObfuscationSeed") or profile.get("obfuscationSeed", "")

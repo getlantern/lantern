@@ -176,7 +176,7 @@ STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
 STEALTH_GO_TAGS_FILE ?= $(BUILD_DIR)/stealth/go-tags-suffix.txt
 STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
-STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(file <$(STEALTH_GO_TAGS_FILE)),)
+STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(shell cat "$(STEALTH_GO_TAGS_FILE)"),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),STEALTH_PROFILE="$(CURDIR)/$(STEALTH_PROFILE_OUT)",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),stealth-profile,)
 

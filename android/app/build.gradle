@@ -36,6 +36,22 @@ def buildConfigString = { value ->
     return "\"${escaped}\""
 }
 
+def manifestPlaceholderString = { fieldName, value ->
+    def text = value.toString()
+    if (!text.trim()) {
+        throw new GradleException("Stealth profile ${fieldName} must not be empty")
+    }
+    for (int i = 0; i < text.length(); i++) {
+        def ch = text.charAt(i)
+        if (Character.isISOControl(ch) || ['"', "'", '&', '<', '>'].contains(String.valueOf(ch))) {
+            throw new GradleException(
+                    "Stealth profile ${fieldName} contains XML-reserved or control characters"
+            )
+        }
+    }
+    return text
+}
+
 def resolveRepoRelativeFile = { path ->
     def candidate = new File(path.toString())
     if (candidate.isAbsolute()) {
@@ -68,6 +84,8 @@ def loadStealthProfile = {
     if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode.toString())) {
         throw new GradleException("Unsupported Stealth mode '${profile.mode}' in ${profileFile}")
     }
+    profile.appName = manifestPlaceholderString("appName", profile.appName)
+    profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
     return profile
 }
 
