@@ -257,13 +257,6 @@ class VPNSetting extends HookConsumerWidget {
           padding: EdgeInsets.zero,
           child: AppTile(
             label: 'block_ads'.i18n,
-            subtitle: Text(
-              'only_active'.i18n,
-              style: textTheme.labelMedium!.copyWith(
-                color: context.textTertiary,
-                letterSpacing: 0.0,
-              ),
-            ),
             icon: AppImagePaths.blockAds,
             trailing: SwitchButton(
               value: blockAds,

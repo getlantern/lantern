@@ -95,7 +95,7 @@ class MainActivity : FlutterFragmentActivity() {
         if (pendingServiceStart && retryCountResume < maxRetriesResume) {
             retryCountResume++
             AppLogger.d(TAG, "Retrying pending service start")
-            startLanternService()
+            retryServiceStart()
         }
     }
 
@@ -162,7 +162,7 @@ class MainActivity : FlutterFragmentActivity() {
 
             AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
             serviceStartHandler.postDelayed({
-                startLanternService()
+                retryServiceStart()
             }, delay)
         } else {
             /*
@@ -174,6 +174,14 @@ class MainActivity : FlutterFragmentActivity() {
             // Optionally notify user or handle failure
             // Wait for app to come to foreground
             pendingServiceStart = true
+        }
+    }
+
+    private fun retryServiceStart() {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            startNoVpnProxyService()
+        } else {
+            startLanternService()
         }
     }
 
