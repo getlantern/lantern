@@ -77,6 +77,26 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 1)
 
+    def test_direct_target_filename_is_not_scanned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "Lantern.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"no content leak here")
+
+            self.assertEqual(self.scan(config, "stealth", archive), 0)
+
+    def test_directory_child_filename_is_scanned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            target = root / "out"
+            target.mkdir()
+            (target / "Lantern.txt").write_bytes(b"no content leak here")
+
+            self.assertEqual(self.scan(config, "stealth", target), 1)
+
     def test_scans_zip_archive_comment(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -133,6 +153,32 @@ class LeakageScannerTest(unittest.TestCase):
                     str(missing),
                 ])
             self.assertEqual(code, 0)
+
+    def test_scanner_errors_do_not_print_success(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            nested = root / "inner.apk"
+            with zipfile.ZipFile(nested, "w") as zf:
+                zf.writestr("assets/clean.txt", b"clean")
+            archive = root / "outer.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.write(nested, "inner.apk")
+
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                code = check_leakage.main([
+                    "--config",
+                    str(config),
+                    "--max-depth",
+                    "0",
+                    str(archive),
+                ])
+
+            self.assertEqual(code, 2)
+            self.assertNotIn("Stealth leakage check passed", stdout.getvalue())
+            self.assertIn("Scanner errors", stderr.getvalue())
 
 
 if __name__ == "__main__":
