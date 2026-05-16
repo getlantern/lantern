@@ -72,9 +72,11 @@ detection and support correlation.
 
 ## Android Plumbing
 
-`android/app/build.gradle` reads the normalized profile from either the
-`STEALTH_PROFILE` environment variable or a `-PstealthProfile=/path/to/profile`
-Gradle property.
+`android/app/build.gradle` reads the normalized profile from a
+`-PstealthProfile=/path/to/profile` Gradle property, or from
+`ORG_GRADLE_PROJECT_stealthProfile` when invoked through Flutter/Make. The
+legacy `STEALTH_PROFILE` environment variable remains a fallback for manual
+non-daemon Gradle invocations.
 
 Gradle profile loading only affects Android manifest and `BuildConfig` values.
 It does not populate Dart constants by itself. Use the Make targets, or pass
