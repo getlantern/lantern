@@ -61,7 +61,7 @@ def new_profile_id() -> str:
 
 
 def default_package_name(profile_id: str) -> str:
-    suffix = profile_id.removeprefix("stl_")
+    suffix = profile_id[4:] if profile_id.startswith("stl_") else profile_id
     return f"org.getlantern.lantern.stealth.s{suffix}"
 
 
@@ -78,7 +78,10 @@ def coerce_denylist_version(value: Any) -> int:
 def validate_manifest_placeholder_text(field: str, value: str) -> str:
     if not value:
         raise ProfileError(f"{field} is required")
-    if any(char in XML_ATTRIBUTE_RESERVED or ord(char) < 32 for char in value):
+    if any(
+        char in XML_ATTRIBUTE_RESERVED or ord(char) < 32 or 0x7F <= ord(char) <= 0x9F
+        for char in value
+    ):
         raise ProfileError(
             f"{field} must not contain XML-reserved or control characters"
         )

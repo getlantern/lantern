@@ -110,6 +110,19 @@ class GenerateProfileTest(unittest.TestCase):
         with self.assertRaises(generate_profile.ProfileError):
             generate_profile.validate_profile(profile)
 
+    def test_rejects_manifest_placeholder_iso_control_characters(self):
+        profile = {
+            "mode": "stealth-vpn",
+            "packageName": "org.example.safe.s123",
+            "appName": "Bad\x7fLabel",
+            "sessionName": "BeaconLink",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": 0,
+        }
+
+        with self.assertRaises(generate_profile.ProfileError):
+            generate_profile.validate_profile(profile)
+
 
 if __name__ == "__main__":
     unittest.main()

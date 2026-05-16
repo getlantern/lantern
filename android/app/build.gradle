@@ -52,6 +52,18 @@ def manifestPlaceholderString = { fieldName, value ->
     return text
 }
 
+def nonNegativeInteger = { fieldName, value ->
+    try {
+        def parsed = Integer.parseInt(value.toString())
+        if (parsed < 0) {
+            throw new NumberFormatException("negative")
+        }
+        return parsed
+    } catch (NumberFormatException ignored) {
+        throw new GradleException("Stealth profile ${fieldName} must be a non-negative integer")
+    }
+}
+
 def resolveRepoRelativeFile = { path ->
     def candidate = new File(path.toString())
     if (candidate.isAbsolute()) {
@@ -86,6 +98,7 @@ def loadStealthProfile = {
     }
     profile.appName = manifestPlaceholderString("appName", profile.appName)
     profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
+    profile.denylistVersion = nonNegativeInteger("denylistVersion", profile.denylistVersion)
     return profile
 }
 
