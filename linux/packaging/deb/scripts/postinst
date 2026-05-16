@@ -7,7 +7,7 @@ warn() {
 
 case "$1" in
 configure)
-	if ! /usr/lib/lantern/lanternd install --log-level=trace; then
+	if ! /usr/lib/lantern/lanternd install; then
 		warn "failed to install lanternd service"
 		exit 1
 	fi
