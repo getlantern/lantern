@@ -291,7 +291,7 @@ Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}";
 
 [Run]
 ; Install LanternSvc service (creates Windows service, sets recovery actions, starts it)
-Filename: "{code:LanterndExecutablePath}"; Parameters: "install"; Flags: runhidden
+Filename: "{code:LanterndExecutablePath}"; Parameters: "install --log-level={code:LanterndInstallLogLevel}"; Flags: runhidden
 
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
@@ -463,6 +463,18 @@ begin
     Result := Arm64Path
   else
     Result := ExpandConstant('{app}\lanternd.exe');
+end;
+
+function LanterndInstallLogLevel(_Param: String): String;
+var
+  LogLevel: String;
+begin
+  Result := 'trace';
+  if LoadStringFromFile(ExpandConstant('{app}\lanternd-log-level'), LogLevel) then begin
+    LogLevel := Trim(LogLevel);
+    if LogLevel <> '' then
+      Result := LogLevel;
+  end;
 end;
 
 function InitializeSetup: Boolean;
