@@ -360,8 +360,8 @@ class Scanner:
                 self.scan_archive_non_entry_bytes(data, archive, logical)
                 self.scan_archive_metadata(archive, logical)
                 self.scan_archive_members(archive, logical, depth)
-        except zipfile.BadZipFile:
-            return
+        except zipfile.BadZipFile as exc:
+            self.errors.append(f"{logical}: unable to read archive: {exc}")
         except NotImplementedError as exc:
             self.errors.append(f"{logical}: unsupported nested archive compression: {exc}")
 
