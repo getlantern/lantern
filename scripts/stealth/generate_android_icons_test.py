@@ -1,3 +1,4 @@
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -5,6 +6,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import generate_android_icons
 
 
@@ -21,7 +23,11 @@ class GenerateAndroidIconsTest(unittest.TestCase):
             self.assertTrue((out / "drawable/stealth_notification_icon.xml").exists())
             self.assertNotIn(
                 "#00000000",
-                (out / "drawable/stealth_notification_icon.xml").read_text(),
+                self.read(out, "drawable/stealth_launcher_foreground.xml"),
+            )
+            self.assertNotIn(
+                "#00000000",
+                self.read(out, "drawable/stealth_notification_icon.xml"),
             )
             self.assertTrue((out / "mipmap-anydpi/stealth_ic_launcher.xml").exists())
             self.assertTrue(
@@ -79,6 +85,9 @@ class GenerateAndroidIconsTest(unittest.TestCase):
             metadata = (out.parent / "stealth-icon-metadata.json").read_text()
             self.assertEqual(exit_code, 0)
             self.assertIn(expected["seedSha256"], metadata)
+
+    def read(self, root: Path, relative_path: str) -> str:
+        return (root / relative_path).read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":

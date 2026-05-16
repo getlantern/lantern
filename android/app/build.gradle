@@ -45,7 +45,7 @@ def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH
 def sha256Hex = { value ->
     java.security.MessageDigest.getInstance("SHA-256")
             .digest(value.getBytes("UTF-8"))
-            .collect { String.format("%02x", it) }
+            .collect { String.format("%02x", it & 0xff) }
             .join()
 }
 def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""

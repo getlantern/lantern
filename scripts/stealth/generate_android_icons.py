@@ -17,7 +17,7 @@ def hash_bytes(seed: str) -> bytes:
 
 
 def color_from_hash(data: bytes, offset: int, sat: float, light: float) -> str:
-    hue = int.from_bytes(data[offset : offset + 2], "big") / 65535
+    hue = int.from_bytes(data[offset : offset + 2], "big") / 65536.0
     red, green, blue = colorsys.hls_to_rgb(hue, light, sat)
     return "#{:02X}{:02X}{:02X}".format(
         round(red * 255),
