@@ -332,6 +332,9 @@ msgstr "ভিপিএন বাইপাস করছে এমন অ্য�
 msgid "websites_bypassing_vpn"
 msgstr "ভিপিএন বাইপাস করছে এমন ওয়েবসাইট (%d)"
 
+msgid "items_added_count"
+msgstr "%d added"
+
 msgid "logs_share_message"
 msgstr "এগুলো Lantern থেকে আমার ডায়াগনস্টিক লগ।"
 

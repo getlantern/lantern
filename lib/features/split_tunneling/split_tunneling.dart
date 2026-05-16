@@ -93,7 +93,9 @@ class SplitTunneling extends HookConsumerWidget {
                     label: directConnectionApps
                         ? 'direct_connection_apps'.i18n
                         : 'apps'.i18n,
-                    actionText: '${enabledApps.length} Added',
+                    actionText: 'items_added_count'.i18n.fill([
+                      enabledApps.length,
+                    ]),
                     onPressed: () => appRouter.push(AppsSplitTunneling()),
                   ),
                   if (!directConnectionApps) ...{
@@ -101,7 +103,9 @@ class SplitTunneling extends HookConsumerWidget {
                     SplitTunnelingTile(
                       icon: AppImagePaths.world,
                       label: 'websites'.i18n,
-                      actionText: '${enabledWebsites.length} Added',
+                      actionText: 'items_added_count'.i18n.fill([
+                        enabledWebsites.length,
+                      ]),
                       onPressed: () => appRouter.push(WebsiteSplitTunneling()),
                     ),
                   },

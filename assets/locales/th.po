@@ -1659,3 +1659,7 @@ msgstr "Selected apps connect directly outside protected routing"
 msgid "apps_using_direct_connection"
 msgstr "Apps using direct connection (%d)"
 
+
+msgid "items_added_count"
+msgstr "%d added"
+

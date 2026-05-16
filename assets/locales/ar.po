@@ -337,6 +337,9 @@ msgstr "التطبيقات التي تتجاوز VPN (%d)"
 msgid "websites_bypassing_vpn"
 msgstr "المواقع التي تتجاوز VPN (%d)"
 
+msgid "items_added_count"
+msgstr "%d added"
+
 msgid "logs_share_message"
 msgstr "هذه سجلات التشخيص الخاصة بي من Lantern."
 
