@@ -196,12 +196,12 @@ check-gomobile:
 stealth-profile:
 	$(MAKE) -B "$(STEALTH_PROFILE_STAMP)"
 
-$(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE),$(STEALTH_PROFILE),)
+$(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
 	@set -e; { \
 	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
 	  printf 'STEALTH_PROFILE_SHA256='; \
-	  if [ -n "$(STEALTH_PROFILE)" ]; then \
+	  if [ -n "$(STEALTH_PROFILE)" ] && [ -f "$(STEALTH_PROFILE)" ]; then \
 	    python3 -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE)"; \
 	  else \
 	    printf '\n'; \
@@ -219,7 +219,8 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT) $(if $(STEALTH_PROFILE
 	tmp_artifact_metadata="$(STEALTH_ARTIFACT_METADATA).tmp"; \
 	tmp_go_tags="$(STEALTH_GO_TAGS_FILE).tmp"; \
 	trap 'rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$$tmp_profile" "$$tmp_dart_defines" "$$tmp_artifact_metadata" "$$tmp_go_tags"' EXIT; \
-	if cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+	if test -f "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+		cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
 		test -s "$(STEALTH_PROFILE_OUT)" && \
 		test -s "$(STEALTH_DART_DEFINES_FILE)" && \
 		test -s "$(STEALTH_ARTIFACT_METADATA)" && \
