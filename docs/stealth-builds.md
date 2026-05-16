@@ -31,13 +31,15 @@ The companion no-VPN runtime PR routes startup through a normal Android
 
 ```text
 RADIANCE_USE_SOCKS_PROXY=true
-RADIANCE_SOCKS_ADDRESS=127.0.0.1:8787
+RADIANCE_SOCKS_ADDRESS=127.0.0.1:<profile-specific-port>
 ```
 
 At the pinned radiance version, that env pair replaces the TUN inbound with a
-loopback mixed HTTP/SOCKS inbound. Build Flutter with the no-VPN profile's
-generated Dart defines so VPN controls, full-device routing, and split
-tunneling are hidden.
+loopback mixed HTTP/SOCKS inbound. The listener address must not be a global
+constant across no-VPN artifacts; release profiles must assign a profile-specific
+port or add equivalent local access control so hostile apps cannot rely on one
+stable loopback probe. Build Flutter with the no-VPN profile's generated Dart
+defines so VPN controls, full-device routing, and split tunneling are hidden.
 
 ## Static checks
 
@@ -63,6 +65,9 @@ Minimum automated CI coverage:
 - Verify the no-VPN artifact has no `android.permission.BIND_VPN_SERVICE`,
   `android.net.VpnService`, quick-settings VPN tile, boot-time VPN startup path,
   split-tunneling UI entry point, or full-device-routing UI entry point.
+- Verify hostile-app QA includes local loopback probing for the no-VPN proxy
+  listener and confirms the listener address is not a stable cross-artifact
+  signature.
 - Verify the VPN artifact still has the expected `VpnService` declaration and
   excluded-app configuration path.
 - Verify package name, app label, icon, supported schemes, exported components,
@@ -227,11 +232,14 @@ Support workflow:
 
 ## Acceptance criteria
 
+This policy is only satisfied by a release candidate after the companion
+implementation and CI PRs have merged. The document alone is not a release gate.
+
 A stealth release candidate is acceptable only when all of the following are
 true:
 
-- CI builds the normal, `stealth-vpn`, and `stealth-novpn` Android artifacts and
-  runs automated static manifest/profile checks.
+- Release automation builds the normal, `stealth-vpn`, and `stealth-novpn`
+  Android artifacts and runs automated static manifest/profile checks.
 - Manual dynamic Android validation is complete for `stealth-vpn` and
   `stealth-novpn`.
 - Hostile excluded apps do not see Lantern-routed network state in
