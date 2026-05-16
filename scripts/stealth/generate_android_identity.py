@@ -150,7 +150,7 @@ def generate_identity(
 
     metadata = json.dumps(
         {
-            "generator": "scripts/stealth/generate_android_identity.py",
+            "generator": "android-identity-v1",
             "profileId": profile_id,
             "seedFingerprint": digest[:16],
             "randomSeed": random_seed,

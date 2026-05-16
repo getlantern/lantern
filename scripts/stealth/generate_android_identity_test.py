@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import generate_android_identity as generator
 
 
@@ -55,6 +57,8 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
             line for line in content.splitlines() if line.startswith("identityMetadata=")
         )
         metadata = json.loads(metadata_line.split("=", 1)[1])
+        self.assertEqual(metadata["generator"], "android-identity-v1")
+        self.assertNotIn("stealth", metadata["generator"])
         self.assertEqual(metadata["profileId"], identity.identity_profile_id)
         self.assertEqual(metadata["randomSeed"], False)
 

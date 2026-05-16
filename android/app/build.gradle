@@ -48,7 +48,7 @@ if (androidIdentityProfilePath) {
         throw new GradleException("Android identity profile not found: ${profileFile}")
     }
     def props = new java.util.Properties()
-    profileFile.withInputStream { props.load(it) }
+    profileFile.withReader("UTF-8") { props.load(it) }
     props.each { key, value ->
         def name = key.toString()
         if (!androidIdentity.containsKey(name)) {

@@ -126,6 +126,8 @@ ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
 ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(ANDROID_IDENTITY_PROFILE)",)
+ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
+ANDROID_IDENTITY_DART_DEFINES = $(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME),)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -527,12 +529,12 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) android-identity-profile
 
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile
-	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile
-	$(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	$(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
