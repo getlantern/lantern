@@ -102,6 +102,7 @@ quickTileInactiveLabel=Disconnected
 appIcon=@drawable/neutral_app_icon
 appRoundIcon=@drawable/neutral_app_icon
 notificationSmallIcon=@drawable/neutral_notification_icon
+quickTileIcon=@drawable/neutral_notification_icon
 appAuthScheme=clearnotes2f143e88
 ```
 
