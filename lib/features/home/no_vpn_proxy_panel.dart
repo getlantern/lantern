@@ -59,6 +59,9 @@ class NoVpnProxyPanel extends HookConsumerWidget {
                     final result = active
                         ? await notifier.stopVPN()
                         : await notifier.startVPN(skipConflictCheck: true);
+                    if (!context.mounted) {
+                      return;
+                    }
                     result.match(
                       (failure) =>
                           context.showSnackBar(failure.localizedErrorMessage),
