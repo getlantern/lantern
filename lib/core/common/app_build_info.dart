@@ -47,7 +47,20 @@ class AppBuildInfo {
     defaultValue: 0,
   );
 
-  static bool get isStealthBuild => stealthMode.startsWith('stealth-');
+  static bool get isStealthBuild
+
+=> stealthMode.startsWith('stealth-');
+
+  static const String appAuthScheme = String.fromEnvironment(
+    'APP_AUTH_SCHEME',
+    defaultValue: 'lantern',
+  );
+
+  static bool isAppAuthUri(Uri uri)
+
+{
+    return uri.scheme == appAuthScheme || uri.scheme == 'lantern';
+  }
 
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';

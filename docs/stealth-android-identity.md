@@ -89,7 +89,7 @@ appLabel=Clear Notes
 launcherLabel=Clear Notes
 identityLabel=clear-notes-2f143e88f4
 identityProfileId=clear-notes-2f143e88f4
-identityMetadata={"generator":"scripts/stealth/generate_android_identity.py"}
+identityMetadata={"generator":"android-identity-v1"}
 vpnSessionName=Clear Notes Session
 notificationChannelVpn=Connection
 notificationChannelDataUsage=Usage
@@ -105,6 +105,10 @@ notificationSmallIcon=@drawable/neutral_notification_icon
 quickTileIcon=@drawable/neutral_notification_icon
 appAuthScheme=clearnotes2f143e88
 ```
+
+The Makefile passes `appAuthScheme` to Flutter as
+`--dart-define=APP_AUTH_SCHEME=...` for Android release builds so Dart deep-link
+handling accepts the same private scheme that Gradle writes into the manifest.
 
 This ticket intentionally leaves broader manifest minimization to the related
 manifest work. The identity profile exposes placeholders where this branch needs
