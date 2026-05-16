@@ -525,7 +525,7 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) android-identity-profile
-	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+	$(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug $(ANDROID_IDENTITY_DART_DEFINES)
 
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile
