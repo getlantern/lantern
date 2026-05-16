@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import android_manifest_filter as manifest_filter
 
 
