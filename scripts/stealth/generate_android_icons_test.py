@@ -20,10 +20,15 @@ class GenerateAndroidIconsTest(unittest.TestCase):
             self.assertEqual(metadata["launcherIcon"], "@mipmap/stealth_ic_launcher")
             self.assertTrue((out / "values/stealth_icon_colors.xml").exists())
             self.assertTrue((out / "drawable/stealth_launcher_foreground.xml").exists())
+            self.assertTrue((out / "drawable/stealth_launcher_monochrome.xml").exists())
             self.assertTrue((out / "drawable/stealth_notification_icon.xml").exists())
             self.assertNotIn(
                 "#00000000",
                 self.read(out, "drawable/stealth_launcher_foreground.xml"),
+            )
+            self.assertIn(
+                '@drawable/stealth_launcher_monochrome',
+                self.read(out, "mipmap-anydpi-v26/stealth_ic_launcher.xml"),
             )
             self.assertNotIn(
                 "#00000000",
