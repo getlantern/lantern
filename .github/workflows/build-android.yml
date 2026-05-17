@@ -35,7 +35,6 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
-      GARBLE_VERSION: v0.16.0
     runs-on: macos-26
     steps:
       - name: Checkout code
