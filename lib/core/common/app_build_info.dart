@@ -17,6 +17,11 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
+  static const bool stealthNoVpn = bool.fromEnvironment(
+    'STEALTH_NO_VPN',
+    defaultValue: false,
+  );
+
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';
 }
