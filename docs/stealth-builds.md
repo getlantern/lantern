@@ -10,6 +10,11 @@ gradle -p android :app:assembleRelease -PSTEALTH_MODE=vpn
 gradle -p android :app:assembleRelease -PSTEALTH_MODE=novpn
 ```
 
+`-PstealthNoVpn=true` is kept as a compatibility switch for older automation.
+When `STEALTH_MODE` is unset, it selects `novpn`; when `STEALTH_MODE=vpn` is
+also set, Gradle fails fast because the two inputs conflict. Prefer
+`-PSTEALTH_MODE=novpn` for new build scripts.
+
 `vpn` keeps the Android `VpnService` surface but removes app links, broad package
 visibility, write-settings access, payment query declarations, wallet metadata,
 boot receiver, and cleartext traffic allowance from the generated manifest.
