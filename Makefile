@@ -154,7 +154,7 @@ GARBLE ?= garble
 GARBLE_VERSION ?= latest
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
-GARBLE_GOGARBLE ?=
+GARBLE_GOGARBLE ?= github.com/getlantern/lantern
 GARBLE_LDFLAGS ?= -w -s -buildid=
 
 ifeq ($(OS),Windows_NT)
