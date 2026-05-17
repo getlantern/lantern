@@ -554,7 +554,7 @@ android-release-ci: android pubget gen android-apk-release android-aab-release
 
 .PHONY: stealth-manifest-filter-test
 stealth-manifest-filter-test:
-	$(PYTHON) -m unittest scripts/stealth/android_manifest_filter_test.py
+	$(PYTHON) -m unittest discover -s scripts/stealth -p '*_test.py'
 
 # iOS Build
 .PHONY: install-ios-deps
