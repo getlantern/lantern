@@ -14,10 +14,11 @@ Stealth Go/native builds are opt-in. Normal Makefile targets continue to use
   loss of useful panic and stack trace output.
 - `GARBLE_LDFLAGS` defaults to `-w -s -buildid=` to strip symbol/debug tables
   and the Go build ID from obfuscated artifacts.
-- `GARBLE_GOGARBLE` is optional. Leave it unset to use garble's default package
-  selection. If a dependency is incompatible, set it to a comma-separated list
-  of package path globs, for example
-  `github.com/getlantern/*,github.com/sagernet/*`.
+- `GARBLE_GOGARBLE` defaults to `github.com/getlantern/lantern` so release
+  builds obfuscate local Go packages without forcing garble through every
+  dependency. Full dependency obfuscation can be attempted with
+  `GARBLE_GOGARBLE=*`, but dependency compatibility should be validated before
+  using that scope for a shipped artifact.
 
 Treat release seeds as private support material. The Makefile suppresses command
 echo for seed-bearing garble invocations, but release automation should still
