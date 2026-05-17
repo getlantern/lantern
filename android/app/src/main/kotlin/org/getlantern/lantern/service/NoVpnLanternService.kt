@@ -164,6 +164,12 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             val error = IllegalStateException("previous local proxy operation still in flight")
             AppLogger.e(TAG, errorMessage, error)
             VpnStatusManager.postVPNError(errorCode, errorMessage, error)
+            if (Mobile.isRadianceConnected()) {
+                showProxyNotification("Local connection active")
+            } else {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            }
             return false
         }
 
