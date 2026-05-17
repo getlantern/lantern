@@ -48,6 +48,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         private const val PROXY_NOTIFICATION_ID = 8787
         private const val PROXY_CHANNEL_ID = "local_connection"
         private val connectInFlight = AtomicBoolean(false)
+        private val stopPending = AtomicBoolean(false)
     }
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -101,6 +102,9 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             Mobile.startVPN()
         }
         if (started) {
+            if (stopIfPending()) {
+                return@withContext
+            }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             showProxyNotification("Local connection active")
             AppLogger.i(TAG, "Local proxy started at ${proxyAddress()}")
@@ -110,7 +114,8 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     private suspend fun stopProxy() = withContext(Dispatchers.IO) {
         if (!connectInFlight.compareAndSet(false, true)) {
             AppLogger.d(TAG, "Local proxy operation already in flight; deferring stop")
-            VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
+            stopPending.set(true)
+            VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
             return@withContext
         }
         try {
@@ -152,6 +157,9 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             Mobile.connectToServer(tag)
         }
         if (connected) {
+            if (stopIfPending()) {
+                return@withContext
+            }
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             showProxyNotification("Local connection active")
         }
@@ -187,28 +195,30 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         val deferred = connectScope.async { block() }
         deferred.invokeOnCompletion {
             connectInFlight.set(false)
+            connectScope.cancel()
         }
 
         return try {
             withTimeout(PROXY_START_TIMEOUT_MS) { deferred.await() }
             true
         } catch (e: TimeoutCancellationException) {
-            deferred.cancel()
             AppLogger.e(TAG, "$errorMessage timed out after ${PROXY_START_TIMEOUT_MS}ms", e)
             VpnStatusManager.postVPNError("${errorCode}_timeout", "$errorMessage timed out", e)
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
             false
         } catch (e: Exception) {
             AppLogger.e(TAG, errorMessage, e)
             VpnStatusManager.postVPNError(errorCode, errorMessage, e)
             cleanupProxy(stopService = true)
             false
-        } finally {
-            if (deferred.isCompleted || deferred.isCancelled) {
-                connectInFlight.set(false)
-            }
         }
+    }
+
+    private suspend fun stopIfPending(): Boolean {
+        if (!stopPending.getAndSet(false)) {
+            return false
+        }
+        cleanupProxy(stopService = true)
+        return true
     }
 
     private fun configureProxyEnv() {
