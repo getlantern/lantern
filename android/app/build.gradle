@@ -17,9 +17,13 @@ def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 def rawStealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString()
 rawStealthMode = rawStealthMode.trim().toLowerCase(java.util.Locale.ROOT)
-def stealthMode = rawStealthMode.startsWith("stealth-")
-        ? rawStealthMode.substring("stealth-".length())
+def stealthModePrefix = "stealth-"
+def stealthMode = rawStealthMode.startsWith(stealthModePrefix)
+        ? rawStealthMode.substring(stealthModePrefix.length())
         : rawStealthMode
+if (rawStealthMode.startsWith(stealthModePrefix) && !stealthMode) {
+    throw new GradleException("Unsupported STEALTH_MODE '${rawStealthMode}'. Expected stealth-vpn or stealth-novpn")
+}
 def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
 if (stealthMode == "vpn" && explicitStealthNoVpn) {
     throw new GradleException("Conflicting stealth inputs: STEALTH_MODE=vpn cannot be combined with -PstealthNoVpn=true")
