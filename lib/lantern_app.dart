@@ -191,7 +191,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       return accessKey;
     }
     if (AppBuildInfo.isAppAuthUri(uri)) {
-      // lantern://private-server?key=value → lantern//private-server?key=value
+      // <auth-scheme>://private-server?key=value -> lantern//private-server?key=value
       var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';
