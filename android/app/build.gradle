@@ -24,6 +24,16 @@ def defaultStealthProfile = [
         denylistVersion  : 0,
 ]
 
+def stealthModeAliases = [
+        vpn  : "stealth-vpn",
+        novpn: "stealth-novpn",
+]
+
+def normalizeStealthMode = { value ->
+    def mode = value.toString()
+    return stealthModeAliases.get(mode, mode)
+}
+
 def buildConfigString = { value ->
     def escaped = value.toString()
             .replace("\\", "\\\\")
@@ -106,8 +116,11 @@ def loadStealthProfile = {
     }
 
     def profile = defaultStealthProfile + parsed.findAll { it.value != null }
-    if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode.toString())) {
-        throw new GradleException("Unsupported Stealth mode '${profile.mode}' in ${profileFile}")
+    profile.mode = normalizeStealthMode(profile.mode)
+    if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode)) {
+        throw new GradleException(
+                "Unsupported Stealth mode '${profile.mode}' in ${profileFile}; expected stealth-vpn, stealth-novpn, vpn, or novpn"
+        )
     }
     profile.appName = manifestPlaceholderString("appName", profile.appName)
     profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
