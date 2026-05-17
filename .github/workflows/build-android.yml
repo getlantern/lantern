@@ -159,6 +159,8 @@ jobs:
       - name: Install garble
         if: ${{ inputs.obfuscate_go }}
         run: make install-garble
+        env:
+          GARBLE_VERSION: v0.16.0
 
       - name: Build Android obfuscated (APK + AAB)
         if: ${{ inputs.obfuscate_go }}
@@ -168,6 +170,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          GARBLE_VERSION: v0.16.0
           STEALTH_GARBLE_SEED: ${{ secrets.STEALTH_GARBLE_SEED }}
 
       - name: Build Android (APK + AAB)

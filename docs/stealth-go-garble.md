@@ -24,8 +24,9 @@ Treat release seeds as private support material. The Makefile suppresses command
 echo for seed-bearing garble invocations, but release automation should still
 keep the profile seed in a secret store alongside any private release metadata
 needed for `garble reverse`. Record the exact `GARBLE_VERSION` and Go toolchain
-version with each release; the Makefile defaults `GARBLE_VERSION` to `latest`,
-which is convenient locally but not enough to reproduce a support build later.
+version with each release. The Makefile defaults `GARBLE_VERSION` to `v0.16.0`
+so CI and support builds use a reproducible tool version unless explicitly
+overridden.
 
 Install garble:
 
