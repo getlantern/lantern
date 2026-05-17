@@ -232,6 +232,7 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 		test -s "$(STEALTH_DART_DEFINES_FILE)" && \
 		test -s "$(STEALTH_ARTIFACT_METADATA)" && \
 		test -s "$(STEALTH_GO_TAGS_FILE)"; then \
+	  touch "$@"; \
 	  rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp"; \
 	else \
 	  $(STEALTH_PROFILE_TOOL) \
