@@ -12,7 +12,7 @@ flutter build apk --dart-define=STEALTH_MODE=stealth-vpn
 flutter build apk --dart-define=STEALTH_MODE=stealth-novpn
 flutter build apk --dart-define=STEALTH_MODE=true
 flutter build apk --dart-define=STEALTH_BUILD=true
-flutter build apk --dart-define=STEALTH_NOVPN=true
+flutter build apk --dart-define=STEALTH_NO_VPN=true
 ```
 
 `STEALTH_MODE=true` is kept as a compatibility alias for generic stealth
@@ -28,7 +28,7 @@ The app derives these gates from the stealth flag:
 - `enableSocialLinks`
 - `enableAutoUpdate`
 
-`STEALTH_NOVPN=true` is the explicit no-VPN compatibility flag. It enables the
+`STEALTH_NO_VPN=true` is the explicit no-VPN compatibility flag. It enables the
 same feature gates as `STEALTH_BUILD=true` and is treated as stealth mode even
 when `STEALTH_MODE` is not supplied.
 

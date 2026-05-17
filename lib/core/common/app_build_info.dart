@@ -28,7 +28,7 @@ class AppBuildInfo {
   );
 
   static const bool stealthNoVpn = bool.fromEnvironment(
-    'STEALTH_NOVPN',
+    'STEALTH_NO_VPN',
     defaultValue: false,
   );
 
