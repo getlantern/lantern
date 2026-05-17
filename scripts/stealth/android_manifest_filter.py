@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Generate minimized Android manifests for stealth build modes."""
 
+from __future__ import annotations
+
 import argparse
 import io
 from pathlib import Path

@@ -21,6 +21,9 @@ def stealthMode = rawStealthMode.startsWith("stealth-")
         ? rawStealthMode.substring("stealth-".length())
         : rawStealthMode
 def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+if (stealthMode == "vpn" && explicitStealthNoVpn) {
+    throw new GradleException("Conflicting stealth inputs: STEALTH_MODE=vpn cannot be combined with -PstealthNoVpn=true")
+}
 if (!stealthMode && explicitStealthNoVpn) {
     stealthMode = "novpn"
 }
