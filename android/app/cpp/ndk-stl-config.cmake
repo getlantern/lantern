@@ -64,7 +64,7 @@ elseif("${ANDROID_STL}" STREQUAL "gnustl_shared")
     # The GNU STL (shared).
     configure_shared_stl("gnustl_shared")
 elseif("${ANDROID_STL}" STREQUAL "c++_shared")
-    # The LLVM libc++ runtime (static).
+    # The LLVM libc++ runtime (shared).
     configure_shared_stl("c++_shared")
 else()
     message(FATAL_ERROR "STL configuration ANDROID_STL=${ANDROID_STL} is not supported")

@@ -12,9 +12,9 @@ gradle -p android :app:assembleRelease -PSTEALTH_MODE=novpn
 
 `vpn` keeps the Android `VpnService` surface but removes app links, broad package
 visibility, write-settings access, payment query declarations, wallet metadata,
-and cleartext traffic allowance from the generated manifest.
+boot receiver, and cleartext traffic allowance from the generated manifest.
 
 `novpn` applies the same filtering and also removes Android VPN service
-components, quick-tile VPN controls, boot receiver, and VPN-related permissions.
+components, quick-tile VPN controls, and VPN-related permissions.
 Runtime code must still be compiled or gated separately so no-vpn builds do not
 attempt to start removed services.
