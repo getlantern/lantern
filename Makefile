@@ -164,7 +164,7 @@ GOMOBILE_REPOS = \
 	./lantern-core/utils
 
 GARBLE ?= garble
-GARBLE_VERSION ?= latest
+GARBLE_VERSION ?= v0.16.0
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
 GARBLE_GOGARBLE ?= github.com/getlantern/lantern
