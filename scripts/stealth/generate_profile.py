@@ -16,6 +16,10 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 VALID_MODES = ("stealth-vpn", "stealth-novpn")
+MODE_ALIASES = {
+    "vpn": "stealth-vpn",
+    "novpn": "stealth-novpn",
+}
 DEFAULTS = {
     "appName": "Lantern",
     "sessionName": "LanternVpn",
@@ -116,10 +120,15 @@ def validate_manifest_placeholder_text(field: str, value: str) -> str:
     return value
 
 
+def normalize_mode(value: Any) -> str:
+    mode = str(value or "").strip()
+    return MODE_ALIASES.get(mode, mode)
+
+
 def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     schema_version = coerce_schema_version(profile.get("schemaVersion", SCHEMA_VERSION))
 
-    mode = str(profile.get("mode", "")).strip()
+    mode = normalize_mode(profile.get("mode", ""))
     if mode not in VALID_MODES:
         raise ProfileError(f"mode must be one of: {', '.join(VALID_MODES)}")
 
@@ -199,7 +208,11 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def dart_defines(profile: dict[str, Any]) -> dict[str, str]:
-    return {define: str(profile[key]) for key, define in DART_DEFINE_KEYS.items()}
+    defines = {define: str(profile[key]) for key, define in DART_DEFINE_KEYS.items()}
+    defines["STEALTH_NO_VPN"] = (
+        "true" if profile["mode"] == "stealth-novpn" else "false"
+    )
+    return defines
 
 
 def artifact_metadata(profile: dict[str, Any]) -> dict[str, Any]:
@@ -228,7 +241,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--dart-defines-output", type=Path)
     parser.add_argument("--artifact-metadata-output", type=Path)
     parser.add_argument("--go-tags-suffix", action="store_true")
-    parser.add_argument("--mode", choices=VALID_MODES)
+    parser.add_argument("--mode", choices=VALID_MODES + tuple(MODE_ALIASES))
     parser.add_argument("--package-name")
     parser.add_argument("--app-name")
     parser.add_argument("--session-name")

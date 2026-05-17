@@ -52,6 +52,7 @@ class GenerateProfileTest(unittest.TestCase):
 
             defines = json.loads(defines_path.read_text())
             self.assertEqual(defines["STEALTH_MODE"], "stealth-vpn")
+            self.assertEqual(defines["STEALTH_NO_VPN"], "false")
             self.assertEqual(
                 defines["STEALTH_PACKAGE_NAME"], "org.example.safe.s123"
             )
@@ -76,6 +77,8 @@ class GenerateProfileTest(unittest.TestCase):
 
         normalized = generate_profile.validate_profile(profile)
 
+        self.assertEqual(normalized["mode"], "stealth-novpn")
+        self.assertEqual(generate_profile.dart_defines(normalized)["STEALTH_NO_VPN"], "true")
         self.assertEqual(
             generate_profile.go_tags_suffix(normalized),
             ",stealth,stealth_novpn",
@@ -84,6 +87,20 @@ class GenerateProfileTest(unittest.TestCase):
             "unexpectedPrivateField",
             generate_profile.artifact_metadata(normalized),
         )
+
+    def test_accepts_mode_aliases(self):
+        profile = {
+            "mode": "novpn",
+            "packageName": "org.example.safe.s456",
+            "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": 0,
+        }
+
+        normalized = generate_profile.validate_profile(profile)
+
+        self.assertEqual(normalized["mode"], "stealth-novpn")
 
     def test_go_tags_suffix_requires_input(self):
         exit_code = generate_profile.main(["--go-tags-suffix"])
