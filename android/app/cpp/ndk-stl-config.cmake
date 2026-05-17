@@ -28,7 +28,7 @@ if(NOT EXISTS "${NDK_PREBUILT_ROOT}")
     message(FATAL_ERROR "Android NDK prebuilt toolchain does not exist: ${NDK_PREBUILT_ROOT}")
 endif()
 
-function(configure_shared_stl lib_path so_base)
+function(configure_shared_stl so_base)
     message("Configuring STL ${so_base} for ${ANDROID_ABI}")
 
     if(${ANDROID_ABI} STREQUAL "arm64-v8a")
@@ -59,13 +59,13 @@ elseif("${ANDROID_STL}" STREQUAL "gabi++_shared")
     message(FATAL_ERROR "gabi++_shared was not configured by ndk-stl package")
 elseif("${ANDROID_STL}" STREQUAL "stlport_shared")
     # The STLport runtime (shared).
-    configure_shared_stl("stlport" "stlport_shared")
+    configure_shared_stl("stlport_shared")
 elseif("${ANDROID_STL}" STREQUAL "gnustl_shared")
     # The GNU STL (shared).
-    configure_shared_stl("gnu-libstdc++/4.9" "gnustl_shared")
+    configure_shared_stl("gnustl_shared")
 elseif("${ANDROID_STL}" STREQUAL "c++_shared")
     # The LLVM libc++ runtime (static).
-    configure_shared_stl("llvm-libc++" "c++_shared")
+    configure_shared_stl("c++_shared")
 else()
     message(FATAL_ERROR "STL configuration ANDROID_STL=${ANDROID_STL} is not supported")
 endif()

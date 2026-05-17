@@ -1,8 +1,9 @@
 # Stealth build notes
 
 Android stealth manifest minimization is opt-in through the Gradle project
-property `STEALTH_MODE`. The Gradle task invokes `python3` to generate the
-filtered manifest, so Android stealth builds require Python 3 on `PATH`.
+property `STEALTH_MODE`. The Gradle task uses `-PstealthPython`, then `PYTHON`,
+then `python3` to generate the filtered manifest, so Android stealth builds
+require Python 3 through one of those paths.
 
 ```sh
 gradle -p android :app:assembleRelease -PSTEALTH_MODE=vpn

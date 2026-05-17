@@ -63,34 +63,34 @@ open class MainActivity : FlutterFragmentActivity() {
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-    super.configureFlutterEngine(flutterEngine)
+        super.configureFlutterEngine(flutterEngine)
 
-    if (isEngineConfigured) {
-        Log.d(TAG, "FlutterEngine already configured, skipping")
-        return
+        if (isEngineConfigured) {
+            Log.d(TAG, "FlutterEngine already configured, skipping")
+            return
+        }
+        instance = this
+        setupDirs()
+        Log.d(TAG, "Config directories set up")
+        AppLogger.init()
+        AppLogger.d(TAG, "AppLogger initialized")
+        // Wire up Go-side logging before any Mobile.* call. Without this, every
+        // lantern-core / radiance slog call that fires before LanternVpnService's
+        // ACTION_START_RADIANCE coroutine reaches common.Init falls through to
+        // the stdlib default (text → stderr → logcat at INFO), so DEBUG logs
+        // disappear and the format diverges from the rest. common.Init is
+        // idempotent — the later call from backend.NewLocalBackend is a no-op.
+        try {
+            Mobile.initLogging(initConfigDir(), logDir(), "trace")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to init Go logging: ${e.message}")
+        }
+        ///Setup handler
+        flutterEngine.plugins.add(EventHandler())
+        flutterEngine.plugins.add(MethodHandler())
+        startLanternService()
+        isEngineConfigured = true
     }
-    instance = this
-    setupDirs()
-    Log.d(TAG, "Config directories set up")
-    AppLogger.init()
-    AppLogger.d(TAG, "AppLogger initialized")
-    // Wire up Go-side logging before any Mobile.* call. Without this, every
-    // lantern-core / radiance slog call that fires before LanternVpnService's
-    // ACTION_START_RADIANCE coroutine reaches common.Init falls through to
-    // the stdlib default (text → stderr → logcat at INFO), so DEBUG logs
-    // disappear and the format diverges from the rest. common.Init is
-    // idempotent — the later call from backend.NewLocalBackend is a no-op.
-    try {
-        Mobile.initLogging(initConfigDir(), logDir(), "trace")
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to init Go logging: ${e.message}")
-    }
-    ///Setup handler
-    flutterEngine.plugins.add(EventHandler())
-    flutterEngine.plugins.add(MethodHandler())
-    startLanternService()
-    isEngineConfigured = true
-}
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         super.cleanUpFlutterEngine(flutterEngine)
