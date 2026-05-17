@@ -131,11 +131,11 @@ SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdk
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
-ANDROID_STEALTH_IDENTITY ?= $(if $(filter stealth,$(BUILD_TYPE)),1,0)
+ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
-ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(ANDROID_IDENTITY_PROFILE)",)
+ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(abspath $(ANDROID_IDENTITY_PROFILE))",)
 ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
 ANDROID_IDENTITY_DART_DEFINES = $(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME))
 
