@@ -204,6 +204,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         } catch (e: TimeoutCancellationException) {
             AppLogger.e(TAG, "$errorMessage timed out after ${PROXY_START_TIMEOUT_MS}ms", e)
             VpnStatusManager.postVPNError("${errorCode}_timeout", "$errorMessage timed out", e)
+            cleanupProxy(stopService = true)
             false
         } catch (e: Exception) {
             AppLogger.e(TAG, errorMessage, e)
