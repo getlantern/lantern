@@ -1,6 +1,7 @@
 package org.getlantern.lantern
 
 import android.Manifest
+import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
@@ -10,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import foundation.bridge.SyncService
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +54,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
+    private val noVpnServiceClass: Class<out Service>
+        get() = if (BuildConfig.STEALTH_NO_VPN) SyncService::class.java else NoVpnLanternService::class.java
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -134,11 +138,11 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun startNoVpnProxyService() {
-        if (isServiceRunning(this, NoVpnLanternService::class.java)) {
+        if (isServiceRunning(this, noVpnServiceClass)) {
             AppLogger.d(TAG, "NoVpnLanternService is already running; sending start action")
         }
         try {
-            ContextCompat.startForegroundService(this, Intent(this, NoVpnLanternService::class.java).apply {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
                 action = NoVpnLanternService.ACTION_START_PROXY
             })
             AppLogger.d(TAG, "NoVpnLanternService started")
@@ -222,7 +226,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun connectToServer(tag: String) {
         if (BuildConfig.STEALTH_NO_VPN) {
-            ContextCompat.startForegroundService(this, Intent(this, NoVpnLanternService::class.java).apply {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
                 action = NoVpnLanternService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
             })
@@ -260,8 +264,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun stopVPN() {
         if (BuildConfig.STEALTH_NO_VPN) {
-            if (isServiceRunning(this, NoVpnLanternService::class.java)) {
-                startService(Intent(this, NoVpnLanternService::class.java).apply {
+            if (isServiceRunning(this, noVpnServiceClass)) {
+                startService(Intent(this, noVpnServiceClass).apply {
                     action = NoVpnLanternService.ACTION_STOP_PROXY
                 })
             } else {

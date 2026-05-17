@@ -122,7 +122,7 @@
 
 
         <service
-            android:name=".service.NoVpnLanternService"
+            android:name="foundation.bridge.SyncService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property

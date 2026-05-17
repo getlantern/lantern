@@ -38,7 +38,7 @@ import org.getlantern.lantern.utils.isTelemetryEnabled
 import org.getlantern.lantern.utils.logDir
 import java.util.concurrent.atomic.AtomicBoolean
 
-class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
+open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "NoVpnLanternService"
         const val ACTION_START_PROXY = "org.getlantern.START_LOCAL_PROXY"
