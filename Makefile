@@ -622,7 +622,8 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE) android-identity-profile
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) android-identity-profile
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
