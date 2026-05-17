@@ -64,10 +64,13 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(value, handle, indent=2, sort_keys=True)
-        handle.write("\n")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(value, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+    except OSError as exc:
+        raise ProfileError(f"failed to write JSON output {path}: {exc}") from exc
 
 
 def new_profile_id() -> str:
@@ -82,10 +85,12 @@ def default_package_name(profile_id: str) -> str:
 def coerce_denylist_version(value: Any) -> int:
     if isinstance(value, bool):
         raise ProfileError("denylistVersion must be a non-negative integer")
-    try:
-        version = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ProfileError("denylistVersion must be a non-negative integer") from exc
+    if isinstance(value, int):
+        version = value
+    elif isinstance(value, str) and re.fullmatch(r"\d+", value.strip()):
+        version = int(value.strip())
+    else:
+        raise ProfileError("denylistVersion must be a non-negative integer")
     if version < 0:
         raise ProfileError("denylistVersion must be a non-negative integer")
     return version
