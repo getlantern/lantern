@@ -148,6 +148,9 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     private suspend fun startProxyForConnect(): Boolean {
+        if (Mobile.isRadianceConnected()) {
+            return true
+        }
         startProxy()
         return Mobile.isRadianceConnected()
     }
