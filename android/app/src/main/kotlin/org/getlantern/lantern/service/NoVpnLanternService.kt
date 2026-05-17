@@ -108,7 +108,16 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     private suspend fun stopProxy() = withContext(Dispatchers.IO) {
-        cleanupProxy(stopService = true)
+        if (!connectInFlight.compareAndSet(false, true)) {
+            AppLogger.d(TAG, "Local proxy operation already in flight; deferring stop")
+            VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
+            return@withContext
+        }
+        try {
+            cleanupProxy(stopService = true)
+        } finally {
+            connectInFlight.set(false)
+        }
     }
 
     private suspend fun cleanupProxy(stopService: Boolean) = withContext(Dispatchers.IO) {
@@ -132,6 +141,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     private suspend fun connectToServer(tag: String) = withContext(Dispatchers.IO) {
+        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
         if (!startProxyForConnect()) {
             return@withContext
         }
@@ -195,7 +205,9 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             cleanupProxy(stopService = true)
             false
         } finally {
-            connectScope.cancel()
+            if (deferred.isCompleted || deferred.isCancelled) {
+                connectInFlight.set(false)
+            }
         }
     }
 
