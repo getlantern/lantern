@@ -43,7 +43,10 @@ def androidIdentityProfilePath =
         (project.findProperty("androidIdentityProfile") ?: System.getenv("ANDROID_IDENTITY_PROFILE"))?.toString()?.trim()
 def androidIdentity = new LinkedHashMap(androidIdentityDefaults)
 if (androidIdentityProfilePath) {
-    def profileFile = file(androidIdentityProfilePath)
+    def profileFile = new File(androidIdentityProfilePath)
+    if (!profileFile.isAbsolute()) {
+        profileFile = new File(rootProject.projectDir.parentFile, androidIdentityProfilePath)
+    }
     if (!profileFile.exists()) {
         throw new GradleException("Android identity profile not found: ${profileFile}")
     }
