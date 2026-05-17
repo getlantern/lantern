@@ -15,11 +15,20 @@ def hasReleaseKeystore =
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
-def stealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString().trim().toLowerCase(java.util.Locale.ROOT)
+def rawStealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString()
+rawStealthMode = rawStealthMode.trim().toLowerCase(java.util.Locale.ROOT)
+def stealthMode = rawStealthMode.startsWith("stealth-")
+        ? rawStealthMode.substring("stealth-".length())
+        : rawStealthMode
+def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+if (!stealthMode && explicitStealthNoVpn) {
+    stealthMode = "novpn"
+}
 def stealthModes = ["vpn", "novpn"]
 if (stealthMode && !stealthModes.contains(stealthMode)) {
     throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")
 }
+def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
 def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
 def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
 
@@ -87,6 +96,8 @@ android {
         buildFeatures {
             buildConfig true
         }
+        buildConfigField "boolean", "STEALTH_ENABLED", (stealthMode ? "true" : "false")
+        buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
     }
 
     signingConfigs {

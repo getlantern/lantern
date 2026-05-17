@@ -10,6 +10,7 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import foundation.bridge.NetworkService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,13 +18,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.isServiceRunning
 
 @RequiresApi(24)
-class QuickTileService : TileService() {
+open class QuickTileService : TileService() {
 
     companion object {
         private const val TAG = "QuickTileService"
@@ -39,6 +41,8 @@ class QuickTileService : TileService() {
 
     private val tileScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    private val vpnServiceClass: Class<out LanternVpnService>
+        get() = if (BuildConfig.STEALTH_ENABLED) NetworkService::class.java else LanternVpnService::class.java
 
     /*
     * We need receiver to only when user interacts with the tile
@@ -110,16 +114,16 @@ class QuickTileService : TileService() {
     private fun connectVPN() {
         isPermissionIntent()?.let { handleVpnPermissionRequest(it) }
             ?: ContextCompat.startForegroundService(
-                this, Intent(this, LanternVpnService::class.java).apply {
+                this, Intent(this, vpnServiceClass).apply {
                     action = LanternVpnService.ACTION_TILE_START
                 }
             )
     }
 
     private fun connectService(action: String) {
-        if (!isServiceRunning(this, LanternVpnService::class.java)) {
+        if (!isServiceRunning(this, vpnServiceClass)) {
             runCatching {
-                startService(Intent(this, LanternVpnService::class.java).apply {
+                startService(Intent(this, vpnServiceClass).apply {
                     this.action = action
                 })
                 AppLogger.d(TAG, "$action service started")
@@ -167,4 +171,3 @@ class QuickTileService : TileService() {
         }
     }
 }
-
