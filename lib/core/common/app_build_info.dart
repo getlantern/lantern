@@ -22,6 +22,11 @@ class AppBuildInfo {
     defaultValue: 'normal',
   );
 
+  static const bool stealthNoVpn = bool.fromEnvironment(
+    'STEALTH_NO_VPN',
+    defaultValue: false,
+  );
+
   static const String stealthPackageName = String.fromEnvironment(
     'STEALTH_PACKAGE_NAME',
     defaultValue: 'org.getlantern.lantern',

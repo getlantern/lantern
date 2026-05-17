@@ -586,7 +586,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug $(STEALTH_DART_DEFINES)
+	$(STEALTH_PROFILE_ENV) flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: android-apk-release
 android-apk-release: $(MAYBE_STEALTH_PROFILE)
