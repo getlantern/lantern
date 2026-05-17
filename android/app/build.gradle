@@ -31,6 +31,7 @@ if (stealthMode && !stealthModes.contains(stealthMode)) {
 def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
 def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
 def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
+def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
 
 android {
     namespace = "org.getlantern.lantern"
@@ -142,7 +143,7 @@ if (stealthMode) {
         inputs.property("stealthMode", stealthMode)
         outputs.file(stealthManifest)
         commandLine(
-                "python3",
+                stealthPython,
                 stealthManifestFilter.absolutePath,
                 "--mode", stealthMode,
                 "--input", "${projectDir}/src/main/AndroidManifest.xml",
