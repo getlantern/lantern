@@ -30,7 +30,7 @@ def stealthModeAliases = [
 ]
 
 def normalizeStealthMode = { value ->
-    def mode = value.toString()
+    def mode = value.toString().trim()
     return stealthModeAliases.get(mode, mode)
 }
 

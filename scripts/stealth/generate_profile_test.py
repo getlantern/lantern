@@ -160,6 +160,19 @@ class GenerateProfileTest(unittest.TestCase):
         with self.assertRaises(generate_profile.ProfileError):
             generate_profile.validate_profile(profile)
 
+    def test_rejects_denylist_version_outside_android_int_range(self):
+        profile = {
+            "mode": "stealth-vpn",
+            "packageName": "org.example.safe.s123",
+            "appName": "Beacon",
+            "sessionName": "BeaconLink",
+            "goObfuscationSeed": "seed-for-test",
+            "denylistVersion": generate_profile.MAX_ANDROID_INT + 1,
+        }
+
+        with self.assertRaises(generate_profile.ProfileError):
+            generate_profile.validate_profile(profile)
+
     def test_write_json_wraps_os_errors(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(generate_profile.ProfileError):

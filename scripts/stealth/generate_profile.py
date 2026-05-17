@@ -15,6 +15,7 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
+MAX_ANDROID_INT = 2_147_483_647
 VALID_MODES = ("stealth-vpn", "stealth-novpn")
 MODE_ALIASES = {
     "vpn": "stealth-vpn",
@@ -93,6 +94,8 @@ def coerce_denylist_version(value: Any) -> int:
         raise ProfileError("denylistVersion must be a non-negative integer")
     if version < 0:
         raise ProfileError("denylistVersion must be a non-negative integer")
+    if version > MAX_ANDROID_INT:
+        raise ProfileError("denylistVersion must fit in a 32-bit signed integer")
     return version
 
 
