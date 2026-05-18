@@ -3,6 +3,7 @@ package foundation.bridge
 import android.content.Intent
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import foundation.engine.libbox.Notification
 import foundation.engine.libbox.StringIterator
 import foundation.engine.libbox.TunOptions
@@ -21,6 +22,7 @@ import kotlinx.coroutines.withContext
 
 class NetworkService : VpnService(), foundation.engine.utils.PlatformInterface {
     companion object {
+        private const val TAG = "NetworkService"
         const val ACTION_CONNECT = "foundation.bridge.CONNECT"
         const val ACTION_DISCONNECT = "foundation.bridge.DISCONNECT"
     }
@@ -61,7 +63,8 @@ class NetworkService : VpnService(), foundation.engine.utils.PlatformInterface {
                 block()
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (_: Exception) {
+            } catch (exception: Exception) {
+                Log.e(TAG, "Failed service operation", exception)
                 failConnection()
             }
         }

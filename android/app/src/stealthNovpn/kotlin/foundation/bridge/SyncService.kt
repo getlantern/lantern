@@ -3,6 +3,7 @@ package foundation.bridge
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
 import foundation.engine.mobile.Mobile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 
 class SyncService : Service() {
     companion object {
+        private const val TAG = "SyncService"
         const val ACTION_CONNECT = "foundation.bridge.CONNECT"
         const val ACTION_DISCONNECT = "foundation.bridge.DISCONNECT"
     }
@@ -51,7 +53,8 @@ class SyncService : Service() {
                 block()
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (_: Exception) {
+            } catch (exception: Exception) {
+                Log.e(TAG, "Failed service operation", exception)
                 failConnection()
             }
         }
