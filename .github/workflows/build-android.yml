@@ -12,6 +12,9 @@ on:
       installer_base_name:
         required: true
         type: string
+      android_identity_seed:
+        required: false
+        type: string
 
 jobs:
   build-android:
@@ -154,6 +157,7 @@ jobs:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          ANDROID_IDENTITY_SEED: ${{ inputs.android_identity_seed }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
       - name: Upload Android APK

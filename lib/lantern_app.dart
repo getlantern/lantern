@@ -102,9 +102,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
     appLogger.debug("DeepLink received: $safeLogUri");
     final path = uri.path;
+    final appAuthUri = AppBuildInfo.isAppAuthUri(uri);
 
     if (path.startsWith('/report-issue') ||
-        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
+        (appAuthUri && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final fragment = uri.fragment;
@@ -124,13 +125,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
         _pushWithHome(ReportIssue());
       }
     } else if (AppBuildInfo.enableOAuth &&
-        (path.startsWith('/auth') ||
-            (uri.scheme == 'lantern' && uri.host == 'auth'))) {
+        (path.startsWith('/auth') || (appAuthUri && uri.host == 'auth'))) {
       if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/private-server') ||
-        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
+        (appAuthUri && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
@@ -195,8 +195,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       return accessKey;
     }
-    if (uri.scheme == 'lantern') {
-      // lantern://private-server?key=value → lantern//private-server?key=value
+    if (AppBuildInfo.isAppAuthUri(uri)) {
+      // <auth-scheme>://private-server?key=value -> lantern//private-server?key=value
       var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';

@@ -18,16 +18,17 @@
 
     <application
         android:name=".LanternApp"
-        android:icon="@mipmap/ic_launcher"
-        android:label="${appName}"
+        android:icon="${appIcon}"
+        android:label="${appLabel}"
         android:usesCleartextTraffic="true"
-        android:roundIcon="@mipmap/ic_launcher_round">
+        android:roundIcon="${appRoundIcon}">
 
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
+            android:label="${launcherLabel}"
             android:launchMode="singleTask"
             android:taskAffinity=""
             android:screenOrientation="portrait"
@@ -65,19 +66,19 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="auth" />
+                <data android:scheme="${appAuthScheme}" android:host="auth" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="report-issue" />
+                <data android:scheme="${appAuthScheme}" android:host="report-issue" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="private-server" />
+                <data android:scheme="${appAuthScheme}" android:host="private-server" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -122,6 +123,16 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <meta-data
+            android:name="app.identity.label"
+            android:value="${identityLabel}" />
+        <meta-data
+            android:name="app.identity.profile_id"
+            android:value="${identityProfileId}" />
+        <meta-data
+            android:name="app.identity.metadata"
+            android:value='${identityMetadata}' />
+
 
         <service
             android:name=".service.LanternVpnService"
@@ -137,7 +148,7 @@
             android:name=".service.QuickTileService"
             android:directBootAware="true"
             android:exported="true"
-            android:icon="@drawable/lantern_notification_icon"
+            android:icon="${quickTileIcon}"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="n">
             <intent-filter>

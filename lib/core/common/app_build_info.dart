@@ -81,6 +81,17 @@ class AppBuildInfo {
 
   static const bool enableAutoUpdate = !stealthMode;
 
+  static const String appAuthScheme = String.fromEnvironment(
+    'APP_AUTH_SCHEME',
+    defaultValue: 'lantern',
+  );
+
+  static bool isAppAuthUri(Uri uri)
+
+{
+    return uri.scheme == appAuthScheme;
+  }
+
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';
 }

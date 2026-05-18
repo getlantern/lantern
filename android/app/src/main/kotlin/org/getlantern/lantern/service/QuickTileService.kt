@@ -17,6 +17,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
@@ -158,7 +159,11 @@ class QuickTileService : TileService() {
     private fun updateTile(state: Int) {
         qsTile?.apply {
             this.state = state
-            label = if (state == Tile.STATE_ACTIVE) "VPN Connected" else "VPN Disconnected"
+            label = if (state == Tile.STATE_ACTIVE) {
+                BuildConfig.QUICK_TILE_ACTIVE_LABEL
+            } else {
+                BuildConfig.QUICK_TILE_INACTIVE_LABEL
+            }
             updateTile()
             AppLogger.d(
                 TAG,
@@ -167,4 +172,3 @@ class QuickTileService : TileService() {
         }
     }
 }
-

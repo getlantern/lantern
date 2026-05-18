@@ -184,7 +184,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     // OAuth callback.
     if (AppBuildInfo.enableOAuth &&
-        uri.scheme == 'lantern' &&
+        AppBuildInfo.isAppAuthUri(uri) &&
         uri.host == 'auth' &&
         uri.queryParameters.containsKey('token')) {
       loading.stop();

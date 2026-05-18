@@ -46,7 +46,7 @@ class LanternVpnService :
     PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "LanternVpnService"
-        private val sessionName = BuildConfig.STEALTH_SESSION_NAME
+        private val sessionName = BuildConfig.VPN_SESSION_NAME
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
@@ -495,7 +495,7 @@ class LanternVpnService :
     }
 
     private fun createVPNBuilder(options: TunOptions): Builder {
-        val builder = Builder().setSession(sessionName).setMtu(options.mtu)
+        val builder = Builder().setSession(BuildConfig.VPN_SESSION_NAME).setMtu(options.mtu)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
