@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import os
 import sys
 import tempfile
 import unittest
@@ -146,6 +147,28 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             self.assertNotIn("store-secret", sign_args)
             self.assertNotIn("key-secret", sign_args)
             self.assertEqual(sign_kwargs["input"], "store-secret\nkey-secret\n")
+
+    def test_signing_config_requires_release_keystore_by_default(self) -> None:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
+        }
+        with mock.patch.dict("os.environ", env, clear=True):
+            with self.assertRaises(RuntimeError):
+                sanitize_android_artifact.signing_config()
+
+    def test_signing_config_allows_debug_keystore_when_explicit(self) -> None:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
+        }
+        with mock.patch.dict("os.environ", env, clear=True):
+            signing = sanitize_android_artifact.signing_config(allow_debug_keystore=True)
+
+        self.assertEqual(signing.key_alias, "androiddebugkey")
+        self.assertEqual(signing.store_password, "android")
 
     def test_android_signing_tools_uses_semantic_build_tools_version(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
