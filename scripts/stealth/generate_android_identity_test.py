@@ -66,6 +66,33 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
         self.assertEqual(metadata["profileId"], identity.identity_profile_id)
         self.assertEqual(metadata["randomSeed"], False)
 
+    def test_profile_controls_android_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            profile_path = Path(tmp) / "profile.json"
+            profile_path.write_text(
+                json.dumps(
+                    {
+                        "profileId": "stl_reader_vault",
+                        "mode": "stealth-novpn",
+                        "packageName": "com.readervault.mobile.s202605181146",
+                        "appName": "Reader Vault",
+                        "sessionName": "ReaderVaultSession",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            identity = generator.identity_from_profile(profile_path)
+
+        self.assertEqual(
+            identity.application_id,
+            "com.readervault.mobile.s202605181146",
+        )
+        self.assertEqual(identity.app_label, "Reader Vault")
+        self.assertEqual(identity.vpn_session_name, "ReaderVaultSession")
+        self.assertEqual(identity.identity_profile_id, "stl_reader_vault")
+        self.assertNotIn("VPN", identity.notification_connected_text)
+
 
 if __name__ == "__main__":
     unittest.main()

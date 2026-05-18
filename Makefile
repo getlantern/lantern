@@ -135,6 +135,9 @@ ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
+ANDROID_IDENTITY_SOURCE_PROFILE ?= $(STEALTH_PROFILE_OUT)
+ANDROID_IDENTITY_PROFILE_PREREQ = $(MAYBE_STEALTH_PROFILE)
+ANDROID_IDENTITY_PROFILE_ARGS = $(if $(strip $(ANDROID_IDENTITY_SOURCE_PROFILE)),--profile "$(ANDROID_IDENTITY_SOURCE_PROFILE)",)
 ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(abspath $(ANDROID_IDENTITY_PROFILE))",)
 ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
 ANDROID_IDENTITY_DART_DEFINES = $(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME))
@@ -579,7 +582,7 @@ install-android-sdk: check-android-sdk
 install-android-deps: install-gomobile
 
 .PHONY: android-identity-profile
-android-identity-profile:
+android-identity-profile: $(ANDROID_IDENTITY_PROFILE_PREREQ)
 	@if [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "yes" ]; then \
 	  if [ -z "$(ANDROID_IDENTITY_PROFILE)" ]; then \
 	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
@@ -589,7 +592,12 @@ android-identity-profile:
 	    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
 	    python3 scripts/stealth/generate_android_identity.py \
 	      --output "$(ANDROID_IDENTITY_PROFILE)" \
+	      $(ANDROID_IDENTITY_PROFILE_ARGS) \
 	      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
+	  elif [ -n "$(ANDROID_IDENTITY_SOURCE_PROFILE)" ]; then \
+	    python3 scripts/stealth/generate_android_identity.py \
+	      --output "$(ANDROID_IDENTITY_PROFILE)" \
+	      --profile "$(ANDROID_IDENTITY_SOURCE_PROFILE)"; \
 	  else \
 	    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
 	  fi; \

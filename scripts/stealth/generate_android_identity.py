@@ -123,6 +123,84 @@ def _seed_material(seed: str | None) -> tuple[str, bool]:
     return secrets.token_hex(32), True
 
 
+def _safe_scheme(value: str, fallback: str) -> str:
+    scheme = re.sub(r"[^a-z0-9+.-]+", "", value.lower())
+    if not scheme or not scheme[0].isalpha():
+        return fallback
+    return scheme
+
+
+def _load_profile(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        profile = json.load(handle)
+    if not isinstance(profile, dict):
+        raise ValueError(f"profile must be a JSON object: {path}")
+    return profile
+
+
+def identity_from_profile(
+    profile_path: Path,
+    app_icon: str = "@drawable/neutral_app_icon",
+    app_round_icon: str = "@drawable/neutral_app_icon",
+    notification_small_icon: str = "@drawable/neutral_notification_icon",
+    quick_tile_icon: str = "@drawable/neutral_notification_icon",
+) -> AndroidIdentity:
+    profile = _load_profile(profile_path)
+    application_id = str(profile.get("packageName", "")).strip()
+    if not ANDROID_APPLICATION_ID.match(application_id):
+        raise ValueError(f"invalid profile packageName: {application_id}")
+
+    label = str(profile.get("appName", "")).strip()
+    if not label:
+        raise ValueError("profile appName is required")
+    session_name = str(profile.get("sessionName", "")).strip()
+    if not session_name:
+        raise ValueError("profile sessionName is required")
+
+    digest = hashlib.sha256(
+        json.dumps(profile, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    profile_id = str(profile.get("profileId") or digest[:16])
+    metadata = json.dumps(
+        {
+            "generator": "android-identity-v1",
+            "profileId": profile_id,
+            "profileMode": profile.get("mode"),
+            "seedFingerprint": digest[:16],
+            "source": "stealth-profile",
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    app_auth_scheme = _safe_scheme(
+        f"{_slug(label)}{digest[:8]}",
+        f"stealth{digest[:8]}",
+    )
+
+    return AndroidIdentity(
+        application_id=application_id,
+        app_label=label,
+        launcher_label=label,
+        identity_label=profile_id,
+        identity_profile_id=profile_id,
+        identity_metadata=metadata,
+        vpn_session_name=session_name,
+        notification_channel_vpn=f"{label} Status",
+        notification_channel_data_usage=f"{label} Usage",
+        notification_title=label,
+        notification_connected_text=f"{label} is active",
+        notification_starting_text=f"Starting {label}...",
+        notification_disconnect_action=f"Stop {label}",
+        quick_tile_active_label=f"{label} on",
+        quick_tile_inactive_label=f"{label} off",
+        app_icon=app_icon,
+        app_round_icon=app_round_icon,
+        notification_small_icon=notification_small_icon,
+        quick_tile_icon=quick_tile_icon,
+        app_auth_scheme=app_auth_scheme,
+    )
+
+
 def generate_identity(
     seed: str | None = None,
     package_root: str | None = None,
@@ -216,6 +294,11 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
         help="Optional deterministic seed. Omit to generate a fresh random identity.",
     )
     parser.add_argument(
+        "--profile",
+        type=Path,
+        help="Optional stealth profile JSON to use as the Android package, app, and session identity source.",
+    )
+    parser.add_argument(
         "--package-root",
         help="Optional first applicationId segment. Defaults to a neutral generated root.",
     )
@@ -230,14 +313,23 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
-    identity = generate_identity(
-        seed=args.seed,
-        package_root=args.package_root,
-        app_icon=args.app_icon,
-        app_round_icon=args.app_round_icon,
-        notification_small_icon=args.notification_small_icon,
-        quick_tile_icon=args.quick_tile_icon,
-    )
+    if args.profile:
+        identity = identity_from_profile(
+            profile_path=args.profile,
+            app_icon=args.app_icon,
+            app_round_icon=args.app_round_icon,
+            notification_small_icon=args.notification_small_icon,
+            quick_tile_icon=args.quick_tile_icon,
+        )
+    else:
+        identity = generate_identity(
+            seed=args.seed,
+            package_root=args.package_root,
+            app_icon=args.app_icon,
+            app_round_icon=args.app_round_icon,
+            notification_small_icon=args.notification_small_icon,
+            quick_tile_icon=args.quick_tile_icon,
+        )
     write_properties(identity, args.output)
     print(f"Wrote Android identity profile: {args.output}")
     print(f"applicationId={identity.application_id}")
