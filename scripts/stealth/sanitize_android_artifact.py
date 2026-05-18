@@ -210,7 +210,7 @@ def elf_sections(data: bytes) -> list[tuple[str, int, int]]:
     return sections
 
 
-def sanitize_zip(path: Path, resign: bool = False) -> SanitizeResult:
+def sanitize_zip(path: Path, resign: bool = False, allow_debug_keystore: bool = False) -> SanitizeResult:
     if not path.exists():
         raise FileNotFoundError(path)
 
@@ -248,7 +248,7 @@ def sanitize_zip(path: Path, resign: bool = False) -> SanitizeResult:
         tmp.unlink(missing_ok=True)
     resigned = False
     if resign and (removed or scrubbed):
-        resign_android_artifact(path)
+        resign_android_artifact(path, allow_debug_keystore=allow_debug_keystore)
         resigned = True
     return SanitizeResult(
         removed_metadata_entries=removed,
@@ -257,9 +257,9 @@ def sanitize_zip(path: Path, resign: bool = False) -> SanitizeResult:
     )
 
 
-def resign_android_artifact(path: Path) -> None:
+def resign_android_artifact(path: Path, allow_debug_keystore: bool = False) -> None:
     suffix = path.suffix.lower()
-    signing = signing_config()
+    signing = signing_config(allow_debug_keystore=allow_debug_keystore)
     signing_env = os.environ.copy()
     signing_env[SIGNING_STORE_PASSWORD_ENV] = signing.store_password
     signing_env[SIGNING_KEY_PASSWORD_ENV] = signing.key_password
@@ -315,7 +315,7 @@ def resign_android_artifact(path: Path) -> None:
             signed.unlink(missing_ok=True)
 
 
-def signing_config() -> SigningConfig:
+def signing_config(allow_debug_keystore: bool = False) -> SigningConfig:
     env = os.environ
     if all(env.get(name) for name in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")):
         return SigningConfig(
@@ -323,6 +323,11 @@ def signing_config() -> SigningConfig:
             store_password=env["KEYSTORE_PWD"],
             key_alias=env["KEY_ALIAS"],
             key_password=env["KEY_PWD"],
+        )
+    if not allow_debug_keystore:
+        raise RuntimeError(
+            "missing signing env vars (KEYSTORE_FILE, KEYSTORE_PWD, KEY_ALIAS, KEY_PWD); "
+            "pass --allow-debug-keystore for local debug signing"
         )
     return SigningConfig(
         keystore=Path.home() / ".android" / "debug.keystore",
@@ -365,11 +370,26 @@ def android_build_tools_version_key(apksigner: Path) -> tuple[int, int, int, int
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--resign", action="store_true", help="Re-sign APK/AAB artifacts after mutation.")
+    parser.add_argument(
+        "--allow-debug-keystore",
+        action="store_true",
+        help="Allow debug.keystore fallback when --resign is used without explicit signing env vars.",
+    )
     parser.add_argument("artifacts", nargs="+", type=Path)
     args = parser.parse_args(argv)
 
     try:
-        results = [(artifact, sanitize_zip(artifact, resign=args.resign)) for artifact in args.artifacts]
+        results = [
+            (
+                artifact,
+                sanitize_zip(
+                    artifact,
+                    resign=args.resign,
+                    allow_debug_keystore=args.allow_debug_keystore,
+                ),
+            )
+            for artifact in args.artifacts
+        ]
     except (FileNotFoundError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"sanitize_android_artifact.py: {exc}", file=sys.stderr)
         return 1

@@ -162,6 +162,28 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             self.assertEqual(apksigner.parent.name, "34.0.0")
             self.assertEqual(zipalign.parent.name, "34.0.0")
 
+    def test_signing_config_requires_explicit_release_env_by_default(self) -> None:
+        with mock.patch.dict(
+            "os.environ",
+            {"KEYSTORE_FILE": "", "KEYSTORE_PWD": "", "KEY_ALIAS": "", "KEY_PWD": ""},
+            clear=False,
+        ):
+            with self.assertRaises(RuntimeError):
+                sanitize_android_artifact.signing_config()
+
+    def test_signing_config_allows_debug_keystore_when_explicitly_enabled(self) -> None:
+        with mock.patch.dict(
+            "os.environ",
+            {"KEYSTORE_FILE": "", "KEYSTORE_PWD": "", "KEY_ALIAS": "", "KEY_PWD": ""},
+            clear=False,
+        ):
+            config = sanitize_android_artifact.signing_config(allow_debug_keystore=True)
+
+        self.assertEqual(config.key_alias, "androiddebugkey")
+        self.assertEqual(config.store_password, "android")
+        self.assertEqual(config.key_password, "android")
+        self.assertEqual(config.keystore, Path.home() / ".android" / "debug.keystore")
+
 
 if __name__ == "__main__":
     unittest.main()
