@@ -214,6 +214,9 @@ APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
 STEALTH_NOVPN_DART_DEFINES := $(DART_DEFINES) --dart-define=STEALTH_NO_VPN=true
+STEALTH_ICON_SEED ?=
+STEALTH_ICON_RES_DIR ?= android/app/build/generated/stealth-icons/res
+export STEALTH_ICON_SEED
 
 STEALTH_PROFILE_SCRIPT := scripts/stealth/generate_profile.py
 STEALTH_PROFILE_TOOL := python3 $(STEALTH_PROFILE_SCRIPT)
@@ -335,6 +338,11 @@ check-garble-go:
 		echo "go not found. Install Go or set GARBLE_REAL_GO=/path/to/go for gomobile garble builds."; \
 		exit 1; \
 	fi
+
+.PHONY: stealth-android-icons
+stealth-android-icons: guard-STEALTH_ICON_SEED
+	python3 scripts/stealth/generate_android_icons.py \
+		--output-res-dir "$(STEALTH_ICON_RES_DIR)"
 
 
 .PHONY: require-appdmg

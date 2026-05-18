@@ -15,6 +15,19 @@ def hasReleaseKeystore =
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
+def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH_ICON_SEED"))?.toString()?.trim()
+def sha256Hex = { value ->
+    java.security.MessageDigest.getInstance("SHA-256")
+            .digest(value.getBytes("UTF-8"))
+            .collect { String.format("%02x", it & 0xff) }
+            .join()
+}
+def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""
+def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
+def generatedStealthIconMetadata = layout.buildDirectory.file("generated/stealth-icons/stealth-icon-metadata.json")
+def generatedStealthIconScript = file("${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py")
+def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
+def roundLauncherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher_round" : "@mipmap/ic_launcher_round"
 
 def defaultStealthProfile = [
         mode             : "normal",
@@ -204,6 +217,11 @@ if (androidIdentityProfilePath) {
     }
 }
 
+if (stealthIconSeed) {
+    androidIdentity.appIcon = launcherIconResource
+    androidIdentity.appRoundIcon = roundLauncherIconResource
+}
+
 if (!(androidIdentity.applicationId ==~ /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/)) {
     throw new GradleException("Invalid Android applicationId in identity profile: ${androidIdentity.applicationId}")
 }
@@ -241,6 +259,9 @@ android {
             }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
+            if (stealthIconSeed) {
+                res.srcDirs += [generatedStealthIconResDir.get().asFile]
+            }
         }
     }
 
@@ -315,6 +336,8 @@ android {
                 launcherLabel: androidIdentity.launcherLabel,
                 appIcon: androidIdentity.appIcon,
                 appRoundIcon: androidIdentity.appRoundIcon,
+                launcherIcon: androidIdentity.appIcon,
+                roundLauncherIcon: androidIdentity.appRoundIcon,
                 identityLabel: androidIdentity.identityLabel,
                 identityProfileId: androidIdentity.identityProfileId,
                 identityMetadata: androidIdentity.identityMetadata,
@@ -421,6 +444,20 @@ if (stealthMode) {
         dependsOn(tasks.named("generateStealthManifest"))
     }
 }
+
+tasks.register("generateStealthAndroidIcons", Exec) {
+    onlyIf { stealthIconSeed }
+    inputs.property("stealthIconSeedSha256", stealthIconSeedSha256)
+    inputs.file(generatedStealthIconScript)
+    outputs.dir(generatedStealthIconResDir)
+    outputs.file(generatedStealthIconMetadata)
+    environment "STEALTH_ICON_SEED", stealthIconSeed ?: ""
+    commandLine "python3",
+            generatedStealthIconScript.absolutePath,
+            "--output-res-dir", generatedStealthIconResDir.get().asFile.absolutePath
+}
+
+preBuild.dependsOn("generateStealthAndroidIcons")
 
 flutter {
     source = "../.."
