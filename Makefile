@@ -693,20 +693,25 @@ install-android-sdk: check-android-sdk
 install-android-deps: install-gomobile
 
 .PHONY: android-identity-profile
-android-identity-profile:
+android-identity-profile: $(MAYBE_STEALTH_PROFILE)
 	@if [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "yes" ]; then \
 	  if [ -z "$(ANDROID_IDENTITY_PROFILE)" ]; then \
 	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
 	    exit 1; \
 	  fi; \
-	  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
-	    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
-	    python3 scripts/stealth/generate_android_identity.py \
-	      --output "$(ANDROID_IDENTITY_PROFILE)" \
-	      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
-	  else \
-	    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
-	  fi; \
+		  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
+		    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+		    python3 scripts/stealth/generate_android_identity.py \
+		      --output "$(ANDROID_IDENTITY_PROFILE)" \
+		      $(if $(STEALTH_ENABLED),--profile "$(STEALTH_PROFILE_OUT)",) \
+		      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
+		  elif [ -n "$(STEALTH_ENABLED)" ]; then \
+		    python3 scripts/stealth/generate_android_identity.py \
+		      --output "$(ANDROID_IDENTITY_PROFILE)" \
+		      --profile "$(STEALTH_PROFILE_OUT)"; \
+		  else \
+		    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
+		  fi; \
 	fi
 
 .PHONY: android

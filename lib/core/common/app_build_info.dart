@@ -47,37 +47,33 @@ class AppBuildInfo {
     defaultValue: 0,
   );
 
-  static bool get isStealthBuild => stealthMode.startsWith('stealth-');
+  static bool get isStealthBuild =>
+      stealthBuild || stealthMode.startsWith('stealth-');
 
   static const bool stealthBuild = bool.fromEnvironment(
     'STEALTH_BUILD',
     defaultValue: false,
   );
 
-  static const String stealthModeName = String.fromEnvironment(
-    'STEALTH_MODE',
-    defaultValue: '',
-  );
-
   /// Removes high-identification UI and runtime flows from stealth artifacts.
-  static const bool stealthMode =
+  static const bool suppressIdentifyingFeatures =
       stealthBuild ||
       stealthNoVpn ||
-      stealthModeName == 'stealth-vpn' ||
-      stealthModeName == 'stealth-novpn' ||
-      stealthModeName == 'true';
+      stealthMode == 'stealth-vpn' ||
+      stealthMode == 'stealth-novpn' ||
+      stealthMode == 'true';
 
-  static const bool enableOAuth = !stealthMode;
+  static const bool enableOAuth = !suppressIdentifyingFeatures;
 
-  static const bool enablePayments = !stealthMode;
+  static const bool enablePayments = !suppressIdentifyingFeatures;
 
-  static const bool enableStorePayments = !stealthMode;
+  static const bool enableStorePayments = !suppressIdentifyingFeatures;
 
-  static const bool enableAppLinks = !stealthMode;
+  static const bool enableAppLinks = !suppressIdentifyingFeatures;
 
-  static const bool enableSocialLinks = !stealthMode;
+  static const bool enableSocialLinks = !suppressIdentifyingFeatures;
 
-  static const bool enableAutoUpdate = !stealthMode;
+  static const bool enableAutoUpdate = !suppressIdentifyingFeatures;
 
   static const String appAuthScheme = String.fromEnvironment(
     'APP_AUTH_SCHEME',
