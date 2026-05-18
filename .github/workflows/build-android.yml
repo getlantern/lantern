@@ -20,6 +20,20 @@ on:
         required: false
         type: string
         default: ""
+      obfuscate_go:
+        description: "Build Android Go/native libraries through garble"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GRADLE_PROPERTIES:
+        required: true
+      APP_ENV:
+        required: true
+      KEYSTORE:
+        required: true
+      STEALTH_GARBLE_SEED:
+        required: false
 
 jobs:
   build-android:
@@ -156,7 +170,22 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Install garble
+        if: ${{ inputs.obfuscate_go }}
+        run: make install-garble
+
+      - name: Build Android obfuscated (APK + AAB)
+        if: ${{ inputs.obfuscate_go }}
+        run: make android-release-ci-obfuscated
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          STEALTH_GARBLE_SEED: ${{ secrets.STEALTH_GARBLE_SEED }}
+
       - name: Build Android (APK + AAB)
+        if: ${{ !inputs.obfuscate_go }}
         run: make android-release-ci
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
