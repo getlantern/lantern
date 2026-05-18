@@ -121,6 +121,8 @@ ANDROID_AAB_TARGET_PLATFORMS := android-arm,android-arm64
 ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
+ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.apk
+ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
 PYTHON ?= python3
@@ -203,6 +205,7 @@ get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which
 APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+STEALTH_NOVPN_DART_DEFINES := $(DART_DEFINES) --dart-define=STEALTH_NO_VPN=true
 
 STEALTH_PROFILE_SCRIPT := scripts/stealth/generate_profile.py
 STEALTH_PROFILE_TOOL := python3 $(STEALTH_PROFILE_SCRIPT)
@@ -763,6 +766,10 @@ android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+	$(MAKE) android-copy-play-artifacts
+
+.PHONY: android-copy-play-artifacts
+android-copy-play-artifacts:
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
 	  cp "$(ANDROID_MAPPING_SRC)" mapping.txt; \
@@ -773,6 +780,20 @@ android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 	elif [ -d "build/app/intermediates/merged_native_libs/release/out/lib" ]; then \
 	  (cd build/app/intermediates/merged_native_libs/release/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
 	fi
+
+.PHONY: android-stealth-novpn-apk-release
+android-stealth-novpn-apk-release:
+	ORG_GRADLE_PROJECT_stealthNoVpn=true flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(STEALTH_NOVPN_DART_DEFINES)
+	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_STEALTH_NOVPN_APK)
+
+.PHONY: android-stealth-novpn-aab-release
+android-stealth-novpn-aab-release:
+	ORG_GRADLE_PROJECT_stealthNoVpn=true flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(STEALTH_NOVPN_DART_DEFINES)
+	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_STEALTH_NOVPN_AAB)
+	$(MAKE) android-copy-play-artifacts
+
+.PHONY: android-stealth-novpn-release
+android-stealth-novpn-release: android pubget gen android-stealth-novpn-apk-release android-stealth-novpn-aab-release
 
 
 .PHONY: android-release

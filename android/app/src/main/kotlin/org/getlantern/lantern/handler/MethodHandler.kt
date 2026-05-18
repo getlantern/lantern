@@ -261,6 +261,10 @@ class MethodHandler : FlutterPlugin,
             Methods.SetSplitTunnelingEnabled.method -> {
                 scope.launch {
                     result.runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { success("disabled") }
+                            return@runCatching
+                        }
                         val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
                         Mobile.setSplitTunnelingEnabled(enabled)
                         withContext(Dispatchers.Main) { success("ok") }
@@ -277,6 +281,10 @@ class MethodHandler : FlutterPlugin,
             Methods.IsSplitTunnelingEnabled.method -> {
                 scope.launch {
                     runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { result.success(false) }
+                            return@runCatching
+                        }
                         val on = Mobile.isSplitTunnelingEnabled()
                         withContext(Dispatchers.Main) { result.success(on) }
                     }.onFailure { e ->
@@ -1246,6 +1254,10 @@ class MethodHandler : FlutterPlugin,
             Methods.CheckVpnConflict.method -> {
                 scope.launch {
                     runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { result.success(false) }
+                            return@runCatching
+                        }
                         val hasConflict = isAnotherVpnActive(appContext)
                         withContext(Dispatchers.Main) {
                             result.success(hasConflict)

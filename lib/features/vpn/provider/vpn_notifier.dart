@@ -37,9 +37,10 @@ class VpnNotifier extends _$VpnNotifier {
         'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
       );
       final suppressConnectionNotifications =
+          AppBuildInfo.stealthNoVpn ||
           nextOrigin == VPNStatusOrigin.settingsMutation &&
-          (nextStatus == VPNStatus.connected ||
-              nextStatus == VPNStatus.disconnected);
+              (nextStatus == VPNStatus.connected ||
+                  nextStatus == VPNStatus.disconnected);
 
       final isFirstEvent = previous == null || previous.value == null;
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;
@@ -104,7 +105,7 @@ class VpnNotifier extends _$VpnNotifier {
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
-    if (!skipConflictCheck) {
+    if (!skipConflictCheck && !AppBuildInfo.stealthNoVpn) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -140,7 +141,7 @@ class VpnNotifier extends _$VpnNotifier {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
-    if (!skipConflictCheck) {
+    if (!skipConflictCheck && !AppBuildInfo.stealthNoVpn) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
