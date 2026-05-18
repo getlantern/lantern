@@ -285,7 +285,6 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.20 // indirect
 	github.com/xtaci/smux v1.5.34 // indirect
-	github.com/zeebo/assert v1.3.0 // indirect
 	gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/v2 v2.11.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
