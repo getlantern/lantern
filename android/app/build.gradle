@@ -15,7 +15,6 @@ def hasReleaseKeystore =
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
-def stealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
 
 def defaultStealthProfile = [
         mode             : "normal",
@@ -132,6 +131,34 @@ def loadStealthProfile = {
 
 def stealthProfile = loadStealthProfile()
 
+def rawStealthMode = stealthProfile.mode.toString()
+if (!rawStealthMode || rawStealthMode == "normal") {
+    rawStealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString()
+}
+rawStealthMode = rawStealthMode.trim().toLowerCase(java.util.Locale.ROOT)
+def stealthModePrefix = "stealth-"
+def stealthMode = rawStealthMode.startsWith(stealthModePrefix)
+        ? rawStealthMode.substring(stealthModePrefix.length())
+        : rawStealthMode
+if (rawStealthMode.startsWith(stealthModePrefix) && !stealthMode) {
+    throw new GradleException("Unsupported STEALTH_MODE '${rawStealthMode}'. Expected stealth-vpn or stealth-novpn")
+}
+def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+if (stealthMode == "vpn" && explicitStealthNoVpn) {
+    throw new GradleException("Conflicting stealth inputs: STEALTH_MODE=vpn cannot be combined with -PstealthNoVpn=true")
+}
+if (!stealthMode && explicitStealthNoVpn) {
+    stealthMode = "novpn"
+}
+def stealthModes = ["vpn", "novpn"]
+if (stealthMode && !stealthModes.contains(stealthMode)) {
+    throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")
+}
+def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
+def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
+def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
+def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
+
 def androidIdentityDefaults = [
         applicationId: stealthProfile.packageName.toString(),
         appLabel: stealthProfile.appName.toString(),
@@ -209,7 +236,9 @@ android {
 
     sourceSets {
         main {
-            manifest.srcFile stealthNoVpn ? 'src/main/AndroidManifest.novpn.xml' : 'src/main/AndroidManifest.xml'
+            if (stealthMode) {
+                manifest.srcFile stealthManifest
+            }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
         }
@@ -293,7 +322,7 @@ android {
                 appAuthScheme: androidIdentity.appAuthScheme,
         ]
         resValue "string", "app_name", androidIdentity.appLabel
-        buildConfigField "boolean", "STEALTH_ENABLED", (stealthProfile.mode.toString() != "normal").toString()
+        buildConfigField "boolean", "STEALTH_ENABLED", (stealthMode ? "true" : "false")
         buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
         buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
         buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
@@ -371,6 +400,26 @@ android {
         }
     }
 
+}
+
+if (stealthMode) {
+    tasks.register("generateStealthManifest", Exec) {
+        inputs.file(file("src/main/AndroidManifest.xml"))
+        inputs.file(stealthManifestFilter)
+        inputs.property("stealthMode", stealthMode)
+        outputs.file(stealthManifest)
+        commandLine(
+                stealthPython,
+                stealthManifestFilter.absolutePath,
+                "--mode", stealthMode,
+                "--input", "${projectDir}/src/main/AndroidManifest.xml",
+                "--output", stealthManifest.absolutePath,
+        )
+    }
+
+    tasks.matching { it.name == "preBuild" }.configureEach {
+        dependsOn(tasks.named("generateStealthManifest"))
+    }
 }
 
 flutter {

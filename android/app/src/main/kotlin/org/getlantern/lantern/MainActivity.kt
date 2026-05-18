@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import foundation.bridge.NetworkService
 import foundation.bridge.SyncService
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -32,7 +33,7 @@ import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.setupDirs
 
 
-class MainActivity : FlutterFragmentActivity() {
+open class MainActivity : FlutterFragmentActivity() {
     companion object {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
@@ -54,8 +55,12 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
+    private val vpnServiceClass: Class<out Service>
+        get() = if (BuildConfig.STEALTH_ENABLED) NetworkService::class.java else LanternVpnService::class.java
+
     private val noVpnServiceClass: Class<out Service>
         get() = if (BuildConfig.STEALTH_NO_VPN) SyncService::class.java else NoVpnLanternService::class.java
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -112,12 +117,12 @@ class MainActivity : FlutterFragmentActivity() {
             retryCountResume = 0
             return
         }
-        if (isServiceRunning(this, LanternVpnService::class.java)) {
+        if (isServiceRunning(this, vpnServiceClass)) {
             AppLogger.d(TAG, "LanternService is already running")
             return
         }
         try {
-            val radianceIntent = Intent(this, LanternVpnService::class.java).apply {
+            val radianceIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_START_RADIANCE
             }
             startService(radianceIntent)
@@ -212,7 +217,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         try {
-            val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
+            val vpnIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_START_VPN
             }
             ContextCompat.startForegroundService(this, vpnIntent)
@@ -248,7 +253,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         try {
-            val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
+            val vpnIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
             }
@@ -276,7 +281,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
             return
         }
-        if (isServiceRunning(this, LanternVpnService::class.java)) {
+        if (isServiceRunning(this, vpnServiceClass)) {
             LanternApp.application.sendBroadcast(
                 Intent(LanternVpnService.ACTION_STOP_VPN)
                     .setPackage(LanternApp.application.packageName)

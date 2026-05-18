@@ -170,6 +170,9 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Run stealth manifest filter tests
+        run: make stealth-manifest-filter-test
+
       - name: Install garble
         if: ${{ inputs.obfuscate_go }}
         run: make install-garble

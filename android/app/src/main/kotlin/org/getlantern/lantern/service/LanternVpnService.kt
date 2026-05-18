@@ -42,7 +42,7 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService :
+open class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {

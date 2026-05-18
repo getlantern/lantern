@@ -829,6 +829,10 @@ android-release-obfuscated: clean android-obfuscated pubget gen android-identity
 .PHONY: android-release-ci-obfuscated
 android-release-ci-obfuscated: android-obfuscated pubget gen android-identity-profile android-apk-release android-aab-release
 
+.PHONY: stealth-manifest-filter-test
+stealth-manifest-filter-test:
+	$(PYTHON) -m unittest discover -s scripts/stealth -p '*_test.py'
+
 # iOS Build
 .PHONY: install-ios-deps
 
