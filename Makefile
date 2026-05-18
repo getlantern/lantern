@@ -36,6 +36,11 @@ ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
 $(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
 endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
+STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
+STEALTH_GO_LOG_LEVEL ?= warn
+STEALTH_GO_LDFLAGS := $(if $(filter stealth stealth-%,$(BUILD_TYPE)),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
+GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
+LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -68,6 +73,7 @@ LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
 LANTERND := lanternd
 LANTERND_SRC := $(RADIANCE_REPO)/cmd/lanternd
+LANTERND_SERVICE_LOG_LEVEL ?= $(if $(filter stealth stealth-%,$(BUILD_TYPE)),warn,trace)
 LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
 LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
 LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
@@ -81,10 +87,12 @@ ifeq ($(OS),Windows_NT)
   MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
   COPY_FILE = $(PS) "Copy-Item -Force -LiteralPath '$(1)' -Destination '$(2)'"
   RM_RF = $(PS) "Remove-Item -Recurse -Force -LiteralPath '$(1)'"
+  WRITE_TEXT_FILE = $(PS) "Set-Content -LiteralPath '$(2)' -Value '$(1)' -Encoding ASCII"
 else
   MKDIR_P = mkdir -p -- '$(1)'
   COPY_FILE = cp -f -- '$(1)' '$(2)'
   RM_RF = rm -rf -- '$(1)'
+  WRITE_TEXT_FILE = printf '%s\n' '$(1)' > '$(2)'
 endif
 
 LANTERND_WINDOWS_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERND).exe
@@ -350,7 +358,7 @@ endif
 desktop-lib: $(MAYBE_STEALTH_PROFILE)
 	$(SETENV) go build -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)$(STEALTH_GO_TAGS)" \
-		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s $(GO_EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built desktop library: $(LIB_NAME)"
 
@@ -383,7 +391,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
@@ -499,7 +507,7 @@ lanternd-linux-amd64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
-		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
 
@@ -507,7 +515,7 @@ lanternd-linux-arm64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
-		-ldflags "-w -s $(EXTRA_LDFLAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
 
@@ -552,6 +560,7 @@ linux-release-ci: linux pubget gen $(MAYBE_STEALTH_PROFILE)
 	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
 	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
 	cp "$(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LANTERND)" "$$BUNDLE_DIR"; \
+	printf '%s\n' "$(LANTERND_SERVICE_LOG_LEVEL)" > "$$BUNDLE_DIR/lanternd-log-level"; \
 	patchelf --set-rpath '$$ORIGIN/lib' "$$BUNDLE_DIR/lantern" || true; \
 	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
 		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB); \
@@ -595,7 +604,7 @@ $(LANTERND_WINDOWS_AMD64): $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
-		-ldflags "$(EXTRA_LDFLAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
 
@@ -603,7 +612,7 @@ $(LANTERND_WINDOWS_ARM64): $(MAYBE_STEALTH_PROFILE)
 	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
 	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
 		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
-		-ldflags "$(EXTRA_LDFLAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
 		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
 	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
 
@@ -623,6 +632,7 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release
 	$(MAKE) copy-lanternd-release-arm64
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_RELEASE_DIR)/lanternd-log-level)
 
 .PHONY: windows-debug
 windows-debug: windows $(MAYBE_STEALTH_PROFILE)
@@ -709,7 +719,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 		-javapkg=lantern.io \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
@@ -842,7 +852,7 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
