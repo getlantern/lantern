@@ -153,7 +153,7 @@ ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.prop
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
 ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(abspath $(ANDROID_IDENTITY_PROFILE))",)
 ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
-ANDROID_IDENTITY_DART_DEFINES = $(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME))
+ANDROID_IDENTITY_DART_DEFINES = $(if $(STEALTH_ENABLED),,$(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME)))
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -186,12 +186,15 @@ GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
 	./lantern-core/mobile \
 	./lantern-core/utils
+GOMOBILE_REPOS_STEALTH_NOVPN = \
+	./lantern-core/mobile
 
 GARBLE ?= garble
 GARBLE_VERSION ?= v0.16.0
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
-GARBLE_GOGARBLE ?= github.com/getlantern/lantern
+STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/dnstt,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig
+GARBLE_GOGARBLE ?= $(if $(STEALTH_ENABLED),$(STEALTH_GOGARBLE_PACKAGES),github.com/getlantern/lantern)
 GARBLE_LDFLAGS ?= -w -s -buildid=
 
 ifeq ($(OS),Windows_NT)
@@ -213,13 +216,15 @@ get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which
 APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
-STEALTH_NOVPN_DART_DEFINES := $(DART_DEFINES) --dart-define=STEALTH_NO_VPN=true
+STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_ICON_SEED ?=
-STEALTH_ICON_RES_DIR ?= android/app/build/generated/stealth-icons/res
+STEALTH_ICON_RES_DIR ?= android/app/build/generated/icons/res
 export STEALTH_ICON_SEED
 
 STEALTH_PROFILE_SCRIPT := scripts/stealth/generate_profile.py
 STEALTH_PROFILE_TOOL := python3 $(STEALTH_PROFILE_SCRIPT)
+STEALTH_FLUTTER_BUILD_SCRIPT := scripts/stealth/run_flutter_build.py
+STEALTH_ANDROID_ARTIFACT_SANITIZER := scripts/stealth/sanitize_android_artifact.py
 STEALTH_PROFILE ?=
 STEALTH_MODE ?=
 STEALTH_PACKAGE_NAME ?=
@@ -239,6 +244,12 @@ STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALT
 STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(shell cat "$(STEALTH_GO_TAGS_FILE)"),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),ORG_GRADLE_PROJECT_stealthProfile="$(abspath $(STEALTH_PROFILE_OUT))",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
+STEALTH_IS_NOVPN = $(if $(findstring stealth_novpn,$(STEALTH_GO_TAGS)),1,)
+GOMOBILE_REPOS_EFFECTIVE = $(if $(STEALTH_IS_NOVPN),$(GOMOBILE_REPOS_STEALTH_NOVPN),$(GOMOBILE_REPOS))
+GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
+STEALTH_FLUTTER_PREFIX = $(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_FLUTTER_BUILD_SCRIPT) --profile "$(STEALTH_PROFILE_OUT)" --,)
+STEALTH_FLUTTER_TARGET = $(if $(STEALTH_ENABLED),--target lib/main_stealth.dart,)
+FLUTTER_DART_DEFINES = $(if $(STEALTH_ENABLED),$(if $(VERSION),--dart-define=VERSION=$(VERSION),),$(DART_DEFINES))
 
 INSTALLER_RESOURCES := installer-resources
 
@@ -729,11 +740,11 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
-		-javapkg=lantern.io \
+		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
-		$(GOMOBILE_REPOS)
+		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
@@ -757,11 +768,11 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
-		-javapkg=lantern.io \
+		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
-		$(GOMOBILE_REPOS)
+		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
@@ -771,7 +782,7 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) android-identity-profile
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64;
 # -Plantern.thinAbi=true tells android/app/build.gradle to drop armeabi-v7a
@@ -779,7 +790,8 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 # arm32 libgojni.so in the AAR doesn't get packed. Sideload-APK target only.
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.thinAbi=true
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.thinAbi=true
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(ANDROID_APK_RELEASE_BUILD),true)
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 # AAB keeps both ABIs so Play Store delivers per-ABI splits (arm64 users
@@ -787,12 +799,16 @@ android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 # Play path doesn't need the size cut — only the sideload APK does.
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES)
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(ANDROID_AAB_RELEASE_BUILD),true)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	$(MAKE) android-copy-play-artifacts
 
 .PHONY: android-copy-play-artifacts
 android-copy-play-artifacts:
+ifneq ($(strip $(STEALTH_ENABLED)),)
+	@echo "Skipping Play mapping and native symbols copy for stealth build"
+else
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
 	  cp "$(ANDROID_MAPPING_SRC)" mapping.txt; \
@@ -803,20 +819,19 @@ android-copy-play-artifacts:
 	elif [ -d "build/app/intermediates/merged_native_libs/release/out/lib" ]; then \
 	  (cd build/app/intermediates/merged_native_libs/release/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
 	fi
+endif
 
 .PHONY: android-stealth-novpn-apk-release
 android-stealth-novpn-apk-release:
-	ORG_GRADLE_PROJECT_stealthNoVpn=true flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(STEALTH_NOVPN_DART_DEFINES)
-	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_STEALTH_NOVPN_APK)
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) android pubget gen android-apk-release
 
 .PHONY: android-stealth-novpn-aab-release
 android-stealth-novpn-aab-release:
-	ORG_GRADLE_PROJECT_stealthNoVpn=true flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(STEALTH_NOVPN_DART_DEFINES)
-	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_STEALTH_NOVPN_AAB)
-	$(MAKE) android-copy-play-artifacts
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) android pubget gen android-aab-release
 
 .PHONY: android-stealth-novpn-release
-android-stealth-novpn-release: android pubget gen android-stealth-novpn-apk-release android-stealth-novpn-aab-release
+android-stealth-novpn-release:
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) android-release-ci
 
 
 .PHONY: android-release

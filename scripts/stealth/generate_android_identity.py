@@ -165,9 +165,8 @@ def identity_from_profile(
         {
             "generator": "android-identity-v1",
             "profileId": profile_id,
-            "profileMode": profile.get("mode"),
             "seedFingerprint": digest[:16],
-            "source": "stealth-profile",
+            "source": "profile",
         },
         sort_keys=True,
         separators=(",", ":"),

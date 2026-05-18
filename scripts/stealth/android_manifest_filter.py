@@ -106,13 +106,13 @@ STEALTH_REMOVE_PROVIDERS = {
 }
 
 STEALTH_REMOVE_RECEIVERS = {
+    "com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver",
     "com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver",
 }
 
 STEALTH_APPLICATION_NAME = "foundation.bridge.AppHost"
 STEALTH_ACTIVITY_NAME = "foundation.bridge.HomeActivity"
 STEALTH_VPN_SERVICE_NAME = "foundation.bridge.NetworkService"
-STEALTH_TILE_SERVICE_NAME = "foundation.bridge.ControlTile"
 STEALTH_NOVPN_SERVICE_NAME = "foundation.bridge.SyncService"
 NOVPN_SPECIAL_USE_REASON = "User-controlled local proxy connection"
 
@@ -202,8 +202,6 @@ def rewrite_stealth_components(application: ET.Element) -> None:
         service_name = android_attr(service, ANDROID_NAME)
         if service_name in BASE_VPN_SERVICE_NAMES:
             service.set(ANDROID_NAME, STEALTH_VPN_SERVICE_NAME)
-        elif service_name in BASE_TILE_SERVICE_NAMES:
-            service.set(ANDROID_NAME, STEALTH_TILE_SERVICE_NAME)
 
 
 def ensure_novpn_service(application: ET.Element) -> None:
@@ -289,6 +287,10 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
             application,
             lambda el: el.tag == "receiver"
             and android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_RECEIVERS,
+        )
+        remove_matching(
+            application,
+            lambda el: el.tag == "service" and is_quick_tile_service(el),
         )
         ensure_remove_stubs(application, "meta-data", STEALTH_REMOVE_META_DATA)
         ensure_remove_stubs(application, "activity", STEALTH_REMOVE_ACTIVITIES)

@@ -1,3 +1,5 @@
+//go:build !stealth_novpn
+
 package mobile
 
 import (

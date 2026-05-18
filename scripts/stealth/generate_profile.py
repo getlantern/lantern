@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and validate Stealth Lantern build profiles."""
+"""Generate and validate stealth build profiles."""
 
 from __future__ import annotations
 
@@ -22,16 +22,12 @@ MODE_ALIASES = {
     "novpn": "stealth-novpn",
 }
 DEFAULTS = {
-    "appName": "Lantern",
-    "sessionName": "LanternVpn",
+    "appName": "Mobile App",
+    "sessionName": "ConnectionSession",
     "denylistVersion": 0,
 }
 DART_DEFINE_KEYS = {
-    "mode": "STEALTH_MODE",
-    "packageName": "STEALTH_PACKAGE_NAME",
-    "appName": "STEALTH_APP_NAME",
-    "sessionName": "STEALTH_SESSION_NAME",
-    "denylistVersion": "STEALTH_DENYLIST_VERSION",
+    "appName": "APP_LABEL",
 }
 ARTIFACT_METADATA_KEYS = (
     "appName",
@@ -80,7 +76,7 @@ def new_profile_id() -> str:
 
 def default_package_name(profile_id: str) -> str:
     suffix = profile_id[4:] if profile_id.startswith("stl_") else profile_id
-    return f"org.getlantern.lantern.stealth.s{suffix}"
+    return f"app.mobile.client.s{suffix}"
 
 
 def coerce_denylist_version(value: Any) -> int:
@@ -217,9 +213,9 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
 
 def dart_defines(profile: dict[str, Any]) -> dict[str, str]:
     defines = {define: str(profile[key]) for key, define in DART_DEFINE_KEYS.items()}
-    defines["STEALTH_NO_VPN"] = (
-        "true" if profile["mode"] == "stealth-novpn" else "false"
-    )
+    defines["LOCAL_PROXY"] = "true" if profile["mode"] == "stealth-novpn" else "false"
+    defines["LOCAL_PROXY_HOST"] = "127.0.0.1"
+    defines["LOCAL_PROXY_PORT"] = "14986"
     return defines
 
 

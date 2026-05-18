@@ -51,6 +51,7 @@ BASE_MANIFEST = """\
         <service
             android:name=".service.QuickTileService"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" />
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver" />
         <activity android:name="com.android.billingclient.api.ProxyBillingActivity" />
         <activity android:name="com.stripe.android.paymentsheet.PaymentSheetActivity" />
@@ -116,6 +117,7 @@ class AndroidManifestFilterTest(unittest.TestCase):
                     },
                     "providers": {"com.google.mlkit.common.internal.MlKitInitProvider"},
                     "receivers": {
+                        "com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver",
                         "com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver",
                     },
                     "wallet_metadata": True,
@@ -139,10 +141,7 @@ class AndroidManifestFilterTest(unittest.TestCase):
                     "features": set(),
                     "activities": {"foundation.bridge.HomeActivity"},
                     "activity_filters": 0,
-                    "services": {
-                        "foundation.bridge.ControlTile",
-                        "foundation.bridge.NetworkService",
-                    },
+                    "services": {"foundation.bridge.NetworkService"},
                     "providers": set(),
                     "receivers": set(),
                     "wallet_metadata": False,

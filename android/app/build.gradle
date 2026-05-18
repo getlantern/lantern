@@ -23,11 +23,11 @@ def sha256Hex = { value ->
             .join()
 }
 def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""
-def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
-def generatedStealthIconMetadata = layout.buildDirectory.file("generated/stealth-icons/stealth-icon-metadata.json")
+def generatedStealthIconResDir = layout.buildDirectory.dir("generated/icons/res")
+def generatedStealthIconMetadata = layout.buildDirectory.file("generated/icons/icon-metadata.json")
 def generatedStealthIconScript = file("${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py")
-def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
-def roundLauncherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher_round" : "@mipmap/ic_launcher_round"
+def launcherIconResource = stealthIconSeed ? "@mipmap/app_icon" : "@mipmap/ic_launcher"
+def roundLauncherIconResource = stealthIconSeed ? "@mipmap/app_icon_round" : "@mipmap/ic_launcher_round"
 
 def defaultStealthProfile = [
         mode             : "normal",
@@ -171,6 +171,10 @@ def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
 def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
 def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
 def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
+def stealthAndroidSourceDirs = [
+        'src/stealth/kotlin',
+        stealthNoVpn ? 'src/stealthNovpn/kotlin' : 'src/stealthVpn/kotlin',
+]
 
 def androidIdentityDefaults = [
         applicationId: stealthProfile.packageName.toString(),
@@ -180,19 +184,19 @@ def androidIdentityDefaults = [
         identityProfileId: "standard",
         identityMetadata: "{}",
         vpnSessionName: stealthProfile.sessionName.toString(),
-        notificationChannelVpn: "VPN",
+        notificationChannelVpn: stealthMode ? "${stealthProfile.appName} Status" : "VPN",
         notificationChannelDataUsage: "Data Usage",
         notificationTitle: stealthProfile.appName.toString(),
-        notificationConnectedText: "${stealthProfile.appName} VPN is running",
-        notificationStartingText: "Starting ${stealthProfile.appName} VPN...",
+        notificationConnectedText: stealthMode ? "${stealthProfile.appName} is active" : "${stealthProfile.appName} VPN is running",
+        notificationStartingText: stealthMode ? "Starting ${stealthProfile.appName}..." : "Starting ${stealthProfile.appName} VPN...",
         notificationDisconnectAction: "Disconnect",
-        quickTileActiveLabel: "VPN Connected",
-        quickTileInactiveLabel: "VPN Disconnected",
-        appIcon: "@mipmap/ic_launcher",
-        appRoundIcon: "@mipmap/ic_launcher_round",
-        notificationSmallIcon: "@drawable/lantern_notification_icon",
-        quickTileIcon: "@drawable/lantern_notification_icon",
-        appAuthScheme: "lantern",
+        quickTileActiveLabel: stealthMode ? "${stealthProfile.appName} on" : "VPN Connected",
+        quickTileInactiveLabel: stealthMode ? "${stealthProfile.appName} off" : "VPN Disconnected",
+        appIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher",
+        appRoundIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher_round",
+        notificationSmallIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
+        quickTileIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
+        appAuthScheme: stealthMode ? "mobileapp" : "lantern",
 ]
 
 def androidIdentityProfilePath =
@@ -248,7 +252,7 @@ def buildConfigBoolean = { name, defaultValue = false ->
 }
 
 android {
-    namespace = "org.getlantern.lantern"
+    namespace = stealthMode ? "foundation.bridge" : "org.getlantern.lantern"
     compileSdk = 36
     ndkVersion "28.2.13676358"
 
@@ -256,6 +260,9 @@ android {
         main {
             if (stealthMode) {
                 manifest.srcFile stealthManifest
+                java.srcDirs = stealthAndroidSourceDirs
+                kotlin.srcDirs = stealthAndroidSourceDirs
+                res.srcDirs = ['src/stealth/res']
             }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
@@ -345,12 +352,6 @@ android {
                 appAuthScheme: androidIdentity.appAuthScheme,
         ]
         resValue "string", "app_name", androidIdentity.appLabel
-        buildConfigField "boolean", "STEALTH_ENABLED", (stealthMode ? "true" : "false")
-        buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
-        buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
-        buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
-        buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
-        buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
 
         ndk {
             // ABI set must match what Flutter built (Makefile's
@@ -370,21 +371,33 @@ android {
         buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)
         buildConfigField "String", "ANDROID_IDENTITY_PROFILE_ID", buildConfigString(androidIdentity.identityProfileId)
         buildConfigField "String", "ANDROID_IDENTITY_METADATA", buildConfigString(androidIdentity.identityMetadata)
-        buildConfigField "String", "VPN_SESSION_NAME", buildConfigString(androidIdentity.vpnSessionName)
-        buildConfigField "String", "NOTIFICATION_CHANNEL_VPN", buildConfigString(androidIdentity.notificationChannelVpn)
-        buildConfigField "String", "NOTIFICATION_CHANNEL_DATA_USAGE", buildConfigString(androidIdentity.notificationChannelDataUsage)
-        buildConfigField "String", "NOTIFICATION_TITLE", buildConfigString(androidIdentity.notificationTitle)
-        buildConfigField "String", "NOTIFICATION_CONNECTED_TEXT", buildConfigString(androidIdentity.notificationConnectedText)
-        buildConfigField "String", "NOTIFICATION_STARTING_TEXT", buildConfigString(androidIdentity.notificationStartingText)
-        buildConfigField "String", "NOTIFICATION_DISCONNECT_ACTION", buildConfigString(androidIdentity.notificationDisconnectAction)
-        buildConfigField "String", "QUICK_TILE_ACTIVE_LABEL", buildConfigString(androidIdentity.quickTileActiveLabel)
-        buildConfigField "String", "QUICK_TILE_INACTIVE_LABEL", buildConfigString(androidIdentity.quickTileInactiveLabel)
-        buildConfigField "String", "NOTIFICATION_SMALL_ICON", buildConfigString(androidIdentity.notificationSmallIcon)
-        buildConfigField "boolean", "STEALTH_DIRECT_CONNECTION_APPS",
-                buildConfigBoolean("STEALTH_DIRECT_CONNECTION_APPS")
-        buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
-        buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
-        buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
+        if (stealthMode) {
+            buildConfigField "String", "SESSION_NAME", buildConfigString(androidIdentity.vpnSessionName)
+            buildConfigField "String", "LOCAL_PROXY_HOST", '"127.0.0.1"'
+            buildConfigField "int", "LOCAL_PROXY_PORT", "14986"
+        } else {
+            buildConfigField "boolean", "STEALTH_ENABLED", "false"
+            buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
+            buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
+            buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
+            buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
+            buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
+            buildConfigField "String", "VPN_SESSION_NAME", buildConfigString(androidIdentity.vpnSessionName)
+            buildConfigField "String", "NOTIFICATION_CHANNEL_VPN", buildConfigString(androidIdentity.notificationChannelVpn)
+            buildConfigField "String", "NOTIFICATION_CHANNEL_DATA_USAGE", buildConfigString(androidIdentity.notificationChannelDataUsage)
+            buildConfigField "String", "NOTIFICATION_TITLE", buildConfigString(androidIdentity.notificationTitle)
+            buildConfigField "String", "NOTIFICATION_CONNECTED_TEXT", buildConfigString(androidIdentity.notificationConnectedText)
+            buildConfigField "String", "NOTIFICATION_STARTING_TEXT", buildConfigString(androidIdentity.notificationStartingText)
+            buildConfigField "String", "NOTIFICATION_DISCONNECT_ACTION", buildConfigString(androidIdentity.notificationDisconnectAction)
+            buildConfigField "String", "QUICK_TILE_ACTIVE_LABEL", buildConfigString(androidIdentity.quickTileActiveLabel)
+            buildConfigField "String", "QUICK_TILE_INACTIVE_LABEL", buildConfigString(androidIdentity.quickTileInactiveLabel)
+            buildConfigField "String", "NOTIFICATION_SMALL_ICON", buildConfigString(androidIdentity.notificationSmallIcon)
+            buildConfigField "boolean", "STEALTH_DIRECT_CONNECTION_APPS",
+                    buildConfigBoolean("STEALTH_DIRECT_CONNECTION_APPS")
+            buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
+            buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
+            buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
+        }
     }
 
     signingConfigs {
@@ -423,6 +436,15 @@ android {
         }
     }
 
+}
+
+if (stealthMode) {
+    afterEvaluate {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+            task.setSource(files(stealthAndroidSourceDirs))
+            task.exclude("org/getlantern/**")
+        }
+    }
 }
 
 if (stealthMode) {
@@ -466,8 +488,10 @@ flutter {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation fileTree(dir: "libs", include: "liblantern.aar")
-    implementation 'androidx.core:core-ktx:1.15.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
-    implementation 'androidx.work:work-runtime-ktx:2.10.0'
+    if (!stealthMode) {
+        implementation 'androidx.core:core-ktx:1.15.0'
+        implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
+        implementation 'androidx.work:work-runtime-ktx:2.10.0'
+    }
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }

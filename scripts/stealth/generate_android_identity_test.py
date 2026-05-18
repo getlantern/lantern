@@ -91,6 +91,8 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
         self.assertEqual(identity.app_label, "Reader Vault")
         self.assertEqual(identity.vpn_session_name, "ReaderVaultSession")
         self.assertEqual(identity.identity_profile_id, "stl_reader_vault")
+        self.assertNotIn("vpn", identity.identity_metadata.lower())
+        self.assertNotIn("stealth", identity.identity_metadata.lower())
         self.assertNotIn("VPN", identity.notification_connected_text)
 
 

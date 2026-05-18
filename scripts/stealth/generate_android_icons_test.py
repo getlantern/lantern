@@ -18,33 +18,29 @@ class GenerateAndroidIconsTest(unittest.TestCase):
 
             metadata = generate_android_icons.generate("variant-a", out)
 
-            self.assertEqual(metadata["launcherIcon"], "@mipmap/stealth_ic_launcher")
-            self.assertTrue((out / "values/stealth_icon_colors.xml").exists())
-            self.assertTrue((out / "drawable/stealth_launcher_foreground.xml").exists())
-            self.assertTrue((out / "drawable/stealth_launcher_monochrome.xml").exists())
-            self.assertTrue((out / "drawable/stealth_notification_icon.xml").exists())
+            self.assertEqual(metadata["launcherIcon"], "@mipmap/app_icon")
+            self.assertTrue((out / "values/icon_colors.xml").exists())
+            self.assertTrue((out / "drawable/app_icon_foreground.xml").exists())
+            self.assertTrue((out / "drawable/app_icon_monochrome.xml").exists())
+            self.assertTrue((out / "drawable/notification_icon.xml").exists())
             self.assertNotIn(
                 "#00000000",
-                self.read(out, "drawable/stealth_launcher_foreground.xml"),
+                self.read(out, "drawable/app_icon_foreground.xml"),
             )
             self.assertIn(
-                '@drawable/stealth_launcher_monochrome',
-                self.read(out, "mipmap-anydpi-v26/stealth_ic_launcher.xml"),
+                "@drawable/app_icon_monochrome",
+                self.read(out, "mipmap-anydpi-v26/app_icon.xml"),
             )
             self.assertNotIn(
                 "#00000000",
-                self.read(out, "drawable/stealth_notification_icon.xml"),
+                self.read(out, "drawable/notification_icon.xml"),
             )
-            self.assertTrue((out / "mipmap-anydpi/stealth_ic_launcher.xml").exists())
-            self.assertTrue(
-                (out / "mipmap-anydpi/stealth_ic_launcher_round.xml").exists()
-            )
-            self.assertTrue((out / "mipmap-anydpi-v26/stealth_ic_launcher.xml").exists())
-            self.assertTrue(
-                (out / "mipmap-anydpi-v26/stealth_ic_launcher_round.xml").exists()
-            )
-            self.assertFalse((out / "stealth-icon-metadata.json").exists())
-            self.assertTrue((out.parent / "stealth-icon-metadata.json").exists())
+            self.assertTrue((out / "mipmap-anydpi/app_icon.xml").exists())
+            self.assertTrue((out / "mipmap-anydpi/app_icon_round.xml").exists())
+            self.assertTrue((out / "mipmap-anydpi-v26/app_icon.xml").exists())
+            self.assertTrue((out / "mipmap-anydpi-v26/app_icon_round.xml").exists())
+            self.assertFalse((out / "icon-metadata.json").exists())
+            self.assertTrue((out.parent / "icon-metadata.json").exists())
 
     def test_generation_is_deterministic_for_same_seed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -56,8 +52,8 @@ class GenerateAndroidIconsTest(unittest.TestCase):
 
             self.assertEqual(first_metadata, second_metadata)
             self.assertEqual(
-                (first / "drawable/stealth_launcher_foreground.xml").read_text(),
-                (second / "drawable/stealth_launcher_foreground.xml").read_text(),
+                (first / "drawable/app_icon_foreground.xml").read_text(),
+                (second / "drawable/app_icon_foreground.xml").read_text(),
             )
 
     def test_generation_changes_by_seed(self):
@@ -73,8 +69,8 @@ class GenerateAndroidIconsTest(unittest.TestCase):
                 second_metadata["seedSha256"],
             )
             self.assertNotEqual(
-                (first / "drawable/stealth_launcher_foreground.xml").read_text(),
-                (second / "drawable/stealth_launcher_foreground.xml").read_text(),
+                (first / "drawable/app_icon_foreground.xml").read_text(),
+                (second / "drawable/app_icon_foreground.xml").read_text(),
             )
 
     def test_main_reads_seed_from_environment(self):
@@ -88,7 +84,7 @@ class GenerateAndroidIconsTest(unittest.TestCase):
                     )
 
             expected_sha = hashlib.sha256(b"variant-env").hexdigest()
-            metadata = (out.parent / "stealth-icon-metadata.json").read_text()
+            metadata = (out.parent / "icon-metadata.json").read_text()
             self.assertEqual(exit_code, 0)
             self.assertIn(expected_sha, metadata)
 
