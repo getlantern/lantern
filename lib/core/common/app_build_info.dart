@@ -47,9 +47,7 @@ class AppBuildInfo {
     defaultValue: 0,
   );
 
-  static bool get isStealthBuild
-
-=> stealthMode.startsWith('stealth-');
+  static bool get isStealthBuild => stealthMode.startsWith('stealth-');
 
   static const bool stealthBuild = bool.fromEnvironment(
     'STEALTH_BUILD',
@@ -86,9 +84,7 @@ class AppBuildInfo {
     defaultValue: 'lantern',
   );
 
-  static bool isAppAuthUri(Uri uri)
-
-{
+  static bool isAppAuthUri(Uri uri) {
     return uri.scheme == appAuthScheme;
   }
 
