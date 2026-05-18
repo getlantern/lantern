@@ -123,6 +123,11 @@ ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+PYTHON ?= python3
+STEALTH_LEAKAGE_MODE ?= stealth
+STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
+STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
@@ -661,6 +666,17 @@ android-release: clean android pubget gen android-identity-profile android-apk-r
 
 .PHONY: android-release-ci
 android-release-ci: android pubget gen android-identity-profile android-apk-release android-aab-release
+
+.PHONY: stealth-leakage-check stealth-novpn-leakage-check
+stealth-leakage-check:
+	$(PYTHON) scripts/stealth/check_leakage.py \
+		--config "$(STEALTH_LEAKAGE_CONFIG)" \
+		--mode "$(STEALTH_LEAKAGE_MODE)" \
+		$(if $(filter 1 true yes,$(STEALTH_LEAKAGE_MISSING_OK)),--missing-ok,) \
+		$(STEALTH_LEAKAGE_PATHS)
+
+stealth-novpn-leakage-check:
+	$(MAKE) stealth-leakage-check STEALTH_LEAKAGE_MODE=stealth-novpn
 
 # iOS Build
 .PHONY: install-ios-deps
