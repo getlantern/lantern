@@ -1617,3 +1617,6 @@ msgstr "Hasabyňyz hemişelik pozuldy."
 
 msgid "verify_with"
 msgstr "%s bilen tassyklaň"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

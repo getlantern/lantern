@@ -42,7 +42,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    initDeepLinks();
+    if (AppBuildInfo.enableAppLinks) {
+      initDeepLinks();
+    }
     initLifecycleListener();
   }
 
@@ -76,11 +78,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
   }
 
   Future<void> initDeepLinks() async {
+    if (!AppBuildInfo.enableAppLinks) return;
     final appLinks = AppLinks();
     _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
   }
 
   void _handleDeepLinkUri(Uri uri) {
+    if (!AppBuildInfo.enableAppLinks) return;
     if (!context.mounted) return;
     final safeLogUri = uri.replace(query: '').toString();
 
@@ -119,8 +123,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
       } else {
         _pushWithHome(ReportIssue());
       }
-    } else if (path.startsWith('/auth') ||
-        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+    } else if (AppBuildInfo.enableOAuth &&
+        (path.startsWith('/auth') ||
+            (uri.scheme == 'lantern' && uri.host == 'auth'))) {
       if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }

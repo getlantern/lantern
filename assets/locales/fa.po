@@ -1630,3 +1630,6 @@ msgstr "حساب شما به طور دائمی حذف شده است."
 
 msgid "verify_with"
 msgstr "تأیید با %s"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

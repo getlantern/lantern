@@ -9,23 +9,23 @@ class ProBanner extends HookConsumerWidget {
 
   final double topMargin;
 
-  const ProBanner({
-    super.key,
-    this.title,
-    this.topMargin = 16,
-  });
+  const ProBanner({super.key, this.title, this.topMargin = 16});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!AppBuildInfo.enablePayments) {
+      return const SizedBox.shrink();
+    }
     final isExpired = ref.watch(isUserExpiredProvider);
     final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: EdgeInsets.only(top: topMargin),
       padding: EdgeInsets.all(defaultSize),
       decoration: BoxDecoration(
-          color: context.bgPromo,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.borderPromo, width: 1)),
+        color: context.bgPromo,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderPromo, width: 1),
+      ),
       child: Column(
         children: [
           AutoSizeText(

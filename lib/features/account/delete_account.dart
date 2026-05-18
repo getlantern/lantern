@@ -16,7 +16,7 @@ class DeleteAccount extends StatefulHookConsumerWidget {
   const DeleteAccount({super.key});
 
   @override
-  _DeleteAccountState createState() => _DeleteAccountState();
+  ConsumerState<DeleteAccount> createState() => _DeleteAccountState();
 }
 
 class _DeleteAccountState extends ConsumerState<DeleteAccount> {
@@ -36,9 +36,15 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final textTheme = Theme.of(context).textTheme;
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
-    final isSSOUser = ref.watch(isSSOUserProvider).value ?? false;
-    final oAuthProviderName = ref.watch(oAuthProviderProvider).value ?? '';
-    final oAuthMethodType = _resolveOAuthMethodType(oAuthProviderName);
+    final isSSOUser =
+        AppBuildInfo.enableOAuth &&
+        (ref.watch(isSSOUserProvider).value ?? false);
+    final oAuthProviderName = AppBuildInfo.enableOAuth
+        ? (ref.watch(oAuthProviderProvider).value ?? '')
+        : '';
+    final oAuthMethodType = AppBuildInfo.enableOAuth
+        ? _resolveOAuthMethodType(oAuthProviderName)
+        : SignUpMethodType.email;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,8 +59,11 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           ),
           SizedBox(height: defaultSize),
           Center(
-              child: Text('delete_account_?'.i18n,
-                  style: textTheme.headlineSmall)),
+            child: Text(
+              'delete_account_?'.i18n,
+              style: textTheme.headlineSmall,
+            ),
+          ),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -70,9 +79,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             padding: const EdgeInsets.only(left: 16),
             child: Text(
               isSSOUser
-                  ? 'confirm_with_account'
-                      .i18n
-                      .fill([oAuthProviderName.capitalize])
+                  ? 'confirm_with_account'.i18n.fill([
+                      oAuthProviderName.capitalize,
+                    ])
                   : 'delete_account_message_two'.i18n,
               style: textTheme.bodyLarge!.copyWith(
                 color: context.textSecondary,
@@ -95,9 +104,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
           SizedBox(height: size24),
           if (isSSOUser)
             OAuthLogin(
-              label: 'verify_with'
-                  .i18n
-                  .fill([oAuthProviderName.capitalize]),
+              label: 'verify_with'.i18n.fill([oAuthProviderName.capitalize]),
               methodType: oAuthMethodType,
               bgColor: context.actionPrimaryBg,
               foregroundColor: context.actionPrimaryText,
@@ -126,6 +133,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   }
 
   void processOAuthResult(Map<String, dynamic> payload) {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = payload['token'] as String? ?? '';
 
     if (token.isEmpty) {
@@ -148,8 +158,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     }
 
     final currentEmail = ref.read(userEmailProvider);
-    if (currentEmail.isNotEmpty &&
-        newTokenData['email'] != currentEmail) {
+    if (currentEmail.isNotEmpty && newTokenData['email'] != currentEmail) {
       context.showSnackBarError('oauth_different_account'.i18n);
       return;
     }
@@ -170,8 +179,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
     result.fold(
       (failure) {
-        appLogger
-            .error('Account deletion failed: ${failure.error}');
+        appLogger.error('Account deletion failed: ${failure.error}');
         context.hideLoadingDialog();
         context.showSnackBarError(failure.localizedErrorMessage);
       },
@@ -179,7 +187,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         context.hideLoadingDialog();
         ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
         appLogger.info(
-            'Account deletion successful, clearing user data and navigating to root');
+          'Account deletion successful, clearing user data and navigating to root',
+        );
         ref.read(homeProvider.notifier).updateUserData(userResponse);
         showAccountDeletionSuccessDialog();
       },
@@ -193,27 +202,28 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 24),
-          AppImage(
-            path: AppImagePaths.greenCheck,
-            useThemeColor: false,
+          AppImage(path: AppImagePaths.greenCheck, useThemeColor: false),
+          SizedBox(height: 16),
+          Text(
+            'account_deleted'.i18n,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall!.copyWith(color: context.textPrimary),
           ),
           SizedBox(height: 16),
-          Text('account_deleted'.i18n,
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    color: context.textPrimary,
-                  )),
-          SizedBox(height: 16),
-          Text('account_deleted_message'.i18n,
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: context.textPrimary,
-                  )),
+          Text(
+            'account_deleted_message'.i18n,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
+          ),
         ],
       ),
       action: [
         AppTextButton(
           label: 'close'.i18n,
           onPressed: () => appRouter.popUntilRoot(),
-        )
+        ),
       ],
     );
   }

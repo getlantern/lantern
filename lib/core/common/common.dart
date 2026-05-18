@@ -92,6 +92,9 @@ String generatePaymentRedirectIdempotencyKey() {
 }
 
 bool isStoreVersion() {
+  if (!AppBuildInfo.enablePayments || !AppBuildInfo.enableStorePayments) {
+    return false;
+  }
   if (!PlatformUtils.isMobile) {
     return false;
   }

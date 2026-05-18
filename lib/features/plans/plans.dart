@@ -190,6 +190,9 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void onMenuTap() {
+    if (!AppBuildInfo.enablePayments) {
+      return;
+    }
     final isReferralApplied = ref.read(referralProvider);
     showAppBottomSheet(
       context: context,
@@ -308,6 +311,10 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void onGetLanternProTap() {
+    if (!AppBuildInfo.enablePayments) {
+      appRouter.push(AddEmail(authFlow: AuthFlow.lanternProLicense));
+      return;
+    }
     final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     appLogger.info(
       'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}',
@@ -375,6 +382,9 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
+    if (!AppBuildInfo.enableStorePayments) {
+      return;
+    }
     context.showLoadingDialog();
     // Mark a payment as in flight so that ConfirmEmail's back-press guard
     // (confirm_email.dart) preserves the anonymous account if the user

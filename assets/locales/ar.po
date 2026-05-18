@@ -1596,3 +1596,6 @@ msgstr "تم حذف حسابك بشكل دائم."
 
 msgid "verify_with"
 msgstr "التحقق عبر %s"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

@@ -40,7 +40,8 @@ class Support extends StatelessWidget {
                     onPressed: () => safePush(context, ReportIssue()),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile(
                     icon: Icons.code_outlined,
                     label: 'diagnostic_logs'.i18n,
@@ -54,15 +55,18 @@ class Support extends StatelessWidget {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  AppTile.link(
-                    icon: Icons.forum_outlined,
-                    label: 'lantern_user_forum'.i18n,
-                    url: AppUrls.lanternForums,
-                    open: (u) =>
-                        UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
-                  ),
-                  const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                  if (AppBuildInfo.enableSocialLinks) ...[
+                    AppTile.link(
+                      icon: Icons.forum_outlined,
+                      label: 'lantern_user_forum'.i18n,
+                      url: AppUrls.lanternForums,
+                      open: (u) =>
+                          UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
+                    ),
+                    const DividerSpace(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                  ],
                   AppTile.link(
                     icon: Icons.info_outlined,
                     label: 'frequently_asked_questions'.i18n,
@@ -71,7 +75,8 @@ class Support extends StatelessWidget {
                         UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile.link(
                     icon: Icons.privacy_tip_outlined,
                     label: 'privacy_policy'.i18n,
@@ -80,7 +85,8 @@ class Support extends StatelessWidget {
                         UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile.link(
                     icon: Icons.description_outlined,
                     label: 'terms_of_service'.i18n,
@@ -91,34 +97,36 @@ class Support extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: defaultSize),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: <Widget>[
-                  DividerSpace(),
-                  AppTile(
-                    label: 'download_links'.i18n,
-                    icon: AppImagePaths.desktop,
-                    onPressed: () {
-                      appRouter.push(DownloadLinks());
-                    },
-                  ),
-                  DividerSpace(),
-                  AppTile(
-                    label: 'follow_us'.i18n,
-                    icon: AppImagePaths.thumb,
-                    onPressed: () {
-                      if (PlatformUtils.isDesktop) {
-                        appRouter.push(FollowUs());
-                        return;
-                      }
-                      showFollowUsBottomSheet(context: context);
-                    },
-                  ),
-                ],
+            if (AppBuildInfo.enableSocialLinks) ...[
+              const SizedBox(height: defaultSize),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: <Widget>[
+                    DividerSpace(),
+                    AppTile(
+                      label: 'download_links'.i18n,
+                      icon: AppImagePaths.desktop,
+                      onPressed: () {
+                        appRouter.push(DownloadLinks());
+                      },
+                    ),
+                    DividerSpace(),
+                    AppTile(
+                      label: 'follow_us'.i18n,
+                      icon: AppImagePaths.thumb,
+                      onPressed: () {
+                        if (PlatformUtils.isDesktop) {
+                          appRouter.push(FollowUs());
+                          return;
+                        }
+                        showFollowUsBottomSheet(context: context);
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: defaultSize),
             const AppVersion(),
             const SizedBox(height: size24),
@@ -132,13 +140,12 @@ class Support extends StatelessWidget {
     showAppBottomSheet(
       context: context,
       title: 'follow_us'.i18n,
-      scrollControlDisabledMaxHeightRatio:
-          context.isSmallDevice ? 0.39.h : 0.3.h,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice
+          ? 0.39.h
+          : 0.3.h,
       builder: (context, scrollController) {
         return Flexible(
-          child: FollowUsListView(
-            scrollController: scrollController,
-          ),
+          child: FollowUsListView(scrollController: scrollController),
         );
       },
     );

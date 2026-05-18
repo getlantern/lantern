@@ -5,11 +5,7 @@ import 'package:lantern/core/common/common.dart';
 
 import '../../core/utils/ip_utils.dart' show IPUtils;
 
-enum _Social {
-  x,
-  instagram,
-  telegram,
-}
+enum _Social { x, instagram, telegram }
 
 @RoutePage(name: 'FollowUs')
 class FollowUs extends StatelessWidget {
@@ -17,26 +13,27 @@ class FollowUs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!AppBuildInfo.enableSocialLinks) {
+      return BaseScreen(title: 'follow_us'.i18n, body: const SizedBox.shrink());
+    }
     return BaseScreen(title: 'follow_us'.i18n, body: _buildBody());
   }
 
   Widget _buildBody() {
-    return Card(
-      child: FollowUsListView(),
-    );
+    return Card(child: FollowUsListView());
   }
 }
 
 class FollowUsListView extends HookWidget {
   final ScrollController? scrollController;
 
-  const FollowUsListView({
-    super.key,
-    this.scrollController,
-  });
+  const FollowUsListView({super.key, this.scrollController});
 
   @override
   Widget build(BuildContext context) {
+    if (!AppBuildInfo.enableSocialLinks) {
+      return const SizedBox.shrink();
+    }
     final selectedCountry = useState<String>('ALL');
     useEffect(() {
       IPUtils.getUserCountry().then((country) {

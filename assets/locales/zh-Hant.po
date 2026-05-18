@@ -1498,3 +1498,6 @@ msgstr "您的帳戶已永久刪除。"
 
 msgid "verify_with"
 msgstr "透過 %s 驗證"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

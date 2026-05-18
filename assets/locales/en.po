@@ -1583,3 +1583,6 @@ msgstr "Connection failed. Please try again."
 
 msgid "err_ruleset_failed"
 msgstr "Unable to load routing configuration. Retrying..."
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

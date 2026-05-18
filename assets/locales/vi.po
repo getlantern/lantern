@@ -1635,3 +1635,6 @@ msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
 
 msgid "verify_with"
 msgstr "Xác minh với %s"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

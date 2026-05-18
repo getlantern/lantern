@@ -1672,3 +1672,6 @@ msgstr "သင့်အကောင့်ကို အပြီးတိုင�
 
 msgid "verify_with"
 msgstr "%s ဖြင့် အတည်ပြုပါ"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

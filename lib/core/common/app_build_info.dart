@@ -47,7 +47,39 @@ class AppBuildInfo {
     defaultValue: 0,
   );
 
-  static bool get isStealthBuild => stealthMode.startsWith('stealth-');
+  static bool get isStealthBuild
+
+=> stealthMode.startsWith('stealth-');
+
+  static const bool stealthBuild = bool.fromEnvironment(
+    'STEALTH_BUILD',
+    defaultValue: false,
+  );
+
+  static const String stealthModeName = String.fromEnvironment(
+    'STEALTH_MODE',
+    defaultValue: '',
+  );
+
+  /// Removes high-identification UI and runtime flows from stealth artifacts.
+  static const bool stealthMode =
+      stealthBuild ||
+      stealthNoVpn ||
+      stealthModeName == 'stealth-vpn' ||
+      stealthModeName == 'stealth-novpn' ||
+      stealthModeName == 'true';
+
+  static const bool enableOAuth = !stealthMode;
+
+  static const bool enablePayments = !stealthMode;
+
+  static const bool enableStorePayments = !stealthMode;
+
+  static const bool enableAppLinks = !stealthMode;
+
+  static const bool enableSocialLinks = !stealthMode;
+
+  static const bool enableAutoUpdate = !stealthMode;
 
   /// Developer mode is exposed in debug and nightly builds only.
   static bool get isDevModeEnabled => kDebugMode || buildType == 'nightly';

@@ -1516,3 +1516,6 @@ msgstr ""
 
 msgid "expired"
 msgstr "Expiré"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"

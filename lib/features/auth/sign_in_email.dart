@@ -66,22 +66,32 @@ class SignInEmail extends HookConsumerWidget {
                 onPressed: () => signInWithEmail(emailController.text, context),
                 isTaller: true,
               ),
-              SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.google,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.google),
-              ),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.apple,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.apple),
-              ),
-              SizedBox(height: defaultSize),
-              DividerSpace(),
+              if (AppBuildInfo.enableOAuth) ...[
+                SizedBox(height: defaultSize),
+                DividerSpace(),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.google,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.google,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.apple,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.apple,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+                DividerSpace(),
+              ],
               SizedBox(height: 32),
               AppRichText(
                 texts: '${'new_to_lantern_pro'.i18n} ',
@@ -112,6 +122,9 @@ class SignInEmail extends HookConsumerWidget {
     WidgetRef ref,
     SignUpMethodType type,
   ) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = oauthResult['token'];
     if (token != null) {
       context.showLoadingDialog();
