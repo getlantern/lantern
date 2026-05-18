@@ -151,6 +151,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/stealth/
     - path: assets/images/flags/
       platforms:
         - windows

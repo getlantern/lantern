@@ -177,7 +177,28 @@ if (androidIdentityProfilePath) {
 }
 
 if (!(androidIdentity.applicationId ==~ /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/)) {
-        throw new GradleException("Invalid Android applicationId in identity profile: ${androidIdentity.applicationId}")
+    throw new GradleException("Invalid Android applicationId in identity profile: ${androidIdentity.applicationId}")
+}
+
+def dartDefines = [:]
+if (project.hasProperty('dart-defines')) {
+    project.property('dart-defines').toString().split(',').each { encoded ->
+        if (encoded?.trim()) {
+            def decoded = new String(encoded.decodeBase64(), 'UTF-8')
+            def separator = decoded.indexOf('=')
+            if (separator > 0) {
+                dartDefines[decoded.substring(0, separator)] = decoded.substring(separator + 1)
+            }
+        }
+    }
+}
+
+def buildConfigBoolean = { name, defaultValue = false ->
+    def raw = dartDefines[name] ?: System.getenv(name) ?: project.findProperty(name)
+    if (raw == null) {
+        return defaultValue.toString()
+    }
+    return (raw.toString().trim().toLowerCase() in ['1', 'true', 'yes', 'on']) ? 'true' : 'false'
 }
 
 android {
@@ -305,6 +326,8 @@ android {
         buildConfigField "String", "QUICK_TILE_ACTIVE_LABEL", buildConfigString(androidIdentity.quickTileActiveLabel)
         buildConfigField "String", "QUICK_TILE_INACTIVE_LABEL", buildConfigString(androidIdentity.quickTileInactiveLabel)
         buildConfigField "String", "NOTIFICATION_SMALL_ICON", buildConfigString(androidIdentity.notificationSmallIcon)
+        buildConfigField "boolean", "STEALTH_DIRECT_CONNECTION_APPS",
+                buildConfigBoolean("STEALTH_DIRECT_CONNECTION_APPS")
     }
 
     signingConfigs {

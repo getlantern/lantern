@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-15",
+  "source": {
+    "database_url": "https://airtable.com/appWkT7FmgHwcP4K1/shr4OxfMOh2kZXH72/tbl4NptrrXE0yf3OB/viwrejZqSFlinGMR7",
+    "url": "https://files.rks.global/russian_apps_search_for_vpn_en.pdf"
+  },
+  "defaults": [
+    {
+      "package_name": "com.avito.android",
+      "display_name": "Avito",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.idamob.tinkoff.android",
+      "display_name": "T-Bank",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.uma.musicvk",
+      "display_name": "VK Music",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.vk.vkvideo",
+      "display_name": "VK Video",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.vkontakte.android",
+      "display_name": "VKontakte",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.wildberries.ru",
+      "display_name": "Wildberries",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "com.yandex.browser",
+      "display_name": "Yandex Browser",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.alfabank.mobile.android",
+      "display_name": "Alfa-Bank",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.dublgis.dgismobile",
+      "display_name": "2GIS",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.kinopoisk",
+      "display_name": "Kinopoisk",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.megamarket.marketplace",
+      "display_name": "MegaMarket",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.mts.mymts",
+      "display_name": "My MTS",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.ok.android",
+      "display_name": "Odnoklassniki",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.oneme.app",
+      "display_name": "MAX",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.ozon.app.android",
+      "display_name": "Ozon",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.rutube.app",
+      "display_name": "Rutube",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.sbcs.store",
+      "display_name": "Samokat",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.sberbankmobile",
+      "display_name": "Sberbank Online",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.vk.store",
+      "display_name": "RuStore",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.vtb24.mobilebanking.android",
+      "display_name": "VTB Online",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.yandex.music",
+      "display_name": "Yandex Music",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    },
+    {
+      "package_name": "ru.yandex.yandexmaps",
+      "display_name": "Yandex Maps",
+      "reason_flags": ["rks_vpn_detection"],
+      "source": "rks",
+      "confidence": "high",
+      "version": "2026-05-15"
+    }
+  ]
+}
