@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -15,8 +16,11 @@ class SignInPassword extends StatefulHookConsumerWidget {
   final String email;
   final bool fromChangeEmail;
 
-  const SignInPassword(
-      {super.key, required this.email, this.fromChangeEmail = false});
+  const SignInPassword({
+    super.key,
+    required this.email,
+    this.fromChangeEmail = false,
+  });
 
   @override
   ConsumerState createState() => _SignInPasswordState();
@@ -40,63 +44,72 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         title: widget.fromChangeEmail
             ? 'change_email'.i18n
             : 'welcome_to_lantern'.i18n,
-        body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              SizedBox(height: defaultSize),
-              Center(child: EmailTag(email: widget.email)),
-              SizedBox(height: defaultSize),
-              AppTextField(
-                hintText: '',
-                controller: passwordController,
-                autofocus: true,
-                autofillHints: [AutofillHints.password],
-                prefixIcon: AppImagePaths.lock,
-                label: 'enter_password'.i18n,
-                obscureText: obscureText.value,
-                suffixIcon: _buildSuffix(obscureText),
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) =>
-                    signInWithPassword(passwordController.text.trim()),
-                onChanged: (value) {},
-              ),
-              SizedBox(height: 8),
-              if (!widget.fromChangeEmail)
-                Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: defaultSize),
+        body: AutofillGroup(
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: defaultSize),
+                Center(child: EmailTag(email: widget.email)),
+                SizedBox(height: defaultSize),
+                AppTextField(
+                  hintText: '',
+                  controller: passwordController,
+                  autofocus: true,
+                  autofillHints: const [AutofillHints.password],
+                  keyboardType: TextInputType.visiblePassword,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  prefixIcon: AppImagePaths.lock,
+                  label: 'enter_password'.i18n,
+                  obscureText: obscureText.value,
+                  suffixIcon: _buildSuffix(obscureText),
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) =>
+                      signInWithPassword(passwordController.text.trim()),
+                  onChanged: (value) {},
+                ),
+                SizedBox(height: 8),
+                if (!widget.fromChangeEmail)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: defaultSize,
+                    ),
                     child: Text(
                       'if_you_have_not_set_password'.i18n,
                       textAlign: TextAlign.start,
                       style: textTheme.labelMedium!.copyWith(
                         color: context.textDisabled,
                       ),
-                    )),
-              SizedBox(height: 16),
-              if (widget.fromChangeEmail)
-                Text('confirm_password_to_continue'.i18n,
+                    ),
+                  ),
+                SizedBox(height: 16),
+                if (widget.fromChangeEmail)
+                  Text(
+                    'confirm_password_to_continue'.i18n,
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: context.textSecondary,
-                        )),
-              SizedBox(height: 32),
-              PrimaryButton(
-                label: 'continue'.i18n,
-                enabled: passwordController.text.isNotEmpty,
-                isTaller: true,
-                onPressed: () =>
-                    signInWithPassword(passwordController.text.trim()),
-              ),
-              SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: 32),
-              AppTextButton(
-                label: 'forgot_password'.i18n,
-                textColor: context.textPrimary,
-                onPressed: () {
-                  appRouter.push(ResetPasswordEmail(email: widget.email));
-                },
-              )
-            ],
+                      color: context.textSecondary,
+                    ),
+                  ),
+                SizedBox(height: 32),
+                PrimaryButton(
+                  label: 'continue'.i18n,
+                  enabled: passwordController.text.isNotEmpty,
+                  isTaller: true,
+                  onPressed: () =>
+                      signInWithPassword(passwordController.text.trim()),
+                ),
+                SizedBox(height: defaultSize),
+                DividerSpace(),
+                SizedBox(height: 32),
+                AppTextButton(
+                  label: 'forgot_password'.i18n,
+                  textColor: context.textPrimary,
+                  onPressed: () {
+                    appRouter.push(ResetPasswordEmail(email: widget.email));
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -118,7 +131,8 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     if (widget.fromChangeEmail) {
       /// If the user is changing email, we need to verify the password
       context.pushRoute(
-          AddEmail(authFlow: AuthFlow.changeEmail, password: password));
+        AddEmail(authFlow: AuthFlow.changeEmail, password: password),
+      );
       return;
     }
     context.showLoadingDialog();
@@ -140,12 +154,15 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
           /// Login has failed reason being user has reached device limit
           /// start device flow
           appLogger.warning(
-              "Login failed for user: ${widget.email}, starting device flow");
+            "Login failed for user: ${widget.email}, starting device flow",
+          );
           startDeviceFlow(user.devices.toList(), password, context);
           return;
         }
 
         ///login successfully
+        TextInput.finishAutofillContext(shouldSave: true);
+
         /// save login state and user email
         /// update user data in home notifier
         /// fetch available servers
@@ -156,19 +173,20 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     );
   }
 
-  void startDeviceFlow(List<DeviceModel> devices, String password,
-      BuildContext context) {
-    appRouter.push(DeviceLimitReached(devices: devices)).then(
-      (value) async {
-        if (value != null && value is bool) {
-          // Give the backend time to propagate the device removal before
-          // retrying sign-in, otherwise the request may still hit the
-          // device limit.
-          await Future.delayed(const Duration(seconds: 1));
-          if (!mounted) return;
-          signInWithPassword(password);
-        }
-      },
-    );
+  void startDeviceFlow(
+    List<DeviceModel> devices,
+    String password,
+    BuildContext context,
+  ) {
+    appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
+      if (value == true) {
+        // Give the backend time to propagate the device removal before
+        // retrying sign-in, otherwise the request may still hit the
+        // device limit.
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+        signInWithPassword(password);
+      }
+    });
   }
 }
