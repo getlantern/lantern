@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -16,5 +20,8 @@ class CountryCodeNotifier extends _$CountryCodeNotifier {
     CountryCode.update(code);
     state = CountryCode.current;
     appLogger.debug('Updating country code to: $state');
+    if (Platform.isAndroid && sl.isRegistered<AppPurchase>()) {
+      sl<AppPurchase>().init();
+    }
   }
 }
