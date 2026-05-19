@@ -57,9 +57,8 @@ class ReportIssueAttachmentRulesUtils {
   }
 
   static String? validateAttachments(
-    Iterable<ReportIssueAttachment> attachments, {
-    int reservedBytes = 0,
-  }) {
+    Iterable<ReportIssueAttachment> attachments,
+  ) {
     final items = attachments.toList(growable: false);
     if (items.length > maxCount) {
       return tooManyAttachmentsMessage;
@@ -71,7 +70,7 @@ class ReportIssueAttachmentRulesUtils {
       }
     }
 
-    if (reservedBytes + totalBytes(items) > maxTotalBytes) {
+    if (totalBytes(items) > maxTotalBytes) {
       return totalSizeExceededMessage;
     }
 

@@ -6,7 +6,6 @@ import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
 import 'package:lantern/features/report_issue/provider/attachment_access.dart';
-import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
@@ -44,15 +43,6 @@ class _FakeLanternService implements LanternService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _FakeAttachmentBudget implements ReportIssueAttachmentBudget {
-  int value;
-
-  _FakeAttachmentBudget({this.value = 0});
-
-  @override
-  Future<int> reservedBytes() async => value;
-}
-
 class _FakeAttachmentAccess implements ReportIssueAttachmentAccess {
   bool wasUsed = false;
   Object? error;
@@ -74,7 +64,6 @@ void main() {
   group('ReportIssueSubmitter', () {
     test('forwards attachments through to LanternService', () async {
       final fakeService = _FakeLanternService();
-      final attachmentBudget = _FakeAttachmentBudget();
       final attachmentAccess = _FakeAttachmentAccess();
       const attachment = ReportIssueAttachment(
         name: 'vpn_error.png',
@@ -91,7 +80,6 @@ void main() {
       final submitter = ReportIssueSubmitter(
         fakeService,
         attachmentAccess: attachmentAccess,
-        attachmentBudget: attachmentBudget,
         deviceInfoLoader: () async => ('macOS', 'MacBook Pro'),
         logFileResolver: () async => logFile,
       );
@@ -118,11 +106,9 @@ void main() {
 
     test('rejects oversize totals before calling LanternService', () async {
       final fakeService = _FakeLanternService();
-      final attachmentBudget = _FakeAttachmentBudget(value: 1024);
 
       final submitter = ReportIssueSubmitter(
         fakeService,
-        attachmentBudget: attachmentBudget,
         deviceInfoLoader: () async => ('iOS', 'iPhone'),
         logFileResolver: () async => null,
       );
@@ -136,7 +122,7 @@ void main() {
             name: 'huge.png',
             path: '/tmp/huge.png',
             mimeType: 'image/png',
-            sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes,
+            sizeBytes: ReportIssueAttachmentRulesUtils.maxTotalBytes + 1,
           ),
         ],
       );
@@ -164,7 +150,6 @@ void main() {
         final submitter = ReportIssueSubmitter(
           fakeService,
           attachmentAccess: attachmentAccess,
-          attachmentBudget: _FakeAttachmentBudget(),
           deviceInfoLoader: () async => ('macOS', 'MacBook Pro'),
           logFileResolver: () async => null,
         );
@@ -201,7 +186,6 @@ void main() {
       final fakeService = _FakeLanternService();
       final submitter = ReportIssueSubmitter(
         fakeService,
-        attachmentBudget: _FakeAttachmentBudget(),
         deviceInfoLoader: () async => ('Windows', 'Surface'),
         logFileResolver: () async => null,
       );

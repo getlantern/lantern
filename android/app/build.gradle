@@ -44,11 +44,42 @@ android {
         jvmTarget = "17"
     }
 
+    // The sideload APK target (Makefile android-apk-release) passes
+    // -Plantern.thinAbi=true so this build emits only arm64. The AAB
+    // target leaves the property unset so Play Store users on legacy
+    // 32-bit ARM devices still receive updates via per-ABI splits.
+    //
+    // Constraint: the ABIs listed in abiFilters must match the ABIs
+    // Flutter actually built (Makefile's --target-platform flag).
+    // Listing an ABI here that Flutter didn't build crashes installs on
+    // that architecture with "Could not find 'libflutter.so'".
+    def thinAbi = project.findProperty("lantern.thinAbi") == "true"
+
     // Use legacy packaging to helps reduce apk size
     packagingOptions {
         exclude "DebugProbesKt.bin"
         jniLibs {
             useLegacyPackaging true
+            // abiFilters is supposed to keep only the ABIs we ship to in
+            // the APK, but some transitive AAR dependencies (notably ML
+            // Kit's barcode-scanning AAR pre-unbundling) ship x86 / x86_64
+            // .so files that slip past the filter — observed 5.9 MB
+            // libbarhopper_v3.so + 1.2 MB libc++_shared.so + 0.7 MB
+            // libnative-imagetranscoder.so under lib/x86_64/ in
+            // v9.1.9-beta. Explicit excludes here strip them at packaging
+            // time. When lantern.thinAbi is set the sideload APK also
+            // strips armeabi-v7a; the AAB build leaves it in.
+            def abiExcludes = [
+                "lib/x86/**",
+                "lib/x86_64/**",
+                "lib/armeabi/**",
+                "lib/mips/**",
+                "lib/mips64/**",
+            ]
+            if (thinAbi) {
+                abiExcludes += "lib/armeabi-v7a/**"
+            }
+            excludes += abiExcludes
         }
     }
 
@@ -60,12 +91,11 @@ android {
         versionName = flutter.versionName
 
         ndk {
-            // Must match the ABIs Flutter actually builds (ANDROID_TARGET_PLATFORMS
-            // in the top-level Makefile: android-arm + android-arm64). Listing an
-            // ABI here that Flutter didn't build for produces an empty per-ABI
-            // split on Play and crashes installs on that architecture with
-            // "Could not find 'libflutter.so'".
-            abiFilters = ["arm64-v8a", "armeabi-v7a"]
+            // ABI set must match what Flutter built (Makefile's
+            // --target-platform). Sideload APK: arm64 only
+            // (-Plantern.thinAbi=true). AAB: arm64 + armeabi-v7a so Play
+            // Store users on legacy 32-bit hardware still get updates.
+            abiFilters = thinAbi ? ["arm64-v8a"] : ["arm64-v8a", "armeabi-v7a"]
             debugSymbolLevel 'FULL'
         }
 

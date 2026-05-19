@@ -1,5 +1,6 @@
 @testable import Lantern
 import Foundation
+import SystemExtensions
 import XCTest
 
 final class RunnerTests: XCTestCase {
@@ -385,6 +386,10 @@ final class RunnerTests: XCTestCase {
       installed: [enabledUninstalling]
     )
 
+    XCTAssertEqual(
+      reconciliation.change, .contentChange,
+      "classifyChange must return .contentChange for an uninstalling same-version copy with a nil contentHash — otherwise the nil-hash fallback would mark it .matched and leave the draining extension in place"
+    )
     XCTAssertNotEqual(
       reconciliation.status, .activated,
       "An enabled+uninstalling extension with skipped hash must not be treated as activated"
@@ -392,6 +397,101 @@ final class RunnerTests: XCTestCase {
     XCTAssertNotEqual(
       reconciliation.action, .none,
       "Reconciler must take action rather than leaving a draining extension in place"
+    )
+  }
+
+  // MARK: - StaleRegistryRecovery
+
+  // Activation failed with extensionNotFound (code 4) and recovery has not
+  // been attempted yet — should trigger a deactivate-then-activate recovery.
+  func testStaleRegistryRecoveryFiresOnExtensionNotFoundDuringActivation() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertTrue(
+      StaleRegistryRecovery.shouldRecover(
+        from: error,
+        activationFailed: true,
+        alreadyAttempted: false
+      )
+    )
+  }
+
+  // Single-shot: once recovery has been attempted in this session, a second
+  // extensionNotFound must not trigger another recovery — otherwise we'd
+  // loop indefinitely if the deactivation didn't actually clear the state.
+  func testStaleRegistryRecoverySkipsSecondAttempt() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertFalse(
+      StaleRegistryRecovery.shouldRecover(
+        from: error,
+        activationFailed: true,
+        alreadyAttempted: true
+      )
+    )
+  }
+
+  // Other OSSystemExtensionError codes (missingEntitlement, codeSignatureInvalid,
+  // etc.) are real, distinct failures that recovery can't paper over. Only
+  // extensionNotFound is the registry-state signal we want to retry through.
+  func testStaleRegistryRecoveryIgnoresOtherErrorCodes() {
+    let codes: [Int] = [
+      OSSystemExtensionError.missingEntitlement.rawValue,
+      OSSystemExtensionError.codeSignatureInvalid.rawValue,
+      OSSystemExtensionError.validationFailed.rawValue,
+      OSSystemExtensionError.unsupportedParentBundleLocation.rawValue,
+    ]
+    for code in codes {
+      let error = NSError(domain: OSSystemExtensionErrorDomain, code: code)
+      XCTAssertFalse(
+        StaleRegistryRecovery.shouldRecover(
+          from: error,
+          activationFailed: true,
+          alreadyAttempted: false
+        ),
+        "Should not recover from error code \(code) — that's a distinct failure mode"
+      )
+    }
+  }
+
+  // Recovery is scoped to activation requests. If a properties-query or
+  // deactivation fails with extensionNotFound, we should not attempt to
+  // recover via a second deactivation — those request types don't suffer
+  // from the same stale-activation-slot bug, and retrying would mask real
+  // errors.
+  func testStaleRegistryRecoveryDoesNotFireForNonActivationContexts() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertFalse(
+      StaleRegistryRecovery.shouldRecover(
+        from: error,
+        activationFailed: false,
+        alreadyAttempted: false
+      )
+    )
+  }
+
+  // Non-OSSystemExtensionError domain errors (e.g. networking, file IO)
+  // bubbling up here would be unexpected, but if they do we should not
+  // attempt recovery — the deactivate-then-activate path only makes sense
+  // for OS-registry inconsistencies.
+  func testStaleRegistryRecoveryRequiresOSSystemExtensionErrorDomain() {
+    let error = NSError(
+      domain: "SomeOtherDomain",
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertFalse(
+      StaleRegistryRecovery.shouldRecover(
+        from: error,
+        activationFailed: true,
+        alreadyAttempted: false
+      )
     )
   }
 

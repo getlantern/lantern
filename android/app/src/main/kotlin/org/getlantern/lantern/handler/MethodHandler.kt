@@ -1,5 +1,6 @@
 package org.getlantern.lantern.handler
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -9,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -45,7 +47,9 @@ enum class Methods(val method: String) {
     StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
+    RestoreInAppPurchase("restoreInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
+    LaunchExternalUrl("launchExternalUrl"),
     ReportIssue("reportIssue"),
 
     //Oauth
@@ -151,6 +155,7 @@ class MethodHandler : FlutterPlugin,
     companion object {
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
+        private const val MAX_EXTERNAL_URL_FALLBACK_DEPTH = 3
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -465,6 +470,26 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.RestoreInAppPurchase.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val restoreData = Mobile.restoreGooglePlayPurchase(
+                            map["purchaseToken"] as String,
+                        )
+                        withContext(Dispatchers.Main) {
+                            success(restoreData.toByteArray(Charsets.UTF_8))
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "restore_in_app_purchase",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             Methods.PaymentRedirect.method -> {
                 scope.launch {
                     result.runCatching {
@@ -488,6 +513,18 @@ class MethodHandler : FlutterPlugin,
                             e.localizedMessage ?: "Please try again",
                             e
                         )
+                    }
+                }
+            }
+
+            Methods.LaunchExternalUrl.method -> {
+                scope.handleValue(result, "launch_external_url") {
+                    val url = call.arguments<String>()
+                    if (url.isNullOrBlank()) {
+                        throw IllegalArgumentException("External URL is required")
+                    }
+                    withContext(Dispatchers.Main) {
+                        launchExternalUrl(url)
                     }
                 }
             }
@@ -1234,6 +1271,68 @@ class MethodHandler : FlutterPlugin,
             }
         }
 
+    }
+
+    private fun launchExternalUrl(url: String): Boolean {
+        var currentUrl = url.trim()
+        if (currentUrl.isEmpty()) return false
+
+        val visitedUrls = mutableSetOf<String>()
+        var fallbackDepth = 0
+
+        while (currentUrl.isNotEmpty()) {
+            if (!visitedUrls.add(currentUrl)) {
+                AppLogger.w(TAG, "Detected cycle in external URL fallback chain")
+                return false
+            }
+
+            try {
+                if (!currentUrl.startsWith("intent:", ignoreCase = true)) {
+                    return startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl)))
+                }
+
+                val intent = Intent.parseUri(currentUrl, Intent.URI_INTENT_SCHEME)
+                if (startExternalIntent(intent)) {
+                    return true
+                }
+
+                val fallbackUrl = intent.getStringExtra("browser_fallback_url")?.trim()
+                if (fallbackUrl.isNullOrEmpty()) {
+                    return false
+                }
+
+                fallbackDepth += 1
+                if (fallbackDepth > MAX_EXTERNAL_URL_FALLBACK_DEPTH) {
+                    AppLogger.w(TAG, "External URL fallback chain exceeded max depth")
+                    return false
+                }
+
+                currentUrl = fallbackUrl
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
+                return false
+            }
+        }
+
+        return false
+    }
+
+    private fun startExternalIntent(intent: Intent): Boolean {
+        intent.addCategory(Intent.CATEGORY_BROWSABLE)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.component = null
+        intent.selector = null
+
+        return try {
+            appContext.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            AppLogger.d(TAG, "No activity found for external URL")
+            false
+        } catch (e: SecurityException) {
+            AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
+            false
+        }
     }
 
     private fun isAnotherVpnActive(context: Context): Boolean {

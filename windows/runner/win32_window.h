@@ -49,6 +49,8 @@ class Win32Window {
   // window properties. Returns nullptr if the window has been destroyed.
   HWND GetHandle();
 
+  static const wchar_t* GetWindowClassName();
+
   // If true, closing this window will quit the application.
   void SetQuitOnClose(bool quit_on_close);
 

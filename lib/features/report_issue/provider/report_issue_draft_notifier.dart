@@ -112,10 +112,7 @@ class ReportIssueDraft extends _$ReportIssueDraft {
     state = state.copyWith(description: value);
   }
 
-  void addAttachments(
-    Iterable<ReportIssueAttachment> attachments, {
-    int reservedBytes = 0,
-  }) {
+  void addAttachments(Iterable<ReportIssueAttachment> attachments) {
     final incoming = attachments.toList(growable: false);
     if (incoming.isEmpty) {
       return;
@@ -142,7 +139,6 @@ class ReportIssueDraft extends _$ReportIssueDraft {
 
     final validationError = ReportIssueAttachmentRulesUtils.validateAttachments(
       nextAttachments,
-      reservedBytes: reservedBytes,
     );
     if (validationError != null) {
       state = state.copyWith(attachmentError: validationError);
