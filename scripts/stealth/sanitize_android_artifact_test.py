@@ -169,6 +169,8 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
 
         self.assertEqual(signing.key_alias, "androiddebugkey")
         self.assertEqual(signing.store_password, "android")
+        self.assertEqual(signing.key_password, "android")
+        self.assertEqual(signing.keystore, Path.home() / ".android" / "debug.keystore")
 
     def test_android_signing_tools_uses_semantic_build_tools_version(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

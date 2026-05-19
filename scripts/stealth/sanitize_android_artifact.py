@@ -380,7 +380,14 @@ def main(argv: list[str]) -> int:
 
     try:
         results = [
-            (artifact, sanitize_zip(artifact, resign=args.resign, allow_debug_keystore=args.allow_debug_keystore))
+            (
+                artifact,
+                sanitize_zip(
+                    artifact,
+                    resign=args.resign,
+                    allow_debug_keystore=args.allow_debug_keystore,
+                ),
+            )
             for artifact in args.artifacts
         ]
     except (FileNotFoundError, RuntimeError, subprocess.CalledProcessError) as exc:
