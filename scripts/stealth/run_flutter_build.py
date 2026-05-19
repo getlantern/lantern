@@ -192,7 +192,6 @@ def run(cmd: list[str], root: Path) -> int:
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", type=Path)
-    parser.add_argument("--mode", default="")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(list(argv))
     if args.command and args.command[0] == "--":
