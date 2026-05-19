@@ -37,6 +37,7 @@ class Flag extends StatelessWidget {
       child: FittedBox(
         // Normalize cross-platform glyph-height variance into the caller's box.
         fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
         child: Text(
           _countryCodeToEmoji(countryCode),
           style: TextStyle(fontSize: size.height),
