@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
@@ -46,7 +47,7 @@ class AppPurchase {
     // Subscribing to purchaseStream initializes BillingClient, which OOMs
     // the Dalvik heap via an internal reconnect loop when Play Billing
     // isn't reachable. See getlantern/engineering#3485.
-    if (Platform.isAndroid && !isStoreVersion()) {
+    if (Platform.isAndroid && _shouldSkipAndroidBillingInit()) {
       return;
     }
 
@@ -61,6 +62,29 @@ class AppPurchase {
         appLogger.error('[AppPurchase] init: fetchSubscriptions failed', e, st);
       }),
     );
+  }
+
+  bool _shouldSkipAndroidBillingInit() {
+    if (!isStoreVersion()) {
+      return true;
+    }
+
+    if (CountryCode.current.isNotEmpty) {
+      return false;
+    }
+
+    final localeCountry = PlatformDispatcher.instance.locale.countryCode
+        ?.trim()
+        .toUpperCase();
+    if (!CountryCode.censoredRegions.contains(localeCountry)) {
+      return false;
+    }
+
+    appLogger.info(
+      '[AppPurchase] Skipping Play Billing init from startup locale hint '
+      'while config country is pending: $localeCountry',
+    );
+    return true;
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
