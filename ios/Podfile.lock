@@ -3,6 +3,8 @@ PODS:
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
+  - file_selector_ios (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
@@ -99,6 +101,7 @@ PODS:
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - file_selector_ios (from `.symlinks/plugins/file_selector_ios/ios`)
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -131,6 +134,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_links/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
+  file_selector_ios:
+    :path: ".symlinks/plugins/file_selector_ios/ios"
   Flutter:
     :path: Flutter
   flutter_inappwebview_ios:
@@ -161,6 +166,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   app_links: 6d01271b3907b0ee7325c5297c75d697c4226c4d
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
+  file_selector_ios: 80c12e90ad3f2045ed6819d03742f1a4c5ec3f93
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: 6f63631e2c62a7c350263b13fa5427aedefe81d4
   flutter_local_notifications: eda81afddbf18f8589f6ec069ce593c4c6378769

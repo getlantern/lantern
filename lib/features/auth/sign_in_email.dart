@@ -110,18 +110,18 @@ class SignInEmail extends HookConsumerWidget {
   }
 
   Future<void> onOAuthResult(
-    Map<String, dynamic> result,
+    Map<String, dynamic> oauthResult,
     BuildContext context,
     WidgetRef ref,
     SignUpMethodType type,
   ) async {
-    final token = result['token'];
+    final token = oauthResult['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result = await ref
+      final loginResult = await ref
           .read(authProvider.notifier)
           .oAuthLoginCallback(token);
-      result.fold(
+      loginResult.fold(
         (failure) {
           context.hideLoadingDialog();
           context.showSnackBar(failure.localizedErrorMessage);

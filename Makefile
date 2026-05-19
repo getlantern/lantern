@@ -107,7 +107,18 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-ANDROID_TARGET_PLATFORMS := android-arm,android-arm64
+# Split APK vs AAB ABI targeting (2026-05-15):
+#
+# The sideload APK (uploaded to the GitHub release / Slack release channel)
+# drops armeabi-v7a so the download is small enough for the Iranian audience
+# on constrained bandwidth. The AAB keeps both ABIs so Play Store users on
+# legacy 32-bit-only Android devices still receive updates — Play delivers
+# per-ABI splits, so this doesn't penalize arm64 Play users.
+ANDROID_APK_TARGET_PLATFORMS := android-arm64
+ANDROID_AAB_TARGET_PLATFORMS := android-arm,android-arm64
+# Back-compat: keep ANDROID_TARGET_PLATFORMS as the fat union for any
+# external caller / debug target that still references it.
+ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
@@ -120,7 +131,7 @@ ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
 SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
-ANDROID_GOMOBILE_LDFLAGS ?= -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -129,7 +140,7 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_conntrack,with_dhcp,with_acme,with_tailscale
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,with_conntrack
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
@@ -143,6 +154,10 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 UNAME_S := $(shell uname -s)
 endif
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
+# gomobile bind produces the AAR consumed by both the APK and the AAB.
+# Keep both ABIs in the AAR; the APK packaging step strips armeabi-v7a via
+# the lantern.thinAbi Gradle property (see android-release below). The AAB
+# build leaves it in for Play's per-ABI delivery.
 GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
@@ -501,16 +516,23 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug
 
+# --target-platform restricts Flutter's libapp.so / libflutter.so to arm64;
+# -Plantern.thinAbi=true tells android/app/build.gradle to drop armeabi-v7a
+# from abiFilters + add it to packagingOptions.jniLibs.excludes so the
+# arm32 libgojni.so in the AAR doesn't get packed. Sideload-APK target only.
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.thinAbi=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
+# AAB keeps both ABIs so Play Store delivers per-ABI splits (arm64 users
+# get the small split; legacy arm32-only users still get updates). The
+# Play path doesn't need the size cut — only the sideload APK does.
 .PHONY: android-aab-release
 android-aab-release:
-	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
