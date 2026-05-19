@@ -39,7 +39,10 @@ class SignInEmail extends HookConsumerWidget {
               AppTextField(
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
-                autofillHints: [AutofillHints.email],
+                autofillHints: const [
+                  AutofillHints.email,
+                  AutofillHints.username,
+                ],
                 label: 'email'.i18n,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) =>
@@ -90,7 +93,7 @@ class SignInEmail extends HookConsumerWidget {
                 boldOnPressed: () {
                   appRouter.push(Plans());
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -98,10 +101,7 @@ class SignInEmail extends HookConsumerWidget {
     );
   }
 
-  void signInWithEmail(
-    String email,
-    BuildContext context,
-  ) {
+  void signInWithEmail(String email, BuildContext context) {
     if (!email.isValidEmail()) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
@@ -109,14 +109,19 @@ class SignInEmail extends HookConsumerWidget {
     appRouter.push(SignInPassword(email: email));
   }
 
-  Future<void> onOAuthResult(Map<String, dynamic> result, BuildContext context,
-      WidgetRef ref, SignUpMethodType type) async {
-    final token = result['token'];
+  Future<void> onOAuthResult(
+    Map<String, dynamic> oauthResult,
+    BuildContext context,
+    WidgetRef ref,
+    SignUpMethodType type,
+  ) async {
+    final token = oauthResult['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result =
-          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
-      result.fold(
+      final loginResult = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
+      loginResult.fold(
         (failure) {
           context.hideLoadingDialog();
           context.showSnackBar(failure.localizedErrorMessage);
@@ -126,7 +131,8 @@ class SignInEmail extends HookConsumerWidget {
           ref.read(homeProvider.notifier).updateUserData(response);
 
           appLogger.info(
-              'OAuth login successful, updating app settings with token and user data provider: ${type.name}');
+            'OAuth login successful, updating app settings with token and user data provider: ${type.name}',
+          );
           ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
           appRouter.popUntilRoot();
         },

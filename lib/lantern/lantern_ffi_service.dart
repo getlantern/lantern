@@ -15,6 +15,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
@@ -525,10 +526,7 @@ class LanternFFIService implements LanternCoreService {
       }
       appLogger.error('$action split tunnel error: $errMsg');
       return left(
-        Failure(
-          error: errMsg,
-          localizedErrorMessage: localizeRawError(errMsg),
-        ),
+        Failure(error: errMsg, localizedErrorMessage: localizeRawError(errMsg)),
       );
     } catch (e) {
       return left(
@@ -867,7 +865,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() {
-    throw Exception("This not supported on desktop, this is only for mobile");
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
   }
 
   @override
@@ -891,7 +891,18 @@ class LanternFFIService implements LanternCoreService {
     required String purchaseToken,
     required String planId,
   }) {
-    throw Exception("This not supported on desktop, this is only for mobile");
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
+  }
+
+  @override
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) {
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
   }
 
   @override

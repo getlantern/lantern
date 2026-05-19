@@ -99,7 +99,6 @@ dependencies:
   # Utils
   fpdart: ^1.2.0
   jwt_decoder: ^2.0.1
-  country_flags: ^4.1.2
   mobile_scanner: ^7.2.0
   device_info_plus: ^12.3.0
 

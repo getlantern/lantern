@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/core/models/user.dart';
 
 import '../common/common.dart';
 
@@ -10,9 +10,7 @@ class UserDevices extends HookConsumerWidget {
   // final List<DeviceModel> userDevices;
   // final String myDeviceId;
 
-  const UserDevices({
-    super.key,
-  });
+  const UserDevices({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,10 +37,14 @@ class UserDevices extends HookConsumerWidget {
     );
   }
 
-  Widget _buildRow(DeviceModel e, WidgetRef ref, BuildContext context,
-      bool isMyDevice) {
+  Widget _buildRow(
+    DeviceModel e,
+    WidgetRef ref,
+    BuildContext context,
+    bool isMyDevice,
+  ) {
     return AppTile(
-      label: e.name,
+      label: e.name.isEmpty ? e.deviceId : e.name,
       contentPadding: EdgeInsets.only(left: 16),
       trailing: isMyDevice
           ? AppTextButton(
@@ -54,17 +56,27 @@ class UserDevices extends HookConsumerWidget {
   }
 
   Future<void> _removeDevice(
-      DeviceModel device, WidgetRef ref, BuildContext context) async {
+    DeviceModel device,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).deviceRemove(device.deviceId);
+    final result = await ref
+        .read(authProvider.notifier)
+        .deviceRemove(device.deviceId);
 
-    result.fold((failure) {
-      context.showSnackBar(failure.localizedErrorMessage);
-    }, (success) async {
-      context.showSnackBar('device_removed'.i18n);
-      final innerResult = await ref.read(homeProvider.notifier).fetchUserData();
-      context.hideLoadingDialog();
-    });
+    result.fold(
+      (failure) {
+        if (!context.mounted) return;
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (success) async {
+        context.showSnackBar('device_removed'.i18n);
+        await ref.read(homeProvider.notifier).fetchUserData();
+        if (!context.mounted) return;
+        context.hideLoadingDialog();
+      },
+    );
   }
 }

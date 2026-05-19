@@ -29,8 +29,24 @@ class AppPurchase {
   // Track what plan the user selected
   String? _pendingPlanId;
 
+  // True while a restore flow is in progress; restored receipts should be
+  // acknowledged so the backend can reassociate the user, even when the
+  // device has no active subscription cached locally.
+  bool _isRestoreFlow = false;
+
+  // Set true when a restored receipt is delivered through the stream during
+  // a restore flow. Used on iOS to detect "no purchases" (StoreKit doesn't
+  // emit an empty stream event the way Play Billing does).
+  bool _restoreReceivedAny = false;
+
   void init() {
     if (PlatformUtils.isDesktop || _subscription != null) {
+      return;
+    }
+    // Subscribing to purchaseStream initializes BillingClient, which OOMs
+    // the Dalvik heap via an internal reconnect loop when Play Billing
+    // isn't reachable. See getlantern/engineering#3485.
+    if (Platform.isAndroid && !isStoreVersion()) {
       return;
     }
 
@@ -39,6 +55,11 @@ class AppPurchase {
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
+    );
+    unawaited(
+      fetchSubscriptions().catchError((Object e, StackTrace st) {
+        appLogger.error('[AppPurchase] init: fetchSubscriptions failed', e, st);
+      }),
     );
   }
 
@@ -186,13 +207,123 @@ class AppPurchase {
     }
   }
 
+  /// Restores prior purchases from the platform store.
+  ///
+  /// On iOS this triggers StoreKit's restore flow; on Android it surfaces
+  /// active Google Play Billing purchases through the same purchase stream.
+  /// Restored receipts are acknowledged with the backend so the current user
+  /// (or the user matching the receipt, if unauthenticated) is associated
+  /// with the subscription.
+  Future<void> restorePurchases({
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  }) async {
+    _onSuccess = onSuccess;
+    _onError = onError;
+    _isRestoreFlow = true;
+    _restoreReceivedAny = false;
+    _pendingPlanId = null;
+
+    try {
+      appLogger.info('[AppPurchase] Initiating restore purchases');
+      await _inAppPurchase.restorePurchases();
+      if (Platform.isIOS) {
+        // StoreKit doesn't emit anything via the stream when there are no
+        // purchases to restore, so the only signal "nothing to restore" is
+        // the absence of a stream event within a reasonable window.
+        Future.delayed(const Duration(seconds: 10), () {
+          if (_isRestoreFlow && !_restoreReceivedAny) {
+            appLogger.info('[AppPurchase] iOS restore: no purchases delivered');
+            _isRestoreFlow = false;
+            final onError = _onError;
+            clearCallbacks();
+            onError?.call('No previous purchases found to restore.');
+          }
+        });
+      }
+    } catch (e, st) {
+      appLogger.error('[AppPurchase] Error restoring purchases', e, st);
+      _isRestoreFlow = false;
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call('Error restoring purchases: $e');
+    }
+  }
+
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     appLogger.info(
       '[AppPurchase] Received purchase updates: ${purchases.length}',
     );
+    if (_isRestoreFlow && purchases.isEmpty) {
+      appLogger.info(
+        '[AppPurchase] Restore flow: purchase stream emitted empty list',
+      );
+      _isRestoreFlow = false;
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call('No previous purchases found to restore.');
+      return;
+    }
+
+    /// During restore, if more than one restored receipt comes back, batch
+    /// them: pick one to surface and finalize the rest. Otherwise _finalize
+    /// would clear _isRestoreFlow after the first item and the second
+    /// iteration would fall into the regular acknowledge path.
+    if (_isRestoreFlow && purchases.length > 1) {
+      final restored = purchases
+          .where(
+            (p) =>
+                p.status == PurchaseStatus.purchased ||
+                p.status == PurchaseStatus.restored,
+          )
+          .toList();
+      if (restored.length > 1) {
+        await _handleRestoreBatch(restored);
+        return;
+      }
+    }
+
     for (final purchase in purchases) {
       await _handlePurchase(purchase);
     }
+  }
+
+  /// Picks the latest restored receipt, finalizes every restored receipt
+  /// with the store, and fires `_onSuccess` once.
+  Future<void> _handleRestoreBatch(List<PurchaseDetails> restored) async {
+    ///Pick the latest purchase
+    restored.sort((a, b) {
+      final aDate = int.tryParse(a.transactionDate ?? '') ?? 0;
+      final bDate = int.tryParse(b.transactionDate ?? '') ?? 0;
+      return bDate.compareTo(aDate);
+    });
+
+    final chosen = restored.first;
+    appLogger.info(
+      '[AppPurchase] Restore batch: ${restored.length} purchases, choosing ${chosen.productID}',
+    );
+
+    _restoreReceivedAny = true;
+
+    // Complete each receipt inline (don't call _finalize — its `finally`
+    // clears _isRestoreFlow, which would mis-route any re-entrant stream
+    // emissions through the regular acknowledge path mid-batch and fire
+    // a stray error before our success callback.
+    for (final purchase in restored) {
+      try {
+        if (purchase.pendingCompletePurchase) {
+          await _inAppPurchase.completePurchase(purchase);
+        }
+      } catch (e) {
+        appLogger.error('[AppPurchase] Error completing restored purchase: $e');
+      }
+    }
+
+    final onSuccess = _onSuccess;
+    _isRestoreFlow = false;
+    _pendingPlanId = null;
+    clearCallbacks();
+    onSuccess?.call(chosen);
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
@@ -211,7 +342,21 @@ class AppPurchase {
         return;
       }
       if (status == PurchaseStatus.canceled) {
-        /// User has cancelled the purchase
+        // `canceled` is not necessarily a real user cancel — the
+        // in_app_purchase plugin also maps several silent Google Play
+        // rejections (offer ineligibility, missing payment method, region
+        // mismatch, billing-service hiccups) to the same status. Without
+        // capturing the underlying error we can't distinguish those from a
+        // user who actually X'd the dialog, which is the difference between
+        // "expected" and "a bug to fix." For Android, `error.details`
+        // typically contains a Map with the raw BillingClient
+        // `response_code` and `debug_message`.
+        appLogger.info(
+          '[AppPurchase] Purchase canceled: productID=${purchaseDetails.productID}'
+          ' errorCode=${purchaseDetails.error?.code}'
+          ' message=${purchaseDetails.error?.message}'
+          ' details=${purchaseDetails.error?.details}',
+        );
         _onError?.call("Purchase canceled");
         return;
       }
@@ -229,6 +374,19 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.purchased ||
           status == PurchaseStatus.restored) {
+        /// During an explicit restore flow, skip the backend acknowledge call
+        if (_isRestoreFlow) {
+          appLogger.info(
+            '[AppPurchase] Found restore purchase calling success',
+          );
+          _restoreReceivedAny = true;
+          await _finalize(purchaseDetails);
+          final onSuccess = _onSuccess;
+          clearCallbacks();
+          onSuccess?.call(purchaseDetails);
+          return;
+        }
+
         /// Apple sends purchase updates for previously purchased items when the app starts.
         /// This check prevents processing the same subscription multiple times.
         if (await _checkIfAlreadyPurchased()) {
@@ -289,6 +447,7 @@ class AppPurchase {
       appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
       _pendingPlanId = null;
+      _isRestoreFlow = false;
     }
   }
 
@@ -380,5 +539,6 @@ class AppPurchase {
     _onSuccess = null;
     _onError = null;
     _pendingPlanId = null;
+    _isRestoreFlow = false;
   }
 }

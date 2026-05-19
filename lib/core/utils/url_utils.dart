@@ -2,11 +2,33 @@ import 'dart:io';
 
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
+  static const MethodChannel _methodChannel = MethodChannel(
+    'org.getlantern.lantern/method',
+  );
+  static const Set<String> _webviewHandledSchemes = {
+    'about',
+    'blob',
+    'chrome',
+    'data',
+    'file',
+    'http',
+    'https',
+    'javascript',
+  };
+  // Keep this list intentionally narrow. These are the schemes we currently
+  // need for payment app handoff from the in-app webview.
+  static const Set<String> _externalAppSchemes = {
+    'alipays',
+    'intent',
+    'market',
+  };
+
   static String normalizeWebviewUrl(String url) => url.trim();
 
   static bool _isSupportedWebviewUri(Uri uri) {
@@ -22,6 +44,42 @@ class UrlUtils {
       return false;
     }
     return _isSupportedWebviewUri(uri);
+  }
+
+  static bool shouldOpenExternallyFromWebView(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme.isEmpty || _webviewHandledSchemes.contains(scheme)) {
+      return false;
+    }
+    return _externalAppSchemes.contains(scheme);
+  }
+
+  static Future<bool> launchExternalAppUrl(Uri uri) async {
+    if (PlatformUtils.isAndroid) {
+      final launched = await _methodChannel.invokeMethod<bool>(
+        'launchExternalUrl',
+        uri.toString(),
+      );
+      return launched ?? false;
+    }
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  static Future<bool> tryLaunchExternalAppUrl(
+    BuildContext context,
+    Uri uri,
+  ) async {
+    try {
+      final ok = await launchExternalAppUrl(uri);
+      if (!ok) throw 'Failed to open ${uri.toString()}';
+      return true;
+    } catch (e, st) {
+      appLogger.error('Unable to launch external app URL', e, st);
+      if (context.mounted) {
+        context.showSnackBar('could_not_open_url'.i18n);
+      }
+      return false;
+    }
   }
 
   static Future<void> openUrl(String url) async {

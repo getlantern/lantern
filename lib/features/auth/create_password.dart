@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -9,7 +10,6 @@ import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
-
 
 @RoutePage(name: 'CreatePassword')
 class CreatePassword extends HookConsumerWidget {
@@ -38,42 +38,49 @@ class CreatePassword extends HookConsumerWidget {
       child: BaseScreen(
         title: 'create_password'.i18n,
         body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              SizedBox(height: defaultSize),
-              EmailTag(email: email),
-              SizedBox(height: defaultSize),
-              AppTextField(
-                fieldKey: AuthKeys.createPasswordField,
-                controller: passwordTextController,
-                hintText: '',
-                prefixIcon: AppImagePaths.lock,
-                label: "create_password".i18n,
-                suffixIcon: _buildSuffix(obscureText, context),
-                obscureText: obscureText.value,
-                onSubmitted: (_) {
-                  if (passwordTextController.text.isPasswordValid()) {
-                    onContinue(ref, passwordTextController.text, context);
-                  }
-                },
-                onChanged: (value) {
-                  isValidPassword.value = value.isPasswordValid();
-                },
-              ),
-              SizedBox(height: 32),
-              PrimaryButton(
-                key: AuthKeys.createPasswordContinueButton,
-                label: 'continue'.i18n,
-                isTaller: true,
-                enabled: passwordTextController.text.isPasswordValid(),
-                onPressed: () =>
-                    onContinue(ref, passwordTextController.text, context),
-              ),
-              SizedBox(height: 32.0),
-              PasswordCriteriaWidget(
-                textEditingController: passwordTextController,
-              ),
-            ],
+          child: AutofillGroup(
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: defaultSize),
+                EmailTag(email: email),
+                SizedBox(height: defaultSize),
+                AppTextField(
+                  fieldKey: AuthKeys.createPasswordField,
+                  controller: passwordTextController,
+                  hintText: '',
+                  prefixIcon: AppImagePaths.lock,
+                  label: "create_password".i18n,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.newPassword],
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  suffixIcon: _buildSuffix(obscureText, context),
+                  obscureText: obscureText.value,
+                  onSubmitted: (_) {
+                    if (passwordTextController.text.isPasswordValid()) {
+                      onContinue(ref, passwordTextController.text, context);
+                    }
+                  },
+                  onChanged: (value) {
+                    isValidPassword.value = value.isPasswordValid();
+                  },
+                ),
+                SizedBox(height: 32),
+                PrimaryButton(
+                  key: AuthKeys.createPasswordContinueButton,
+                  label: 'continue'.i18n,
+                  isTaller: true,
+                  enabled: passwordTextController.text.isPasswordValid(),
+                  onPressed: () =>
+                      onContinue(ref, passwordTextController.text, context),
+                ),
+                SizedBox(height: 32.0),
+                PasswordCriteriaWidget(
+                  textEditingController: passwordTextController,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -104,13 +111,12 @@ class CreatePassword extends HookConsumerWidget {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        appLogger.error(
-          'Failed to create password: ${failure.error}',
-        );
+        appLogger.error('Failed to create password: ${failure.error}');
         context.showSnackBarError(failure.localizedErrorMessage);
       },
       (success) {
         context.hideLoadingDialog();
+        TextInput.finishAutofillContext(shouldSave: true);
         appLogger.info('Password created successfully');
         ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         // Signup completed: release any payment-in-flight flag set by an IAP
@@ -127,8 +133,10 @@ class CreatePassword extends HookConsumerWidget {
       //We need call get user details here by then user has made payment
       context.showLoadingDialog();
       await checkUserAccountStatus(ref, context);
+      if (!context.mounted) return;
       context.hideLoadingDialog();
     }
+    if (!context.mounted) return;
     AppDialog.showLanternProDialog(
       context: context,
       onPressed: () {

@@ -8,6 +8,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -346,6 +347,16 @@ class LanternService implements LanternCoreService {
       purchaseToken: purchaseToken,
       planId: planId,
     );
+  }
+
+  @override
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.restoreInAppPurchase(purchaseToken: purchaseToken);
+    }
+    return _platformService.restoreInAppPurchase(purchaseToken: purchaseToken);
   }
 
   @override

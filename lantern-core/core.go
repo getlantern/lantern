@@ -123,6 +123,8 @@ type Payment interface {
 	StripeBillingPortalUrl() (string, error)
 	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
 	AcknowledgeApplePurchase(receipt, planII string) (string, error)
+	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
+	RestoreApplePurchase(receipt string) (string, error)
 	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
@@ -876,6 +878,38 @@ func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string,
 		"planId":  planII,
 	}
 	return lc.client.VerifySubscription(lc.ctx, account.AppleService, params)
+}
+
+func (lc *LanternCore) RestoreGooglePlayPurchase(purchaseToken string) (string, error) {
+	params := map[string]string{
+		"purchaseToken":  purchaseToken,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
+	}
+	resp, err := lc.client.RestoreSubscription(lc.ctx, account.GoogleService, params)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling restore google play purchase response: %w", err)
+	}
+	return string(data), nil
+}
+
+func (lc *LanternCore) RestoreApplePurchase(receipt string) (string, error) {
+	params := map[string]string{
+		"receipt":        receipt,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
+	}
+	resp, err := lc.client.RestoreSubscription(lc.ctx, account.AppleService, params)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling restore apple purchase response: %w", err)
+	}
+	return string(data), nil
 }
 
 func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error) {
