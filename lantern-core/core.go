@@ -321,7 +321,7 @@ func (lc *LanternCore) listenConfigEvents() {
 	err := lc.client.ConfigEvents(lc.ctx, func() {
 		slog.Debug("Config updated, notifying Flutter")
 		lc.notifyFlutter(EventTypeConfig, "")
-		// We got the config fetch coutry code
+		// Forward the country from the latest config fetch.
 		countryCode, _ := lc.settings()[settings.CountryCodeKey].(string)
 		if countryCode != "" {
 			slog.Debug("Config event: country code updated", "countryCode", countryCode)

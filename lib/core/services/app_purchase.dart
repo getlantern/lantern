@@ -113,10 +113,8 @@ class AppPurchase {
       }
     }
 
-    /// All retries exhausted. On Android, treat this as a strong signal that
-    /// Google Play Billing is unreachable (typical in CN/RU/IR even when the
-    /// ipinfo.io country lookup itself is blocked) and flip the censored-region
-    /// flag so isStoreVersion() routes the user to the Stripe flow.
+    // All retries are exhausted. On Android this is a useful signal that
+    // Play Billing is blocked or unavailable, so offer the non-store flow.
     if (Platform.isAndroid && !CountryCode.isCensoredRegion) {
       appLogger.warning(
         '[AppPurchase] Play Billing unreachable after $maxAttempts attempts; '

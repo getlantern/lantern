@@ -2,21 +2,19 @@ class CountryCode {
   static const censoredRegions = ['CN', 'RU', 'IR'];
 
   static String _current = '';
-  static bool _isCensoredRegion = false;
+  static bool _playBillingFallback = false;
 
   /// Latest country code received from core. Empty string until the first
   /// `country-code` event arrives (or when core sends an empty value).
   static String get current => _current;
 
-  /// True once we've observed a censored country code from core, or when
-  /// [markCensored] was called (e.g. Play Billing unreachable on Android).
-  static bool get isCensoredRegion => _isCensoredRegion;
+  /// True when core reports a censored country or Play Billing has failed
+  /// enough times that the app should offer the non-store payment path.
+  static bool get isCensoredRegion =>
+      censoredRegions.contains(_current) || _playBillingFallback;
 
   static void update(String code) {
-    _current = code;
-    if (code.isNotEmpty && censoredRegions.contains(code.toUpperCase())) {
-      _isCensoredRegion = true;
-    }
+    _current = code.trim().toUpperCase();
   }
 
   /// Force-flag the current region as censored without a known country code.
@@ -24,6 +22,6 @@ class CountryCode {
   /// that the user is in a censored region even if the country lookup is
   /// blocked.
   static void markCensored() {
-    _isCensoredRegion = true;
+    _playBillingFallback = true;
   }
 }
