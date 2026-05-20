@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'vpn_notifier.dart';
+part of 'country_code_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,52 @@ part of 'vpn_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(VpnNotifier)
-final vpnProvider = VpnNotifierProvider._();
+@ProviderFor(CountryCodeNotifier)
+final countryCodeProvider = CountryCodeNotifierProvider._();
 
-final class VpnNotifierProvider
-    extends $NotifierProvider<VpnNotifier, VPNStatus> {
-  VpnNotifierProvider._()
+final class CountryCodeNotifierProvider
+    extends $NotifierProvider<CountryCodeNotifier, String> {
+  CountryCodeNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'vpnProvider',
+        name: r'countryCodeProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$vpnNotifierHash();
+  String debugGetCreateSourceHash() => _$countryCodeNotifierHash();
 
   @$internal
   @override
-  VpnNotifier create() => VpnNotifier();
+  CountryCodeNotifier create() => CountryCodeNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(VPNStatus value) {
+  Override overrideWithValue(String value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<VPNStatus>(value),
+      providerOverride: $SyncValueProvider<String>(value),
     );
   }
 }
 
-String _$vpnNotifierHash() => r'aee4fecc82e6aaf10c3d4306522b04b4335b9d36';
+String _$countryCodeNotifierHash() =>
+    r'0c1a08bc664de1c57b27ed7b9ab5872e929718d1';
 
-abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
-  VPNStatus build();
+abstract class _$CountryCodeNotifier extends $Notifier<String> {
+  String build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
+    final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<VPNStatus, VPNStatus>,
-              VPNStatus,
+              AnyNotifier<String, String>,
+              String,
               Object?,
               Object?
             >;

@@ -35,6 +35,7 @@ type EventType = string
 const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
+	EventTypeCountryCode    EventType = "country-code"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -320,6 +321,12 @@ func (lc *LanternCore) listenConfigEvents() {
 	err := lc.client.ConfigEvents(lc.ctx, func() {
 		slog.Debug("Config updated, notifying Flutter")
 		lc.notifyFlutter(EventTypeConfig, "")
+		// Forward the country from the latest config fetch.
+		countryCode, _ := lc.settings()[settings.CountryCodeKey].(string)
+		if countryCode != "" {
+			slog.Debug("Config event: country code updated", "countryCode", countryCode)
+			lc.notifyFlutter(EventTypeCountryCode, countryCode)
+		}
 	})
 	if err != nil && lc.ctx.Err() == nil {
 		slog.Error("config event stream exited unexpectedly", "error", err)
