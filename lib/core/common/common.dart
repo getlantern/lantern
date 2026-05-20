@@ -119,6 +119,13 @@ bool isStoreVersion() {
   return !sl<StoreUtils>().isSideLoaded();
 }
 
+bool canUsePlayBilling() {
+  if (!PlatformUtils.isAndroid || !CountryCode.isKnown) {
+    return false;
+  }
+  return isStoreVersion();
+}
+
 //copy to clipboard
 void copyToClipboard(String text) {
   Clipboard.setData(ClipboardData(text: text));

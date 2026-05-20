@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
@@ -41,18 +40,11 @@ class AppPurchase {
   bool _restoreReceivedAny = false;
 
   void init() {
-    if (PlatformUtils.isDesktop || _subscription != null) {
-      return;
-    }
-    // Subscribing to purchaseStream initializes BillingClient, which OOMs
-    // the Dalvik heap via an internal reconnect loop when Play Billing
-    // isn't reachable. See getlantern/engineering#3485.
-    if (Platform.isAndroid && _shouldSkipAndroidBillingInit()) {
+    if (!_canInitializeStorePurchases()) {
       return;
     }
 
-    final purchaseUpdated = _inAppPurchase.purchaseStream;
-    _subscription = purchaseUpdated.listen(
+    _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
@@ -64,27 +56,29 @@ class AppPurchase {
     );
   }
 
-  bool _shouldSkipAndroidBillingInit() {
-    if (!isStoreVersion()) {
+  bool _canInitializeStorePurchases() {
+    if (PlatformUtils.isDesktop || _subscription != null) {
+      return false;
+    }
+    if (!Platform.isAndroid) {
       return true;
     }
+    // Subscribing to purchaseStream initializes BillingClient, which OOMs
+    // the Dalvik heap via an internal reconnect loop when Play Billing
+    // isn't reachable. See getlantern/engineering#3485.
+    return canUsePlayBilling();
+  }
 
-    if (CountryCode.current.isNotEmpty) {
-      return false;
+  Future<bool> _initPlayBillingIfAllowed() async {
+    init();
+    if (_subscription != null) {
+      return true;
     }
-
-    final localeCountry = PlatformDispatcher.instance.locale.countryCode
-        ?.trim()
-        .toUpperCase();
-    if (!CountryCode.censoredRegions.contains(localeCountry)) {
-      return false;
+    if (Platform.isAndroid && !CountryCode.isKnown) {
+      await CountryCode.waitUntilKnown();
+      init();
     }
-
-    appLogger.info(
-      '[AppPurchase] Skipping Play Billing init from startup locale hint '
-      'while config country is pending: $localeCountry',
-    );
-    return true;
+    return _subscription != null;
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -189,6 +183,13 @@ class AppPurchase {
     // Store the exact plan id user chose (ex: "1y-usd-10")
     _pendingPlanId = plan;
 
+    if (!await _initPlayBillingIfAllowed()) {
+      _onError?.call(
+        "Unable to load App Store products. Check your network and try again.",
+      );
+      return;
+    }
+
     try {
       await _waitForProducts();
     } catch (_) {
@@ -245,6 +246,16 @@ class AppPurchase {
     _isRestoreFlow = true;
     _restoreReceivedAny = false;
     _pendingPlanId = null;
+
+    if (!await _initPlayBillingIfAllowed()) {
+      _isRestoreFlow = false;
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call(
+        "Unable to load App Store products. Check your network and try again.",
+      );
+      return;
+    }
 
     try {
       appLogger.info('[AppPurchase] Initiating restore purchases');

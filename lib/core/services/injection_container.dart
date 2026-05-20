@@ -45,9 +45,11 @@ Future<void> injectServices() async {
 
   appLogger.debug('Initializing AppPurchase...');
   final appPurchase = AppPurchase();
-  appPurchase.init();
   sl.registerSingleton<AppPurchase>(appPurchase);
-  appLogger.debug('AppPurchase initialized');
+  if (!PlatformUtils.isAndroid) {
+    appPurchase.init();
+  }
+  appLogger.debug('AppPurchase registered');
 
   sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
   sl.registerSingleton<LanternFFIService>(
@@ -56,22 +58,20 @@ Future<void> injectServices() async {
         : MockLanternFFIService(),
   );
 
-  sl.registerSingletonAsync<LanternService>(
-    () async {
-      final service = LanternService(
-        ffiService: sl<LanternFFIService>(),
-        platformService: sl<LanternPlatformService>(),
-        appPurchase: sl<AppPurchase>(),
-      );
-      try {
-        await service.init();
-        appLogger.debug('LanternService initialized');
-      } catch (e, st) {
-        appLogger.error('LanternService init failed', e, st);
-      }
-      return service;
-    },
-  );
+  sl.registerSingletonAsync<LanternService>(() async {
+    final service = LanternService(
+      ffiService: sl<LanternFFIService>(),
+      platformService: sl<LanternPlatformService>(),
+      appPurchase: sl<AppPurchase>(),
+    );
+    try {
+      await service.init();
+      appLogger.debug('LanternService initialized');
+    } catch (e, st) {
+      appLogger.error('LanternService init failed', e, st);
+    }
+    return service;
+  });
 
   appLogger.debug('Initializing notification/Stripe services...');
   final notificationService = NotificationService();
