@@ -26,8 +26,6 @@ Future<void> main() async {
 
   await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();
-  // Windows-only; no-op on other platforms. Asset is platform-scoped so this
-  // does not add weight to the Android APK.
   await Flag.ensureFontLoaded();
 
   if (PlatformUtils.isMobile) {

@@ -3,14 +3,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 
-/// Country flag from an ISO 3166-1 alpha-2 code, rendered as a regional
-/// indicator emoji by the system font (e.g. "IR" → 🇮🇷). Platforms that
-/// drop part of the flag set (some de-Googled Android forks, vendor fonts
-/// without TW) fall back to the two-letter glyphs.
-///
-/// On Windows the system emoji font (Segoe UI Emoji) does not paint regional
-/// indicator pairs as flags, so we load a bundled Twemoji Mozilla font at
-/// startup via [ensureFontLoaded] and route the [Text] through it.
+/// Country flag from an ISO 3166-1 alpha-2 code. On Windows we route the
+/// Text through a bundled Twemoji Mozilla font because Segoe UI Emoji has no
+/// flag-sequence ligatures.
 class Flag extends StatelessWidget {
   final String countryCode;
   final Size size;
@@ -24,9 +19,7 @@ class Flag extends StatelessWidget {
   static const String _windowsEmojiFontFamily = 'Twemoji Mozilla';
   static bool _windowsEmojiFontLoaded = false;
 
-  /// Registers the bundled flag-capable font on Windows. Safe to call from any
-  /// platform — no-ops everywhere else. The asset is platform-scoped in
-  /// pubspec.yaml so it is not shipped with the Android/iOS builds.
+  /// Windows-only; load .ttf is platform-scoped
   static Future<void> ensureFontLoaded() async {
     if (!Platform.isWindows || _windowsEmojiFontLoaded) return;
     try {
@@ -34,9 +27,7 @@ class Flag extends StatelessWidget {
         ..addFont(rootBundle.load('assets/fonts/TwemojiMozilla.ttf'));
       await loader.load();
       _windowsEmojiFontLoaded = true;
-    } catch (_) {
-      // Leave the flag as the regional-indicator fallback rather than crashing.
-    }
+    } catch (_) {}
   }
 
   /// Returns 🏳️ for invalid input so a malformed code can't blow up the UI.
