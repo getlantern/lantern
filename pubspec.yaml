@@ -156,6 +156,11 @@ flutter:
         - windows
         - macos
         - linux
+    # Scoped to windows (not declared under `fonts:`) so the .ttf stays out
+    # of the Android APK. Loaded at runtime via FontLoader.
+    - path: assets/fonts/TwemojiMozilla.ttf
+      platforms:
+        - windows
     - assets/locales/
     - app.env
 
