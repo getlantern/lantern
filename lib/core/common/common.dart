@@ -120,10 +120,7 @@ bool isStoreVersion() {
 }
 
 bool canUsePlayBilling() {
-  if (!PlatformUtils.isAndroid || !CountryCode.isKnown) {
-    return false;
-  }
-  return isStoreVersion();
+  return PlatformUtils.isAndroid && isStoreVersion();
 }
 
 //copy to clipboard
