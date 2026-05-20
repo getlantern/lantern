@@ -44,6 +44,10 @@ class AppPurchase {
       return;
     }
 
+    appLogger.info(
+      '[AppPurchase] Subscribing to purchaseStream '
+      '(platform=${Platform.operatingSystem}, country=${CountryCode.current})',
+    );
     _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
@@ -57,7 +61,12 @@ class AppPurchase {
   }
 
   bool _canInitializeStorePurchases() {
-    if (PlatformUtils.isDesktop || _subscription != null) {
+    if (PlatformUtils.isDesktop) {
+      appLogger.debug('[AppPurchase] Skipping init: desktop platform');
+      return false;
+    }
+    if (_subscription != null) {
+      appLogger.debug('[AppPurchase] Skipping init: already subscribed');
       return false;
     }
     if (!Platform.isAndroid) {
@@ -66,19 +75,44 @@ class AppPurchase {
     // Subscribing to purchaseStream initializes BillingClient, which OOMs
     // the Dalvik heap via an internal reconnect loop when Play Billing
     // isn't reachable. See getlantern/engineering#3485.
-    return canUsePlayBilling();
+    final allowed = canUsePlayBilling();
+    if (!allowed) {
+      appLogger.info(
+        '[AppPurchase] Skipping Play Billing init: canUsePlayBilling=false '
+        '(country=${CountryCode.current}, censored=${CountryCode.isCensoredRegion})',
+      );
+    }
+    return allowed;
   }
 
   Future<bool> _initPlayBillingIfAllowed() async {
+    appLogger.info(
+      '[AppPurchase] _initPlayBillingIfAllowed: '
+      'country=${CountryCode.current}, isKnown=${CountryCode.isKnown}, '
+      'subscribed=${_subscription != null}',
+    );
     init();
     if (_subscription != null) {
+      appLogger.info('[AppPurchase] _initPlayBillingIfAllowed: ready');
       return true;
     }
     if (Platform.isAndroid && !CountryCode.isKnown) {
-      await CountryCode.waitUntilKnown();
+      appLogger.info(
+        '[AppPurchase] _initPlayBillingIfAllowed: country unknown, '
+        'waiting for country-code event…',
+      );
+      final known = await CountryCode.waitUntilKnown();
+      appLogger.info(
+        '[AppPurchase] _initPlayBillingIfAllowed: waitUntilKnown returned '
+        '$known (country=${CountryCode.current}); retrying init',
+      );
       init();
     }
-    return _subscription != null;
+    final ready = _subscription != null;
+    appLogger.info(
+      '[AppPurchase] _initPlayBillingIfAllowed: ready=$ready',
+    );
+    return ready;
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
