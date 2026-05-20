@@ -58,7 +58,9 @@ class Flag extends StatelessWidget {
           _countryCodeToEmoji(countryCode),
           style: TextStyle(
             fontSize: size.height,
-            fontFamily: Platform.isWindows ? _windowsEmojiFontFamily : null,
+            fontFamily: Platform.isWindows && _windowsEmojiFontLoaded
+                ? _windowsEmojiFontFamily
+                : null,
           ),
         ),
       ),
