@@ -60,9 +60,9 @@ class OAuthLogin extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) async {
-    if (await _isRegionAllowed(ref, context)) {
-      await oAuthLogin(type, ref, context);
-    }
+    final allowed = await _isRegionAllowed(ref, context);
+    if (!allowed || !context.mounted) return;
+    await oAuthLogin(type, ref, context);
   }
 
   Future<bool> _isRegionAllowed(WidgetRef ref, BuildContext context) async {
@@ -71,7 +71,7 @@ class OAuthLogin extends HookConsumerWidget {
 
     final country = ref.read(countryCodeProvider);
 
-    /// Proceed if country is unknown or not censored.
+    // Proceed if country is unknown or not censored.
     if (country.isEmpty ||
         !CountryCode.censoredRegions.contains(country.toUpperCase())) {
       return true;
@@ -113,7 +113,7 @@ class OAuthLogin extends HookConsumerWidget {
             }
           });
 
-          /// For mobile we have to use system default browser
+          // Mobile sign-in needs the system browser for the deep link.
           UrlUtils.openWithSystemBrowser(url);
         } else {
           UrlUtils.openWebview<Map<String, dynamic>>(

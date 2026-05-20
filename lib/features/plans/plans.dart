@@ -405,9 +405,7 @@ class _PlansState extends ConsumerState<Plans>
     }, (_) {});
   }
 
-  /// When Play Billing fails to load products, [AppPurchase.fetchSubscriptions]
-  /// flips [CountryCode.isCensoredRegion]. Route the user straight to the Stripe
-  /// signup flow on the same tap so they don't have to retry.
+  // When Play Billing cannot load products, route the same tap to Stripe.
   bool _redirectToSignupIfPlayBlocked() {
     if (!Platform.isAndroid || !CountryCode.isCensoredRegion) return false;
     appLogger.info(

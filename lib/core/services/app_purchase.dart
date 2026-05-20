@@ -40,18 +40,15 @@ class AppPurchase {
   bool _restoreReceivedAny = false;
 
   void init() {
-    if (PlatformUtils.isDesktop || _subscription != null) {
-      return;
-    }
-    // Subscribing to purchaseStream initializes BillingClient, which OOMs
-    // the Dalvik heap via an internal reconnect loop when Play Billing
-    // isn't reachable. See getlantern/engineering#3485.
-    if (Platform.isAndroid && !isStoreVersion()) {
+    if (!_canInitializeStorePurchases()) {
       return;
     }
 
-    final purchaseUpdated = _inAppPurchase.purchaseStream;
-    _subscription = purchaseUpdated.listen(
+    appLogger.info(
+      '[AppPurchase] Subscribing to purchaseStream '
+      '(platform=${Platform.operatingSystem}, country=${CountryCode.current})',
+    );
+    _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
@@ -61,6 +58,61 @@ class AppPurchase {
         appLogger.error('[AppPurchase] init: fetchSubscriptions failed', e, st);
       }),
     );
+  }
+
+  bool _canInitializeStorePurchases() {
+    if (PlatformUtils.isDesktop) {
+      appLogger.debug('[AppPurchase] Skipping init: desktop platform');
+      return false;
+    }
+    if (_subscription != null) {
+      appLogger.debug('[AppPurchase] Skipping init: already subscribed');
+      return false;
+    }
+    if (!Platform.isAndroid) {
+      return true;
+    }
+    // Subscribing to purchaseStream initializes BillingClient, which OOMs
+    // the Dalvik heap via an internal reconnect loop when Play Billing
+    // isn't reachable. See getlantern/engineering#3485.
+    final allowed = canUsePlayBilling();
+    if (!allowed) {
+      appLogger.info(
+        '[AppPurchase] Skipping Play Billing init: canUsePlayBilling=false '
+        '(country=${CountryCode.current}, censored=${CountryCode.isCensoredRegion})',
+      );
+    }
+    return allowed;
+  }
+
+  Future<bool> _initPlayBillingIfAllowed() async {
+    appLogger.info(
+      '[AppPurchase] _initPlayBillingIfAllowed: '
+      'country=${CountryCode.current}, isKnown=${CountryCode.isKnown}, '
+      'subscribed=${_subscription != null}',
+    );
+    init();
+    if (_subscription != null) {
+      appLogger.info('[AppPurchase] _initPlayBillingIfAllowed: ready');
+      return true;
+    }
+    if (Platform.isAndroid && !CountryCode.isKnown) {
+      appLogger.info(
+        '[AppPurchase] _initPlayBillingIfAllowed: country unknown, '
+        'waiting for country-code event…',
+      );
+      final known = await CountryCode.waitUntilKnown();
+      appLogger.info(
+        '[AppPurchase] _initPlayBillingIfAllowed: waitUntilKnown returned '
+        '$known (country=${CountryCode.current}); retrying init',
+      );
+      init();
+    }
+    final ready = _subscription != null;
+    appLogger.info(
+      '[AppPurchase] _initPlayBillingIfAllowed: ready=$ready',
+    );
+    return ready;
   }
 
   Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
@@ -113,10 +165,8 @@ class AppPurchase {
       }
     }
 
-    /// All retries exhausted. On Android, treat this as a strong signal that
-    /// Google Play Billing is unreachable (typical in CN/RU/IR even when the
-    /// ipinfo.io country lookup itself is blocked) and flip the censored-region
-    /// flag so isStoreVersion() routes the user to the Stripe flow.
+    // All retries are exhausted. On Android this is a useful signal that
+    // Play Billing is blocked or unavailable, so offer the non-store flow.
     if (Platform.isAndroid && !CountryCode.isCensoredRegion) {
       appLogger.warning(
         '[AppPurchase] Play Billing unreachable after $maxAttempts attempts; '
@@ -166,6 +216,13 @@ class AppPurchase {
     _onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
     _pendingPlanId = plan;
+
+    if (!await _initPlayBillingIfAllowed()) {
+      _onError?.call(
+        "Unable to load App Store products. Check your network and try again.",
+      );
+      return;
+    }
 
     try {
       await _waitForProducts();
@@ -223,6 +280,16 @@ class AppPurchase {
     _isRestoreFlow = true;
     _restoreReceivedAny = false;
     _pendingPlanId = null;
+
+    if (!await _initPlayBillingIfAllowed()) {
+      _isRestoreFlow = false;
+      final onError = _onError;
+      clearCallbacks();
+      onError?.call(
+        "Unable to load App Store products. Check your network and try again.",
+      );
+      return;
+    }
 
     try {
       appLogger.info('[AppPurchase] Initiating restore purchases');

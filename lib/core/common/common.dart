@@ -97,9 +97,8 @@ bool isStoreVersion() {
     return false;
   }
 
-  /// In censored regions Google Play Billing is unreachable, so Play-Store
-  /// builds must take the non-store payment path (Stripe). For iOS
-  /// there is no other way
+  // In censored regions Google Play Billing is unreachable, so Android
+  // Play Store builds use the non-store payment path.
   if (PlatformUtils.isAndroid && CountryCode.isCensoredRegion) {
     return false;
   }
@@ -118,6 +117,10 @@ bool isStoreVersion() {
   }
 
   return !sl<StoreUtils>().isSideLoaded();
+}
+
+bool canUsePlayBilling() {
+  return PlatformUtils.isAndroid && isStoreVersion();
 }
 
 //copy to clipboard
