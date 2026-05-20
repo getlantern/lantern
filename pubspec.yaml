@@ -156,6 +156,12 @@ flutter:
         - windows
         - macos
         - linux
+    # Bundled as a Windows-only asset (not as a `fonts:` entry) so the .ttf is
+    # excluded from the Android APK. Loaded at runtime via FontLoader on
+    # Windows because Segoe UI Emoji omits regional-indicator flag glyphs.
+    - path: assets/fonts/TwemojiMozilla.ttf
+      platforms:
+        - windows
     - assets/locales/
     - app.env
 
