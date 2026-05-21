@@ -7,9 +7,7 @@ import 'package:lantern/core/common/common.dart' hide BackButton;
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/plans/provider/payment_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -36,13 +34,13 @@ class ConfirmEmail extends HookConsumerWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        onBackPresses(ref, context);
+        onBackPresses();
       },
       child: BaseScreen(
         title: '',
         appBar: CustomAppBar(
           title: Text('confirm_email'.i18n),
-          leading: BackButton(onPressed: () => onBackPresses(ref, context)),
+          leading: BackButton(onPressed: onBackPresses),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,78 +95,9 @@ class ConfirmEmail extends HookConsumerWidget {
     );
   }
 
-  Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
+  void onBackPresses() {
     appLogger.info('Back button pressed in ConfirmEmail screen');
-    if (password == null) {
-      appRouter.pop();
-      return;
-    }
-    final appSettings = ref.read(appSettingProvider);
-    final isLoggedIn = appSettings.userLoggedIn;
-
-    /// In case of logged in user just pop the screen
-    /// we do not want to delete user since account is created but user do not have pro
-    if (isLoggedIn) {
-      appRouter.pop();
-      return;
-    }
-
-    /// Defensive: never delete a Pro account on back-press, even if every other
-    /// guard somehow missed this case. A successful Apple/Google IAP promotes
-    /// the legacy user to `pro` inline server-side, so a paid user that
-    /// reaches this screen is already Pro and must be preserved.
-    if (ref.read(isUserProProvider)) {
-      appLogger.info(
-        'Back press in ConfirmEmail with pro user; preserving account',
-      );
-      appRouter.pop();
-      return;
-    }
-
-    if (authFlow != AuthFlow.signUp) {
-      appRouter.pop();
-      return;
-    }
-
-    /// If the user just initiated an external (e.g. Alipay/shepherd) payment,
-    /// Deleting that account here would orphan a paid subscription
-    final paymentRedirectInitiated = ref.read(paymentSessionProvider);
-    if (paymentRedirectInitiated) {
-      appLogger.info(
-        'Back press in ConfirmEmail with payment redirect in flight; '
-        'preserving anonymous account to avoid orphaning payment',
-      );
-      appRouter.pop();
-      return;
-    }
-
-    appLogger.info(
-      'Back button pressed in ConfirmEmail screen Deleting account',
-    );
-    assert(
-      password != null,
-      'Password must be provided to delete account on back press',
-    );
-    context.showLoadingDialog();
-
-    /// This back-press deletion is part of the email/password signup flow,
-    /// so isSSO is always false because this is not an OAuth user.
-    final result = await ref
-        .read(authProvider.notifier)
-        .deleteAccount(email, password!, false);
-
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (_) {
-        ///reset login status
-        ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
-        context.hideLoadingDialog();
-        appRouter.pop();
-      },
-    );
+    appRouter.pop();
   }
 
   void onContinueTap(BuildContext context, WidgetRef ref, String code) {
