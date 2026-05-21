@@ -297,9 +297,14 @@ func userIDAsInt64(v any) int64 {
 // them to Flutter. Blocks until lc.ctx is cancelled.
 func (lc *LanternCore) listenAutoSelectedEvents() {
 	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
-		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+		tag := strings.TrimSpace(evt.Selected)
+		if tag == "" {
+			slog.Debug("auto-selected server not available yet")
+			return
+		}
+		server, found, err := lc.client.GetServerByTag(lc.ctx, tag)
 		if err != nil || !found {
-			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+			slog.Error("no server found with tag", "tag", tag, "error", err)
 			return
 		}
 		jsonBytes, err := json.Marshal(server)
