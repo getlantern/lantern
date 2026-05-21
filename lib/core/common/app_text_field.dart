@@ -129,6 +129,7 @@ class AppTextField extends StatelessWidget {
                 multilineAlignment: Alignment.topLeft,
               )
             : null,
+        prefixIconConstraints: _multilineIconConstraints(),
         suffixIcon: suffixIcon != null
             ? _buildFix(
                 suffixIcon!,
@@ -136,6 +137,7 @@ class AppTextField extends StatelessWidget {
                 multilineAlignment: Alignment.topRight,
               )
             : null,
+        suffixIconConstraints: _multilineIconConstraints(),
       ),
     );
 
@@ -192,5 +194,12 @@ class AppTextField extends StatelessWidget {
         child: appAsset,
       ),
     );
+  }
+
+  BoxConstraints? _multilineIconConstraints() {
+    if (maxLines <= 1 || inputHeight == null) {
+      return null;
+    }
+    return BoxConstraints(minWidth: 48, minHeight: inputHeight!);
   }
 }
