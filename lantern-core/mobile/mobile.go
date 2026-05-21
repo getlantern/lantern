@@ -489,53 +489,11 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		applyUserDataToSettings(c, b)
+		lanterncore.ApplyUserDataToSettings(c, b)
 		return string(b), nil
 	})
 }
 
-// applyUserDataToSettings extracts the identity fields from a JSON-marshaled
-// account.UserData and pushes them through c.PatchSettings. radiance's
-// internal account.Client.setData already writes these via settings.Set,
-// but those writes don't reliably reach the canonical on-disk settings the
-// system-extension config fetcher reads from — config-new requests then
-// keep going out with the pre-login identity, the server treats the user
-// as free, and the Pro location list shrinks to the free subset.
-//
-// PatchSettings goes through the IPC layer that owns the canonical store,
-// matching the pattern AcknowledgeGooglePurchase / restoreSubscription
-// already use post-account-switch.
-func applyUserDataToSettings(c lanterncore.Core, b []byte) {
-	var resp account.UserData
-	if err := json.Unmarshal(b, &resp); err != nil {
-		slog.Error("failed to parse user data after identity change", "error", err)
-		return
-	}
-	if resp.LegacyID == 0 {
-		// Server returned no identity (e.g. device-limit on first Login
-		// attempt). radiance handles the partial-state case internally;
-		// don't push empty values through PatchSettings.
-		return
-	}
-	updates := settings.Settings{
-		settings.UserIDKey: fmt.Sprintf("%d", resp.LegacyID),
-		settings.TokenKey:  resp.LegacyToken,
-	}
-	if resp.LegacyUserData != nil {
-		if resp.LegacyUserData.UserLevel != "" {
-			updates[settings.UserLevelKey] = resp.LegacyUserData.UserLevel
-		}
-		if resp.LegacyUserData.Email != "" {
-			updates[settings.EmailKey] = resp.LegacyUserData.Email
-		}
-	}
-	if resp.Token != "" {
-		updates[settings.JwtTokenKey] = resp.Token
-	}
-	if err := c.PatchSettings(updates); err != nil {
-		slog.Error("failed to apply user data to settings", "error", err)
-	}
-}
 
 func StripeSubscription(email, planID string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
@@ -572,6 +530,11 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 			if err != nil {
 				return "", err
 			}
+			// FetchUserData's internal setData updates only the calling
+			// process's settings cache; propagate the full identity
+			// (user_level, email, jwt_token) through PatchSettings too
+			// so the NE-side cache and canonical settings.json catch up.
+			lanterncore.ApplyUserDataToSettings(c, []byte(userData))
 			return userData, nil
 		}
 		/// Purchase was made on the same account, just return "" to indicate success
@@ -604,6 +567,7 @@ func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
 				return "", err
 			}
 			slog.Debug("fetched user data after account switch", "userdata", userData)
+			lanterncore.ApplyUserDataToSettings(c, []byte(userData))
 			return userData, nil
 		}
 		/// Purchase was made on the same account, just return "" to indicate success
@@ -641,6 +605,15 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 		}); err != nil {
 			return "", fmt.Errorf("error updating settings after account switch: %v", err)
 		}
+		// Propagate the full identity (user_level, email, jwt_token) too —
+		// PatchSettings above only covers user_id + token; without this the
+		// post-restore user_level can stay stale on the canonical settings
+		// store until the next FetchUserData triggered elsewhere.
+		if userData, err := FetchUserData(); err != nil {
+			slog.Warn("failed to refresh user data after restore account switch", "error", err)
+		} else {
+			lanterncore.ApplyUserDataToSettings(c, []byte(userData))
+		}
 	}
 	return data, nil
 }
@@ -669,7 +642,7 @@ func Login(email, password string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		applyUserDataToSettings(c, b)
+		lanterncore.ApplyUserDataToSettings(c, b)
 		return string(b), nil
 	})
 }
@@ -695,7 +668,7 @@ func Logout(email string) (string, error) {
 		// Logout server-side returns the new anonymous user data; apply it
 		// to settings so the config fetcher sees the post-logout identity
 		// rather than the stale Pro user_id / token.
-		applyUserDataToSettings(c, b)
+		lanterncore.ApplyUserDataToSettings(c, b)
 		return string(b), nil
 	})
 }
@@ -750,7 +723,7 @@ func DeleteAccount(email, password string) (string, error) {
 		// NewUser internally after clearing the old identity); push the
 		// new id/token through PatchSettings for the same reason Logout
 		// does.
-		applyUserDataToSettings(c, b)
+		lanterncore.ApplyUserDataToSettings(c, b)
 		return string(b), nil
 	})
 }

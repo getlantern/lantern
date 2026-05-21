@@ -1170,3 +1170,58 @@ func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
 		return nil
 	}
 }
+
+// ApplyUserDataToSettings parses a JSON-marshaled account.UserData (the
+// result of an identity-changing call: Login, OAuthLoginCallback, Logout,
+// DeleteAccount, FetchUserData after an account switch) and pushes the
+// resulting user_id / token / user_level / email / jwt_token values through
+// c.PatchSettings.
+//
+// radiance's internal account.Client.setData already writes these via
+// settings.Set, but those writes only update the caller's in-process
+// settings cache. The macOS client (and others) runs radiance in two
+// processes — UI app and network extension — each with their own cache;
+// the on-disk settings.json is owned by the NE process. After login the
+// UI process knows the user is Pro, but the NE-side cache (and the
+// canonical settings.json) keep the pre-login identity, so the config
+// fetcher keeps sending /v1/config-new with the old user_id / pro_token
+// and the server treats the user as free.
+//
+// PatchSettings goes through the IPC layer that owns the canonical store,
+// matching the pattern AcknowledgeGooglePurchase / restoreSubscription
+// already use for UserIDKey + TokenKey on a cross-account purchase.
+//
+// Both lantern-core/mobile/mobile.go (gomobile path: iOS / Android /
+// macOS) and lantern-core/ffi/ffi.go (cgo path: Windows / Linux) call
+// this so all five platforms route identity updates through one place.
+func ApplyUserDataToSettings(c Core, b []byte) {
+	var resp account.UserData
+	if err := json.Unmarshal(b, &resp); err != nil {
+		slog.Error("failed to parse user data after identity change", "error", err)
+		return
+	}
+	if resp.LegacyID == 0 {
+		// Server returned no identity (e.g. device-limit on first Login
+		// attempt). radiance handles the partial-state case internally;
+		// don't push empty values through PatchSettings.
+		return
+	}
+	updates := settings.Settings{
+		settings.UserIDKey: fmt.Sprintf("%d", resp.LegacyID),
+		settings.TokenKey:  resp.LegacyToken,
+	}
+	if resp.LegacyUserData != nil {
+		if resp.LegacyUserData.UserLevel != "" {
+			updates[settings.UserLevelKey] = resp.LegacyUserData.UserLevel
+		}
+		if resp.LegacyUserData.Email != "" {
+			updates[settings.EmailKey] = resp.LegacyUserData.Email
+		}
+	}
+	if resp.Token != "" {
+		updates[settings.JwtTokenKey] = resp.Token
+	}
+	if err := c.PatchSettings(updates); err != nil {
+		slog.Error("failed to apply user data to settings", "error", err)
+	}
+}
