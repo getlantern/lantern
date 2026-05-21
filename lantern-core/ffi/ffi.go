@@ -26,6 +26,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/logs"
 	"github.com/getlantern/lantern/lantern-core/utils"
 
+	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
 )
@@ -748,8 +749,52 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
+		applyUserDataToSettings(c, bytes)
 		return C.CString(string(bytes))
 	})
+}
+
+// applyUserDataToSettings extracts the identity fields from a JSON-marshaled
+// account.UserData and pushes them through c.PatchSettings. radiance's
+// internal account.Client.setData already writes these via settings.Set,
+// but those writes don't reliably reach the canonical on-disk settings the
+// system-extension config fetcher reads from — config-new requests then
+// keep going out with the pre-login identity, the server treats the user
+// as free, and the Pro location list shrinks to the free subset.
+//
+// PatchSettings goes through the IPC layer that owns the canonical store,
+// matching the pattern the purchase / restore handlers already use
+// post-account-switch. Mirror of the same helper in lantern-core/mobile.
+func applyUserDataToSettings(c lanterncore.Core, b []byte) {
+	var resp account.UserData
+	if err := json.Unmarshal(b, &resp); err != nil {
+		slog.Error("failed to parse user data after identity change", "error", err)
+		return
+	}
+	if resp.LegacyID == 0 {
+		// Server returned no identity (e.g. device-limit on first Login
+		// attempt). radiance handles the partial-state case internally;
+		// don't push empty values through PatchSettings.
+		return
+	}
+	updates := settings.Settings{
+		settings.UserIDKey: fmt.Sprintf("%d", resp.LegacyID),
+		settings.TokenKey:  resp.LegacyToken,
+	}
+	if resp.LegacyUserData != nil {
+		if resp.LegacyUserData.UserLevel != "" {
+			updates[settings.UserLevelKey] = resp.LegacyUserData.UserLevel
+		}
+		if resp.LegacyUserData.Email != "" {
+			updates[settings.EmailKey] = resp.LegacyUserData.Email
+		}
+	}
+	if resp.Token != "" {
+		updates[settings.JwtTokenKey] = resp.Token
+	}
+	if err := c.PatchSettings(updates); err != nil {
+		slog.Error("failed to apply user data to settings", "error", err)
+	}
 }
 
 // User management
@@ -768,6 +813,7 @@ func login(_email, _password *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
+		applyUserDataToSettings(c, bytes)
 		return C.CString(string(bytes))
 	})
 }
@@ -799,6 +845,10 @@ func logout(_email *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
+		// Logout server-side returns the new anonymous user data; apply it
+		// so the config fetcher sees the post-logout identity rather than
+		// the stale Pro user_id / token.
+		applyUserDataToSettings(c, bytes)
 		return C.CString(string(bytes))
 	})
 }
@@ -940,6 +990,11 @@ func deleteAccount(_email, _password *C.char) *C.char {
 		if err != nil {
 			return SendError(err)
 		}
+		// DeleteAccount returns the new anonymous user (radiance calls
+		// NewUser internally after clearing the old identity); push the
+		// new id/token through PatchSettings for the same reason logout
+		// does.
+		applyUserDataToSettings(c, bytes)
 		return C.CString(string(bytes))
 	})
 }
