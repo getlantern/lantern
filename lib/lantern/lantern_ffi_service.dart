@@ -757,6 +757,7 @@ class LanternFFIService implements LanternCoreService {
             .toDartString();
       });
 
+      checkAPIError(result);
       return right(result);
     } catch (e) {
       return Left(e.toFailure());
@@ -923,6 +924,7 @@ class LanternFFIService implements LanternCoreService {
             )
             .toDartString();
       });
+      checkAPIError(result);
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('error payment redirect', e, stackTrace);
