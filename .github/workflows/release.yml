@@ -630,10 +630,27 @@ jobs:
 
           upload_if_exists() {
             local file="$1"
-            if [[ -f "$file" ]]; then
-              echo "Uploading $file to GitHub release..."
-              gh release upload "$RELEASE_TAG" "$file" --clobber
+            if [[ ! -f "$file" ]]; then
+              return 0
             fi
+            echo "Uploading $file to GitHub release..."
+            local deadline=$(( SECONDS + 600 ))
+            local delay=5 attempt=0
+            while :; do
+              attempt=$((attempt + 1))
+              if gh release upload "$RELEASE_TAG" "$file" --clobber; then
+                echo "Uploaded $file on attempt $attempt"
+                return 0
+              fi
+              if [[ "$SECONDS" -ge "$deadline" ]]; then
+                echo "Failed to upload $file after $attempt attempts (~10 min)" >&2
+                return 1
+              fi
+              echo "Upload failed (attempt $attempt); retrying in ${delay}s..." >&2
+              sleep "$delay"
+              delay=$(( delay * 2 ))
+              [[ "$delay" -gt 60 ]] && delay=60
+            done
           }
 
           upload_if_exists "lantern-installer-dmg/${FULL_NAME}.dmg"
