@@ -14,8 +14,6 @@ on:
         type: choice
         options:
           - nightly
-          - production
-          - beta
         default: nightly
       platforms:
         description: "Platforms to build ('all', or 'macos,linux,android,ios,windows')"
@@ -105,12 +103,17 @@ jobs:
               LINUX_ARCH="${{ github.event.inputs.linux_arch }}"
 
               case "$BUILD_TYPE" in
-                nightly|beta)
+                nightly)
                   VERSION=$(./scripts/ci/version.sh generate "$BUILD_TYPE")
                   RELEASE_TAG="v${VERSION}"
                   ;;
-                production)
-                  echo "Error: Production builds must use git tags, not manual dispatch" >&2
+                beta|production)
+                  echo "Error: $BUILD_TYPE builds must use git tags, not manual dispatch" >&2
+                  echo "  Push a tag like 'v1.2.3-beta' (beta) or 'v1.2.3' (production) instead." >&2
+                  exit 1
+                  ;;
+                *)
+                  echo "Error: Unknown build_type '$BUILD_TYPE'" >&2
                   exit 1
                   ;;
               esac
