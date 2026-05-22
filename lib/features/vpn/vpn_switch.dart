@@ -13,16 +13,14 @@ class VPNSwitch extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AsyncValue<LanternStatus>>(
-      vPNStatusProvider,
-      (previous, next) {
-        if (next is AsyncData<LanternStatus> &&
-            next.value.status == VPNStatus.error) {
-          context.showSnackBar(
-              next.value.error ?? 'error_while_vpn_connection'.i18n);
-        }
-      },
-    );
+    ref.listen<AsyncValue<LanternStatus>>(vPNStatusProvider, (previous, next) {
+      if (next is AsyncData<LanternStatus> &&
+          next.value.status == VPNStatus.error) {
+        context.showSnackBar(
+          next.value.error ?? 'error_while_vpn_connection'.i18n,
+        );
+      }
+    });
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
@@ -89,45 +87,41 @@ class VPNSwitch extends HookConsumerWidget {
     if (PlatformUtils.isMacOS) {
       final systemExtensionStatus = ref.read(macosExtensionProvider);
       if (!systemExtensionStatus.isReady) {
-        await appRouter.push(const MacOSExtensionDialog());
-        if (!context.mounted) return;
-        if (!ref.read(macosExtensionProvider).isReady) return;
+        appRouter.push(const MacOSExtensionDialog()).then((value) {
+          if (value != null && value as bool) {
+            onVPNStateChange(ref, context);
+          }
+        });
+        return;
       }
     }
 
-    final result =
-        await ref.read(vpnProvider.notifier).onVPNStateChange(context);
+    final result = await ref
+        .read(vpnProvider.notifier)
+        .onVPNStateChange(context);
 
     if (!context.mounted) return;
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult = await ref
-                  .read(vpnProvider.notifier)
-                  .startVPN(skipConflictCheck: true);
-              if (!context.mounted) return;
-              retryResult.fold(
-                (failure) {
-                  context.showSnackBar(failure.localizedErrorMessage);
-                  appLogger.error(
-                      "Error changing VPN state: ${failure.error}");
-                },
-                (_) => null,
-              );
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-          appLogger.error(
-              "Error changing VPN state: ${failure.error}");
-        }
-      },
-      (_) => null,
-    );
+    result.fold((failure) {
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .startVPN(skipConflictCheck: true);
+            if (!context.mounted) return;
+            retryResult.fold((failure) {
+              context.showSnackBar(failure.localizedErrorMessage);
+              appLogger.error("Error changing VPN state: ${failure.error}");
+            }, (_) => null);
+          },
+        );
+      } else {
+        context.showSnackBar(failure.localizedErrorMessage);
+        appLogger.error("Error changing VPN state: ${failure.error}");
+      }
+    }, (_) => null);
   }
 
   Color _wrapperColor(VPNStatus vpnStatus, BuildContext context) {
