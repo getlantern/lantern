@@ -5,6 +5,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
@@ -25,6 +26,11 @@ abstract interface class ReportIssueAttachmentPicker {
 
 class PlatformReportIssueAttachmentPicker
     implements ReportIssueAttachmentPicker {
+  final image_picker.ImagePicker _imagePicker;
+
+  PlatformReportIssueAttachmentPicker({image_picker.ImagePicker? imagePicker})
+    : _imagePicker = imagePicker ?? image_picker.ImagePicker();
+
   @visibleForTesting
   static List<XTypeGroup> get acceptedTypeGroups => _acceptedTypeGroups;
 
@@ -45,6 +51,14 @@ class PlatformReportIssueAttachmentPicker
   @override
   Future<List<ReportIssueAttachment>> pickImages() async {
     try {
+      if (Platform.isIOS) {
+        final files = await _imagePicker.pickMultiImage(
+          limit: ReportIssueAttachmentRulesUtils.maxCount,
+          requestFullMetadata: false,
+        );
+        return _load(files);
+      }
+
       final files = await openFiles(acceptedTypeGroups: _acceptedTypeGroups);
       return _load(files);
     } catch (error, stackTrace) {
