@@ -23,10 +23,13 @@ class AppDelegate: FlutterAppDelegate {
       return true
     }
 
-    mainFlutterWindow?.deminiaturize(nil)
-    mainFlutterWindow?.makeKeyAndOrderFront(nil)
+    sender.unhide(nil)
+    if let window = mainFlutterWindow {
+      window.deminiaturize(nil)
+      window.makeKeyAndOrderFront(nil)
+    }
     sender.activate(ignoringOtherApps: true)
-    return false
+    return true
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
