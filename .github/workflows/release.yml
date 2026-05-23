@@ -845,7 +845,7 @@ jobs:
           while [ "$attempt" -lt "$max_retries" ]; do
             attempt=$((attempt + 1))
             echo "Deleting release $RELEASE_TAG (attempt $attempt/$max_retries)..."
-            if delete_output="$(gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>&1)"; then
+            if delete_output="$(gh release delete "$RELEASE_TAG" --yes 2>&1)"; then
               echo "$delete_output"
               echo "Release $RELEASE_TAG deleted"
               break
