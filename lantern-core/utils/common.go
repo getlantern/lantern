@@ -11,6 +11,12 @@ type Opts struct {
 	LogLevel         string
 	Locale           string
 	Env              string
+	// Mcc is the network Mobile Country Code, read by the host from
+	// the cellular stack (Android: first 3 chars of
+	// TelephonyManager.getNetworkOperator()). Empty on WiFi-only,
+	// no cellular signal, or platforms that don't expose it. Used
+	// by radiance to gate activation of the heavier meek transport.
+	Mcc              string
 	TelemetryConsent bool
 	Platform         PlatformInterface
 }

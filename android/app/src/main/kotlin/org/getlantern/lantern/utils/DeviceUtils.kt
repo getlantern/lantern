@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
 
@@ -39,6 +40,24 @@ object DeviceUtil {
 
     fun deviceOs(): String {
         return String.format("Android-%s", Build.VERSION.RELEASE)
+    }
+
+    // networkMcc returns the 3-digit Mobile Country Code of the cell
+    // tower the device is currently camped on. Empty string when
+    // unavailable (WiFi-only device, no signal, no telephony service).
+    // No runtime permission is required; networkOperator reflects the
+    // tower we're registered with regardless of which SIM is inserted.
+    fun networkMcc(context: Context): String {
+        return try {
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                ?: return ""
+            if (tm.phoneType == TelephonyManager.PHONE_TYPE_NONE) return ""
+            val op = tm.networkOperator ?: ""
+            if (op.length >= 3) op.substring(0, 3) else ""
+        } catch (e: Exception) {
+            AppLogger.w("DeviceUtil", "Failed to read network MCC: ${e.message}")
+            ""
+        }
     }
 
     fun model(): String {

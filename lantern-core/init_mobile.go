@@ -18,6 +18,7 @@ func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
 		DeviceID:         opts.Deviceid,
 		LogLevel:         opts.LogLevel,
 		Locale:           opts.Locale,
+		MCC:              opts.Mcc,
 		TelemetryConsent: opts.TelemetryConsent,
 	}
 	return ipc.NewClient(ctx, backendOpts)

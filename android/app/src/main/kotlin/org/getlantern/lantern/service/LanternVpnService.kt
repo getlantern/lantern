@@ -575,6 +575,7 @@ class LanternVpnService :
                 logLevel = "trace"
                 deviceid = DeviceUtil.deviceId()
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+                mcc = DeviceUtil.networkMcc(this@LanternVpnService)
                 telemetryConsent = isTelemetryEnabled()
                 env = getRadianceEnv()
                 platform = this@LanternVpnService

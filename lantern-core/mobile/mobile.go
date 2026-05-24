@@ -294,6 +294,7 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 			Locale:            opts.Locale,
 			LogLevel:          opts.LogLevel,
 			DeviceID:          opts.Deviceid,
+			MCC:               opts.Mcc,
 			TelemetryConsent:  opts.TelemetryConsent,
 			PlatformInterface: platform,
 		}
