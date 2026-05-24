@@ -90,7 +90,7 @@ func getClient() (*ipc.Client, error) {
 }
 
 // SetQAEnvOverrides applies QA-only environment overrides before Radiance starts.
-func SetQAEnvOverrides(outboundSocks, tz string) error {
+func SetQAEnvOverrides(outboundSocks, tz, forceMeekOnly string) error {
 	if outboundSocks != "" {
 		if err := os.Setenv("RADIANCE_OUTBOUND_SOCKS_ADDRESS", outboundSocks); err != nil {
 			return fmt.Errorf("set RADIANCE_OUTBOUND_SOCKS_ADDRESS: %w", err)
@@ -102,6 +102,12 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 			return fmt.Errorf("set TZ: %w", err)
 		}
 		slog.Info("QA env override set", "name", "TZ", "value", tz)
+	}
+	if forceMeekOnly != "" {
+		if err := os.Setenv("RADIANCE_FORCE_MEEK_ONLY", forceMeekOnly); err != nil {
+			return fmt.Errorf("set RADIANCE_FORCE_MEEK_ONLY: %w", err)
+		}
+		slog.Info("QA env override set", "name", "RADIANCE_FORCE_MEEK_ONLY", "value", forceMeekOnly)
 	}
 	return nil
 }

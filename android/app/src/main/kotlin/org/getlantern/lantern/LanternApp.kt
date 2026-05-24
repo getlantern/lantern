@@ -40,10 +40,11 @@ class LanternApp : Application() {
         try {
             val outboundSocks = systemProp("debug.lantern.outbound_socks").trim()
             val tz = systemProp("debug.lantern.tz").trim()
-            if (outboundSocks.isEmpty() && tz.isEmpty()) return
+            val forceMeekOnly = systemProp("debug.lantern.force_meek_only").trim()
+            if (outboundSocks.isEmpty() && tz.isEmpty() && forceMeekOnly.isEmpty()) return
 
-            Mobile.setQAEnvOverrides(outboundSocks, tz)
-            Log.i(TAG, "QA env overrides applied: outbound_socks=$outboundSocks tz=$tz")
+            Mobile.setQAEnvOverrides(outboundSocks, tz, forceMeekOnly)
+            Log.i(TAG, "QA env overrides applied: outbound_socks=$outboundSocks tz=$tz force_meek_only=$forceMeekOnly")
         } catch (e: Throwable) {
             Log.e(TAG, "Failed to apply QA env overrides", e)
         }
