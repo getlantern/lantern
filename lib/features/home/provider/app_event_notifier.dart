@@ -6,6 +6,7 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -83,6 +84,9 @@ class AppEventNotifier extends _$AppEventNotifier {
           } catch (e) {
             appLogger.error('Error parsing server-location event: $e');
           }
+          break;
+        case 'country-code':
+          ref.read(countryCodeProvider.notifier).update(event.message);
           break;
         case 'data-cap-event':
           try {

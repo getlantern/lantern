@@ -99,7 +99,6 @@ dependencies:
   # Utils
   fpdart: ^1.2.0
   jwt_decoder: ^2.0.1
-  country_flags: ^4.1.2
   mobile_scanner: ^7.2.0
   device_info_plus: ^12.3.0
 
@@ -125,6 +124,7 @@ dependencies:
   file_selector: ^1.1.0
   desktop_drop: ^0.7.1
   cross_file: ^0.3.5+2
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -157,6 +157,11 @@ flutter:
         - windows
         - macos
         - linux
+    # Scoped to windows (not declared under `fonts:`) so the .ttf stays out
+    # of the Android APK. Loaded at runtime via FontLoader.
+    - path: assets/fonts/TwemojiMozilla.ttf
+      platforms:
+        - windows
     - assets/locales/
     - app.env
 

@@ -32,7 +32,6 @@ class AppTextField extends StatelessWidget {
   final Widget? counter;
   final List<String>? autofillHints;
   final bool? autofocus;
-  final double? inputHeight;
   final bool expands;
   final double? labelLeftPadding;
 
@@ -63,7 +62,6 @@ class AppTextField extends StatelessWidget {
     this.counter,
     this.autofillHints,
     this.autofocus,
-    this.inputHeight,
     this.expands = false,
     this.labelLeftPadding,
   });
@@ -72,7 +70,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isMultiline = maxLines > 1;
-    Widget inputField = TextFormField(
+    final inputField = TextFormField(
       key: fieldKey,
       autofocus: autofocus ?? false,
       textAlign: TextAlign.start,
@@ -120,7 +118,8 @@ class AppTextField extends StatelessWidget {
         fillColor: enable
             ? context
                   .bgElevated // bg.input = bg.elevated
-            : context.bgCallout, // bg.callout for disabled
+            : context.bgCallout,
+        // bg.callout for disabled
         hintText: hintText,
         prefixIcon: prefixIcon != null
             ? _buildFix(
@@ -129,6 +128,7 @@ class AppTextField extends StatelessWidget {
                 multilineAlignment: Alignment.topLeft,
               )
             : null,
+        prefixIconConstraints: _multilineIconConstraints(),
         suffixIcon: suffixIcon != null
             ? _buildFix(
                 suffixIcon!,
@@ -138,10 +138,6 @@ class AppTextField extends StatelessWidget {
             : null,
       ),
     );
-
-    if (inputHeight != null) {
-      inputField = SizedBox(height: inputHeight, child: inputField);
-    }
 
     // If a label is provided, wrap the input field in a Column with a Text widget above.
     if (label != null) {
@@ -188,9 +184,17 @@ class AppTextField extends StatelessWidget {
       child: Align(
         alignment: isMultiline ? multilineAlignment : Alignment.center,
         widthFactor: 1.0,
-        heightFactor: 1.0,
+        heightFactor: isMultiline ? null : 1.0,
         child: appAsset,
       ),
     );
+  }
+
+  BoxConstraints? _multilineIconConstraints() {
+    if (maxLines <= 1) {
+      return null;
+    }
+    final approxLineHeight = 24.h;
+    return BoxConstraints(minWidth: 48, minHeight: approxLineHeight * maxLines);
   }
 }

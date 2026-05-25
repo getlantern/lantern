@@ -35,6 +35,7 @@ type EventType = string
 const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
+	EventTypeCountryCode    EventType = "country-code"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -296,9 +297,14 @@ func userIDAsInt64(v any) int64 {
 // them to Flutter. Blocks until lc.ctx is cancelled.
 func (lc *LanternCore) listenAutoSelectedEvents() {
 	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
-		server, found, err := lc.client.GetServerByTag(lc.ctx, evt.Selected)
+		tag := strings.TrimSpace(evt.Selected)
+		if tag == "" {
+			slog.Debug("auto-selected server not available yet")
+			return
+		}
+		server, found, err := lc.client.GetServerByTag(lc.ctx, tag)
 		if err != nil || !found {
-			slog.Error("no server found with tag", "tag", evt.Selected, "error", err)
+			slog.Error("no server found with tag", "tag", tag, "error", err)
 			return
 		}
 		jsonBytes, err := json.Marshal(server)
@@ -320,6 +326,12 @@ func (lc *LanternCore) listenConfigEvents() {
 	err := lc.client.ConfigEvents(lc.ctx, func() {
 		slog.Debug("Config updated, notifying Flutter")
 		lc.notifyFlutter(EventTypeConfig, "")
+		// Forward the country from the latest config fetch.
+		countryCode, _ := lc.settings()[settings.CountryCodeKey].(string)
+		if countryCode != "" {
+			slog.Debug("Config event: country code updated", "countryCode", countryCode)
+			lc.notifyFlutter(EventTypeCountryCode, countryCode)
+		}
 	})
 	if err != nil && lc.ctx.Err() == nil {
 		slog.Error("config event stream exited unexpectedly", "error", err)

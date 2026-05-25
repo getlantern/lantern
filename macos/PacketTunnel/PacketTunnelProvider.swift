@@ -49,14 +49,14 @@ public class PacketTunnelProvider: ExtensionProvider {
       break
     case "Lantern":
       appLogger.info("Received Lantern command")
-        appLogger.info("VPN already active connecting to Lantern/auto")
-        connectToServer(serverName: "auto") { success, errorMessage in
-          if success {
-            respond(["result": "Connected to auto tag"])
-          } else {
-            respond(["error": errorMessage ?? "Unknown error"])
-          }
+      appLogger.info("VPN already active connecting to Lantern/auto")
+      connectToServer(serverName: "auto") { success, errorMessage in
+        if success {
+          respond(["result": "Connected to auto tag"])
+        } else {
+          respond(["error": errorMessage ?? "Unknown error"])
         }
+      }
 
     default:
       respond(["error": "Unknown method"])

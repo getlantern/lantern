@@ -1,15 +1,11 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 
-import '../../core/utils/ip_utils.dart' show IPUtils;
-
-enum _Social {
-  x,
-  instagram,
-  telegram,
-}
+enum _Social { x, instagram, telegram }
 
 @RoutePage(name: 'FollowUs')
 class FollowUs extends StatelessWidget {
@@ -21,34 +17,21 @@ class FollowUs extends StatelessWidget {
   }
 
   Widget _buildBody() {
-    return Card(
-      child: FollowUsListView(),
-    );
+    return Card(child: FollowUsListView());
   }
 }
 
-class FollowUsListView extends HookWidget {
+class FollowUsListView extends ConsumerWidget {
   final ScrollController? scrollController;
 
-  const FollowUsListView({
-    super.key,
-    this.scrollController,
-  });
+  const FollowUsListView({super.key, this.scrollController});
 
   @override
-  Widget build(BuildContext context) {
-    final selectedCountry = useState<String>('ALL');
-    useEffect(() {
-      IPUtils.getUserCountry().then((country) {
-        appLogger.debug('User country: $country');
-        if (IPUtils.censoredRegion.contains(country)) {
-          selectedCountry.value = country ?? 'ALL';
-        } else {
-          selectedCountry.value = 'ALL';
-        }
-      });
-      return null;
-    }, []);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final country = ref.watch(countryCodeProvider).toUpperCase();
+    final selectedCountry = CountryCode.censoredRegions.contains(country)
+        ? country
+        : 'ALL';
 
     final countryMap = {
       //Russia
@@ -81,33 +64,33 @@ class FollowUsListView extends HookWidget {
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       children: [
-        if (countryMap[selectedCountry.value]![_Social.telegram]!.isNotEmpty &&
-            IPUtils.censoredRegion.contains(selectedCountry.value))
+        if (countryMap[selectedCountry]![_Social.telegram]!.isNotEmpty &&
+            CountryCode.censoredRegions.contains(selectedCountry))
           AppTile.link(
             label: 'telegram'.i18n,
             icon: AppImagePaths.telegram,
-            url: countryMap[selectedCountry.value]![_Social.telegram]!,
+            url: countryMap[selectedCountry]![_Social.telegram]!,
           ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DividerSpace(),
         ),
-        if (countryMap[selectedCountry.value]![_Social.instagram]!.isNotEmpty &&
-            selectedCountry.value != 'CN')
+        if (countryMap[selectedCountry]![_Social.instagram]!.isNotEmpty &&
+            selectedCountry != 'CN')
           AppTile.link(
             label: 'instagram'.i18n,
             icon: AppImagePaths.instagram,
-            url: countryMap[selectedCountry.value]![_Social.instagram]!,
+            url: countryMap[selectedCountry]![_Social.instagram]!,
           ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DividerSpace(),
         ),
-        if (countryMap[selectedCountry.value]![_Social.x]!.isNotEmpty)
+        if (countryMap[selectedCountry]![_Social.x]!.isNotEmpty)
           AppTile.link(
             label: 'x'.i18n,
             icon: AppImagePaths.x,
-            url: countryMap[selectedCountry.value]![_Social.x]!,
+            url: countryMap[selectedCountry]![_Social.x]!,
           ),
       ],
     );

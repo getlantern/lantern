@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
-import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/widgets/censored_dialog.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 import '../../features/auth/provider/auth_notifier.dart';
@@ -59,48 +60,39 @@ class OAuthLogin extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) async {
-    if (await _isRegionAllowed(ref, context)) {
-      await oAuthLogin(type, ref, context);
-    }
+    final allowed = await _isRegionAllowed(ref, context);
+    if (!allowed || !context.mounted) return;
+    await oAuthLogin(type, ref, context);
   }
 
   Future<bool> _isRegionAllowed(WidgetRef ref, BuildContext context) async {
     final vpnStatus = ref.read(vpnProvider);
     if (vpnStatus == VPNStatus.connected) return true;
 
-    try {
-      context.showLoadingDialog();
-      final country = await IPUtils.getUserCountry();
-      context.hideLoadingDialog();
+    final country = ref.read(countryCodeProvider);
 
-      // Proceed if country is unknown or not censored
-      if (country == null || !IPUtils.censoredRegion.contains(country)) {
-        return true;
-      }
-
-      return await _promptVpn(ref, context);
-    } catch (e) {
-      appLogger.error('Region check failed: $e');
-      context.hideLoadingDialog();
-      return true; // fallback to allow login
+    // Proceed if country is unknown or not censored.
+    if (country.isEmpty ||
+        !CountryCode.censoredRegions.contains(country.toUpperCase())) {
+      return true;
     }
+    return await _promptVpn(ref, context);
   }
 
-  Future<bool> _promptVpn(
-    WidgetRef ref,
-    BuildContext context,
-  ) async {
+  Future<bool> _promptVpn(WidgetRef ref, BuildContext context) async {
     await showDialog(
       context: context,
-      builder: (context) => CensoredDialog(
-        done: () => oAuthLogin(methodType, ref, context),
-      ),
+      builder: (context) =>
+          CensoredDialog(done: () => oAuthLogin(methodType, ref, context)),
     );
     return true;
   }
 
   Future<void> oAuthLogin(
-      SignUpMethodType type, WidgetRef ref, BuildContext context) async {
+    SignUpMethodType type,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     context.showLoadingDialog();
     final result = await ref.read(authProvider.notifier).oAuthLogin(type.name);
     result.fold(
@@ -121,7 +113,7 @@ class OAuthLogin extends HookConsumerWidget {
             }
           });
 
-          /// For mobile we have to use system default browser
+          // Mobile sign-in needs the system browser for the deep link.
           UrlUtils.openWithSystemBrowser(url);
         } else {
           UrlUtils.openWebview<Map<String, dynamic>>(

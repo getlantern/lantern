@@ -4,14 +4,13 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/card_dropdown.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
-import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
-import 'package:lantern/features/report_issue/provider/attachment_budget.dart';
+import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
-import 'package:lantern/core/widgets/card_dropdown.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends ConsumerStatefulWidget {
@@ -127,12 +126,11 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 controller: _descriptionController,
                 hintText: '',
                 label: 'issue_description'.i18n,
-                suffixIcon: Icons.description_outlined,
+                prefixIcon: Icons.description_outlined,
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
-                maxLines: 10,
-                expands: true,
-                inputHeight: 132,
+                maxLines: 7,
+                expands: false,
                 labelLeftPadding: 16,
               ),
               const SizedBox(height: 16),
@@ -255,17 +253,11 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       return;
     }
 
-    final reservedBytes = await ref
-        .read(reportIssueAttachmentBudgetProvider)
-        .reservedBytes();
-
     if (!mounted) {
       return;
     }
 
-    ref
-        .read(reportIssueDraftProvider.notifier)
-        .addAttachments(attachments, reservedBytes: reservedBytes);
+    ref.read(reportIssueDraftProvider.notifier).addAttachments(attachments);
   }
 
   void _clearDraft() {
@@ -495,10 +487,9 @@ class _IssueTypeField extends StatelessWidget {
           formFieldKey: fieldKey,
           value: selectedIssue,
           prefixIcon: Icon(Icons.error_outline, color: context.textPrimary),
-          items: options
+          entries: options
               .map(
-                (issue) =>
-                    DropdownMenuItem<String>(value: issue, child: Text(issue)),
+                (issue) => DropdownMenuEntry<String>(value: issue, label: issue),
               )
               .toList(),
           validator: (value) {
