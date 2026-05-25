@@ -66,7 +66,7 @@ private class LogEntryListener: NSObject, UtilsLogListenerProtocol {
     self.onEntry = onEntry
   }
 
-    func onLogEntry(_ entry: String?) {
-        onEntry(entry ?? "")
+  func onLogEntry(_ entry: String?) {
+    onEntry(entry ?? "")
   }
 }

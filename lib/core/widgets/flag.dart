@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
-/// Country flag from an ISO 3166-1 alpha-2 code, rendered as a regional
-/// indicator emoji by the system font (e.g. "IR" → 🇮🇷). Platforms that
-/// drop part of the flag set (some de-Googled Android forks, vendor fonts
-/// without TW) fall back to the two-letter glyphs.
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
+
+/// Country flag from an ISO 3166-1 alpha-2 code. On Windows we route the
+/// Text through a bundled Twemoji Mozilla font because Segoe UI Emoji has no
+/// flag-sequence ligatures.
 class Flag extends StatelessWidget {
   final String countryCode;
   final Size size;
@@ -13,6 +15,20 @@ class Flag extends StatelessWidget {
     required this.countryCode,
     this.size = const Size(25, 18),
   });
+
+  static const String _windowsEmojiFontFamily = 'Twemoji Mozilla';
+  static bool _windowsEmojiFontLoaded = false;
+
+  /// Windows-only; load .ttf is platform-scoped
+  static Future<void> ensureFontLoaded() async {
+    if (!Platform.isWindows || _windowsEmojiFontLoaded) return;
+    try {
+      final loader = FontLoader(_windowsEmojiFontFamily)
+        ..addFont(rootBundle.load('assets/fonts/TwemojiMozilla.ttf'));
+      await loader.load();
+      _windowsEmojiFontLoaded = true;
+    } catch (_) {}
+  }
 
   /// Returns 🏳️ for invalid input so a malformed code can't blow up the UI.
   static String _countryCodeToEmoji(String code) {
@@ -40,7 +56,12 @@ class Flag extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         child: Text(
           _countryCodeToEmoji(countryCode),
-          style: TextStyle(fontSize: size.height),
+          style: TextStyle(
+            fontSize: size.height,
+            fontFamily: Platform.isWindows && _windowsEmojiFontLoaded
+                ? _windowsEmojiFontFamily
+                : null,
+          ),
         ),
       ),
     );

@@ -747,18 +747,27 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .stripeSubscriptionPaymentRedirect(
-              type.name.toCharPtr,
-              planId.toCharPtr,
-              email.toCharPtr,
-              idempotencyKey.toCharPtr,
-            )
-            .toDartString();
+        final resultPtr = _ffiService.stripeSubscriptionPaymentRedirect(
+          type.name.toCharPtr,
+          planId.toCharPtr,
+          email.toCharPtr,
+          idempotencyKey.toCharPtr,
+        );
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
 
+      checkAPIError(result);
       return right(result);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error getting stripe subscription payment redirect',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
@@ -775,8 +784,14 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> stripeBillingPortal() async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.stripeBillingPortalUrl().toDartString();
+        final resultPtr = _ffiService.stripeBillingPortalUrl();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
+      checkAPIError(result);
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error getting stipe billing', e, stackTrace);
@@ -914,15 +929,19 @@ class LanternFFIService implements LanternCoreService {
   }) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .paymentRedirect(
-              planId.toCharPtr,
-              provider.toCharPtr,
-              email.toCharPtr,
-              idempotencyKey.toCharPtr,
-            )
-            .toDartString();
+        final resultPtr = _ffiService.paymentRedirect(
+          planId.toCharPtr,
+          provider.toCharPtr,
+          email.toCharPtr,
+          idempotencyKey.toCharPtr,
+        );
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
+      checkAPIError(result);
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('error payment redirect', e, stackTrace);

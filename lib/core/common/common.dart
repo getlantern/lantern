@@ -14,6 +14,7 @@ import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -95,6 +96,12 @@ bool isStoreVersion() {
   if (!PlatformUtils.isMobile) {
     return false;
   }
+
+  // In censored regions Google Play Billing is unreachable, so Android
+  // Play Store builds use the non-store payment path.
+  if (PlatformUtils.isAndroid && CountryCode.isCensoredRegion) {
+    return false;
+  }
   if (PlatformUtils.isIOS) {
     return true;
   }
@@ -110,6 +117,10 @@ bool isStoreVersion() {
   }
 
   return !sl<StoreUtils>().isSideLoaded();
+}
+
+bool canUsePlayBilling() {
+  return PlatformUtils.isAndroid && isStoreVersion();
 }
 
 //copy to clipboard

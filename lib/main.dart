@@ -26,6 +26,7 @@ Future<void> main() async {
 
   await Future.microtask(Localization.loadTranslations);
   await configureDesktopWindow();
+  await Flag.ensureFontLoaded();
 
   if (PlatformUtils.isMobile) {
     await SystemChrome.setPreferredOrientations([
