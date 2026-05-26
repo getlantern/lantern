@@ -51,6 +51,17 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   /// the same error reproduces after the recovery deactivation.
   private var didAttemptStaleRegistryRecovery = false
 
+  /// Set after a downgrade attempt fails. Single-shot per session — macOS will
+  /// keep rejecting the same downgrade request with the same error, and each
+  /// new submission supersedes the previous one, so we stop trying until the
+  /// app is relaunched or a successful activation clears the latch.
+  private var didFailDowngradeAttempt = false
+
+  /// True while a deactivate-then-activate request currently in flight was
+  /// classified as a downgrade. Used to mark `didFailDowngradeAttempt` only
+  /// when the downgrade itself fails, not when a different deactivation fails.
+  private var pendingActionIsDowngrade = false
+
   override init() {
     super.init()
     // Query the installed extension state immediately so the status
@@ -109,6 +120,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       }
       switch context {
       case .deactivateThenActivate(_, let activateAfter):
+        // The deactivation half succeeded — clear the pending-downgrade flag
+        // so a later failure of an unrelated request can't mark a downgrade
+        // attempt as failed. The full success path clears `didFailDowngradeAttempt`
+        // in the `.activate` completion below.
+        pendingActionIsDowngrade = false
         if activateAfter {
           submitActivationRequest(
             reason: "activating bundled extension after removing mismatched version")
@@ -125,6 +141,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         // post-recovery activation surfaces as a real error rather than
         // re-entering the loop.
         didAttemptStaleRegistryRecovery = false
+        // A successful activation following a downgrade deactivation means
+        // we recovered — clear the latch so future state changes can retry.
+        didFailDowngradeAttempt = false
+        pendingActionIsDowngrade = false
         submitPropertiesRequest(context: .inspectStatus)
       case .inspectStatus, .reconcile:
         submitPropertiesRequest(context: .inspectStatus)
@@ -155,6 +175,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   ) {
     let context = clearRequestContext(for: request)
     let nsError = error as NSError
+    // Snapshot and clear the downgrade flag up front so the supersede/cancel
+    // early-return below can't leave it dirty, and so a subsequent failure
+    // of an unrelated request can't be misattributed to a downgrade.
+    let wasDowngradeAttempt = pendingActionIsDowngrade
+    pendingActionIsDowngrade = false
 
     if nsError.domain == OSSystemExtensionErrorDomain
       && (nsError.code == OSSystemExtensionError.requestCanceled.rawValue
@@ -185,6 +210,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     appLogger.error(
       "System extension request failed: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
     )
+    // If the failed request was a downgrade attempt, latch so subsequent
+    // reconciles don't keep re-submitting the same doomed deactivation.
+    if case .deactivateThenActivate? = context, wasDowngradeAttempt {
+      didFailDowngradeAttempt = true
+    }
     updateStatus(.error(nsError.localizedDescription))
   }
 
@@ -217,13 +247,23 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
           reconciliation: reconciliation
         )
 
-        self.updateStatus(reconciliation.status)
+        // When the latch has tripped a downgrade, `perform` will short-circuit
+        // to a stable error status. Skip the intermediate updatePending push
+        // so Flutter doesn't see an error→updatePending→error flap on every
+        // reconcile poll.
+        let willSkipDueToDowngradeLatch =
+          context == .reconcile
+          && reconciliation.change == .downgrade
+          && self.didFailDowngradeAttempt
+        if !willSkipDueToDowngradeLatch {
+          self.updateStatus(reconciliation.status)
+        }
 
         guard context == .reconcile else {
           return
         }
 
-        self.perform(reconciliation.action)
+        self.perform(reconciliation)
       }
     }
   }
@@ -295,16 +335,59 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     contextQueue.sync { requestContexts.removeValue(forKey: ObjectIdentifier(request)) }
   }
 
-  private func perform(_ action: SystemExtensionInstallAction) {
+  private func perform(_ reconciliation: SystemExtensionReconciliation) {
+    let action = reconciliation.action
     switch action {
     case .none:
       return
     case .activate(let reason):
+      if hasInFlightMutationRequest() {
+        appLogger.info(
+          "Skipping activation; another system extension mutation is already in flight (reason=\(reason))"
+        )
+        return
+      }
       updateStatus(.updatePending(details: reason))
       submitActivationRequest(reason: reason)
     case .deactivateThenActivate(let reason):
+      // macOS has a quirk where the registered sysext can be newer than the
+      // bundle on disk after a downgrade install. The deactivate keeps failing
+      // with `extensionNotFound`, and re-submitting on every reconcile just
+      // races itself via requestSuperseded. Only attempt the downgrade once
+      // per session; surface a stable error after that.
+      if reconciliation.change == .downgrade && didFailDowngradeAttempt {
+        appLogger.info(
+          "Skipping downgrade; already failed this session, awaiting user action or relaunch"
+        )
+        updateStatus(
+          .error(
+            "Installed system extension is newer than this app and could not be replaced automatically. Please reinstall the matching app version or remove the extension manually."
+          )
+        )
+        return
+      }
+      if hasInFlightMutationRequest() {
+        appLogger.info(
+          "Skipping deactivate-then-activate; another system extension mutation is already in flight (reason=\(reason))"
+        )
+        return
+      }
+      pendingActionIsDowngrade = reconciliation.change == .downgrade
       updateStatus(.updatePending(details: reason))
       submitDeactivationRequest(reason: reason, activateAfter: true)
+    }
+  }
+
+  private func hasInFlightMutationRequest() -> Bool {
+    contextQueue.sync {
+      requestContexts.values.contains { context in
+        switch context {
+        case .activate, .deactivateThenActivate:
+          return true
+        case .inspectStatus, .reconcile:
+          return false
+        }
+      }
     }
   }
 
