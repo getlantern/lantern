@@ -27,11 +27,11 @@ internal enum StaleRegistryRecovery {
     return isExtensionNotFound(error)
   }
 
-  static func shouldContinueAfterMissingReplacement(
+  static func shouldContinueAfterMissingDeactivation(
     from error: NSError,
-    replacementDeactivationFailed: Bool
+    activateAfterDeactivation: Bool
   ) -> Bool {
-    guard replacementDeactivationFailed else { return false }
+    guard activateAfterDeactivation else { return false }
     return isExtensionNotFound(error)
   }
 }
@@ -195,9 +195,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       return
     }
 
-    if StaleRegistryRecovery.shouldContinueAfterMissingReplacement(
+    if StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
       from: nsError,
-      replacementDeactivationFailed: context?.activatesAfterDeactivation ?? false)
+      activateAfterDeactivation: context?.activatesAfterDeactivation ?? false)
     {
       didAttemptStaleRegistryRecovery = true
       appLogger.info(

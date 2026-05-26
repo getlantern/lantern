@@ -481,9 +481,9 @@ final class RunnerTests: XCTestCase {
       code: OSSystemExtensionError.extensionNotFound.rawValue
     )
     XCTAssertTrue(
-      StaleRegistryRecovery.shouldContinueAfterMissingReplacement(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
         from: error,
-        replacementDeactivationFailed: true
+        activateAfterDeactivation: true
       )
     )
   }
@@ -494,9 +494,9 @@ final class RunnerTests: XCTestCase {
       code: OSSystemExtensionError.extensionNotFound.rawValue
     )
     XCTAssertFalse(
-      StaleRegistryRecovery.shouldContinueAfterMissingReplacement(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
         from: error,
-        replacementDeactivationFailed: false
+        activateAfterDeactivation: false
       )
     )
   }
@@ -507,9 +507,9 @@ final class RunnerTests: XCTestCase {
       code: OSSystemExtensionError.validationFailed.rawValue
     )
     XCTAssertFalse(
-      StaleRegistryRecovery.shouldContinueAfterMissingReplacement(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
         from: error,
-        replacementDeactivationFailed: true
+        activateAfterDeactivation: true
       )
     )
   }
