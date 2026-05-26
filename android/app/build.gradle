@@ -15,6 +15,28 @@ def sideloadSigningCertificateSha256 =
         hasRelProp('SIDELOAD_SIGNING_CERTIFICATE_SHA256')
                 ? project.property('SIDELOAD_SIGNING_CERTIFICATE_SHA256').toString().trim()
                 : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
+def sideloadUpdates = project.findProperty("lantern.sideloadUpdates") == "true"
+def sideloadManifestPath = "$buildDir/generated/lantern/sideload/AndroidManifest.xml"
+def generateSideloadManifest = tasks.register("generateSideloadManifest") {
+    def sourceManifest = file("src/main/AndroidManifest.xml")
+    def permissionAnchor = '    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />'
+    def sideloadInstallPermission = '    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
+    inputs.file(sourceManifest)
+    outputs.file(sideloadManifestPath)
+
+    doLast {
+        def source = sourceManifest.getText("UTF-8")
+        if (!source.contains(permissionAnchor)) {
+            throw new GradleException("Unable to place sideload install permission in AndroidManifest.xml")
+        }
+        def output = file(sideloadManifestPath)
+        output.parentFile.mkdirs()
+        output.setText(
+                source.replace(permissionAnchor, "${permissionAnchor}\n${sideloadInstallPermission}"),
+                "UTF-8"
+        )
+    }
+}
 
 def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
@@ -27,6 +49,12 @@ android {
 
     sourceSets {
         main {
+            // Keep one Android release variant. The sideload APK opts into
+            // REQUEST_INSTALL_PACKAGES with -Plantern.sideloadUpdates=true;
+            // the Play AAB uses the normal manifest and omits that permission.
+            if (sideloadUpdates) {
+                manifest.srcFile sideloadManifestPath
+            }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
         }
@@ -126,16 +154,6 @@ android {
         }
     }
 
-    flavorDimensions += "distribution"
-    productFlavors {
-        sideload {
-            dimension "distribution"
-        }
-        play {
-            dimension "distribution"
-        }
-    }
-
     buildTypes {
         debug {
             minifyEnabled false
@@ -159,6 +177,11 @@ android {
         }
     }
 
+}
+
+if (sideloadUpdates) {
+    tasks.matching { it.name.startsWith("process") && it.name.endsWith("MainManifest") }
+            .configureEach { dependsOn(generateSideloadManifest) }
 }
 
 flutter {
