@@ -516,15 +516,15 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64;
-# -Plantern.thinAbi=true tells android/app/build.gradle to drop armeabi-v7a
-# from abiFilters + add it to packagingOptions.jniLibs.excludes so the
-# arm32 libgojni.so in the AAR doesn't get packed. Sideload-APK target only.
+# -Plantern.thinAbi=true tells android/app/build.gradle to drop armeabi-v7a,
+# and -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to
+# the direct-download APK artifact. Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.thinAbi=true
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.thinAbi=true -Plantern.sideloadUpdates=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 # AAB keeps both ABIs so Play Store delivers per-ABI splits (arm64 users
