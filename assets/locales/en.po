@@ -1621,7 +1621,7 @@ msgid "up_to_date"
 msgstr "Up to date"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "You're running the latest version of Lantern %s"
 
 msgid "couldnt_check_for_updates"
 msgstr "Couldn't check for updates"

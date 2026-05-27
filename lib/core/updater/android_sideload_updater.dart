@@ -129,7 +129,7 @@ class AndroidSideloadUpdater {
 
   bool get isSupportedSideloadBuild {
     if (kIsWeb || !Platform.isAndroid) return false;
-    // if (kDebugMode) return false;
+    if (kDebugMode) return false;
     return _isSideLoaded();
   }
 
@@ -225,8 +225,6 @@ class AndroidSideloadUpdater {
         return null;
       }
       rethrow;
-    } finally {
-      if (isManual) _hideLoading();
     }
   }
 
@@ -354,7 +352,7 @@ class AndroidSideloadUpdater {
       context: context,
       title: 'couldnt_check_for_updates'.i18n,
       content: 'check_connection_and_retry'.i18n,
-      action: 'retry'.i18n,
+      action: 'ok'.i18n,
       onPressed: () {
         appRouter.maybePop();
       },
