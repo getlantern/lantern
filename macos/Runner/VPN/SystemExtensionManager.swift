@@ -5,21 +5,34 @@ import SystemExtensions
 
 /// Decides whether a failed system extension request should trigger a
 /// stale-registry recovery attempt. macOS occasionally surfaces
-/// `extensionNotFound` on an activation request when its registry holds a
-/// reference to a previously-installed extension that no longer matches the
-/// app on disk — e.g. after the .app bundle was replaced under an existing
-/// install. Submitting a deactivation request first clears that state and
-/// gives the subsequent activation a clean slot. The decision is gated to a
-/// single attempt per session so a persistent failure doesn't loop.
+/// `extensionNotFound` when its registry holds a reference to a
+/// previously-installed extension that no longer matches the app on disk —
+/// e.g. after the .app bundle was replaced under an existing install.
+/// Activation failures recover by deactivating first; replacement
+/// deactivation failures recover by continuing to the activation that was
+/// already planned. Activation retry is gated to a single attempt per session
+/// so a persistent failure doesn't loop.
 internal enum StaleRegistryRecovery {
+  private static func isExtensionNotFound(_ error: NSError) -> Bool {
+    error.domain == OSSystemExtensionErrorDomain
+      && error.code == OSSystemExtensionError.extensionNotFound.rawValue
+  }
+
   static func shouldRecover(
     from error: NSError,
     activationFailed: Bool,
     alreadyAttempted: Bool
   ) -> Bool {
     guard !alreadyAttempted, activationFailed else { return false }
-    return error.domain == OSSystemExtensionErrorDomain
-      && error.code == OSSystemExtensionError.extensionNotFound.rawValue
+    return isExtensionNotFound(error)
+  }
+
+  static func shouldContinueAfterMissingDeactivation(
+    from error: NSError,
+    activateAfterDeactivation: Bool
+  ) -> Bool {
+    guard activateAfterDeactivation else { return false }
+    return isExtensionNotFound(error)
   }
 }
 
@@ -45,10 +58,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   @Published private(set) var status: ExtensionStatus = .notInstalled
 
-  /// Set when we've issued a stale-registry recovery (deactivate-then-activate
-  /// in response to `extensionNotFound`). Reset on the next successful
-  /// completion. Single-shot per session to prevent an infinite retry loop if
-  /// the same error reproduces after the recovery deactivation.
+  /// Set when we've taken a stale-registry recovery path for
+  /// `extensionNotFound`. Reset on the next successful activation. Single-shot
+  /// per session to prevent an infinite retry loop if the same error reproduces
+  /// after recovery.
   private var didAttemptStaleRegistryRecovery = false
 
   override init() {
@@ -179,6 +192,19 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       submitDeactivationRequest(
         reason: "stale-registry recovery after extensionNotFound",
         activateAfter: true)
+      return
+    }
+
+    if StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
+      from: nsError,
+      activateAfterDeactivation: context?.activatesAfterDeactivation ?? false)
+    {
+      didAttemptStaleRegistryRecovery = true
+      appLogger.info(
+        "Replacement deactivation failed with extensionNotFound — continuing with bundled activation (context=\(context?.logDescription ?? "unknown"))"
+      )
+      submitActivationRequest(
+        reason: "activating bundled extension after missing stale extension during replacement")
       return
     }
 
@@ -371,6 +397,11 @@ private enum RequestContext: Equatable {
 
   var isActivation: Bool {
     if case .activate = self { return true }
+    return false
+  }
+
+  var activatesAfterDeactivation: Bool {
+    if case .deactivateThenActivate(_, true) = self { return true }
     return false
   }
 
