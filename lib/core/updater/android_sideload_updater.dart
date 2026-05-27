@@ -13,6 +13,7 @@ import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/core/utils/store_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -61,11 +62,9 @@ void _trackTelemetry(
 
 class AndroidSideloadUpdater {
   AndroidSideloadUpdater({
-    Uri? endpoint,
     http.Client? httpClient,
     AndroidSideloadInstaller? installer,
-  }) : endpoint = endpoint ?? Uri.parse(AppUrls.androidSideloadUpdateEndpoint),
-       _httpClient = httpClient,
+  }) : _httpClient = httpClient,
        _installer = installer ?? installSideloadUpdate;
 
   static const firstPromptDelay = Duration(seconds: 45);
@@ -74,13 +73,15 @@ class AndroidSideloadUpdater {
   static const _lastStartupCheckAtKey =
       'android_sideload_update_last_startup_check_at';
 
-  final Uri endpoint;
+  final Uri endpoint = Uri.parse(AppUrls.androidSideloadUpdateEndpoint);
   final http.Client? _httpClient;
   final AndroidSideloadInstaller _installer;
 
   bool _initialized = false;
   String? _lastPromptedVersion;
 
+  /// Schedules the first throttled startup update check after a short delay.
+  /// Runs once per instance and is a no-op when the updater is disabled.
   Future<void> init(Map<String, dynamic> flags) async {
     if (_initialized) return;
     _initialized = true;
@@ -89,7 +90,7 @@ class AndroidSideloadUpdater {
     unawaited(
       Future<void>.delayed(firstPromptDelay, () async {
         try {
-          await checkNow(
+          await checkForUpdate(
             promptIfAvailable: true,
             source: AndroidSideloadUpdateCheckSource.startup,
             respectStartupThrottle: true,
@@ -101,6 +102,7 @@ class AndroidSideloadUpdater {
     );
   }
 
+  /// Whether sideload auto-updates should run, based on build type and flags.
   bool isEnabled(Map<String, dynamic> flags, {bool logDisabled = false}) {
     if (!isSupportedSideloadBuild) return false;
     if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
@@ -131,7 +133,9 @@ class AndroidSideloadUpdater {
     return _isSideLoaded();
   }
 
-  Future<AndroidSideloadUpdate?> checkNow({
+  /// Queries the update endpoint and returns a newer [AndroidSideloadUpdate],
+  /// or null when none is available. Optionally prompts the user to install it.
+  Future<AndroidSideloadUpdate?> checkForUpdate({
     bool promptIfAvailable = true,
     AndroidSideloadUpdateCheckSource source =
         AndroidSideloadUpdateCheckSource.manual,
@@ -156,27 +160,35 @@ class AndroidSideloadUpdater {
       await _markStartupCheckAttempted();
     }
 
+    // User-initiated checks show a loading overlay and a result dialog for
+    // every outcome; background startup checks stay silent.
+    final isManual = source == AndroidSideloadUpdateCheckSource.manual;
+    if (isManual) _showLoading();
+
     appLogger.info(
       'Checking for Android sideload update (source=${source.name})',
     );
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final androidInfo = await DeviceInfoPlugin().androidInfo;
-      final response = await _requestUpdate(packageInfo, androidInfo);
-      if (response == null) {
-        _trackCheckResult(source: source, result: 'no_update');
-        return null;
-      }
-      if (!isAndroidUpdateVersionNewer(response.version, packageInfo.version)) {
+      final response = await _fetchUpdate(packageInfo, androidInfo);
+
+      // No payload, or the offered build isn't newer: we're up to date.
+      if (response == null ||
+          !isAndroidUpdateVersionNewer(response.version, packageInfo.version)) {
         appLogger.info(
-          'Ignoring Android sideload update ${response.version}; '
-          'current version is ${packageInfo.version}',
+          'Android sideload check: already up to date '
+          '(current ${packageInfo.version})',
         );
         _trackCheckResult(
           source: source,
-          result: 'not_newer',
-          version: response.version,
+          result: response == null ? 'no_update' : 'not_newer',
+          version: response?.version,
         );
+        if (isManual) {
+          _hideLoading();
+          _showUpToDateDialog(packageInfo.version);
+        }
         return null;
       }
 
@@ -194,11 +206,10 @@ class AndroidSideloadUpdater {
         'version': response.version,
       });
 
+      // Dismiss the loader before the prompt dialog so they don't overlap.
+      if (isManual) _hideLoading();
       if (promptIfAvailable) {
-        await _promptUpdate(
-          response,
-          forcePrompt: source == AndroidSideloadUpdateCheckSource.manual,
-        );
+        await _promptUpdate(response, forcePrompt: isManual);
       }
       return response;
     } catch (e) {
@@ -207,11 +218,21 @@ class AndroidSideloadUpdater {
         result: 'failed',
         error: androidSideloadErrorDescription(e),
       );
+
+      if (isManual) {
+        _hideLoading();
+        _showCheckFailedDialog();
+        return null;
+      }
       rethrow;
+    } finally {
+      if (isManual) _hideLoading();
     }
   }
 
-  Future<AndroidSideloadUpdate?> _requestUpdate(
+  /// Posts the current build/device info to the endpoint and parses the
+  /// response. Returns null on HTTP 204 (no update available).
+  Future<AndroidSideloadUpdate?> _fetchUpdate(
     PackageInfo packageInfo,
     AndroidDeviceInfo androidInfo,
   ) async {
@@ -260,6 +281,9 @@ class AndroidSideloadUpdater {
     }
   }
 
+  /// Routes an available [update] to the on-screen dialog, falling back to a
+  /// notification when no UI context is available. Skips repeat prompts for the
+  /// same version unless [forcePrompt] is set.
   Future<void> _promptUpdate(
     AndroidSideloadUpdate update, {
     bool forcePrompt = false,
@@ -272,7 +296,12 @@ class AndroidSideloadUpdater {
       await _showUpdateNotification(update);
       return;
     }
+    _showUpdateAvailableDialog(update);
+  }
 
+  void _showUpdateAvailableDialog(AndroidSideloadUpdate update) {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
     AppDialog.customDialog(
       context: context,
       content: Column(
@@ -285,22 +314,18 @@ class AndroidSideloadUpdater {
           ),
           SizedBox(height: defaultSize),
           Text(
-            'android_sideload_update_available_message'.i18n.fill([
-              update.version,
-            ]),
+            'update_ready_to_install'.i18n.fill([update.version]),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
       action: [
         AppTextButton(
-          label: 'not_now'.i18n,
-          onPressed: () {
-            appRouter.maybePop();
-          },
+          label: 'later'.i18n,
+          onPressed: () => appRouter.maybePop(),
         ),
         AppTextButton(
-          label: 'download_and_install_update'.i18n,
+          label: 'update_now'.i18n,
           onPressed: () {
             unawaited(() async {
               await appRouter.maybePop();
@@ -312,6 +337,31 @@ class AndroidSideloadUpdater {
     );
   }
 
+  void _showUpToDateDialog(String currentVersion) {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    AppDialog.dialog(
+      context: context,
+      title: 'up_to_date'.i18n,
+      content: 'running_latest_version'.i18n.fill([currentVersion]),
+    );
+  }
+
+  void _showCheckFailedDialog() {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    AppDialog.dialog(
+      context: context,
+      title: 'couldnt_check_for_updates'.i18n,
+      content: 'check_connection_and_retry'.i18n,
+      action: 'retry'.i18n,
+      onPressed: () {
+        appRouter.maybePop();
+      },
+    );
+  }
+
+  /// Posts a local notification advertising the available [update].
   Future<void> _showUpdateNotification(AndroidSideloadUpdate update) async {
     if (!sl.isRegistered<NotificationService>()) return;
     await sl<NotificationService>().showNotification(
@@ -324,6 +374,8 @@ class AndroidSideloadUpdater {
     );
   }
 
+  /// Hands the [update] to the platform installer and surfaces the outcome:
+  /// a permission dialog, success telemetry, or an error dialog on failure.
   Future<void> _installUpdate(AndroidSideloadUpdate update) async {
     appLogger.info('Installing Android sideload update ${update.version}');
     try {
@@ -363,6 +415,7 @@ class AndroidSideloadUpdater {
     }
   }
 
+  /// Prompts the user to grant the "install unknown apps" permission.
   void _showInstallPermissionDialog() {
     final context = appRouter.navigatorKey.currentContext;
     if (context == null || !context.mounted) return;
@@ -373,6 +426,21 @@ class AndroidSideloadUpdater {
     );
   }
 
+  /// Shows the global loading overlay using the active navigator context.
+  void _showLoading() {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    context.showLoadingDialog();
+  }
+
+  /// Hides the global loading overlay if a navigator context is available.
+  void _hideLoading() {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    context.hideLoadingDialog();
+  }
+
+  /// Whether enough time has passed since the last startup check to run again.
   bool _isStartupCheckDue() {
     return isAndroidSideloadStartupCheckDue(
       now: DateTime.now(),
@@ -381,6 +449,7 @@ class AndroidSideloadUpdater {
     );
   }
 
+  /// Records the current time as the last startup check, for throttling.
   Future<void> _markStartupCheckAttempted() async {
     await _storage?.setString(
       _lastStartupCheckAtKey,
@@ -405,15 +474,17 @@ class AndroidSideloadUpdater {
   LocalStorageService? get _storage =>
       sl.isRegistered<LocalStorageService>() ? sl<LocalStorageService>() : null;
 
+  /// Whether the running app was sideloaded rather than store-installed.
   bool _isSideLoaded() {
-    return true;
-    // if (!sl.isRegistered<StoreUtils>()) return false;
-    // return sl<StoreUtils>().isSideLoaded();
+    if (!sl.isRegistered<StoreUtils>()) return false;
+    return sl<StoreUtils>().isSideLoaded();
   }
 }
 
 const _sideloadMethodChannel = MethodChannel('org.getlantern.lantern/method');
 
+/// Invokes the native installer over the method channel, returning its status
+/// tag (e.g. `installer_started` or `permission_required`).
 Future<String> installSideloadUpdate(AndroidSideloadUpdate update) async {
   final status = await _sideloadMethodChannel.invokeMethod<String>(
     'installSideloadUpdate',
@@ -422,6 +493,8 @@ Future<String> installSideloadUpdate(AndroidSideloadUpdate update) async {
   return status ?? '';
 }
 
+/// Returns true when [now] is at least [throttle] past [lastCheckAt]
+/// (treating a missing or unparseable timestamp as due).
 bool isAndroidSideloadStartupCheckDue({
   required DateTime now,
   required String? lastCheckAt,
@@ -435,6 +508,8 @@ bool isAndroidSideloadStartupCheckDue({
   return elapsed >= throttle;
 }
 
+/// Classifies an install [error] into the matching failure telemetry event
+/// (checksum, download, or generic install failure).
 AndroidSideloadUpdateTelemetryEvent androidSideloadInstallFailureTelemetryEvent(
   Object error,
 ) {
@@ -452,6 +527,8 @@ AndroidSideloadUpdateTelemetryEvent androidSideloadInstallFailureTelemetryEvent(
   return AndroidSideloadUpdateTelemetryEvent.installFailed;
 }
 
+/// Extracts a human-readable message from an [error], unwrapping
+/// [PlatformException]s to their message or code.
 String androidSideloadErrorDescription(Object error) {
   if (error is PlatformException) {
     return error.message ?? error.code;
@@ -471,6 +548,14 @@ class AndroidSideloadUpdate {
   final String checksum;
 
   factory AndroidSideloadUpdate.fromJson(Map<String, dynamic> json) {
+    String requireNonEmpty(String key) {
+      final value = json[key];
+      if (value is! String || value.trim().isEmpty) {
+        throw FormatException('Update response missing $key');
+      }
+      return value;
+    }
+
     final patchType = (json['patch_type'] as String?) ?? '';
     if (patchType.isNotEmpty) {
       throw FormatException(
@@ -478,18 +563,9 @@ class AndroidSideloadUpdate {
       );
     }
 
-    final url = json['url'];
-    final version = json['version'];
-    if (url is! String || url.trim().isEmpty) {
-      throw const FormatException('Update response missing URL');
-    }
-    if (version is! String || version.trim().isEmpty) {
-      throw const FormatException('Update response missing version');
-    }
-    final checksum = json['checksum'];
-    if (checksum is! String || checksum.trim().isEmpty) {
-      throw const FormatException('Update response missing checksum');
-    }
+    final url = requireNonEmpty('url');
+    final version = requireNonEmpty('version');
+    final checksum = requireNonEmpty('checksum');
 
     final uri = Uri.tryParse(url);
     if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
@@ -504,6 +580,8 @@ class AndroidSideloadUpdate {
   }
 }
 
+/// Builds the JSON request body sent to the update endpoint for the current
+/// app version, OS, and device ABIs.
 Map<String, dynamic> androidSideloadUpdateRequestBody({
   required String appVersion,
   required String buildNumber,
@@ -527,12 +605,14 @@ Map<String, dynamic> androidSideloadUpdateRequestBody({
   };
 }
 
+/// Maps the device's [supportedAbis] to the update arch tag (`arm64` or `arm`).
 String androidUpdateArchForAbis(List<String> supportedAbis) {
   final normalized = supportedAbis.map((abi) => abi.toLowerCase()).toSet();
   if (normalized.contains('arm64-v8a')) return 'arm64';
   return 'arm';
 }
 
+/// Maps a [buildType] to its release channel (`beta`, `nightly`, or `stable`).
 String androidUpdateChannelForBuildType(String buildType) {
   switch (buildType.toLowerCase()) {
     case 'beta':
@@ -547,6 +627,8 @@ String androidUpdateChannelForBuildType(String buildType) {
   }
 }
 
+/// Whether [candidate] is a strictly newer semver than [current]
+/// (returns false if either version fails to parse).
 bool isAndroidUpdateVersionNewer(String candidate, String current) {
   final candidateVersion = _tryParseVersion(candidate);
   final currentVersion = _tryParseVersion(current);
@@ -554,6 +636,7 @@ bool isAndroidUpdateVersionNewer(String candidate, String current) {
   return candidateVersion > currentVersion;
 }
 
+/// Parses [input] as a semver, stripping a leading `v`; null on failure.
 Version? _tryParseVersion(String input) {
   var normalized = input.trim();
   if (normalized.startsWith('v') || normalized.startsWith('V')) {

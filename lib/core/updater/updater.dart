@@ -22,8 +22,7 @@ class Updater {
   bool get _isAndroidPlatform => !kIsWeb && Platform.isAndroid;
 
   bool get _isSupportedPlatform =>
-      !kIsWeb &&
-      (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
 
   Future<void> init() async {
     if (_initialized) return;
@@ -92,15 +91,16 @@ class Updater {
 
     if (_isAndroidPlatform) {
       if (!_androidSideloadUpdater.isEnabled(flags)) return;
-      final update = await _androidSideloadUpdater.checkNow(
+      await _androidSideloadUpdater.checkForUpdate(
         source: AndroidSideloadUpdateCheckSource.manual,
       );
-      if (update == null) _showNoUpdateDialog();
       return;
     }
 
     if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
-      appLogger.info('autoUpdater disabled by feature flag; ignoring manual check');
+      appLogger.info(
+        'autoUpdater disabled by feature flag; ignoring manual check',
+      );
       return;
     }
     await AutoUpdater.instance.checkForUpdates();
@@ -116,15 +116,5 @@ class Updater {
         return <String, dynamic>{};
       }
     });
-  }
-
-  void _showNoUpdateDialog() {
-    final context = appRouter.navigatorKey.currentContext;
-    if (context == null || !context.mounted) return;
-    AppDialog.dialog(
-      context: context,
-      title: 'check_for_updates'.i18n,
-      content: 'lantern_is_up_to_date'.i18n,
-    );
   }
 }
