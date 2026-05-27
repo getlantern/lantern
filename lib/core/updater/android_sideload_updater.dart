@@ -6,72 +6,67 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
-import 'package:lantern/core/utils/store_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pub_semver/pub_semver.dart';
 
-const androidSideloadUpdateEndpoint =
-    'https://update.getlantern.org/update/lantern';
-
-typedef PackageInfoProvider = Future<PackageInfo> Function();
-typedef AndroidInfoProvider = Future<AndroidDeviceInfo> Function();
-typedef HttpClientProvider = HttpClient Function();
-typedef DateTimeProvider = DateTime Function();
+typedef AndroidSideloadInstaller =
+    Future<String> Function(AndroidSideloadUpdate update);
 
 enum AndroidSideloadUpdateCheckSource { startup, manual }
 
-class AndroidSideloadUpdateTelemetryEvent {
-  static const checkResult = 'android_sideload_update_check_result';
-  static const updateAvailable = 'android_sideload_update_available';
-  static const downloadFailed = 'android_sideload_update_download_failed';
-  static const checksumFailed = 'android_sideload_update_checksum_failed';
-  static const installerLaunched = 'android_sideload_update_installer_launched';
-  static const installerPermissionRequired =
-      'android_sideload_update_installer_permission_required';
-  static const installFailed = 'android_sideload_update_install_failed';
+enum AndroidSideloadInstallStatus {
+  installerStarted('installer_started'),
+  permissionRequired('permission_required');
+
+  const AndroidSideloadInstallStatus(this.tag);
+
+  final String tag;
 }
 
-class AndroidSideloadUpdateTelemetry {
-  const AndroidSideloadUpdateTelemetry();
+enum AndroidSideloadUpdateTelemetryEvent {
+  checkResult('android_sideload_update_check_result'),
+  updateAvailable('android_sideload_update_available'),
+  downloadFailed('android_sideload_update_download_failed'),
+  checksumFailed('android_sideload_update_checksum_failed'),
+  installerLaunched('android_sideload_update_installer_launched'),
+  installerPermissionRequired(
+    'android_sideload_update_installer_permission_required',
+  ),
+  installFailed('android_sideload_update_install_failed');
 
-  void track(String event, Map<String, Object?> properties) {
-    final sanitized = <String, Object?>{
-      for (final entry in properties.entries)
-        if (entry.value != null) entry.key: entry.value,
-    };
-    appLogger.info(
-      'telemetry event=$event properties=${jsonEncode(sanitized)}',
-    );
-  }
+  const AndroidSideloadUpdateTelemetryEvent(this.tag);
+
+  final String tag;
+}
+
+void _trackTelemetry(
+  AndroidSideloadUpdateTelemetryEvent event,
+  Map<String, Object?> properties,
+) {
+  final sanitized = <String, Object?>{
+    for (final entry in properties.entries)
+      if (entry.value != null) entry.key: entry.value,
+  };
+  appLogger.info(
+    'telemetry event=${event.tag} properties=${jsonEncode(sanitized)}',
+  );
 }
 
 class AndroidSideloadUpdater {
   AndroidSideloadUpdater({
     Uri? endpoint,
-    PackageInfoProvider? packageInfoProvider,
-    AndroidInfoProvider? androidInfoProvider,
-    HttpClientProvider? httpClientProvider,
-    StoreUtils? storeUtils,
-    AndroidSideloadInstallerBridge? installerBridge,
-    LocalStorageService? localStorageService,
-    AndroidSideloadUpdateTelemetry? telemetry,
-    DateTimeProvider? clock,
-  }) : endpoint = endpoint ?? Uri.parse(androidSideloadUpdateEndpoint),
-       _packageInfoProvider = packageInfoProvider ?? PackageInfo.fromPlatform,
-       _androidInfoProvider =
-           androidInfoProvider ?? (() => DeviceInfoPlugin().androidInfo),
-       _httpClientProvider = httpClientProvider ?? HttpClient.new,
-       _storeUtils = storeUtils,
-       _localStorageService = localStorageService,
-       _installerBridge =
-           installerBridge ?? const AndroidSideloadInstallerBridge(),
-       _telemetry = telemetry ?? const AndroidSideloadUpdateTelemetry(),
-       _clock = clock ?? DateTime.now;
+    http.Client? httpClient,
+    AndroidSideloadInstaller? installer,
+  }) : endpoint = endpoint ?? Uri.parse(AppUrls.androidSideloadUpdateEndpoint),
+       _httpClient = httpClient,
+       _installer = installer ?? installSideloadUpdate;
 
   static const firstPromptDelay = Duration(seconds: 45);
   static const startupCheckThrottle = Duration(days: 1);
@@ -80,14 +75,8 @@ class AndroidSideloadUpdater {
       'android_sideload_update_last_startup_check_at';
 
   final Uri endpoint;
-  final PackageInfoProvider _packageInfoProvider;
-  final AndroidInfoProvider _androidInfoProvider;
-  final HttpClientProvider _httpClientProvider;
-  final StoreUtils? _storeUtils;
-  final LocalStorageService? _localStorageService;
-  final AndroidSideloadInstallerBridge _installerBridge;
-  final AndroidSideloadUpdateTelemetry _telemetry;
-  final DateTimeProvider _clock;
+  final http.Client? _httpClient;
+  final AndroidSideloadInstaller _installer;
 
   bool _initialized = false;
   String? _lastPromptedVersion;
@@ -95,7 +84,6 @@ class AndroidSideloadUpdater {
   Future<void> init(Map<String, dynamic> flags) async {
     if (_initialized) return;
     _initialized = true;
-
     if (!isEnabled(flags)) return;
 
     unawaited(
@@ -113,10 +101,10 @@ class AndroidSideloadUpdater {
     );
   }
 
-  bool isEnabled(Map<String, dynamic> flags, {bool logDisabled = true}) {
+  bool isEnabled(Map<String, dynamic> flags, {bool logDisabled = false}) {
     if (!isSupportedSideloadBuild) return false;
     if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
-      if (logDisabled) {
+      if (!logDisabled) {
         appLogger.info(
           'Android sideload updater disabled by autoUpdateEnabled',
         );
@@ -127,7 +115,7 @@ class AndroidSideloadUpdater {
       FeatureFlag.androidSideloadAutoUpdateEnabled,
       defaultValue: false,
     )) {
-      if (logDisabled) {
+      if (!logDisabled) {
         appLogger.info(
           'Android sideload updater disabled by rollout feature flag',
         );
@@ -139,7 +127,7 @@ class AndroidSideloadUpdater {
 
   bool get isSupportedSideloadBuild {
     if (kIsWeb || !Platform.isAndroid) return false;
-    if (kDebugMode) return false;
+    // if (kDebugMode) return false;
     return _isSideLoaded();
   }
 
@@ -153,7 +141,13 @@ class AndroidSideloadUpdater {
       return null;
     }
 
+    appLogger.info(
+      'Initiating Android sideload update check (source=${source.name})',
+    );
     if (respectStartupThrottle && !_isStartupCheckDue()) {
+      appLogger.info(
+        'Skipping Android sideload update check due to startup throttle',
+      );
       _trackCheckResult(source: source, result: 'skipped_throttled');
       return null;
     }
@@ -162,9 +156,12 @@ class AndroidSideloadUpdater {
       await _markStartupCheckAttempted();
     }
 
+    appLogger.info(
+      'Checking for Android sideload update (source=${source.name})',
+    );
     try {
-      final packageInfo = await _packageInfoProvider();
-      final androidInfo = await _androidInfoProvider();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
       final response = await _requestUpdate(packageInfo, androidInfo);
       if (response == null) {
         _trackCheckResult(source: source, result: 'no_update');
@@ -183,12 +180,16 @@ class AndroidSideloadUpdater {
         return null;
       }
 
+      appLogger.info(
+        'Android sideload update available: ${response.version} '
+        '(current ${packageInfo.version})',
+      );
       _trackCheckResult(
         source: source,
         result: 'update_available',
         version: response.version,
       );
-      _telemetry.track(AndroidSideloadUpdateTelemetryEvent.updateAvailable, {
+      _trackTelemetry(AndroidSideloadUpdateTelemetryEvent.updateAvailable, {
         'source': source.name,
         'version': response.version,
       });
@@ -224,33 +225,38 @@ class AndroidSideloadUpdater {
       ),
     );
 
-    final client = _httpClientProvider();
+    final ownsClient = _httpClient == null;
+    final client = _httpClient ?? http.Client();
     try {
-      final request = await client.postUrl(endpoint).timeout(requestTimeout);
-      request.headers.contentType = ContentType.json;
-      request.headers.set(HttpHeaders.acceptHeader, ContentType.json.mimeType);
-      request.write(body);
+      final response = await client
+          .post(
+            endpoint,
+            headers: const {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: body,
+          )
+          .timeout(requestTimeout);
 
-      final response = await request.close().timeout(requestTimeout);
-      if (response.statusCode == HttpStatus.noContent) {
+      if (response.statusCode == 204) {
         appLogger.info('No Android sideload update available');
         return null;
       }
-      final responseBody = await response.transform(utf8.decoder).join();
-      if (response.statusCode != HttpStatus.ok) {
+      if (response.statusCode != 200) {
         throw HttpException(
           'Android sideload update check failed with '
-          '${response.statusCode}: $responseBody',
+          '${response.statusCode}: ${response.body}',
           uri: endpoint,
         );
       }
-      final decoded = jsonDecode(responseBody);
+      final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) {
         throw const FormatException('Update response is not a JSON object');
       }
       return AndroidSideloadUpdate.fromJson(decoded);
     } finally {
-      client.close(force: true);
+      if (ownsClient) client.close();
     }
   }
 
@@ -319,24 +325,30 @@ class AndroidSideloadUpdater {
   }
 
   Future<void> _installUpdate(AndroidSideloadUpdate update) async {
+    appLogger.info('Installing Android sideload update ${update.version}');
     try {
-      final status = await _installerBridge.install(update);
-      if (status == AndroidSideloadInstallerBridge.permissionRequired) {
-        _telemetry.track(
+      final status = await _installer(update);
+      if (status == AndroidSideloadInstallStatus.permissionRequired.tag) {
+        appLogger.info(
+          'Android sideload install needs unknown-sources permission',
+        );
+        _trackTelemetry(
           AndroidSideloadUpdateTelemetryEvent.installerPermissionRequired,
           {'version': update.version},
         );
         _showInstallPermissionDialog();
         return;
       }
-      if (status == AndroidSideloadInstallerBridge.installerStarted) {
-        _telemetry.track(
-          AndroidSideloadUpdateTelemetryEvent.installerLaunched,
-          {'version': update.version},
+      if (status == AndroidSideloadInstallStatus.installerStarted.tag) {
+        appLogger.info(
+          'Android sideload installer launched for ${update.version}',
         );
+        _trackTelemetry(AndroidSideloadUpdateTelemetryEvent.installerLaunched, {
+          'version': update.version,
+        });
       }
     } catch (e, st) {
-      _telemetry.track(androidSideloadInstallFailureTelemetryEvent(e), {
+      _trackTelemetry(androidSideloadInstallFailureTelemetryEvent(e), {
         'version': update.version,
         'error': androidSideloadErrorDescription(e),
       });
@@ -363,7 +375,7 @@ class AndroidSideloadUpdater {
 
   bool _isStartupCheckDue() {
     return isAndroidSideloadStartupCheckDue(
-      now: _clock(),
+      now: DateTime.now(),
       lastCheckAt: _storage?.getString(_lastStartupCheckAtKey),
       throttle: startupCheckThrottle,
     );
@@ -372,7 +384,7 @@ class AndroidSideloadUpdater {
   Future<void> _markStartupCheckAttempted() async {
     await _storage?.setString(
       _lastStartupCheckAtKey,
-      _clock().toUtc().toIso8601String(),
+      DateTime.now().toUtc().toIso8601String(),
     );
   }
 
@@ -382,7 +394,7 @@ class AndroidSideloadUpdater {
     String? version,
     String? error,
   }) {
-    _telemetry.track(AndroidSideloadUpdateTelemetryEvent.checkResult, {
+    _trackTelemetry(AndroidSideloadUpdateTelemetryEvent.checkResult, {
       'source': source.name,
       'result': result,
       'version': version,
@@ -390,41 +402,24 @@ class AndroidSideloadUpdater {
     });
   }
 
-  LocalStorageService? get _storage {
-    return _localStorageService ??
-        (sl.isRegistered<LocalStorageService>()
-            ? sl<LocalStorageService>()
-            : null);
-  }
+  LocalStorageService? get _storage =>
+      sl.isRegistered<LocalStorageService>() ? sl<LocalStorageService>() : null;
 
   bool _isSideLoaded() {
-    final storeUtils =
-        _storeUtils ??
-        (sl.isRegistered<StoreUtils>() ? sl<StoreUtils>() : null);
-    return storeUtils?.isSideLoaded() ?? false;
+    return true;
+    // if (!sl.isRegistered<StoreUtils>()) return false;
+    // return sl<StoreUtils>().isSideLoaded();
   }
 }
 
-class AndroidSideloadInstallerBridge {
-  const AndroidSideloadInstallerBridge();
+const _sideloadMethodChannel = MethodChannel('org.getlantern.lantern/method');
 
-  static const installerStarted = 'installer_started';
-  static const permissionRequired = 'permission_required';
-  static const MethodChannel _methodChannel = MethodChannel(
-    'org.getlantern.lantern/method',
+Future<String> installSideloadUpdate(AndroidSideloadUpdate update) async {
+  final status = await _sideloadMethodChannel.invokeMethod<String>(
+    'installSideloadUpdate',
+    {'url': update.url, 'checksum': update.checksum, 'version': update.version},
   );
-
-  Future<String> install(AndroidSideloadUpdate update) async {
-    final status = await _methodChannel.invokeMethod<String>(
-      'installSideloadUpdate',
-      {
-        'url': update.url,
-        'checksum': update.checksum,
-        'version': update.version,
-      },
-    );
-    return status ?? '';
-  }
+  return status ?? '';
 }
 
 bool isAndroidSideloadStartupCheckDue({
@@ -440,7 +435,9 @@ bool isAndroidSideloadStartupCheckDue({
   return elapsed >= throttle;
 }
 
-String androidSideloadInstallFailureTelemetryEvent(Object error) {
+AndroidSideloadUpdateTelemetryEvent androidSideloadInstallFailureTelemetryEvent(
+  Object error,
+) {
   final description = androidSideloadErrorDescription(error).toLowerCase();
   if (description.contains('checksum')) {
     return AndroidSideloadUpdateTelemetryEvent.checksumFailed;
@@ -551,84 +548,20 @@ String androidUpdateChannelForBuildType(String buildType) {
 }
 
 bool isAndroidUpdateVersionNewer(String candidate, String current) {
-  final candidateVersion = _ComparableVersion.tryParse(candidate);
-  final currentVersion = _ComparableVersion.tryParse(current);
-  if (candidateVersion == null || currentVersion == null) {
-    return false;
-  }
-  return candidateVersion.compareTo(currentVersion) > 0;
+  final candidateVersion = _tryParseVersion(candidate);
+  final currentVersion = _tryParseVersion(current);
+  if (candidateVersion == null || currentVersion == null) return false;
+  return candidateVersion > currentVersion;
 }
 
-class _ComparableVersion implements Comparable<_ComparableVersion> {
-  _ComparableVersion(this.major, this.minor, this.patch, this.prerelease);
-
-  final int major;
-  final int minor;
-  final int patch;
-  final List<String> prerelease;
-
-  static _ComparableVersion? tryParse(String input) {
-    var normalized = input.trim();
-    if (normalized.startsWith('v') || normalized.startsWith('V')) {
-      normalized = normalized.substring(1);
-    }
-    normalized = normalized.split('+').first;
-    final parts = normalized.split('-');
-    final coreParts = parts.first.split('.');
-    if (coreParts.isEmpty || coreParts.length > 3) return null;
-
-    int parsePart(int index) {
-      if (index >= coreParts.length) return 0;
-      return int.parse(coreParts[index]);
-    }
-
-    try {
-      return _ComparableVersion(
-        parsePart(0),
-        parsePart(1),
-        parsePart(2),
-        parts.length > 1 ? parts.sublist(1).join('-').split('.') : const [],
-      );
-    } on FormatException {
-      return null;
-    }
+Version? _tryParseVersion(String input) {
+  var normalized = input.trim();
+  if (normalized.startsWith('v') || normalized.startsWith('V')) {
+    normalized = normalized.substring(1);
   }
-
-  @override
-  int compareTo(_ComparableVersion other) {
-    for (final pair in [
-      (major, other.major),
-      (minor, other.minor),
-      (patch, other.patch),
-    ]) {
-      final comparison = pair.$1.compareTo(pair.$2);
-      if (comparison != 0) return comparison;
-    }
-
-    if (prerelease.isEmpty && other.prerelease.isNotEmpty) return 1;
-    if (prerelease.isNotEmpty && other.prerelease.isEmpty) return -1;
-
-    final maxLength = prerelease.length > other.prerelease.length
-        ? prerelease.length
-        : other.prerelease.length;
-    for (var i = 0; i < maxLength; i++) {
-      if (i >= prerelease.length) return -1;
-      if (i >= other.prerelease.length) return 1;
-      final comparison = _comparePrereleasePart(
-        prerelease[i],
-        other.prerelease[i],
-      );
-      if (comparison != 0) return comparison;
-    }
-    return 0;
-  }
-
-  static int _comparePrereleasePart(String a, String b) {
-    final aNum = int.tryParse(a);
-    final bNum = int.tryParse(b);
-    if (aNum != null && bNum != null) return aNum.compareTo(bNum);
-    if (aNum != null) return -1;
-    if (bNum != null) return 1;
-    return a.compareTo(b);
+  try {
+    return Version.parse(normalized);
+  } on FormatException {
+    return null;
   }
 }
