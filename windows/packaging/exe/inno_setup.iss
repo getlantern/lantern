@@ -268,12 +268,24 @@ SetupLogging=yes
 UninstallLogging=yes
 CloseApplications=yes
 RestartApplications=no
+; v9 is a Flutter app; flutter_windows.dll links the system combined icu.dll,
+; first shipped in Windows 10 1903 (build 18362). Gate here so pre-1903 / Win7
+; users get a clear message instead of a cryptic "icu.dll missing" launch crash.
+MinVersion=10.0.18362
 
 [Languages]
 {% for locale in LOCALES %}
 {% if locale == 'en' %}Name: "english"; MessagesFile: "compiler:Default.isl"{% endif %}
 {% if locale == 'zh' %}Name: "chinesesimplified"; MessagesFile: "compiler:Languages\\ChineseSimplified.isl"{% endif %}
 {% if locale == 'ja' %}Name: "japanese"; MessagesFile: "compiler:Languages\\Japanese.isl"{% endif %}
+{% endfor %}
+
+[Messages]
+; Shown when MinVersion blocks install on pre-1903 Windows (no system icu.dll).
+{% for locale in LOCALES %}
+{% if locale == 'en' %}english.WindowsVersionNotSupported=Lantern 9 requires Windows 10 version 1903 (May 2019) or later.%n%nYour version of Windows is no longer supported by this release.{% endif %}
+{% if locale == 'zh' %}chinesesimplified.WindowsVersionNotSupported=Lantern 9 需要 Windows 10 1903 版本（2019 年 5 月）或更高版本。%n%n此版本不再支持您当前的 Windows 系统。{% endif %}
+{% if locale == 'ja' %}japanese.WindowsVersionNotSupported=Lantern 9 を実行するには Windows 10 バージョン 1903（2019年5月）以降が必要です。%n%nお使いの Windows はこのリリースではサポートされていません。{% endif %}
 {% endfor %}
 
 [Tasks]
