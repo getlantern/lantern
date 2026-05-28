@@ -70,6 +70,14 @@ class LanternVpnService :
         private val connectInFlight = AtomicBoolean(false)
 
         lateinit var instance: LanternVpnService
+
+        // Process-lifetime scope for teardown that must run off the main thread
+        // but outlive the service instance. Mobile.stopVPN() is a blocking JNI
+        // call; running it on the main thread in onDestroy ANRs during service
+        // teardown (getlantern/engineering#3563). serviceScope is cancelled in
+        // onDestroy's finally, so teardown can't live there — this scope is
+        // never cancelled.
+        private val teardownScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     private val notificationHelper = NotificationHelper()
@@ -162,42 +170,38 @@ class LanternVpnService :
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
+            // Lightweight, main-thread-safe cleanup. These don't depend on the
+            // Go tunnel being torn down first, so do them synchronously here.
             closeTunInterface()
-            // Clean up synchronously — cannot use serviceScope here because
-            // it is cancelled in the finally block below.
-            //
-            // Call Mobile.stopVPN() as long as radiance is up. The previous
-            // isVPNConnected() guard (status == Connected) was wrong — if the
-            // tunnel is in any non-Connected state (Restarting, Connecting,
-            // Disconnecting, Error), c.tunnel is still non-nil on the Go side
-            // and needs to be closed so the next process lifetime starts clean.
-            // Mobile.stopVPN() itself is a no-op when c.tunnel is nil.
-            val radianceConnected = Mobile.isRadianceConnected()
-            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected")
-            if (!radianceConnected) {
-                AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-            } else {
-                runCatching { Mobile.stopVPN() }
-                    .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
-                    .onFailure { e ->
-                        AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
-                    }
-            }
-            runCatching {
-                runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
-            }.onFailure { e ->
-                AppLogger.e(
-                    TAG,
-                    "DefaultNetworkMonitor.stop() failed during destroy",
-                    e
-                )
-            }
             notificationHelper.stopVPNConnectedNotification(this)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this, false)
             }
             serviceCleanUp()
 
+            // Tear down the Go tunnel OFF the main thread. Mobile.stopVPN() is a
+            // blocking JNI call (tunnel/connection close) — running it on the
+            // main thread here ANRs during service teardown and contends with any
+            // in-flight performStopVPN (getlantern/engineering#3563). teardownScope
+            // is process-lifetime, so this survives the serviceScope.cancel()
+            // below and still completes, keeping the next process launch clean.
+            // Mobile.stopVPN() is a no-op when c.tunnel is already nil, so a
+            // double-call from the stop path is harmless. Closed unconditionally
+            // when radiance is up: any non-Connected state (Restarting,
+            // Connecting, Disconnecting, Error) still has a non-nil c.tunnel.
+            teardownScope.launch {
+                runCatching {
+                    if (Mobile.isRadianceConnected()) {
+                        Mobile.stopVPN()
+                        AppLogger.d(TAG, "stopVPN completed during destroy")
+                    } else {
+                        AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
+                    }
+                }.onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+
+                runCatching { DefaultNetworkMonitor.stop() }
+                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during destroy", e) }
+            }
         } finally {
             serviceScope.cancel()
             super.onDestroy()
