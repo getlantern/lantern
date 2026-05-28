@@ -931,6 +931,21 @@ msgstr "Private Servers"
 msgid "fastest_server"
 msgstr "Fastest Server"
 
+msgid "server_may_be_unreachable"
+msgstr "May be unreachable"
+
+msgid "server_may_be_unreachable_title"
+msgstr "Server may be unreachable"
+
+msgid "server_may_be_unreachable_message"
+msgstr "This server may not work from your current network. Smart Location can pick a working server automatically."
+
+msgid "use_smart_location"
+msgstr "Use Smart Location"
+
+msgid "try_anyway"
+msgstr "Try Anyway"
+
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
 

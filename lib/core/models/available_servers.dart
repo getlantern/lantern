@@ -13,13 +13,18 @@ class AvailableServers {
 
   bool get hasUserServers => servers.any((s) => !s.isLantern);
 
+  Server? serverByTag(String tag) {
+    for (final server in servers) {
+      if (server.tag == tag) return server;
+    }
+    return null;
+  }
+
   /// Lantern server with the lowest URL-test delay. Null when no server has
   /// a usable probe result — sing-box reports delay 0 for unreachable probes,
   /// so those are excluded.
   Server? get fastestLanternServer {
-    final ranked = lanternServers
-        .where((s) => s.urlTestResult != null && s.urlTestResult!.delay > 0)
-        .toList()
+    final ranked = lanternServers.where((s) => s.hasUsableProbe).toList()
       ..sort(
         (a, b) => a.urlTestResult!.delay.compareTo(b.urlTestResult!.delay),
       );
@@ -68,6 +73,10 @@ class Server {
   /// IP address extracted from outbound or endpoint options.
   String get serverIP =>
       outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
+
+  bool get hasUsableProbe => (urlTestResult?.delay ?? 0) > 0;
+
+  bool get mayBeUnreachable => isLantern && !hasUsableProbe;
 }
 
 class GeoLocation {

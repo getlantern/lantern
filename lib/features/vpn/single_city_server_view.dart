@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/features/vpn/server_reachability.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
@@ -33,14 +34,12 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? widget.server.location.city
           : '${widget.server.location.country} - ${widget.server.location.city}',
       selected: widget.isSelected,
-      subtitle: widget.server.type.isEmpty
-          ? null
-          : Text(
-              widget.server.type.capitalize,
-              style: textTheme.labelMedium!.copyWith(
-                color: context.textTertiary,
-              ),
-            ),
+      subtitle: serverReachabilitySubtitle(
+        context,
+        widget.server,
+        textTheme.labelMedium!,
+      ),
+      trailing: serverReachabilityWarningIcon(context, widget.server),
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.server);

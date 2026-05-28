@@ -14,6 +14,7 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/features/vpn/server_reachability.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
 
 typedef OnServerSelected = Function(Server selectedServer);
@@ -238,9 +239,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               if (!context.mounted) return;
               retryResult.fold((failure) {
                 context.showSnackBar(failure.localizedErrorMessage);
-                appLogger.error(
-                  "Error changing VPN state: ${failure.error}",
-                );
+                appLogger.error("Error changing VPN state: ${failure.error}");
               }, (_) => appRouter.popUntilRoot());
             },
           );
@@ -353,7 +352,7 @@ class _ServerLocationListViewState
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
                           itemCount: countryEntries.length,
-                          separatorBuilder: (_, __) => const DividerSpace(),
+                          separatorBuilder: (_, _) => const DividerSpace(),
                           itemBuilder: (context, index) {
                             final entry = countryEntries[index];
                             final country = entry.key;
@@ -413,6 +412,85 @@ class _ServerLocationListViewState
       }
     }
 
+    if (selectedServer.mayBeUnreachable) {
+      _showManualServerWarning(selectedServer);
+      return;
+    }
+
+    await _connectToServer(selectedServer);
+  }
+
+  void _showManualServerWarning(Server selectedServer) {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          Center(child: serverReachabilityIcon(context)),
+          const SizedBox(height: 16),
+          Center(
+            child: Text(
+              'server_may_be_unreachable_title'.i18n,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'server_may_be_unreachable_message'.i18n,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'try_anyway'.i18n,
+          onPressed: () async {
+            appRouter.maybePop();
+            await _connectToServer(selectedServer);
+          },
+        ),
+        AppTextButton(
+          label: 'use_smart_location'.i18n,
+          onPressed: () async {
+            appRouter.maybePop();
+            await _switchToSmartLocation();
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _switchToSmartLocation({bool skipConflictCheck = false}) async {
+    final result = await ref
+        .read(vpnProvider.notifier)
+        .startVPN(force: true, skipConflictCheck: skipConflictCheck);
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        if (failure is VpnConflictFailure) {
+          AppDialog.vpnConflictDialog(
+            context: context,
+            onConnectAnyway: () async {
+              appRouter.maybePop();
+              await _switchToSmartLocation(skipConflictCheck: true);
+            },
+          );
+        } else {
+          context.showSnackBar(failure.localizedErrorMessage);
+        }
+      },
+      (_) async {
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
+        appRouter.popUntilRoot();
+      },
+    );
+  }
+
+  Future<void> _connectToServer(Server selectedServer) async {
     final result = await ref
         .read(vpnProvider.notifier)
         .connectToServer(
@@ -536,15 +614,12 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: server.location.city,
-              subtitle: server.type.isEmpty
-                  ? null
-                  : Text(
-                      server.type.capitalize,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                        color: context.textSecondary,
-                      ),
-                    ),
+              subtitle: serverReachabilitySubtitle(
+                context,
+                server,
+                Theme.of(context).textTheme.labelMedium!,
+              ),
+              trailing: serverReachabilityWarningIcon(context, server),
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
@@ -582,7 +657,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             controller: scrollController,
             padding: EdgeInsets.zero,
             itemCount: widget.locations.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const DividerSpace(padding: EdgeInsets.zero),
             itemBuilder: (_, index) {
               final server = widget.locations[index];
@@ -672,7 +747,7 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             itemCount: userLocations.length,
-            separatorBuilder: (_, __) => const DividerSpace(),
+            separatorBuilder: (_, _) => const DividerSpace(),
             itemBuilder: (context, index) {
               final server = userLocations[index];
               final isSelected = selectedTag == server.tag;
