@@ -134,8 +134,8 @@ func prepareAttachment(attachment AttachmentMetadata) (preparedAttachment, error
 	if info.IsDir() {
 		return preparedAttachment{}, fmt.Errorf("attachment %q must be a file", name)
 	}
-	if info.Size() != attachment.SizeBytes {
-		return preparedAttachment{}, fmt.Errorf("attachment %q changed on disk before upload", name)
+	if info.Size() == 0 {
+		return preparedAttachment{}, fmt.Errorf("attachment %q must not be empty", name)
 	}
 
 	return preparedAttachment{
