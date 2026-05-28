@@ -126,17 +126,20 @@ jobs:
 
       - name: Install unofficial Inno Setup translations
         shell: pwsh
-        # Farsi/Persian is not a bundled Inno translation; copy the vendored
-        # .isl into Inno's Languages dir so inno_setup.iss can reference it as
-        # compiler:Languages\Farsi.isl. (Russian is bundled; en is Default.isl.)
+        # Chinese Simplified and Farsi/Persian are not bundled Inno translations;
+        # copy the vendored .isl files into Inno's Languages dir so inno_setup.iss
+        # can reference them as compiler:Languages\<name>.isl. (Russian is bundled;
+        # en is Default.isl.)
         run: |
           $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
           if (-not (Test-Path $langDir)) {
             Write-Error "Inno Setup Languages dir not found: $langDir"
             exit 1
           }
-          Copy-Item "windows\packaging\exe\isl\Farsi.isl" "$langDir\Farsi.isl" -Force
-          Write-Host "Installed Farsi.isl -> $langDir"
+          foreach ($isl in 'ChineseSimplified.isl', 'Farsi.isl') {
+            Copy-Item "windows\packaging\exe\isl\$isl" "$langDir\$isl" -Force
+            Write-Host "Installed $isl -> $langDir"
+          }
 
       - name: Read app version from pubspec.yaml
         shell: pwsh

@@ -13,10 +13,11 @@ install_dir_name: Lantern
 script_template: inno_setup.iss
 #setup_icon_file: ..\windows\runner\resources\app_icon.ico
 # Installer languages (drives LOCALES in inno_setup.iss). en/ru use bundled
-# .isl files; fa uses the vendored isl/Farsi.isl that CI copies into Inno's
-# Languages dir. zh/ja are intentionally omitted — their unofficial .isl files
-# aren't provisioned, so leaving them out keeps them dormant (English) as today.
+# .isl files; zh/fa use the vendored isl/*.isl that CI copies into Inno's
+# Languages dir. ja is omitted — its unofficial .isl isn't provisioned, so it
+# stays dormant (English) as today; add it the same way if needed.
 locales:
   - en
+  - zh
   - ru
   - fa
