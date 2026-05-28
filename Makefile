@@ -514,14 +514,15 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
-# build.gradle's abiFilters is arm64-only for all artifacts now, so no
-# per-target ABI property is needed.
+# abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
+# -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
+# direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.sideloadUpdates=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 # AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on

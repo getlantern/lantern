@@ -4,43 +4,65 @@ import 'dart:io';
 
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/updater/android_sideload_updater.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 class Updater {
+  Updater({AndroidSideloadUpdater? androidSideloadUpdater})
+    : _androidSideloadUpdater =
+          androidSideloadUpdater ?? AndroidSideloadUpdater();
+
+  final AndroidSideloadUpdater _androidSideloadUpdater;
+
   bool _initialized = false;
 
-  bool get _isSupportedPlatform =>
+  bool get _isDesktopSupportedPlatform =>
       !kIsWeb && (Platform.isMacOS || Platform.isWindows);
+
+  bool get _isAndroidPlatform => !kIsWeb && Platform.isAndroid;
 
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
 
     if (kDebugMode) return;
-    if (!_isSupportedPlatform) return;
+    if (!_isDesktopSupportedPlatform && !_isAndroidPlatform) return;
 
-    final flagResult = await sl<LanternService>().featureFlag();
-    final flags = flagResult.fold((_) => <String, dynamic>{}, (jsonStr) {
-      try {
-        return json.decode(jsonStr) as Map<String, dynamic>;
-      } catch (_) {
-        return <String, dynamic>{};
-      }
-    });
+    final flags = await _featureFlags();
 
+    if (_isAndroidPlatform) {
+      await _androidSideloadUpdater.init(flags);
+      return;
+    }
+
+    await _initDesktopUpdater(flags);
+  }
+
+  Future<bool> canCheckForUpdates() async {
+    if (_isDesktopSupportedPlatform) return true;
+    if (!_isAndroidPlatform) return false;
+
+    try {
+      final flags = await _featureFlags();
+      return _androidSideloadUpdater.isEnabled(flags, logDisabled: false);
+    } catch (e, st) {
+      appLogger.error('Failed to determine update-check availability', e, st);
+      return false;
+    }
+  }
+
+  Future<void> _initDesktopUpdater(Map<String, dynamic> flags) async {
     if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
       appLogger.info('autoUpdater disabled by feature flag');
       return;
     }
 
-    final buildType = AppBuildInfo.buildType;
-    final feedUrl = AppUrls.appcastFor(buildType);
-
     try {
+      final buildType = AppBuildInfo.buildType;
+      final feedUrl = AppUrls.appcastFor(buildType);
       final updater = AutoUpdater.instance;
       await updater.setFeedURL(feedUrl);
       await updater.setScheduledCheckInterval(3600);
@@ -66,7 +88,40 @@ class Updater {
   }
 
   Future<void> checkNow() async {
-    if (!_isSupportedPlatform) return;
+    if (_isAndroidPlatform) {
+      final flags = await _featureFlags();
+      if (!_androidSideloadUpdater.isEnabled(flags)) return;
+      final update = await _androidSideloadUpdater.checkNow(
+        source: AndroidSideloadUpdateCheckSource.manual,
+      );
+      if (update == null) {
+        _showNoUpdateDialog();
+      }
+      return;
+    }
+
+    if (!_isDesktopSupportedPlatform) return;
     await AutoUpdater.instance.checkForUpdates();
+  }
+
+  Future<Map<String, dynamic>> _featureFlags() async {
+    final flagResult = await sl<LanternService>().featureFlag();
+    return flagResult.fold((_) => <String, dynamic>{}, (jsonStr) {
+      try {
+        return json.decode(jsonStr) as Map<String, dynamic>;
+      } catch (_) {
+        return <String, dynamic>{};
+      }
+    });
+  }
+
+  void _showNoUpdateDialog() {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    AppDialog.dialog(
+      context: context,
+      title: 'check_for_updates'.i18n,
+      content: 'lantern_is_up_to_date'.i18n,
+    );
   }
 }

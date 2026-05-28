@@ -43,7 +43,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
           appLogger.info(
             "System Extension is installed and activated. Closing dialog.",
           );
-          appRouter.pop();
+          appRouter.pop(true);
         });
       }
       return null;

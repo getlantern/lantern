@@ -47,12 +47,9 @@ Future<void> main() async {
     appLogger.error("Error during app initialization", e, st);
   }
 
-  // Auto-updater is desktop-only (no-op on mobile) and already guarded
-  // internally by kDebugMode and platform checks. Do not await: Sparkle's
-  // setFeedURL / setScheduledCheckInterval are synchronous bridge calls that
-  // can block first paint when the feed URL is slow to resolve or the
-  // framework is touching keychain state. The first actual update check is
-  // already deferred 45 s inside init().
+  // Auto-updater is internally guarded by kDebugMode and platform checks.
+  // Do not await: Sparkle bridge calls on desktop and the Android sideload
+  // update check are both deferred inside init().
   //
   // Guard the sl<Updater>() lookup: if injectServices() threw above, Updater
   // (registered at injection_container.dart:40) may not be in the registry,
