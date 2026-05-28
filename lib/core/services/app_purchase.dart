@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -14,10 +16,21 @@ typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
+  static const _pendingPurchasePlansKey = 'pending_purchase_plans_json';
+  static const _productPlanKeyPrefix = 'product:';
+  static const _transactionPlanKeyPrefix = 'transaction:';
+  static const _ackRetryDelays = <Duration>[
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 45),
+  ];
+
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   final List<ProductDetails> _subscriptionSku = [];
   final List<String> _subscriptionIds = <String>['1m_sub', '1y_sub'];
+  final Set<String> _acknowledgeInFlight = {};
+  final Map<String, int> _ackRetryAttempts = {};
 
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
@@ -109,9 +122,7 @@ class AppPurchase {
       init();
     }
     final ready = _subscription != null;
-    appLogger.info(
-      '[AppPurchase] _initPlayBillingIfAllowed: ready=$ready',
-    );
+    appLogger.info('[AppPurchase] _initPlayBillingIfAllowed: ready=$ready');
     return ready;
   }
 
@@ -253,13 +264,16 @@ class AppPurchase {
       appLogger.info(
         '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
       );
+      await _rememberPendingPlanForProduct(product.id, plan);
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
       if (!started) {
+        await _forgetPendingPlanForProduct(product.id);
         _onError?.call("Failed to initiate purchase flow.");
       }
     } catch (e) {
+      await _forgetPendingPlanForProduct(product.id);
       _onError?.call("Error starting subscription: $e");
     }
   }
@@ -403,6 +417,8 @@ class AppPurchase {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
         final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
+        await _forgetPendingPlan(purchaseDetails);
+        _pendingPlanId = null;
 
         /// Invoke error callback
         _onError?.call(errorMessage);
@@ -424,6 +440,8 @@ class AppPurchase {
           ' message=${purchaseDetails.error?.message}'
           ' details=${purchaseDetails.error?.details}',
         );
+        await _forgetPendingPlan(purchaseDetails);
+        _pendingPlanId = null;
         _onError?.call("Purchase canceled");
         return;
       }
@@ -460,6 +478,7 @@ class AppPurchase {
           appLogger.info(
             '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
           );
+          await _forgetPendingPlan(purchaseDetails);
           await _finalize(purchaseDetails);
           _onError?.call('You have already purchased this subscription.');
           return;
@@ -469,32 +488,11 @@ class AppPurchase {
           appLogger.info(
             '[AppPurchase] Purchase successful: ${purchaseDetails.productID}',
           );
-          final lanternService = sl<LanternPlatformService>();
-          final purchaseToken =
-              purchaseDetails.verificationData.serverVerificationData;
           final planId = _resolvePlanId(purchaseDetails);
-
-          appLogger.info(
-            '[AppPurchase] Acknowledging purchase with planId: $planId',
-          );
-          final ack = await lanternService.acknowledgeInAppPurchase(
-            purchaseToken: purchaseToken,
-            planId: planId,
-          );
-          ack.fold(
-            (error) {
-              appLogger.error('[AppPurchase] Acknowledgment failed: $error');
-              _finalize(purchaseDetails);
-              _onError?.call('Purchase acknowledgment failed: $error');
-            },
-            (success) async {
-              appLogger.info('[AppPurchase] Acknowledgment successful');
-              _finalize(purchaseDetails);
-              _onSuccess?.call(purchaseDetails);
-            },
-          );
-        } catch (e) {
-          _onError?.call('Error during purchase acknowledgment: $e');
+          await _rememberPendingPlanForPurchase(purchaseDetails, planId);
+          await _acknowledgePurchase(purchaseDetails, planId: planId);
+        } catch (e, st) {
+          await _handleAcknowledgeFailure(purchaseDetails, e, stackTrace: st);
         }
         return;
       }
@@ -508,6 +506,10 @@ class AppPurchase {
   Future<void> _finalize(PurchaseDetails purchaseDetails) async {
     try {
       if (purchaseDetails.pendingCompletePurchase) {
+        appLogger.info(
+          '[AppPurchase] Completing store transaction: '
+          'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
+        );
         await _inAppPurchase.completePurchase(purchaseDetails);
       }
     } catch (e) {
@@ -543,37 +545,31 @@ class AppPurchase {
     return null;
   }
 
-  /// Apple sends purchase updates for previously purchased items when the
-  /// app starts. This function checks if the user has already purchased the
-  /// subscription to avoid duplicate processing
+  /// Apple sends purchase updates for previously purchased items when the app
+  /// starts. Only fresh backend state is trusted here so we don't complete a
+  /// pending StoreKit transaction based on stale cached account data.
   Future<bool> _checkIfAlreadyPurchased() async {
     final lanternService = sl<LanternPlatformService>();
 
     final fetchResult = await lanternService.fetchUserData();
-    final fetchedUser = fetchResult.fold((failure) {
+    final user = fetchResult.fold((failure) {
       appLogger.warning(
         '[AppPurchase] Failed to fetch latest user data for purchase check: ${failure.error}',
       );
       return null;
     }, (user) => user);
 
-    final user =
-        fetchedUser ??
-        (await lanternService.getUserData()).fold((failure) {
-          appLogger.warning(
-            '[AppPurchase] Failed to load cached user data for purchase check: ${failure.error}',
-          );
-          return null;
-        }, (user) => user);
-
     if (user == null) {
       return false;
     }
 
+    return _userHasActivePurchase(user);
+  }
+
+  bool _userHasActivePurchase(UserResponseModel user) {
     final userLevel = user.legacyUserData.userLevel.toLowerCase();
     final subscriptionStatus = user.legacyUserData.subscriptionData.status
         .toLowerCase();
-
     return userLevel == 'pro' || subscriptionStatus == 'active';
   }
 
@@ -583,6 +579,14 @@ class AppPurchase {
   String _resolvePlanId(PurchaseDetails purchase) {
     if (_pendingPlanId != null && _pendingPlanId!.isNotEmpty) {
       return _pendingPlanId!;
+    }
+
+    final pendingPlan = _pendingPlanForPurchase(purchase);
+    if (pendingPlan != null) {
+      appLogger.info(
+        '[AppPurchase] Resolved plan from pending purchase metadata: $pendingPlan',
+      );
+      return pendingPlan;
     }
 
     final prefix = purchase.productID.split('_').first; // "1y" or "1m"
@@ -607,5 +611,273 @@ class AppPurchase {
     _onError = null;
     _pendingPlanId = null;
     _isRestoreFlow = false;
+  }
+
+  Future<void> _acknowledgePurchase(
+    PurchaseDetails purchaseDetails, {
+    required String planId,
+    bool isRetry = false,
+  }) async {
+    final key = _purchaseRetryKey(purchaseDetails);
+    if (!_acknowledgeInFlight.add(key)) {
+      appLogger.info(
+        '[AppPurchase] Acknowledgment already in flight: '
+        'productID=${purchaseDetails.productID} key=$key',
+      );
+      return;
+    }
+
+    try {
+      final purchaseToken =
+          purchaseDetails.verificationData.serverVerificationData;
+      appLogger.info(
+        '[AppPurchase] Acknowledgment ${isRetry ? 'retry' : 'start'}: '
+        'productID=${purchaseDetails.productID} '
+        'purchaseID=${purchaseDetails.purchaseID} '
+        'planId=$planId receiptLength=${purchaseToken.length}',
+      );
+
+      if (purchaseToken.isEmpty) {
+        await _handleAcknowledgeFailure(
+          purchaseDetails,
+          'Missing purchase receipt',
+          isRetry: isRetry,
+        );
+        return;
+      }
+
+      final lanternService = sl<LanternPlatformService>();
+      final ack = await lanternService.acknowledgeInAppPurchase(
+        purchaseToken: purchaseToken,
+        planId: planId,
+      );
+
+      await ack.fold(
+        (error) async {
+          await _handleAcknowledgeFailure(
+            purchaseDetails,
+            error,
+            isRetry: isRetry,
+          );
+        },
+        (success) async {
+          appLogger.info(
+            '[AppPurchase] Acknowledgment successful: '
+            'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
+          );
+          _ackRetryAttempts.remove(key);
+          await _forgetPendingPlan(purchaseDetails);
+          await _finalize(purchaseDetails);
+          if (!isRetry) {
+            _onSuccess?.call(purchaseDetails);
+          }
+        },
+      );
+    } finally {
+      _acknowledgeInFlight.remove(key);
+    }
+  }
+
+  Future<void> _handleAcknowledgeFailure(
+    PurchaseDetails purchaseDetails,
+    Object error, {
+    bool isRetry = false,
+    StackTrace? stackTrace,
+  }) async {
+    appLogger.error(
+      '[AppPurchase] Acknowledgment failed; leaving store transaction pending '
+      'for retry: productID=${purchaseDetails.productID} '
+      'purchaseID=${purchaseDetails.purchaseID}',
+      error,
+      stackTrace,
+    );
+
+    if (await _checkIfAlreadyPurchased()) {
+      appLogger.info(
+        '[AppPurchase] Account is already active after acknowledgment failure; '
+        'finalizing store transaction',
+      );
+      _ackRetryAttempts.remove(_purchaseRetryKey(purchaseDetails));
+      await _forgetPendingPlan(purchaseDetails);
+      await _finalize(purchaseDetails);
+      if (!isRetry) {
+        _onSuccess?.call(purchaseDetails);
+      }
+      return;
+    }
+
+    if (!isRetry) {
+      final onError = _onError;
+      _onSuccess = null;
+      _onError = null;
+      _pendingPlanId = null;
+      onError?.call(
+        'Purchase verification failed. We will retry automatically.',
+      );
+    }
+    _scheduleAcknowledgeRetry(purchaseDetails);
+  }
+
+  void _scheduleAcknowledgeRetry(PurchaseDetails purchaseDetails) {
+    final key = _purchaseRetryKey(purchaseDetails);
+    final attempt = _ackRetryAttempts[key] ?? 0;
+    if (attempt >= _ackRetryDelays.length) {
+      appLogger.warning(
+        '[AppPurchase] Acknowledgment retries exhausted; StoreKit transaction '
+        'remains pending: productID=${purchaseDetails.productID} '
+        'purchaseID=${purchaseDetails.purchaseID}',
+      );
+      return;
+    }
+
+    final delay = _ackRetryDelays[attempt];
+    _ackRetryAttempts[key] = attempt + 1;
+    appLogger.info(
+      '[AppPurchase] Scheduling acknowledgment retry ${attempt + 1}/'
+      '${_ackRetryDelays.length} in $delay: '
+      'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
+    );
+
+    unawaited(
+      Future.delayed(delay, () async {
+        if (!_ackRetryAttempts.containsKey(key)) {
+          return;
+        }
+        final planId = _resolvePlanId(purchaseDetails);
+        await _acknowledgePurchase(
+          purchaseDetails,
+          planId: planId,
+          isRetry: true,
+        );
+      }),
+    );
+  }
+
+  String _purchaseRetryKey(PurchaseDetails purchase) {
+    final transactionKey = _transactionPlanKey(purchase);
+    if (transactionKey != null) {
+      return transactionKey;
+    }
+    return _productPlanKey(purchase.productID);
+  }
+
+  String _productPlanKey(String productID) =>
+      '$_productPlanKeyPrefix$productID';
+
+  String? _transactionPlanKey(PurchaseDetails purchase) {
+    final purchaseID = purchase.purchaseID;
+    if (purchaseID != null && purchaseID.isNotEmpty) {
+      return '$_transactionPlanKeyPrefix$purchaseID';
+    }
+    final transactionDate = purchase.transactionDate;
+    if (transactionDate != null && transactionDate.isNotEmpty) {
+      return '$_transactionPlanKeyPrefix${purchase.productID}:$transactionDate';
+    }
+    return null;
+  }
+
+  List<String> _planKeysForPurchase(PurchaseDetails purchase) {
+    final transactionKey = _transactionPlanKey(purchase);
+    final keys = <String>[_productPlanKey(purchase.productID)];
+    if (transactionKey != null) {
+      keys.insert(0, transactionKey);
+    }
+    return keys;
+  }
+
+  String? _pendingPlanForPurchase(PurchaseDetails purchase) {
+    final pending = _loadPendingPurchasePlans();
+    for (final key in _planKeysForPurchase(purchase)) {
+      final planId = pending[key];
+      if (planId != null && planId.isNotEmpty) {
+        return planId;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _rememberPendingPlanForProduct(
+    String productID,
+    String planId,
+  ) async {
+    if (planId.isEmpty) {
+      return;
+    }
+    final pending = _loadPendingPurchasePlans();
+    pending[_productPlanKey(productID)] = planId;
+    await _savePendingPurchasePlans(pending);
+    appLogger.info(
+      '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
+    );
+  }
+
+  Future<void> _rememberPendingPlanForPurchase(
+    PurchaseDetails purchase,
+    String planId,
+  ) async {
+    if (planId.isEmpty) {
+      return;
+    }
+    final pending = _loadPendingPurchasePlans();
+    for (final key in _planKeysForPurchase(purchase)) {
+      pending[key] = planId;
+    }
+    await _savePendingPurchasePlans(pending);
+    appLogger.info(
+      '[AppPurchase] Stored pending purchase plan: '
+      'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
+    );
+  }
+
+  Future<void> _forgetPendingPlan(PurchaseDetails purchase) async {
+    final pending = _loadPendingPurchasePlans();
+    var changed = false;
+    for (final key in _planKeysForPurchase(purchase)) {
+      changed = pending.remove(key) != null || changed;
+    }
+    if (changed) {
+      await _savePendingPurchasePlans(pending);
+      appLogger.info(
+        '[AppPurchase] Cleared pending purchase plan: '
+        'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
+      );
+    }
+  }
+
+  Future<void> _forgetPendingPlanForProduct(String productID) async {
+    final pending = _loadPendingPurchasePlans();
+    if (pending.remove(_productPlanKey(productID)) != null) {
+      await _savePendingPurchasePlans(pending);
+      appLogger.info(
+        '[AppPurchase] Cleared pending purchase plan for productID=$productID',
+      );
+    }
+  }
+
+  Map<String, String> _loadPendingPurchasePlans() {
+    final raw = sl<LocalStorageService>().getString(_pendingPurchasePlansKey);
+    if (raw == null || raw.isEmpty) {
+      return {};
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return decoded.map(
+          (key, value) => MapEntry(key.toString(), value.toString()),
+        );
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to parse pending purchase plans', e, st);
+    }
+    return {};
+  }
+
+  Future<void> _savePendingPurchasePlans(Map<String, String> pending) async {
+    final storage = sl<LocalStorageService>();
+    if (pending.isEmpty) {
+      await storage.remove(_pendingPurchasePlansKey);
+      return;
+    }
+    await storage.setString(_pendingPurchasePlansKey, jsonEncode(pending));
   }
 }
