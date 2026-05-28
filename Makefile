@@ -115,8 +115,8 @@ ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release
 # anyway). Re-add android-arm here if/when that's fixed upstream.
 ANDROID_APK_TARGET_PLATFORMS := android-arm64
 ANDROID_AAB_TARGET_PLATFORMS := android-arm64
-# Back-compat: keep ANDROID_TARGET_PLATFORMS as the fat union for any
-# external caller / debug target that still references it.
+# Back-compat alias for any external caller / debug target that references
+# ANDROID_TARGET_PLATFORMS. Now arm64-only, same as the APK/AAB targets.
 ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab

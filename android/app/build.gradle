@@ -51,7 +51,7 @@ android {
     // (Makefile --target-platform), or installs crash with "Could not find
     // 'libflutter.so'".
 
-    // Use legacy packaging to helps reduce apk size
+    // Use legacy packaging to help reduce apk size
     packagingOptions {
         exclude "DebugProbesKt.bin"
         jniLibs {
