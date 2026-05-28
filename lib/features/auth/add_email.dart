@@ -32,26 +32,33 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
+    useListenable(emailController);
     final user = ref.watch(homeProvider).value;
     final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
-    if (isUserRegistered) {
-      /// this mean user has already registered
-      emailController.text = user?.legacyUserData.email ?? '';
-    }
+    final currentEmail = user?.legacyUserData.email ?? '';
+    final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
+
+    useEffect(() {
+      if (isUserRegistered && !isChangeEmailFlow) {
+        emailController.text = currentEmail;
+      }
+      return null;
+    }, [isUserRegistered, isChangeEmailFlow, currentEmail]);
 
     textTheme = Theme.of(context).textTheme;
     return EnterKeyShortcut(
       onEnter: () {
-        if (emailController.text.isValidEmail()) {
+        if (_canSubmitEmail(emailController.text, currentEmail)) {
           onContinuePressed(
             SignUpMethodType.email,
             emailController.text,
             isUserRegistered,
+            currentEmail,
           );
         }
       },
       child: BaseScreen(
-        title: widget.authFlow == AuthFlow.changeEmail
+        title: isChangeEmailFlow
             ? 'enter_new_email'.i18n
             : 'add_your_email'.i18n,
         body: Form(
@@ -63,7 +70,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               children: [
                 AppTextField(
                   fieldKey: AuthKeys.signUpEmailField,
-                  enable: !isUserRegistered,
+                  enable: !isUserRegistered || isChangeEmailFlow,
                   controller: emailController,
                   label: 'email'.i18n,
                   keyboardType: TextInputType.emailAddress,
@@ -74,17 +81,17 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   ],
                   prefixIcon: AppImagePaths.email,
                   hintText: 'example@gmail.com',
-                  onChanged: (value) {
-                    setState(() {});
-                  },
                   validator: (value) {
-                    if (value!.isEmpty) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) {
                       return null;
                     }
-                    if (value.isNotEmpty) {
-                      if (!value.isValidEmail()) {
-                        return 'invalid_email'.i18n;
-                      }
+                    if (!email.isValidEmail()) {
+                      return 'invalid_email'.i18n;
+                    }
+                    if (isChangeEmailFlow &&
+                        _isSameEmail(email, currentEmail)) {
+                      return 'email_must_be_different'.i18n;
                     }
                     return null;
                   },
@@ -128,12 +135,13 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                 PrimaryButton(
                   key: AuthKeys.signUpContinueButton,
                   label: 'continue'.i18n,
-                  enabled: emailController.text.isValidEmail(),
+                  enabled: _canSubmitEmail(emailController.text, currentEmail),
                   isTaller: true,
                   onPressed: () => onContinuePressed(
                     SignUpMethodType.email,
                     emailController.text,
                     isUserRegistered,
+                    currentEmail,
                   ),
                 ),
                 if (!isUserRegistered) ...{
@@ -180,11 +188,34 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     return problematicDomains.any(email.endsWith);
   }
 
+  bool _canSubmitEmail(String email, String currentEmail) {
+    final trimmedEmail = email.trim();
+    if (!trimmedEmail.isValidEmail()) {
+      return false;
+    }
+    if (widget.authFlow == AuthFlow.changeEmail &&
+        _isSameEmail(trimmedEmail, currentEmail)) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _isSameEmail(String email, String currentEmail) {
+    return currentEmail.trim().isNotEmpty &&
+        email.trim().toLowerCase() == currentEmail.trim().toLowerCase();
+  }
+
   void onContinuePressed(
     SignUpMethodType type,
     String email,
     bool isUserRegistered,
+    String currentEmail,
   ) {
+    email = email.trim();
+    if (!_canSubmitEmail(email, currentEmail)) {
+      _formKey.currentState!.validate();
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
 
     if (_isProblematicEmail(email) && !isUserRegistered) {
