@@ -272,12 +272,16 @@ RestartApplications=no
 ; first shipped in Windows 10 1903 (build 18362). Gate here so pre-1903 / Win7
 ; users get a clear message instead of a cryptic "icu.dll missing" launch crash.
 MinVersion=10.0.18362
+; Multi-language installer: auto-detect from system UI locale, no picker dialog.
+ShowLanguageDialog=no
 
 [Languages]
 {% for locale in LOCALES %}
 {% if locale == 'en' %}Name: "english"; MessagesFile: "compiler:Default.isl"{% endif %}
 {% if locale == 'zh' %}Name: "chinesesimplified"; MessagesFile: "compiler:Languages\\ChineseSimplified.isl"{% endif %}
 {% if locale == 'ja' %}Name: "japanese"; MessagesFile: "compiler:Languages\\Japanese.isl"{% endif %}
+{% if locale == 'ru' %}Name: "russian"; MessagesFile: "compiler:Languages\\Russian.isl"{% endif %}
+{% if locale == 'fa' %}Name: "farsi"; MessagesFile: "compiler:Languages\\Farsi.isl"{% endif %}
 {% endfor %}
 
 [Messages]
@@ -286,6 +290,8 @@ MinVersion=10.0.18362
 {% if locale == 'en' %}english.WindowsVersionNotSupported=Lantern 9 requires Windows 10 version 1903 (May 2019) or later.%n%nYour version of Windows is no longer supported by this release.{% endif %}
 {% if locale == 'zh' %}chinesesimplified.WindowsVersionNotSupported=Lantern 9 需要 Windows 10 1903 版本（2019 年 5 月）或更高版本。%n%n此版本不再支持您当前的 Windows 系统。{% endif %}
 {% if locale == 'ja' %}japanese.WindowsVersionNotSupported=Lantern 9 を実行するには Windows 10 バージョン 1903（2019年5月）以降が必要です。%n%nお使いの Windows はこのリリースではサポートされていません。{% endif %}
+{% if locale == 'ru' %}russian.WindowsVersionNotSupported=Lantern 9 требует Windows 10 версии 1903 (май 2019 г.) или новее.%n%nВаша версия Windows больше не поддерживается в этом выпуске.{% endif %}
+{% if locale == 'fa' %}farsi.WindowsVersionNotSupported=Lantern 9 به Windows 10 نسخه 1903 (مه ۲۰۱۹) یا جدیدتر نیاز دارد.%n%nنسخه ویندوز شما دیگر در این نسخه پشتیبانی نمی‌شود.{% endif %}
 {% endfor %}
 
 [Tasks]
