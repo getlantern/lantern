@@ -690,6 +690,7 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	if logFilePath != "" {
 		attachments = append(attachments, logFilePath)
 	}
+	attachments = append(attachments, collectPprofFiles(settings.GetString(settings.DataPathKey))...)
 
 	firstClassAttachments, err := reportissue.LoadAttachments(attachmentsJSON)
 	if err != nil {
@@ -709,6 +710,21 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 // Windows and may be able to read files this process can't, and vice
 // versa. The drop avoids attaching obviously-broken paths to issue
 // reports; the daemon's own readability check is authoritative.
+// collectPprofFiles returns all heap-NN.pprof files written by radiance's
+// memstats logger under <dataPath>/pprof. These are the rotating heap profiles
+// that let us diagnose memory growth in submitted issue reports.
+func collectPprofFiles(dataPath string) []string {
+	if dataPath == "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(dataPath, "pprof", "*.pprof"))
+	if err != nil {
+		slog.Warn("ReportIssue: unable to glob pprof files", "dir", dataPath, "err", err)
+		return nil
+	}
+	return matches
+}
+
 func collectLocalLogs(dir string) []string {
 	if dir == "" {
 		return nil
