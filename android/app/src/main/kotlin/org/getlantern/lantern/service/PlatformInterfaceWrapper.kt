@@ -94,7 +94,16 @@ interface PlatformInterfaceWrapper : PlatformInterface {
 
     override fun getInterfaces(): NetworkInterfaceIterator {
         val networks = LanternApp.connectivity.allNetworks
-        val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
+        // Best-effort: getNetworkInterfaces() returns null when no interfaces are
+        // found and can throw (SocketException/SecurityException) on restricted
+        // devices. Fall back to an empty list so the ConnectivityManager +
+        // Os.if_nametoindex path below still runs instead of crashing here.
+        val networkInterfaces = try {
+            NetworkInterface.getNetworkInterfaces()?.toList() ?: emptyList()
+        } catch (e: Exception) {
+            AppLogger.e("PlatformInterface", "getNetworkInterfaces() failed; using ConnectivityManager only", e)
+            emptyList()
+        }
         val interfaces = mutableListOf<lantern.io.libbox.NetworkInterface>()
         for (network in networks) {
             val linkProperties = LanternApp.connectivity.getLinkProperties(network) ?: continue
