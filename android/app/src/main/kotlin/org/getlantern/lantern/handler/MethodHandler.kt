@@ -1104,7 +1104,7 @@ class MethodHandler : FlutterPlugin,
                         )
                         val status = AndroidSideloadInstaller.install(MainActivity.instance, update)
                         withContext(Dispatchers.Main) {
-                            success(status)
+                            result.success(status)
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
