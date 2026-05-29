@@ -124,6 +124,12 @@ jobs:
           make pubget
           make gen
 
+      # app.env is a declared pubspec asset, normally decoded from a secret by
+      # the release workflow. This compile-only gate doesn't run the app, so an
+      # empty placeholder is enough to satisfy asset bundling without the secret.
+      - name: Create placeholder app.env
+        run: touch app.env
+
       # Builds the gomobile AAR, then compiles the debug APK (all app Kotlin).
       # A Kotlin compile error fails this step — the whole point of the gate.
       - name: Build debug APK (compiles Kotlin)
