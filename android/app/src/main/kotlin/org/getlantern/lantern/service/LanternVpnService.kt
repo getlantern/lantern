@@ -170,16 +170,11 @@ class LanternVpnService :
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
-            // Lightweight, main-thread-safe cleanup. These don't depend on the
-            // Go tunnel being torn down first, so do them synchronously here.
+            // Only the TUN fd close stays synchronous on the main thread — it's
+            // cheap and the OS should release the interface promptly.
             closeTunInterface()
-            notificationHelper.stopVPNConnectedNotification(this)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                QuickTileService.triggerUpdateTileState(this, false)
-            }
-            serviceCleanUp()
 
-            // Tear down the Go tunnel OFF the main thread. Mobile.stopVPN() is a
+            // Everything else runs OFF the main thread. Mobile.stopVPN() is a
             // blocking JNI call (tunnel/connection close) — running it on the
             // main thread here ANRs during service teardown and contends with any
             // in-flight performStopVPN (getlantern/engineering#3563). teardownScope
@@ -189,6 +184,10 @@ class LanternVpnService :
             // double-call from the stop path is harmless. Closed unconditionally
             // when radiance is up: any non-Connected state (Restarting,
             // Connecting, Disconnecting, Error) still has a non-nil c.tunnel.
+            // The notification/tile/receiver cleanup runs AFTER stopVPN so the UI
+            // reflects the stopped state and the status receiver stays registered
+            // through teardown. serviceCleanUp() unregisters via the application
+            // context (not the service), so running it after super.onDestroy() is safe.
             teardownScope.launch {
                 runCatching {
                     if (Mobile.isRadianceConnected()) {
@@ -201,6 +200,12 @@ class LanternVpnService :
 
                 runCatching { DefaultNetworkMonitor.stop() }
                     .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during destroy", e) }
+
+                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+                }
+                serviceCleanUp()
             }
         } finally {
             serviceScope.cancel()
