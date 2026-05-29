@@ -1,0 +1,138 @@
+name: Android Compile Check
+
+# Gates PRs that touch Kotlin/Android (or the Go/deps that produce the gomobile
+# AAR the Kotlin compiles against) by building the debug APK — which compiles
+# all app Kotlin. The full signed release build (build-android.yml) is
+# workflow_call-only and never ran on PRs, so a Kotlin compile break (e.g. the
+# bare success() call in #8754) could merge to main undetected. This catches it.
+#
+# Debug build only: no keystore/APP_ENV secrets, no AAB, no artifact upload.
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "lantern-core/**"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/flutter-version.yaml"
+      - ".github/workflows/android-compile-check.yml"
+
+concurrency:
+  group: android-compile-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile-check:
+    permissions:
+      contents: "read"
+    runs-on: macos-26
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: |
+            ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set up Java 17 (Gradle cache)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: "gradle"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "ndk;27.0.12077973" \
+            "cmake;3.22.1"
+          yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses >/dev/null || true
+
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          for var in ANDROID_NDK_HOME ANDROID_NDK_ROOT NDK_HOME; do
+            echo "${var}=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          done
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.22.0
+        with:
+          channel: stable
+          flutter-version-file: .github/flutter-version.yaml
+          cache: true
+
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
+
+      - name: Cache gomobile
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: ~/.cache/gomobile
+          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomobile-
+
+      - name: Install dependencies (gomobile)
+        run: make install-android-deps
+        env:
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Flutter pub get + codegen
+        run: |
+          make pubget
+          make gen
+
+      # app.env is a declared pubspec asset, normally decoded from a secret by
+      # the release workflow. This compile-only gate doesn't run the app, so an
+      # empty placeholder is enough to satisfy asset bundling without the secret.
+      - name: Create placeholder app.env
+        run: touch app.env
+
+      # Builds the gomobile AAR, then compiles the debug APK (all app Kotlin).
+      # A Kotlin compile error fails this step — the whole point of the gate.
+      - name: Build debug APK (compiles Kotlin)
+        run: make android-debug
+        env:
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
