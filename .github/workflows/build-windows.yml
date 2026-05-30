@@ -120,9 +120,13 @@ jobs:
 
       - name: Install Inno Setup 6
         shell: pwsh
-        # Pinned to 6.5.0 so the vendored Farsi.isl (6.5.0+) matches the
-        # compiler exactly and the Languages dir path is deterministic.
-        run: choco install -y innosetup --version=6.5.0
+        # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
+        # --version=6.5.0 now fails ("a newer version is already installed; use
+        # --allow-downgrade"), so pin to 6.7.1 with --allow-downgrade: the install
+        # is deterministic and the Languages dir stays "Inno Setup 6". The vendored
+        # Farsi/ChineseSimplified .isl files are "6.5.0+" and message-key-identical
+        # to 6.7.1's Default.isl, so they remain valid as-is.
+        run: choco install -y innosetup --version=6.7.1 --allow-downgrade
 
       - name: Install unofficial Inno Setup translations
         shell: pwsh
