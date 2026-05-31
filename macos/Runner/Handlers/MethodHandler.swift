@@ -275,6 +275,16 @@ class MethodHandler {
           await MainActor.run { result(MobileIsUnboundedEnabled()) }
         }
 
+      case "probeUPnP":
+        // UPnP M-SEARCH multicast wait — up to ~6s in MobileProbeUPnP.
+        // Hop off the main actor (the Task default executor) so the
+        // wait doesn't stall the UI, then deliver the bool back on
+        // MainActor for the Flutter result callback.
+        Task.detached {
+          let available = MobileProbeUPnP()
+          await MainActor.run { result(available) }
+        }
+
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
