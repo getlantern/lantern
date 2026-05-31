@@ -557,6 +557,9 @@ msgstr "Share My Connection"
 msgid "share_my_connection_subtitle"
 msgstr "Let other Lantern users route through your connection to bypass censorship."
 
+msgid "share_my_connection_on_tap_to_view"
+msgstr "On — tap to view"
+
 # Share My Connection screen — body / hero copy
 msgid "smc_intro"
 msgstr "Help others bypass censorship by sharing a small portion of your home internet connection. While sharing is on, traffic from users in censored regions will egress through your IP."

@@ -129,7 +129,7 @@ class VPNSetting extends HookConsumerWidget {
               label: 'share_my_connection'.i18n,
               subtitle: Text(
                 peerProxy
-                    ? 'On — tap to view'
+                    ? 'share_my_connection_on_tap_to_view'.i18n
                     : 'share_my_connection_subtitle'.i18n,
                 style: textTheme.labelMedium!.copyWith(
                   color: context.textTertiary,
