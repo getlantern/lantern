@@ -404,34 +404,19 @@ func (lc *LanternCore) listenDataCapEvents() {
 // reconnects (broflake's WebRTC sessions are short and same-IP churn
 // is more common than for SmC's long-lived TCP).
 func (lc *LanternCore) listenPeerConnectionEvents() {
-	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
-	// The events package's globals are process-scoped — events.Emit in
-	// lanternd (where radiance/peer runs) doesn't reach events.Subscribe
-	// in Liblantern. The /peer/connection/events SSE endpoint in
-	// radiance/ipc/server.go bridges the two processes.
-	go func() {
-		err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
-			jsonBytes, err := json.Marshal(map[string]any{
-				"state":  evt.State,
-				"source": evt.Source,
-			})
-			if err != nil {
-				slog.Error("marshal peer connection event", "error", err)
-				return
-			}
-			lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
-		})
-		if err != nil && lc.ctx.Err() == nil {
-			slog.Error("peer-connection event stream exited unexpectedly", "error", err)
-		}
-	}()
 	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
 	// now. Unbounded runs in the same process as the consumer in mobile
 	// builds (broflake-as-library); the desktop path doesn't yet have a
 	// gomobile-bridged Unbounded peer, so the cross-process gap doesn't
 	// hit here today. Worth revisiting if Unbounded ever moves out of
 	// process.
-	events.Subscribe(func(evt unbounded.ConnectionEvent) {
+	//
+	// The subscription is tied to ctx via a separate goroutine that
+	// calls Unsubscribe on Done. Without this, a reinitialization of
+	// LanternCore over the process lifetime would leak handlers and
+	// events.Emit would fan out each connection event to N stale
+	// registrations.
+	unbSub := events.Subscribe(func(evt unbounded.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
 			"state":     evt.State,
 			"source":    evt.Addr,
@@ -443,6 +428,34 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 		}
 		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
 	})
+	go func() {
+		<-lc.ctx.Done()
+		unbSub.Unsubscribe()
+	}()
+
+	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
+	// The events package's globals are process-scoped — events.Emit in
+	// lanternd (where radiance/peer runs) doesn't reach events.Subscribe
+	// in Liblantern. The /peer/connection/events SSE endpoint bridges
+	// the two processes. PeerConnectionEvents blocks until ctx is done,
+	// so this goroutine (the caller spawned us with
+	// `go lc.listenPeerConnectionEvents()`) blocks on it directly —
+	// wrapping in another go would just exit the outer goroutine
+	// immediately.
+	err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":  evt.State,
+			"source": evt.Source,
+		})
+		if err != nil {
+			slog.Error("marshal peer connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-connection event stream exited unexpectedly", "error", err)
+	}
 }
 
 // listenPeerStatusEvents forwards peer.Client lifecycle phase changes to

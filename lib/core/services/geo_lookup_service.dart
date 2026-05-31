@@ -184,6 +184,19 @@ class GeoLookupService {
   /// Looks up country, flag, and coordinates for a peer [ip] address.
   /// Returns [PeerGeo.unknown] on any failure so callers can suppress the
   /// arc / banner rather than displaying a wrong country.
+  ///
+  /// Privacy note: each call ships [ip] — the address of a peer routing
+  /// through this user's Share My Connection inbound — to ipwho.is, a
+  /// third-party geo-IP service. For most SmC consumers these are
+  /// censored users' addresses, so this is an outbound data flow to a
+  /// non-Lantern endpoint. Current rationale for accepting it: the IP
+  /// is already public-by-virtue-of-being-a-TCP-source-addr the host
+  /// observes, ipwho.is doesn't tie lookups to the caller, and the
+  /// alternative — relaying through Lantern's own infrastructure or
+  /// shipping a MaxMind DB with the app — is meaningful additional
+  /// scope. Move this to a Lantern-controlled endpoint or a local DB
+  /// before any production-scale rollout where peer protection matters
+  /// beyond demo use.
   static Future<PeerGeo> peerLookup(String ip) async {
     try {
       final response = await http

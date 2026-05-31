@@ -30,6 +30,8 @@ import 'package:lottie/lottie.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -110,7 +112,13 @@ class ShareState {
     int? activeCount,
     int? totalCount,
     SharePhase? phase,
-    String? errorMessage,
+    // Sentinel-defaulted so callers can distinguish "leave alone" (omit
+    // the argument) from "clear it" (pass null explicitly). The naive
+    // `String? errorMessage` + `?? this.errorMessage` pattern conflates
+    // the two and leaves stale error text wedged in state forever — the
+    // next time a phase transition lands in error, the wrong message
+    // would get re-rendered.
+    Object? errorMessage = _unsetErrorMessage,
   }) =>
       ShareState(
         active: active ?? this.active,
@@ -119,9 +127,20 @@ class ShareState {
         activeCount: activeCount ?? this.activeCount,
         totalCount: totalCount ?? this.totalCount,
         phase: phase ?? this.phase,
-        errorMessage: errorMessage ?? this.errorMessage,
+        errorMessage: identical(errorMessage, _unsetErrorMessage)
+            ? this.errorMessage
+            : errorMessage as String?,
       );
 }
+
+// Sentinel for ShareState.copyWith. Has to be a const value distinct
+// from any String? a caller might supply (including null), hence the
+// private class — `const Object()` instances can be canonicalized to
+// the same identity as another bare Object literal.
+class _UnsetErrorMessage {
+  const _UnsetErrorMessage();
+}
+const _unsetErrorMessage = _UnsetErrorMessage();
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
 
@@ -135,9 +154,13 @@ class _PeerArc {
 }
 
 class ShareNotifier extends Notifier<ShareState> {
-  // Persisted in real impl; in-process for the prototype so the disclosure
-  // re-fires on app restart and is easy to demo.
-  bool _smcAck = false;
+  // Disclosure ack persists across launches via LocalStorageService
+  // (SharedPreferences). Key-presence is the signal — the value is
+  // arbitrary. Cleared by deleteAll() in the existing reset flow.
+  static const _smcAckKey = 'smc_disclosure_acked';
+  LocalStorageService get _storage => sl<LocalStorageService>();
+  bool get _smcAck => _storage.containsKey(_smcAckKey);
+  Future<void> _persistSmcAck() => _storage.setString(_smcAckKey, '1');
 
   StreamSubscription? _appEventSub;
   int _workerSeq = 0;
@@ -224,7 +247,7 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
     if (accepted) {
-      _smcAck = true;
+      await _persistSmcAck();
       await _start(widgetRef, ShareMode.smc);
     } else {
       await _start(widgetRef, ShareMode.unbounded);
@@ -475,16 +498,14 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return BaseScreen(
-      title: 'Share My Connection',
+      title: 'share_my_connection'.i18n,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
             const SizedBox(height: 12),
             Text(
-              'Help others bypass censorship by sharing a small portion of '
-              'your home internet connection. While sharing is on, traffic '
-              'from users in censored regions will egress through your IP.',
+              'smc_intro'.i18n,
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -540,31 +561,29 @@ class _StatusCard extends StatelessWidget {
     //      staged lifecycle on the broflake side yet).
     final modeLabel = switch ((state.mode, state.phase)) {
       (ShareMode.off, _) =>
-        state.probing ? 'Probing your network…' : 'Off',
-      (ShareMode.unbounded, _) =>
-        'Active — sharing via Unbounded (WebRTC)',
+        state.probing ? 'smc_status_probing'.i18n : 'smc_status_off'.i18n,
+      (ShareMode.unbounded, _) => 'smc_status_active_unbounded'.i18n,
       (ShareMode.smc, SharePhase.mappingPort) =>
-        'Opening port on your router…',
+        'smc_status_mapping_port'.i18n,
       (ShareMode.smc, SharePhase.detectingIp) =>
-        'Detecting your public IP…',
+        'smc_status_detecting_ip'.i18n,
       (ShareMode.smc, SharePhase.registering) =>
-        'Registering with Lantern…',
+        'smc_status_registering'.i18n,
       (ShareMode.smc, SharePhase.startingProxy) =>
-        'Starting local proxy…',
+        'smc_status_starting_proxy'.i18n,
       (ShareMode.smc, SharePhase.verifying) =>
-        'Verifying connectivity…',
+        'smc_status_verifying'.i18n,
       (ShareMode.smc, SharePhase.serving) =>
-        'Sharing — ready to serve users in censored regions',
-      (ShareMode.smc, SharePhase.stopping) => 'Stopping…',
+        'smc_status_serving'.i18n,
+      (ShareMode.smc, SharePhase.stopping) => 'smc_status_stopping'.i18n,
       (ShareMode.smc, SharePhase.error) =>
         state.errorMessage != null
-            ? "Couldn't share: ${state.errorMessage}"
-            : "Couldn't share — try toggling again",
+            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
+            : 'smc_status_error_generic'.i18n,
       // SmC active but no phase yet (e.g. very first frame after toggle
       // before the backend's first event arrives) — fall back to the
       // legacy active label so the UI isn't blank.
-      (ShareMode.smc, SharePhase.idle) =>
-        'Active — sharing via Share My Connection (residential proxy)',
+      (ShareMode.smc, SharePhase.idle) => 'smc_status_active_smc'.i18n,
     };
 
     return Container(
@@ -584,7 +603,7 @@ class _StatusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Status',
+                      'smc_status_label'.i18n,
                       style: textTheme.labelLarge,
                     ),
                     const SizedBox(height: 4),
@@ -622,8 +641,8 @@ class _StatusCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _Stat(label: 'Active now', value: '${state.activeCount}'),
-                    _Stat(label: 'Total today', value: '${state.totalCount}'),
+                    _Stat(label: 'smc_stat_active_now'.i18n, value: '${state.activeCount}'),
+                    _Stat(label: 'smc_stat_total_today'.i18n, value: '${state.totalCount}'),
                   ],
                 ),
                 Positioned(
@@ -642,12 +661,7 @@ class _StatusCard extends StatelessWidget {
                       color: Colors.black87,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    message:
-                        'Most connections are short liveness probes — Lantern '
-                        'clients periodically check that this peer is reachable '
-                        'before sending real traffic. A quick burst from many '
-                        'locations is normal; an arc that lingers represents an '
-                        'actual user session.',
+                    message: 'smc_connections_tooltip'.i18n,
                     child: Icon(
                       Icons.info_outline,
                       size: 16,
@@ -973,8 +987,8 @@ class _ArrivalCard extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               flagEmoji.isEmpty
-                  ? 'New connection from $countryName'
-                  : '$flagEmoji  New connection from $countryName',
+                  ? 'smc_arrival_toast'.i18n.fill([countryName])
+                  : '$flagEmoji  ${'smc_arrival_toast'.i18n.fill([countryName])}',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -1109,9 +1123,9 @@ class _AdvancedCard extends HookConsumerWidget {
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          title: Text('Advanced', style: textTheme.labelLarge),
+          title: Text('smc_advanced'.i18n, style: textTheme.labelLarge),
           subtitle: Text(
-            'For users whose router doesn\'t support UPnP',
+            'smc_advanced_subtitle'.i18n,
             style: textTheme.labelSmall,
           ),
           children: const [_ManualPortField()],
@@ -1153,15 +1167,12 @@ class _ManualPortField extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Manual port forward',
+          'smc_manual_port'.i18n,
           style: textTheme.labelLarge,
         ),
         const SizedBox(height: 4),
         Text(
-          'If your router doesn\'t support UPnP, configure a port forward '
-          'on your router and enter the port number here. Lantern will use '
-          'it as the external port instead of probing UPnP. Leave blank to '
-          'use UPnP (default).',
+          'smc_manual_port_description'.i18n,
           style: textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
@@ -1175,8 +1186,8 @@ class _ManualPortField extends HookConsumerWidget {
                   signed: false,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Port',
-                  hintText: 'e.g. 5698',
+                  labelText: 'smc_manual_port_label'.i18n,
+                  hintText: 'smc_manual_port_hint'.i18n,
                   border: const OutlineInputBorder(),
                   isDense: true,
                   enabled: loaded.value && !saving.value,
@@ -1193,15 +1204,14 @@ class _ManualPortField extends HookConsumerWidget {
                       height: 16, width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text('smc_manual_port_save'.i18n),
             ),
           ],
         ),
         if (lastSaved.value != null && lastSaved.value! > 0) ...[
           const SizedBox(height: 8),
           Text(
-            'Currently set to port ${lastSaved.value}. Toggle Share My '
-            'Connection off and back on for the change to take effect.',
+            'smc_manual_port_currently_set'.i18n.fill([lastSaved.value!]),
             style: textTheme.bodySmall?.copyWith(
               color: Theme.of(context).hintColor,
             ),
@@ -1227,7 +1237,7 @@ class _ManualPortField extends HookConsumerWidget {
         if (port < 1 || port > 65535) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Port must be between 1 and 65535')),
+              SnackBar(content: Text('smc_manual_port_out_of_range'.i18n)),
             );
           }
           return;
@@ -1249,8 +1259,8 @@ class _ManualPortField extends HookConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(port == 0
-                    ? 'Manual port cleared — using UPnP'
-                    : 'Manual port set to $port'),
+                    ? 'smc_manual_port_cleared'.i18n
+                    : 'smc_manual_port_saved'.i18n.fill([port])),
               ),
             );
           }
@@ -1271,31 +1281,24 @@ class SmcDisclosureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
-      title: const Text('Use full Share My Connection?'),
+      title: Text('smc_disclosure_title'.i18n),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Your network supports the higher-bandwidth, more '
-              'block-resistant mode. In this mode, your home internet '
-              'connection routes traffic for users in censored countries.',
+              'smc_disclosure_body_capability'.i18n,
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              'Lantern blocks abuse destinations, rotates credentials, '
-              'and operates as a "mere conduit" under DMCA § 512(a) — '
-              'but your IP address will appear in the destination\'s '
-              'logs while you\'re sharing.',
+              'smc_disclosure_body_safety'.i18n,
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              'You can still help by selecting "Basic mode" instead, '
-              'which uses ephemeral WebRTC connections that are not '
-              'tied to your IP in the same way.',
+              'smc_disclosure_body_alternative'.i18n,
               style: textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).hintColor,
               ),
@@ -1306,11 +1309,11 @@ class SmcDisclosureDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Basic mode (Unbounded)'),
+          child: Text('smc_disclosure_basic'.i18n),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Full mode (SmC)'),
+          child: Text('smc_disclosure_full'.i18n),
         ),
       ],
     );

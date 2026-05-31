@@ -22,7 +22,9 @@ class RadianceSettings extends _$RadianceSettings {
 
   /// Fetches all settings in parallel and assigns a fresh state from the
   /// results. On a per-field fetch failure, falls back to the hardcoded
-  /// default for that field.
+  /// default for that field. Each future is awaited into a named variable
+  /// (positional-by-name, not positional-by-index) so adding another
+  /// optional fetch later can't silently desync the read indices.
   Future<void> _refresh() async {
     final svc = ref.read(lanternServiceProvider);
     final blockAdsF = svc.isBlockAdsEnabled();
@@ -35,30 +37,27 @@ class RadianceSettings extends _$RadianceSettings {
     // every settings init.
     final peerF = PlatformUtils.isDesktop ? svc.isPeerProxyEnabled() : null;
 
-    final results = await Future.wait([
-      blockAdsF,
-      routingF,
-      telemetryF,
-      ?splitF,
-      ?peerF,
-    ]);
+    final blockAds = await blockAdsF;
+    final routing = await routingF;
+    final telemetry = await telemetryF;
+    final split = splitF == null ? null : await splitF;
+    final peer = peerF == null ? null : await peerF;
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
-    final peerIdx = 3 + (splitF == null ? 0 : 1);
     state = RadianceSettingsState(
-      blockAds: results[0].fold((_) => defaults.blockAds, (v) => v),
-      routingMode: results[1].fold(
+      blockAds: blockAds.fold((_) => defaults.blockAds, (v) => v),
+      routingMode: routing.fold(
         (_) => defaults.routingMode,
         (smart) => smart ? RoutingMode.smart : RoutingMode.full,
       ),
-      telemetry: results[2].fold((_) => defaults.telemetry, (v) => v),
-      splitTunneling: splitF == null
+      telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
+      splitTunneling: split == null
           ? defaults.splitTunneling
-          : results[3].fold((_) => defaults.splitTunneling, (v) => v),
-      peerProxy: peerF == null
+          : split.fold((_) => defaults.splitTunneling, (v) => v),
+      peerProxy: peer == null
           ? defaults.peerProxy
-          : results[peerIdx].fold((_) => defaults.peerProxy, (v) => v),
+          : peer.fold((_) => defaults.peerProxy, (v) => v),
     );
   }
 
