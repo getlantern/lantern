@@ -130,6 +130,15 @@ enum class Methods(val method: String) {
     SetRoutingMode("setRoutingMode"),
     IsSmartRoutingEnabled("isSmartRoutingEnabled"),
 
+    // Share My Connection (samizdat) + Unbounded (broflake) peer-share
+    SetPeerProxyEnabled("setPeerProxyEnabled"),
+    IsPeerProxyEnabled("isPeerProxyEnabled"),
+    SetPeerManualPort("setPeerManualPort"),
+    GetPeerManualPort("getPeerManualPort"),
+    SetUnboundedEnabled("setUnboundedEnabled"),
+    IsUnboundedEnabled("isUnboundedEnabled"),
+    ProbeUPnP("probeUPnP"),
+
     // Telemetry
     IsTelemetryEnabled("isTelemetryEnabled"),
 
@@ -1218,6 +1227,62 @@ class MethodHandler : FlutterPlugin,
             Methods.IsSmartRoutingEnabled.method -> {
                 scope.handleValue(result, "is_smart_routing_enabled") {
                     Mobile.isSmartRoutingEnabled()
+                }
+            }
+
+            // Share My Connection (samizdat) + Unbounded (broflake)
+            // peer-share. Phones on mobile data won't have UPnP, but
+            // home WiFi does — manual port forwarding works there too,
+            // so the whole stack is exposed on Android rather than
+            // desktop-only.
+            Methods.SetPeerProxyEnabled.method -> {
+                scope.handleResult(result, "set_peer_proxy_enabled") {
+                    val enabled = call.argument<Boolean>("enabled")
+                        ?: error("Missing enabled")
+                    Mobile.setPeerShareEnabled(enabled)
+                }
+            }
+
+            Methods.IsPeerProxyEnabled.method -> {
+                scope.handleValue(result, "is_peer_proxy_enabled") {
+                    Mobile.isPeerShareEnabled()
+                }
+            }
+
+            Methods.SetPeerManualPort.method -> {
+                scope.handleResult(result, "set_peer_manual_port") {
+                    val port = call.argument<Int>("port") ?: 0
+                    Mobile.setPeerManualPort(port.toLong())
+                }
+            }
+
+            Methods.GetPeerManualPort.method -> {
+                scope.handleValue(result, "get_peer_manual_port") {
+                    Mobile.getPeerManualPort().toInt()
+                }
+            }
+
+            Methods.SetUnboundedEnabled.method -> {
+                scope.handleResult(result, "set_unbounded_enabled") {
+                    val enabled = call.argument<Boolean>("enabled")
+                        ?: error("Missing enabled")
+                    Mobile.setUnboundedEnabled(enabled)
+                }
+            }
+
+            Methods.IsUnboundedEnabled.method -> {
+                scope.handleValue(result, "is_unbounded_enabled") {
+                    Mobile.isUnboundedEnabled()
+                }
+            }
+
+            Methods.ProbeUPnP.method -> {
+                // UPnP M-SEARCH waits up to ~6s on multicast replies;
+                // handleValue is already coroutine-backed (Dispatchers.IO
+                // via scope), so the wait runs off the main thread and
+                // doesn't block the Flutter UI isolate.
+                scope.handleValue(result, "probe_upnp") {
+                    Mobile.probeUPnP()
                 }
             }
 

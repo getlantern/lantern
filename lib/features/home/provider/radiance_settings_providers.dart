@@ -31,17 +31,17 @@ class RadianceSettings extends _$RadianceSettings {
     final routingF = svc.isSmartRoutingEnabled();
     final telemetryF = svc.isTelemetryEnabled();
     final splitF = PlatformUtils.isIOS ? null : svc.isSplitTunnelingEnabled();
-    // Peer-proxy probe runs only on platforms with native handlers
-    // (Windows + Linux via FFI, macOS via MethodChannel — i.e. all desktop).
-    // On iOS / Android the call would fail with MissingPluginException on
-    // every settings init.
-    final peerF = PlatformUtils.isDesktop ? svc.isPeerProxyEnabled() : null;
+    // Peer-proxy probe runs on every platform with a handler wired up:
+    // Windows + Linux via FFI, macOS + Android + iOS via MethodChannel.
+    // Manual port forwarding works on any home WiFi where the user owns
+    // the router, so mobile is included rather than desktop-only.
+    final peerF = svc.isPeerProxyEnabled();
 
     final blockAds = await blockAdsF;
     final routing = await routingF;
     final telemetry = await telemetryF;
     final split = splitF == null ? null : await splitF;
-    final peer = peerF == null ? null : await peerF;
+    final peer = await peerF;
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
@@ -55,9 +55,7 @@ class RadianceSettings extends _$RadianceSettings {
       splitTunneling: split == null
           ? defaults.splitTunneling
           : split.fold((_) => defaults.splitTunneling, (v) => v),
-      peerProxy: peer == null
-          ? defaults.peerProxy
-          : peer.fold((_) => defaults.peerProxy, (v) => v),
+      peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
     );
   }
 
