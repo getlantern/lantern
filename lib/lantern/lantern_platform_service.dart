@@ -372,6 +372,21 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // The Swift / Kotlin side calls Mobile.ProbeUPnP, which blocks
+      // up to ~6s on the M-SEARCH multicast scan. The MethodChannel
+      // call hops to a platform thread, so the Dart UI isolate isn't
+      // pinned during the wait.
+      final res = await _methodChannel.invokeMethod<bool>('probeUPnP');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('probeUPnP failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = await _methodChannel.invokeMethod<bool>(

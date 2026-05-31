@@ -843,6 +843,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> probeUPnP() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.probeUPnP();
+    }
+    return _platformService.probeUPnP();
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

@@ -1402,6 +1402,30 @@ func getPeerManualPort() C.int {
 	return C.int(c.GetPeerManualPort())
 }
 
+// probeUPnP runs the UPnP / IGD discovery scan against the local
+// gateway and returns 1 when discovery succeeds, 0 when it doesn't
+// (no gateway, scan timeout, ctx cancellation). The Share My
+// Connection UI flow calls this to decide between SmC mode (needs
+// a routable inbound) and Unbounded mode (works anywhere) when the
+// user toggles sharing on without a manual port configured.
+//
+// Blocks for up to ~6 seconds (the internal LanternCore deadline)
+// on the multicast M-SEARCH wait. Dart callers MUST invoke this
+// from a background isolate via runInBackground so the wait
+// doesn't pin the main thread.
+//
+//export probeUPnP
+func probeUPnP() C.int {
+	c, _ := requireCore()
+	if c == nil {
+		return 0
+	}
+	if c.ProbeUPnP() {
+		return 1
+	}
+	return 0
+}
+
 // setUnboundedEnabled is the local opt-in for the broflake / Unbounded
 // widget proxy ("Basic mode" in the SmC UI). The widget actually runs
 // only when this is true AND the server-side Features[unbounded] flag

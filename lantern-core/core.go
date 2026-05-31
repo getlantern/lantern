@@ -22,6 +22,7 @@ import (
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/peer"
+	"github.com/getlantern/radiance/portforward"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/unbounded"
 	"github.com/getlantern/radiance/vpn"
@@ -183,6 +184,12 @@ type PeerShare interface {
 	// UnboundedConfig — see radiance/unbounded.shouldRunUnbounded.
 	SetUnboundedEnabled(bool) error
 	IsUnboundedEnabled() bool
+	// ProbeUPnP runs IGD discovery on the local network and reports
+	// whether a usable gateway is reachable. Called by the SmC toggle
+	// path to decide between SmC mode (residential-proxy, needs UPnP
+	// or a manual port forward) and Unbounded mode (WebRTC, works
+	// anywhere) when no manual port is configured.
+	ProbeUPnP() bool
 }
 
 type VPN interface {
@@ -419,8 +426,8 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 	unbSub := events.Subscribe(func(evt unbounded.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
 			"state":     evt.State,
-			"source":    evt.Addr,
-			"workerIdx": evt.WorkerIdx,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
 		})
 		if err != nil {
 			slog.Error("marshal unbounded connection event", "error", err)
@@ -616,6 +623,24 @@ func (lc *LanternCore) GetPeerManualPort() int {
 		return int(v)
 	}
 	return 0
+}
+
+// ProbeUPnP reports whether the local network has a UPnP / IGD gateway
+// that could host a port mapping. The Share My Connection UI flow
+// uses this to decide between SmC mode (requires a routable inbound)
+// and Unbounded mode (works on any network). The result is a binary
+// "available / not available" — distinguishing "no gateway" from
+// "discovery timed out" doesn't change anything productive in the UI.
+//
+// Bounded by an internal 6-second timeout because UPnP M-SEARCH is
+// multicast-and-wait: a too-aggressive deadline misses slower
+// consumer gateways, while a too-loose one stalls the UI's mode
+// decision. The Dart-side FFI wrapper runs this on a background
+// isolate so the wait doesn't block the main thread.
+func (lc *LanternCore) ProbeUPnP() bool {
+	ctx, cancel := context.WithTimeout(lc.ctx, 6*time.Second)
+	defer cancel()
+	return portforward.ProbeUPnP(ctx)
 }
 
 func (lc *LanternCore) SetUnboundedEnabled(enabled bool) error {

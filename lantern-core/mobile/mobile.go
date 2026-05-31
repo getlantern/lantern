@@ -271,6 +271,20 @@ func IsUnboundedEnabled() bool {
 	return ok
 }
 
+// ProbeUPnP runs IGD discovery and reports whether a usable gateway
+// is reachable. Surfaced through the MethodChannel so the SmC mode
+// gate works on platforms whose Flutter side can't reach the FFI
+// directly (mobile network-extension hosts).
+func ProbeUPnP() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.ProbeUPnP(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 func IsSmartRoutingEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsSmartRoutingEnabled(), nil

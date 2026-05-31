@@ -1635,6 +1635,23 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // UPnP M-SEARCH waits for multicast replies (~5-6s upper bound
+      // in the LanternCore-side timeout). Off-main-thread mandatory;
+      // a direct call from the UI isolate stalls every frame for the
+      // duration of the wait.
+      final res = await runInBackground<int>(() async {
+        return _ffiService.probeUPnP();
+      });
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('probeUPnP error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = _ffiService.isSmartRoutingEnabled();

@@ -1,21 +1,17 @@
 // Share My Connection — unified screen for both Unbounded and the
 // samizdat-over-UPnP "Share My Connection" modes:
-//   - Toggle ON triggers a (mocked) UPnP probe.
+//   - Toggle ON triggers a real UPnP / IGD probe via the lantern
+//     service (FFI on desktop, MethodChannel on mobile).
 //   - If UPnP works AND the user accepts the SmC disclosure, run SmC mode
 //     (calls into radiance via the existing radianceSettingsProvider
 //     setPeerProxy path).
-//   - Otherwise fall back to Unbounded mode (UI-only for now; broflake
-//     wire-up follows once radiance#336 lands).
+//   - Otherwise fall back to Unbounded mode.
 //   - Globe animates connection arcs from peer-connection FlutterEvents
 //     streamed up from radiance.
-//
-// UPnP probe is still mocked (a coin-flip) until the FFI binding lands;
-// SmC mode is real — flipping the toggle starts the radiance peer
-// module on this branch.
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' show max, min;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -215,11 +211,16 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
 
-    // MOCK: real UPnP probe via FFI is not yet wired; coin-flip the
-    // result so the demo exercises both paths across runs without a
-    // manual port set.
-    await Future.delayed(const Duration(milliseconds: 1500));
-    final upnpAvailable = Random().nextBool();
+    // Real UPnP probe via FFI / MethodChannel. probeUPnP runs IGD
+    // discovery on the local network and returns true when a usable
+    // gateway is reachable. Blocks up to ~6 seconds on the M-SEARCH
+    // multicast wait — long enough that the "Probing your network…"
+    // status from copyWith(probing: true) above is visible to the
+    // user. Any failure (no IGD, timeout, FFI / channel error) is
+    // treated as "UPnP unavailable" → fall back to Unbounded.
+    final probeRes =
+        await widgetRef.read(lanternServiceProvider).probeUPnP();
+    final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     if (!upnpAvailable) {
       await _start(widgetRef, ShareMode.unbounded);
       return;

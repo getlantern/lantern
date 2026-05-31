@@ -98,6 +98,15 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isUnboundedEnabled();
 
+  /// Runs UPnP / IGD discovery on the local network and reports
+  /// whether a usable gateway is reachable. Used by the Share My
+  /// Connection toggle path to decide between SmC mode (residential
+  /// proxy, needs UPnP or a manual port forward) and Unbounded mode
+  /// (WebRTC, works anywhere) when no manual port is configured.
+  /// Blocks for up to ~6 seconds on the multicast M-SEARCH wait;
+  /// the FFI implementation runs in a background isolate.
+  Future<Either<Failure, bool>> probeUPnP();
+
   Future<Either<Failure, bool>> isSmartRoutingEnabled();
 
   Future<Either<Failure, bool>> isTelemetryEnabled();
