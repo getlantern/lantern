@@ -30,7 +30,7 @@ class UnboundedSetting extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return BaseScreen(
-      title: 'Unbounded Settings',
+      title: 'unbounded_settings_title'.i18n,
       body: ListView(
         children: [
           const SizedBox(height: 8),
@@ -39,9 +39,9 @@ class UnboundedSetting extends ConsumerWidget {
             child: Column(
               children: [
                 AppTile(
-                  label: 'Auto-enable Unbounded',
+                  label: 'auto_enable_unbounded'.i18n,
                   subtitle: Text(
-                    'Turn on automatically when Lantern is open',
+                    'auto_enable_unbounded_subtitle'.i18n,
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                       letterSpacing: 0.0,
@@ -57,9 +57,9 @@ class UnboundedSetting extends ConsumerWidget {
                 ),
                 DividerSpace(),
                 AppTile(
-                  label: 'Hide Unbounded',
+                  label: 'hide_unbounded'.i18n,
                   subtitle: Text(
-                    'Removes Unbounded from the top of this screen',
+                    'hide_unbounded_subtitle'.i18n,
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                       letterSpacing: 0.0,

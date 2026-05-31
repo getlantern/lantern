@@ -154,7 +154,7 @@ class _SettingState extends ConsumerState<Setting>
                 if (unboundedAvailable) ...[
                   DividerSpace(),
                   AppTile(
-                    label: 'Unbounded Settings',
+                    label: 'unbounded_settings_title'.i18n,
                     icon: AppImagePaths.share,
                     onPressed: () =>
                         settingMenuTap(_SettingType.unboundedSetting),

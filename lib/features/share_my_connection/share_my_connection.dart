@@ -305,27 +305,21 @@ class ShareNotifier extends Notifier<ShareState> {
   }
 
   /// Programmatic entry point used by the Home shell's auto-enable
-  /// listener (VPN-connected → Unbounded on). Mirrors `toggle()` but
-  /// skips the disclosure dialog because the user has already opted
-  /// in via the Unbounded Settings sheet. No-ops if already active or
-  /// in flight.
+  /// listener (VPN-connected → Unbounded on) and by the
+  /// "Auto-enable Unbounded" Settings toggle.
+  ///
+  /// Always starts Unbounded mode regardless of UPnP capability or
+  /// manual-port configuration. SmC requires the explicit-disclosure
+  /// dialog enforced by toggle(); auto-enabling SmC would silently
+  /// turn the user's device into a residential exit they never
+  /// agreed to act as. The auto path is the low-friction Unbounded
+  /// surface only.
+  ///
+  /// No-ops if already active or in flight.
   Future<void> autoStart(WidgetRef widgetRef) async {
     if (state.active || state.probing) return;
     state = state.copyWith(probing: true);
-    final manualPortRes =
-        await widgetRef.read(lanternServiceProvider).getPeerManualPort();
-    final manualPort = manualPortRes.fold((_) => 0, (p) => p);
-    if (manualPort > 0) {
-      await _start(widgetRef, ShareMode.smc);
-      return;
-    }
-    // MOCK UPnP probe — same as toggle(), pending real FFI.
-    await Future.delayed(const Duration(milliseconds: 1500));
-    final upnpAvailable = Random().nextBool();
-    await _start(
-      widgetRef,
-      upnpAvailable ? ShareMode.smc : ShareMode.unbounded,
-    );
+    await _start(widgetRef, ShareMode.unbounded);
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
@@ -670,6 +664,13 @@ class ShareNotifier extends Notifier<ShareState> {
   // Constructs ShareState directly (rather than copyWith) so errorMessage
   // gets cleared — copyWith's `?? this.errorMessage` keeps the previous
   // SmC failure string around otherwise.
+  //
+  // Event subscription: deliberately does NOT call _startEventSubscription.
+  // The error path arrives here via _handlePeerStatus which is already
+  // inside the subscription started by the prior _start; flipping the
+  // local state.mode keeps the same subscription forwarding events for
+  // the new (Unbounded) mode. _stop is the only teardown path for the
+  // subscription, and the error path doesn't go through _stop.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
     state = ShareState(
       active: true,
@@ -1806,11 +1807,11 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                "When you enable Unbounded, your device becomes part of a "
+                'When you enable Unbounded, your device becomes part of a '
                 "network of 'digital bridges' to the open internet. "
-                "Censored users connect to these bridges, allowing them "
-                "to bypass government-imposed restrictors and access the "
-                "information they need.",
+                'Censored users connect to these bridges, allowing them '
+                'to bypass government-imposed restrictions and access the '
+                'information they need.',
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),

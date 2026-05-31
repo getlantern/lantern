@@ -557,14 +557,15 @@ msgstr "Share My Connection"
 msgid "share_my_connection_subtitle"
 msgstr "Let other Lantern users route through your connection to bypass censorship."
 
-msgid "share_my_connection_on_tap_to_view"
-msgstr "On — tap to view"
-
 # Unbounded tab — hero copy. Short variant for the tab embed; the
 # longer privacy explanation now lives in the welcome dialog
 # (showUnboundedWelcomeDialog) so the tab body stays scannable.
 msgid "smc_intro"
 msgstr "Help others bypass censorship by securely sharing your connection."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "About Unbounded"
 
 # Status card — phase labels
 msgid "smc_status_label"
@@ -679,6 +680,24 @@ msgstr "Basic mode (Unbounded)"
 
 msgid "smc_disclosure_full"
 msgstr "Full mode (SmC)"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Unbounded Settings"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Auto-enable Unbounded"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Turn on automatically when Lantern is open"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Hide Unbounded"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Removes Unbounded from the top of this screen"
 
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
