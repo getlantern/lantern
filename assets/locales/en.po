@@ -1007,6 +1007,9 @@ msgstr "Change Email"
 msgid "change_email_message"
 msgstr "This will become your new login email. You’ll need to verify it before the change takes effect."
 
+msgid "email_must_be_different"
+msgstr "Please enter a different email address."
+
 msgid "enter_new_email"
 msgstr "Enter your new Email"
 

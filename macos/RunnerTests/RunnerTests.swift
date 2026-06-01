@@ -458,11 +458,9 @@ final class RunnerTests: XCTestCase {
     }
   }
 
-  // Recovery is scoped to activation requests. If a properties-query or
-  // deactivation fails with extensionNotFound, we should not attempt to
-  // recover via a second deactivation — those request types don't suffer
-  // from the same stale-activation-slot bug, and retrying would mask real
-  // errors.
+  // Activation retry is scoped to activation requests. If a properties-query
+  // or deactivation fails with extensionNotFound, shouldRecover must not
+  // submit another deactivation request.
   func testStaleRegistryRecoveryDoesNotFireForNonActivationContexts() {
     let error = NSError(
       domain: OSSystemExtensionErrorDomain,
@@ -473,6 +471,45 @@ final class RunnerTests: XCTestCase {
         from: error,
         activationFailed: false,
         alreadyAttempted: false
+      )
+    )
+  }
+
+  func testStaleRegistryRecoveryContinuesAfterMissingReplacementDeactivation() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertTrue(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
+        from: error,
+        activateAfterDeactivation: true
+      )
+    )
+  }
+
+  func testStaleRegistryRecoveryDoesNotContinueAfterManualDeactivation() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.extensionNotFound.rawValue
+    )
+    XCTAssertFalse(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
+        from: error,
+        activateAfterDeactivation: false
+      )
+    )
+  }
+
+  func testStaleRegistryRecoveryDoesNotContinueAfterOtherDeactivationErrors() {
+    let error = NSError(
+      domain: OSSystemExtensionErrorDomain,
+      code: OSSystemExtensionError.validationFailed.rawValue
+    )
+    XCTAssertFalse(
+      StaleRegistryRecovery.shouldContinueAfterMissingDeactivation(
+        from: error,
+        activateAfterDeactivation: true
       )
     )
   }
