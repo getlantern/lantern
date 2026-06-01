@@ -486,6 +486,11 @@ class ShareNotifier extends Notifier<ShareState> {
     } catch (_) {
       geo = PeerGeo.unknown;
     }
+    // The notifier could have been disposed during the await (provider
+    // teardown closes _eventController). Guard before touching it so
+    // a late lookup completion doesn't throw "Bad state: Cannot add
+    // event after closing" on the disposed sink.
+    if (_eventController.isClosed) return;
     // Peer may have disconnected before the lookup returned. The map
     // entry's identity (workerIdx) is the cheapest check.
     final current = _peerArcs[ip];

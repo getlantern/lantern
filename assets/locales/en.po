@@ -612,7 +612,7 @@ msgid "smc_stat_active_now"
 msgstr "Active now"
 
 msgid "smc_stat_total_today"
-msgstr "Total today"
+msgstr "Total this session"
 
 msgid "smc_connections_tooltip"
 msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
