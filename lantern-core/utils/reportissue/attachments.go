@@ -36,10 +36,11 @@ var attachmentTypesByExtension = map[string]string{
 }
 
 type AttachmentMetadata struct {
-	Name      string `json:"name"`
-	Path      string `json:"path"`
-	MimeType  string `json:"mimeType"`
-	SizeBytes int64  `json:"sizeBytes"`
+	Name     string `json:"name"`
+	Path     string `json:"path"`
+	MimeType string `json:"mimeType"`
+	// Client-provided size is a stale-prone hint; validate current file size instead.
+	SizeBytes int64 `json:"sizeBytes"`
 }
 
 // LoadAttachments decodes, validates, and reads screenshot attachments for issue reports.
@@ -117,9 +118,6 @@ func prepareAttachment(attachment AttachmentMetadata) (preparedAttachment, error
 	path := strings.TrimSpace(attachment.Path)
 	if path == "" {
 		return preparedAttachment{}, fmt.Errorf("attachment %q path is required", name)
-	}
-	if attachment.SizeBytes < 0 {
-		return preparedAttachment{}, fmt.Errorf("attachment %q size must be non-negative", name)
 	}
 
 	attachmentType := resolveDeclaredAttachmentType(attachment.MimeType, name)

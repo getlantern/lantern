@@ -105,7 +105,7 @@ func TestBuildAttachmentAllowsCachedSizeMismatch(t *testing.T) {
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
-		SizeBytes: int64(len(testPNGData)),
+		SizeBytes: -1,
 	}})
 	if err != nil {
 		t.Fatalf("marshal attachments: %v", err)
