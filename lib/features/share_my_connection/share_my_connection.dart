@@ -140,26 +140,33 @@ const _unsetErrorMessage = _UnsetErrorMessage();
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
 
-/// Extracts the IP from a peer source string. Handles all three forms
-/// the Go side might emit: `203.0.113.5:443`, `[2001:db8::1]:443`,
-/// and bare `2001:db8::1` / `203.0.113.5`. Returns an empty string if
-/// nothing IP-shaped is recoverable. Synthesizing a scheme lets the
-/// URI parser do the host extraction; the bare-IP fallback covers
-/// emit paths where no port is appended.
+/// Extracts the IP from a peer source string. Handles the four shapes
+/// the Go side might emit:
+///   - bracketed IPv6 host:port  `[2001:db8::1]:443` → `2001:db8::1`
+///   - bare IPv6 (no port)       `2001:db8::1`       → `2001:db8::1`
+///   - IPv4 host:port            `203.0.113.5:443`   → `203.0.113.5`
+///   - bare IPv4 (no port)       `203.0.113.5`       → `203.0.113.5`
+/// Returns an empty string if input is empty.
 String _extractIP(String source) {
   if (source.isEmpty) return '';
-  // Bracketed IPv6 ("[...]:port") or any host:port → Uri.tryParse with
-  // a synthesized scheme handles both correctly (returns the bracket-
-  // stripped host for IPv6 and the bare host for IPv4).
-  if (source.contains('[') || source.lastIndexOf(':') != source.indexOf(':')) {
+  // Bracketed IPv6 host:port — Uri parser strips the brackets and
+  // returns the inner host. This is the only shape where the
+  // synthesized-scheme URI parse is unambiguous.
+  if (source.startsWith('[')) {
     final uri = Uri.tryParse('p://$source');
     final host = uri?.host ?? '';
     if (host.isNotEmpty) return host;
+    return ''; // malformed bracket
   }
-  // Single ':' or no ':' at all → IPv4 host[:port] OR bare IP.
-  final colon = source.lastIndexOf(':');
-  if (colon < 0) return source;
-  return source.substring(0, colon);
+  final first = source.indexOf(':');
+  if (first < 0) return source; // bare IPv4 (no port)
+  // Multiple colons + no brackets = bare IPv6. Bare IPv6 is
+  // emitted by some broflake paths that don't bracket-format
+  // addresses; we accept it as-is rather than truncating at the
+  // last ':' which would mangle the address.
+  if (first != source.lastIndexOf(':')) return source;
+  // Exactly one ':' — IPv4 host:port.
+  return source.substring(0, first);
 }
 
 class _PeerArc {
@@ -302,15 +309,37 @@ class ShareNotifier extends Notifier<ShareState> {
       case ShareMode.unbounded:
         // Unbounded is the broflake / WebRTC widget-proxy mode. Local
         // opt-in only — actual run state also depends on the server's
-        // Features[unbounded] flag and supplied UnboundedConfig (see
-        // radiance/unbounded/unbounded.go shouldRunUnbounded). When
+        // Features[unbounded] flag and supplied UnboundedConfig. When
         // running, broflake's OnConnectionChange callback emits
         // unbounded.ConnectionEvent → forwarded by lantern-core as the
         // same EventTypePeerConnection FlutterEvent the SmC path uses,
         // so this Dart subscription consumes both protocols uniformly.
-        await widgetRef
+        //
+        // Unbounded has no equivalent of the peer.Client phase=error
+        // StatusEvent that the SmC path leans on for failure recovery,
+        // so check the Either return here and revert to off if the
+        // setting flip failed (core not initialized, MethodChannel
+        // failure, etc.) — otherwise the UI sticks at "Active" while
+        // nothing actually started.
+        final res = await widgetRef
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
+        res.fold(
+          (err) {
+            appLogger.error('setUnboundedEnabled failed: ${err.error}');
+            _stopEventSubscription();
+            state = ShareState(
+              active: false,
+              probing: false,
+              mode: ShareMode.off,
+              activeCount: 0,
+              totalCount: 0,
+              phase: SharePhase.error,
+              errorMessage: err.error,
+            );
+          },
+          (_) => null,
+        );
         break;
       case ShareMode.off:
         break;
