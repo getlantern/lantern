@@ -39,6 +39,15 @@ class VPNSetting extends HookConsumerWidget {
     final peerProxy = ref.watch(
       radianceSettingsProvider.select((s) => s.peerProxy),
     );
+    final unboundedEnabled = ref.watch(
+      radianceSettingsProvider.select((s) => s.unboundedEnabled),
+    );
+    // The tile reads "On" when EITHER donor protocol is active —
+    // the disclosure dialog flips peerProxy for "Full mode" and
+    // unboundedEnabled for "Basic mode", and the user shouldn't
+    // see a stale "Off" subtitle just because they picked the
+    // lower-friction Unbounded path.
+    final shareActive = peerProxy || unboundedEnabled;
 
     return ListView(
       padding: const EdgeInsets.all(0),
@@ -128,7 +137,7 @@ class VPNSetting extends HookConsumerWidget {
             child: AppTile(
               label: 'share_my_connection'.i18n,
               subtitle: Text(
-                peerProxy
+                shareActive
                     ? 'share_my_connection_on_tap_to_view'.i18n
                     : 'share_my_connection_subtitle'.i18n,
                 style: textTheme.labelMedium!.copyWith(

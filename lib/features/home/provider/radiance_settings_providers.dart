@@ -36,12 +36,14 @@ class RadianceSettings extends _$RadianceSettings {
     // Manual port forwarding works on any home WiFi where the user owns
     // the router, so mobile is included rather than desktop-only.
     final peerF = svc.isPeerProxyEnabled();
+    final unboundedF = svc.isUnboundedEnabled();
 
     final blockAds = await blockAdsF;
     final routing = await routingF;
     final telemetry = await telemetryF;
     final split = splitF == null ? null : await splitF;
     final peer = await peerF;
+    final unbounded = await unboundedF;
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
@@ -56,6 +58,8 @@ class RadianceSettings extends _$RadianceSettings {
           ? defaults.splitTunneling
           : split.fold((_) => defaults.splitTunneling, (v) => v),
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
+      unboundedEnabled:
+          unbounded.fold((_) => defaults.unboundedEnabled, (v) => v),
     );
   }
 
@@ -122,6 +126,25 @@ class RadianceSettings extends _$RadianceSettings {
       },
       (_) {
         state = state.copyWith(peerProxy: value);
+        return right(unit);
+      },
+    );
+  }
+
+  /// Mirror of setPeerProxy for the Unbounded toggle. Returns the
+  /// Either so callers can react to failure (the Unbounded enable
+  /// path in share_my_connection.dart uses this for UI rollback).
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool value) async {
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.setUnboundedEnabled(value);
+    if (!ref.mounted) return result;
+    return result.fold(
+      (err) {
+        appLogger.error('setUnboundedEnabled failed: ${err.error}');
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(unboundedEnabled: value);
         return right(unit);
       },
     );

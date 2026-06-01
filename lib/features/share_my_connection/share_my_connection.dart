@@ -201,6 +201,19 @@ class ShareNotifier extends Notifier<ShareState> {
 
   @override
   ShareState build() {
+    // Keep the notifier alive for the process lifetime. Without this,
+    // navigating away from the screen disposes the notifier; re-entry
+    // calls build() again and resets state to mode=off / active=false
+    // even when SmC or Unbounded is still actually running on the
+    // backend. The next toggle would then try to re-enable an
+    // already-enabled setting, and the user loses visibility into
+    // the active counter and the granular peer-status phase.
+    //
+    // ref.onDispose stays registered for explicit Stop/Disable paths
+    // (provider container reset, hot reload, etc.) so the event
+    // subscription and stream controller still get cleaned up when
+    // it does actually happen.
+    ref.keepAlive();
     ref.onDispose(() {
       _stopEventSubscription();
       _eventController.close();

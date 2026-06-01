@@ -13,6 +13,13 @@ class RadianceSettingsState {
   final bool splitTunneling;
   final bool telemetry;
   final bool peerProxy;
+  // Local opt-in for the broflake / Unbounded widget proxy. Separate
+  // from peerProxy because the two are independent toggles — the SmC
+  // disclosure dialog flips just one of them based on the user's
+  // choice ("Basic mode" → unboundedEnabled, "Full mode" → peerProxy).
+  // The VPN settings tile uses BOTH to decide whether to show the
+  // "On — tap to view" subtitle.
+  final bool unboundedEnabled;
 
   const RadianceSettingsState({
     this.blockAds = false,
@@ -20,6 +27,7 @@ class RadianceSettingsState {
     this.splitTunneling = false,
     this.telemetry = false,
     this.peerProxy = false,
+    this.unboundedEnabled = false,
   });
 
   RadianceSettingsState copyWith({
@@ -28,6 +36,7 @@ class RadianceSettingsState {
     bool? splitTunneling,
     bool? telemetry,
     bool? peerProxy,
+    bool? unboundedEnabled,
   }) {
     return RadianceSettingsState(
       blockAds: blockAds ?? this.blockAds,
@@ -35,6 +44,7 @@ class RadianceSettingsState {
       splitTunneling: splitTunneling ?? this.splitTunneling,
       telemetry: telemetry ?? this.telemetry,
       peerProxy: peerProxy ?? this.peerProxy,
+      unboundedEnabled: unboundedEnabled ?? this.unboundedEnabled,
     );
   }
 
@@ -46,9 +56,16 @@ class RadianceSettingsState {
           routingMode == other.routingMode &&
           splitTunneling == other.splitTunneling &&
           telemetry == other.telemetry &&
-          peerProxy == other.peerProxy;
+          peerProxy == other.peerProxy &&
+          unboundedEnabled == other.unboundedEnabled;
 
   @override
-  int get hashCode =>
-      Object.hash(blockAds, routingMode, splitTunneling, telemetry, peerProxy);
+  int get hashCode => Object.hash(
+        blockAds,
+        routingMode,
+        splitTunneling,
+        telemetry,
+        peerProxy,
+        unboundedEnabled,
+      );
 }
