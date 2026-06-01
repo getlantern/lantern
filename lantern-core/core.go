@@ -40,10 +40,15 @@ const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
 	EventTypeCountryCode    EventType = "country-code"
-	// EventTypePeerConnection signals a samizdat peer accept/close on the
-	// local Share My Connection inbound. Message is JSON
-	// {"state": +1|-1, "source": "ip:port"}; consumers extract the IP for
-	// geo-lookup or rate-limit attribution.
+	// EventTypePeerConnection signals a peer accept/close on the local
+	// peer-share inbound. Both donor protocols emit this event type:
+	// samizdat-over-UPnP "Share My Connection" and broflake
+	// "Unbounded". Message is JSON
+	// {"state": +1|-1, "source": "...", "timestamp": <unix-millis>}.
+	// Source is "host:port" / "[host]:port" for SmC, bare consumer IP
+	// for Unbounded. Consumers extract the IP for geo-lookup or
+	// rate-limit attribution; timestamp is useful for ordering when
+	// the event-bus dispatch is async.
 	EventTypePeerConnection EventType = "peer-connection"
 	// EventTypePeerStatus signals a peer.Client lifecycle phase change
 	// (mapping_port → registering → verifying → serving on the way up,

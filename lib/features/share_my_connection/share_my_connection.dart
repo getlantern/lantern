@@ -468,8 +468,12 @@ class ShareNotifier extends Notifier<ShareState> {
           );
         }
       } catch (e) {
-        // Malformed event — log via dev print to avoid bringing in the
-        // appLogger here. Real impl can switch to slog.
+        // Malformed event — log without bringing down the listener.
+        // debugPrint is intentional: appLogger.error would surface as
+        // a user-visible error toast in some debug builds, and a
+        // single bad event from the wire shouldn't escalate that
+        // far. The listener stays subscribed so subsequent
+        // well-formed events still arrive.
         debugPrint('share-my-connection: bad peer-connection event: $e');
       }
     });
@@ -854,16 +858,18 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       if (!mounted) return;
       _applyTheme();
     };
-    _initOrigin();
-    // Subscribe BEFORE the replay call so we don't miss any concurrent
-    // +1 events. The broadcast stream delivers synchronously when added,
-    // but the replay events come from inside the same notifier so order
-    // is preserved.
+    // Subscribe FIRST so we don't miss any real-time +1 events while
+    // _initOrigin is in flight. _addPeer guards on _originCoords —
+    // events that arrive before origin lookup completes are still
+    // tracked by the notifier's _peerArcs map (the source of truth);
+    // _initOrigin's continuation calls replayCurrentPeers to draw
+    // them with the now-known origin coords. Without this ordering,
+    // arcs drew to GlobeCoordinates(0,0) and never got corrected.
     _eventSub = ref
         .read(shareProvider.notifier)
         .connectionEvents
         .listen(_handleEvent);
-    ref.read(shareProvider.notifier).replayCurrentPeers();
+    _initOrigin();
   }
 
   @override
@@ -897,6 +903,11 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       coordinates: coords,
       style: PointStyle(color: _originPointColor, size: 8),
     ));
+    // Origin coords are now known — draw any peers that connected
+    // before (or during) the origin lookup. _addPeer's null-guard
+    // skipped them earlier; replayCurrentPeers re-fires +1 events
+    // for everything in _peerArcs.
+    ref.read(shareProvider.notifier).replayCurrentPeers();
   }
 
   void _handleEvent(UnboundedConnectionEvent event) {
@@ -928,6 +939,12 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   void _addPeer(UnboundedConnectionEvent event) {
     if (!mounted) return;
+    // Origin not yet resolved — skip the draw rather than render an
+    // arc to GlobeCoordinates(0, 0). The peer is still tracked in
+    // the notifier's _peerArcs map, and _initOrigin's continuation
+    // calls replayCurrentPeers once origin is known so anything
+    // skipped here gets drawn with the correct destination.
+    if (_originCoords == null) return;
     final coords = _jittered(event.coordinates!, event.workerIdx);
     // Arc direction is censored user → uncensored peer (us). The dash
     // animation flows from start to end, so the visual "travel" reads
@@ -935,7 +952,7 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     _globeController.addPointConnection(PointConnection(
       id: 'conn_${event.workerIdx}',
       start: coords,
-      end: _originCoords ?? const GlobeCoordinates(0, 0),
+      end: _originCoords!,
       curveScale: .6,
       style: PointConnectionStyle(
         color: _arcColor,
