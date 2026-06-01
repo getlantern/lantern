@@ -407,10 +407,11 @@ func (lc *LanternCore) listenDataCapEvents() {
 // The wire format unifies both protocols on a single event type
 // (EventTypePeerConnection) with a {state, source, timestamp}
 // payload — peer.ConnectionEvent and unbounded.ConnectionEvent both
-// expose the same shape on the radiance side, so consumers don't
-// need to disambiguate which protocol produced an event. Source is
-// "host:port" (IPv4) or "[host]:port" (IPv6) for peer-share, and
-// the broflake-reported consumer IP for Unbounded (no port).
+// carry the same three fields on the radiance side, so the Dart
+// consumer can deserialize each frame uniformly without caring
+// which protocol produced it. Source is "host:port" /
+// "[host]:port" for peer-share, and the broflake-reported consumer
+// IP (no port) for Unbounded. Timestamp is Unix milliseconds.
 func (lc *LanternCore) listenPeerConnectionEvents() {
 	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
 	// now. Unbounded runs in the same process as the consumer in mobile
@@ -452,8 +453,9 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 	// immediately.
 	err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
-			"state":  evt.State,
-			"source": evt.Source,
+			"state":     evt.State,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
 		})
 		if err != nil {
 			slog.Error("marshal peer connection event", "error", err)

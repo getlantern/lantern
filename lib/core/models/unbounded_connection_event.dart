@@ -1,6 +1,16 @@
 import 'package:flutter_earth_globe/globe_coordinates.dart';
 
-/// Represents a consumer connection change from the broflake widget proxy.
+/// Internal Dart-side connection-change model the ShareNotifier emits
+/// to the globe via _eventController. NOT the wire format —
+/// FlutterEvent messages from lantern-core (forwarded from radiance)
+/// are parsed inline in share_my_connection.dart's event subscription
+/// as `{state, source, timestamp}` and synthesized into this model
+/// after geo-resolution.
+///
+/// workerIdx here is the Dart-side identity counter (_workerSeq++ in
+/// the notifier), not the broflake worker index — it's a stable
+/// handle for matching accept/close pairs and cancelling pending arc
+/// removals when a peer reconnects from the same IP.
 class UnboundedConnectionEvent {
   final int state; // 1 = connected, -1 = disconnected
   final int workerIdx;
@@ -27,14 +37,6 @@ class UnboundedConnectionEvent {
     this.coordinates,
     this.isReplay = false,
   });
-
-  factory UnboundedConnectionEvent.fromJson(Map<String, dynamic> json) {
-    return UnboundedConnectionEvent(
-      state: json['state'] as int,
-      workerIdx: json['workerIdx'] as int,
-      addr: json['addr'] as String? ?? '',
-    );
-  }
 }
 
 /// Tracks live and cumulative connection counts for Unbounded.

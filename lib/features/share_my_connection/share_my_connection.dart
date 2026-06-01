@@ -974,8 +974,13 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
         final radius =
             min(constraints.maxWidth, constraints.maxHeight) / 2 * 0.7;
         return ClipRect(
+          // copyWith preserves the inherited devicePixelRatio,
+          // textScaleFactor, padding/insets etc. — constructing
+          // MediaQueryData from scratch with just `size:` would drop
+          // those, breaking high-DPI rendering (pixel ratio falls to
+          // 1.0) and accessibility scaling for the globe subtree.
           child: MediaQuery(
-            data: MediaQueryData(size: widgetSize),
+            data: MediaQuery.of(context).copyWith(size: widgetSize),
             child: Stack(
               children: [
                 Positioned.fill(
