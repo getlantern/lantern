@@ -1554,10 +1554,15 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setPeerProxyEnabled(enabled ? 1 : 0)
-            .cast<Utf8>()
-            .toDartString();
+        // The Go side returns C.CString-allocated memory; free via
+        // freeCString after copying into a Dart string, otherwise
+        // every toggle leaks a small heap allocation.
+        final resultPtr = _ffiService.setPeerProxyEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);
@@ -1582,10 +1587,14 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setPeerManualPort(port)
-            .cast<Utf8>()
-            .toDartString();
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setPeerManualPort(port);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);
@@ -1610,10 +1619,14 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setUnboundedEnabled(enabled ? 1 : 0)
-            .cast<Utf8>()
-            .toDartString();
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setUnboundedEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);

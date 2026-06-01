@@ -315,9 +315,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   // Manual port forward setting — wired through MethodChannel to the
-  // platform-specific handler (Swift on macOS calls Mobile.SetPeerManualPort,
-  // similar pattern needed for iOS / Android when the user-facing toggle
-  // ships there).
+  // platform-specific handler. macOS / iOS Swift and Android Kotlin
+  // each delegate to Mobile.SetPeerManualPort via the gomobile binding.
   @override
   Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
     try {
@@ -343,10 +342,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   // Unbounded toggle wired through MethodChannel to the platform-specific
-  // handler (Swift on macOS calls Mobile.SetUnboundedEnabled). Mobile
-  // platforms (iOS / Android) don't implement these handlers yet — they
-  // will throw MissingPluginException, which `e.toFailure()` translates
-  // into a localized error so the Advanced UI degrades cleanly.
+  // handler. macOS / iOS Swift and Android Kotlin each delegate to
+  // Mobile.SetUnboundedEnabled via the gomobile binding.
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     try {

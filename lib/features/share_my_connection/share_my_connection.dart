@@ -140,6 +140,28 @@ const _unsetErrorMessage = _UnsetErrorMessage();
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
 
+/// Extracts the IP from a peer source string. Handles all three forms
+/// the Go side might emit: `203.0.113.5:443`, `[2001:db8::1]:443`,
+/// and bare `2001:db8::1` / `203.0.113.5`. Returns an empty string if
+/// nothing IP-shaped is recoverable. Synthesizing a scheme lets the
+/// URI parser do the host extraction; the bare-IP fallback covers
+/// emit paths where no port is appended.
+String _extractIP(String source) {
+  if (source.isEmpty) return '';
+  // Bracketed IPv6 ("[...]:port") or any host:port → Uri.tryParse with
+  // a synthesized scheme handles both correctly (returns the bracket-
+  // stripped host for IPv6 and the bare host for IPv4).
+  if (source.contains('[') || source.lastIndexOf(':') != source.indexOf(':')) {
+    final uri = Uri.tryParse('p://$source');
+    final host = uri?.host ?? '';
+    if (host.isNotEmpty) return host;
+  }
+  // Single ':' or no ':' at all → IPv4 host[:port] OR bare IP.
+  final colon = source.lastIndexOf(':');
+  if (colon < 0) return source;
+  return source.substring(0, colon);
+}
+
 class _PeerArc {
   _PeerArc(this.workerIdx) : streamCount = 1;
   final int workerIdx;
@@ -342,8 +364,17 @@ class ShareNotifier extends Notifier<ShareState> {
         final payload = jsonDecode(event.message) as Map<String, dynamic>;
         final eventState = (payload['state'] as num?)?.toInt() ?? 0;
         final source = (payload['source'] as String?) ?? '';
-        // Globe only cares about the IP — strip ":port".
-        final ip = source.split(':').first;
+        // Globe only cares about the IP — strip ":port". Handle three
+        // forms the Go side might emit:
+        //   IPv4 host:port          → "203.0.113.5:443"
+        //   IPv6 bracketed host:port → "[2001:db8::1]:443"
+        //   bare IP (no port)        → "2001:db8::1" or "203.0.113.5"
+        // A naive split(':').first works for the first form but
+        // mangles IPv6 ("[2001" or "2001"). Use Uri.tryParse against
+        // the synthesized "scheme://source" form to do host extraction
+        // properly, with a bare-IP fallback for cases where source has
+        // no port appended.
+        final ip = _extractIP(source);
         if (ip.isEmpty) return;
 
         if (eventState == 1) {
