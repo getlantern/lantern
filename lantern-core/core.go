@@ -425,11 +425,12 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 	// hit here today. Worth revisiting if Unbounded ever moves out of
 	// process.
 	//
-	// The subscription is tied to ctx via a separate goroutine that
-	// calls Unsubscribe on Done. Without this, a reinitialization of
-	// LanternCore over the process lifetime would leak handlers and
-	// events.Emit would fan out each connection event to N stale
-	// registrations.
+	// defer Unsubscribe so cleanup runs on EITHER path that exits
+	// this function: ctx cancel (normal) OR PeerConnectionEvents
+	// returning an error (unexpected stream exit). The earlier
+	// ctx-watching goroutine missed the error path and leaked both
+	// the goroutine and the subscription whenever the SSE stream
+	// died while ctx was still live.
 	unbSub := events.Subscribe(func(evt unbounded.ConnectionEvent) {
 		jsonBytes, err := json.Marshal(map[string]any{
 			"state":     evt.State,
@@ -442,10 +443,7 @@ func (lc *LanternCore) listenPeerConnectionEvents() {
 		}
 		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
 	})
-	go func() {
-		<-lc.ctx.Done()
-		unbSub.Unsubscribe()
-	}()
+	defer unbSub.Unsubscribe()
 
 	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
 	// The events package's globals are process-scoped — events.Emit in

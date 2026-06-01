@@ -251,13 +251,19 @@ class MethodHandler {
         }
 
       case "setPeerProxyEnabled":
-        let data = call.arguments as? [String: Any]
-        let enabled = data?["enabled"] as? Bool ?? false
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape rather than silently defaulting to false
+        // (which would disable sharing on caller bugs).
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setPeerProxyEnabled(result: result, enabled: enabled)
 
       case "setPeerManualPort":
-        let data = call.arguments as? [String: Any]
-        let port = data?["port"] as? Int ?? 0
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape rather than silently defaulting to 0
+        // (which has the real semantic of clearing the manual port
+        // override — caller bugs would silently wipe the user's
+        // setting).
+        guard let port: Int = requireArg(call: call, name: "port", result: result) else { return }
         self.setPeerManualPort(result: result, port: port)
 
       case "getPeerManualPort":
@@ -266,8 +272,7 @@ class MethodHandler {
         }
 
       case "setUnboundedEnabled":
-        let data = call.arguments as? [String: Any]
-        let enabled = data?["enabled"] as? Bool ?? false
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setUnboundedEnabled(result: result, enabled: enabled)
 
       case "isUnboundedEnabled":

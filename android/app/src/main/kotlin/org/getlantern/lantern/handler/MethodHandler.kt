@@ -1251,7 +1251,11 @@ class MethodHandler : FlutterPlugin,
 
             Methods.SetPeerManualPort.method -> {
                 scope.handleResult(result, "set_peer_manual_port") {
-                    val port = call.argument<Int>("port") ?: 0
+                    // error() surfaces the failure rather than silently
+                    // defaulting to 0 — which would clear the user's
+                    // manual port override on caller bugs. Matches the
+                    // SetPeerProxyEnabled pattern above.
+                    val port = call.argument<Int>("port") ?: error("Missing port")
                     Mobile.setPeerManualPort(port.toLong())
                 }
             }

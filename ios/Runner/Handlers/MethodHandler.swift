@@ -269,8 +269,10 @@ class MethodHandler {
       // the router. The whole stack is exposed on iOS rather than
       // desktop-only.
       case "setPeerProxyEnabled":
-        let data = call.arguments as? [String: Any]
-        let enabled = data?["enabled"] as? Bool ?? false
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to false
+        // (which would disable sharing on caller bugs).
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setPeerProxyEnabled(result: result, enabled: enabled)
 
       case "isPeerProxyEnabled":
@@ -279,8 +281,12 @@ class MethodHandler {
         }
 
       case "setPeerManualPort":
-        let data = call.arguments as? [String: Any]
-        let port = data?["port"] as? Int ?? 0
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to 0
+        // (which has the real semantic of clearing the manual port
+        // override — caller bugs would silently wipe the user's
+        // setting).
+        guard let port: Int = requireArg(call: call, name: "port", result: result) else { return }
         self.setPeerManualPort(result: result, port: port)
 
       case "getPeerManualPort":
@@ -289,8 +295,7 @@ class MethodHandler {
         }
 
       case "setUnboundedEnabled":
-        let data = call.arguments as? [String: Any]
-        let enabled = data?["enabled"] as? Bool ?? false
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setUnboundedEnabled(result: result, enabled: enabled)
 
       case "isUnboundedEnabled":
@@ -1173,8 +1178,12 @@ class MethodHandler {
   }
 
   // Share My Connection (samizdat) toggle. Mirrors the macOS handler's
-  // pattern: blocking Mobile call goes onto a detached Task; result
-  // and error delivery hop to MainActor.
+  // pattern: blocking Mobile call goes onto a Task; result and error
+  // delivery hop to MainActor. Plain Task (not Task.detached) is fine
+  // for these PatchSettings calls — they finish in milliseconds, so
+  // inheriting the current actor's executor is cheap. probeUPnP is
+  // the one exception that uses Task.detached because its M-SEARCH
+  // wait is multi-second.
   func setPeerProxyEnabled(result: @escaping FlutterResult, enabled: Bool) {
     Task {
       var error: NSError?
