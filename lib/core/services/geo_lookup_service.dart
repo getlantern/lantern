@@ -32,6 +32,20 @@ class GeoLookupService {
   // + flag emoji in one shot.
   static const _peerUrl = 'https://ipwho.is';
 
+  // Per-IP cache for peerLookup. Most connections are short-lived
+  // liveness probes from the same handful of client IPs, so without a
+  // cache an active SmC peer would issue hundreds of ipwho.is requests
+  // per minute — chewing through the 10k/month free quota and leaking
+  // more data to the third party than necessary. Cached entries
+  // (including the PeerGeo.unknown sentinel from a failed lookup) live
+  // for the rest of the process — IP→country bindings don't change on
+  // human timescales, and the alternative TTL bookkeeping adds
+  // complexity without changing the privacy or quota math.
+  static final Map<String, PeerGeo> _peerCache = {};
+
+  /// Test-only: drop the cache. Production code does not call this.
+  static void resetCacheForTest() => _peerCache.clear();
+
   // ISO country code → approximate centre coordinates. Used as a fallback
   // when ipwho.is doesn't return city-level coords.
   static const _countryCenters = {
@@ -198,27 +212,36 @@ class GeoLookupService {
   /// before any production-scale rollout where peer protection matters
   /// beyond demo use.
   static Future<PeerGeo> peerLookup(String ip) async {
+    // Cache hit: short-circuit before any network I/O. Also caches
+    // PeerGeo.unknown so a previously-failed lookup doesn't retry on
+    // every subsequent probe from the same IP.
+    final cached = _peerCache[ip];
+    if (cached != null) return cached;
+    PeerGeo result = PeerGeo.unknown;
     try {
       final response = await http
           .get(Uri.parse('$_peerUrl/$ip'))
           .timeout(const Duration(seconds: 5));
-      if (response.statusCode != 200) return PeerGeo.unknown;
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (data['success'] != true) return PeerGeo.unknown;
-      final iso = (data['country_code'] as String?) ?? '';
-      final lat = (data['latitude'] as num?)?.toDouble();
-      final lng = (data['longitude'] as num?)?.toDouble();
-      final coords = (lat != null && lng != null)
-          ? GlobeCoordinates(lat, lng)
-          : _isoToCoords(iso);
-      final flagObj = data['flag'] as Map<String, dynamic>?;
-      return PeerGeo(
-        coordinates: coords,
-        countryName: (data['country'] as String?) ?? '',
-        countryCode: iso,
-        flagEmoji: (flagObj?['emoji'] as String?) ?? '',
-      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['success'] == true) {
+          final iso = (data['country_code'] as String?) ?? '';
+          final lat = (data['latitude'] as num?)?.toDouble();
+          final lng = (data['longitude'] as num?)?.toDouble();
+          final coords = (lat != null && lng != null)
+              ? GlobeCoordinates(lat, lng)
+              : _isoToCoords(iso);
+          final flagObj = data['flag'] as Map<String, dynamic>?;
+          result = PeerGeo(
+            coordinates: coords,
+            countryName: (data['country'] as String?) ?? '',
+            countryCode: iso,
+            flagEmoji: (flagObj?['emoji'] as String?) ?? '',
+          );
+        }
+      }
     } catch (_) {}
-    return PeerGeo.unknown;
+    _peerCache[ip] = result;
+    return result;
   }
 }

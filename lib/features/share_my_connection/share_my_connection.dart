@@ -302,9 +302,32 @@ class ShareNotifier extends Notifier<ShareState> {
         // listener) emits ConnectionEvents that ride the radiance event
         // bus → core.go listenPeerConnectionEvents → FlutterEvent → our
         // Dart subscription.
-        await widgetRef
+        //
+        // Failures AFTER peer.Client.Start surface via a phase=error
+        // StatusEvent that _handlePeerStatus routes through
+        // _fallbackToUnbounded. Failures BEFORE Start (IPC error,
+        // MissingPluginException, core not initialized) don't go
+        // through that path, so check the setPeerProxy Either here
+        // and revert UI state to mode=off, phase=error.
+        final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
+        smcRes.fold(
+          (err) {
+            appLogger.error('SmC setPeerProxy failed: ${err.error}');
+            _stopEventSubscription();
+            state = ShareState(
+              active: false,
+              probing: false,
+              mode: ShareMode.off,
+              activeCount: 0,
+              totalCount: 0,
+              phase: SharePhase.error,
+              errorMessage: err.error,
+            );
+          },
+          (_) => null,
+        );
         break;
       case ShareMode.unbounded:
         // Unbounded is the broflake / WebRTC widget-proxy mode. Local
@@ -621,6 +644,15 @@ class _StatusCard extends StatelessWidget {
     //   4. Unbounded mode → static "Active — Unbounded" (no equivalent
     //      staged lifecycle on the broflake side yet).
     final modeLabel = switch ((state.mode, state.phase)) {
+      // Off-with-error is a legitimate terminal state: the enable
+      // path failed (e.g. setUnboundedEnabled / setPeerProxyEnabled
+      // returned Left) and reverted mode to off. Render the error
+      // before the catch-all "Off" so the user sees an actionable
+      // message instead of a misleading off state.
+      (ShareMode.off, SharePhase.error) =>
+        state.errorMessage != null
+            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
+            : 'smc_status_error_generic'.i18n,
       (ShareMode.off, _) =>
         state.probing ? 'smc_status_probing'.i18n : 'smc_status_off'.i18n,
       (ShareMode.unbounded, _) => 'smc_status_active_unbounded'.i18n,

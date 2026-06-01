@@ -105,13 +105,25 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
-  Future<void> setPeerProxy(bool value) async {
+  /// Enable/disable the peer-proxy (Share My Connection) radiance
+  /// setting. Returns the underlying Either so the caller can react to
+  /// failure — share_my_connection.dart's _start depends on it to
+  /// revert UI state if the setting flip fails before peer.Client
+  /// emits its own phase=error StatusEvent. Internal logging still
+  /// happens on failure for fire-and-forget call sites.
+  Future<Either<Failure, Unit>> setPeerProxy(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setPeerProxyEnabled(value);
-    if (!ref.mounted) return;
-    result.fold(
-      (err) => appLogger.error('setPeerProxyEnabled failed: ${err.error}'),
-      (_) => state = state.copyWith(peerProxy: value),
+    if (!ref.mounted) return result;
+    return result.fold(
+      (err) {
+        appLogger.error('setPeerProxyEnabled failed: ${err.error}');
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(peerProxy: value);
+        return right(unit);
+      },
     );
   }
 }
