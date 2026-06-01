@@ -405,11 +405,12 @@ func (lc *LanternCore) listenDataCapEvents() {
 // no peer / widget is active.
 //
 // The wire format unifies both protocols on a single event type
-// (EventTypePeerConnection) with a {state, source} payload. Unbounded
-// has a workerIdx in addition to source IP — surfaced as part of the
-// JSON in case the Dart side eventually wants to disambiguate same-IP
-// reconnects (broflake's WebRTC sessions are short and same-IP churn
-// is more common than for SmC's long-lived TCP).
+// (EventTypePeerConnection) with a {state, source, timestamp}
+// payload — peer.ConnectionEvent and unbounded.ConnectionEvent both
+// expose the same shape on the radiance side, so consumers don't
+// need to disambiguate which protocol produced an event. Source is
+// "host:port" (IPv4) or "[host]:port" (IPv6) for peer-share, and
+// the broflake-reported consumer IP for Unbounded (no port).
 func (lc *LanternCore) listenPeerConnectionEvents() {
 	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
 	// now. Unbounded runs in the same process as the consumer in mobile

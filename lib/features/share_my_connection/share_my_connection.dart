@@ -304,11 +304,12 @@ class ShareNotifier extends Notifier<ShareState> {
         // Dart subscription.
         //
         // Failures AFTER peer.Client.Start surface via a phase=error
-        // StatusEvent that _handlePeerStatus routes through
-        // _fallbackToUnbounded. Failures BEFORE Start (IPC error,
-        // MissingPluginException, core not initialized) don't go
-        // through that path, so check the setPeerProxy Either here
-        // and revert UI state to mode=off, phase=error.
+        // StatusEvent that _handlePeerStatus turns into a terminal-
+        // state reset (mode=off, phase=error). Failures BEFORE
+        // Start (IPC error, MissingPluginException, core not
+        // initialized) don't go through that path, so check the
+        // setPeerProxy Either here and revert UI state to
+        // mode=off, phase=error directly.
         final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
@@ -557,9 +558,32 @@ class ShareNotifier extends Notifier<ShareState> {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
       final errMsg = payload['error'] as String?;
+      final hasErr = errMsg != null && errMsg.isNotEmpty;
+
+      // Terminal-phase reset: when radiance reports the backend is
+      // idle (clean stop) or error (start failed / runtime collapse),
+      // the SmC active/mode bits also need to flip — otherwise the
+      // toggle stays ON while the backend is off. Both terminal
+      // phases tear down the event subscription and return to the
+      // off-state; the error phase additionally preserves the
+      // backend's error message so the StatusCard's (off, error)
+      // arm renders it.
+      if ((phase == SharePhase.idle || phase == SharePhase.error) &&
+          state.mode == ShareMode.smc) {
+        _stopEventSubscription();
+        if (phase == SharePhase.error) {
+          state = ShareState(
+            phase: SharePhase.error,
+            errorMessage: hasErr ? errMsg : null,
+          );
+        } else {
+          state = const ShareState();
+        }
+        return;
+      }
       state = state.copyWith(
         phase: phase,
-        errorMessage: (errMsg == null || errMsg.isEmpty) ? null : errMsg,
+        errorMessage: hasErr ? errMsg : null,
       );
     } catch (e) {
       debugPrint('share-my-connection: bad peer-status event: $e');
@@ -1138,6 +1162,16 @@ class _HeartBurstState extends State<_HeartBurst>
               repeat: false,
               fit: BoxFit.contain,
               onLoaded: (composition) {
+                // Dispose guard: Lottie's onLoaded can fire after the
+                // burst is replaced (rapid peer arrivals replace the
+                // ArrivalCard before composition load completes).
+                // Without this, AnimationController(vsync: this) +
+                // setState would throw on a disposed State.
+                if (!mounted) return;
+                // Also dispose any prior controller — a stale
+                // AnimationController from an earlier onLoaded would
+                // leak its ticker subscription otherwise.
+                _lottieCtrl?.dispose();
                 _lottieCtrl = AnimationController(
                   vsync: this,
                   duration: composition.duration,
@@ -1243,17 +1277,26 @@ class _ManualPortField extends HookConsumerWidget {
     // provider here — the value rarely changes and a one-shot read
     // matches the rest of the radianceSettingsProvider's eager-load
     // pattern.
+    //
+    // Dispose guard: the user can navigate away while the
+    // getPeerManualPort future is still in flight (especially on the
+    // FFI path where it can take several ms). Without the guard, the
+    // continuation would write to a disposed TextEditingController
+    // and useState ValueNotifiers and throw. `disposed` flips on the
+    // useEffect cleanup so post-dispose writes short-circuit.
     useEffect(() {
+      var disposed = false;
       Future.microtask(() async {
         final result =
             await ref.read(lanternServiceProvider).getPeerManualPort();
+        if (disposed) return;
         result.fold((_) => null, (port) {
           if (port > 0) controller.text = port.toString();
           lastSaved.value = port;
         });
         loaded.value = true;
       });
-      return null;
+      return () => disposed = true;
     }, const []);
 
     return Column(
