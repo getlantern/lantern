@@ -21,6 +21,8 @@ class AppUrls {
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
       'https://cloud.digitalocean.com/account/billing';
+  static String androidSideloadUpdateEndpoint =
+      'https://update.getlantern.org/update/lantern';
 
   static String appcastFor(String buildType) {
     switch (buildType) {

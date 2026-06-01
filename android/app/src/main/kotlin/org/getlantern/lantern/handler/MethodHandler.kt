@@ -1057,11 +1057,16 @@ class MethodHandler : FlutterPlugin,
             Methods.GetSplitTunnelItems.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val json = Mobile.getSplitTunnelItems(filterType)
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
-                        result.error("GET_SPLIT_TUNNEL_ITEMS_ERROR", e.localizedMessage ?: "Failed to get split tunnel items", e)
+                        result.error(
+                            "GET_SPLIT_TUNNEL_ITEMS_ERROR",
+                            e.localizedMessage ?: "Failed to get split tunnel items",
+                            e
+                        )
                     }
                 }
             }
@@ -1072,7 +1077,11 @@ class MethodHandler : FlutterPlugin,
                         val json = Mobile.getSplitTunnelStateJSON()
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
-                        result.error("GET_SPLIT_TUNNEL_STATE_ERROR", e.localizedMessage ?: "Failed to get split tunnel state", e)
+                        result.error(
+                            "GET_SPLIT_TUNNEL_STATE_ERROR",
+                            e.localizedMessage ?: "Failed to get split tunnel state",
+                            e
+                        )
                     }
                 }
             }
@@ -1096,24 +1105,26 @@ class MethodHandler : FlutterPlugin,
 
             Methods.InstallSideloadUpdate.method -> {
                 scope.launch {
-                    try {
+                    result.runCatching {
                         val update = AndroidSideloadUpdateRequest(
                             url = call.argument<String>("url") ?: error("Missing url"),
-                            checksum = call.argument<String>("checksum") ?: error("Missing checksum"),
-                            version = call.argument<String>("version") ?: error("Missing version"),
+                            checksum = call.argument<String>("checksum")
+                                ?: error("Missing checksum"),
+                            version = call.argument<String>("version")
+                                ?: error("Missing version"),
                         )
-                        val status = AndroidSideloadInstaller.install(MainActivity.instance, update)
+                        val status =
+                            AndroidSideloadInstaller.install(MainActivity.instance, update)
                         withContext(Dispatchers.Main) {
-                            success(status)
+                            result.success(status)
                         }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            result.error(
-                                "install_sideload_update",
-                                e.localizedMessage ?: "Failed to install sideload update",
-                                e
-                            )
-                        }
+
+                    }.onFailure { e ->
+                        result.error(
+                            "install_sideload_update",
+                            e.localizedMessage ?: "Failed to install sideload update",
+                            e
+                        )
                     }
                 }
             }
@@ -1316,7 +1327,12 @@ class MethodHandler : FlutterPlugin,
 
             try {
                 if (!currentUrl.startsWith("intent:", ignoreCase = true)) {
-                    return startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl)))
+                    return startExternalIntent(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(currentUrl)
+                        )
+                    )
                 }
 
                 val intent = Intent.parseUri(currentUrl, Intent.URI_INTENT_SCHEME)
@@ -1396,7 +1412,13 @@ private inline fun <T> CoroutineScope.handleValue(
 ) = launch {
     runCatching { block() }
         .onSuccess { v -> result.mainSuccess(v) }
-        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
+        .onFailure { e ->
+            result.mainError(
+                errorCode,
+                e.localizedMessage ?: "Please try again",
+                e
+            )
+        }
 }
 
 private inline fun CoroutineScope.handleResult(
@@ -1406,7 +1428,13 @@ private inline fun CoroutineScope.handleResult(
 ) = launch {
     runCatching { block() }
         .onSuccess { result.mainSuccess() }
-        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
+        .onFailure { e ->
+            result.mainError(
+                errorCode,
+                e.localizedMessage ?: "Please try again",
+                e
+            )
+        }
 }
 
 private data class AppEntry(val label: String, val packageName: String)
