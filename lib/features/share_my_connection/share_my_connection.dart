@@ -643,7 +643,11 @@ class ShareNotifier extends Notifier<ShareState> {
       }
       if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
         _stopEventSubscription();
-        state = const ShareState();
+        // Preserve totalCount across the radiance-driven idle reset —
+        // lifetime running total is persisted via appSettingProvider and
+        // would otherwise be zeroed until the next app restart re-seeds
+        // it from disk.
+        state = ShareState(totalCount: state.totalCount);
         return;
       }
       state = state.copyWith(
@@ -1349,6 +1353,12 @@ class _ArrivalLottieState extends State<_ArrivalLottie>
       repeat: false,
       fit: BoxFit.contain,
       onLoaded: (composition) {
+        // Lottie can fire onLoaded after dispose if the surrounding
+        // _ArrivalCard rebuilds rapidly (worker swap mid-load). Guard
+        // mounted and discard any controller that was already attached
+        // so we don't leak a ticker on rebuild.
+        if (!mounted) return;
+        _ctrl?.dispose();
         _ctrl = AnimationController(
           vsync: this,
           duration: composition.duration,
@@ -1377,7 +1387,7 @@ class _WaitingCard extends StatelessWidget {
           border: Border.all(color: Colors.black12),
         ),
         child: Text(
-          'Waiting for connections...',
+          'unbounded_waiting_for_connections'.i18n,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -1799,7 +1809,7 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  'Welcome to Unbounded',
+                  'unbounded_welcome_title'.i18n,
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -1807,40 +1817,30 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'When you enable Unbounded, your device becomes part of a '
-                "network of 'digital bridges' to the open internet. "
-                'Censored users connect to these bridges, allowing them '
-                'to bypass government-imposed restrictions and access the '
-                'information they need.',
+                'unbounded_welcome_body_1'.i18n,
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
               Text(
-                'This collective effort makes censorship harder to '
-                'enforce, expanding access to the open internet.',
+                'unbounded_welcome_body_2'.i18n,
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
               Text(
-                'You can remove Unbounded from the interface anytime in '
-                'Settings.',
+                'unbounded_welcome_body_3'.i18n,
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
+              // No "Learn more" button until the explainer URL is wired
+              // (will be re-added pointing at AppUrls.unbounded). Showing
+              // a button with an empty onPressed in production reads as a
+              // dead control.
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: () {
-                      // TODO: deep-link to the Unbounded explainer page
-                      // once the URL is wired (AppUrls.unbounded?).
-                    },
-                    icon: const Icon(Icons.open_in_new, size: 14),
-                    label: const Text('Learn more'),
-                  ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Got it'),
+                    child: Text('got_it'.i18n),
                   ),
                 ],
               ),

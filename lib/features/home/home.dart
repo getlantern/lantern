@@ -184,9 +184,11 @@ class Home extends HookConsumerWidget {
                 controller: tabController,
                 tabs: [
                   _TabLabel(
-                      label: 'VPN',
+                      label: 'vpn'.i18n,
                       active: vpnStatus == VPNStatus.connected),
-                  _TabLabel(label: 'Unbounded', active: shareActive),
+                  _TabLabel(
+                      label: 'unbounded'.i18n,
+                      active: shareActive),
                 ],
               ),
       ),

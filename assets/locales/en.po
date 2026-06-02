@@ -57,6 +57,11 @@ msgstr "Share Referral Code"
 msgid "unbounded"
 msgstr "Unbounded"
 
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
 msgid "help_fight_global_internet_censorship"
 msgstr "Help Fight Global Internet Censorship"
 
@@ -627,6 +632,24 @@ msgstr "Most connections are short liveness probes — Lantern clients periodica
 # emphasizes the user-impact framing the SmC tab leans into.
 msgid "smc_arrival_toast"
 msgstr "Helping a new person in %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Waiting for connections..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Welcome to Unbounded"
+
+msgid "unbounded_welcome_body_1"
+msgstr "When you enable Unbounded, your device becomes part of a network of 'digital bridges' to the open internet. Censored users connect to these bridges, allowing them to bypass government-imposed restrictions and access the information they need."
+
+msgid "unbounded_welcome_body_2"
+msgstr "This collective effort makes censorship harder to enforce, expanding access to the open internet."
+
+msgid "unbounded_welcome_body_3"
+msgstr "You can remove Unbounded from the interface anytime in Settings."
 
 # Advanced section / manual port forward
 msgid "smc_advanced"
