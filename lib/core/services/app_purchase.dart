@@ -732,37 +732,25 @@ class AppPurchase {
     }
 
     final attempt = _ackRetryAttempts[key] ?? 0;
-    if (attempt >= _ackRetryDelays.length) {
-      appLogger.warning(
-        '[AppPurchase] Acknowledgment retries exhausted; StoreKit transaction '
-        'remains pending for StoreKit redelivery or Restore Purchases: '
-        'productID=${purchaseDetails.productID} '
-        'purchaseID=${purchaseDetails.purchaseID}',
-      );
-      _clearAcknowledgeRetry(key);
-      return;
-    }
-
-    final delay = _ackRetryDelays[attempt];
+    final delay = _ackRetryDelayForAttempt(attempt);
     appLogger.info(
-      '[AppPurchase] Scheduling acknowledgment retry ${attempt + 1}/'
-      '${_ackRetryDelays.length} in $delay: '
+      '[AppPurchase] Scheduling acknowledgment retry ${attempt + 1} in $delay: '
       'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
     );
 
     _ackRetryTimers[key] = Timer(delay, () {
       unawaited(() async {
-        _ackRetryTimers.remove(key);
-        final retryAttempt = (_ackRetryAttempts[key] ?? 0) + 1;
-        _ackRetryAttempts[key] = retryAttempt;
-        final planId = await _resolvePlanId(purchaseDetails);
         try {
+          final planId = await _resolvePlanId(purchaseDetails);
+          _ackRetryTimers.remove(key);
+          _ackRetryAttempts[key] = (_ackRetryAttempts[key] ?? 0) + 1;
           await _acknowledgePurchase(
             purchaseDetails,
             planId: planId,
             isRetry: true,
           );
         } catch (e, st) {
+          _ackRetryTimers.remove(key);
           await _handleAcknowledgeFailure(
             purchaseDetails,
             e,
@@ -772,6 +760,13 @@ class AppPurchase {
         }
       }());
     });
+  }
+
+  Duration _ackRetryDelayForAttempt(int attempt) {
+    final index = attempt >= _ackRetryDelays.length
+        ? _ackRetryDelays.length - 1
+        : attempt;
+    return _ackRetryDelays[index];
   }
 
   void _clearAcknowledgeRetry(String key) {
@@ -895,7 +890,11 @@ class AppPurchase {
       }
       appLogger.warning('Pending purchase plans had invalid shape; clearing');
     } catch (e, st) {
-      appLogger.error('Failed to parse pending purchase plans', e, st);
+      appLogger.error(
+        'Failed to parse pending purchase plans; clearing',
+        e,
+        st,
+      );
     }
     await storage.remove(_pendingPurchasePlansKey);
     return {};
