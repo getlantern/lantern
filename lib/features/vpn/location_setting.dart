@@ -20,9 +20,9 @@ class LocationSetting extends HookConsumerWidget {
           data: (servers) => servers.serverByTag(serverLocation.serverName),
           orElse: () => null,
         );
-    final manualServerMayBeUnreachable =
+    final shouldWarnBeforeManualSelection =
         serverType == ServerLocationType.lanternLocation &&
-        selectedServer?.mayBeUnreachable == true;
+        selectedServer?.shouldWarnBeforeManualSelection == true;
 
     String title = '';
     String value = '';
@@ -61,14 +61,14 @@ class LocationSetting extends HookConsumerWidget {
       tileKey: const Key('home.location_setting'),
       label: title,
       value: value.i18n,
-      subtitle: manualServerMayBeUnreachable
+      subtitle: shouldWarnBeforeManualSelection
           ? 'server_may_be_unreachable'.i18n
           : protocol,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot, useThemeColor: false),
-        if (manualServerMayBeUnreachable) ...[
+        if (shouldWarnBeforeManualSelection) ...[
           serverReachabilityIcon(context),
           const SizedBox(width: 8),
         ],

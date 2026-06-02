@@ -9,7 +9,8 @@ Widget? serverReachabilitySubtitle(
 ) {
   final parts = <String>[
     if (server.type.isNotEmpty) server.type.capitalize,
-    if (server.mayBeUnreachable) 'server_may_be_unreachable'.i18n,
+    if (server.shouldWarnBeforeManualSelection)
+      'server_may_be_unreachable'.i18n,
   ];
   if (parts.isEmpty) return null;
 
@@ -18,7 +19,7 @@ Widget? serverReachabilitySubtitle(
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
     style: style.copyWith(
-      color: server.mayBeUnreachable
+      color: server.shouldWarnBeforeManualSelection
           ? context.statusWarningText
           : context.textTertiary,
     ),
@@ -26,7 +27,7 @@ Widget? serverReachabilitySubtitle(
 }
 
 Widget? serverReachabilityWarningIcon(BuildContext context, Server server) {
-  if (!server.mayBeUnreachable) return null;
+  if (!server.shouldWarnBeforeManualSelection) return null;
   return serverReachabilityIcon(context);
 }
 

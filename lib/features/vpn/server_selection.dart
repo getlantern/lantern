@@ -412,7 +412,7 @@ class _ServerLocationListViewState
       }
     }
 
-    if (selectedServer.mayBeUnreachable) {
+    if (selectedServer.shouldWarnBeforeManualSelection) {
       _showManualServerWarning(selectedServer);
       return;
     }

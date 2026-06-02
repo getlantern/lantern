@@ -20,11 +20,10 @@ class AvailableServers {
     return null;
   }
 
-  /// Lantern server with the lowest URL-test delay. Null when no server has
-  /// a usable probe result — sing-box reports delay 0 for unreachable probes,
-  /// so those are excluded.
+  /// Lantern server with the lowest successful URL-test delay. Null when no
+  /// Lantern server has a successful probe.
   Server? get fastestLanternServer {
-    final ranked = lanternServers.where((s) => s.hasUsableProbe).toList()
+    final ranked = lanternServers.where((s) => s.hasSuccessfulProbe).toList()
       ..sort(
         (a, b) => a.urlTestResult!.delay.compareTo(b.urlTestResult!.delay),
       );
@@ -74,9 +73,11 @@ class Server {
   String get serverIP =>
       outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
 
-  bool get hasUsableProbe => (urlTestResult?.delay ?? 0) > 0;
+  bool get hasSuccessfulProbe => (urlTestResult?.delay ?? 0) > 0;
 
-  bool get mayBeUnreachable => isLantern && !hasUsableProbe;
+  /// Manual mode pins traffic to exactly this server. If Smart Location has no
+  /// successful probe for it, warn before pinning so users can stay on auto.
+  bool get shouldWarnBeforeManualSelection => isLantern && !hasSuccessfulProbe;
 }
 
 class GeoLocation {
