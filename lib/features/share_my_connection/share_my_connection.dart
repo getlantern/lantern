@@ -362,7 +362,10 @@ class ShareNotifier extends Notifier<ShareState> {
               probing: false,
               mode: ShareMode.off,
               activeCount: 0,
-              totalCount: 0,
+              // Preserve lifetime totalCount across a failed Start — the
+              // persisted "Total people helped to date" stat is set
+              // independent of the active session's outcome.
+              totalCount: state.totalCount,
               phase: SharePhase.error,
               errorMessage: err.error,
             );
@@ -397,7 +400,9 @@ class ShareNotifier extends Notifier<ShareState> {
               probing: false,
               mode: ShareMode.off,
               activeCount: 0,
-              totalCount: 0,
+              // Preserve lifetime totalCount across a failed Start (see
+              // matching comment in the SmC branch above).
+              totalCount: state.totalCount,
               phase: SharePhase.error,
               errorMessage: err.error,
             );
@@ -1398,107 +1403,6 @@ class _WaitingCard extends StatelessWidget {
     );
   }
 }
-
-// ─── Lottie burst layer ──────────────────────────────────────────────────────
-
-/// Full-area Lottie heart-spray layer that overlays the globe and
-/// plays the `explosion.json` animation each time a new peer arrives.
-/// Matches unbounded.lantern.io's behaviour where dozens of small
-/// hearts spray outward across the globe — NOT confined to the toast
-/// pill (the pill stays clean with just a static heart icon).
-///
-/// Subscribes to ShareNotifier.connectionEvents directly. On each
-/// non-replay state=1 event, swaps the `key` on the inner Lottie via
-/// a counter so AnimatedSwitcher cross-fades / Lottie restarts from
-/// frame 0 every time.
-class _LottieBurstLayer extends ConsumerStatefulWidget {
-  const _LottieBurstLayer();
-
-  @override
-  ConsumerState<_LottieBurstLayer> createState() => _LottieBurstLayerState();
-}
-
-class _LottieBurstLayerState extends ConsumerState<_LottieBurstLayer> {
-  StreamSubscription<UnboundedConnectionEvent>? _sub;
-  int _burstId = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _sub = ref
-        .read(shareProvider.notifier)
-        .connectionEvents
-        .listen(_onEvent);
-  }
-
-  void _onEvent(UnboundedConnectionEvent event) {
-    if (event.state != 1 || event.isReplay) return;
-    if (event.countryName.isEmpty) return;
-    if (!mounted) return;
-    setState(() => _burstId++);
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: _burstId == 0
-          ? const SizedBox.shrink()
-          : _BurstAnimation(key: ValueKey(_burstId)),
-    );
-  }
-}
-
-class _BurstAnimation extends StatefulWidget {
-  const _BurstAnimation({super.key});
-
-  @override
-  State<_BurstAnimation> createState() => _BurstAnimationState();
-}
-
-class _BurstAnimationState extends State<_BurstAnimation>
-    with TickerProviderStateMixin {
-  AnimationController? _ctrl;
-
-  @override
-  void dispose() {
-    _ctrl?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Lottie.asset(
-      'assets/unbounded/explosion.json',
-      repeat: false,
-      fit: BoxFit.contain,
-      onLoaded: (composition) {
-        // Dispose guard: Lottie's onLoaded can fire after this
-        // State is disposed (rapid peer arrivals replace the
-        // keyed _BurstAnimation before composition load completes).
-        // Without this, AnimationController(vsync: this) +
-        // setState would throw on a disposed State.
-        if (!mounted) return;
-        // Also dispose any prior controller — a stale
-        // AnimationController from an earlier onLoaded would
-        // leak its ticker subscription otherwise.
-        _ctrl?.dispose();
-        _ctrl = AnimationController(
-          vsync: this,
-          duration: composition.duration,
-        )..forward();
-        setState(() {});
-      },
-      controller: _ctrl,
-    );
-  }
-}
-
 
 /// Pink heart from `getlantern/unbounded` — exact SVG path coords
 /// (viewBox 0 0 32 27, fill #FF5A79).

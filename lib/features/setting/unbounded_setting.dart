@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
@@ -15,6 +16,7 @@ import '../../core/common/common.dart';
 /// 2. Hide Unbounded — collapse the Unbounded tab in the Home shell
 ///    when the user doesn't want to see it. With only the VPN tab
 ///    left, Home hides the tab strip entirely.
+@RoutePage(name: 'UnboundedSetting')
 class UnboundedSetting extends ConsumerWidget {
   const UnboundedSetting({super.key});
 

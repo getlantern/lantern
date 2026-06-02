@@ -14,7 +14,6 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
-import 'package:lantern/features/setting/unbounded_setting.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -338,9 +337,7 @@ class _SettingState extends ConsumerState<Setting>
         appRouter.push(VPNSetting());
         break;
       case _SettingType.unboundedSetting:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const UnboundedSetting()),
-        );
+        appRouter.push(UnboundedSetting());
         break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
