@@ -94,9 +94,28 @@ List<AppData> dedupeAndSortApps(
     );
   }
 
-  final out = byDisplay.values.toList()
-    ..sort((a, b) => a.name.compareTo(b.name));
+  final out = byDisplay.values.toList()..sort(compareAppsByDisplayName);
   return out;
+}
+
+int compareAppsByDisplayName(AppData a, AppData b) {
+  final aName = a.name.trim();
+  final bName = b.name.trim();
+  final byFoldedName = aName.toLowerCase().compareTo(bName.toLowerCase());
+  if (byFoldedName != 0) {
+    return byFoldedName;
+  }
+
+  final byName = aName.compareTo(bName);
+  if (byName != 0) {
+    return byName;
+  }
+
+  final byId = normalizedAppId(a).compareTo(normalizedAppId(b));
+  if (byId != 0) {
+    return byId;
+  }
+  return a.appPath.compareTo(b.appPath);
 }
 
 String _windowsDisplayDedupeKey(AppData app) {
