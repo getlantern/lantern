@@ -20,7 +20,6 @@ class UserDevices extends HookConsumerWidget {
     }
     final userDevices = user.legacyUserData.devices.toList();
     final myDeviceId = user.legacyUserData.deviceID;
-
     return AppCard(
       padding: EdgeInsets.zero,
       child: ListView.separated(
@@ -31,7 +30,7 @@ class UserDevices extends HookConsumerWidget {
         separatorBuilder: (context, index) => const DividerSpace(),
         itemBuilder: (context, index) {
           final e = userDevices[index];
-          return _buildRow(e, ref, context, myDeviceId != e.name);
+          return _buildRow(e, ref, context, myDeviceId != e.deviceId);
         },
       ),
     );

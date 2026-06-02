@@ -137,7 +137,7 @@ class ConfirmEmail extends HookConsumerWidget {
       (_) {
         context.hideLoadingDialog();
         //refresh user data to pick up the new email
-        ref.read(homeProvider.notifier).refreshUser();
+        ref.read(homeProvider.notifier).fetchUserData();
         AppDialog.dialog(
           context: context,
           title: 'change_email'.i18n,
