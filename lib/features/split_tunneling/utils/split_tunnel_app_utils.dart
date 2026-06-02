@@ -94,11 +94,11 @@ List<AppData> dedupeAndSortApps(
     );
   }
 
-  final out = byDisplay.values.toList()..sort(compareAppsByDisplayName);
+  final out = byDisplay.values.toList()..sort(_compareAppsByDisplayName);
   return out;
 }
 
-int compareAppsByDisplayName(AppData a, AppData b) {
+int _compareAppsByDisplayName(AppData a, AppData b) {
   final aName = a.name.trim();
   final bName = b.name.trim();
   final byFoldedName = aName.toLowerCase().compareTo(bName.toLowerCase());
