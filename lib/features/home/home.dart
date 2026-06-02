@@ -101,10 +101,12 @@ class Home extends HookConsumerWidget {
     ref.read(appEventProvider);
 
     // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
-    // toggle from Unbounded Settings (default ON). Fires from two
-    // entry points so the spec's subtitle "Turn on automatically when
-    // Lantern is open" is honoured whether the user connects the VPN
-    // or not:
+    // toggle from Unbounded Settings (default ON) AND the per-user
+    // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
+    // who hid Unbounded should not see it silently auto-enable in
+    // the background. Fires from two entry points so the spec's
+    // subtitle "Turn on automatically when Lantern is open" is
+    // honoured whether the user connects the VPN or not:
     //   1. App launch (useEffect below) — once on Home mount.
     //   2. VPN connect (ref.listen further down) — on every
     //      disconnected → connected transition, in case the toggle
@@ -116,6 +118,7 @@ class Home extends HookConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!unboundedAvailable) return;
         final appSetting = ref.read(appSettingProvider);
+        if (appSetting.unboundedHidden) return;
         if (!appSetting.onboardingCompleted) return;
         if (!appSetting.unboundedAutoEnable) return;
         final share = ref.read(shareProvider);
@@ -129,15 +132,19 @@ class Home extends HookConsumerWidget {
       if (prev == next) return;
       if (next != VPNStatus.connected) return;
       if (!unboundedAvailable) return;
-      final autoEnable =
-          ref.read(appSettingProvider).unboundedAutoEnable;
-      if (!autoEnable) return;
+      final appSetting = ref.read(appSettingProvider);
+      if (appSetting.unboundedHidden) return;
+      if (!appSetting.unboundedAutoEnable) return;
       final share = ref.read(shareProvider);
       if (share.active || share.probing) return;
-      // Defer to avoid mutating provider state inside the listen callback.
-      Future.microtask(
-        () => ref.read(shareProvider.notifier).autoStart(ref),
-      );
+      // Call autoStart synchronously — shareProvider is a different
+      // provider than vpnProvider (the one we're listening to), so
+      // mutating it inside this callback doesn't risk a re-entrancy
+      // cycle. The previous Future.microtask defer was unsafe under
+      // teardown: if Home unmounted between the listener firing and
+      // the microtask running, the deferred ref.read would be on a
+      // disposed scope.
+      ref.read(shareProvider.notifier).autoStart(ref);
     });
 
     return Scaffold(

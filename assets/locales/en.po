@@ -615,9 +615,12 @@ msgstr "Couldn't share: %s"
 msgid "smc_status_error_generic"
 msgstr "Couldn't share — try toggling again"
 
-# Status card — stats + tooltip
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
 msgid "smc_stat_active_now"
-msgstr "People helping right now"
+msgstr "People being helped right now"
 
 # Lifetime ("to date") rather than daily — backed by the persisted
 # unboundedTotalHelped setting so the count survives app restarts.
