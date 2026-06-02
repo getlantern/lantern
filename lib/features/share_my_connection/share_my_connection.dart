@@ -695,9 +695,27 @@ class ShareNotifier extends Notifier<ShareState> {
         .read(lanternServiceProvider)
         .setUnboundedEnabled(true);
     result.fold(
-      (err) => appLogger.error(
-        'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
-      ),
+      (err) {
+        // Both SmC and the fallback to Unbounded failed. Roll back the
+        // optimistic active=true state to off+error so the UI doesn't
+        // claim Unbounded is running when nothing actually started —
+        // same shape as the Unbounded branch in _start. Tear down the
+        // event subscription too, since it was kept alive across the
+        // SmC→Unbounded flip and there's nothing left to consume it.
+        appLogger.error(
+          'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
+        );
+        _stopEventSubscription();
+        state = ShareState(
+          active: false,
+          probing: false,
+          mode: ShareMode.off,
+          activeCount: 0,
+          totalCount: state.totalCount,
+          phase: SharePhase.error,
+          errorMessage: err.error,
+        );
+      },
       (_) => {},
     );
   }
