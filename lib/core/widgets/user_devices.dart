@@ -30,7 +30,8 @@ class UserDevices extends HookConsumerWidget {
         separatorBuilder: (context, index) => const DividerSpace(),
         itemBuilder: (context, index) {
           final e = userDevices[index];
-          return _buildRow(e, ref, context, myDeviceId != e.deviceId);
+          final removable = e.deviceId != myDeviceId;
+          return _buildRow(e, ref, context, removable);
         },
       ),
     );
@@ -40,12 +41,12 @@ class UserDevices extends HookConsumerWidget {
     DeviceModel e,
     WidgetRef ref,
     BuildContext context,
-    bool isMyDevice,
+    bool removable,
   ) {
     return AppTile(
       label: e.name.isEmpty ? e.deviceId : e.name,
       contentPadding: EdgeInsets.only(left: 16),
-      trailing: isMyDevice
+      trailing: removable
           ? AppTextButton(
               label: 'remove'.i18n,
               onPressed: () => _removeDevice(e, ref, context),
