@@ -76,18 +76,14 @@ android {
         jvmTarget = "17"
     }
 
-    // The sideload APK target (Makefile android-apk-release) passes
-    // -Plantern.thinAbi=true so this build emits only arm64. The AAB
-    // target leaves the property unset so Play Store users on legacy
-    // 32-bit ARM devices still receive updates via per-ABI splits.
-    //
-    // Constraint: the ABIs listed in abiFilters must match the ABIs
-    // Flutter actually built (Makefile's --target-platform flag).
-    // Listing an ABI here that Flutter didn't build crashes installs on
-    // that architecture with "Could not find 'libflutter.so'".
-    def thinAbi = project.findProperty("lantern.thinAbi") == "true"
+    // arm64-only for every artifact (APK + AAB). armeabi-v7a (32-bit) was
+    // dropped: Go >=1.23.2 trips Android 8-10 seccomp on 32-bit, killing
+    // libgojni.so with SIGSYS at startup (golang/go#70495 — ~54% of v9
+    // crashes). Constraint: abiFilters must match the ABIs Flutter built
+    // (Makefile --target-platform), or installs crash with "Could not find
+    // 'libflutter.so'".
 
-    // Use legacy packaging to helps reduce apk size
+    // Use legacy packaging to help reduce apk size
     packagingOptions {
         exclude "DebugProbesKt.bin"
         jniLibs {
@@ -99,18 +95,15 @@ android {
             // libbarhopper_v3.so + 1.2 MB libc++_shared.so + 0.7 MB
             // libnative-imagetranscoder.so under lib/x86_64/ in
             // v9.1.9-beta. Explicit excludes here strip them at packaging
-            // time. When lantern.thinAbi is set the sideload APK also
-            // strips armeabi-v7a; the AAB build leaves it in.
+            // time. armeabi-v7a is stripped too — we ship arm64 only.
             def abiExcludes = [
                 "lib/x86/**",
                 "lib/x86_64/**",
                 "lib/armeabi/**",
+                "lib/armeabi-v7a/**",
                 "lib/mips/**",
                 "lib/mips64/**",
             ]
-            if (thinAbi) {
-                abiExcludes += "lib/armeabi-v7a/**"
-            }
             excludes += abiExcludes
         }
     }
@@ -124,11 +117,9 @@ android {
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
 
         ndk {
-            // ABI set must match what Flutter built (Makefile's
-            // --target-platform). Sideload APK: arm64 only
-            // (-Plantern.thinAbi=true). AAB: arm64 + armeabi-v7a so Play
-            // Store users on legacy 32-bit hardware still get updates.
-            abiFilters = thinAbi ? ["arm64-v8a"] : ["arm64-v8a", "armeabi-v7a"]
+            // arm64 only (APK + AAB) — armeabi-v7a dropped, see the comment
+            // above defaultConfig (golang/go#70495 SIGSYS on 32-bit).
+            abiFilters = ["arm64-v8a"]
             debugSymbolLevel 'FULL'
         }
 

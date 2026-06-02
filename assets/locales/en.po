@@ -1022,6 +1022,9 @@ msgstr "Change Email"
 msgid "change_email_message"
 msgstr "This will become your new login email. You’ll need to verify it before the change takes effect."
 
+msgid "email_must_be_different"
+msgstr "Please enter a different email address."
+
 msgid "enter_new_email"
 msgstr "Enter your new Email"
 
@@ -1622,3 +1625,24 @@ msgstr "Connection failed. Please try again."
 
 msgid "err_ruleset_failed"
 msgstr "Unable to load routing configuration. Retrying..."
+
+msgid "update_now"
+msgstr "Update now"
+
+msgid "later"
+msgstr "Later"
+
+msgid "update_ready_to_install"
+msgstr "Lantern %s is ready to install"
+
+msgid "up_to_date"
+msgstr "Up to date"
+
+msgid "running_latest_version"
+msgstr "You're running the latest version of Lantern %s"
+
+msgid "couldnt_check_for_updates"
+msgstr "Couldn't check for updates"
+
+msgid "check_connection_and_retry"
+msgstr "Check your connection and try again"
