@@ -492,9 +492,11 @@ class ShareNotifier extends Notifier<ShareState> {
             totalCount: newTotal,
           );
           // Persist so the "Total people helped to date" stat
-          // survives restarts. Write happens per-arrival, but arrivals
-          // are bursty rather than continuous so SharedPreferences I/O
-          // pressure is fine.
+          // survives restarts. Reached only on first-time-seen IPs —
+          // the dedup at _peerArcs[ip] above returns early for repeat
+          // events on an existing connection (liveness probes, stream
+          // reattaches), so this is one write per unique peer-arrival,
+          // not per peer-connection event.
           ref
               .read(appSettingProvider.notifier)
               .setUnboundedTotalHelped(newTotal);
