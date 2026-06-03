@@ -4,12 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
@@ -64,8 +63,10 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                   obscureText: obscureText.value,
                   suffixIcon: _buildSuffix(obscureText),
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) =>
-                      signInWithPassword(passwordController.text.trim()),
+                  onSubmitted: (value) {
+                    if (passwordController.text.isEmpty) return;
+                    signInWithPassword(passwordController.text.trim());
+                  },
                   onChanged: (value) {},
                 ),
                 SizedBox(height: 8),
