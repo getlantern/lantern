@@ -49,7 +49,7 @@ class Account extends HookConsumerWidget {
     final email = ref.watch(userEmailProvider);
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
-    final isOAuthLogin = ref.read(isOAuthLoginProvider).value ?? false;
+    final isOAuthLogin = ref.watch(isOAuthLoginProvider).value ?? false;
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

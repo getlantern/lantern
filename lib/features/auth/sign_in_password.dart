@@ -63,8 +63,10 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                   obscureText: obscureText.value,
                   suffixIcon: _buildSuffix(obscureText),
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) =>
-                      signInWithPassword(passwordController.text.trim()),
+                  onSubmitted: (value) {
+                    if (passwordController.text.isEmpty) return;
+                    signInWithPassword(passwordController.text.trim());
+                  },
                   onChanged: (value) {},
                 ),
                 SizedBox(height: 8),
@@ -127,7 +129,6 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
 
   Future<void> signInWithPassword(String password) async {
     hideKeyboard();
-    if (password.isEmpty) return;
     if (widget.fromChangeEmail) {
       /// If the user is changing email, we need to verify the password
       context.pushRoute(
