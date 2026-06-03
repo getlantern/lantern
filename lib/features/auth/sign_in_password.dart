@@ -4,12 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/core/models/user.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
@@ -128,6 +127,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
 
   Future<void> signInWithPassword(String password) async {
     hideKeyboard();
+    if (password.isEmpty) return;
     if (widget.fromChangeEmail) {
       /// If the user is changing email, we need to verify the password
       context.pushRoute(

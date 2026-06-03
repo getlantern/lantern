@@ -12,6 +12,7 @@ import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -48,7 +49,7 @@ class Account extends HookConsumerWidget {
     final email = ref.watch(userEmailProvider);
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
-
+    final isOAuthLogin = ref.read(isOAuthLoginProvider).value ?? false;
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,14 +99,16 @@ class Account extends HookConsumerWidget {
                       copyToClipboard(email);
                     }
                   : null,
-              trailing: AppTextButton(
-                label: 'change_email'.i18n,
-                onPressed: () {
-                  appRouter.push(
-                    SignInPassword(email: email, fromChangeEmail: true),
-                  );
-                },
-              ),
+              trailing: isOAuthLogin
+                  ? null
+                  : AppTextButton(
+                      label: 'change_email'.i18n,
+                      onPressed: () {
+                        appRouter.push(
+                          SignInPassword(email: email, fromChangeEmail: true),
+                        );
+                      },
+                    ),
             ),
           ),
           SizedBox(height: defaultSize),
