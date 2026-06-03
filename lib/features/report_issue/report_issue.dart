@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -105,9 +104,9 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 prefixIcon: AppImagePaths.email,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !EmailValidator.validate(value)) {
+                  final email = value?.trim() ?? '';
+                  // Empty is allowed — the email field is optional here.
+                  if (email.isNotEmpty && !email.isValidEmail()) {
                     return 'please_enter_valid_email'.i18n;
                   }
                   return null;
@@ -489,7 +488,8 @@ class _IssueTypeField extends StatelessWidget {
           prefixIcon: Icon(Icons.error_outline, color: context.textPrimary),
           entries: options
               .map(
-                (issue) => DropdownMenuEntry<String>(value: issue, label: issue),
+                (issue) =>
+                    DropdownMenuEntry<String>(value: issue, label: issue),
               )
               .toList(),
           validator: (value) {
