@@ -393,8 +393,11 @@ msgstr "Add your email to access your subscription on any device."
 msgid "confirm_email_code"
 msgstr "Confirmation Code"
 
-msgid "confirm_email_code_message"
-msgstr "Confirm that this email address belongs to you, enter the code sent to: "
+msgid "confirm_email_code_message_part_one"
+msgstr "We sent a code to "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " Enter it below. If it's not in your inbox, check your spam folder."
 
 msgid "resend_email"
 msgstr "Resend Email"

@@ -71,14 +71,15 @@ class ResetPasswordEmail extends HookConsumerWidget {
   }
 
   Future<void> onNext(BuildContext context, String email, WidgetRef ref) async {
-    if (!email.isValidEmail()) {
+    final trimmedEmail = email.trim();
+    if (!trimmedEmail.isValidEmail()) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
     }
     context.showLoadingDialog();
     final result = await ref
         .read(authProvider.notifier)
-        .startRecoveryByEmail(email);
+        .startRecoveryByEmail(trimmedEmail);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -87,7 +88,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
       (_) {
         context.hideLoadingDialog();
         appRouter.push(
-          ConfirmEmail(email: email, authFlow: AuthFlow.resetPassword),
+          ConfirmEmail(email: trimmedEmail, authFlow: AuthFlow.resetPassword),
         );
       },
     );
