@@ -18,12 +18,15 @@ extension EmailValidation on String {
     unicode: true,
   );
 
-  /// Two-layer email validation:
-  ///  1. reject any hidden/whitespace character introduced by copy-paste
-  ///     (these slip past [EmailValidator] because its default
-  ///     `allowInternational` treats them as legal Unicode characters);
-  ///  2. fall back to the standard validator, which keeps genuine
-  ///     international addresses working.
+  /// Two-layer email validation. Note this validates a trimmed copy, so
+  /// leading/trailing whitespace is normalized away (accepted) rather than
+  /// rejected — callers that submit the value should trim it too.
+  ///  1. reject any value that still contains an internal hidden/whitespace/
+  ///     control character after trimming (these slip past [EmailValidator]
+  ///     because its default `allowInternational` treats them as legal Unicode
+  ///     characters);
+  ///  2. fall back to the standard validator on the trimmed value, which keeps
+  ///     genuine international addresses working.
   bool isValidEmail() {
     final email = trim();
     if (email.isEmpty) return false;
@@ -74,8 +77,8 @@ extension FFIExtension on String {
 
 extension LocalizationExtension on String {
   Locale get toLocale {
-    final spilt = split('_');
-    return Locale(spilt[0], spilt.length > 1 ? spilt[1] : '');
+    final parts = split('_');
+    return Locale(parts[0], parts.length > 1 ? parts[1] : '');
   }
 }
 
