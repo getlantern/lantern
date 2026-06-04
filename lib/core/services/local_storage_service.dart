@@ -125,8 +125,8 @@ class LocalStorageService {
   }
 
   /// Reads a `Map<String, String>` persisted as a JSON object. Returns an
-  /// empty map when absent, and clears the key when its contents can't be
-  /// parsed into a map.
+  /// empty map when the key is absent or holds an empty string, and clears the
+  /// key when its (non-empty) contents can't be parsed into a map.
   Future<Map<String, String>> getStringMap(String key) async {
     final raw = getString(key);
     if (raw == null || raw.isEmpty) return {};

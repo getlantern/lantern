@@ -817,32 +817,37 @@ class AppPurchase {
     String productID,
     String planId,
   ) async {
-    await _rememberPendingPlan([_productPlanKey(productID)], planId);
-    appLogger.info(
-      '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
-    );
+    if (await _rememberPendingPlan([_productPlanKey(productID)], planId)) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
+      );
+    }
   }
 
   Future<void> _rememberPendingPlanForPurchase(
     PurchaseDetails purchase,
     String planId,
   ) async {
-    await _rememberPendingPlan(_planKeysForPurchase(purchase), planId);
-    appLogger.info(
-      '[AppPurchase] Stored pending purchase plan: '
-      'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
-    );
+    if (await _rememberPendingPlan(_planKeysForPurchase(purchase), planId)) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase plan: '
+        'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
+      );
+    }
   }
 
-  Future<void> _rememberPendingPlan(List<String> keys, String planId) async {
+  /// Stores [planId] under each of [keys], persisting only when [planId] is
+  /// non-empty. Returns whether anything was written.
+  Future<bool> _rememberPendingPlan(List<String> keys, String planId) async {
     if (planId.isEmpty) {
-      return;
+      return false;
     }
     final pending = await _loadPendingPurchasePlans();
     for (final key in keys) {
       pending[key] = planId;
     }
     await _savePendingPurchasePlans(pending);
+    return true;
   }
 
   Future<void> _forgetPendingPlan(PurchaseDetails purchase) async {
