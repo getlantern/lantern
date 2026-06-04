@@ -12,6 +12,7 @@ class SingleCityServerView extends StatefulWidget {
   final OnServerSelected onServerSelected;
   final bool isSelected;
   final bool nested;
+  final bool showWarningText;
 
   const SingleCityServerView({
     super.key,
@@ -19,6 +20,7 @@ class SingleCityServerView extends StatefulWidget {
     required this.server,
     this.isSelected = false,
     this.nested = false,
+    this.showWarningText = true,
   });
 
   @override
@@ -38,6 +40,7 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
         context,
         widget.server,
         textTheme.labelMedium!,
+        showWarningText: widget.showWarningText,
       ),
       trailing: serverReachabilityWarningIcon(context, widget.server),
       icon: Flag(countryCode: widget.server.location.countryCode),

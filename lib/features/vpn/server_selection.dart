@@ -323,76 +323,71 @@ class _ServerLocationListViewState
             ProBanner(topMargin: 0),
             const SizedBox(height: verticalSpacing),
           ],
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
-            child: HeaderText('pro_locations'.i18n),
-          ),
           Flexible(
-            child: AppCard(
-              padding: EdgeInsets.zero,
-              child: availableServers.when(
-                data: (data) {
-                  final locations = data.lanternServers;
+            child: availableServers.when(
+              data: (data) {
+                final reachableLocations = data.lanternServers
+                    .where((s) => !s.shouldWarnBeforeManualSelection)
+                    .toList();
+                final unavailableLocations =
+                    data.lanternServers
+                        .where((s) => s.shouldWarnBeforeManualSelection)
+                        .toList()
+                      ..sort(_compareServersByLocation);
 
-                  if (locations.isEmpty) {
-                    return const Center(child: Text("No locations available"));
-                  }
+                if (reachableLocations.isEmpty &&
+                    unavailableLocations.isEmpty) {
+                  return const Center(child: Text("No locations available"));
+                }
 
-                  final grouped = _groupLocationsByCountry(locations);
-                  final countryEntries = grouped.entries.toList()
-                    ..sort((a, b) => a.key.compareTo(b.key));
-
-                  return Stack(
-                    children: [
-                      ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(
-                          context,
-                        ).copyWith(scrollbars: false),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          itemCount: countryEntries.length,
-                          separatorBuilder: (_, _) => const DividerSpace(),
-                          itemBuilder: (context, index) {
-                            final entry = countryEntries[index];
-                            final country = entry.key;
-                            final countryLocations = entry.value;
-
-                            if (countryLocations.length == 1) {
-                              final serverData = countryLocations.first;
-                              return SingleCityServerView(
-                                key: ValueKey(serverData.tag),
-                                onServerSelected: onServerSelected,
-                                server: serverData,
-                                isSelected: selectedTag == serverData.tag,
-                              );
-                            }
-
-                            return _CountryCityListView(
-                              country: country,
-                              locations: countryLocations,
-                              selectedServerTag: selectedTag,
-                              onServerSelected: onServerSelected,
-                            );
-                          },
+                return Stack(
+                  children: [
+                    ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(
+                        context,
+                      ).copyWith(scrollbars: false),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          if (reachableLocations.isNotEmpty) ...[
+                            _sectionHeader('pro_locations'.i18n),
+                            _sectionCard(
+                              _reachableLocationTiles(
+                                reachableLocations,
+                                selectedTag,
+                              ),
+                            ),
+                          ],
+                          if (unavailableLocations.isNotEmpty) ...[
+                            SizedBox(
+                              height: reachableLocations.isEmpty ? 4 : size24,
+                            ),
+                            _sectionHeader('currently_unavailable'.i18n),
+                            _sectionCard(
+                              _unavailableLocationTiles(
+                                unavailableLocations,
+                                selectedTag,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (!widget.userPro)
+                      Positioned.fill(
+                        child: Container(
+                          color: context.bgElevated.withValues(alpha: 0.72),
+                          alignment: Alignment.center,
                         ),
                       ),
-                      if (!widget.userPro)
-                        Positioned.fill(
-                          child: Container(
-                            color: context.bgElevated.withValues(alpha: 0.72),
-                            alignment: Alignment.center,
-                          ),
-                        ),
-                    ],
-                  );
-                },
-                loading: () => const Center(child: Spinner()),
-                error: (error, _) => Center(
-                  child: Text(
-                    error.localizedDescription,
-                    textAlign: TextAlign.center,
-                  ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: Spinner()),
+              error: (error, _) => Center(
+                child: Text(
+                  error.localizedDescription,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -400,6 +395,88 @@ class _ServerLocationListViewState
         ],
       ),
     );
+  }
+
+  Widget _sectionHeader(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
+      child: HeaderText(text),
+    );
+  }
+
+  Widget _sectionCard(List<Widget> tiles) {
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: _withDividers(tiles),
+      ),
+    );
+  }
+
+  List<Widget> _reachableLocationTiles(
+    List<Server> locations,
+    String selectedTag,
+  ) {
+    final grouped = _groupLocationsByCountry(locations);
+    final countryEntries = grouped.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return countryEntries.map((entry) {
+      final country = entry.key;
+      final countryLocations = entry.value;
+
+      if (countryLocations.length == 1) {
+        final serverData = countryLocations.first;
+        return SingleCityServerView(
+          key: ValueKey(serverData.tag),
+          onServerSelected: onServerSelected,
+          server: serverData,
+          isSelected: selectedTag == serverData.tag,
+        );
+      }
+
+      return _CountryCityListView(
+        country: country,
+        locations: countryLocations,
+        selectedServerTag: selectedTag,
+        onServerSelected: onServerSelected,
+      );
+    }).toList();
+  }
+
+  List<Widget> _unavailableLocationTiles(
+    List<Server> locations,
+    String selectedTag,
+  ) {
+    return locations.map((server) {
+      return SingleCityServerView(
+        key: ValueKey(server.tag),
+        onServerSelected: onServerSelected,
+        server: server,
+        isSelected: selectedTag == server.tag,
+        showWarningText: false,
+      );
+    }).toList();
+  }
+
+  List<Widget> _withDividers(List<Widget> tiles) {
+    final children = <Widget>[];
+    for (var i = 0; i < tiles.length; i++) {
+      children.add(tiles[i]);
+      if (i < tiles.length - 1) {
+        children.add(const DividerSpace());
+      }
+    }
+    return children;
+  }
+
+  int _compareServersByLocation(Server a, Server b) {
+    final country = a.location.country.compareTo(b.location.country);
+    if (country != 0) return country;
+    final city = a.location.city.compareTo(b.location.city);
+    if (city != 0) return city;
+    return a.tag.compareTo(b.tag);
   }
 
   Future<void> onServerSelected(Server selectedServer) async {
@@ -428,7 +505,7 @@ class _ServerLocationListViewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          Center(child: serverReachabilityIcon(context)),
+          Center(child: serverReachabilityIcon(context, size: 48)),
           const SizedBox(height: 16),
           Center(
             child: Text(

@@ -5,11 +5,12 @@ import 'package:lantern/core/models/available_servers.dart';
 Widget? serverReachabilitySubtitle(
   BuildContext context,
   Server server,
-  TextStyle style,
-) {
+  TextStyle style, {
+  bool showWarningText = true,
+}) {
   final parts = <String>[
     if (server.type.isNotEmpty) server.type.capitalize,
-    if (server.shouldWarnBeforeManualSelection)
+    if (showWarningText && server.shouldWarnBeforeManualSelection)
       'server_may_be_unreachable'.i18n,
   ];
   if (parts.isEmpty) return null;
@@ -26,12 +27,16 @@ Widget? serverReachabilitySubtitle(
   );
 }
 
-Widget? serverReachabilityWarningIcon(BuildContext context, Server server) {
+Widget? serverReachabilityWarningIcon(
+  BuildContext context,
+  Server server, {
+  double size = 18,
+}) {
   if (!server.shouldWarnBeforeManualSelection) return null;
-  return serverReachabilityIcon(context);
+  return serverReachabilityIcon(context, size: size);
 }
 
-Widget serverReachabilityIcon(BuildContext context) {
+Widget serverReachabilityIcon(BuildContext context, {double size = 18}) {
   final label = 'server_may_be_unreachable'.i18n;
   return Tooltip(
     message: label,
@@ -39,8 +44,8 @@ Widget serverReachabilityIcon(BuildContext context) {
       label: label,
       child: AppImage(
         path: AppImagePaths.warning,
-        height: 18,
-        width: 18,
+        height: size,
+        width: size,
         color: context.statusWarningText,
       ),
     ),
