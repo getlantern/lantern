@@ -1,5 +1,6 @@
 package org.getlantern.lantern.service
 
+import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -59,6 +60,7 @@ class LanternVpnService :
         // #173507, where /service/start hung and the UI appeared frozen until
         // a phone reboot). Without this timeout the coroutine could wait forever.
         private const val VPN_START_TIMEOUT_MS = 60_000L
+        private const val VPN_STOP_TIMEOUT_MS = 10_000L
 
         // Single-flight gate: when we time out the connect() call, we detach
         // the coroutine rather than waiting for the JNI call to honor
@@ -78,6 +80,80 @@ class LanternVpnService :
         // onDestroy's finally, so teardown can't live there — this scope is
         // never cancelled.
         private val teardownScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        /**
+         * Shared by sideload update handoff and first launch after a package update.
+         */
+        suspend fun resetVpnForUpgrade(context: Context, reason: String) {
+            val appContext = context.applicationContext
+            AppLogger.i(TAG, "Resetting VPN state before/after app upgrade: $reason")
+
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    if (::instance.isInitialized) {
+                        instance.closeTunInterface()
+                    }
+                }.onFailure { e ->
+                    AppLogger.e(TAG, "Failed to close TUN interface during upgrade reset", e)
+                }
+
+                stopMobileVpnForUpgrade(reason)
+
+                runCatching {
+                    DefaultNetworkMonitor.setNetworkChangeCallback(null)
+                    DefaultNetworkMonitor.stop()
+                }.onFailure { e ->
+                    AppLogger.e(TAG, "Failed to stop network monitor during upgrade reset", e)
+                }
+            }
+
+            withContext(Dispatchers.Main.immediate) {
+                runCatching {
+                    if (::instance.isInitialized) {
+                        instance.notificationHelper.stopVPNConnectedNotification(instance)
+                    }
+                    appContext.stopService(Intent(appContext, LanternVpnService::class.java))
+                }.onFailure { e ->
+                    AppLogger.e(TAG, "Failed to stop VPN service during upgrade reset", e)
+                }
+
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(appContext, false)
+                }
+            }
+        }
+
+        private suspend fun stopMobileVpnForUpgrade(reason: String) {
+            val radianceConnected = runCatching {
+                Mobile.isRadianceConnected()
+            }.getOrElse { e ->
+                AppLogger.e(TAG, "Failed to read Radiance state during upgrade reset", e)
+                false
+            }
+            if (!radianceConnected) {
+                AppLogger.i(TAG, "Radiance is not connected; no VPN tunnel to stop for upgrade reset")
+                return
+            }
+
+            val stopScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            val stopJob = stopScope.async {
+                Mobile.stopVPN()
+            }
+            try {
+                withTimeout(VPN_STOP_TIMEOUT_MS) {
+                    stopJob.await()
+                }
+                AppLogger.i(TAG, "Mobile.stopVPN completed during upgrade reset: $reason")
+            } catch (e: TimeoutCancellationException) {
+                AppLogger.e(TAG, "Timed out stopping VPN during upgrade reset: $reason", e)
+                stopJob.cancel()
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "Failed to stop VPN during upgrade reset: $reason", e)
+            } finally {
+                stopScope.cancel()
+            }
+        }
     }
 
     private val notificationHelper = NotificationHelper()
@@ -223,6 +299,7 @@ class LanternVpnService :
             vpnBuilder.establish()
                 ?: error("android: the application is not prepared or is revoked")
         mInterface = pfd
+        AppLogger.i(TAG, "Android TUN established fd=${pfd.fd}")
         return pfd.fd
     }
 
@@ -505,6 +582,12 @@ class LanternVpnService :
 
     private fun createVPNBuilder(options: TunOptions): Builder {
         val builder = Builder().setSession(sessionName).setMtu(options.mtu)
+        var inet4AddressCount = 0
+        var inet6AddressCount = 0
+        var inet4RouteCount = 0
+        var inet6RouteCount = 0
+        var inet4ExcludeRouteCount = 0
+        var inet6ExcludeRouteCount = 0
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
@@ -513,12 +596,14 @@ class LanternVpnService :
         while (inet4Address.hasNext()) {
             val address = inet4Address.next()
             builder.addAddress(address.address(), address.prefix())
+            inet4AddressCount++
         }
 
         val inet6Address = options.inet6Address
         while (inet6Address.hasNext()) {
             val address = inet6Address.next()
             builder.addAddress(address.address(), address.prefix())
+            inet6AddressCount++
         }
 
         // Disallow traffic from our own app to the VPN.
@@ -532,28 +617,34 @@ class LanternVpnService :
                 if (inet4RouteAddress.hasNext()) {
                     while (inet4RouteAddress.hasNext()) {
                         builder.addRoute(inet4RouteAddress.next().toIpPrefix())
+                        inet4RouteCount++
                     }
                 } else if (options.inet4Address.hasNext()) {
                     builder.addRoute("0.0.0.0", 0)
+                    inet4RouteCount++
                 }
 
                 val inet6RouteAddress = options.inet6RouteAddress
                 if (inet6RouteAddress.hasNext()) {
                     while (inet6RouteAddress.hasNext()) {
                         builder.addRoute(inet6RouteAddress.next().toIpPrefix())
+                        inet6RouteCount++
                     }
                 } else if (options.inet6Address.hasNext()) {
                     builder.addRoute("::", 0)
+                    inet6RouteCount++
                 }
 
                 val inet4RouteExcludeAddress = options.inet4RouteExcludeAddress
                 while (inet4RouteExcludeAddress.hasNext()) {
                     builder.excludeRoute(inet4RouteExcludeAddress.next().toIpPrefix())
+                    inet4ExcludeRouteCount++
                 }
 
                 val inet6RouteExcludeAddress = options.inet6RouteExcludeAddress
                 while (inet6RouteExcludeAddress.hasNext()) {
                     builder.excludeRoute(inet6RouteExcludeAddress.next().toIpPrefix())
+                    inet6ExcludeRouteCount++
                 }
             } else {
                 val inet4RouteAddress = options.inet4RouteRange
@@ -561,6 +652,7 @@ class LanternVpnService :
                     while (inet4RouteAddress.hasNext()) {
                         val address = inet4RouteAddress.next()
                         builder.addRoute(address.address(), address.prefix())
+                        inet4RouteCount++
                     }
                 }
 
@@ -569,10 +661,18 @@ class LanternVpnService :
                     while (inet6RouteAddress.hasNext()) {
                         val address = inet6RouteAddress.next()
                         builder.addRoute(address.address(), address.prefix())
+                        inet6RouteCount++
                     }
                 }
             }
         }
+        AppLogger.i(
+            TAG,
+            "Prepared Android VPN builder mtu=${options.mtu} autoRoute=${options.autoRoute} " +
+                "inet4Addresses=$inet4AddressCount inet6Addresses=$inet6AddressCount " +
+                "inet4Routes=$inet4RouteCount inet6Routes=$inet6RouteCount " +
+                "inet4ExcludeRoutes=$inet4ExcludeRouteCount inet6ExcludeRoutes=$inet6ExcludeRouteCount",
+        )
         return builder
     }
 

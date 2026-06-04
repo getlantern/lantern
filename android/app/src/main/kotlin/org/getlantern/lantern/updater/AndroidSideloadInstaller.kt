@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.utils.AppLogger
 import java.io.File
 import java.io.FileOutputStream
@@ -52,6 +53,16 @@ object AndroidSideloadInstaller {
             val file = downloadApk(activity, update.url)
             verifyDownloadedApk(activity, file, update)
             file
+        }
+
+        // Release the active TUN before Android replaces the package.
+        runCatching {
+            LanternVpnService.resetVpnForUpgrade(
+                activity,
+                "sideload installer handoff version=${update.version}",
+            )
+        }.onFailure { e ->
+            AppLogger.e(TAG, "Failed to reset VPN before sideload installer handoff", e)
         }
 
         withContext(Dispatchers.Main.immediate) {

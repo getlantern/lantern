@@ -21,6 +21,7 @@ import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
+import org.getlantern.lantern.updater.AndroidPostUpgradeVpnReset
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
@@ -78,8 +79,16 @@ class MainActivity : FlutterFragmentActivity() {
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
-        startLanternService()
         isEngineConfigured = true
+        CoroutineScope(Dispatchers.Main).launch {
+            val didResetVpn = runCatching {
+                AndroidPostUpgradeVpnReset.runIfNeeded(this@MainActivity)
+            }.getOrElse { e ->
+                AppLogger.e(TAG, "Post-upgrade VPN reset failed", e)
+                false
+            }
+            startLanternService(force = didResetVpn)
+        }
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -98,9 +107,9 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    private fun startLanternService() {
+    private fun startLanternService(force: Boolean = false) {
         AppLogger.d(TAG, "Starting LanternService")
-        if (isServiceRunning(this, LanternVpnService::class.java)) {
+        if (!force && isServiceRunning(this, LanternVpnService::class.java)) {
             AppLogger.d(TAG, "LanternService is already running")
             return
         }
