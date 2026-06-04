@@ -65,7 +65,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final city = fastest.location.city;
     appLogger.debug(
       'Pushing fastest server to Smart Location: '
-      'tag=${fastest.tag} delay=${fastest.urlTestResult?.delay}ms',
+      'tag=${fastest.tag} delay=${fastest.selectionHistory?.lastSuccessDelayMs}ms',
     );
     ref
         .read(serverLocationProvider.notifier)

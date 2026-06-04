@@ -20,12 +20,14 @@ class AvailableServers {
     return null;
   }
 
-  /// Lantern server with the lowest successful URL-test delay. Null when no
+  /// Lantern server with the lowest successful probe delay. Null when no
   /// Lantern server has a successful probe.
   Server? get fastestLanternServer {
     final ranked = lanternServers.where((s) => s.hasSuccessfulProbe).toList()
       ..sort(
-        (a, b) => a.urlTestResult!.delay.compareTo(b.urlTestResult!.delay),
+        (a, b) => a.selectionHistory!.lastSuccessDelayMs.compareTo(
+          b.selectionHistory!.lastSuccessDelayMs,
+        ),
       );
     return ranked.isEmpty ? null : ranked.first;
   }
@@ -39,7 +41,7 @@ class Server {
   final Map<String, dynamic>? endpoint;
   final GeoLocation location;
   final ServerCredential? credentials;
-  final UrlTestResult? urlTestResult;
+  final SelectionHistory? selectionHistory;
 
   Server({
     required this.tag,
@@ -49,7 +51,7 @@ class Server {
     this.endpoint,
     required this.location,
     this.credentials,
-    this.urlTestResult,
+    this.selectionHistory,
   });
 
   factory Server.fromJson(Map<String, dynamic> json) => Server(
@@ -64,16 +66,16 @@ class Server {
     credentials: json['credentials'] != null
         ? ServerCredential.fromJson(json['credentials'] as Map<String, dynamic>)
         : null,
-    urlTestResult: json["urlTestResult"] == null
+    selectionHistory: json["selection_history"] == null
         ? null
-        : UrlTestResult.fromJson(json["urlTestResult"]),
+        : SelectionHistory.fromJson(json["selection_history"]),
   );
 
   /// IP address extracted from outbound or endpoint options.
   String get serverIP =>
       outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
 
-  bool get hasSuccessfulProbe => (urlTestResult?.delay ?? 0) > 0;
+  bool get hasSuccessfulProbe => (selectionHistory?.lastSuccessDelayMs ?? 0) > 0;
 
   /// Manual mode pins traffic to exactly this server. If Smart Location has no
   /// successful probe for it, warn before pinning so users can stay on auto.
@@ -123,17 +125,58 @@ class ServerCredential {
       );
 }
 
-class UrlTestResult {
-  int delay;
-  DateTime time;
+/// SelectionHistory mirrors radiance's per-server selection history. Probe
+/// outcomes feed [lastSuccessDelayMs]/[consecutiveFailures]; real user-traffic
+/// failures feed [userFailures], kept separate so a censor that passes the
+/// probe URL while dropping user traffic is still visible.
+class SelectionHistory {
+  /// Most recent successful probe RTT in milliseconds. 0 means no successful
+  /// probe yet, used as the sentinel by [Server.hasSuccessfulProbe].
+  final int lastSuccessDelayMs;
 
-  UrlTestResult({required this.delay, required this.time});
+  /// Timestamp of the most recent probe outcome, success or failure.
+  final DateTime? lastOutcomeAt;
 
-  factory UrlTestResult.fromJson(Map<String, dynamic> json) =>
-      UrlTestResult(delay: json["delay"], time: DateTime.parse(json["time"]));
+  /// Probe failures since the last probe success; resets on success.
+  final int consecutiveFailures;
+
+  /// Sliding window of user-traffic failure timestamps. Probe successes never
+  /// enter this window.
+  final List<DateTime> userFailures;
+
+  final DateTime? updatedAt;
+
+  SelectionHistory({
+    this.lastSuccessDelayMs = 0,
+    this.lastOutcomeAt,
+    this.consecutiveFailures = 0,
+    this.userFailures = const [],
+    this.updatedAt,
+  });
+
+  factory SelectionHistory.fromJson(Map<String, dynamic> json) =>
+      SelectionHistory(
+        lastSuccessDelayMs: json["last_success_delay_ms"] ?? 0,
+        lastOutcomeAt: json["last_outcome_at"] == null
+            ? null
+            : DateTime.parse(json["last_outcome_at"]),
+        consecutiveFailures: json["consecutive_failures"] ?? 0,
+        userFailures:
+            (json["user_failures"] as List<dynamic>?)
+                ?.map((e) => DateTime.parse(e as String))
+                .toList() ??
+            const [],
+        updatedAt: json["updated_at"] == null
+            ? null
+            : DateTime.parse(json["updated_at"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "delay": delay,
-    "time": time.toIso8601String(),
+    "last_success_delay_ms": lastSuccessDelayMs,
+    if (lastOutcomeAt != null) "last_outcome_at": lastOutcomeAt!.toIso8601String(),
+    "consecutive_failures": consecutiveFailures,
+    if (userFailures.isNotEmpty)
+      "user_failures": userFailures.map((e) => e.toIso8601String()).toList(),
+    if (updatedAt != null) "updated_at": updatedAt!.toIso8601String(),
   };
 }

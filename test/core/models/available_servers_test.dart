@@ -54,8 +54,11 @@ Server _server({required String tag, bool isLantern = true, int? delay}) {
       latitude: 40.7128,
       longitude: -74.006,
     ),
-    urlTestResult: delay == null
+    selectionHistory: delay == null
         ? null
-        : UrlTestResult(delay: delay, time: DateTime.utc(2026, 1, 1)),
+        : SelectionHistory(
+            lastSuccessDelayMs: delay,
+            updatedAt: DateTime.utc(2026, 1, 1),
+          ),
   );
 }
