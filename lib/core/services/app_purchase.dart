@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -774,13 +773,10 @@ class AppPurchase {
     _ackRetryTimers.remove(key)?.cancel();
   }
 
-  String _purchaseRetryKey(PurchaseDetails purchase) {
-    final transactionKey = _transactionPlanKey(purchase);
-    if (transactionKey != null) {
-      return transactionKey;
-    }
-    return _productPlanKey(purchase.productID);
-  }
+  // The transaction key when available, otherwise the product key — i.e. the
+  // most specific key `_planKeysForPurchase` would store this purchase under.
+  String _purchaseRetryKey(PurchaseDetails purchase) =>
+      _planKeysForPurchase(purchase).first;
 
   String _productPlanKey(String productID) =>
       '$_productPlanKeyPrefix$productID';
@@ -821,43 +817,41 @@ class AppPurchase {
     String productID,
     String planId,
   ) async {
-    if (planId.isEmpty) {
-      return;
+    if (await _rememberPendingPlan([_productPlanKey(productID)], planId)) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
+      );
     }
-    final pending = await _loadPendingPurchasePlans();
-    pending[_productPlanKey(productID)] = planId;
-    await _savePendingPurchasePlans(pending);
-    appLogger.info(
-      '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
-    );
   }
 
   Future<void> _rememberPendingPlanForPurchase(
     PurchaseDetails purchase,
     String planId,
   ) async {
+    if (await _rememberPendingPlan(_planKeysForPurchase(purchase), planId)) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase plan: '
+        'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
+      );
+    }
+  }
+
+  /// Stores [planId] under each of [keys], persisting only when [planId] is
+  /// non-empty. Returns whether anything was written.
+  Future<bool> _rememberPendingPlan(List<String> keys, String planId) async {
     if (planId.isEmpty) {
-      return;
+      return false;
     }
     final pending = await _loadPendingPurchasePlans();
-    for (final key in _planKeysForPurchase(purchase)) {
+    for (final key in keys) {
       pending[key] = planId;
     }
     await _savePendingPurchasePlans(pending);
-    appLogger.info(
-      '[AppPurchase] Stored pending purchase plan: '
-      'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
-    );
+    return true;
   }
 
   Future<void> _forgetPendingPlan(PurchaseDetails purchase) async {
-    final pending = await _loadPendingPurchasePlans();
-    var changed = false;
-    for (final key in _planKeysForPurchase(purchase)) {
-      changed = pending.remove(key) != null || changed;
-    }
-    if (changed) {
-      await _savePendingPurchasePlans(pending);
+    if (await _forgetPendingPlanKeys(_planKeysForPurchase(purchase))) {
       appLogger.info(
         '[AppPurchase] Cleared pending purchase plan: '
         'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
@@ -866,46 +860,30 @@ class AppPurchase {
   }
 
   Future<void> _forgetPendingPlanForProduct(String productID) async {
-    final pending = await _loadPendingPurchasePlans();
-    if (pending.remove(_productPlanKey(productID)) != null) {
-      await _savePendingPurchasePlans(pending);
+    if (await _forgetPendingPlanKeys([_productPlanKey(productID)])) {
       appLogger.info(
         '[AppPurchase] Cleared pending purchase plan for productID=$productID',
       );
     }
   }
 
-  Future<Map<String, String>> _loadPendingPurchasePlans() async {
-    final storage = sl<LocalStorageService>();
-    final raw = storage.getString(_pendingPurchasePlansKey);
-    if (raw == null || raw.isEmpty) {
-      return {};
+  /// Removes [keys] from the pending plans map, persisting only when something
+  /// actually changed. Returns whether any entry was removed.
+  Future<bool> _forgetPendingPlanKeys(List<String> keys) async {
+    final pending = await _loadPendingPurchasePlans();
+    var changed = false;
+    for (final key in keys) {
+      changed = pending.remove(key) != null || changed;
     }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        return decoded.map(
-          (key, value) => MapEntry(key.toString(), value.toString()),
-        );
-      }
-      appLogger.warning('Pending purchase plans had invalid shape; clearing');
-    } catch (e, st) {
-      appLogger.error(
-        'Failed to parse pending purchase plans; clearing',
-        e,
-        st,
-      );
+    if (changed) {
+      await _savePendingPurchasePlans(pending);
     }
-    await storage.remove(_pendingPurchasePlansKey);
-    return {};
+    return changed;
   }
 
-  Future<void> _savePendingPurchasePlans(Map<String, String> pending) async {
-    final storage = sl<LocalStorageService>();
-    if (pending.isEmpty) {
-      await storage.remove(_pendingPurchasePlansKey);
-      return;
-    }
-    await storage.setString(_pendingPurchasePlansKey, jsonEncode(pending));
-  }
+  Future<Map<String, String>> _loadPendingPurchasePlans() =>
+      sl<LocalStorageService>().getStringMap(_pendingPurchasePlansKey);
+
+  Future<void> _savePendingPurchasePlans(Map<String, String> pending) =>
+      sl<LocalStorageService>().setStringMap(_pendingPurchasePlansKey, pending);
 }
