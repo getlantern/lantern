@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,6 +31,20 @@ class ServerSelection extends StatefulHookConsumerWidget {
 
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(
+        ref
+            .read(availableServersProvider.notifier)
+            .forceFetchAvailableServers(),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
