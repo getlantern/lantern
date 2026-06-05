@@ -124,6 +124,37 @@ class LocalStorageService {
     }
   }
 
+  /// Reads a `Map<String, String>` persisted as a JSON object. Returns an
+  /// empty map when the key is absent or holds an empty string, and clears the
+  /// key when its (non-empty) contents can't be parsed into a map.
+  Future<Map<String, String>> getStringMap(String key) async {
+    final raw = getString(key);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return decoded.map(
+          (k, v) => MapEntry(k.toString(), v.toString()),
+        );
+      }
+      appLogger.warning('Stored map at "$key" had invalid shape; clearing');
+    } catch (e, st) {
+      appLogger.error('Failed to parse stored map at "$key"; clearing', e, st);
+    }
+    await remove(key);
+    return {};
+  }
+
+  /// Persists a `Map<String, String>` as a JSON object, removing the key
+  /// entirely when the map is empty.
+  Future<void> setStringMap(String key, Map<String, String> value) async {
+    if (value.isEmpty) {
+      await remove(key);
+      return;
+    }
+    await setString(key, jsonEncode(value));
+  }
+
   bool containsKey(String key) => _prefs.containsKey(key);
 
   Future<void> remove(String key) async {
