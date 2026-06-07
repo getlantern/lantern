@@ -27,27 +27,27 @@ class PeerGeo {
 }
 
 class GeoLookupService {
-  static const _selfUrl = 'https://geo.getiantem.org';
-  // ipwho.is: HTTPS, no auth, 10k req/month free. Returns country + lat/lon
-  // + flag emoji in one shot.
-  static const _peerUrl = 'https://ipwho.is';
+  // Lantern's own geo service (cmd/api/pro-server geoLookup, MaxMind-backed).
+  // /lookup geo-locates the caller's own IP; /lookup/<ip> a specific address,
+  // so both the self lookup and peer lookups stay on Lantern infrastructure
+  // rather than shipping addresses to a third party.
+  static const _geoUrl = 'https://geo.getiantem.org';
 
   // Per-IP cache for peerLookup. Most connections are short-lived
   // liveness probes from the same handful of client IPs, so without a
-  // cache an active SmC peer would issue hundreds of ipwho.is requests
-  // per minute — chewing through the 10k/month free quota and leaking
-  // more data to the third party than necessary. Cached entries
-  // (including the PeerGeo.unknown sentinel from a failed lookup) live
-  // for the rest of the process — IP→country bindings don't change on
-  // human timescales, and the alternative TTL bookkeeping adds
-  // complexity without changing the privacy or quota math.
+  // cache an active SmC peer would issue hundreds of geo lookups per
+  // minute against geo.getiantem.org for no new information. Cached
+  // entries (including the PeerGeo.unknown sentinel from a failed
+  // lookup) live for the rest of the process — IP→country bindings
+  // don't change on human timescales, and the alternative TTL
+  // bookkeeping adds complexity without changing the result.
   static final Map<String, PeerGeo> _peerCache = {};
 
   /// Test-only: drop the cache. Production code does not call this.
   static void resetCacheForTest() => _peerCache.clear();
 
   // ISO country code → approximate centre coordinates. Used as a fallback
-  // when ipwho.is doesn't return city-level coords.
+  // when the geo service doesn't return city-level coords.
   static const _countryCenters = {
     'AF': (lat: 33.0, lng: 65.0),
     'AL': (lat: 41.0, lng: 20.0),
@@ -178,6 +178,20 @@ class GeoLookupService {
     return GlobeCoordinates(c.lat, c.lng);
   }
 
+  // Synthesizes a flag emoji from an ISO 3166-1 alpha-2 code by mapping each
+  // letter to its regional-indicator symbol (A→🇦 … Z→🇿). MaxMind returns no
+  // flag (ipwho.is used to), so we derive it client-side. Returns "" for
+  // anything that isn't two ASCII letters.
+  static String _flagEmoji(String iso) {
+    if (iso.length != 2) return '';
+    final a = iso.toUpperCase().codeUnitAt(0);
+    final b = iso.toUpperCase().codeUnitAt(1);
+    if (a < 0x41 || a > 0x5A || b < 0x41 || b > 0x5A) return '';
+    const base = 0x1F1E6; // regional indicator symbol 'A'
+    return String.fromCharCode(base + (a - 0x41)) +
+        String.fromCharCode(base + (b - 0x41));
+  }
+
   /// Looks up the current device's location (no IP argument). Prefers the
   /// precise Location lat/lon the geo service returns, falling back to the
   /// country centre, then the US centre on any failure.
@@ -187,7 +201,7 @@ class GeoLookupService {
       // root meant every donor's origin silently fell through to the US-centre
       // fallback below regardless of where they actually were.
       final response = await http
-          .get(Uri.parse('$_selfUrl/lookup'))
+          .get(Uri.parse('$_geoUrl/lookup'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -208,22 +222,15 @@ class GeoLookupService {
     return _isoToCoords('US');
   }
 
-  /// Looks up country, flag, and coordinates for a peer [ip] address.
-  /// Returns [PeerGeo.unknown] on any failure so callers can suppress the
-  /// arc / banner rather than displaying a wrong country.
+  /// Looks up country, flag, and coordinates for a peer [ip] address via
+  /// Lantern's own geo service. Returns [PeerGeo.unknown] on any failure so
+  /// callers can suppress the arc / banner rather than displaying a wrong
+  /// country.
   ///
-  /// Privacy note: each call ships [ip] — the address of a peer routing
-  /// through this user's Share My Connection inbound — to ipwho.is, a
-  /// third-party geo-IP service. For most SmC consumers these are
-  /// censored users' addresses, so this is an outbound data flow to a
-  /// non-Lantern endpoint. Current rationale for accepting it: the IP
-  /// is already public-by-virtue-of-being-a-TCP-source-addr the host
-  /// observes, ipwho.is doesn't tie lookups to the caller, and the
-  /// alternative — relaying through Lantern's own infrastructure or
-  /// shipping a MaxMind DB with the app — is meaningful additional
-  /// scope. Move this to a Lantern-controlled endpoint or a local DB
-  /// before any production-scale rollout where peer protection matters
-  /// beyond demo use.
+  /// The peer IP is sent to geo.getiantem.org (Lantern infrastructure — the
+  /// same MaxMind-backed service used for the caller's own location) rather
+  /// than a third party. It's an address the local host already observes as a
+  /// connection source, and the service doesn't tie lookups to the caller.
   static Future<PeerGeo> peerLookup(String ip) async {
     // Cache hit: short-circuit before any network I/O. Also caches
     // PeerGeo.unknown so a previously-failed lookup doesn't retry on
@@ -233,23 +240,28 @@ class GeoLookupService {
     PeerGeo result = PeerGeo.unknown;
     try {
       final response = await http
-          .get(Uri.parse('$_peerUrl/$ip'))
+          .get(Uri.parse('$_geoUrl/lookup/$ip'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
+        // MaxMind City shape (see cmd/api/pro-server geoLookup): Country.IsoCode,
+        // Country.Names.en, and Location.Latitude/Longitude. An empty IsoCode
+        // (a private or unresolvable IP) is treated as a failed lookup.
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        if (data['success'] == true) {
-          final iso = (data['country_code'] as String?) ?? '';
-          final lat = (data['latitude'] as num?)?.toDouble();
-          final lng = (data['longitude'] as num?)?.toDouble();
+        final country = data['Country'] as Map<String, dynamic>?;
+        final iso = (country?['IsoCode'] as String?) ?? '';
+        if (iso.isNotEmpty) {
+          final loc = data['Location'] as Map<String, dynamic>?;
+          final lat = (loc?['Latitude'] as num?)?.toDouble();
+          final lng = (loc?['Longitude'] as num?)?.toDouble();
           final coords = (lat != null && lng != null)
               ? GlobeCoordinates(lat, lng)
               : _isoToCoords(iso);
-          final flagObj = data['flag'] as Map<String, dynamic>?;
+          final names = country?['Names'] as Map<String, dynamic>?;
           result = PeerGeo(
             coordinates: coords,
-            countryName: (data['country'] as String?) ?? '',
+            countryName: (names?['en'] as String?) ?? '',
             countryCode: iso,
-            flagEmoji: (flagObj?['emoji'] as String?) ?? '',
+            flagEmoji: _flagEmoji(iso),
           );
         }
       }
