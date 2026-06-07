@@ -178,17 +178,30 @@ class GeoLookupService {
     return GlobeCoordinates(c.lat, c.lng);
   }
 
-  /// Looks up the current device's location (no IP argument).
+  /// Looks up the current device's location (no IP argument). Prefers the
+  /// precise Location lat/lon the geo service returns, falling back to the
+  /// country centre, then the US centre on any failure.
   static Future<GlobeCoordinates> selfLookup() async {
     try {
+      // The geo service answers on /lookup; the bare root 404s. Hitting the
+      // root meant every donor's origin silently fell through to the US-centre
+      // fallback below regardless of where they actually were.
       final response = await http
-          .get(Uri.parse('$_selfUrl/'))
+          .get(Uri.parse('$_selfUrl/lookup'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        // Precise device coordinates when present — so the origin point sits
+        // on the user's actual location, not the centre of their country.
+        final loc = data['Location'] as Map<String, dynamic>?;
+        final lat = (loc?['Latitude'] as num?)?.toDouble();
+        final lng = (loc?['Longitude'] as num?)?.toDouble();
+        if (lat != null && lng != null) {
+          return GlobeCoordinates(lat, lng);
+        }
         final iso =
             (data['Country'] as Map<String, dynamic>?)?['IsoCode'] as String? ??
-                'US';
+            'US';
         return _isoToCoords(iso);
       }
     } catch (_) {}
