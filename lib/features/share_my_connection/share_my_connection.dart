@@ -1755,11 +1755,16 @@ class SmcDisclosureDialog extends StatelessWidget {
 /// only fires on the first visit. The info-bubble icon in the
 /// Unbounded tab header calls this same function to re-open it later.
 void showUnboundedWelcomeDialog(BuildContext context, WidgetRef ref) {
+  // Capture the notifier up front: whenComplete fires after the dialog
+  // closes, by which point the calling widget (and its WidgetRef) may be
+  // disposed if navigation replaced Home — ref.read would then throw. The
+  // notifier is owned by the root container and outlives the widget.
+  final appSetting = ref.read(appSettingProvider.notifier);
   showDialog<void>(
     context: context,
     builder: (_) => const _UnboundedWelcomeDialog(),
   ).whenComplete(() {
-    ref.read(appSettingProvider.notifier).setUnboundedWelcomeSeen(true);
+    appSetting.setUnboundedWelcomeSeen(true);
   });
 }
 
