@@ -33,6 +33,22 @@ class Home extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 2);
+    // Tell the Unbounded globe whether its tab is on screen so it can mute
+    // its ~60fps sphere re-projection while the user is on the VPN tab
+    // (TabBarView keeps the off-screen tab mounted and ticking). Enabled
+    // when settled on the Unbounded tab OR mid-swipe, so the globe
+    // animates through the transition rather than freezing.
+    useEffect(() {
+      void sync() {
+        final visible =
+            tabController.index == 1 || tabController.indexIsChanging;
+        ref.read(unboundedTabVisibleProvider.notifier).set(visible);
+      }
+
+      tabController.addListener(sync);
+      sync();
+      return () => tabController.removeListener(sync);
+    }, [tabController]);
     final isUserPro = ref.watch(isUserProProvider);
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),

@@ -724,6 +724,28 @@ class ShareNotifier extends Notifier<ShareState> {
 final shareProvider =
     NotifierProvider<ShareNotifier, ShareState>(ShareNotifier.new);
 
+/// Whether the Unbounded tab is the one on screen. Home drives this from
+/// its TabController; the globe watches it to mute its tickers (via
+/// TickerMode) while the user is on another tab.
+///
+/// Why this is needed: the globe is a software-projected sphere whose
+/// rotationController calls setState() ~60fps, re-rendering the whole
+/// sphere every frame. TabBarView keeps off-screen tabs mounted and does
+/// not pause their tickers, so without this gate the globe keeps burning
+/// a core re-projecting a sphere the user can't see while they sit on
+/// the VPN tab. Defaults true so the globe runs in any context that
+/// doesn't wire the signal (tests, or the single-tab layout where the
+/// globe isn't built anyway).
+final unboundedTabVisibleProvider =
+    NotifierProvider<UnboundedTabVisible, bool>(UnboundedTabVisible.new);
+
+class UnboundedTabVisible extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool visible) => state = visible;
+}
+
 // ─── Tab body ────────────────────────────────────────────────────────────────
 
 /// Unbounded tab content, rendered inside the Home tab shell (see
@@ -1020,6 +1042,10 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   // workerIdx +1's again before it fires.
   final Map<int, Timer> _pendingRemovals = {};
   static const _arcLinger = Duration(seconds: 5);
+  // workerIdx of every arc+point currently on the globe, so a stop can
+  // remove them all without relying on per-peer -1 events (which _stop()
+  // never emits).
+  final Set<int> _drawn = {};
 
   @override
   void initState() {
@@ -1140,16 +1166,48 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       coordinates: coords,
       style: PointStyle(color: _peerPointColor, size: 6),
     ));
+    _drawn.add(event.workerIdx);
   }
 
   void _removePeer(int workerIdx) {
     _globeController.removePointConnection('conn_$workerIdx');
     _globeController.removePoint('peer_$workerIdx');
+    _drawn.remove(workerIdx);
+  }
+
+  // Drop every arc + peer point at once. Used on the active->off edge,
+  // since _stop() tears down the event stream without emitting the -1s
+  // that would otherwise remove each arc.
+  void _clearAllPeers() {
+    for (final t in _pendingRemovals.values) {
+      t.cancel();
+    }
+    _pendingRemovals.clear();
+    for (final workerIdx in _drawn.toList()) {
+      _globeController.removePointConnection('conn_$workerIdx');
+      _globeController.removePoint('peer_$workerIdx');
+    }
+    _drawn.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
+    // Mute every globe ticker (rotation + arc dashes) while the Unbounded
+    // tab is off screen. rotating_globe builds its AnimationControllers
+    // with `vsync: this`, so an ancestor TickerMode(enabled: false) pauses
+    // all of them at once — the dominant cost is rotationController's
+    // per-frame setState re-projecting the sphere, and there's no reason
+    // to pay it for a sphere the user can't see.
+    final visible = ref.watch(unboundedTabVisibleProvider);
+    // _stop() tears down the upstream event subscription without emitting
+    // -1 events, so without this the globe keeps animating whatever arcs
+    // were live at toggle-off. Clear them on the active->off edge.
+    ref.listen(shareProvider.select((s) => s.active), (prev, next) {
+      if (prev == true && next == false) _clearAllPeers();
+    });
+    return TickerMode(
+      enabled: visible,
+      child: LayoutBuilder(
       builder: (context, constraints) {
         // FlutterEarthGlobe positions the sphere relative to MediaQuery.size
         // (i.e. the full screen). Without overriding it the globe ends up
@@ -1182,6 +1240,7 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
           ),
         );
       },
+      ),
     );
   }
 }
