@@ -1024,8 +1024,12 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   final FlutterEarthGlobeController _globeController =
       FlutterEarthGlobeController(
-    isRotating: true,
-    rotationSpeed: 0.04,
+    // Static globe — no continuous rotation. A spinning sphere re-projects
+    // in software via setState() every frame (~60fps), which is the
+    // dominant CPU cost of this tab. Instead we rotate only on demand
+    // (focusOnCoordinates) to bring each new connection into view, then
+    // settle back to static.
+    isRotating: false,
     zoom: 0,
     isZoomEnabled: false,
     showAtmosphere: true,
@@ -1099,6 +1103,9 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       coordinates: coords,
       style: PointStyle(color: _originPointColor, size: 8),
     ));
+    // Center the static globe on the user's own location so the first
+    // thing shown is "us" (instant — no intro spin).
+    _globeController.focusOnCoordinates(coords, animate: false);
     // Origin coords are now known — draw any peers that connected
     // before (or during) the origin lookup. _addPeer's null-guard
     // skipped them earlier; replayCurrentPeers re-fires +1 events
@@ -1142,9 +1149,12 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     // skipped here gets drawn with the correct destination.
     if (_originCoords == null) return;
     final coords = _jittered(event.coordinates!, event.workerIdx);
-    // Arc direction is censored user → uncensored peer (us). The dash
-    // animation flows from start to end, so the visual "travel" reads
-    // as traffic arriving at our peer to escape censorship.
+    // Solid arc, censored user → uncensored peer (us), drawn in once on
+    // add (animateOnAdd). dashAnimateTime is 0 on purpose: a non-zero
+    // value makes flutter_earth_globe run its ~60fps repaint loop for as
+    // long as any arc exists, which would re-spike the CPU the whole time
+    // a peer is connected — the same per-frame full-sphere repaint we
+    // removed by disabling rotation.
     _globeController.addPointConnection(PointConnection(
       id: 'conn_${event.workerIdx}',
       start: coords,
@@ -1154,10 +1164,7 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
         color: _arcColor,
         lineWidth: 3,
         type: PointConnectionType.solid,
-        dashAnimateTime: 1000,
-        dashSize: 13,
-        spacing: 15,
-        dotSize: 10,
+        dashAnimateTime: 0,
         animateOnAdd: true,
       ),
     ));
@@ -1167,6 +1174,16 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       style: PointStyle(color: _peerPointColor, size: 6),
     ));
     _drawn.add(event.workerIdx);
+    // Turn the static globe to bring the new connection into view — a
+    // brief, finite animation that settles back to static (no continuous
+    // cost). Without it, an arc on the far hemisphere of a non-spinning
+    // globe would be invisible.
+    _globeController.focusOnCoordinates(
+      coords,
+      animate: true,
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   void _removePeer(int workerIdx) {
@@ -1192,12 +1209,11 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   @override
   Widget build(BuildContext context) {
-    // Mute every globe ticker (rotation + arc dashes) while the Unbounded
-    // tab is off screen. rotating_globe builds its AnimationControllers
-    // with `vsync: this`, so an ancestor TickerMode(enabled: false) pauses
-    // all of them at once — the dominant cost is rotationController's
-    // per-frame setState re-projecting the sphere, and there's no reason
-    // to pay it for a sphere the user can't see.
+    // Pause the globe's tickers while the Unbounded tab is off screen.
+    // rotating_globe builds its AnimationControllers with `vsync: this`,
+    // so an ancestor TickerMode(enabled: false) freezes any in-flight
+    // focusOnCoordinates turn and the package's idle repaint loop at once
+    // — no point spending frames on a globe the user can't see.
     final visible = ref.watch(unboundedTabVisibleProvider);
     // _stop() tears down the upstream event subscription without emitting
     // -1 events, so without this the globe keeps animating whatever arcs
