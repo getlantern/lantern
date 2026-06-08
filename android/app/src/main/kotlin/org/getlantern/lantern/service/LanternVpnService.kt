@@ -434,21 +434,7 @@ class LanternVpnService :
         if (!consumeUpgradeResetMarker()) return
 
         AppLogger.i(TAG, "App APK updated; resetting VPN state before first tunnel start")
-        closeTunInterface()
-        runCatching {
-            if (Mobile.isRadianceConnected()) {
-                Mobile.stopVPN()
-                AppLogger.d(TAG, "stopVPN completed for app-upgrade reset")
-            } else {
-                AppLogger.d(TAG, "Skipping app-upgrade stopVPN - Radiance IPC not running")
-            }
-        }.onFailure { e ->
-            AppLogger.e(TAG, "stopVPN failed during app-upgrade reset", e)
-        }
-
-        runCatching { DefaultNetworkMonitor.stop() }
-            .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during app-upgrade reset", e) }
-
+        stopVPNTunnel()
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
         delay(UPGRADE_RESET_SETTLE_MS)
     }
