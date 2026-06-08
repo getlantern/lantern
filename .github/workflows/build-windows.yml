@@ -120,7 +120,30 @@ jobs:
 
       - name: Install Inno Setup 6
         shell: pwsh
-        run: choco install -y innosetup
+        # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
+        # --version=6.5.0 now fails ("a newer version is already installed; use
+        # --allow-downgrade"), so pin to 6.7.1 with --allow-downgrade: the install
+        # is deterministic and the Languages dir stays "Inno Setup 6". The vendored
+        # Farsi/ChineseSimplified .isl files are "6.5.0+" and message-key-identical
+        # to 6.7.1's Default.isl, so they remain valid as-is.
+        run: choco install -y innosetup --version=6.7.1 --allow-downgrade
+
+      - name: Install unofficial Inno Setup translations
+        shell: pwsh
+        # Chinese Simplified and Farsi/Persian are not bundled Inno translations;
+        # copy the vendored .isl files into Inno's Languages dir so inno_setup.iss
+        # can reference them as compiler:Languages\<name>.isl. (Russian is bundled;
+        # en is Default.isl.)
+        run: |
+          $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+          if (-not (Test-Path $langDir)) {
+            Write-Error "Inno Setup Languages dir not found: $langDir"
+            exit 1
+          }
+          foreach ($isl in 'ChineseSimplified.isl', 'Farsi.isl') {
+            Copy-Item "windows\packaging\exe\isl\$isl" "$langDir\$isl" -Force
+            Write-Host "Installed $isl -> $langDir"
+          }
 
       - name: Read app version from pubspec.yaml
         shell: pwsh

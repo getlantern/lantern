@@ -42,6 +42,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton<DeepLinkCallbackManager>(
     () => DeepLinkCallbackManager(),
   );
+  sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
 
   appLogger.debug('Initializing AppPurchase...');
   final appPurchase = AppPurchase();
@@ -51,7 +52,6 @@ Future<void> injectServices() async {
   }
   appLogger.debug('AppPurchase registered');
 
-  sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
   sl.registerSingleton<LanternFFIService>(
     PlatformUtils.isFFISupported
         ? LanternFFIService()

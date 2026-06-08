@@ -2,7 +2,8 @@ enum FeatureFlag {
   privateGcp('private.gcp'),
   metrics('otel.metrics'),
   traces('otel.traces'),
-  autoUpdateEnabled('autoUpdateEnabled');
+  autoUpdateEnabled('autoUpdateEnabled'),
+  androidSideloadAutoUpdateEnabled('androidSideloadAutoUpdateEnabled');
 
   final String key;
 

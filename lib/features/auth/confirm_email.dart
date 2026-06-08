@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart' hide BackButton;
 import 'package:lantern/core/widgets/app_pin_field.dart';
-import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -70,9 +70,24 @@ class ConfirmEmail extends HookConsumerWidget {
             SizedBox(height: defaultSize),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: AppRichText(
-                texts: 'confirm_email_code_message'.i18n,
-                boldTexts: email,
+              child: RichText(
+                text: TextSpan(
+                  style: textTheme.labelLarge!.copyWith(
+                    color: context.textSecondary,
+                  ),
+                  children: [
+                    TextSpan(text: 'confirm_email_code_message_part_one'.i18n),
+                    TextSpan(
+                      text: '$email.',
+                      style: AppTextStyles.labelLargeBold.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: context.textSecondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    TextSpan(text: 'confirm_email_code_message_part_two'.i18n),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: 32),
@@ -136,8 +151,9 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        //refresh user data to pick up the new email
-        ref.read(homeProvider.notifier).refreshUser();
+
+        /// fetch user data to update email in the app
+        ref.read(homeProvider.notifier).fetchUserData();
         AppDialog.dialog(
           context: context,
           title: 'change_email'.i18n,

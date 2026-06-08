@@ -1,16 +1,15 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/card_dropdown.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment_rules.dart';
-import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/provider/attachment_picker.dart';
+import 'package:lantern/features/report_issue/provider/report_issue_draft_notifier.dart';
 import 'package:lantern/features/report_issue/provider/submitter.dart';
 import 'package:lantern/features/report_issue/widgets/report_issue_attachment_dropzone.dart';
-import 'package:lantern/core/widgets/card_dropdown.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends ConsumerStatefulWidget {
@@ -105,9 +104,9 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 prefixIcon: AppImagePaths.email,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !EmailValidator.validate(value)) {
+                  final email = value?.trim() ?? '';
+                  // Empty is allowed — the email field is optional here.
+                  if (email.isNotEmpty && !email.isValidEmail()) {
                     return 'please_enter_valid_email'.i18n;
                   }
                   return null;
@@ -126,12 +125,11 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 controller: _descriptionController,
                 hintText: '',
                 label: 'issue_description'.i18n,
-                suffixIcon: Icons.description_outlined,
+                prefixIcon: Icons.description_outlined,
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
-                maxLines: 10,
-                expands: true,
-                inputHeight: 132,
+                maxLines: 7,
+                expands: false,
                 labelLeftPadding: 16,
               ),
               const SizedBox(height: 16),
@@ -488,10 +486,10 @@ class _IssueTypeField extends StatelessWidget {
           formFieldKey: fieldKey,
           value: selectedIssue,
           prefixIcon: Icon(Icons.error_outline, color: context.textPrimary),
-          items: options
+          entries: options
               .map(
                 (issue) =>
-                    DropdownMenuItem<String>(value: issue, child: Text(issue)),
+                    DropdownMenuEntry<String>(value: issue, label: issue),
               )
               .toList(),
           validator: (value) {

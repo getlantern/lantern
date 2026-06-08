@@ -21,7 +21,7 @@ class SignInEmail extends HookConsumerWidget {
     return EnterKeyShortcut(
       onEnter: () {
         if (emailController.text.isValidEmail()) {
-          appRouter.push(SignInPassword(email: emailController.text));
+          appRouter.push(SignInPassword(email: emailController.text.trim()));
           return;
         }
       },
@@ -102,11 +102,12 @@ class SignInEmail extends HookConsumerWidget {
   }
 
   void signInWithEmail(String email, BuildContext context) {
-    if (!email.isValidEmail()) {
+    final trimmedEmail = email.trim();
+    if (!trimmedEmail.isValidEmail()) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
     }
-    appRouter.push(SignInPassword(email: email));
+    appRouter.push(SignInPassword(email: trimmedEmail));
   }
 
   Future<void> onOAuthResult(

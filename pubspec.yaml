@@ -124,6 +124,9 @@ dependencies:
   file_selector: ^1.1.0
   desktop_drop: ^0.7.1
   cross_file: ^0.3.5+2
+  image_picker: ^1.2.2
+  http: ^1.2.0
+  pub_semver: ^2.1.4
 
 dev_dependencies:
   flutter_test:

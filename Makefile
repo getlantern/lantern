@@ -107,17 +107,16 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-# Split APK vs AAB ABI targeting (2026-05-15):
+# ABI targeting: arm64-only for both APK and AAB (2026-05-28).
 #
-# The sideload APK (uploaded to the GitHub release / Slack release channel)
-# drops armeabi-v7a so the download is small enough for the Iranian audience
-# on constrained bandwidth. The AAB keeps both ABIs so Play Store users on
-# legacy 32-bit-only Android devices still receive updates — Play delivers
-# per-ABI splits, so this doesn't penalize arm64 Play users.
+# armeabi-v7a (32-bit) was dropped from the AAB too: Go >=1.23.2 trips
+# Android 8-10 seccomp on 32-bit, killing libgojni.so with SIGSYS at startup
+# (golang/go#70495 — ~54% of v9 crashes; those devices were crash-looping
+# anyway). Re-add android-arm here if/when that's fixed upstream.
 ANDROID_APK_TARGET_PLATFORMS := android-arm64
-ANDROID_AAB_TARGET_PLATFORMS := android-arm,android-arm64
-# Back-compat: keep ANDROID_TARGET_PLATFORMS as the fat union for any
-# external caller / debug target that still references it.
+ANDROID_AAB_TARGET_PLATFORMS := android-arm64
+# Back-compat alias for any external caller / debug target that references
+# ANDROID_TARGET_PLATFORMS. Now arm64-only, same as the APK/AAB targets.
 ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
@@ -155,10 +154,9 @@ UNAME_S := $(shell uname -s)
 endif
 GOMOBILECACHE ?= $(HOME)/.cache/gomobile
 # gomobile bind produces the AAR consumed by both the APK and the AAB.
-# Keep both ABIs in the AAR; the APK packaging step strips armeabi-v7a via
-# the lantern.thinAbi Gradle property (see android-release below). The AAB
-# build leaves it in for Play's per-ABI delivery.
-GOMOBILE_ANDROID_TARGET ?= android/arm,android/arm64
+# arm64 only — armeabi-v7a (32-bit) is no longer shipped in any artifact
+# (golang/go#70495 SIGSYS on 32-bit Android 8-10).
+GOMOBILE_ANDROID_TARGET ?= android/arm64
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
@@ -516,20 +514,20 @@ build-android: check-android-sdk check-gomobile
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug -Plantern.sideloadUpdates=true
 
-# --target-platform restricts Flutter's libapp.so / libflutter.so to arm64;
-# -Plantern.thinAbi=true tells android/app/build.gradle to drop armeabi-v7a
-# from abiFilters + add it to packagingOptions.jniLibs.excludes so the
-# arm32 libgojni.so in the AAR doesn't get packed. Sideload-APK target only.
+# --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
+# abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
+# -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
+# direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.thinAbi=true
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.sideloadUpdates=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
-# AAB keeps both ABIs so Play Store delivers per-ABI splits (arm64 users
-# get the small split; legacy arm32-only users still get updates). The
-# Play path doesn't need the size cut — only the sideload APK does.
+# AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on
+# 32-bit). 32-bit-only devices no longer get Play updates; they were
+# crash-looping on Android 8-10 regardless.
 .PHONY: android-aab-release
 android-aab-release:
 	flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
