@@ -8,16 +8,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'available_servers_notifier.g.dart';
 
+const _serverReachabilityRefreshThrottle = Duration(seconds: 30);
+const _urlTestAlreadyRunningRetryDelay = Duration(seconds: 4);
+const _urlTestAlreadyRunningAttempts = 2;
+
 @Riverpod(keepAlive: true)
 class AvailableServersNotifier extends _$AvailableServersNotifier {
+  DateTime? _lastReachabilityRefreshAt;
+
   @override
   Future<AvailableServers> build() async {
     final result = await fetchAvailableServers();
     return result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting available servers: ${failure.error}',
-        );
+        appLogger.error('Error getting available servers: ${failure.error}');
         throw Exception('Failed to load available servers');
       },
       (servers) {
@@ -39,15 +43,49 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final result = await fetchAvailableServers();
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting available servers: ${failure.error}',
-        );
+        appLogger.error('Error getting available servers: ${failure.error}');
       },
       (servers) {
         state = AsyncValue.data(servers);
         _pushFastestToSmartLocation(servers);
       },
     );
+  }
+
+  /// Refreshes Smart Location probe history before reloading the server list.
+  Future<void> refreshServerReachability() async {
+    final now = DateTime.now();
+    final lastRefresh = _lastReachabilityRefreshAt;
+    if (lastRefresh != null &&
+        now.difference(lastRefresh) < _serverReachabilityRefreshThrottle) {
+      await forceFetchAvailableServers();
+      return;
+    }
+    _lastReachabilityRefreshAt = now;
+
+    for (var attempt = 0; attempt < _urlTestAlreadyRunningAttempts; attempt++) {
+      final result = await ref.read(lanternServiceProvider).runURLTests();
+      final shouldRetry = result.fold((failure) {
+        if (_urlTestsAlreadyRunning(failure)) {
+          appLogger.debug(
+            'URL tests already running while opening server selection',
+          );
+          return true;
+        }
+        appLogger.debug(
+          'Unable to refresh server URL tests before opening selection: '
+          '${failure.error}',
+        );
+        return false;
+      }, (_) => false);
+
+      if (!shouldRetry) break;
+      if (attempt == _urlTestAlreadyRunningAttempts - 1) break;
+
+      await Future.delayed(_urlTestAlreadyRunningRetryDelay);
+    }
+
+    await forceFetchAvailableServers();
   }
 
   /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto
@@ -85,4 +123,10 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
           ),
         );
   }
+}
+
+bool _urlTestsAlreadyRunning(Failure failure) {
+  final error = failure.error.toLowerCase();
+  return error.contains('offline tests already running') ||
+      error.contains('url tests already running');
 }

@@ -39,9 +39,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(
-        ref
-            .read(availableServersProvider.notifier)
-            .forceFetchAvailableServers(),
+        ref.read(availableServersProvider.notifier).refreshServerReachability(),
       );
     });
   }
@@ -342,11 +340,11 @@ class _ServerLocationListViewState
           Flexible(
             child: availableServers.when(
               data: (data) {
-                final reachableLocations = data.lanternServers
+                final reachableLocations = data.lanternServerLocations
                     .where((s) => !s.shouldWarnBeforeManualSelection)
                     .toList();
                 final unavailableLocations =
-                    data.lanternServers
+                    data.lanternServerLocations
                         .where((s) => s.shouldWarnBeforeManualSelection)
                         .toList()
                       ..sort(_compareServersByLocation);

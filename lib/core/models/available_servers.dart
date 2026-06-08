@@ -11,6 +11,19 @@ class AvailableServers {
 
   List<Server> get userServers => servers.where((s) => !s.isLantern).toList();
 
+  /// One representative Lantern server per country/city. If any server for the
+  /// location has a successful probe, use the fastest one; otherwise keep a
+  /// deterministic representative so the location can be shown as unavailable.
+  List<Server> get lanternServerLocations {
+    final grouped = <String, List<Server>>{};
+    for (final server in lanternServers) {
+      grouped.putIfAbsent(_locationKey(server), () => <Server>[]).add(server);
+    }
+
+    return grouped.values.map(_bestServerForLocation).toList()
+      ..sort(_compareServersByLocation);
+  }
+
   bool get hasUserServers => servers.any((s) => !s.isLantern);
 
   Server? serverByTag(String tag) {
@@ -31,6 +44,40 @@ class AvailableServers {
       );
     return ranked.isEmpty ? null : ranked.first;
   }
+}
+
+String _locationKey(Server server) {
+  final location = server.location;
+  return [
+    location.countryCode.trim().toUpperCase(),
+    location.country.trim().toLowerCase(),
+    location.city.trim().toLowerCase(),
+  ].join('|');
+}
+
+Server _bestServerForLocation(List<Server> servers) {
+  final successful = servers.where((s) => s.hasSuccessfulProbe).toList();
+  if (successful.isNotEmpty) {
+    successful.sort((a, b) {
+      final delay = a.selectionHistory!.lastSuccessDelayMs.compareTo(
+        b.selectionHistory!.lastSuccessDelayMs,
+      );
+      if (delay != 0) return delay;
+      return a.tag.compareTo(b.tag);
+    });
+    return successful.first;
+  }
+
+  final sorted = [...servers]..sort(_compareServersByLocation);
+  return sorted.first;
+}
+
+int _compareServersByLocation(Server a, Server b) {
+  final country = a.location.country.compareTo(b.location.country);
+  if (country != 0) return country;
+  final city = a.location.city.compareTo(b.location.city);
+  if (city != 0) return city;
+  return a.tag.compareTo(b.tag);
 }
 
 class Server {
@@ -75,7 +122,8 @@ class Server {
   String get serverIP =>
       outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
 
-  bool get hasSuccessfulProbe => (selectionHistory?.lastSuccessDelayMs ?? 0) > 0;
+  bool get hasSuccessfulProbe =>
+      (selectionHistory?.lastSuccessDelayMs ?? 0) > 0;
 
   /// Manual mode pins traffic to exactly this server. If Smart Location has no
   /// successful probe for it, warn before pinning so users can stay on auto.
@@ -173,7 +221,8 @@ class SelectionHistory {
 
   Map<String, dynamic> toJson() => {
     "last_success_delay_ms": lastSuccessDelayMs,
-    if (lastOutcomeAt != null) "last_outcome_at": lastOutcomeAt!.toIso8601String(),
+    if (lastOutcomeAt != null)
+      "last_outcome_at": lastOutcomeAt!.toIso8601String(),
     "consecutive_failures": consecutiveFailures,
     if (userFailures.isNotEmpty)
       "user_failures": userFailures.map((e) => e.toIso8601String()).toList(),
