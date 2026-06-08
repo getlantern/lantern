@@ -1,24 +1,22 @@
 name: Android Compile Check
 
-# Gates PRs that touch Kotlin/Android (or the Go/deps that produce the gomobile
-# AAR the Kotlin compiles against) by building the debug APK — which compiles
-# all app Kotlin. The full signed release build (build-android.yml) is
-# workflow_call-only and never ran on PRs, so a Kotlin compile break (e.g. the
-# bare success() call in #8754) could merge to main undetected. This catches it.
+# Compiles all app Kotlin (by building the debug APK) on PRs that change Kotlin
+# source, to catch Kotlin compile breaks before they reach main. The full signed
+# release build (build-android.yml) is workflow_call-only and never runs on PRs,
+# so without this gate a Kotlin break (e.g. the bare success() call in #8754)
+# could merge undetected.
+#
+# Scope: triggers only on Kotlin (*.kt) changes. It intentionally does NOT run on
+# Go/gomobile-AAR or Flutter/dep changes — a Go change that breaks the
+# AAR<->Kotlin interface would surface in build-android.yml / release, not here.
 #
 # Debug build only: no keystore/APP_ENV secrets, no AAB, no artifact upload.
 
 on:
   pull_request:
     paths:
-      - "android/**"
-      - "lantern-core/**"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - ".github/flutter-version.yaml"
+      - "**/*.kt"
+      # keep the self-trigger so edits to this workflow re-run it
       - ".github/workflows/android-compile-check.yml"
 
 concurrency:
