@@ -1,6 +1,9 @@
 package org.getlantern.lantern.service
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -11,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -52,6 +56,10 @@ class LanternVpnService :
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
         const val ACTION_TILE_START = "org.getlantern.TILE_START"
+
+        private const val UPGRADE_RESET_PREFS = "vpn_upgrade_reset"
+        private const val LAST_RESET_APK_UPDATE_TIME = "last_reset_apk_update_time"
+        private const val UPGRADE_RESET_SETTLE_MS = 250L
 
         // Hard ceiling on how long Mobile.startVPN / connectToServer can block.
         // Radiance + sing-box + TUN establish usually finishes in under 15 s;
@@ -219,6 +227,10 @@ class LanternVpnService :
 
     override fun openTun(tunOptions: TunOptions): Int {
         val vpnBuilder = createVPNBuilder(tunOptions)
+        // Android normally tears the previous TUN down when a new VPN is
+        // established, but explicitly dropping our fd first prevents a stale
+        // descriptor from surviving restarts or app-upgrade recovery.
+        closeTunInterface()
         val pfd =
             vpnBuilder.establish()
                 ?: error("android: the application is not prepared or is revoked")
@@ -345,6 +357,7 @@ class LanternVpnService :
                 Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
+            resetVpnAfterAppUpgradeIfNeeded()
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
             DefaultNetworkMonitor.start()
             // Tell Android which physical network underlies our VPN so that
@@ -414,6 +427,72 @@ class LanternVpnService :
                 error = e,
             )
             if (cleanUpOnFailure) serviceCleanUp()
+        }
+    }
+
+    private suspend fun resetVpnAfterAppUpgradeIfNeeded() {
+        if (!consumeUpgradeResetMarker()) return
+
+        AppLogger.i(TAG, "App APK updated; resetting VPN state before first tunnel start")
+        closeTunInterface()
+        runCatching {
+            if (Mobile.isRadianceConnected()) {
+                Mobile.stopVPN()
+                AppLogger.d(TAG, "stopVPN completed for app-upgrade reset")
+            } else {
+                AppLogger.d(TAG, "Skipping app-upgrade stopVPN - Radiance IPC not running")
+            }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "stopVPN failed during app-upgrade reset", e)
+        }
+
+        runCatching { DefaultNetworkMonitor.stop() }
+            .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during app-upgrade reset", e) }
+
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+        delay(UPGRADE_RESET_SETTLE_MS)
+    }
+
+    private fun consumeUpgradeResetMarker(): Boolean {
+        val packageInfo = currentPackageInfo()
+        val currentApkUpdateTime = packageInfo.lastUpdateTime
+        val prefs = getSharedPreferences(UPGRADE_RESET_PREFS, Context.MODE_PRIVATE)
+        val lastResetApkUpdateTime = prefs.getLong(LAST_RESET_APK_UPDATE_TIME, Long.MIN_VALUE)
+        if (lastResetApkUpdateTime == currentApkUpdateTime) {
+            return false
+        }
+
+        prefs.edit().putLong(LAST_RESET_APK_UPDATE_TIME, currentApkUpdateTime).apply()
+        if (packageInfo.lastUpdateTime <= packageInfo.firstInstallTime) {
+            AppLogger.d(TAG, "Recording initial APK install for VPN upgrade reset")
+            return false
+        }
+
+        AppLogger.i(
+            TAG,
+            "VPN upgrade reset needed: lastResetApkUpdateTime=$lastResetApkUpdateTime currentApkUpdateTime=$currentApkUpdateTime versionCode=${packageVersionCode(packageInfo)}",
+        )
+        return true
+    }
+
+    private fun currentPackageInfo(): PackageInfo {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(0),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, 0)
+        }
+    }
+
+    private fun packageVersionCode(info: PackageInfo): Long {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
         }
     }
 
