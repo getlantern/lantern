@@ -83,19 +83,21 @@ class PacketTunnelProvider: ExtensionProvider {
     // Returns 0 on platforms / processes without a limit (e.g. macOS host app).
     let availableBytes = os_proc_available_memory()
     let availableMB = Double(availableBytes) / mb
-    let message = String(
-      format:
-        "PacketTunnelProvider memory [pressure=%u] — footprint: %.2f MB, available: %.2f MB, resident: %.2f MB, peak: %.2f MB, dirty: %.2f MB, compressed: %.2f MB, virtual: %.2f MB",
-      currentMemoryPressure.rawValue, footprintMB, availableMB, residentMB, peakMB, dirtyMB, compressedMB, virtualMB
-    )
+    let pressureLabel: String
     switch currentMemoryPressure {
     case .critical:
-      appLogger.info("\(message)")
+      pressureLabel = "critical"
     case .warning:
-      appLogger.info("\(message)")
+      pressureLabel = "warning"
     default:
-      appLogger.info("\(message)")
+      pressureLabel = "normal"
     }
+    let message = String(
+      format:
+        "PacketTunnelProvider memory [pressure=%@] — footprint: %.2f MB, available: %.2f MB, resident: %.2f MB, peak: %.2f MB, dirty: %.2f MB, compressed: %.2f MB, virtual: %.2f MB",
+      pressureLabel, footprintMB, availableMB, residentMB, peakMB, dirtyMB, compressedMB, virtualMB
+    )
+    appLogger.info("\(message)")
   }
 
   public override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?)
