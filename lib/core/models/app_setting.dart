@@ -33,7 +33,7 @@ class AppSetting {
     this.successfulConnection = false,
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
-    this.unboundedAutoEnable = true,
+    this.unboundedAutoEnable = false,
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
     this.unboundedTotalHelped = 0,
@@ -102,9 +102,10 @@ class AppSetting {
         successfulConnection: json['successfulConnection'] == true,
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
         onboardingCompleted: json['onboardingCompleted'] == true,
-        // Default to true when missing (first-time post-upgrade users
-        // should get the auto-enable behaviour the spec calls for).
-        unboundedAutoEnable: json['unboundedAutoEnable'] != false,
+        // Opt-in: auto-enable only when the user explicitly turned it on.
+        // Missing/unset means manual — Unbounded does not start on its own
+        // until the user enables it (toggle) or opts into auto-enable.
+        unboundedAutoEnable: json['unboundedAutoEnable'] == true,
         unboundedHidden: json['unboundedHidden'] == true,
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
         unboundedTotalHelped:
