@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -44,12 +46,21 @@ Future<void> injectServices() async {
   );
   sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
 
-  appLogger.debug('Initializing AppPurchase...');
+  appLogger.debug('Registering AppPurchase...');
   final appPurchase = AppPurchase();
   sl.registerSingleton<AppPurchase>(appPurchase);
-  if (!PlatformUtils.isAndroid) {
-    appPurchase.init();
-  }
+  unawaited(
+    appPurchase.resumePendingPurchasesIfNeeded().catchError((
+      Object e,
+      StackTrace st,
+    ) {
+      appLogger.error(
+        '[AppPurchase] Failed to resume pending purchases',
+        e,
+        st,
+      );
+    }),
+  );
   appLogger.debug('AppPurchase registered');
 
   sl.registerSingleton<LanternFFIService>(
