@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -49,18 +47,11 @@ Future<void> injectServices() async {
   appLogger.debug('Registering AppPurchase...');
   final appPurchase = AppPurchase();
   sl.registerSingleton<AppPurchase>(appPurchase);
-  unawaited(
-    appPurchase.resumePendingPurchasesIfNeeded().catchError((
-      Object e,
-      StackTrace st,
-    ) {
-      appLogger.error(
-        '[AppPurchase] Failed to resume pending purchases',
-        e,
-        st,
-      );
-    }),
-  );
+  if (PlatformUtils.isIOS) {
+    // StoreKit can deliver pending transaction updates at launch; init()
+    // only subscribes to the stream and does not fetch product details.
+    appPurchase.init();
+  }
   appLogger.debug('AppPurchase registered');
 
   sl.registerSingleton<LanternFFIService>(

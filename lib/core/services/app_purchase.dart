@@ -73,21 +73,6 @@ class AppPurchase {
     );
   }
 
-  Future<void> resumePendingPurchasesIfNeeded() async {
-    if (!Platform.isIOS) {
-      return;
-    }
-    final pending = await _loadPendingPurchasePlans();
-    if (pending.isEmpty) {
-      appLogger.debug('[AppPurchase] No pending iOS purchases to resume');
-      return;
-    }
-    appLogger.info(
-      '[AppPurchase] Pending iOS purchase metadata found; starting purchase listener',
-    );
-    await _ensurePurchaseStreamReady();
-  }
-
   bool _canInitializeStorePurchases() {
     if (PlatformUtils.isDesktop) {
       appLogger.debug('[AppPurchase] Skipping init: desktop platform');
@@ -202,7 +187,7 @@ class AppPurchase {
     }
 
     final error = StateError(
-      'Unable to load App Store products after $maxAttempts attempts',
+      'Unable to load in-app purchase products after $maxAttempts attempts',
     );
     //  Safely complete the completer with an error, if it is still pending.
     if (_productsLoadedCompleter != null &&
@@ -245,7 +230,7 @@ class AppPurchase {
 
     if (!await _ensurePurchaseStreamReady()) {
       _onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to access in-app purchases. Check your network and try again.",
       );
       return;
     }
@@ -254,7 +239,7 @@ class AppPurchase {
       await _waitForProducts();
     } catch (_) {
       _onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to load in-app purchase products. Check your network and try again.",
       );
       return;
     }
@@ -315,7 +300,7 @@ class AppPurchase {
       final onError = _onError;
       clearCallbacks();
       onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to access in-app purchases. Check your network and try again.",
       );
       return;
     }
