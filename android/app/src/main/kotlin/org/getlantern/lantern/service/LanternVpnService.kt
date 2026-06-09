@@ -433,6 +433,9 @@ class LanternVpnService :
     private suspend fun resetVpnAfterAppUpgradeIfNeeded() {
         if (!consumeUpgradeResetMarker()) return
 
+        // An APK update kills the old process, but the Android VPN profile and
+        // app-private native state persist across the upgrade. Reset once on the
+        // first tunnel start after the new process comes up.
         AppLogger.i(TAG, "App APK updated; resetting VPN state before first tunnel start")
         stopVPNTunnel()
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
