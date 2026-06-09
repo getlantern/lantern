@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
@@ -8,14 +9,15 @@ import 'package:lantern/core/utils/route_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/setting/follow_us.dart' hide FollowUs;
 import 'package:lantern/features/support/app_version.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 @RoutePage(name: 'Support')
-class Support extends StatelessWidget {
+class Support extends ConsumerWidget {
   const Support({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return BaseScreen(
       title: toBeginningOfSentenceCase('support'.i18n),
       body: SafeArea(
@@ -55,7 +57,7 @@ class Support extends StatelessWidget {
                   AppTile(
                     icon: Icons.refresh,
                     label: 'refresh_configuration'.i18n,
-                    onPressed: () => onRefreshConfiguration(context),
+                    onPressed: () => onRefreshConfiguration(context, ref),
                   ),
                 ],
               ),
@@ -157,14 +159,63 @@ class Support extends StatelessWidget {
     );
   }
 
-  Future<void> onRefreshConfiguration(BuildContext context) async {
+  Future<void> onRefreshConfiguration(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final vpnStatus = ref.read(vpnProvider);
+    if (vpnStatus == VPNStatus.connected) {
+      AppDialog.dialog(
+        context: context,
+        title: 'turn_off_vpn'.i18n,
+        content: 'turn_off_vpn_message'.i18n,
+        action: 'got_it'.i18n,
+      );
+      return;
+    }
+
     final result = await sl<LanternService>().clearTunnelCache();
     if (!context.mounted) return;
     result.match(
-      (failure) => context.showSnackBarError(
-        'it_looks_like_something_went_wrong'.i18n,
-      ),
-      (_) => context.showSnackBar('configuration_refreshed'.i18n),
+      (failure) =>
+          context.showSnackBarError('it_looks_like_something_went_wrong'.i18n),
+      (_) {
+        final textTheme = TextTheme.of(context);
+        AppDialog.customDialog(
+          context: context,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(height: defaultSize),
+              AppImage(
+                path: AppImagePaths.greenCheck,
+                width: 48,
+                useThemeColor: false,
+              ),
+              SizedBox(height: defaultSize),
+              Text(
+                'configuration_cleared'.i18n,
+                style: textTheme.headlineMedium,
+              ),
+              SizedBox(height: defaultSize),
+              Text('configuration_message'.i18n, style: textTheme.bodyMedium),
+            ],
+          ),
+          action: [
+            AppTextButton(
+              label: 'close'.i18n,
+              textColor: context.textSecondary,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            AppTextButton(
+              label: 'turn_on_vpn'.i18n,
+              onPressed: () {
+                appRouter.popUntilRoot();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
