@@ -6436,6 +6436,17 @@ class LanternBindings {
       );
   late final _updateConfig = _updateConfigPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> clearTunnelCache() {
+    return _clearTunnelCache();
+  }
+
+  late final _clearTunnelCachePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'clearTunnelCache',
+      );
+  late final _clearTunnelCache = _clearTunnelCachePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
 }
 
 typedef va_list = ffi.Pointer<ffi.Char>;

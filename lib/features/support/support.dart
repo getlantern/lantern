@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/utils/route_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/setting/follow_us.dart' hide FollowUs;
 import 'package:lantern/features/support/app_version.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 
 @RoutePage(name: 'Support')
 class Support extends StatelessWidget {
@@ -40,11 +42,20 @@ class Support extends StatelessWidget {
                     onPressed: () => safePush(context, ReportIssue()),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile(
                     icon: Icons.code_outlined,
                     label: 'diagnostic_logs'.i18n,
                     onPressed: () => safePush(context, Logs()),
+                  ),
+                  const DividerSpace(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  AppTile(
+                    icon: Icons.refresh,
+                    label: 'refresh_configuration'.i18n,
+                    onPressed: () => onRefreshConfiguration(context),
                   ),
                 ],
               ),
@@ -62,7 +73,8 @@ class Support extends StatelessWidget {
                         UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile.link(
                     icon: Icons.info_outlined,
                     label: 'frequently_asked_questions'.i18n,
@@ -71,7 +83,8 @@ class Support extends StatelessWidget {
                         UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile.link(
                     icon: Icons.privacy_tip_outlined,
                     label: 'privacy_policy'.i18n,
@@ -80,7 +93,8 @@ class Support extends StatelessWidget {
                         UrlUtils.tryLaunchExternalUrl(context, Uri.parse(u)),
                   ),
                   const DividerSpace(
-                      padding: EdgeInsets.symmetric(horizontal: 16)),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                   AppTile.link(
                     icon: Icons.description_outlined,
                     label: 'terms_of_service'.i18n,
@@ -132,15 +146,25 @@ class Support extends StatelessWidget {
     showAppBottomSheet(
       context: context,
       title: 'follow_us'.i18n,
-      scrollControlDisabledMaxHeightRatio:
-          context.isSmallDevice ? 0.39.h : 0.3.h,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice
+          ? 0.39.h
+          : 0.3.h,
       builder: (context, scrollController) {
         return Flexible(
-          child: FollowUsListView(
-            scrollController: scrollController,
-          ),
+          child: FollowUsListView(scrollController: scrollController),
         );
       },
+    );
+  }
+
+  Future<void> onRefreshConfiguration(BuildContext context) async {
+    final result = await sl<LanternService>().clearTunnelCache();
+    if (!context.mounted) return;
+    result.match(
+      (failure) => context.showSnackBarError(
+        'it_looks_like_something_went_wrong'.i18n,
+      ),
+      (_) => context.showSnackBar('configuration_refreshed'.i18n),
     );
   }
 }

@@ -1634,3 +1634,10 @@ msgstr "Couldn't check for updates"
 
 msgid "check_connection_and_retry"
 msgstr "Check your connection and try again"
+
+msgid "refresh_configuration"
+msgstr "Refresh Configuration"
+
+msgid "configuration_refreshed"
+msgstr "Configuration refreshed"
+

@@ -73,6 +73,7 @@ type App interface {
 	GetEnvVars() map[string]string
 	RunOfflineURLTests() error
 	UpdateConfig() error
+	ClearTunnelCache() error
 	ReferralAttachment(referralCode string) (bool, error)
 	UpdateLocale(locale string) error
 	UpdateTelemetryConsent(consent bool) error
@@ -575,6 +576,10 @@ func (lc *LanternCore) RunOfflineURLTests() error {
 
 func (lc *LanternCore) UpdateConfig() error {
 	return lc.client.UpdateConfig(lc.ctx)
+}
+
+func (lc *LanternCore) ClearTunnelCache() error {
+	return lc.client.ClearTunnelCache(lc.ctx)
 }
 
 /////////////////

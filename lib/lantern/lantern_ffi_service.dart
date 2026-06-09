@@ -1822,6 +1822,20 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.clearTunnelCache().toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('clearTunnelCache error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 }
 
 void checkAPIError(dynamic result) {
