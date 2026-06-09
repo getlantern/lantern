@@ -163,8 +163,12 @@ class Support extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    // Clearing the tunnel cache requires the tunnel to be fully stopped, so
+    // only proceed when the VPN is disconnected. Any other state (connected,
+    // connecting, disconnecting, missingPermission, error) is treated as an
+    // active/in-transition tunnel and is blocked.
     final vpnStatus = ref.read(vpnProvider);
-    if (vpnStatus == VPNStatus.connected) {
+    if (vpnStatus != VPNStatus.disconnected) {
       AppDialog.dialog(
         context: context,
         title: 'turn_off_vpn'.i18n,
