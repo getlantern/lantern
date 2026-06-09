@@ -39,7 +39,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(
-        ref.read(availableServersProvider.notifier).refreshServerReachability(),
+        ref
+            .read(availableServersProvider.notifier)
+            .refreshAvailableServersAfterProbeSettle(),
       );
     });
   }

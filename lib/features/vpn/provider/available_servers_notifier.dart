@@ -8,12 +8,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'available_servers_notifier.g.dart';
 
-const _serverReachabilityRefreshThrottle = Duration(seconds: 30);
-const _serverReachabilitySettleDelay = Duration(seconds: 4);
+const _availableServersSettleReloadThrottle = Duration(seconds: 30);
+const _availableServersSettleReloadDelay = Duration(seconds: 4);
 
 @Riverpod(keepAlive: true)
 class AvailableServersNotifier extends _$AvailableServersNotifier {
-  DateTime? _lastReachabilityRefreshAt;
+  DateTime? _lastSettleReloadAt;
+  Future<void>? _settleReload;
 
   @override
   Future<AvailableServers> build() async {
@@ -51,20 +52,34 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     );
   }
 
-  /// Reloads the server list after automatic Smart Location probes can settle.
-  Future<void> refreshServerReachability() async {
+  /// Reloads available servers from the latest persisted Smart Location probe data.
+  Future<void> refreshAvailableServersAfterProbeSettle() async {
     final now = DateTime.now();
-    final lastRefresh = _lastReachabilityRefreshAt;
+    final lastReload = _lastSettleReloadAt;
     await forceFetchAvailableServers();
 
-    if (lastRefresh != null &&
-        now.difference(lastRefresh) < _serverReachabilityRefreshThrottle) {
+    if (_settleReload != null) {
+      await _settleReload;
       return;
     }
-    _lastReachabilityRefreshAt = now;
+    if (lastReload != null &&
+        now.difference(lastReload) < _availableServersSettleReloadThrottle) {
+      return;
+    }
+    _lastSettleReloadAt = now;
 
-    await Future.delayed(_serverReachabilitySettleDelay);
-    await forceFetchAvailableServers();
+    final settleReload = Future<void>(() async {
+      await Future.delayed(_availableServersSettleReloadDelay);
+      await forceFetchAvailableServers();
+    });
+    _settleReload = settleReload;
+    try {
+      await settleReload;
+    } finally {
+      if (_settleReload == settleReload) {
+        _settleReload = null;
+      }
+    }
   }
 
   /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto
