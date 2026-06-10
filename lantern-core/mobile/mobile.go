@@ -854,6 +854,7 @@ func SendConfigRequest() error {
 // rule-sets, rdrc). Mirrors the FFI `clearTunnelCache` export.
 func ClearTunnelCache() error {
 	return withCore(func(c lanterncore.Core) error {
+		slog.Info("Clearing tunnel cache")
 		return c.ClearTunnelCache()
 	})
 }

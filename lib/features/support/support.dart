@@ -167,8 +167,12 @@ class Support extends ConsumerWidget {
     // only proceed when the VPN is disconnected. Any other state (connected,
     // connecting, disconnecting, missingPermission, error) is treated as an
     // active/in-transition tunnel and is blocked.
+    appLogger.info('Attempting to refresh configuration');
     final vpnStatus = ref.read(vpnProvider);
     if (vpnStatus != VPNStatus.disconnected) {
+      appLogger.warning(
+        'VPN is not disconnected (current status: $vpnStatus). Aborting configuration refresh.',
+      );
       AppDialog.dialog(
         context: context,
         title: 'turn_off_vpn'.i18n,
@@ -178,13 +182,21 @@ class Support extends ConsumerWidget {
       return;
     }
 
+    appLogger.info(
+      'VPN is disconnected. Proceeding with configuration refresh.',
+    );
     final result = await sl<LanternService>().clearTunnelCache();
     if (!context.mounted) return;
     result.match(
-      (failure) =>
-          context.showSnackBarError('it_looks_like_something_went_wrong'.i18n),
+      (failure) {
+        context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
+        appLogger.error('Failed to refresh configuration: $failure');
+      },
+
       (_) {
+        appLogger.info('Configuration refresh successful. Notifying user.');
         final textTheme = TextTheme.of(context);
+
         AppDialog.customDialog(
           context: context,
           content: Column(
