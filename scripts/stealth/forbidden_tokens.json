@@ -175,7 +175,26 @@
       "categories": [
         "stealth_novpn_surfaces"
       ],
-      "allowlist": []
+      "allowlist": [
+        {
+          "token": "oauth",
+          "category": "oauth_provider_strings",
+          "location": "*libgojni.so",
+          "reason": "ICE credential type constant from pion/webrtc/v4::iceCredentialTypeOauthStr (RFC 7635 OAuth-based STUN/TURN access). Packed with srflx/prflx/relay/code/audio/video/offer/ufrag SDP constants. Dep chain: backend -> radiance/servers -> broflake/clientcore -> pion/webrtc/v4. Verified go mod why."
+        },
+        {
+          "token": "stripe",
+          "category": "billing_entry_points",
+          "location": "*libgojni.so",
+          "reason": "Proto wire-format field name 'stripeCustomerID' in LoginResponse_UserData_SubscriptionData (account/protos/auth.pb.go). Part of auth/login API response schema returned by the Lantern backend; not a payment entry point or SDK reference. No Stripe Go dep in go.mod/go.sum. Payment method symbols (NewStripeSubscription, StripeBillingPortalURL) are source-removed by //go:build !stealth_novpn on subscription.go."
+        },
+        {
+          "token": "/auth",
+          "category": "app_links",
+          "location": "*libgojni.so",
+          "reason": "Proto source file descriptor path 'api/protos/auth.proto' embedded by protoc-gen-go in account/protos/auth.pb.go (standard protobuf reflection metadata). Not the lantern://auth deep-link; that string is in account/oauth.go which is tagged //go:build !stealth_novpn and absent from this binary."
+        }
+      ]
     }
   }
 }
