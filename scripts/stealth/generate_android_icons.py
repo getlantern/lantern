@@ -71,16 +71,16 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     mipmap_dir = output_res_dir / "mipmap-anydpi-v26"
 
     write_text(
-        values_dir / "icon_colors.xml",
+        values_dir / "icon_colors_alt.xml",
         f"""
 <resources>
-    <color name="app_icon_background">{background}</color>
+    <color name="launcher_background_alt">{background}</color>
 </resources>
 """,
     )
 
     write_text(
-        drawable_dir / "app_icon_foreground.xml",
+        drawable_dir / "launcher_foreground_alt.xml",
         f"""
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -93,7 +93,7 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     )
 
     write_text(
-        drawable_dir / "notification_icon.xml",
+        drawable_dir / "ic_notification_alt.xml",
         """
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
@@ -106,7 +106,7 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
     )
 
     write_text(
-        drawable_dir / "app_icon_monochrome.xml",
+        drawable_dir / "launcher_monochrome_alt.xml",
         f"""
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -120,13 +120,13 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
 
     adaptive_icon = """
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/app_icon_background"/>
-    <foreground android:drawable="@drawable/app_icon_foreground"/>
-    <monochrome android:drawable="@drawable/app_icon_monochrome"/>
+    <background android:drawable="@color/launcher_background_alt"/>
+    <foreground android:drawable="@drawable/launcher_foreground_alt"/>
+    <monochrome android:drawable="@drawable/launcher_monochrome_alt"/>
 </adaptive-icon>
 """
-    write_text(mipmap_dir / "app_icon.xml", adaptive_icon)
-    write_text(mipmap_dir / "app_icon_round.xml", adaptive_icon)
+    write_text(mipmap_dir / "ic_launcher_alt.xml", adaptive_icon)
+    write_text(mipmap_dir / "ic_launcher_alt_round.xml", adaptive_icon)
 
     legacy_icon = f"""
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -138,8 +138,8 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
 {shape_paths(data, primary, secondary, accent)}
 </vector>
 """
-    write_text(legacy_mipmap_dir / "app_icon.xml", legacy_icon)
-    write_text(legacy_mipmap_dir / "app_icon_round.xml", legacy_icon)
+    write_text(legacy_mipmap_dir / "ic_launcher_alt.xml", legacy_icon)
+    write_text(legacy_mipmap_dir / "ic_launcher_alt_round.xml", legacy_icon)
 
     metadata = {
         "seedSha256": hashlib.sha256(seed.encode("utf-8")).hexdigest(),
@@ -147,13 +147,13 @@ def generate(seed: str, output_res_dir: Path) -> dict[str, str]:
         "primary": primary,
         "secondary": secondary,
         "accent": accent,
-        "launcherIcon": "@mipmap/app_icon",
-        "roundLauncherIcon": "@mipmap/app_icon_round",
-        "monochromeIcon": "@drawable/app_icon_monochrome",
-        "notificationIcon": "@drawable/notification_icon",
+        "launcherIcon": "@mipmap/ic_launcher_alt",
+        "roundLauncherIcon": "@mipmap/ic_launcher_alt_round",
+        "monochromeIcon": "@drawable/launcher_monochrome_alt",
+        "notificationIcon": "@drawable/ic_notification_alt",
     }
     write_text(
-        output_res_dir.parent / "icon-metadata.json",
+        output_res_dir.parent / "stealth-icon-metadata.json",
         json.dumps(metadata, indent=2, sort_keys=True),
     )
     return metadata
@@ -180,7 +180,7 @@ def main(argv: list[str] | None = None) -> int:
     seed = args.seed or os.environ.get("STEALTH_ICON_SEED", "") or secrets.token_urlsafe(24)
     metadata = generate(seed, args.output_res_dir)
     print(
-        "Generated Android icons:",
+        "Generated stealth Android icons:",
         args.output_res_dir,
         metadata["seedSha256"],
     )

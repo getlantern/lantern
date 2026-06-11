@@ -45,16 +45,13 @@
       ]
     },
     "oauth_provider_strings": {
-      "description": "app OAuth provider UI labels, routes, or method-channel entry points",
+      "description": "OAuth provider UI labels, routes, or method-channel entry points",
       "tokens": [
         "oauth",
         "oauthLoginUrl",
         "oauthLoginCallback",
         "isOAuthLogin",
         "getOAuthProvider",
-        "/account/oauth",
-        "/users/oauth2/",
-        "lantern://auth",
         "continue_with_google",
         "continue_with_apple",
         "Sign in with Google",
@@ -69,12 +66,17 @@
       ]
     },
     "billing_entry_points": {
-      "description": "Play/App Store billing plugins, permissions, subscription URLs, or user-facing purchase entry points",
+      "description": "billing provider, subscription, purchase, or payment entry point",
       "tokens": [
         "billing",
         "BillingClient",
         "com.android.vending.BILLING",
+        "stripe",
         "flutter_stripe",
+        "stripePayment",
+        "stripeSubscription",
+        "stripeBillingPortal",
+        "stripeBillingPortalUrl",
         "in_app_purchase",
         "play.google.com/store/account/subscriptions",
         "apps.apple.com/account/subscriptions",
@@ -96,6 +98,7 @@
         "lantern:",
         "/report-issue",
         "/private-server",
+        "/auth",
         "applinks:lantern.io",
         "webcredentials:lantern.io"
       ]
@@ -165,38 +168,14 @@
         "social_urls",
         "update_urls"
       ],
-      "allowlist": [
-        {
-          "category": "oauth_provider_strings",
-          "token": "oauth",
-          "location": "*!lib/arm64-v8a/libgojni.so",
-          "reason": "transport/WebRTC native strings contain lowercase oauth; explicit app OAuth entry points are still forbidden"
-        },
-        {
-          "category": "billing_entry_points",
-          "token": "billing",
-          "location": "*!lib/arm64-v8a/libgojni.so",
-          "reason": "Stripe billing portal symbols are intentionally retained; Play billing identifiers remain forbidden"
-        }
-      ]
+      "allowlist": []
     },
     "stealth-novpn": {
       "extends": "stealth",
       "categories": [
         "stealth_novpn_surfaces"
       ],
-      "allowlist": [
-        {
-          "token": "TUN",
-          "location": "*!lib/arm64-v8a/libflutter.so",
-          "reason": "ICU timezone data contains the unrelated sequence vi-VN.TUN.SUN inside Flutter's runtime library"
-        },
-        {
-          "token": "TUN",
-          "location": "*!lib/arm64-v8a/libgojni.so",
-          "reason": "Go/native compact data tables contain unrelated uppercase TUN sequences; concrete TUN/VPN API symbols remain forbidden"
-        }
-      ]
+      "allowlist": []
     }
   }
 }

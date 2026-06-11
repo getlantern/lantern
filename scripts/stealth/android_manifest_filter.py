@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Generate minimized Android manifests for stealth build modes."""
+"""Generate minimized Android manifests for stealth build modes.
+
+This filter runs on the AGP-MERGED manifest (post-library-merge,
+post-placeholder-substitution).  At this stage, library-contributed entries
+(Stripe/billing activities, Firebase/MLKit services, GMS metadata, …) are
+already present in the input.
+
+Because the merge step has already completed, ``tools:node`` directives have
+no effect — they are merger instructions, not packager instructions.  aapt2
+would strip the ``tools:`` namespace and keep any stub element as a bare
+entry, re-adding what we just removed.  This filter therefore uses direct
+``parent.remove(child)`` removal exclusively; no ``tools:node`` stubs are
+written.
+"""
 
 from __future__ import annotations
 
@@ -10,14 +23,12 @@ import xml.etree.ElementTree as ET
 
 
 ANDROID_URI = "http://schemas.android.com/apk/res/android"
-TOOLS_URI = "http://schemas.android.com/tools"
 ANDROID_NAME = f"{{{ANDROID_URI}}}name"
 ANDROID_CLEAR_TEXT = f"{{{ANDROID_URI}}}usesCleartextTraffic"
 ANDROID_PERMISSION = f"{{{ANDROID_URI}}}permission"
 ANDROID_EXPORTED = f"{{{ANDROID_URI}}}exported"
 ANDROID_FOREGROUND_SERVICE_TYPE = f"{{{ANDROID_URI}}}foregroundServiceType"
 ANDROID_VALUE = f"{{{ANDROID_URI}}}value"
-TOOLS_NODE = f"{{{TOOLS_URI}}}node"
 
 STEALTH_MODES = {"vpn", "novpn"}
 
@@ -94,6 +105,13 @@ STEALTH_REMOVE_ACTIVITIES = {
     "com.stripe.android.view.PaymentRelayActivity",
 }
 
+# Prefix-based removal catches new SDK versions without requiring a list update.
+# The hardcoded set above remains the primary gate; prefixes are defence-in-depth.
+STEALTH_REMOVE_ACTIVITY_PREFIXES = (
+    "com.stripe.",
+    "com.android.billingclient.",
+)
+
 STEALTH_REMOVE_SERVICES = {
     "androidx.camera.core.impl.MetadataHolderService",
     "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
@@ -106,13 +124,13 @@ STEALTH_REMOVE_PROVIDERS = {
 }
 
 STEALTH_REMOVE_RECEIVERS = {
-    "com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver",
     "com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver",
 }
 
 STEALTH_APPLICATION_NAME = "foundation.bridge.AppHost"
 STEALTH_ACTIVITY_NAME = "foundation.bridge.HomeActivity"
 STEALTH_VPN_SERVICE_NAME = "foundation.bridge.NetworkService"
+STEALTH_TILE_SERVICE_NAME = "foundation.bridge.ControlTile"
 STEALTH_NOVPN_SERVICE_NAME = "foundation.bridge.SyncService"
 NOVPN_SPECIAL_USE_REASON = "User-controlled local proxy connection"
 
@@ -160,25 +178,6 @@ def remove_matching(parent: ET.Element, predicate) -> None:
             parent.remove(child)
 
 
-def ensure_remove_stub(parent: ET.Element, tag: str, attributes: dict[str, str]) -> None:
-    for child in parent.findall(tag):
-        if child.attrib.get(TOOLS_NODE) != "remove":
-            continue
-        if all(child.attrib.get(name) == value for name, value in attributes.items()):
-            return
-
-    element = ET.Element(tag)
-    for name, value in attributes.items():
-        element.set(name, value)
-    element.set(TOOLS_NODE, "remove")
-    parent.append(element)
-
-
-def ensure_remove_stubs(parent: ET.Element, tag: str, names: set[str]) -> None:
-    for name in sorted(names):
-        ensure_remove_stub(parent, tag, {ANDROID_NAME: name})
-
-
 def ensure_permission(root: ET.Element, permission: str) -> None:
     if any(
         el.tag == "uses-permission" and android_attr(el, ANDROID_NAME) == permission
@@ -202,6 +201,8 @@ def rewrite_stealth_components(application: ET.Element) -> None:
         service_name = android_attr(service, ANDROID_NAME)
         if service_name in BASE_VPN_SERVICE_NAMES:
             service.set(ANDROID_NAME, STEALTH_VPN_SERVICE_NAME)
+        elif service_name in BASE_TILE_SERVICE_NAMES:
+            service.set(ANDROID_NAME, STEALTH_TILE_SERVICE_NAME)
 
 
 def ensure_novpn_service(application: ET.Element) -> None:
@@ -227,7 +228,6 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
         raise ValueError(f"unsupported stealth mode {mode!r}")
 
     ET.register_namespace("android", ANDROID_URI)
-    ET.register_namespace("tools", TOOLS_URI)
 
     tree = ET.parse(input_path)
     root = tree.getroot()
@@ -236,6 +236,9 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
     if mode == "novpn":
         remove_permissions = NOVPN_REMOVE_PERMISSIONS
 
+    # Remove forbidden permissions and features.  No tools:node stubs are
+    # written: this filter runs post-merge, so aapt2 would strip the tools:
+    # namespace and re-add the bare element, defeating the removal.
     remove_matching(
         root,
         lambda el: el.tag == "uses-permission"
@@ -246,11 +249,15 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
         lambda el: el.tag == "uses-feature"
         and android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_FEATURES,
     )
-    ensure_remove_stubs(root, "uses-permission", remove_permissions)
-    ensure_remove_stubs(root, "uses-feature", STEALTH_REMOVE_FEATURES)
     if mode == "novpn":
         for permission in sorted(NOVPN_REQUIRED_PERMISSIONS):
             ensure_permission(root, permission)
+
+    # Remove the entire <queries> block — package-visibility declarations are a
+    # deanonymization surface; stealth builds must not enumerate partner packages.
+    queries = root.find("queries")
+    if queries is not None:
+        root.remove(queries)
 
     application = root.find("application")
     if application is not None:
@@ -268,10 +275,18 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
             lambda el: el.tag == "meta-data"
             and android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_META_DATA,
         )
+        # Remove forbidden activities: exact-name set + prefix sweep for
+        # SDK-version resilience (e.g. future com.stripe.* additions).
         remove_matching(
             application,
             lambda el: el.tag == "activity"
-            and android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_ACTIVITIES,
+            and (
+                android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_ACTIVITIES
+                or any(
+                    android_attr(el, ANDROID_NAME).startswith(p)
+                    for p in STEALTH_REMOVE_ACTIVITY_PREFIXES
+                )
+            ),
         )
         remove_matching(
             application,
@@ -288,15 +303,6 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
             lambda el: el.tag == "receiver"
             and android_attr(el, ANDROID_NAME) in STEALTH_REMOVE_RECEIVERS,
         )
-        remove_matching(
-            application,
-            lambda el: el.tag == "service" and is_quick_tile_service(el),
-        )
-        ensure_remove_stubs(application, "meta-data", STEALTH_REMOVE_META_DATA)
-        ensure_remove_stubs(application, "activity", STEALTH_REMOVE_ACTIVITIES)
-        ensure_remove_stubs(application, "service", STEALTH_REMOVE_SERVICES)
-        ensure_remove_stubs(application, "provider", STEALTH_REMOVE_PROVIDERS)
-        ensure_remove_stubs(application, "receiver", STEALTH_REMOVE_RECEIVERS)
 
         if mode == "novpn":
             remove_matching(
@@ -310,11 +316,6 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
                 ),
             )
             ensure_novpn_service(application)
-
-    queries = root.find("queries")
-    if queries is not None:
-        queries.set(TOOLS_NODE, "removeAll")
-        remove_matching(queries, lambda _el: True)
 
     if hasattr(ET, "indent"):
         ET.indent(tree, space="    ")

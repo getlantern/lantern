@@ -163,17 +163,14 @@ def identity_from_profile(
     profile_id = str(profile.get("profileId") or digest[:16])
     metadata = json.dumps(
         {
-            "generator": "android-identity-v1",
             "profileId": profile_id,
-            "seedFingerprint": digest[:16],
-            "source": "profile",
         },
         sort_keys=True,
         separators=(",", ":"),
     )
     app_auth_scheme = _safe_scheme(
         f"{_slug(label)}{digest[:8]}",
-        f"stealth{digest[:8]}",
+        f"id{digest[:8]}",
     )
 
     return AndroidIdentity(
@@ -227,9 +224,7 @@ def generate_identity(
 
     metadata = json.dumps(
         {
-            "generator": "android-identity-v1",
             "profileId": profile_id,
-            "seedFingerprint": digest[:16],
             "randomSeed": random_seed,
         },
         sort_keys=True,

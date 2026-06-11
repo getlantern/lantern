@@ -55,14 +55,18 @@ class SyncService : Service() {
                 throw cancelled
             } catch (exception: Exception) {
                 Log.e(TAG, "Failed service operation", exception)
-                failConnection()
+                failConnection(exception)
             }
         }
     }
 
-    private suspend fun failConnection() = withContext(Dispatchers.IO) {
+    private suspend fun failConnection(cause: Throwable? = null) = withContext(Dispatchers.IO) {
         runCatching { Mobile.stopProxy() }
-        BridgeState.set("disconnected")
+        if (cause != null) {
+            BridgeState.setError(cause.message ?: "Proxy operation failed")
+        } else {
+            BridgeState.set("disconnected")
+        }
         BridgeNotification.clear(this@SyncService)
         stopSelf()
     }

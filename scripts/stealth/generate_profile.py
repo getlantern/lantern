@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and validate stealth build profiles."""
+"""Generate and validate Stealth Lantern build profiles."""
 
 from __future__ import annotations
 
@@ -22,12 +22,14 @@ MODE_ALIASES = {
     "novpn": "stealth-novpn",
 }
 DEFAULTS = {
-    "appName": "Mobile App",
-    "sessionName": "ConnectionSession",
     "denylistVersion": 0,
 }
 DART_DEFINE_KEYS = {
-    "appName": "APP_LABEL",
+    "mode": "STEALTH_MODE",
+    "packageName": "STEALTH_PACKAGE_NAME",
+    "appName": "STEALTH_APP_NAME",
+    "sessionName": "STEALTH_SESSION_NAME",
+    "denylistVersion": "STEALTH_DENYLIST_VERSION",
 }
 ARTIFACT_METADATA_KEYS = (
     "appName",
@@ -76,7 +78,7 @@ def new_profile_id() -> str:
 
 def default_package_name(profile_id: str) -> str:
     suffix = profile_id[4:] if profile_id.startswith("stl_") else profile_id
-    return f"app.mobile.client.s{suffix}"
+    return f"com.s{suffix}.app"
 
 
 def coerce_denylist_version(value: Any) -> int:
@@ -182,18 +184,31 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
         or datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     )
 
+    mode = normalize_mode(args.mode or loaded.get("mode", ""))
+
+    app_name = args.app_name or loaded.get("appName") or ""
+    session_name = args.session_name or loaded.get("sessionName") or ""
+
+    if mode in VALID_MODES:
+        if not app_name:
+            raise ProfileError(
+                "--app-name is required for stealth builds and must not be a Lantern-branded value"
+            )
+        if not session_name:
+            raise ProfileError(
+                "--session-name is required for stealth builds and must not be a Lantern-branded value"
+            )
+
     profile = {
         "schemaVersion": loaded.get("schemaVersion", SCHEMA_VERSION),
         "profileId": profile_id,
         "generatedAt": generated_at,
-        "mode": args.mode or loaded.get("mode"),
+        "mode": mode or None,
         "packageName": args.package_name
         or loaded.get("packageName")
         or default_package_name(profile_id),
-        "appName": args.app_name or loaded.get("appName") or DEFAULTS["appName"],
-        "sessionName": args.session_name
-        or loaded.get("sessionName")
-        or DEFAULTS["sessionName"],
+        "appName": app_name,
+        "sessionName": session_name,
         "goObfuscationSeed": args.go_obfuscation_seed
         or loaded.get("goObfuscationSeed")
         or loaded.get("obfuscationSeed")
@@ -213,9 +228,9 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
 
 def dart_defines(profile: dict[str, Any]) -> dict[str, str]:
     defines = {define: str(profile[key]) for key, define in DART_DEFINE_KEYS.items()}
-    defines["LOCAL_PROXY"] = "true" if profile["mode"] == "stealth-novpn" else "false"
-    defines["LOCAL_PROXY_HOST"] = "127.0.0.1"
-    defines["LOCAL_PROXY_PORT"] = "14986"
+    defines["STEALTH_NO_VPN"] = (
+        "true" if profile["mode"] == "stealth-novpn" else "false"
+    )
     return defines
 
 

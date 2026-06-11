@@ -61,8 +61,10 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
             line for line in content.splitlines() if line.startswith("identityMetadata=")
         )
         metadata = json.loads(metadata_line.split("=", 1)[1])
-        self.assertEqual(metadata["generator"], "android-identity-v1")
-        self.assertNotIn("stealth", metadata["generator"])
+        # generator and seedFingerprint removed (72c39f03c) to avoid leaking
+        # stealth-identifying metadata in the shipped identity bundle.
+        self.assertNotIn("generator", metadata)
+        self.assertNotIn("seedFingerprint", metadata)
         self.assertEqual(metadata["profileId"], identity.identity_profile_id)
         self.assertEqual(metadata["randomSeed"], False)
 
@@ -91,8 +93,6 @@ class AndroidIdentityGeneratorTest(unittest.TestCase):
         self.assertEqual(identity.app_label, "Reader Vault")
         self.assertEqual(identity.vpn_session_name, "ReaderVaultSession")
         self.assertEqual(identity.identity_profile_id, "stl_reader_vault")
-        self.assertNotIn("vpn", identity.identity_metadata.lower())
-        self.assertNotIn("stealth", identity.identity_metadata.lower())
         self.assertNotIn("VPN", identity.notification_connected_text)
 
 

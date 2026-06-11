@@ -36,6 +36,7 @@ abstract class BaseHomeActivity : FlutterActivity() {
                         .onFailure { result.error("disconnect_failed", it.message, null) }
                 }
                 "state" -> result.success(BridgeState.get())
+                "error" -> result.success(BridgeState.getError())
                 else -> result.notImplemented()
             }
         }

@@ -115,15 +115,14 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-# Split APK vs AAB ABI targeting (2026-05-15):
+# ABI targeting: arm64-only for both APK and AAB (2026-05-28).
 #
-# The sideload APK (uploaded to the GitHub release / Slack release channel)
-# drops armeabi-v7a so the download is small enough for the Iranian audience
-# on constrained bandwidth. The AAB keeps both ABIs so Play Store users on
-# legacy 32-bit-only Android devices still receive updates — Play delivers
-# per-ABI splits, so this doesn't penalize arm64 Play users.
+# armeabi-v7a (32-bit) was dropped from the AAB too: Go >=1.23.2 trips
+# Android 8-10 seccomp on 32-bit, killing libgojni.so with SIGSYS at startup
+# (golang/go#70495 — ~54% of v9 crashes; those devices were crash-looping
+# anyway). Re-add android-arm here if/when that's fixed upstream.
 ANDROID_APK_TARGET_PLATFORMS := android-arm64
-ANDROID_AAB_TARGET_PLATFORMS := android-arm,android-arm64
+ANDROID_AAB_TARGET_PLATFORMS := android-arm64
 # Back-compat: keep ANDROID_TARGET_PLATFORMS as the fat union for any
 # external caller / debug target that still references it.
 ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)

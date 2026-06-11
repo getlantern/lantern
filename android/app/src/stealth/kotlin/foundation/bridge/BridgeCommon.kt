@@ -20,11 +20,19 @@ object BridgeContext {
 
 object BridgeState {
     private val current = AtomicReference("disconnected")
+    private val error = AtomicReference<String?>(null)
 
     fun get(): String = current.get()
+    fun getError(): String? = error.get()
 
     fun set(value: String) {
+        if (value != "error") error.set(null)
         current.set(value)
+    }
+
+    fun setError(message: String) {
+        error.set(message)
+        current.set("error")
     }
 }
 
