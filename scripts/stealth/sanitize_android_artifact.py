@@ -53,9 +53,15 @@ ELF_TEXT_SECTION_NAMES = {
     ".data.rel.ro",
     ".debug_line_str",
     ".debug_str",
-    ".go.buildinfo",
     ".gopclntab",
     ".rodata",
+}
+# Sections that must be fully zeroed rather than token-replaced.
+# .go.buildinfo contains structured Go module dependency paths that survive
+# token substitution as recognizable module URLs (e.g. github.com/foundation/…
+# still discloses the build graph).  Zeroing eliminates the section entirely.
+ELF_ZERO_SECTION_NAMES = {
+    ".go.buildinfo",
 }
 ELF_LINKAGE_SECTION_NAMES = {
     ".dynstr",
@@ -135,9 +141,16 @@ def scrub_elf_text_sections(data: bytes) -> tuple[bytes, int]:
     for name, offset, size in sections:
         if name in ELF_LINKAGE_SECTION_NAMES:
             continue
-        if name not in ELF_TEXT_SECTION_NAMES and not name.startswith(".debug"):
-            continue
         if offset < 0 or size < 0 or offset + size > len(output):
+            continue
+        if name in ELF_ZERO_SECTION_NAMES:
+            # Zero the section entirely: structured dependency paths in
+            # .go.buildinfo survive token replacement as recognisable module
+            # URLs, so a blanket wipe is the only safe option.
+            output[offset : offset + size] = b"\x00" * size
+            replacements += size
+            continue
+        if name not in ELF_TEXT_SECTION_NAMES and not name.startswith(".debug"):
             continue
         replacements += scrub_text_range(output, offset, offset + size)
     if replacements == 0:
