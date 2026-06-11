@@ -64,6 +64,28 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Free Linux runner disk
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          df -h
+          sudo rm -rf \
+            "$ANDROID_HOME/build-tools" \
+            "$ANDROID_HOME/cmake" \
+            "$ANDROID_HOME/emulator" \
+            "$ANDROID_HOME/ndk" \
+            "$ANDROID_HOME/platforms" \
+            "$ANDROID_HOME/system-images" \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/julia* \
+            /usr/local/share/boost \
+            /usr/share/dotnet \
+            /usr/share/swift
+          df -h
+
       - name: Install Android SDK components
         shell: bash
         run: |
