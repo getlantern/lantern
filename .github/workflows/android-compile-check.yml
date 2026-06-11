@@ -49,25 +49,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.android/build-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: "gradle"
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -76,18 +66,8 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;27.0.12077973" \
-            "cmake;3.22.1"
-          yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses >/dev/null || true
-
-          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
-          for var in ANDROID_NDK_HOME ANDROID_NDK_ROOT NDK_HOME; do
-            echo "${var}=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
-          done
+          make install-android-sdk
+          make android-env >> "$GITHUB_ENV"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0

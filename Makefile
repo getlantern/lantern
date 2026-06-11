@@ -123,9 +123,9 @@ ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
 ANDROID_NDK_VERSION          ?= 28.2.13676358
-ANDROID_CMAKE_VERSION        ?= 3.22.1
+ANDROID_CMAKE_VERSION        ?= 3.31.5
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
-ANDROID_PLATFORM             ?= android-35
+ANDROID_PLATFORM             ?= android-36
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
 SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
 ANDROID_PAGE_SIZE ?= 16384
@@ -482,6 +482,13 @@ install-android-sdk: check-android-sdk
 		"ndk;$(ANDROID_NDK_VERSION)" \
 		"cmake;$(ANDROID_CMAKE_VERSION)"
 	yes | $(SDKMANAGER) --licenses > /dev/null || true
+
+.PHONY: android-env
+android-env: check-android-sdk
+	@echo "ANDROID_HOME=$(ANDROID_SDK_ROOT)"
+	@echo "ANDROID_NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "ANDROID_NDK_ROOT=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
 
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
