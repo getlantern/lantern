@@ -70,12 +70,10 @@ jobs:
         run: |
           set -euxo pipefail
           df -h
+          # Keep the preinstalled Android platforms/build-tools/CMake/NDK; the
+          # shared Makefile defaults match the versions this job needs.
           sudo rm -rf \
-            "$ANDROID_HOME/build-tools" \
-            "$ANDROID_HOME/cmake" \
             "$ANDROID_HOME/emulator" \
-            "$ANDROID_HOME/ndk" \
-            "$ANDROID_HOME/platforms" \
             "$ANDROID_HOME/system-images" \
             /opt/ghc \
             /opt/hostedtoolcache/CodeQL \
