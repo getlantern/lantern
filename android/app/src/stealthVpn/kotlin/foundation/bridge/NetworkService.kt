@@ -195,16 +195,31 @@ class NetworkService : VpnService(), foundation.engine.utils.PlatformInterface {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
     }
 
+    // Intentionally returns null for DNS-leak prevention. The main app's LocalResolver
+    // uses Android's DnsResolver bound to the *physical* network — returning it here
+    // would bypass the tunnel for DNS, creating a DNS-leak vector. Returning null
+    // forces all DNS through the tunnel / sing-box DNS stack, which is the correct
+    // behaviour for a stealth VPN. Bootstrap is safe: radiance connects via its own
+    // dialing stack before startVPN() is called, so there is no resolve-before-tunnel
+    // deadlock. Do NOT wire in a local resolver here without a full DNS-leak audit.
     override fun localDNSTransport(): LocalDNSTransport? {
         return null
     }
 
+    // No-op by design (v1 limitation). Without a DefaultNetworkMonitor, sing-box does
+    // not receive interface-change callbacks when the physical network switches
+    // (e.g. Wi-Fi → cellular). As a result, existing connections stall after a
+    // network switch and require a manual VPN restart to reconnect. This is a known
+    // UX limitation tracked in the stealth-vpn follow-on issue.
+    //
+    // This is NOT a traffic or DNS leak: the tun is a full default route
+    // (addRoute 0.0.0.0/0 + ::/0, no allowBypass), so stalled traffic cannot
+    // spill onto the new physical interface — it simply stops until the tunnel
+    // is restarted.
     override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        // No-op: stealth-vpn manages connectivity directly via VpnService
     }
 
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        // No-op: stealth-vpn manages connectivity directly via VpnService
     }
 
     override fun readWIFIState(): WIFIState? {
