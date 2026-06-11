@@ -70,11 +70,17 @@ jobs:
         run: |
           set -euxo pipefail
           df -h
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          sdk_root="${sdk_root%/}"
+          if [[ -z "$sdk_root" || "$sdk_root" == "/" || "$sdk_root" != /* ]]; then
+            echo "Android SDK root is not set to a safe absolute path: '${sdk_root}'" >&2
+            exit 1
+          fi
           # Keep the preinstalled Android platforms/build-tools/CMake/NDK; the
           # shared Makefile defaults match the versions this job needs.
           sudo rm -rf \
-            "$ANDROID_HOME/emulator" \
-            "$ANDROID_HOME/system-images" \
+            "$sdk_root/emulator" \
+            "$sdk_root/system-images" \
             /opt/ghc \
             /opt/hostedtoolcache/CodeQL \
             /usr/local/.ghcup \
