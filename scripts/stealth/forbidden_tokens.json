@@ -131,23 +131,6 @@
         "generate_appcast"
       ]
     },
-    "brand_links": {
-      "description": "Lantern brand-specific URLs, deep-link schemes, app-link associations, and update endpoints (subset of app_links/update_urls containing only Lantern brand identifiers; used by stealth-vpn brand-only check)",
-      "tokens": [
-        "lantern.io",
-        "www.lantern.io",
-        "support.lantern.io",
-        "unbounded.lantern.io",
-        "getlantern.org",
-        "admin@getlantern.org",
-        "lantern://",
-        "lantern:",
-        "applinks:lantern.io",
-        "webcredentials:lantern.io",
-        "lantern.io/releases",
-        "s3.amazonaws.com/lantern.io/releases"
-      ]
-    },
     "stealth_novpn_surfaces": {
       "description": "Android VPN/TUN service permissions, classes, methods, and tunnel setup surfaces forbidden in stealth-novpn",
       "tokens": [
@@ -188,11 +171,10 @@
       "allowlist": []
     },
     "stealth-vpn": {
-      "description": "De-branded full-featured VPN policy: forbids Lantern brand identifiers only. Login/payment/OAuth/billing/VPN surfaces are intentionally retained (product decision: stealth-vpn keeps full features, only removes brand). Does NOT extend stealth base mode (which is strict/novpn-level); uses its own brand-only category set.",
+      "description": "De-branded full-featured VPN policy (EXCEPT OAuth2/deep-link which are excluded at source). Forbids Lantern brand identifiers only; 'lantern'/'getlantern' are case-insensitive substrings that catch all brand variants (lantern.io, lantern://, etc.) with zero generic-token false-positives. Login/payment/VPN surfaces intentionally retained. Does NOT extend the strict stealth base mode.",
       "categories": [
         "lantern_identity",
-        "social_urls",
-        "brand_links"
+        "social_urls"
       ],
       "allowlist": []
     },
