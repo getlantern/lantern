@@ -38,21 +38,6 @@ class Setting extends StatefulHookConsumerWidget {
 
 class _SettingState extends ConsumerState<Setting>
     with RestorePurchaseMixin<Setting> {
-  late final Future<bool> _canCheckForUpdates = _canCheckForUpdatesSafely();
-
-  Future<bool> _canCheckForUpdatesSafely() async {
-    if (!sl.isRegistered<Updater>()) {
-      appLogger.warning('Updater not registered, hiding update check setting');
-      return false;
-    }
-    try {
-      return await sl<Updater>().canCheckForUpdates();
-    } catch (e, st) {
-      appLogger.error('Failed to determine update check availability', e, st);
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isExpired = ref.watch(isUserExpiredProvider);
@@ -138,7 +123,11 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
-                  label: 'vpn_settings'.i18n,
+                  label:
+                      (AppBuildInfo.stealthNoVpn
+                              ? 'proxy_setup'
+                              : 'vpn_settings')
+                          .i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
@@ -179,29 +168,15 @@ class _SettingState extends ConsumerState<Setting>
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
-                FutureBuilder<bool>(
-                  future: _canCheckForUpdates,
-                  builder: (context, snapshot) {
-                    final show =
-                        PlatformUtils.isDesktop ||
-                        (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.data == true);
-                    if (!show) return const SizedBox.shrink();
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DividerSpace(),
-                        AppTile(
-                          label: 'check_for_updates'.i18n,
-                          icon: AppImagePaths.update,
-                          onPressed: () async => await settingMenuTap(
-                            _SettingType.checkForUpdates,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                if (PlatformUtils.isDesktop) ...{
+                  DividerSpace(),
+                  AppTile(
+                    label: 'check_for_updates'.i18n,
+                    icon: AppImagePaths.update,
+                    onPressed: () async =>
+                        await settingMenuTap(_SettingType.checkForUpdates),
+                  ),
+                },
                 DividerSpace(),
                 AppTile(
                   label: 'get_30_days_of_pro_free'.i18n,

@@ -63,6 +63,39 @@ msgstr "Help Fight Global Internet Censorship"
 msgid "vpn_settings"
 msgstr "VPN Settings"
 
+msgid "proxy_setup"
+msgstr "Proxy Setup"
+
+msgid "proxy_mode"
+msgstr "Proxy Mode"
+
+msgid "proxy_mode_description"
+msgstr "Lantern is available as a local proxy for apps and browsers that let you set a manual proxy."
+
+msgid "manual_proxy_setup"
+msgstr "Manual Proxy Setup"
+
+msgid "manual_proxy_setup_description"
+msgstr "In a supported app or browser, set the proxy type to SOCKS5 or HTTP CONNECT and use the local address below."
+
+msgid "proxy_host"
+msgstr "Host"
+
+msgid "proxy_port"
+msgstr "Port"
+
+msgid "socks5_proxy"
+msgstr "SOCKS5 Proxy"
+
+msgid "http_connect_proxy"
+msgstr "HTTP CONNECT Proxy"
+
+msgid "start_proxy"
+msgstr "Start Proxy"
+
+msgid "stop_proxy"
+msgstr "Stop Proxy"
+
 msgid "split_tunneling"
 msgstr "Split Tunneling"
 
@@ -164,30 +197,6 @@ msgstr "Sign Out"
 
 msgid "check_for_updates"
 msgstr "Check for Updates"
-
-msgid "update_available"
-msgstr "Update available"
-
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
-
-msgid "download_and_install_update"
-msgstr "Download and install"
-
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
-
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
-
-msgid "error_install_update"
-msgstr "Unable to install update"
-
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
 
 msgid "support"
 msgstr "Support"
@@ -393,11 +402,8 @@ msgstr "Add your email to access your subscription on any device."
 msgid "confirm_email_code"
 msgstr "Confirmation Code"
 
-msgid "confirm_email_code_message_part_one"
-msgstr "We sent a code to "
-
-msgid "confirm_email_code_message_part_two"
-msgstr " Enter it below. If it's not in your inbox, check your spam folder."
+msgid "confirm_email_code_message"
+msgstr "Confirm that this email address belongs to you, enter the code sent to: "
 
 msgid "resend_email"
 msgstr "Resend Email"
@@ -1010,9 +1016,6 @@ msgstr "Change Email"
 msgid "change_email_message"
 msgstr "This will become your new login email. You’ll need to verify it before the change takes effect."
 
-msgid "email_must_be_different"
-msgstr "Please enter a different email address."
-
 msgid "enter_new_email"
 msgstr "Enter your new Email"
 
@@ -1613,24 +1616,3 @@ msgstr "Connection failed. Please try again."
 
 msgid "err_ruleset_failed"
 msgstr "Unable to load routing configuration. Retrying..."
-
-msgid "update_now"
-msgstr "Update now"
-
-msgid "later"
-msgstr "Later"
-
-msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
-
-msgid "up_to_date"
-msgstr "Up to date"
-
-msgid "running_latest_version"
-msgstr "You're running the latest version of Lantern %s"
-
-msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
-
-msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"

@@ -1,6 +1,7 @@
 package org.getlantern.lantern
 
 import android.Manifest
+import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
@@ -10,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import foundation.bridge.SyncService
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +22,7 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.NoVpnLanternService
 import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -51,6 +54,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
+    private val noVpnServiceClass: Class<out Service>
+        get() = if (BuildConfig.STEALTH_NO_VPN) SyncService::class.java else NoVpnLanternService::class.java
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -94,12 +99,19 @@ class MainActivity : FlutterFragmentActivity() {
         if (pendingServiceStart && retryCountResume < maxRetriesResume) {
             retryCountResume++
             AppLogger.d(TAG, "Retrying pending service start")
-            startLanternService()
+            retryServiceStart()
         }
     }
 
     private fun startLanternService() {
         AppLogger.d(TAG, "Starting LanternService")
+        if (BuildConfig.STEALTH_NO_VPN) {
+            AppLogger.d(TAG, "Stealth no-VPN build skips proxy autostart")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume = 0
+            return
+        }
         if (isServiceRunning(this, LanternVpnService::class.java)) {
             AppLogger.d(TAG, "LanternService is already running")
             return
@@ -125,6 +137,27 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private fun startNoVpnProxyService() {
+        if (isServiceRunning(this, noVpnServiceClass)) {
+            AppLogger.d(TAG, "NoVpnLanternService is already running; sending start action")
+        }
+        try {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
+                action = NoVpnLanternService.ACTION_START_PROXY
+            })
+            AppLogger.d(TAG, "NoVpnLanternService started")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume = 0
+        } catch (e: IllegalStateException) {
+            AppLogger.e(TAG, "Cannot start no-VPN proxy service in background: ${e.message}")
+            pendingServiceStart = true
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error starting no-VPN proxy service", e)
+            handleImmediateRetry()
+        }
+    }
+
     private fun handleImmediateRetry() {
         AppLogger.d(TAG, "Handling immediate retry for LanternService start")
         if (retryCount < maxRetries) {
@@ -133,7 +166,7 @@ class MainActivity : FlutterFragmentActivity() {
 
             AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
             serviceStartHandler.postDelayed({
-                startLanternService()
+                retryServiceStart()
             }, delay)
         } else {
             /*
@@ -148,8 +181,20 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private fun retryServiceStart() {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            startNoVpnProxyService()
+        } else {
+            startLanternService()
+        }
+    }
+
 
     fun startVPN() {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            startNoVpnProxyService()
+            return
+        }
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
@@ -180,6 +225,13 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     fun connectToServer(tag: String) {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
+                action = NoVpnLanternService.ACTION_CONNECT_TO_SERVER
+                putExtra("tag", tag)
+            })
+            return
+        }
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
@@ -211,6 +263,19 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     fun stopVPN() {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            if (isServiceRunning(this, noVpnServiceClass)) {
+                startService(Intent(this, noVpnServiceClass).apply {
+                    action = NoVpnLanternService.ACTION_STOP_PROXY
+                })
+            } else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    runCatching { Mobile.stopVPN() }
+                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                }
+            }
+            return
+        }
         if (isServiceRunning(this, LanternVpnService::class.java)) {
             LanternApp.application.sendBroadcast(
                 Intent(LanternVpnService.ACTION_STOP_VPN)

@@ -17,7 +17,10 @@ def sideloadSigningCertificateSha256 =
                 : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
 def sideloadUpdates = project.findProperty("lantern.sideloadUpdates") == "true"
 def sideloadManifestPath = "$buildDir/generated/lantern/sideload/AndroidManifest.xml"
+def stealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
 def generateSideloadManifest = tasks.register("generateSideloadManifest") {
+    // The stealth no-VPN manifest does not include QUERY_ALL_PACKAGES, so
+    // sideload updates are only supported for the normal (VPN) manifest.
     def sourceManifest = file("src/main/AndroidManifest.xml")
     def permissionAnchor = '    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />'
     def sideloadInstallPermission = '    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
@@ -49,10 +52,15 @@ android {
 
     sourceSets {
         main {
-            // Keep one Android release variant. The sideload APK opts into
-            // REQUEST_INSTALL_PACKAGES with -Plantern.sideloadUpdates=true;
-            // the Play AAB uses the normal manifest and omits that permission.
-            if (sideloadUpdates) {
+            // Manifest variant selection:
+            //  - stealthNoVpn=true  → stealth no-VPN manifest (no VPN service, restricted permissions)
+            //  - sideloadUpdates=true → normal manifest with REQUEST_INSTALL_PACKAGES injected
+            //  - neither            → normal manifest (default, implicit)
+            // Note: sideloadUpdates is not supported for stealthNoVpn builds because the
+            // no-VPN manifest omits QUERY_ALL_PACKAGES (the anchor used for sideload injection).
+            if (stealthNoVpn) {
+                manifest.srcFile 'src/main/AndroidManifest.novpn.xml'
+            } else if (sideloadUpdates) {
                 manifest.srcFile sideloadManifestPath
             }
             jniLibs.srcDirs = ['libs']
@@ -115,6 +123,24 @@ android {
         versionCode = code
         versionName = flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
+        buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
+        buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
+        buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
+
+        if (stealthNoVpn) {
+            // Neutral manifest placeholder defaults for stealth no-VPN builds.
+            // These mirror the placeholder names used by the identity randomization
+            // PR (#8781) so the novpn manifest and the main manifest share the same
+            // injection point.  The integrator MUST override these with per-build
+            // values (from the stealth profile) before shipping any artifact;
+            // the defaults below are compile-safe stubs only.
+            manifestPlaceholders = [
+                appLabel      : "App",
+                appIcon       : "@mipmap/ic_launcher",
+                appRoundIcon  : "@mipmap/ic_launcher_round",
+                appAuthScheme : "app",
+            ]
+        }
 
         ndk {
             // arm64 only (APK + AAB) — armeabi-v7a dropped, see the comment
@@ -165,6 +191,9 @@ android {
             }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (stealthNoVpn) {
+                proguardFiles 'proguard-stealth-novpn.pro'
+            }
         }
     }
 
