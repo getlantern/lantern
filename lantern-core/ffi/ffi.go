@@ -1076,6 +1076,20 @@ func updateConfig() *C.char {
 	})
 }
 
+//export clearTunnelCache
+func clearTunnelCache() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.ClearTunnelCache(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 func main() {
 
 }

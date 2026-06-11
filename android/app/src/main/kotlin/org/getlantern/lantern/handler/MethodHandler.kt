@@ -147,6 +147,7 @@ enum class Methods(val method: String) {
     GetEnvVars("getEnvVars"),
     RunURLTests("runURLTests"),
     SendConfigRequest("sendConfigRequest"),
+    ClearTunnelCache("clearTunnelCache"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -1302,6 +1303,12 @@ class MethodHandler : FlutterPlugin,
             Methods.SendConfigRequest.method -> {
                 scope.handleResult(result, "send_config_request") {
                     Mobile.sendConfigRequest()
+                }
+            }
+
+            Methods.ClearTunnelCache.method -> {
+                scope.handleResult(result, "clear_tunnel_cache") {
+                    Mobile.clearTunnelCache()
                 }
             }
 

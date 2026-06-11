@@ -331,4 +331,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> runURLTests();
 
   Future<Either<Failure, Unit>> sendConfigRequest();
+
+  Future<Either<Failure, Unit>> clearTunnelCache();
 }
