@@ -52,8 +52,8 @@ def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""
 def generatedStealthIconResDir = layout.buildDirectory.dir("generated/stealth-icons/res")
 def generatedStealthIconMetadata = layout.buildDirectory.file("generated/stealth-icons/stealth-icon-metadata.json")
 def generatedStealthIconScript = file("${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py")
-def launcherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher" : "@mipmap/ic_launcher"
-def roundLauncherIconResource = stealthIconSeed ? "@mipmap/stealth_ic_launcher_round" : "@mipmap/ic_launcher_round"
+def launcherIconResource = stealthIconSeed ? "@mipmap/ic_launcher_alt" : "@mipmap/ic_launcher"
+def roundLauncherIconResource = stealthIconSeed ? "@mipmap/ic_launcher_alt_round" : "@mipmap/ic_launcher_round"
 
 android {
     namespace = "org.getlantern.lantern"

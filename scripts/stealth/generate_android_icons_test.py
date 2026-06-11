@@ -18,30 +18,33 @@ class GenerateAndroidIconsTest(unittest.TestCase):
 
             metadata = generate_android_icons.generate("variant-a", out)
 
-            self.assertEqual(metadata["launcherIcon"], "@mipmap/stealth_ic_launcher")
-            self.assertTrue((out / "values/stealth_icon_colors.xml").exists())
-            self.assertTrue((out / "drawable/stealth_launcher_foreground.xml").exists())
-            self.assertTrue((out / "drawable/stealth_launcher_monochrome.xml").exists())
-            self.assertTrue((out / "drawable/stealth_notification_icon.xml").exists())
+            self.assertEqual(metadata["launcherIcon"], "@mipmap/ic_launcher_alt")
+            self.assertTrue((out / "values/icon_colors_alt.xml").exists())
+            self.assertTrue((out / "drawable/launcher_foreground_alt.xml").exists())
+            self.assertTrue((out / "drawable/launcher_monochrome_alt.xml").exists())
+            self.assertTrue((out / "drawable/ic_notification_alt.xml").exists())
             self.assertNotIn(
                 "#00000000",
-                self.read(out, "drawable/stealth_launcher_foreground.xml"),
+                self.read(out, "drawable/launcher_foreground_alt.xml"),
             )
             self.assertIn(
-                '@drawable/stealth_launcher_monochrome',
-                self.read(out, "mipmap-anydpi-v26/stealth_ic_launcher.xml"),
+                '@drawable/launcher_monochrome_alt',
+                self.read(out, "mipmap-anydpi-v26/ic_launcher_alt.xml"),
             )
             self.assertNotIn(
                 "#00000000",
-                self.read(out, "drawable/stealth_notification_icon.xml"),
+                self.read(out, "drawable/ic_notification_alt.xml"),
             )
-            self.assertTrue((out / "mipmap-anydpi/stealth_ic_launcher.xml").exists())
+            # No "stealth" token in any generated resource name
+            for f in out.rglob("*"):
+                self.assertNotIn("stealth", f.name.lower())
+            self.assertTrue((out / "mipmap-anydpi/ic_launcher_alt.xml").exists())
             self.assertTrue(
-                (out / "mipmap-anydpi/stealth_ic_launcher_round.xml").exists()
+                (out / "mipmap-anydpi/ic_launcher_alt_round.xml").exists()
             )
-            self.assertTrue((out / "mipmap-anydpi-v26/stealth_ic_launcher.xml").exists())
+            self.assertTrue((out / "mipmap-anydpi-v26/ic_launcher_alt.xml").exists())
             self.assertTrue(
-                (out / "mipmap-anydpi-v26/stealth_ic_launcher_round.xml").exists()
+                (out / "mipmap-anydpi-v26/ic_launcher_alt_round.xml").exists()
             )
             self.assertFalse((out / "stealth-icon-metadata.json").exists())
             self.assertTrue((out.parent / "stealth-icon-metadata.json").exists())
@@ -56,8 +59,8 @@ class GenerateAndroidIconsTest(unittest.TestCase):
 
             self.assertEqual(first_metadata, second_metadata)
             self.assertEqual(
-                (first / "drawable/stealth_launcher_foreground.xml").read_text(),
-                (second / "drawable/stealth_launcher_foreground.xml").read_text(),
+                (first / "drawable/launcher_foreground_alt.xml").read_text(),
+                (second / "drawable/launcher_foreground_alt.xml").read_text(),
             )
 
     def test_generation_changes_by_seed(self):
@@ -73,8 +76,8 @@ class GenerateAndroidIconsTest(unittest.TestCase):
                 second_metadata["seedSha256"],
             )
             self.assertNotEqual(
-                (first / "drawable/stealth_launcher_foreground.xml").read_text(),
-                (second / "drawable/stealth_launcher_foreground.xml").read_text(),
+                (first / "drawable/launcher_foreground_alt.xml").read_text(),
+                (second / "drawable/launcher_foreground_alt.xml").read_text(),
             )
 
     def test_main_reads_seed_from_environment(self):
