@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
@@ -122,18 +121,15 @@ class _HomeState extends ConsumerState<Home> {
               onPressed: () async {
                 final localUser = ref.read(homeProvider).value;
                 final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-                final email = localUser!.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro;
-                if (isPro && !userSignedIn) {
-                  // this means user has pro account but not signed in
-                  await showProAccountFlowDialog(
-                    context: context,
-                    hasEmail: email.isNotEmpty,
-                  );
+                if (localUser == null) {
+                  appRouter.push(const SignInEmail());
                   return;
                 }
-
-                appRouter.push(Account());
+                await openAccountOrProAccountSetup(
+                  context: context,
+                  user: localUser,
+                  userLoggedIn: userSignedIn,
+                );
               },
             )
           else if (!userLoggedIn)
