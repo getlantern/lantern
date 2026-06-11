@@ -124,6 +124,7 @@ ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUI
 ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
 ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
 ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+PYTHON ?= python3
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
@@ -564,6 +565,9 @@ android-stealth-novpn-aab-release:
 .PHONY: android-stealth-novpn-release
 android-stealth-novpn-release: android pubget gen android-stealth-novpn-apk-release android-stealth-novpn-aab-release
 
+.PHONY: stealth-manifest-filter-test
+stealth-manifest-filter-test:
+	$(PYTHON) -m unittest discover -s scripts/stealth -p '*_test.py'
 
 .PHONY: android-release
 android-release: clean android pubget gen android-apk-release

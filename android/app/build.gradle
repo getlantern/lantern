@@ -1,3 +1,48 @@
+import com.android.build.api.artifact.SingleArtifact
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+
+/**
+ * Gradle task that runs the stealth manifest filter on a single input manifest
+ * file and writes the result to an output file.  Participates in AGP's artifact
+ * transform pipeline via SingleArtifact.MERGED_MANIFEST so the filter sees the
+ * fully-merged, placeholder-resolved manifest (library AARs already contributed).
+ */
+abstract class StealthManifestFilterTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInputManifest()
+
+    @OutputFile
+    abstract RegularFileProperty getOutputManifest()
+
+    @Input
+    abstract Property<String> getStealthMode()
+
+    @Input
+    abstract Property<String> getStealthPython()
+
+    @InputFile
+    abstract RegularFileProperty getFilterScript()
+
+    @TaskAction
+    void filter() {
+        project.exec {
+            commandLine(
+                stealthPython.get(),
+                filterScript.asFile.get().absolutePath,
+                "--mode", stealthMode.get(),
+                "--input",  inputManifest.asFile.get().absolutePath,
+                "--output", outputManifest.asFile.get().absolutePath,
+            )
+        }
+    }
+}
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
@@ -17,7 +62,36 @@ def sideloadSigningCertificateSha256 =
                 : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
 def sideloadUpdates = project.findProperty("lantern.sideloadUpdates") == "true"
 def sideloadManifestPath = "$buildDir/generated/lantern/sideload/AndroidManifest.xml"
-def stealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+// ── Stealth manifest mode ────────────────────────────────────────────────────
+// STEALTH_MODE accepts "stealth-vpn" or "stealth-novpn" (the "stealth-" prefix
+// is stripped internally).  The legacy -PstealthNoVpn=true flag is kept for
+// backward compat with older automation; it implies novpn when STEALTH_MODE
+// is not set.
+def rawStealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString()
+rawStealthMode = rawStealthMode.trim().toLowerCase(java.util.Locale.ROOT)
+def stealthModePrefix = "stealth-"
+def stealthMode = rawStealthMode.startsWith(stealthModePrefix)
+        ? rawStealthMode.substring(stealthModePrefix.length())
+        : rawStealthMode
+if (rawStealthMode.startsWith(stealthModePrefix) && !stealthMode) {
+    throw new GradleException("Unsupported STEALTH_MODE '${rawStealthMode}'. Expected stealth-vpn or stealth-novpn")
+}
+def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+if (stealthMode == "vpn" && explicitStealthNoVpn) {
+    throw new GradleException("Conflicting stealth inputs: STEALTH_MODE=stealth-vpn cannot be combined with -PstealthNoVpn=true")
+}
+if (!stealthMode && explicitStealthNoVpn) {
+    stealthMode = "novpn"
+}
+def stealthModes = ["vpn", "novpn"]
+if (stealthMode && !stealthModes.contains(stealthMode)) {
+    throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected stealth-vpn or stealth-novpn")
+}
+def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
+def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
+def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
+// ─────────────────────────────────────────────────────────────────────────────
+
 def generateSideloadManifest = tasks.register("generateSideloadManifest") {
     // The stealth no-VPN manifest does not include QUERY_ALL_PACKAGES, so
     // sideload updates are only supported for the normal (VPN) manifest.
@@ -53,14 +127,14 @@ android {
     sourceSets {
         main {
             // Manifest variant selection:
-            //  - stealthNoVpn=true  → stealth no-VPN manifest (no VPN service, restricted permissions)
-            //  - sideloadUpdates=true → normal manifest with REQUEST_INSTALL_PACKAGES injected
-            //  - neither            → normal manifest (default, implicit)
-            // Note: sideloadUpdates is not supported for stealthNoVpn builds because the
-            // no-VPN manifest omits QUERY_ALL_PACKAGES (the anchor used for sideload injection).
-            if (stealthNoVpn) {
-                manifest.srcFile 'src/main/AndroidManifest.novpn.xml'
-            } else if (sideloadUpdates) {
+            //  - STEALTH_MODE set   → src/main manifest used as-is; the stealth
+            //                         filter runs on the AGP-merged manifest in
+            //                         afterEvaluate (post-library-merge).
+            //  - sideloadUpdates=true (non-stealth only) → source manifest with
+            //                         REQUEST_INSTALL_PACKAGES injected pre-merge.
+            //  - neither            → normal manifest (default, implicit).
+            // Note: sideload updates are not supported for stealth builds.
+            if (sideloadUpdates && !stealthMode) {
                 manifest.srcFile sideloadManifestPath
             }
             jniLibs.srcDirs = ['libs']
@@ -123,6 +197,7 @@ android {
         versionCode = code
         versionName = flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
+        buildConfigField "boolean", "STEALTH_ENABLED", (stealthMode ? "true" : "false")
         buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
         buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
         buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
@@ -199,9 +274,32 @@ android {
 
 }
 
-if (sideloadUpdates) {
+if (sideloadUpdates && !stealthMode) {
     tasks.matching { it.name.startsWith("process") && it.name.endsWith("MainManifest") }
             .configureEach { dependsOn(generateSideloadManifest) }
+}
+
+// Wire the stealth manifest filter into AGP's artifact transform pipeline.
+// SingleArtifact.MERGED_MANIFEST is the post-library-merge, post-placeholder-
+// resolved manifest — the only point where library-injected entries (Stripe,
+// Google Play Billing, Firebase/MLKit) are present for removal.
+if (stealthMode) {
+    androidComponents {
+        onVariants { variant ->
+            def filterTask = tasks.register(
+                    "filter${variant.name.capitalize()}Manifest",
+                    StealthManifestFilterTask
+            ) { task ->
+                task.stealthMode.set(stealthMode)
+                task.stealthPython.set(stealthPython)
+                task.filterScript.set(stealthManifestFilter)
+            }
+            variant.artifacts
+                .use(filterTask)
+                .wiredWithFiles({ it.getInputManifest() }, { it.getOutputManifest() })
+                .toTransform(SingleArtifact.MERGED_MANIFEST)
+        }
+    }
 }
 
 flutter {

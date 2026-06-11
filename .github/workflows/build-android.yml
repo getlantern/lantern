@@ -148,6 +148,9 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Run stealth manifest filter tests
+        run: make stealth-manifest-filter-test
+
       - name: Build Android (APK + AAB)
         run: make android-release-ci
         env:
