@@ -429,9 +429,17 @@ android {
                 signingConfig signingConfigs.debug
             }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (stealthNoVpn) {
-                proguardFiles 'proguard-stealth-novpn.pro'
+            if (stealthMode) {
+                // For stealth builds, replace the default proguard file list so that
+                // proguard-rules.pro's -dontobfuscate does NOT cancel the
+                // -repackageclasses rule in proguard-stealth.pro.
+                // setProguardFiles() REPLACES; proguardFiles() only appends.
+                setProguardFiles([getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-stealth.pro'])
+                if (stealthNoVpn) {
+                    proguardFiles 'proguard-stealth-novpn.pro'
+                }
+            } else {
+                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             }
         }
     }
