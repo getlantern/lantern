@@ -123,17 +123,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <meta-data
-            android:name="app.identity.label"
-            android:value="${identityLabel}" />
-        <meta-data
-            android:name="app.identity.profile_id"
-            android:value="${identityProfileId}" />
-        <meta-data
-            android:name="app.identity.metadata"
-            android:value='${identityMetadata}' />
-
-
         <service
             android:name=".service.LanternVpnService"
             android:exported="false"
