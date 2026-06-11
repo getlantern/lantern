@@ -850,6 +850,15 @@ func SendConfigRequest() error {
 	})
 }
 
+// ClearTunnelCache clears the daemon's persisted tunnel cache (fakeip store,
+// rule-sets, rdrc).
+func ClearTunnelCache() error {
+	return withCore(func(c lanterncore.Core) error {
+		slog.Info("Clearing tunnel cache")
+		return c.ClearTunnelCache()
+	})
+}
+
 // LogSubscription holds the cancellation handle for a TailLogs stream. Call
 // Cancel to stop receiving log entries.
 type LogSubscription struct {
