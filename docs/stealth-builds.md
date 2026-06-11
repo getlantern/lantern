@@ -221,8 +221,8 @@ release, QA, and support leads. The mapping must include:
 
 Support workflow:
 
-1. Ask the user for the visible app label, version name, version code when
-   available, the distribution channel, and an installation date.
+1. Ask the user for the visible app label, version name, and version code
+   (when available), the distribution channel, and an installation date.
 2. If diagnostics are available, collect the build ID and artifact channel but
    do not ask the user to post private profile names publicly.
 3. Resolve the build ID to the private profile in the private support mapping.
