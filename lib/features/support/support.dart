@@ -225,13 +225,42 @@ class Support extends ConsumerWidget {
             ),
             AppTextButton(
               label: 'turn_on_vpn'.i18n,
-              onPressed: () {
-                appRouter.popUntilRoot();
-              },
+              onPressed: () => startVPNAfterRefresh(context, ref),
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> startVPNAfterRefresh(BuildContext context, WidgetRef ref) async {
+    Navigator.of(context).pop();
+    final result = await ref.read(vpnProvider.notifier).startVPN();
+    if (!context.mounted) return;
+    result.fold((failure) {
+      if (failure is VpnConflictFailure) {
+        AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .startVPN(skipConflictCheck: true);
+            if (!context.mounted) return;
+            retryResult.fold((failure) {
+              context.showSnackBar(failure.localizedErrorMessage);
+              appLogger.error(
+                'Error starting VPN after configuration refresh: ${failure.error}',
+              );
+            }, (_) => appRouter.popUntilRoot());
+          },
+        );
+        return;
+      }
+      context.showSnackBar(failure.localizedErrorMessage);
+      appLogger.error(
+        'Error starting VPN after configuration refresh: ${failure.error}',
+      );
+    }, (_) => appRouter.popUntilRoot());
   }
 }
