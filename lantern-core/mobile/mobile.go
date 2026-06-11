@@ -851,7 +851,7 @@ func SendConfigRequest() error {
 }
 
 // ClearTunnelCache clears the daemon's persisted tunnel cache (fakeip store,
-// rule-sets, rdrc). Mirrors the FFI `clearTunnelCache` export.
+// rule-sets, rdrc).
 func ClearTunnelCache() error {
 	return withCore(func(c lanterncore.Core) error {
 		slog.Info("Clearing tunnel cache")
