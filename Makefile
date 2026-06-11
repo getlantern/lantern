@@ -216,6 +216,7 @@ APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
+STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
 STEALTH_ICON_RES_DIR ?= android/app/build/generated/icons/res
 export STEALTH_ICON_SEED
@@ -776,6 +777,39 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
+
+# verify-stealth-jni: hard gate on JNI symbol namespace in the stealth AAR.
+# Extracts arm64-v8a/libgojni.so and asserts:
+#   - Java_lantern_io_* is ABSENT (GOMOBILE_JAVAPKG=foundation.engine applied)
+#   - Java_foundation_engine_* is PRESENT (gomobile binding succeeded)
+# Called automatically by build-android-obfuscated when STEALTH_ENABLED is set.
+# Can also be called standalone: make verify-stealth-jni
+.PHONY: verify-stealth-jni
+verify-stealth-jni:
+	@echo "=== verify-stealth-jni: checking JNI namespace in $(ANDROID_LIBS_DIR)/$(ANDROID_LIB) ==="
+	@tmpdir=$$(mktemp -d); \
+	trap 'rm -rf "$$tmpdir"' EXIT; \
+	aar="$(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"; \
+	if [ ! -f "$$aar" ]; then \
+	  echo "FAIL: AAR not found at $$aar — build stealth AAR first"; \
+	  exit 1; \
+	fi; \
+	unzip -q "$$aar" "jni/arm64-v8a/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
+	  { echo "FAIL: libgojni.so not found in $$aar (expected jni/arm64-v8a/libgojni.so)"; exit 1; }; \
+	so="$$tmpdir/jni/arm64-v8a/libgojni.so"; \
+	bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
+	if [ "$$bad" -gt 0 ]; then \
+	  echo "FAIL: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
+	  nm -D "$$so" | grep "Java_lantern_io"; \
+	  exit 1; \
+	fi; \
+	good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
+	if [ "$$good" -eq 0 ]; then \
+	  echo "FAIL: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
+	  exit 1; \
+	fi; \
+	echo "PASS: JNI namespace gate — Java_lantern_io=0, Java_foundation_engine=$$good"
 
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
@@ -832,6 +866,18 @@ android-stealth-novpn-aab-release:
 .PHONY: android-stealth-novpn-release
 android-stealth-novpn-release:
 	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) android-release-ci
+
+.PHONY: android-stealth-vpn-apk-release
+android-stealth-vpn-apk-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) android pubget gen android-apk-release
+
+.PHONY: android-stealth-vpn-aab-release
+android-stealth-vpn-aab-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) android pubget gen android-aab-release
+
+.PHONY: android-stealth-vpn-release
+android-stealth-vpn-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) android-release-ci
 
 
 .PHONY: android-release

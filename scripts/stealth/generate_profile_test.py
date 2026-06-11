@@ -56,6 +56,8 @@ class GenerateProfileTest(unittest.TestCase):
             self.assertEqual(
                 defines["STEALTH_PACKAGE_NAME"], "org.example.safe.s123"
             )
+            # directConnectionAppsEnabled defaults to True for stealth-vpn
+            self.assertEqual(defines["STEALTH_DIRECT_CONNECTION_APPS"], "true")
             self.assertNotIn("STEALTH_NATIVE_LIBRARY_NAME", defines)
             self.assertNotIn("STEALTH_GO_OBFUSCATION_SEED", defines)
 
@@ -78,15 +80,18 @@ class GenerateProfileTest(unittest.TestCase):
         normalized = generate_profile.validate_profile(profile)
 
         self.assertEqual(normalized["mode"], "stealth-novpn")
-        self.assertEqual(generate_profile.dart_defines(normalized)["STEALTH_NO_VPN"], "true")
+        defines = generate_profile.dart_defines(normalized)
+        self.assertEqual(defines["STEALTH_NO_VPN"], "true")
+        # directConnectionAppsEnabled defaults to True for stealth-novpn
+        self.assertEqual(defines["STEALTH_DIRECT_CONNECTION_APPS"], "true")
         self.assertEqual(
             generate_profile.go_tags_suffix(normalized),
             ",stealth,stealth_novpn",
         )
-        self.assertNotIn(
-            "unexpectedPrivateField",
-            generate_profile.artifact_metadata(normalized),
-        )
+        metadata = generate_profile.artifact_metadata(normalized)
+        self.assertNotIn("unexpectedPrivateField", metadata)
+        self.assertIn("directConnectionAppsEnabled", metadata)
+        self.assertTrue(metadata["directConnectionAppsEnabled"])
 
     def test_accepts_mode_aliases(self):
         profile = {

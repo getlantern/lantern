@@ -23,6 +23,7 @@ MODE_ALIASES = {
 }
 DEFAULTS = {
     "denylistVersion": 0,
+    "directConnectionAppsEnabled": False,
 }
 DART_DEFINE_KEYS = {
     "mode": "STEALTH_MODE",
@@ -30,10 +31,12 @@ DART_DEFINE_KEYS = {
     "appName": "STEALTH_APP_NAME",
     "sessionName": "STEALTH_SESSION_NAME",
     "denylistVersion": "STEALTH_DENYLIST_VERSION",
+    "directConnectionAppsEnabled": "STEALTH_DIRECT_CONNECTION_APPS",
 }
 ARTIFACT_METADATA_KEYS = (
     "appName",
     "denylistVersion",
+    "directConnectionAppsEnabled",
     "generatedAt",
     "mode",
     "packageName",
@@ -156,6 +159,16 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     if not go_obfuscation_seed:
         raise ProfileError("goObfuscationSeed is required")
 
+    # directConnectionAppsEnabled: on by default for all stealth modes (security
+    # gate — the RKS denylist must be active unless explicitly disabled).
+    raw_dca = profile.get("directConnectionAppsEnabled")
+    if raw_dca is None:
+        direct_connection_apps_enabled = mode in VALID_MODES
+    elif isinstance(raw_dca, bool):
+        direct_connection_apps_enabled = raw_dca
+    else:
+        raise ProfileError("directConnectionAppsEnabled must be a boolean")
+
     normalized = dict(profile)
     normalized["mode"] = mode
     normalized["packageName"] = package_name
@@ -167,6 +180,7 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
     normalized["denylistVersion"] = coerce_denylist_version(
         profile.get("denylistVersion", DEFAULTS["denylistVersion"])
     )
+    normalized["directConnectionAppsEnabled"] = direct_connection_apps_enabled
     normalized["schemaVersion"] = schema_version
     return normalized
 
@@ -227,7 +241,11 @@ def build_profile(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def dart_defines(profile: dict[str, Any]) -> dict[str, str]:
-    defines = {define: str(profile[key]) for key, define in DART_DEFINE_KEYS.items()}
+    defines = {}
+    for key, define in DART_DEFINE_KEYS.items():
+        value = profile[key]
+        # Emit booleans as lowercase strings for dart-defines / BuildConfig
+        defines[define] = "true" if value is True else ("false" if value is False else str(value))
     defines["STEALTH_NO_VPN"] = (
         "true" if profile["mode"] == "stealth-novpn" else "false"
     )
