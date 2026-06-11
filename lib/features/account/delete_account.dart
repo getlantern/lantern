@@ -133,9 +133,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   }
 
   void processOAuthResult(Map<String, dynamic> payload) {
-    if (!AppBuildInfo.enableOAuth) {
-      return;
-    }
+    // Only reachable when isSSOUser==true, which short-circuits to false
+    // when AppBuildInfo.enableOAuth==false, so no extra guard needed here.
     final token = payload['token'] as String? ?? '';
 
     if (token.isEmpty) {
