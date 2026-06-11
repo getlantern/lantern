@@ -161,25 +161,6 @@ func IsTelemetryEnabled() bool {
 	return ok
 }
 
-func IsOAuthLogin() bool {
-	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		return c.IsOAuthLogin(), nil
-	})
-	if err != nil {
-		return false
-	}
-	return ok
-}
-
-func GetOAuthProvider() string {
-	provider, err := withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.GetOAuthProvider(), nil
-	})
-	if err != nil {
-		return ""
-	}
-	return provider
-}
 
 func SetBlockAdsEnabled(enabled bool) error {
 	slog.Info("adblock: SetBlockAdsEnabled", "enabled", enabled)
@@ -482,17 +463,6 @@ func FetchUserData() (string, error) {
 	})
 }
 
-// OAuth Methods
-func OAuthLoginUrl(provider string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.OAuthLoginUrl(provider) })
-}
-
-func OAuthLoginCallback(oAuthToken string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) {
-		b, err := c.OAuthLoginCallback(oAuthToken)
-		return string(b), err
-	})
-}
 
 func StripeSubscription(email, planID string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
