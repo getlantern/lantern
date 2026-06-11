@@ -58,6 +58,83 @@ Every stealth release candidate must publish the normal Android artifact plus
 the two stealth Android artifacts from the same source revision. CI should fail
 the release candidate when any of these checks fail.
 
+### Garble string-literal obfuscation blind spot
+
+The leakage scanner (`check_leakage.py`) and raw `strings | grep` scans operate
+on the post-garble binary. When a Go package is in `GARBLE_GOGARBLE` scope,
+garble `-literals` encrypts string literals at compile time and reconstructs
+them at runtime from an embedded decryption table. A brand string encoded this
+way is absent from the binary as readable bytes — both `check_leakage` and
+`strings | grep` return 0 — yet the string exists at runtime and is used (for
+example, as an OAuth redirect URI or a deep-link scheme). This means:
+
+> **`check_leakage` pass + raw-grep-0 is NECESSARY but NOT SUFFICIENT for
+> garbled Go packages.**
+
+Brand removal in garbled Go packages must be verified by:
+
+1. **Source-level build-tag exclusion.** The file or function that produces the
+   brand string must carry a `//go:build !stealth` (or narrower) constraint so
+   it is not compiled into the stealth variant at all. Garble-hiding a string
+   that is still compiled in does not satisfy the brand-removal requirement.
+2. **`nm -D` symbol-absence check.** After rebuild, confirm that the exported
+   cgo/gomobile JNI symbols for the excluded feature are gone from
+   `libgojni.so`, not just string-hidden. See "Standing nm -D gate" below.
+
+When investigating a suspected garble false-pass, compare `strings
+libgojni.so | grep <token>` (should be 0) against the Go source build tags for
+the file that contains the literal. If the file is still compiled in, the 0 is
+garble-obfuscated, not a genuine exclusion. The correct fix is always to
+broaden the build tag, never to rely on garble encryption alone.
+
+### Standing nm -D brand-symbol gate
+
+In addition to `check_leakage`, run the following `nm -D` checks on
+`lib/arm64-v8a/libgojni.so` extracted from each stealth artifact. All commands
+must produce **empty output** (exit 0 with no matches). These gates are hard
+failures.
+
+**OAuth2 / deep-link symbols** (brand-bearing Lantern OAuth flow; excluded via
+`//go:build !stealth` on `account/oauth.go`, `backend/oauth.go`,
+`mobile_oauth.go`):
+
+```sh
+nm -D libgojni.so | grep -iE 'GetOAuthProvider|OAuthLogin(Url|Callback)|IsOAuthLogin'
+# must be empty
+```
+
+> **Important:** the bare string `oauth` legitimately remains in `libgojni.so`
+> as the RFC 7635 ICE credential-type constant from `pion/webrtc/v4`
+> (`iceCredentialTypeOauthStr`). Do NOT add `oauth` to the nm -D gate; the gate
+> targets only the Lantern OAuth flow symbols listed above.
+
+When adding new stealth-excluded features, audit the gomobile-exported symbol
+names in the excluded file and add a corresponding `nm -D | grep` line to this
+gate before shipping.
+
+### Signing certificate policy
+
+A stealth release APK signed with a Lantern-identifying certificate leaks
+identity through the APK signature, certificate pinning checks, and
+`PackageManager.getPackageInfo` certificate inspection.
+
+**Release signing requirement:** stealth release builds must use a **neutral
+release signing key** — a key whose certificate subject/issuer DN contains
+no Lantern, getlantern, Brave New Software, or other brand-identifying strings.
+
+After signing, verify with:
+
+```sh
+apksigner verify --print-certs path/to/stealth-release.apk \
+  | grep -iE 'lantern|getlantern|bns|brave.new'
+# must be empty
+```
+
+The debug certificate (`CN=Android Debug, O=Android, C=US`) is neutral and
+acceptable for local verification builds only. It must not be used for
+distributed stealth releases. When rotating the package name or distribution
+channel, verify the new signing key independently before distributing.
+
 | Check | Normal | Stealth VPN | Stealth No-VPN |
 | --- | --- | --- | --- |
 | Build mode | normal Makefile release path | Makefile release path with `STEALTH_MODE=vpn` | Makefile release path with `STEALTH_MODE=novpn` |
