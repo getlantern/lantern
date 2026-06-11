@@ -48,25 +48,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.android/build-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-    
-
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: "gradle"
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
