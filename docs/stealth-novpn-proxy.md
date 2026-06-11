@@ -54,3 +54,23 @@ Apps and browsers must be configured manually when they support per-app proxy
 settings. This build does not route full-device traffic, request Android VPN
 permission, expose split tunneling controls, or register Lantern as Android's
 active VPN.
+
+## Known Limitations
+
+### Loopback proxy access control (experimental)
+
+The local proxy listener on `127.0.0.1:14986` has **no authentication** in
+this release. Any local process or application on the device can use it as a
+SOCKS5/HTTP CONNECT proxy without credentials.
+
+**Threat model:** a hostile application co-installed on the device could
+route its traffic through the Lantern proxy without user consent, potentially
+leveraging Lantern's circumvention capability or incurring data costs for the
+user. This relates to the threat model documented in issue #3573.
+
+**Status:** experimental until radiance-side SOCKS authentication lands.
+Do not ship this build in a production context where hostile local apps are
+a realistic threat before the access control gap is closed.
+
+**Mitigation roadmap:** SOCKS5 username/password auth or a Unix socket
+with filesystem permissions is planned for a future radiance release.
