@@ -35,7 +35,7 @@ type EventType = string
 const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
-	EventTypeCountryCode EventType = "country-code"
+	EventTypeCountryCode    EventType = "country-code"
 )
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.

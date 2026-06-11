@@ -86,22 +86,21 @@ func TestEffectiveTelemetryConsent(t *testing.T) {
 		StealthBuild = origStealthBuild
 	})
 
+	// Non-stealth: caller value passes through unchanged.
 	StealthBuild = "false"
 	if got := EffectiveTelemetryConsent(false); got {
 		t.Fatal("non-stealth false consent should remain false")
 	}
 	if got := EffectiveTelemetryConsent(true); !got {
-		t.Fatal("explicit true consent should remain true")
+		t.Fatal("non-stealth true consent should remain true")
 	}
 
+	// Stealth: telemetry hard-disabled regardless of caller value.
 	StealthBuild = "true"
 	if got := EffectiveTelemetryConsent(false); got {
-		t.Fatal("stealth false consent should preserve explicit opt-out")
+		t.Fatal("stealth false consent should remain false")
 	}
-
-	t.Setenv("LANTERN_STEALTH_TELEMETRY_DEFAULT_ENABLED", "true")
-	t.Setenv("STEALTH_TELEMETRY_DEFAULT_ENABLED", "true")
-	if got := EffectiveTelemetryConsent(false); got {
-		t.Fatal("stealth telemetry env defaults must not override explicit opt-out")
+	if got := EffectiveTelemetryConsent(true); got {
+		t.Fatal("stealth prior opt-in must be overridden to false (telemetry is a deanonymization surface)")
 	}
 }

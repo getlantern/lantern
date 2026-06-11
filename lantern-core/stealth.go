@@ -52,10 +52,17 @@ func EffectiveLogLevel(configured string) string {
 	return configured
 }
 
+// EffectiveTelemetryConsent returns the telemetry consent that should be used
+// after applying stealth-build policy.
+//
+// For stealth builds telemetry is unconditionally disabled regardless of any
+// prior user opt-in: telemetry is a deanonymization surface and must not be
+// emitted from a stealth artifact.  For normal builds the caller-supplied
+// consent value is returned unchanged.
 func EffectiveTelemetryConsent(configured bool) bool {
-	// The current platform callers pass a stored consent bool, not a tri-state
-	// value. Preserve explicit user opt-out until callers can distinguish
-	// "unset" from "disabled" before applying any build default.
+	if IsStealthBuild() {
+		return false
+	}
 	return configured
 }
 
