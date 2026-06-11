@@ -1688,4 +1688,15 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() async {
+    try {
+      await _methodChannel.invokeMethod('clearTunnelCache');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('clearTunnelCache error', e, st);
+      return Left(e.toFailure());
+    }
+  }
 }

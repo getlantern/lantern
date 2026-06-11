@@ -928,4 +928,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.sendConfigRequest();
   }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.clearTunnelCache();
+    }
+    return _platformService.clearTunnelCache();
+  }
 }
