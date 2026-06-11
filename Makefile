@@ -125,9 +125,10 @@ ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-deb
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.22.1
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
-ANDROID_PLATFORM             ?= android-35
+ANDROID_PLATFORM             ?= android-36
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
 SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
+ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
@@ -483,6 +484,13 @@ install-android-sdk: check-android-sdk
 		"cmake;$(ANDROID_CMAKE_VERSION)"
 	yes | $(SDKMANAGER) --licenses > /dev/null || true
 
+.PHONY: android-env
+android-env: check-android-sdk
+	@echo "ANDROID_HOME=$(ANDROID_SDK_ROOT)"
+	@echo "ANDROID_NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "ANDROID_NDK_ROOT=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+
 .PHONY: install-android-deps
 install-android-deps: install-gomobile
 
@@ -510,11 +518,14 @@ build-android: check-android-sdk check-gomobile
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
-.PHONY: android-debug
+.PHONY: android-debug android-debug-ci
 android-debug: $(ANDROID_DEBUG_BUILD)
 
+android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
+android-debug-ci: $(ANDROID_DEBUG_BUILD)
+
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --debug -Plantern.sideloadUpdates=true
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --debug -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
