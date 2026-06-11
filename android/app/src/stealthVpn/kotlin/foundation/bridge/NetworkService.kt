@@ -1,12 +1,25 @@
 package foundation.bridge
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.VpnService
+import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.Process
+import android.system.OsConstants
 import android.util.Log
+import foundation.engine.libbox.InterfaceUpdateListener
+import foundation.engine.libbox.Libbox
+import foundation.engine.libbox.LocalDNSTransport
+import foundation.engine.libbox.NetworkInterfaceIterator
 import foundation.engine.libbox.Notification
 import foundation.engine.libbox.StringIterator
 import foundation.engine.libbox.TunOptions
+import foundation.engine.libbox.WIFIState
 import foundation.engine.mobile.Mobile
 import foundation.engine.utils.FlutterEvent
 import foundation.engine.utils.FlutterEventEmitter
@@ -19,6 +32,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.net.Inet6Address
+import java.net.InetSocketAddress
+import java.net.InterfaceAddress
+import java.net.NetworkInterface
 
 class NetworkService : VpnService(), foundation.engine.utils.PlatformInterface {
     companion object {
@@ -157,6 +174,160 @@ class NetworkService : VpnService(), foundation.engine.utils.PlatformInterface {
     }
 
     override fun writeLog(message: String?) {
+    }
+
+    override fun clearDNSCache() {
+    }
+
+    override fun underNetworkExtension(): Boolean {
+        return false
+    }
+
+    override fun includeAllNetworks(): Boolean {
+        return false
+    }
+
+    override fun usePlatformAutoDetectInterfaceControl(): Boolean {
+        return true
+    }
+
+    override fun useProcFS(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+    }
+
+    override fun localDNSTransport(): LocalDNSTransport? {
+        return null
+    }
+
+    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
+        // No-op: stealth-vpn manages connectivity directly via VpnService
+    }
+
+    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
+        // No-op: stealth-vpn manages connectivity directly via VpnService
+    }
+
+    override fun readWIFIState(): WIFIState? {
+        @Suppress("DEPRECATION")
+        val wifiInfo = (getSystemService(Context.WIFI_SERVICE) as? WifiManager)
+            ?.connectionInfo ?: return null
+        var ssid = wifiInfo.ssid ?: return WIFIState("", "")
+        if (ssid == "<unknown ssid>") return WIFIState("", "")
+        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+            ssid = ssid.substring(1, ssid.length - 1)
+        }
+        return WIFIState(ssid, wifiInfo.bssid ?: "")
+    }
+
+    override fun packageNameByUid(uid: Int): String {
+        val packages = packageManager.getPackagesForUid(uid)
+        if (packages.isNullOrEmpty()) error("android: package not found")
+        return packages[0]
+    }
+
+    @Suppress("DEPRECATION")
+    override fun uidByPackageName(packageName: String): Int {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageUid(packageName, PackageManager.PackageInfoFlags.of(0))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                packageManager.getPackageUid(packageName, 0)
+            } else {
+                packageManager.getApplicationInfo(packageName, 0).uid
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            error("android: package not found")
+        }
+    }
+
+    override fun findConnectionOwner(
+        ipProtocol: Int,
+        sourceAddress: String,
+        sourcePort: Int,
+        destinationAddress: String,
+        destinationPort: Int
+    ): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) error("android: requires API 29")
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val uid = cm.getConnectionOwnerUid(
+            ipProtocol,
+            InetSocketAddress(sourceAddress, sourcePort),
+            InetSocketAddress(destinationAddress, destinationPort)
+        )
+        if (uid == Process.INVALID_UID) error("android: connection owner not found")
+        return uid
+    }
+
+    override fun getInterfaces(): NetworkInterfaceIterator {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networks = cm.allNetworks
+        val networkInterfaces = NetworkInterface.getNetworkInterfaces()?.toList() ?: emptyList()
+        val interfaces = mutableListOf<foundation.engine.libbox.NetworkInterface>()
+        for (network in networks) {
+            val linkProperties = cm.getLinkProperties(network) ?: continue
+            val networkCapabilities = cm.getNetworkCapabilities(network) ?: continue
+            val interfaceName = linkProperties.interfaceName ?: continue
+            val networkInterface = networkInterfaces.find { it.name == interfaceName } ?: continue
+            try {
+                val boxInterface = foundation.engine.libbox.NetworkInterface()
+                boxInterface.name = interfaceName
+                boxInterface.dnsServer = StringArray(
+                    linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator()
+                )
+                boxInterface.type = when {
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ->
+                        Libbox.InterfaceTypeWIFI
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->
+                        Libbox.InterfaceTypeCellular
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ->
+                        Libbox.InterfaceTypeEthernet
+                    else -> Libbox.InterfaceTypeOther
+                }
+                boxInterface.index = networkInterface.index
+                boxInterface.mtu = networkInterface.mtu
+                boxInterface.addresses = StringArray(
+                    networkInterface.interfaceAddresses
+                        .mapTo(mutableListOf()) { it.toPrefix() }
+                        .iterator()
+                )
+                var dumpFlags = 0
+                if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                    dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
+                }
+                if (networkInterface.isLoopback) dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
+                if (networkInterface.isPointToPoint) dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
+                if (networkInterface.supportsMulticast()) dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
+                boxInterface.flags = dumpFlags
+                boxInterface.metered = !networkCapabilities.hasCapability(
+                    NetworkCapabilities.NET_CAPABILITY_NOT_METERED
+                )
+                interfaces.add(boxInterface)
+            } catch (e: Exception) {
+                Log.w(TAG, "Skipping interface $interfaceName: ${e.message}")
+            }
+        }
+        return InterfaceArray(interfaces.iterator())
+    }
+
+    private class InterfaceArray(
+        private val iterator: Iterator<foundation.engine.libbox.NetworkInterface>
+    ) : NetworkInterfaceIterator {
+        override fun hasNext(): Boolean = iterator.hasNext()
+        override fun next(): foundation.engine.libbox.NetworkInterface = iterator.next()
+    }
+
+    private class StringArray(private val iterator: Iterator<String>) : StringIterator {
+        override fun len(): Int = 0
+        override fun hasNext(): Boolean = iterator.hasNext()
+        override fun next(): String = iterator.next()
+    }
+
+    private fun InterfaceAddress.toPrefix(): String {
+        return if (address is Inet6Address) {
+            "${Inet6Address.getByAddress(address.address).hostAddress}/$networkPrefixLength"
+        } else {
+            "${address.hostAddress}/$networkPrefixLength"
+        }
     }
 
     private fun opts(): Opts {
