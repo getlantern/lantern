@@ -42,6 +42,121 @@ def start = new Date(2015, 1, 1).getTime()
 def now = System.currentTimeMillis()
 def code = (int)((now - start) / 1000)
 
+def defaultStealthProfile = [
+        mode             : "normal",
+        packageName      : "org.getlantern.lantern",
+        appName          : "Lantern",
+        sessionName      : "LanternVpn",
+        denylistVersion  : 0,
+]
+
+def stealthModeAliases = [
+        vpn  : "stealth-vpn",
+        novpn: "stealth-novpn",
+]
+
+def normalizeStealthMode = { value ->
+    def mode = value.toString().trim()
+    return stealthModeAliases.get(mode, mode)
+}
+
+def buildConfigString = { value ->
+    def escaped = value.toString()
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replace("\b", "\\b")
+            .replace("\f", "\\f")
+            .replace("\"", "\\\"")
+    return "\"${escaped}\""
+}
+
+def manifestPlaceholderString = { fieldName, value ->
+    def text = value.toString()
+    if (!text.trim()) {
+        throw new GradleException("Stealth profile ${fieldName} must not be empty")
+    }
+    for (int i = 0; i < text.length(); i++) {
+        def ch = text.charAt(i)
+        if (Character.isISOControl(ch) || ['"', "'", '&', '<', '>'].contains(String.valueOf(ch))) {
+            throw new GradleException(
+                    "Stealth profile ${fieldName} contains XML-reserved or control characters"
+            )
+        }
+    }
+    return text
+}
+
+def nonNegativeInteger = { fieldName, value ->
+    try {
+        def parsed = Integer.parseInt(value.toString())
+        if (parsed < 0) {
+            throw new NumberFormatException("negative")
+        }
+        return parsed
+    } catch (NumberFormatException ignored) {
+        throw new GradleException("Stealth profile ${fieldName} must be a non-negative integer")
+    }
+}
+
+def androidApplicationId = { fieldName, value ->
+    if (!(value instanceof CharSequence)) {
+        throw new GradleException("Stealth profile ${fieldName} must be a string")
+    }
+    def text = value.toString().trim()
+    if (!(text ==~ /[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+/)) {
+        throw new GradleException(
+                "Stealth profile ${fieldName} must be a valid Android applicationId"
+        )
+    }
+    return text
+}
+
+def resolveRepoRelativeFile = { path ->
+    def candidate = new File(path.toString())
+    if (candidate.isAbsolute()) {
+        return candidate
+    }
+    def fromRepoRoot = new File(rootProject.projectDir.parentFile, path.toString())
+    if (fromRepoRoot.exists()) {
+        return fromRepoRoot
+    }
+    return file(path.toString())
+}
+
+def loadStealthProfile = {
+    def profilePath = (findProperty("stealthProfile") ?: System.getenv("STEALTH_PROFILE"))?.toString()?.trim()
+    if (!profilePath) {
+        return defaultStealthProfile
+    }
+
+    def profileFile = resolveRepoRelativeFile(profilePath)
+    if (!profileFile.exists()) {
+        throw new GradleException("Stealth profile not found: ${profilePath}")
+    }
+
+    def parsed = new groovy.json.JsonSlurper().parse(profileFile)
+    if (!(parsed instanceof Map)) {
+        throw new GradleException("Stealth profile must be a JSON object: ${profileFile}")
+    }
+
+    def profile = defaultStealthProfile + parsed.findAll { it.value != null }
+    profile.mode = normalizeStealthMode(profile.mode)
+    if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode)) {
+        throw new GradleException(
+                "Unsupported Stealth mode '${profile.mode}' in ${profileFile}; expected stealth-vpn, stealth-novpn, vpn, or novpn"
+        )
+    }
+    profile.appName = manifestPlaceholderString("appName", profile.appName)
+    profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
+    profile.denylistVersion = nonNegativeInteger("denylistVersion", profile.denylistVersion)
+    profile.packageName = androidApplicationId("packageName", profile.packageName)
+    return profile
+}
+
+def stealthProfile = loadStealthProfile()
+
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = 36
@@ -74,6 +189,10 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     // arm64-only for every artifact (APK + AAB). armeabi-v7a (32-bit) was
@@ -109,11 +228,18 @@ android {
     }
 
     defaultConfig {
-        applicationId = "org.getlantern.lantern"
+        applicationId = stealthProfile.packageName.toString()
         minSdkVersion = 24
         targetSdk = 36
         versionCode = code
         versionName = flutter.versionName
+        manifestPlaceholders = [appName: stealthProfile.appName.toString()]
+        buildConfigField "boolean", "STEALTH_ENABLED", (stealthProfile.mode.toString() != "normal").toString()
+        buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
+        buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
+        buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
+        buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
+        buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
 
         ndk {
@@ -128,9 +254,6 @@ android {
                 cppFlags "-std=c++14 -fexceptions -frtti"
                 arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
-        }
-        buildFeatures {
-            buildConfig true
         }
     }
 
