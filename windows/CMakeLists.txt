@@ -56,6 +56,20 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# VS 18 rejects C++/WinRT's C++17 coroutine fallback in these plugins. The
+# released plugin sources are not C++20-clean, so scope the compatibility define
+# to the affected targets instead of changing their language mode.
+foreach(TARGET
+  flutter_inappwebview_windows_plugin
+  flutter_local_notifications_windows
+)
+  if(TARGET ${TARGET})
+    target_compile_definitions(${TARGET} PRIVATE
+      _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS
+    )
+  endif()
+endforeach()
+
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
