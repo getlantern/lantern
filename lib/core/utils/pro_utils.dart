@@ -18,9 +18,17 @@ bool shouldShowProAccountSetupDialog({
 
 Future<void> openAccountOrProAccountSetup({
   required BuildContext context,
-  required UserResponseModel user,
+  required UserResponseModel? user,
   required bool userLoggedIn,
 }) async {
+  if (user == null) {
+    appLogger.warning(
+      'Unable to open account because user data is unavailable',
+    );
+    context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
+    return;
+  }
+
   final userData = user.legacyUserData;
   if (shouldShowProAccountSetupDialog(user: user, userLoggedIn: userLoggedIn)) {
     await showProAccountFlowDialog(

@@ -33,7 +33,7 @@ void main() {
       expect(hasRegisteredProAccount(null), isFalse);
     });
 
-    test('does not show setup dialog for registered Pro accounts', () {
+    test('shows setup only for unregistered signed-out Pro accounts', () {
       expect(
         shouldShowProAccountSetupDialog(user: user(), userLoggedIn: false),
         isTrue,

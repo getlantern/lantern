@@ -293,11 +293,6 @@ class _SettingState extends ConsumerState<Setting>
 
       case _SettingType.account:
         final user = ref.read(homeProvider).value;
-        if (user == null) {
-          appRouter.push(const SignInEmail());
-          return;
-        }
-
         final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
         await openAccountOrProAccountSetup(
           context: context,

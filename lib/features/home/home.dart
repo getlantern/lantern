@@ -121,10 +121,6 @@ class _HomeState extends ConsumerState<Home> {
               onPressed: () async {
                 final localUser = ref.read(homeProvider).value;
                 final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-                if (localUser == null) {
-                  appRouter.push(const SignInEmail());
-                  return;
-                }
                 await openAccountOrProAccountSetup(
                   context: context,
                   user: localUser,
