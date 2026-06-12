@@ -11,8 +11,6 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import foundation.bridge.NetworkService
-import foundation.bridge.SyncService
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CoroutineScope
@@ -55,11 +53,15 @@ open class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
+    // NOTE: the stealth app uses its own MainActivity under the foundation.bridge
+    // source set; this main-source-set activity only ever runs in the regular
+    // (non-stealth) build where STEALTH_ENABLED is always false, so it references
+    // the regular Lantern service classes directly.
     private val vpnServiceClass: Class<out Service>
-        get() = if (BuildConfig.STEALTH_ENABLED) NetworkService::class.java else LanternVpnService::class.java
+        get() = LanternVpnService::class.java
 
     private val noVpnServiceClass: Class<out Service>
-        get() = if (BuildConfig.STEALTH_NO_VPN) SyncService::class.java else NoVpnLanternService::class.java
+        get() = NoVpnLanternService::class.java
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

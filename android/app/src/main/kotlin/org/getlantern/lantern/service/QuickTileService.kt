@@ -10,7 +10,6 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import foundation.bridge.NetworkService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,8 +40,10 @@ open class QuickTileService : TileService() {
 
     private val tileScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    // Regular-build-only source set (the stealth app has its own quick-tile under
+    // foundation.bridge); STEALTH_ENABLED is always false here.
     private val vpnServiceClass: Class<out LanternVpnService>
-        get() = if (BuildConfig.STEALTH_ENABLED) NetworkService::class.java else LanternVpnService::class.java
+        get() = LanternVpnService::class.java
 
     /*
     * We need receiver to only when user interacts with the tile
