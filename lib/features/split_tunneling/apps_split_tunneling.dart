@@ -22,6 +22,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 /// Extra width taken from the cards, on the right, for the index bar.
 const _indexBarGutter = 12.0;
@@ -46,6 +47,20 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
+    final title = directConnectionApps
+        ? 'direct_connection_apps'.i18n
+        : 'apps_split_tunneling'.i18n;
+    void showReconnectNoticeIfNeeded(bool changed) {
+      if (!changed ||
+          !directConnectionApps ||
+          ref.read(vpnProvider) != VPNStatus.connected ||
+          !context.mounted) {
+        return;
+      }
+      context.showSnackBar('changes_applied_after_restart'.i18n);
+    }
 
     final allApps = dedupeAndSortApps(
       (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
@@ -102,10 +117,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
     }
 
     return BaseScreen(
-      title: 'apps_split_tunneling'.i18n,
+      title: title,
       appBar: AppSearchBar(
         ref: ref,
-        title: 'apps_split_tunneling'.i18n,
+        title: title,
         hintText: 'search_apps'.i18n,
       ),
       // The screen pads itself so the index bar can live in the right-hand
@@ -131,7 +146,13 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     child: Row(
                       children: [
                         SectionLabel(
-                          'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                          directConnectionApps
+                              ? 'apps_using_direct_connection'.i18n.fill([
+                                  enabledApps.length,
+                                ])
+                              : 'apps_bypassing_vpn'.i18n.fill([
+                                  enabledApps.length,
+                                ]),
                         ),
                         const Spacer(),
                       ],
@@ -164,9 +185,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
                                   label: 'deselect_all'.i18n,
                                   fontSize: 14,
                                   onPressed: () async {
-                                    await notifier.deselectApps(
+                                    final changed = await notifier.deselectApps(
                                       filteredEnabled,
                                     );
+                                    showReconnectNoticeIfNeeded(changed);
                                   },
                                 ),
                               );
@@ -175,7 +197,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             return AppRow(
                               app: app,
                               enabled: true,
-                              onToggle: () => notifier.toggleApp(app),
+                              onToggle: () async {
+                                final changed = await notifier.toggleApp(app);
+                                showReconnectNoticeIfNeeded(changed);
+                              },
                             );
                           },
                         ),
@@ -196,6 +221,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                               context,
                               notifier,
                               filteredDisabled,
+                              showReconnectNoticeIfNeeded,
                             ),
                           ),
                       ],
@@ -242,7 +268,12 @@ class AppsSplitTunneling extends HookConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () => onTapAddApp(ctx, notifier, app),
+                                onToggle: () => onTapAddApp(
+                                  ctx,
+                                  notifier,
+                                  app,
+                                  showReconnectNoticeIfNeeded,
+                                ),
                               );
                             },
                           ),
@@ -295,12 +326,14 @@ class AppsSplitTunneling extends HookConsumerWidget {
     BuildContext context,
     SplitTunnelingApps notifier,
     AppData app,
+    void Function(bool changed) onChanged,
   ) async {
+    Future<void> toggle() async => onChanged(await notifier.toggleApp(app));
     if (app.isBrowser) {
       await AppDialog.browserBypassWarningDialog(
         context: context,
         browserName: app.name,
-        onAddAnyway: () => notifier.toggleApp(app),
+        onAddAnyway: toggle,
       );
       return;
     }
@@ -317,13 +350,13 @@ class AppsSplitTunneling extends HookConsumerWidget {
           // Mark seen only on confirm; cancelling should show the
           // explainer again next time.
           unawaited(storage.markBypassAppDialogSeen());
-          notifier.toggleApp(app);
+          unawaited(toggle());
         },
         secondaryLabel: 'cancel'.i18n,
       );
       return;
     }
-    notifier.toggleApp(app);
+    await toggle();
   }
 
   /// Warn when Select All would put browsers on the bypass list
@@ -331,18 +364,20 @@ class AppsSplitTunneling extends HookConsumerWidget {
     BuildContext context,
     SplitTunnelingApps notifier,
     List<AppData> apps,
+    void Function(bool changed) onChanged,
   ) async {
+    Future<void> select(Iterable<AppData> toSelect) async =>
+        onChanged(await notifier.selectApps(toSelect));
     final browsers = apps.where((a) => a.isBrowser).toList();
     if (browsers.isEmpty) {
-      await notifier.selectApps(apps);
+      await select(apps);
       return;
     }
     await _showSelectAllBypassWarning(
       context: context,
       browserName: browsers.first.name,
-      onAddAllExceptBrowsers: () =>
-          notifier.selectApps(apps.where((a) => !a.isBrowser).toList()),
-      onAddAllAnyway: () => notifier.selectApps(apps),
+      onAddAllExceptBrowsers: () => select(apps.where((a) => !a.isBrowser)),
+      onAddAllAnyway: () => select(apps),
     );
   }
 }

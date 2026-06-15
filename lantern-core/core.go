@@ -64,7 +64,6 @@ const (
 	// message from Radiance, which keeps copy out of event logs and makes a
 	// missed event harmless.
 	EventTypeUserMessageAvailable EventType = "user-message-available"
-	DefaultLogLevel                         = "trace"
 )
 
 // Backoff between startup user-data fetch retries; the first attempt is
@@ -262,9 +261,8 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 	}
 
 	core.initOnce.Do(func() {
-		if opts.LogLevel == "" {
-			opts.LogLevel = DefaultLogLevel
-		}
+		opts.LogLevel = EffectiveLogLevel(opts.LogLevel)
+		opts.TelemetryConsent = EffectiveTelemetryConsent(opts.TelemetryConsent)
 		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
 		if err := core.initialize(opts, eventEmitter); err != nil {
 			initError.Store(&err)
@@ -340,10 +338,7 @@ func (lc *LanternCore) Client() *ipc.Client {
 // notifyFlutter sends an event to the Flutter frontend via the event emitter.
 func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	slog.Debug("Notifying Flutter")
-	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
-		Type:    string(event),
-		Message: message,
-	})
+	lc.eventEmitter.SendEvent(string(event), message)
 }
 
 // fetchUserDataIfNeeded pulls fresh user data from the server at startup,

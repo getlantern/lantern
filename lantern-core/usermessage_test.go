@@ -53,8 +53,8 @@ type recordingFlutterEmitter struct {
 	events []*utils.FlutterEvent
 }
 
-func (r *recordingFlutterEmitter) SendEvent(event *utils.FlutterEvent) {
-	r.events = append(r.events, event)
+func (r *recordingFlutterEmitter) SendEvent(eventType string, message string) {
+	r.events = append(r.events, &utils.FlutterEvent{Type: eventType, Message: message})
 }
 
 func TestUserMessageBridge(t *testing.T) {

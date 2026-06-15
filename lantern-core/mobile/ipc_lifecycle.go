@@ -13,6 +13,7 @@ import (
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/ipc"
 
+	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
@@ -126,6 +127,8 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		env.SetStagingEnv()
 	}
 
+	pinForeignRefs(platform, nil)
+
 	startupCtx, cancelStartup := context.WithTimeout(context.Background(), ipcStartTimeout)
 	defer cancelStartup()
 
@@ -134,9 +137,9 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		LogDir:                  opts.LogDir,
 		Locale:                  opts.Locale,
 		TimeZone:                opts.TimeZone,
-		LogLevel:                opts.LogLevel,
+		LogLevel:                lanterncore.EffectiveLogLevel(opts.LogLevel),
 		DeviceID:                opts.Deviceid,
-		TelemetryConsent:        opts.TelemetryConsent,
+		TelemetryConsent:        lanterncore.EffectiveTelemetryConsent(opts.TelemetryConsent),
 		PlatformInterface:       platform,
 		EnvOverrides:            opts.RadianceEnvOverrides(),
 		UserMessageCapabilities: utils.UserMessageCapabilities(),

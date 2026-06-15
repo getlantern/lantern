@@ -19,20 +19,23 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     "data-cap-event",
   ]
 
-  func send(_ event: UtilsFlutterEvent?) {
-    guard let event = event else { return }
+  // Go passes the event fields by value; a *FlutterEvent proxy could be
+  // collected mid-call and abort the process with "Unknown reference".
+  func sendEvent(_ eventType: String?, message: String?) {
+    guard let eventType = eventType else { return }
+    let message = message ?? ""
 
-    func logEvent(_ message: @autoclosure () -> String) {
-      if Self.highVolumeEvents.contains(event.type) {
-        appLogger.trace(message())
+    func logEvent(_ text: @autoclosure () -> String) {
+      if Self.highVolumeEvents.contains(eventType) {
+        appLogger.trace(text())
       } else {
-        appLogger.log(message())
+        appLogger.log(text())
       }
     }
-    logEvent("FlutterEventListener sending event: \(event.type) - \(event.message)")
+    logEvent("FlutterEventListener sending event: \(eventType) - \(message)")
     let map: [String: Any] = [
-      "type": event.type,
-      "message": event.message,
+      "type": eventType,
+      "message": message,
     ]
 
     lock.lock()
@@ -43,7 +46,7 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
         sink(map)
       }
     } else {
-      logEvent("FlutterEventListener buffering event: \(event.type)")
+      logEvent("FlutterEventListener buffering event: \(eventType)")
       pendingEvents.append(map)
       lock.unlock()
     }

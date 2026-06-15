@@ -89,9 +89,10 @@ class _SettingCard extends ConsumerWidget {
         !PlatformUtils.isIOS;
     final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling =
-        PlatformUtils.isAndroid ||
-        PlatformUtils.isMacOS ||
-        PlatformUtils.isWindows;
+        !AppBuildInfo.stealthNoVpn &&
+        (PlatformUtils.isAndroid ||
+            PlatformUtils.isMacOS ||
+            PlatformUtils.isWindows);
 
     // Small screens drop the > chevrons; rows stay tappable via onTap.
     final chevronActions = smallScreen
