@@ -35,6 +35,11 @@ FFI_DIR := $(LANTERN_CORE)/ffi
 ifeq ($(OS),Windows_NT)
 APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
 else
+## Only derive when the caller hasn't already supplied APP_VERSION (env or
+## command line). This honors the documented precedence (environment > pubspec)
+## and avoids both the cost of running version.sh and a misleading fallback
+## warning when the value is overridden.
+ifndef APP_VERSION
 ifndef GITHUB_ACTIONS
 ## Capture into a temp so we only set APP_VERSION when version.sh actually
 ## produced output. A bare `APP_VERSION ?= $(shell …)` would *define*
@@ -43,9 +48,10 @@ ifndef GITHUB_ACTIONS
 ## the "is empty" $(error). On empty: warn and fall through to pubspec.
 LANTERN_DERIVED_VERSION := $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
 ifneq ($(strip $(LANTERN_DERIVED_VERSION)),)
-APP_VERSION ?= $(LANTERN_DERIVED_VERSION)
+APP_VERSION := $(LANTERN_DERIVED_VERSION)
 else
 $(warning could not derive version from scripts/ci/version.sh; falling back to pubspec.yaml — the build version may be stale)
+endif
 endif
 endif
 APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
