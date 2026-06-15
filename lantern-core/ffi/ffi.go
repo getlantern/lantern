@@ -341,7 +341,7 @@ func reportIssue(
 			logPath,
 			attachmentsJSON,
 		); err != nil {
-			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
+			return SendError(fmt.Errorf("error reporting issue: %w", err))
 		}
 		return C.CString("ok")
 	})
@@ -1070,6 +1070,20 @@ func updateConfig() *C.char {
 			return errStr
 		}
 		if err := c.UpdateConfig(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export clearTunnelCache
+func clearTunnelCache() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.ClearTunnelCache(); err != nil {
 			return SendError(err)
 		}
 		return C.CString("ok")

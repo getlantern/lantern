@@ -54,6 +54,9 @@ class AppPurchase {
   // emit an empty stream event the way Play Billing does).
   bool _restoreReceivedAny = false;
 
+  /// Starts listening for store purchase updates without fetching product
+  /// details. Product lookup stays user-initiated to keep StoreKit out of the
+  /// normal app launch path on iOS.
   void init() {
     if (!_canInitializeStorePurchases()) {
       return;
@@ -67,11 +70,6 @@ class AppPurchase {
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
-    );
-    unawaited(
-      fetchSubscriptions().catchError((Object e, StackTrace st) {
-        appLogger.error('[AppPurchase] init: fetchSubscriptions failed', e, st);
-      }),
     );
   }
 
@@ -100,31 +98,31 @@ class AppPurchase {
     return allowed;
   }
 
-  Future<bool> _initPlayBillingIfAllowed() async {
+  Future<bool> _ensurePurchaseStreamReady() async {
     appLogger.info(
-      '[AppPurchase] _initPlayBillingIfAllowed: '
+      '[AppPurchase] _ensurePurchaseStreamReady: '
       'country=${CountryCode.current}, isKnown=${CountryCode.isKnown}, '
       'subscribed=${_subscription != null}',
     );
     init();
     if (_subscription != null) {
-      appLogger.info('[AppPurchase] _initPlayBillingIfAllowed: ready');
+      appLogger.info('[AppPurchase] _ensurePurchaseStreamReady: ready');
       return true;
     }
     if (Platform.isAndroid && !CountryCode.isKnown) {
       appLogger.info(
-        '[AppPurchase] _initPlayBillingIfAllowed: country unknown, '
+        '[AppPurchase] _ensurePurchaseStreamReady: country unknown, '
         'waiting for country-code event…',
       );
       final known = await CountryCode.waitUntilKnown();
       appLogger.info(
-        '[AppPurchase] _initPlayBillingIfAllowed: waitUntilKnown returned '
+        '[AppPurchase] _ensurePurchaseStreamReady: waitUntilKnown returned '
         '$known (country=${CountryCode.current}); retrying init',
       );
       init();
     }
     final ready = _subscription != null;
-    appLogger.info('[AppPurchase] _initPlayBillingIfAllowed: ready=$ready');
+    appLogger.info('[AppPurchase] _ensurePurchaseStreamReady: ready=$ready');
     return ready;
   }
 
@@ -189,7 +187,7 @@ class AppPurchase {
     }
 
     final error = StateError(
-      'Unable to load App Store products after $maxAttempts attempts',
+      'Unable to load in-app purchase products after $maxAttempts attempts',
     );
     //  Safely complete the completer with an error, if it is still pending.
     if (_productsLoadedCompleter != null &&
@@ -230,9 +228,9 @@ class AppPurchase {
     // Store the exact plan id user chose (ex: "1y-usd-10")
     _pendingPlanId = plan;
 
-    if (!await _initPlayBillingIfAllowed()) {
+    if (!await _ensurePurchaseStreamReady()) {
       _onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to access in-app purchases. Check your network and try again.",
       );
       return;
     }
@@ -241,7 +239,7 @@ class AppPurchase {
       await _waitForProducts();
     } catch (_) {
       _onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to load in-app purchase products. Check your network and try again.",
       );
       return;
     }
@@ -297,12 +295,12 @@ class AppPurchase {
     _restoreReceivedAny = false;
     _pendingPlanId = null;
 
-    if (!await _initPlayBillingIfAllowed()) {
+    if (!await _ensurePurchaseStreamReady()) {
       _isRestoreFlow = false;
       final onError = _onError;
       clearCallbacks();
       onError?.call(
-        "Unable to load App Store products. Check your network and try again.",
+        "Unable to access in-app purchases. Check your network and try again.",
       );
       return;
     }
