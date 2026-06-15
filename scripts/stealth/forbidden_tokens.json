@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "categories": {
+    "lantern_identity": {
+      "description": "normal Lantern package, brand, library, service, or organization identifier",
+      "tokens": [
+        "Lantern",
+        "LanternApp",
+        "LanternVPN",
+        "LanternVpn",
+        "LanternVpnService",
+        "liblantern",
+        "lanternd",
+        "lantern-installer",
+        "org.getlantern",
+        "org.getlantern.lantern",
+        "org/getlantern",
+        "org/getlantern/lantern",
+        "group.getlantern.lantern",
+        "com.getlantern",
+        "getlantern"
+      ]
+    },
+    "vpn_user_strings": {
+      "description": "user-facing VPN labels, message identifiers, and visible VPN state strings",
+      "tokens": [
+        {
+          "token": "VPN",
+          "case_sensitive": true,
+          "description": "uppercase VPN user-facing acronym"
+        },
+        "LanternVPN",
+        "LanternVpn",
+        "vpn_may_be_needed",
+        "google_and_apple_sign_in_blocked",
+        "continue_without_vpn",
+        "turn_on_vpn",
+        "vpn_connected",
+        "vpn_connecting",
+        "vpn_disconnected",
+        "watchVPNStatus",
+        "start_vpn",
+        "stop_vpn",
+        "split_tunneling"
+      ]
+    },
+    "oauth_provider_strings": {
+      "description": "OAuth provider UI labels, routes, or method-channel entry points",
+      "tokens": [
+        "oauth",
+        "oauthLoginUrl",
+        "oauthLoginCallback",
+        "isOAuthLogin",
+        "getOAuthProvider",
+        "continue_with_google",
+        "continue_with_apple",
+        "Sign in with Google",
+        "Continue with Google",
+        "Continue with Apple",
+        "google_sign_in",
+        "GoogleSignIn",
+        "google_and_apple_sign_in_blocked",
+        "com.google.android.gms.auth",
+        "accounts.google.com",
+        "appleid.apple.com"
+      ]
+    },
+    "billing_entry_points": {
+      "description": "billing provider, subscription, purchase, or payment entry point",
+      "tokens": [
+        "billing",
+        "BillingClient",
+        "com.android.vending.BILLING",
+        "stripe",
+        "flutter_stripe",
+        "stripePayment",
+        "stripeSubscription",
+        "stripeBillingPortal",
+        "stripeBillingPortalUrl",
+        "in_app_purchase",
+        "play.google.com/store/account/subscriptions",
+        "apps.apple.com/account/subscriptions",
+        "add_billing_details",
+        "billing_account",
+        "next_billing_date"
+      ]
+    },
+    "app_links": {
+      "description": "normal Lantern app-link hosts, custom schemes, and deep-link paths",
+      "tokens": [
+        "lantern.io",
+        "www.lantern.io",
+        "support.lantern.io",
+        "unbounded.lantern.io",
+        "getlantern.org",
+        "admin@getlantern.org",
+        "lantern://",
+        "lantern:",
+        "/report-issue",
+        "/private-server",
+        "/auth",
+        "applinks:lantern.io",
+        "webcredentials:lantern.io"
+      ]
+    },
+    "social_urls": {
+      "description": "normal Lantern social/support profile URLs and handles",
+      "tokens": [
+        "twitter.com/getlantern",
+        "twitter.com/Lantern_Russia",
+        "twitter.com/getlantern_fa",
+        "twitter.com/getlantern_CN",
+        "instagram.com/getlantern",
+        "instagram.com/lantern.io_ru",
+        "instagram.com/getlantern_fa",
+        "t.me/lantern",
+        "t.me/LanternFarsi",
+        "t.me/lantern_china",
+        "lantern_official_bot",
+        "LanternFarsi",
+        "lantern_china"
+      ]
+    },
+    "update_urls": {
+      "description": "normal Lantern update feeds and release URLs",
+      "tokens": [
+        "s3.amazonaws.com/lantern.io/releases",
+        "lantern.io/releases",
+        "appcast.xml",
+        "latest/appcast",
+        "generate_appcast"
+      ]
+    },
+    "stealth_novpn_surfaces": {
+      "description": "Android VPN/TUN service permissions, classes, methods, and tunnel setup surfaces forbidden in stealth-novpn",
+      "tokens": [
+        "android.net.VpnService",
+        "android.permission.BIND_VPN_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
+        "VpnService",
+        "VpnService.Builder",
+        "LanternVpnService",
+        "TunOptions",
+        {
+          "token": "TUN",
+          "case_sensitive": true,
+          "description": "uppercase TUN tunnel acronym"
+        },
+        "tun2socks",
+        "addDisallowedApplication",
+        "setUnderlyingNetworks",
+        "ACTION_START_VPN",
+        "ACTION_STOP_VPN",
+        "ACTION_TILE_START",
+        "android.service.quicksettings.action.QS_TILE",
+        "android.permission.BIND_QUICK_SETTINGS_TILE"
+      ]
+    }
+  },
+  "modes": {
+    "stealth": {
+      "categories": [
+        "lantern_identity",
+        "vpn_user_strings",
+        "oauth_provider_strings",
+        "billing_entry_points",
+        "app_links",
+        "social_urls",
+        "update_urls"
+      ],
+      "allowlist": []
+    },
+    "stealth-vpn": {
+      "description": "De-branded full-featured VPN policy (EXCEPT OAuth2/deep-link which are excluded at source). Forbids Lantern brand identifiers only; 'lantern'/'getlantern' are case-insensitive substrings that catch all brand variants (lantern.io, lantern://, etc.) with zero generic-token false-positives. Login/payment/VPN surfaces intentionally retained. Does NOT extend the strict stealth base mode.",
+      "categories": [
+        "lantern_identity",
+        "social_urls"
+      ],
+      "allowlist": []
+    },
+    "stealth-novpn": {
+      "description": "De-branded full-featured proxy (SOCKS) policy. novpn now ships the SAME real app as stealth-vpn but routes data over a local SOCKS proxy instead of a VPN tunnel, so the leak policy is identical to stealth-vpn: forbids Lantern brand identifiers + social URLs only (login/payment/servers retained). The 'no VPN tunnel' property is enforced STRUCTURALLY -- the manifest has no VpnService/BIND_VPN_SERVICE (android_manifest_filter.py) and the data path is SOCKS (radiance vpn_stealth_novpn.go) -- and verified by a manifest grep, NOT by token-scanning, because the bundled sing-box (libbox) legitimately contains TUN/tun2socks internals just like the stealth-vpn build.",
+      "categories": [
+        "lantern_identity",
+        "social_urls"
+      ],
+      "allowlist": []
+    }
+  }
+}
