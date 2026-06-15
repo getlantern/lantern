@@ -44,10 +44,12 @@ Future<void> injectServices() async {
   );
   sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
 
-  appLogger.debug('Initializing AppPurchase...');
+  appLogger.debug('Registering AppPurchase...');
   final appPurchase = AppPurchase();
   sl.registerSingleton<AppPurchase>(appPurchase);
-  if (!PlatformUtils.isAndroid) {
+  if (PlatformUtils.isIOS) {
+    // StoreKit can deliver pending transaction updates at launch; init()
+    // only subscribes to the stream and does not fetch product details.
     appPurchase.init();
   }
   appLogger.debug('AppPurchase registered');

@@ -1799,7 +1799,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> runURLTests() async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.runURLTests().toDartString();
+        final resultPtr = _ffiService.runURLTests();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);
@@ -1813,12 +1818,36 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> sendConfigRequest() async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.updateConfig().toDartString();
+        final resultPtr = _ffiService.updateConfig();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
       appLogger.error('updateConfig error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.clearTunnelCache();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('clearTunnelCache error', e, st);
       return Left(e.toFailure());
     }
   }
