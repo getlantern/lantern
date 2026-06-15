@@ -145,24 +145,26 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   ),
                 ),
                 if (!isUserRegistered) ...{
-                  SizedBox(height: defaultSize),
-                  DividerSpace(),
-                  SizedBox(height: defaultSize),
-                  OAuthLogin(
-                    methodType: SignUpMethodType.google,
-                    onResult: (token) =>
-                        onOAuthResult(token, SignUpMethodType.google),
-                  ),
-                  SizedBox(height: defaultSize),
-                  OAuthLogin(
-                    methodType: SignUpMethodType.apple,
-                    foregroundColor: context.textPrimary,
-                    onResult: (token) =>
-                        onOAuthResult(token, SignUpMethodType.apple),
-                  ),
-                  SizedBox(height: defaultSize),
-                  DividerSpace(),
-                  SizedBox(height: defaultSize),
+                  if (AppBuildInfo.enableOAuth) ...[
+                    SizedBox(height: defaultSize),
+                    DividerSpace(),
+                    SizedBox(height: defaultSize),
+                    OAuthLogin(
+                      methodType: SignUpMethodType.google,
+                      onResult: (token) =>
+                          onOAuthResult(token, SignUpMethodType.google),
+                    ),
+                    SizedBox(height: defaultSize),
+                    OAuthLogin(
+                      methodType: SignUpMethodType.apple,
+                      foregroundColor: context.textPrimary,
+                      onResult: (token) =>
+                          onOAuthResult(token, SignUpMethodType.apple),
+                    ),
+                    SizedBox(height: defaultSize),
+                    DividerSpace(),
+                    SizedBox(height: defaultSize),
+                  ],
                   if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                     Center(
                       child: AppTextButton(
@@ -347,6 +349,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     Map<String, dynamic> result,
     SignUpMethodType type,
   ) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();

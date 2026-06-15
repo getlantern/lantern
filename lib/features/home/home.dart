@@ -13,6 +13,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/no_vpn_proxy_panel.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -152,6 +153,8 @@ class _HomeState extends ConsumerState<Home> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           if (isUserPro) SizedBox(height: 0) else ProBanner(),
+          // novpn uses the same connect toggle as vpn; it drives the SOCKS proxy
+          // (startVPN -> NoVpnLanternService) instead of a tunnel.
           VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -222,9 +225,10 @@ class _HomeState extends ConsumerState<Home> {
                 onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
             },
-            if (PlatformUtils.isAndroid ||
-                PlatformUtils.isMacOS ||
-                PlatformUtils.isWindows) ...{
+            if (!AppBuildInfo.stealthNoVpn &&
+                (PlatformUtils.isAndroid ||
+                    PlatformUtils.isMacOS ||
+                    PlatformUtils.isWindows)) ...{
               DividerSpace(),
               SettingTile(
                 label: 'split_tunneling'.i18n,

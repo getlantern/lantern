@@ -36,9 +36,14 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final textTheme = Theme.of(context).textTheme;
     final passwordController = useTextEditingController();
     final buttonEnabled = useState(false);
-    final isSSOUser = ref.watch(isSSOUserProvider).value ?? false;
-    final oAuthProviderName = ref.watch(oAuthProviderProvider).value ?? '';
-    final oAuthMethodType = _resolveOAuthMethodType(oAuthProviderName);
+    final isSSOUser =
+        AppBuildInfo.enableOAuth && (ref.watch(isSSOUserProvider).value ?? false);
+    final oAuthProviderName = AppBuildInfo.enableOAuth
+        ? (ref.watch(oAuthProviderProvider).value ?? '')
+        : '';
+    final oAuthMethodType = AppBuildInfo.enableOAuth
+        ? _resolveOAuthMethodType(oAuthProviderName)
+        : SignUpMethodType.email;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,6 +131,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   }
 
   void processOAuthResult(Map<String, dynamic> payload) {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = payload['token'] as String? ?? '';
 
     if (token.isEmpty) {
