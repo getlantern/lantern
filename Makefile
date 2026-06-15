@@ -36,7 +36,17 @@ ifeq ($(OS),Windows_NT)
 APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
 else
 ifndef GITHUB_ACTIONS
-APP_VERSION ?= $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
+## Capture into a temp so we only set APP_VERSION when version.sh actually
+## produced output. A bare `APP_VERSION ?= $(shell …)` would *define*
+## APP_VERSION as empty when version.sh fails (no tags, shallow clone, a sort
+## without -V, …), turning the pubspec fallback below into a no-op and tripping
+## the "is empty" $(error). On empty: warn and fall through to pubspec.
+LANTERN_DERIVED_VERSION := $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
+ifneq ($(strip $(LANTERN_DERIVED_VERSION)),)
+APP_VERSION ?= $(LANTERN_DERIVED_VERSION)
+else
+$(warning could not derive version from scripts/ci/version.sh; falling back to pubspec.yaml — the build version may be stale)
+endif
 endif
 APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 endif
