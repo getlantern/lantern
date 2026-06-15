@@ -1,0 +1,49 @@
+# Stealth Android icons
+
+Stealth Android variants can generate a neutral launcher icon set from a
+private per-variant seed. Normal builds keep the existing launcher icons.
+
+## Generate Locally
+
+```sh
+make stealth-android-icons STEALTH_ICON_SEED="$PRIVATE_VARIANT_ICON_SEED"
+```
+
+This writes Android resources under
+`android/app/build/generated/icons/res`:
+
+- adaptive launcher icon: `@mipmap/ic_launcher_alt` (in `mipmap-anydpi-v26`)
+- adaptive round launcher icon: `@mipmap/ic_launcher_alt_round`
+- pre-26 fallback launcher icons in `mipmap-anydpi`
+- foreground vector: `@drawable/launcher_foreground_alt`
+- monochrome vector: `@drawable/launcher_monochrome_alt`
+- notification icon candidate: `@drawable/ic_notification_alt`
+
+Private metadata is written outside the resource tree at
+`android/app/build/generated/icons/stealth-icon-metadata.json`. It
+stores only the seed hash, not the raw seed, and is not packaged as an Android
+resource.
+
+## Build Wiring
+
+Android Gradle reads `STEALTH_ICON_SEED` or `-PstealthIconSeed=...`. When a
+seed is present, the manifest placeholders switch the app icon and round icon
+to the generated resources:
+
+```sh
+STEALTH_ICON_SEED="$PRIVATE_VARIANT_ICON_SEED" make android-apk-release
+```
+
+Without a seed, the placeholders resolve to the existing `@mipmap/ic_launcher`
+and `@mipmap/ic_launcher_round` resources.
+
+## Release Policy
+
+Use a different private icon seed for every distributed stealth variant. Keep
+the seed and `stealth-icon-metadata.json` with the private build profile so
+support can correlate a report with the shipped visual identity. Do not publish
+the seed or metadata with public artifacts.
+
+The generated icons are intentionally generic geometric utility icons. If design
+provides a curated pool later, the same Gradle placeholder path can select
+pre-rendered resources by variant ID instead of procedural output.

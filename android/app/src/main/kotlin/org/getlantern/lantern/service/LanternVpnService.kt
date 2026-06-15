@@ -25,6 +25,7 @@ import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -41,12 +42,12 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService :
+open class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "LanternVpnService"
-        private const val sessionName = "LanternVpn"
+        private val sessionName = BuildConfig.VPN_SESSION_NAME
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
@@ -523,6 +524,7 @@ class LanternVpnService :
 
         // Disallow traffic from our own app to the VPN.
         builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
+        DirectConnectionAppExclusionStore.applyToBuilder(builder, this)
 
         if (options.autoRoute) {
             builder.addDnsServer(options.dnsServerAddress.value)
