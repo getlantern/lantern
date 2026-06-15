@@ -280,6 +280,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setProxyListenPort(int port) async {
+    try {
+      await _methodChannel.invokeMethod('setProxyListenPort', {'port': port});
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setProxyListenPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isBlockAdsEnabled() async {
     try {
       final res = await _methodChannel.invokeMethod<bool>('isBlockAdsEnabled');

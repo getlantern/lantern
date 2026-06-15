@@ -34,7 +34,29 @@ var (
 	ipcBackend *backend.LocalBackend
 	ipcMu      sync.Mutex
 	ipcOnce    sync.Once
+
+	// Pin the long-lived foreign (Java) callback objects for the whole process
+	// lifetime. gomobile tracks each Java object passed to Go with a refcount and
+	// removes it once every Go-side proxy is finalized; if the proxy these are
+	// reached through is ever GC'd, a later callback from a Go goroutine aborts
+	// the process with "Unknown reference: <n>" (go_seq_from_refnum SIGABRT).
+	// Holding them here keeps a proxy referenced forever so the Java object is
+	// never released out from under sing-box / the event bus.
+	pinMu              sync.Mutex
+	pinnedPlatform     utils.PlatformInterface
+	pinnedEventEmitter utils.FlutterEventEmitter
 )
+
+func pinForeignRefs(platform utils.PlatformInterface, emitter utils.FlutterEventEmitter) {
+	pinMu.Lock()
+	defer pinMu.Unlock()
+	if platform != nil {
+		pinnedPlatform = platform
+	}
+	if emitter != nil {
+		pinnedEventEmitter = emitter
+	}
+}
 
 func getCore() (lanterncore.Core, error) {
 	v := lanternCore.Load()
@@ -106,6 +128,47 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 	return nil
 }
 
+// SetProxyListenPort overrides the local SOCKS/HTTP listen port used by the
+// stealth-novpn SOCKS proxy. Must be called before the proxy connects (the
+// inbound reads RADIANCE_PROXY_LISTEN_PORT when it is built). A port <= 0 clears
+// the override so radiance falls back to its default.
+func SetProxyListenPort(port int) error {
+	if port <= 0 || port > 65535 {
+		return os.Unsetenv("RADIANCE_PROXY_LISTEN_PORT")
+	}
+	if err := os.Setenv("RADIANCE_PROXY_LISTEN_PORT", fmt.Sprintf("%d", port)); err != nil {
+		return fmt.Errorf("set RADIANCE_PROXY_LISTEN_PORT: %w", err)
+	}
+	slog.Info("proxy listen port override set", "port", port)
+	return nil
+}
+
+// SetLocalProxy enables the local SOCKS/HTTP proxy data path and sets the
+// address its inbound listener binds to.
+//
+// These must be applied from Go via os.Setenv, NOT from Android's Os.setenv:
+// radiance reads them through env.Get → os.LookupEnv, and the Go runtime caches
+// its environment at startup. Go's os.Setenv updates both that cache and the C
+// environment, but a libc setenv() from Kotlin only touches the C environment,
+// so Go's lookup never observes it — which silently leaves UseSocks false and
+// makes sing-box bind the default bypass inbound instead of the user-facing
+// SOCKS listener.
+func SetLocalProxy(enabled bool, address string) error {
+	if !enabled {
+		return os.Unsetenv("RADIANCE_USE_SOCKS_PROXY")
+	}
+	if err := os.Setenv("RADIANCE_USE_SOCKS_PROXY", "true"); err != nil {
+		return fmt.Errorf("set RADIANCE_USE_SOCKS_PROXY: %w", err)
+	}
+	if address != "" {
+		if err := os.Setenv("RADIANCE_SOCKS_ADDRESS", address); err != nil {
+			return fmt.Errorf("set RADIANCE_SOCKS_ADDRESS: %w", err)
+		}
+	}
+	slog.Info("local proxy env set", "enabled", enabled, "address", address)
+	return nil
+}
+
 // InitLogging wires the global slog handler (file + stdout) before any other
 // Mobile.* call. On Android the entire app runs in a single process, so once
 // common.Init runs `slog.SetDefault` covers all Go code — but it normally
@@ -124,7 +187,7 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		return struct{}{}, common.Init(dataDir, logDir, logLevel)
+		return struct{}{}, common.Init(dataDir, logDir, lanterncore.EffectiveLogLevel(logLevel))
 	})
 	return err
 }
@@ -132,6 +195,7 @@ func InitLogging(dataDir, logDir, logLevel string) error {
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		slog.Info("Setting up Radiance", "opts", opts)
+		pinForeignRefs(opts.Platform, eventEmitter)
 		c, err := lanterncore.New(opts, eventEmitter)
 		if err != nil {
 			return struct{}{}, fmt.Errorf("unable to create LanternCore: %v", err)
@@ -159,25 +223,6 @@ func IsTelemetryEnabled() bool {
 	return ok
 }
 
-func IsOAuthLogin() bool {
-	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		return c.IsOAuthLogin(), nil
-	})
-	if err != nil {
-		return false
-	}
-	return ok
-}
-
-func GetOAuthProvider() string {
-	provider, err := withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.GetOAuthProvider(), nil
-	})
-	if err != nil {
-		return ""
-	}
-	return provider
-}
 
 func SetBlockAdsEnabled(enabled bool) error {
 	slog.Info("adblock: SetBlockAdsEnabled", "enabled", enabled)
@@ -288,13 +333,16 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if ipcServer != nil {
 			return struct{}{}, nil
 		}
+		pinForeignRefs(platform, nil)
+		logLevel := lanterncore.EffectiveLogLevel(opts.LogLevel)
+		telemetryConsent := lanterncore.EffectiveTelemetryConsent(opts.TelemetryConsent)
 		bopts := backend.Options{
 			DataDir:           opts.DataDir,
 			LogDir:            opts.LogDir,
 			Locale:            opts.Locale,
-			LogLevel:          opts.LogLevel,
+			LogLevel:          logLevel,
 			DeviceID:          opts.Deviceid,
-			TelemetryConsent:  opts.TelemetryConsent,
+			TelemetryConsent:  telemetryConsent,
 			PlatformInterface: platform,
 		}
 		be, err := backend.NewLocalBackend(context.Background(), bopts)
@@ -485,17 +533,6 @@ func FetchUserData() (string, error) {
 	})
 }
 
-// OAuth Methods
-func OAuthLoginUrl(provider string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.OAuthLoginUrl(provider) })
-}
-
-func OAuthLoginCallback(oAuthToken string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) {
-		b, err := c.OAuthLoginCallback(oAuthToken)
-		return string(b), err
-	})
-}
 
 func StripeSubscription(email, planID string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })

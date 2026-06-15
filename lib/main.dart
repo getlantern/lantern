@@ -8,10 +8,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/stealth_no_vpn_proxy.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -55,13 +57,25 @@ Future<void> main() async {
   // (registered at injection_container.dart:40) may not be in the registry,
   // and the synchronous lookup would throw and prevent runApp.
   try {
-    if (sl.isRegistered<Updater>()) {
+    if (AppBuildInfo.enableAutoUpdate && sl.isRegistered<Updater>()) {
       unawaited(sl<Updater>().init());
-    } else {
+    } else if (AppBuildInfo.enableAutoUpdate) {
       appLogger.warning('Updater not registered, skipping init');
     }
   } catch (e, st) {
     appLogger.error('Failed to start Updater.init', e, st);
+  }
+
+  // Apply the persisted stealth-novpn SOCKS listen port before the first
+  // connect so radiance binds it (no-op on other builds).
+  if (AppBuildInfo.stealthNoVpn) {
+    try {
+      if (sl.isRegistered<LanternService>()) {
+        unawaited(sl<LanternService>().setProxyListenPort(StealthNoVpnProxy.port));
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to apply novpn proxy listen port', e, st);
+    }
   }
 
   runApp(

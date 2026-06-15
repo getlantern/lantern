@@ -77,6 +77,10 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled);
 
+  /// Sets the local SOCKS/HTTP listen port for the stealth-novpn proxy. Takes
+  /// effect on the next connect. No-op on platforms without the novpn proxy.
+  Future<Either<Failure, Unit>> setProxyListenPort(int port);
+
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
   Future<Either<Failure, bool>> isSmartRoutingEnabled();

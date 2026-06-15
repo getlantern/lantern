@@ -63,8 +63,47 @@ msgstr "Help Fight Global Internet Censorship"
 msgid "vpn_settings"
 msgstr "VPN Settings"
 
+msgid "proxy_setup"
+msgstr "Proxy Setup"
+
+msgid "proxy_mode"
+msgstr "Proxy Mode"
+
+msgid "proxy_mode_description"
+msgstr "Lantern is available as a local proxy for apps and browsers that let you set a manual proxy."
+
+msgid "manual_proxy_setup"
+msgstr "Manual Proxy Setup"
+
+msgid "manual_proxy_setup_description"
+msgstr "In a supported app or browser, set the proxy type to SOCKS5 or HTTP CONNECT and use the local address below."
+
+msgid "proxy_host"
+msgstr "Host"
+
+msgid "proxy_port"
+msgstr "Port"
+
+msgid "socks5_proxy"
+msgstr "SOCKS5 Proxy"
+
+msgid "http_connect_proxy"
+msgstr "HTTP CONNECT Proxy"
+
+msgid "start_proxy"
+msgstr "Start Proxy"
+
+msgid "stop_proxy"
+msgstr "Stop Proxy"
+
 msgid "split_tunneling"
 msgstr "Split Tunneling"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
 
 msgid "server_locations"
 msgstr "Server Locations"
@@ -360,8 +399,14 @@ msgstr "Lantern automatically chooses which apps and websites bypass the VPN bas
 msgid "apps_bypassing_vpn"
 msgstr "Apps bypassing the VPN (%d)"
 
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"
+
 msgid "websites_bypassing_vpn"
 msgstr "Websites bypassing the VPN (%d)"
+
+msgid "items_added_count"
+msgstr "%d added"
 
 msgid "logs_share_message"
 msgstr "Here are my diagnostic logs from Lantern."
@@ -1655,4 +1700,10 @@ msgstr "Your old configuration has been cleared. Turn the VPN on to automaticall
 
 
 
+
+
+
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"
 

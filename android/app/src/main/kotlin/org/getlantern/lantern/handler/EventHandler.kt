@@ -11,10 +11,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import lantern.io.mobile.LogSubscription
 import lantern.io.mobile.Mobile
-import lantern.io.utils.FlutterEvent
 import lantern.io.utils.LogListener
 import org.getlantern.lantern.apps.AppDataHandler
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.AppEvent
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.FlutterEventStream
@@ -41,7 +41,7 @@ class EventHandler : FlutterPlugin {
     private var appDataHandler: AppDataHandler? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
-    private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
+    private var flutterEventObserver: Observer<Event<AppEvent>>? = null
     var job: Job? = null
     private var logsSubscription: LogSubscription? = null
     private var logsListener: LogListener? = null

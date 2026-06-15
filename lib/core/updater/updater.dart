@@ -29,6 +29,10 @@ class Updater {
     _initialized = true;
 
     if (kDebugMode || !_isSupportedPlatform) return;
+    if (!AppBuildInfo.enableAutoUpdate) {
+      appLogger.info('autoUpdater disabled for this build');
+      return;
+    }
 
     final flags = await _featureFlags();
     if (_isAndroidPlatform) {
@@ -58,9 +62,14 @@ class Updater {
       return;
     }
 
+    final buildType = AppBuildInfo.buildType;
+    final feedUrl = AppUrls.appcastFor(buildType);
+    if (feedUrl == null || feedUrl.isEmpty) {
+      appLogger.info('autoUpdater disabled: no appcast URL for this build');
+      return;
+    }
+
     try {
-      final buildType = AppBuildInfo.buildType;
-      final feedUrl = AppUrls.appcastFor(buildType);
       final updater = AutoUpdater.instance;
       await updater.setFeedURL(feedUrl);
       await updater.setScheduledCheckInterval(3600);
@@ -86,6 +95,7 @@ class Updater {
   }
 
   Future<void> checkNow() async {
+    if (!AppBuildInfo.enableAutoUpdate) return;
     if (!_isSupportedPlatform) return;
     final flags = await _featureFlags();
 
