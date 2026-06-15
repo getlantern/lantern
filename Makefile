@@ -29,15 +29,23 @@ FFI_DIR := $(LANTERN_CORE)/ffi
 ## tickets. Outside CI, derive the version from git tags first; the pubspec
 ## fallback below only applies if that yields nothing (e.g. a checkout with no
 ## tags). In CI, GITHUB_ACTIONS is set, so we skip this and trust the rewritten
-## pubspec.
-ifndef GITHUB_ACTIONS
-APP_VERSION ?= $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
-endif
+## pubspec. The version.sh derivation lives in the non-Windows branch only: it's
+## a bash script and `2>/dev/null` is a POSIX redirection, neither of which
+## behaves under cmd.exe, so Windows devs fall through to the PowerShell read.
 ifeq ($(OS),Windows_NT)
 APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
 else
+ifndef GITHUB_ACTIONS
+APP_VERSION ?= $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
+endif
 APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 endif
+## Freeze APP_VERSION after resolution. `?=` leaves it recursively expanded, so
+## every later $(APP_VERSION) reference would re-run the $(shell …) — and
+## version.sh embeds a timestamp, so the value could drift between recipe
+## invocations (e.g. the deb/rpm/arch packages built sequentially in
+## linux-release-ci). The `:=` self-assignment evaluates it exactly once, here.
+APP_VERSION := $(APP_VERSION)
 ## Strip the +buildnumber for the Go linker. Done with Make built-ins so no
 ## shell tools are required — this is the part that has to work in every
 ## environment `make` might invoke the linker in.
