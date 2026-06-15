@@ -13,7 +13,12 @@ class FollowUs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(title: 'follow_us'.i18n, body: _buildBody());
+    return BaseScreen(
+      title: 'follow_us'.i18n,
+      body: AppBuildInfo.enableSocialLinks
+          ? _buildBody()
+          : const SizedBox.shrink(),
+    );
   }
 
   Widget _buildBody() {

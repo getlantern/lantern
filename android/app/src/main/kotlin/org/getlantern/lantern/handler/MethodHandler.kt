@@ -20,11 +20,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -86,6 +88,9 @@ enum class Methods(val method: String) {
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
     SetBlockAdsEnabled("setBlockAdsEnabled"),
+
+    // Stealth-novpn local proxy listen port
+    SetProxyListenPort("setProxyListenPort"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -263,6 +268,10 @@ class MethodHandler : FlutterPlugin,
             Methods.SetSplitTunnelingEnabled.method -> {
                 scope.launch {
                     result.runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { success("disabled") }
+                            return@runCatching
+                        }
                         val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
                         Mobile.setSplitTunnelingEnabled(enabled)
                         withContext(Dispatchers.Main) { success("ok") }
@@ -279,6 +288,10 @@ class MethodHandler : FlutterPlugin,
             Methods.IsSplitTunnelingEnabled.method -> {
                 scope.launch {
                     runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { result.success(false) }
+                            return@runCatching
+                        }
                         val on = Mobile.isSplitTunnelingEnabled()
                         withContext(Dispatchers.Main) { result.success(on) }
                     }.onFailure { e ->
@@ -297,7 +310,12 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.addSplitTunnelItem(filterType, value)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).addPackage(value)
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.addSplitTunnelItem(filterType, value)
+                        }
                         success("Item added")
                     }.onFailure { e ->
                         result.error(
@@ -315,7 +333,12 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.removeSplitTunnelItem(filterType, value)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).removePackage(value)
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.removeSplitTunnelItem(filterType, value)
+                        }
                         success("Item removed")
                     }.onFailure { e ->
                         result.error(
@@ -330,8 +353,16 @@ class MethodHandler : FlutterPlugin,
             Methods.AddAllItems.method -> {
                 scope.launch {
                     result.runCatching {
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val items = call.argument<String>("value")
-                        Mobile.addSplitTunnelItems(items)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext)
+                                .addPackages(splitCsvClean(items))
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.addSplitTunnelItems(items)
+                        }
                         success("All items added")
                     }.onFailure { e ->
                         result.error(
@@ -346,8 +377,16 @@ class MethodHandler : FlutterPlugin,
             Methods.RemoveAllItems.method -> {
                 scope.launch {
                     result.runCatching {
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val items = call.argument<String>("value")
-                        Mobile.removeSplitTunnelItems(items)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext)
+                                .removePackages(splitCsvClean(items))
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.removeSplitTunnelItems(items)
+                        }
                         success("All items removed")
                     }.onFailure { e ->
                         result.error(
@@ -838,6 +877,13 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.SetProxyListenPort.method -> {
+                scope.handleResult(result, "set_proxy_listen_port") {
+                    val port = call.argument<Int>("port") ?: error("Missing port")
+                    Mobile.setProxyListenPort(port.toLong())
+                }
+            }
+
             Methods.IsBlockAdsEnabled.method -> {
                 scope.handleValue(result, "is_block_ads_enabled") {
                     Mobile.isBlockAdsEnabled()
@@ -1060,7 +1106,11 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
-                        val json = Mobile.getSplitTunnelItems(filterType)
+                        val json = if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).effectivePackageNamesJson()
+                        } else {
+                            Mobile.getSplitTunnelItems(filterType)
+                        }
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
                         result.error(
@@ -1254,6 +1304,10 @@ class MethodHandler : FlutterPlugin,
             Methods.CheckVpnConflict.method -> {
                 scope.launch {
                     runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { result.success(false) }
+                            return@runCatching
+                        }
                         val hasConflict = isAnotherVpnActive(appContext)
                         withContext(Dispatchers.Main) {
                             result.success(hasConflict)
@@ -1400,6 +1454,23 @@ class MethodHandler : FlutterPlugin,
         }
         return false
     }
+
+    private fun useDirectConnectionApps(filterType: String): Boolean {
+        return BuildConfig.STEALTH_DIRECT_CONNECTION_APPS && filterType == "packageName"
+    }
+
+    private fun noteDirectConnectionAppsReconnect() {
+        if (runCatching { Mobile.isVPNConnected() }.getOrDefault(false)) {
+            AppLogger.i(TAG, "Direct-connection app changes apply on next reconnect")
+        }
+    }
+}
+
+private fun splitCsvClean(raw: String?): List<String> {
+    return raw.orEmpty()
+        .split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
 }
 
 private suspend fun MethodChannel.Result.mainSuccess(value: Any? = "ok") =

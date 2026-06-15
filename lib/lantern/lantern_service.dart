@@ -795,6 +795,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setProxyListenPort(int port) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setProxyListenPort(port);
+    }
+    return _platformService.setProxyListenPort(port);
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

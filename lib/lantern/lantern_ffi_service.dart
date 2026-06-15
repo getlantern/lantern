@@ -1540,6 +1540,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setProxyListenPort(int port) async {
+    // Desktop (FFI) builds do not run the stealth-novpn SOCKS proxy; no-op.
+    return right(unit);
+  }
+
+  @override
   Future<Either<Failure, bool>> isBlockAdsEnabled() async {
     try {
       final res = _ffiService.isBlockAdsEnabled();
