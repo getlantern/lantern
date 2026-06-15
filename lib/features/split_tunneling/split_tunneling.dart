@@ -21,14 +21,25 @@ class SplitTunneling extends HookConsumerWidget {
     final splitTunnelingEnabled = ref.watch(
       radianceSettingsProvider.select((s) => s.splitTunneling),
     );
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
+    final showSplitTunnelingItems =
+        directConnectionApps || splitTunnelingEnabled;
+    final title = directConnectionApps
+        ? 'direct_connection_apps'.i18n
+        : 'split_tunneling'.i18n;
+    final subtitle = directConnectionApps
+        ? 'direct_connection_apps_subtitle'.i18n
+        : 'add_apps_websites_bypass_vpn'.i18n;
 
     final enabledApps =
         (ref.watch(splitTunnelingAppsProvider).value ?? const <AppData>{})
             .toList(growable: false);
 
-    final enabledWebsites =
-        (ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{})
-            .toList(growable: false);
+    final enabledWebsites = directConnectionApps
+        ? const <Website>[]
+        : (ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{})
+              .toList(growable: false);
 
     void toggleSplitTunneling() {
       ref
@@ -37,7 +48,7 @@ class SplitTunneling extends HookConsumerWidget {
     }
 
     return BaseScreen(
-      title: 'split_tunneling'.i18n,
+      title: title,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -47,14 +58,14 @@ class SplitTunneling extends HookConsumerWidget {
             child: Column(
               children: [
                 AppTile(
-                  label: 'split_tunneling'.i18n,
+                  label: title,
                   tileTextStyle: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: context.textPrimary,
                   ),
                   subtitle: Text(
-                    'add_apps_websites_bypass_vpn'.i18n,
+                    subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.labelMedium!.copyWith(
@@ -62,33 +73,43 @@ class SplitTunneling extends HookConsumerWidget {
                       letterSpacing: 0.0,
                     ),
                   ),
-                  onPressed: toggleSplitTunneling,
-                  trailing: SwitchButton(
-                    value: splitTunnelingEnabled,
-                    onChanged: (bool? value) {
-                      ref
-                          .read(radianceSettingsProvider.notifier)
-                          .setSplitTunneling(value ?? false);
-                    },
-                    activeColor: AppColors.green5,
-                  ),
+                  onPressed: directConnectionApps ? null : toggleSplitTunneling,
+                  trailing: directConnectionApps
+                      ? null
+                      : SwitchButton(
+                          value: splitTunnelingEnabled,
+                          onChanged: (bool? value) {
+                            ref
+                                .read(radianceSettingsProvider.notifier)
+                                .setSplitTunneling(value ?? false);
+                          },
+                          activeColor: AppColors.green5,
+                        ),
                 ),
-                if (splitTunnelingEnabled) ...{
+                if (showSplitTunnelingItems) ...{
                   DividerSpace(),
                   SplitTunnelingTile(
                     icon: AppImagePaths.keypad,
-                    label: 'apps'.i18n,
-                    actionText: '${enabledApps.length} Added',
+                    label: directConnectionApps
+                        ? 'direct_connection_apps'.i18n
+                        : 'apps'.i18n,
+                    actionText: 'items_added_count'.i18n.fill([
+                      enabledApps.length,
+                    ]),
                     onPressed: () => appRouter.push(AppsSplitTunneling()),
                   ),
-                  DividerSpace(),
-                  SplitTunnelingTile(
-                    icon: AppImagePaths.world,
-                    label: 'websites'.i18n,
-                    actionText: '${enabledWebsites.length} Added',
-                    onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-                  ),
-                }
+                  if (!directConnectionApps) ...{
+                    DividerSpace(),
+                    SplitTunnelingTile(
+                      icon: AppImagePaths.world,
+                      label: 'websites'.i18n,
+                      actionText: 'items_added_count'.i18n.fill([
+                        enabledWebsites.length,
+                      ]),
+                      onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+                    ),
+                  },
+                },
               ],
             ),
           ),

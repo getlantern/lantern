@@ -27,8 +27,16 @@ type FlutterEvent struct {
 	Message string `json:"message"`
 }
 
+// FlutterEventEmitter forwards events to the host (Flutter via gomobile on
+// mobile, or the Dart port on FFI). SendEvent passes the fields BY VALUE rather
+// than a *FlutterEvent: gomobile marshals a Go pointer argument as a refnum'd
+// proxy and resolves it (go_seq_from_refnum) while invoking the foreign method,
+// so a GC that collects the short-lived event mid-call aborts the process
+// ("Unknown reference: <n>" in cproxyutils_FlutterEventEmitter_SendEvent) —
+// reliably hit when the app backgrounds. Strings are copied across the
+// boundary, so nothing Go-owned outlives the call.
 type FlutterEventEmitter interface {
-	SendEvent(event *FlutterEvent)
+	SendEvent(eventType string, message string)
 }
 
 // LogListener receives log entries streamed from the IPC client.

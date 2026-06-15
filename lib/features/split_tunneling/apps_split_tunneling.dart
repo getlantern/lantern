@@ -15,6 +15,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -28,6 +29,20 @@ class AppsSplitTunneling extends ConsumerWidget {
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
+    final title = directConnectionApps
+        ? 'direct_connection_apps'.i18n
+        : 'apps_split_tunneling'.i18n;
+    void showReconnectNoticeIfNeeded(bool changed) {
+      if (!changed ||
+          !directConnectionApps ||
+          ref.read(vpnProvider) != VPNStatus.connected ||
+          !context.mounted) {
+        return;
+      }
+      context.showSnackBar('changes_applied_after_restart'.i18n);
+    }
 
     final allApps = dedupeAndSortApps(
       (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
@@ -50,10 +65,10 @@ class AppsSplitTunneling extends ConsumerWidget {
         .toList();
 
     return BaseScreen(
-      title: 'apps_split_tunneling'.i18n,
+      title: title,
       appBar: AppSearchBar(
         ref: ref,
-        title: 'apps_split_tunneling'.i18n,
+        title: title,
         hintText: 'search_apps'.i18n,
       ),
       body: CustomScrollView(
@@ -62,7 +77,11 @@ class AppsSplitTunneling extends ConsumerWidget {
             child: Row(
               children: [
                 SectionLabel(
-                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                  directConnectionApps
+                      ? 'apps_using_direct_connection'.i18n.fill([
+                          enabledApps.length,
+                        ])
+                      : 'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
                 ),
                 const Spacer(),
               ],
@@ -95,7 +114,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                           label: 'deselect_all'.i18n,
                           fontSize: 14,
                           onPressed: () async {
-                            await notifier.deselectApps(filteredEnabled);
+                            final changed = await notifier.deselectApps(
+                              filteredEnabled,
+                            );
+                            showReconnectNoticeIfNeeded(changed);
                           },
                         ),
                       );
@@ -104,7 +126,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                     return AppRow(
                       app: app,
                       enabled: true,
-                      onToggle: () => notifier.toggleApp(app),
+                      onToggle: () async {
+                        final changed = await notifier.toggleApp(app);
+                        showReconnectNoticeIfNeeded(changed);
+                      },
                     );
                   },
                 ),
@@ -137,9 +162,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                                     label: 'select_all'.i18n,
                                     fontSize: 14,
                                     onPressed: () async {
-                                      await notifier.selectApps(
+                                      final changed = await notifier.selectApps(
                                         filteredDisabled,
                                       );
+                                      showReconnectNoticeIfNeeded(changed);
                                     },
                                   ),
                                 );
@@ -148,7 +174,10 @@ class AppsSplitTunneling extends ConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () => notifier.toggleApp(app),
+                                onToggle: () async {
+                                  final changed = await notifier.toggleApp(app);
+                                  showReconnectNoticeIfNeeded(changed);
+                                },
                               );
                             },
                           ),
