@@ -341,7 +341,7 @@ func reportIssue(
 			logPath,
 			attachmentsJSON,
 		); err != nil {
-			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
+			return SendError(fmt.Errorf("error reporting issue: %w", err))
 		}
 		return C.CString("ok")
 	})
