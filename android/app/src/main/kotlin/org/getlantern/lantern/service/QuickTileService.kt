@@ -17,13 +17,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.isServiceRunning
 
 @RequiresApi(24)
-class QuickTileService : TileService() {
+open class QuickTileService : TileService() {
 
     companion object {
         private const val TAG = "QuickTileService"
@@ -39,6 +40,10 @@ class QuickTileService : TileService() {
 
     private val tileScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    // Regular-build-only source set (the stealth app has its own quick-tile under
+    // foundation.bridge); STEALTH_ENABLED is always false here.
+    private val vpnServiceClass: Class<out LanternVpnService>
+        get() = LanternVpnService::class.java
 
     /*
     * We need receiver to only when user interacts with the tile
@@ -110,16 +115,16 @@ class QuickTileService : TileService() {
     private fun connectVPN() {
         isPermissionIntent()?.let { handleVpnPermissionRequest(it) }
             ?: ContextCompat.startForegroundService(
-                this, Intent(this, LanternVpnService::class.java).apply {
+                this, Intent(this, vpnServiceClass).apply {
                     action = LanternVpnService.ACTION_TILE_START
                 }
             )
     }
 
     private fun connectService(action: String) {
-        if (!isServiceRunning(this, LanternVpnService::class.java)) {
+        if (!isServiceRunning(this, vpnServiceClass)) {
             runCatching {
-                startService(Intent(this, LanternVpnService::class.java).apply {
+                startService(Intent(this, vpnServiceClass).apply {
                     this.action = action
                 })
                 AppLogger.d(TAG, "$action service started")
@@ -158,7 +163,11 @@ class QuickTileService : TileService() {
     private fun updateTile(state: Int) {
         qsTile?.apply {
             this.state = state
-            label = if (state == Tile.STATE_ACTIVE) "VPN Connected" else "VPN Disconnected"
+            label = if (state == Tile.STATE_ACTIVE) {
+                BuildConfig.QUICK_TILE_ACTIVE_LABEL
+            } else {
+                BuildConfig.QUICK_TILE_INACTIVE_LABEL
+            }
             updateTile()
             AppLogger.d(
                 TAG,
@@ -167,4 +176,3 @@ class QuickTileService : TileService() {
         }
     }
 }
-
