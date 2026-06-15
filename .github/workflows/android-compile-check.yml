@@ -6,13 +6,15 @@ name: Android Compile Check
 # so without this gate a Kotlin break (e.g. the bare success() call in #8754)
 # could merge undetected.
 #
-# Scope: triggers only on Kotlin (*.kt) changes. It intentionally does NOT run on
-# Go/gomobile-AAR or Flutter/dep changes — a Go change that breaks the
-# AAR<->Kotlin interface would surface in build-android.yml / release, not here.
+# Scope: the PR trigger runs only on Kotlin (*.kt) changes. It intentionally
+# does NOT run on Go/gomobile-AAR or Flutter/dep changes — a Go change that
+# breaks the AAR<->Kotlin interface would surface in build-android.yml /
+# release, not here. workflow_dispatch exists only for benchmarking/debugging.
 #
 # Debug build only: no keystore/APP_ENV secrets, no AAB, no artifact upload.
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "**/*.kt"
@@ -27,7 +29,7 @@ jobs:
   compile-check:
     permissions:
       contents: "read"
-    runs-on: macos-26
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,6 +64,32 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Free Linux runner disk
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          df -h
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          sdk_root="${sdk_root%/}"
+          if [[ -z "$sdk_root" || "$sdk_root" == "/" || "$sdk_root" != /* ]]; then
+            echo "Android SDK root is not set to a safe absolute path: '${sdk_root}'" >&2
+            exit 1
+          fi
+          # Keep the preinstalled Android platforms/build-tools/CMake/NDK; the
+          # shared Makefile defaults match the versions this job needs.
+          sudo rm -rf \
+            "$sdk_root/emulator" \
+            "$sdk_root/system-images" \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/julia* \
+            /usr/local/share/boost \
+            /usr/share/dotnet \
+            /usr/share/swift
+          df -h
+
       - name: Install Android SDK components
         shell: bash
         run: |
@@ -92,7 +120,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gomobile-
 
+      - name: Cache Android AAR
+        id: android-aar-cache
+        uses: actions/cache@v4
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: |
+            bin/android/liblantern.aar
+            android/app/libs/liblantern.aar
+          key: ${{ runner.os }}-android-aar-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go') }}
+
+      - name: Mark restored Android AAR fresh
+        if: steps.android-aar-cache.outputs.cache-hit == 'true'
+        run: |
+          test -s bin/android/liblantern.aar
+          test -s android/app/libs/liblantern.aar
+          touch bin/android/liblantern.aar android/app/libs/liblantern.aar
+
       - name: Install dependencies (gomobile)
+        if: steps.android-aar-cache.outputs.cache-hit != 'true'
         run: make install-android-deps
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -108,9 +155,10 @@ jobs:
       - name: Create placeholder app.env
         run: touch app.env
 
-      # Builds the gomobile AAR, then compiles the debug APK (all app Kotlin).
-      # A Kotlin compile error fails this step — the whole point of the gate.
+      # Uses the cached gomobile AAR when possible, then compiles the debug APK
+      # (all app Kotlin). A Kotlin compile error fails this step — the whole
+      # point of the gate.
       - name: Build debug APK (compiles Kotlin)
-        run: make android-debug
+        run: make android-debug-ci
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
