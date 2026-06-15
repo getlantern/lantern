@@ -2454,3 +2454,18 @@ msgstr "%s/ماہ"
 
 msgid "no_payment_methods_available"
 msgstr "اس وقت ادائیگی کا کوئی طریقہ دستیاب نہیں ہے۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"
+
+msgid "items_added_count"
+msgstr "%d added"

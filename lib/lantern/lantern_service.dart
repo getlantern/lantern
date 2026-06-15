@@ -946,6 +946,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setPeerProxyEnabled(enabled);
@@ -954,6 +955,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, Unit>> setPeerManualPort(int port) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setPeerManualPort(port);
@@ -962,6 +964,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, int>> getPeerManualPort() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getPeerManualPort();
@@ -997,6 +1000,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setUnboundedEnabled(enabled);
@@ -1005,6 +1009,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, bool>> isUnboundedEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isUnboundedEnabled();
@@ -1013,11 +1018,21 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+
   Future<Either<Failure, bool>> probeUPnP() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.probeUPnP();
     }
     return _platformService.probeUPnP();
+  }
+
+  @override
+
+  Future<Either<Failure, Unit>> setProxyListenPort(int port) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setProxyListenPort(port);
+    }
+    return _platformService.setProxyListenPort(port);
   }
 
   @override

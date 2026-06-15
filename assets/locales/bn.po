@@ -2618,3 +2618,18 @@ msgstr "%s/মাস"
 
 msgid "no_payment_methods_available"
 msgstr "এই মুহূর্তে কোনো পেমেন্ট পদ্ধতি উপলব্ধ নেই। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
+
+msgid "items_added_count"
+msgstr "%d added"
+
+msgid "feature_disabled_for_build"
+msgstr "This feature is not available in this build"
+
+msgid "direct_connection_apps"
+msgstr "Direct Connection Apps"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Selected apps connect directly outside protected routing"
+
+msgid "apps_using_direct_connection"
+msgstr "Apps using direct connection (%d)"

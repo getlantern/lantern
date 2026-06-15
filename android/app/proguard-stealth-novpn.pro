@@ -1,0 +1,2 @@
+-checkdiscard class org.getlantern.lantern.service.LanternVpnService
+-checkdiscard class org.getlantern.lantern.service.QuickTileService

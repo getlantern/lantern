@@ -98,7 +98,8 @@ class _SettingCard extends ConsumerWidget {
         smallScreen &&
         !isUserPro &&
         serverType != ServerLocationType.privateServer;
-    final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
+    final showSplitTunneling =
+        !AppBuildInfo.stealthNoVpn && PlatformUtils.supportsSplitTunneling;
     final splitTunnel = showSplitTunneling
         ? ref.watch(splitTunnelProvider)
         : null;

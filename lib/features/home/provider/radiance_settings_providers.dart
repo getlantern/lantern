@@ -358,6 +358,9 @@ class RadianceSettings extends _$RadianceSettings {
 /// Fetches whether user logged in via OAuth from radiance.
 @riverpod
 Future<bool> isOAuthLogin(Ref ref) async {
+  if (!AppBuildInfo.enableOAuth) {
+    return false;
+  }
   final svc = ref.read(lanternServiceProvider);
   final result = await svc.isOAuthLogin();
   return result.fold((_) => false, (v) => v);
@@ -366,6 +369,9 @@ Future<bool> isOAuthLogin(Ref ref) async {
 /// Fetches OAuth provider name from radiance.
 @riverpod
 Future<String> oAuthProvider(Ref ref) async {
+  if (!AppBuildInfo.enableOAuth) {
+    return '';
+  }
   final svc = ref.read(lanternServiceProvider);
   final result = await svc.getOAuthProvider();
   return result.fold((_) => '', (v) => v);
@@ -374,6 +380,9 @@ Future<String> oAuthProvider(Ref ref) async {
 /// Whether the user is an SSO user (OAuth login with a provider set).
 @riverpod
 Future<bool> isSSOUser(Ref ref) async {
+  if (!AppBuildInfo.enableOAuth) {
+    return false;
+  }
   final isOAuth = await ref.watch(isOAuthLoginProvider.future);
   final provider = await ref.watch(oAuthProviderProvider.future);
   return isOAuth && provider.isNotEmpty;

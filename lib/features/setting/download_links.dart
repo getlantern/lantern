@@ -17,7 +17,12 @@ class DownloadLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(title: 'download_links'.i18n, body: _buildBody(context));
+    return BaseScreen(
+      title: 'download_links'.i18n,
+      body: AppBuildInfo.enableSocialLinks
+          ? _buildBody(context)
+          : const SizedBox.shrink(),
+    );
   }
 
   Widget _buildBody(BuildContext buildContext) {

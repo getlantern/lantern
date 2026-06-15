@@ -122,7 +122,7 @@ final class IsOAuthLoginProvider
   }
 }
 
-String _$isOAuthLoginHash() => r'7711849921b77b27fab46efaeeccc33b0ae56811';
+String _$isOAuthLoginHash() => r'34a7e5cf65f633c68c8189f8c50ff5c712df808b';
 
 /// Fetches OAuth provider name from radiance.
 
@@ -160,7 +160,7 @@ final class OAuthProviderProvider
   }
 }
 
-String _$oAuthProviderHash() => r'9d243b3a7155010f71c948211aa732c579fc63e1';
+String _$oAuthProviderHash() => r'e487261005a394ce0faa0bb7ae3bdf0ed3efebc9';
 
 /// Whether the user is an SSO user (OAuth login with a provider set).
 
@@ -198,4 +198,4 @@ final class IsSSOUserProvider
   }
 }
 
-String _$isSSOUserHash() => r'07a9fd3a10783d8b12a5c837224b732f7432f46c';
+String _$isSSOUserHash() => r'b32290f5f4f8f1f9acad3dc167b134144040e9f3';

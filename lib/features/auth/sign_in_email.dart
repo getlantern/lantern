@@ -75,7 +75,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               // OAuth finishes in a browser, which a TV does not have.
-              if (!PlatformUtils.isTv) ...[
+              if (!PlatformUtils.isTv && AppBuildInfo.enableOAuth) ...[
                 DividerSpace(),
                 SizedBox(height: defaultSize),
                 OAuthLogin(
@@ -132,6 +132,9 @@ class SignInEmail extends HookConsumerWidget {
     WidgetRef ref,
     SignUpMethodType type,
   ) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = oauthResult['token'];
     if (token != null) {
       context.showLoadingDialog();

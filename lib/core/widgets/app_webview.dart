@@ -278,9 +278,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     }
   }
 
-  bool isLanternHost(String host) =>
-      host == 'lantern.io' || host == 'www.lantern.io';
-
   Future<bool> _handleCompletionUrl(
     Uri? uri, {
     bool allowLocalhost = true,
@@ -298,7 +295,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     // OAuth callback: either a successful login (token) or a device-limit
     // response (result=false plus the device[...] list to de-authorize).
-    if (uri.scheme == 'lantern' &&
+    if (AppBuildInfo.enableOAuth &&
+        AppBuildInfo.isAppAuthUri(uri) &&
         uri.host == 'auth' &&
         isOAuthCallbackResult(uri)) {
       return _finishCompletion(uri.queryParameters);
@@ -306,7 +304,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     final purchaseResult = webViewPurchaseResult(uri);
     if (purchaseResult != null) {
-      appLogger.info('Webview detected purchase completion on ${uri.host}');
+       appLogger.info('Webview detected purchase completion on ${uri.host}');
       return _finishCompletion(purchaseResult);
     }
 
@@ -319,7 +317,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return _finishCompletion(true);
     }
 
-    if (isLanternHost(uri.host) &&
+    if (AppBuildInfo.enableOAuth &&
+        AppUrls.isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         isOAuthCallbackResult(uri)) {
       return _finishCompletion(uri.queryParameters);
@@ -364,7 +363,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    if (isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
+    if (AppUrls.isLanternHost(u.host) && (u.path == '/' || u.path.isEmpty)) {
       return NavigationActionPolicy.ALLOW;
     }
 

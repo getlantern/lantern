@@ -3,6 +3,7 @@ package org.getlantern.lantern
 import android.Manifest
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo
+import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
@@ -23,6 +24,7 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.NoVpnLanternService
 import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -32,7 +34,7 @@ import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.setupDirs
 
 
-class MainActivity : FlutterFragmentActivity() {
+open class MainActivity : FlutterFragmentActivity() {
     companion object {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
@@ -57,6 +59,16 @@ class MainActivity : FlutterFragmentActivity() {
     private val RETRY_DELAY_MS = 2000L // 2 seconds
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
+
+    // NOTE: the stealth app uses its own MainActivity under the foundation.bridge
+    // source set; this main-source-set activity only ever runs in the regular
+    // (non-stealth) build where STEALTH_ENABLED is always false, so it references
+    // the regular Lantern service classes directly.
+    private val vpnServiceClass: Class<out Service>
+        get() = LanternVpnService::class.java
+
+    private val noVpnServiceClass: Class<out Service>
+        get() = NoVpnLanternService::class.java
 
     // Pending tag replayed after the VPN-consent dialog so consent can't collapse the
     // selection into auto. Null = auto.
@@ -107,18 +119,25 @@ class MainActivity : FlutterFragmentActivity() {
         if (pendingServiceStart && retryCountResume < maxRetriesResume) {
             retryCountResume++
             AppLogger.d(TAG, "Retrying pending service start")
-            startLanternService()
+            retryServiceStart()
         }
     }
 
     private fun startLanternService() {
         AppLogger.d(TAG, "Starting LanternService")
-        if (isServiceRunning(this, LanternVpnService::class.java)) {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            AppLogger.d(TAG, "Stealth no-VPN build skips proxy autostart")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume = 0
+            return
+        }
+        if (isServiceRunning(this, vpnServiceClass)) {
             AppLogger.d(TAG, "LanternService is already running")
             return
         }
         try {
-            val radianceIntent = Intent(this, LanternVpnService::class.java).apply {
+            val radianceIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_START_RADIANCE
             }
             startService(radianceIntent)
@@ -138,6 +157,27 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private fun startNoVpnProxyService() {
+        if (isServiceRunning(this, noVpnServiceClass)) {
+            AppLogger.d(TAG, "NoVpnLanternService is already running; sending start action")
+        }
+        try {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
+                action = NoVpnLanternService.ACTION_START_PROXY
+            })
+            AppLogger.d(TAG, "NoVpnLanternService started")
+            pendingServiceStart = false
+            retryCount = 0
+            retryCountResume = 0
+        } catch (e: IllegalStateException) {
+            AppLogger.e(TAG, "Cannot start no-VPN proxy service in background: ${e.message}")
+            pendingServiceStart = true
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Error starting no-VPN proxy service", e)
+            handleImmediateRetry()
+        }
+    }
+
     private fun handleImmediateRetry() {
         AppLogger.d(TAG, "Handling immediate retry for LanternService start")
         if (retryCount < maxRetries) {
@@ -146,7 +186,7 @@ class MainActivity : FlutterFragmentActivity() {
 
             AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
             serviceStartHandler.postDelayed({
-                startLanternService()
+                retryServiceStart()
             }, delay)
         } else {
             /*
@@ -161,13 +201,25 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private fun retryServiceStart() {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            startNoVpnProxyService()
+        } else {
+            startLanternService()
+        }
+    }
+
 
     fun startVPN() {
         pendingTag = null
-        if (!isVPNServiceReady()) {
-            AppLogger.d(TAG, "VPN service not ready")
+        if (BuildConfig.STEALTH_NO_VPN) {
+            startNoVpnProxyService()
             return
         }
+        if (!isVPNServiceReady()) {
+        AppLogger.d(TAG, "VPN service not ready")
+        return
+    }
 
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
@@ -181,7 +233,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         try {
-            val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
+            val vpnIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_START_VPN
             }
             ContextCompat.startForegroundService(this, vpnIntent)
@@ -194,6 +246,13 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     fun connectToServer(tag: String) {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
+                action = NoVpnLanternService.ACTION_CONNECT_TO_SERVER
+                putExtra("tag", tag)
+            })
+            return
+        }
         if (!isVPNServiceReady()) {
             // Preserve the selection across the consent dialog; resumePendingConnect replays it.
             pendingTag = tag
@@ -214,7 +273,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         try {
-            val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
+            val vpnIntent = Intent(this, vpnServiceClass).apply {
                 action = LanternVpnService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
             }
@@ -250,7 +309,20 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     fun stopVPN() {
-        if (isServiceRunning(this, LanternVpnService::class.java)) {
+        if (BuildConfig.STEALTH_NO_VPN) {
+            if (isServiceRunning(this, noVpnServiceClass)) {
+                startService(Intent(this, noVpnServiceClass).apply {
+                    action = NoVpnLanternService.ACTION_STOP_PROXY
+                })
+            } else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    runCatching { Mobile.stopVPN() }
+                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                }
+            }
+            return
+        }
+        if (isServiceRunning(this, vpnServiceClass)) {
             // Service intent, not broadcast: works even if the status receiver
             // was torn down. On dispatch failure (e.g. backgrounded activity),
             // fall through to stopping the core directly.

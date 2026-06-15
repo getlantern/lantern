@@ -34,6 +34,7 @@ import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -620,6 +621,7 @@ open class LanternVpnService :
                 AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
             }
         }
+        DirectConnectionAppExclusionStore.applyToBuilder(builder, this)
 
         if (options.autoRoute) {
             if (options.dnsMode.value != Libbox.DNSModeDisabled) {
