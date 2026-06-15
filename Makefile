@@ -20,6 +20,19 @@ FFI_DIR := $(LANTERN_CORE)/ffi
 ## `common.Version` ldflag and a 400 "missing app version" at /v1/config-new.
 ## Local builds fall back to reading pubspec.yaml directly, with a PowerShell
 ## branch so Windows devs without Git Bash / WSL still get a working build.
+##
+## Caveat: pubspec.yaml's `version:` is a hardcoded literal that lags the real
+## release line — it is only rewritten to the authoritative version in CI (by
+## release.yml, from scripts/ci/version.sh). A local build still resolves its Go
+## deps from go.mod (current code) but would stamp that stale literal, so
+## sideload/dev builds get mislabeled (e.g. 9.0.28) in telemetry and support
+## tickets. Outside CI, derive the version from git tags first; the pubspec
+## fallback below only applies if that yields nothing (e.g. a checkout with no
+## tags). In CI, GITHUB_ACTIONS is set, so we skip this and trust the rewritten
+## pubspec.
+ifndef GITHUB_ACTIONS
+APP_VERSION ?= $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
+endif
 ifeq ($(OS),Windows_NT)
 APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
 else
@@ -525,7 +538,7 @@ android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
 android-debug-ci: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --debug -Plantern.sideloadUpdates=true
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(APP_VERSION_PUBSPEC) --debug -Plantern.sideloadUpdates=true
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
@@ -533,7 +546,7 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release:
-	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES) -Plantern.sideloadUpdates=true
+	flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(DART_DEFINES) -Plantern.sideloadUpdates=true
 	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 # AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on
@@ -541,7 +554,7 @@ android-apk-release:
 # crash-looping on Android 8-10 regardless.
 .PHONY: android-aab-release
 android-aab-release:
-	flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
+	flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	# Copy Play console artifacts
 	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
