@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/features/vpn/server_reachability.dart';
 
 import '../../core/common/common.dart';
 
@@ -69,7 +68,7 @@ class LocationSetting extends HookConsumerWidget {
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot, useThemeColor: false),
         if (shouldWarnBeforeManualSelection) ...[
-          serverReachabilityIcon(context),
+          const ServerReachabilityWarningIcon(),
           const SizedBox(width: 8),
         ],
         const SizedBox(width: 8),

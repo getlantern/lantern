@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/features/vpn/server_reachability.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
@@ -12,7 +11,10 @@ class SingleCityServerView extends StatefulWidget {
   final OnServerSelected onServerSelected;
   final bool isSelected;
   final bool nested;
-  final bool showWarningText;
+
+  /// Whether to surface the "may be unreachable" warning icon. Disabled for
+  /// free users, who see every location without the reachability distinction.
+  final bool showReachabilityWarning;
 
   const SingleCityServerView({
     super.key,
@@ -20,7 +22,7 @@ class SingleCityServerView extends StatefulWidget {
     required this.server,
     this.isSelected = false,
     this.nested = false,
-    this.showWarningText = true,
+    this.showReachabilityWarning = true,
   });
 
   @override
@@ -36,13 +38,21 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? widget.server.location.city
           : '${widget.server.location.country} - ${widget.server.location.city}',
       selected: widget.isSelected,
-      subtitle: serverReachabilitySubtitle(
-        context,
-        widget.server,
-        textTheme.labelMedium!,
-        showWarningText: widget.showWarningText,
-      ),
-      trailing: serverReachabilityWarningIcon(context, widget.server),
+      subtitle: widget.server.type.isEmpty
+          ? null
+          : Text(
+              widget.server.type.capitalize,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textTertiary,
+              ),
+            ),
+      trailing:
+          widget.showReachabilityWarning &&
+              widget.server.shouldWarnBeforeManualSelection
+          ? const ServerReachabilityWarningIcon()
+          : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.server);
