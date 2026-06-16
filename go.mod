@@ -25,7 +25,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260611191533-ce4b0859dcff
+	github.com/getlantern/radiance v0.0.0-20260616160552-886b1abfb982
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.42.0
@@ -166,13 +166,13 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
-	github.com/getlantern/broflake v0.0.0-20260504215251-ed3cf75062d1 // indirect
+	github.com/getlantern/broflake v0.0.0-20260612203837-c4d1516de8dc // indirect
 	github.com/getlantern/common v1.2.1-0.20260326210434-cb69537aaf46 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
 	github.com/getlantern/domainfront v0.0.0-20260419161617-0bff0b2169f4 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260608000050-6b50f5857840 // indirect
 	github.com/getlantern/kindling v0.0.0-20260611181428-9a360f63ad5a // indirect
-	github.com/getlantern/lantern-box v0.0.88 // indirect
+	github.com/getlantern/lantern-box v0.0.90 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
@@ -258,7 +258,7 @@ require (
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
 	github.com/safchain/ethtool v0.3.0 // indirect
 	github.com/sagernet/sing v0.7.18 // indirect
-	github.com/sagernet/sing-tun v0.7.11 // indirect
+	github.com/sagernet/sing-tun v0.7.13 // indirect
 	github.com/sagernet/tailscale v1.80.3-sing-box-1.12-mod.2 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
