@@ -51,6 +51,15 @@ class AppEventNotifier extends _$AppEventNotifier {
               .forceFetchAvailableServers();
 
           break;
+        case 'url-test':
+          // A URL-test run produced fresh latency results. Re-fetch the
+          // available servers so the UI reflects the updated probe data.
+          unawaited(
+            ref
+                .read(availableServersProvider.notifier)
+                .forceFetchAvailableServers(),
+          );
+          break;
         case 'server-location':
           // The selected server event is also our current Lantern-only signal
           // that Smart Location probe data may have changed.

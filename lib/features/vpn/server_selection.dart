@@ -41,7 +41,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       unawaited(
         ref
             .read(availableServersProvider.notifier)
-            .refreshAvailableServersAfterProbeSettle(),
+            .forceFetchAvailableServers(),
       );
     });
   }
@@ -471,7 +471,6 @@ class _ServerLocationListViewState
         onServerSelected: onServerSelected,
         server: server,
         isSelected: selectedTag == server.tag,
-        showWarningText: false,
       );
     }).toList();
   }
@@ -540,6 +539,7 @@ class _ServerLocationListViewState
       action: [
         AppTextButton(
           label: 'try_anyway'.i18n,
+          textColor: context.textTertiary,
           onPressed: () async {
             appRouter.maybePop();
             await _connectToServer(selectedServer);
@@ -707,11 +707,15 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               minHeight: 58,
               contentPadding: const EdgeInsets.only(left: 53, right: 14),
               label: server.location.city,
-              subtitle: serverReachabilitySubtitle(
-                context,
-                server,
-                Theme.of(context).textTheme.labelMedium!,
-              ),
+              subtitle: server.type.isEmpty
+                  ? null
+                  : Text(
+                      server.type.capitalize,
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                        color: context.textSecondary,
+                      ),
+                    ),
               trailing: serverReachabilityWarningIcon(context, server),
               tileTextStyle: Theme.of(
                 context,

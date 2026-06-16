@@ -8,14 +8,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'available_servers_notifier.g.dart';
 
-const _availableServersSettleReloadThrottle = Duration(seconds: 30);
-const _availableServersSettleReloadDelay = Duration(seconds: 4);
-
 @Riverpod(keepAlive: true)
 class AvailableServersNotifier extends _$AvailableServersNotifier {
-  DateTime? _lastSettleReloadAt;
-  Future<void>? _settleReload;
-
   @override
   Future<AvailableServers> build() async {
     final result = await fetchAvailableServers();
@@ -40,46 +34,20 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
   /// Forces a fetch of the available servers and updates the state.
   /// Updates UI accordingly.
   Future<void> forceFetchAvailableServers() async {
+    appLogger.debug('Forcing fetch of available servers...');
     final result = await fetchAvailableServers();
     result.fold(
       (failure) {
         appLogger.error('Error getting available servers: ${failure.error}');
       },
       (servers) {
+        appLogger.debug(
+          'Successfully fetched available servers, updating state...',
+        );
         state = AsyncValue.data(servers);
         _pushFastestToSmartLocation(servers);
       },
     );
-  }
-
-  /// Reloads available servers from the latest persisted Smart Location probe data.
-  Future<void> refreshAvailableServersAfterProbeSettle() async {
-    final now = DateTime.now();
-    final lastReload = _lastSettleReloadAt;
-    await forceFetchAvailableServers();
-
-    if (_settleReload != null) {
-      await _settleReload;
-      return;
-    }
-    if (lastReload != null &&
-        now.difference(lastReload) < _availableServersSettleReloadThrottle) {
-      return;
-    }
-    _lastSettleReloadAt = now;
-
-    final settleReload = Future<void>(() async {
-      await Future.delayed(_availableServersSettleReloadDelay);
-      await forceFetchAvailableServers();
-    });
-    _settleReload = settleReload;
-    try {
-      await settleReload;
-    } finally {
-      if (_settleReload == settleReload) {
-        _settleReload = null;
-      }
-    }
   }
 
   /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto

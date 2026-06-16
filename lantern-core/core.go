@@ -36,6 +36,7 @@ const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
 	EventTypeCountryCode    EventType = "country-code"
+	EventTypeURLTest        EventType = "url-test"
 	DefaultLogLevel                   = "trace"
 )
 
@@ -240,6 +241,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
+	go lc.listenURLTestEvents()
 	go lc.listenDataCapEvents()
 	go lc.fetchUserDataIfNeeded()
 
@@ -336,6 +338,24 @@ func (lc *LanternCore) listenConfigEvents() {
 	})
 	if err != nil && lc.ctx.Err() == nil {
 		slog.Error("config event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenURLTestEvents listens for URL-test completion notifications from the IPC client and notifies
+// Flutter so it can re-fetch the available servers with fresh latency data. Blocks until lc.ctx is
+// cancelled.
+func (lc *LanternCore) listenURLTestEvents() {
+	err := lc.client.URLTestEvents(lc.ctx, func(evt vpn.URLTestCompleteEvent) {
+		jsonBytes, err := json.Marshal(evt)
+		if err != nil {
+			slog.Error("Error marshalling URL-test event", "error", err)
+			return
+		}
+		slog.Debug("URL-test completed, notifying Flutter", "event", string(jsonBytes))
+		lc.notifyFlutter(EventTypeURLTest, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("url-test event stream exited unexpectedly", "error", err)
 	}
 }
 

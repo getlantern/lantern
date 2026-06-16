@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/features/vpn/server_reachability.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
@@ -12,7 +11,6 @@ class SingleCityServerView extends StatefulWidget {
   final OnServerSelected onServerSelected;
   final bool isSelected;
   final bool nested;
-  final bool showWarningText;
 
   const SingleCityServerView({
     super.key,
@@ -20,7 +18,6 @@ class SingleCityServerView extends StatefulWidget {
     required this.server,
     this.isSelected = false,
     this.nested = false,
-    this.showWarningText = true,
   });
 
   @override
@@ -36,13 +33,20 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? widget.server.location.city
           : '${widget.server.location.country} - ${widget.server.location.city}',
       selected: widget.isSelected,
-      subtitle: serverReachabilitySubtitle(
-        context,
-        widget.server,
-        textTheme.labelMedium!,
-        showWarningText: widget.showWarningText,
-      ),
-      trailing: serverReachabilityWarningIcon(context, widget.server),
+      subtitle: widget.server.type.isEmpty
+          ? null
+          : Text(
+              widget.server.type.capitalize,
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textTertiary,
+              ),
+            ),
+      trailing: widget.server.shouldWarnBeforeManualSelection
+          ? AppImage(
+              path: AppImagePaths.info,
+              color: context.statusWarningBgDot,
+            )
+          : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.server);
