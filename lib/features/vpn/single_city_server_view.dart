@@ -42,6 +42,8 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? null
           : Text(
               widget.server.type.capitalize,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.labelMedium!.copyWith(
                 color: context.textTertiary,
               ),
@@ -49,7 +51,7 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
       trailing:
           widget.showReachabilityWarning &&
               widget.server.shouldWarnBeforeManualSelection
-          ? ServerReachabilityWarningIcon()
+          ? const ServerReachabilityWarningIcon()
           : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {

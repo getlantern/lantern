@@ -50,11 +50,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final selected = ref.watch(serverLocationProvider);
     final availableServers = ref.watch(availableServersProvider);
     final isUserPro = ref.watch(isUserProProvider);
+    _textTheme = TextTheme.of(context);
 
-    _textTheme = Theme.of(context).textTheme;
-    appLogger.debug(
-      'ServerSelection build: selected=$selected, availableServers=$availableServers, isUserPro=$isUserPro',
-    );
     final appBar = CustomAppBar(
       title: Text('server_selection'.i18n),
       actions: [
@@ -354,16 +351,20 @@ class _ServerLocationListViewState
                   final reachableLocations = allLocations
                       .where((s) => !s.shouldWarnBeforeManualSelection)
                       .toList();
-                  final unavailableLocations = allLocations
-                      .where((s) => s.shouldWarnBeforeManualSelection)
-                      .toList()
-                    ..sort(_compareServersByLocation);
+                  final unavailableLocations =
+                      allLocations
+                          .where((s) => s.shouldWarnBeforeManualSelection)
+                          .toList()
+                        ..sort(_compareServersByLocation);
 
                   sections = [
                     if (reachableLocations.isNotEmpty) ...[
                       _sectionHeader('pro_locations'.i18n),
                       _sectionCard(
-                        _reachableLocationTiles(reachableLocations, selectedTag),
+                        _reachableLocationTiles(
+                          reachableLocations,
+                          selectedTag,
+                        ),
                       ),
                     ],
                     if (unavailableLocations.isNotEmpty) ...[
@@ -739,7 +740,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               trailing:
                   widget.showReachabilityWarning &&
                       server.shouldWarnBeforeManualSelection
-                  ? ServerReachabilityWarningIcon()
+                  ? const ServerReachabilityWarningIcon()
                   : null,
               tileTextStyle: Theme.of(
                 context,
