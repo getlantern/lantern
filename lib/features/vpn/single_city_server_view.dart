@@ -42,10 +42,7 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
               ),
             ),
       trailing: widget.server.shouldWarnBeforeManualSelection
-          ? AppImage(
-              path: AppImagePaths.info,
-              color: context.statusWarningBgDot,
-            )
+          ? ServerReachabilityWarningIcon()
           : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {

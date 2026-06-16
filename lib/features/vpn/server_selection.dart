@@ -16,7 +16,6 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
-import 'package:lantern/features/vpn/server_reachability.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
 
 typedef OnServerSelected = Function(Server selectedServer);
@@ -53,7 +52,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final isUserPro = ref.watch(isUserProProvider);
 
     _textTheme = Theme.of(context).textTheme;
-
+    appLogger.debug(
+      'ServerSelection build: selected=$selected, availableServers=$availableServers, isUserPro=$isUserPro',
+    );
     final appBar = CustomAppBar(
       title: Text('server_selection'.i18n),
       actions: [
@@ -520,7 +521,7 @@ class _ServerLocationListViewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          Center(child: serverReachabilityIcon(context, size: 48)),
+          const Center(child: ServerReachabilityWarningIcon(size: 48)),
           const SizedBox(height: 16),
           Center(
             child: Text(
@@ -716,7 +717,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                         color: context.textSecondary,
                       ),
                     ),
-              trailing: serverReachabilityWarningIcon(context, server),
+              trailing: ServerReachabilityWarningIcon.forServer(server),
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
