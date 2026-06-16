@@ -343,18 +343,49 @@ class _ServerLocationListViewState
           Flexible(
             child: availableServers.when(
               data: (data) {
-                final reachableLocations = data.lanternServerLocations
-                    .where((s) => !s.shouldWarnBeforeManualSelection)
-                    .toList();
-                final unavailableLocations =
-                    data.lanternServerLocations
-                        .where((s) => s.shouldWarnBeforeManualSelection)
-                        .toList()
-                      ..sort(_compareServersByLocation);
-
-                if (reachableLocations.isEmpty &&
-                    unavailableLocations.isEmpty) {
+                final allLocations = data.lanternServerLocations;
+                if (allLocations.isEmpty) {
                   return const Center(child: Text("No locations available"));
+                }
+
+                final List<Widget> sections;
+                if (widget.userPro) {
+                  // Pro users get the reachable / currently-unavailable split.
+                  final reachableLocations = allLocations
+                      .where((s) => !s.shouldWarnBeforeManualSelection)
+                      .toList();
+                  final unavailableLocations = allLocations
+                      .where((s) => s.shouldWarnBeforeManualSelection)
+                      .toList()
+                    ..sort(_compareServersByLocation);
+
+                  sections = [
+                    if (reachableLocations.isNotEmpty) ...[
+                      _sectionHeader('pro_locations'.i18n),
+                      _sectionCard(
+                        _reachableLocationTiles(reachableLocations, selectedTag),
+                      ),
+                    ],
+                    if (unavailableLocations.isNotEmpty) ...[
+                      SizedBox(height: reachableLocations.isEmpty ? 4 : size24),
+                      _sectionHeader('currently_unavailable'.i18n),
+                      _sectionCard(
+                        _unavailableLocationTiles(
+                          unavailableLocations,
+                          selectedTag,
+                        ),
+                      ),
+                    ],
+                  ];
+                } else {
+                  // Free users see every location in a single list, without the
+                  // reachable / unavailable distinction.
+                  sections = [
+                    _sectionHeader('pro_locations'.i18n),
+                    _sectionCard(
+                      _reachableLocationTiles(allLocations, selectedTag),
+                    ),
+                  ];
                 }
 
                 return Stack(
@@ -365,35 +396,16 @@ class _ServerLocationListViewState
                       ).copyWith(scrollbars: false),
                       child: ListView(
                         padding: EdgeInsets.zero,
-                        children: [
-                          if (reachableLocations.isNotEmpty) ...[
-                            _sectionHeader('pro_locations'.i18n),
-                            _sectionCard(
-                              _reachableLocationTiles(
-                                reachableLocations,
-                                selectedTag,
-                              ),
-                            ),
-                          ],
-                          if (unavailableLocations.isNotEmpty) ...[
-                            SizedBox(
-                              height: reachableLocations.isEmpty ? 4 : size24,
-                            ),
-                            _sectionHeader('currently_unavailable'.i18n),
-                            _sectionCard(
-                              _unavailableLocationTiles(
-                                unavailableLocations,
-                                selectedTag,
-                              ),
-                            ),
-                          ],
-                        ],
+                        children: sections,
                       ),
                     ),
                     if (!widget.userPro)
                       Positioned.fill(
                         child: Container(
-                          color: context.bgElevated.withValues(alpha: 0.72),
+                          decoration: BoxDecoration(
+                            color: context.bgElevated.withValues(alpha: 0.72),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           alignment: Alignment.center,
                         ),
                       ),
@@ -450,6 +462,7 @@ class _ServerLocationListViewState
           onServerSelected: onServerSelected,
           server: serverData,
           isSelected: selectedTag == serverData.tag,
+          showReachabilityWarning: widget.userPro,
         );
       }
 
@@ -458,6 +471,7 @@ class _ServerLocationListViewState
         locations: countryLocations,
         selectedServerTag: selectedTag,
         onServerSelected: onServerSelected,
+        showReachabilityWarning: widget.userPro,
       );
     }).toList();
   }
@@ -472,6 +486,7 @@ class _ServerLocationListViewState
         onServerSelected: onServerSelected,
         server: server,
         isSelected: selectedTag == server.tag,
+        showReachabilityWarning: widget.userPro,
       );
     }).toList();
   }
@@ -505,7 +520,9 @@ class _ServerLocationListViewState
       }
     }
 
-    if (selectedServer.shouldWarnBeforeManualSelection) {
+    // The unreachable-server warning is part of the Pro reachability
+    // experience; free users select any location without it.
+    if (widget.userPro && selectedServer.shouldWarnBeforeManualSelection) {
       _showManualServerWarning(selectedServer);
       return;
     }
@@ -660,12 +677,14 @@ class _CountryCityListView extends StatefulWidget {
   final List<Server> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
+  final bool showReachabilityWarning;
 
   const _CountryCityListView({
     required this.country,
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
+    this.showReachabilityWarning = true,
   });
 
   @override
@@ -717,7 +736,11 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                         color: context.textSecondary,
                       ),
                     ),
-              trailing: ServerReachabilityWarningIcon.forServer(server),
+              trailing:
+                  widget.showReachabilityWarning &&
+                      server.shouldWarnBeforeManualSelection
+                  ? ServerReachabilityWarningIcon()
+                  : null,
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
@@ -763,6 +786,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
 
               return SingleCityServerView(
                 nested: true,
+                showReachabilityWarning: widget.showReachabilityWarning,
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
