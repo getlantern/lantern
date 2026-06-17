@@ -359,6 +359,9 @@ class MethodHandler {
       case "sendConfigRequest":
         self.sendConfigRequest(result: result)
 
+      case "clearTunnelCache":
+        self.clearTunnelCache(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -1234,6 +1237,18 @@ class MethodHandler {
       MobileSendConfigRequest(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SEND_CONFIG_REQUEST_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func clearTunnelCache(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileClearTunnelCache(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CLEAR_TUNNEL_CACHE_ERROR")
         return
       }
       await MainActor.run { result("ok") }
