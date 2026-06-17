@@ -217,9 +217,10 @@ class _PlansState extends ConsumerState<Plans>
               icon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
               onPressed: () {
+                context.pop();
                 final appSetting = ref.read(appSettingProvider);
                 final email = ref.read(userEmailProvider);
-                if (appSetting.userLoggedIn) {
+                if (appSetting.userLoggedIn && email.isNotEmpty) {
                   appRouter.push(LanternProLicense(email: email, code: ''));
                   return;
                 }

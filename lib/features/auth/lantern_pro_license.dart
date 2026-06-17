@@ -126,8 +126,7 @@ class LanternProLicense extends HookConsumerWidget {
         await checkUserAccountStatus(ref, context);
         context.hideLoadingDialog();
 
-        /// User is already signed in
-        /// or User is OAuth
+        /// User is already signed in or using OAuth
         if (code.isEmpty) {
           appLogger.info(
             'No code provided, user is using OAuth (skip password)',
