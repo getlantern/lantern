@@ -8,8 +8,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -217,6 +217,12 @@ class _PlansState extends ConsumerState<Plans>
               icon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
               onPressed: () {
+                final appSetting = ref.read(appSettingProvider);
+                final email = ref.read(userEmailProvider);
+                if (appSetting.userLoggedIn) {
+                  appRouter.push(LanternProLicense(email: email, code: ''));
+                  return;
+                }
                 appRouter.popAndPush(
                   AddEmail(authFlow: AuthFlow.lanternProLicense),
                 );
