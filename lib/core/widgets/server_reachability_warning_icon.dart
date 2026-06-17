@@ -3,6 +3,12 @@ import 'package:lantern/core/common/common.dart';
 
 /// Warning icon shown when a server may be unreachable. Renders an info icon
 /// with a tooltip and accessibility label.
+import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_image_paths.dart';
+import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/localization/i18n.dart';
+
+/// Warning icon shown when a server may be unreachable.
 class ServerReachabilityWarningIcon extends StatelessWidget {
   const ServerReachabilityWarningIcon({super.key, this.size});
 

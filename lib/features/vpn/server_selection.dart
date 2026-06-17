@@ -50,6 +50,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final selected = ref.watch(serverLocationProvider);
     final availableServers = ref.watch(availableServersProvider);
     final isUserPro = ref.watch(isUserProProvider);
+
     _textTheme = TextTheme.of(context);
 
     final appBar = CustomAppBar(
@@ -733,6 +734,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   : Text(
                       server.type.capitalize,
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelMedium!.copyWith(
                         color: context.textSecondary,
                       ),
