@@ -12,9 +12,8 @@ class AvailableServers {
   List<Server> get userServers => servers.where((s) => !s.isLantern).toList();
 
   /// One representative Lantern server per country/city. If any server for the
-  /// location has a successful probe, use the fastest one. Otherwise prefer a
-  /// server without failed-probe evidence so untested locations are not shown as
-  /// unavailable.
+  /// location has a successful probe, use the fastest one; otherwise keep a
+  /// deterministic representative so the location can be shown as unavailable.
   List<Server> get lanternServerLocations {
     final grouped = <String, List<Server>>{};
     for (final server in lanternServers) {
@@ -47,8 +46,6 @@ class AvailableServers {
   }
 }
 
-const _manualSelectionFailureWarningThreshold = 3;
-
 String _locationKey(Server server) {
   final location = server.location;
   return [
@@ -71,11 +68,7 @@ Server _bestServerForLocation(List<Server> servers) {
     return successful.first;
   }
 
-  final notFailed = servers
-      .where((s) => !s.shouldWarnBeforeManualSelection)
-      .toList();
-  final sorted = (notFailed.isEmpty ? [...servers] : notFailed)
-    ..sort(_compareServersByLocation);
+  final sorted = [...servers]..sort(_compareServersByLocation);
   return sorted.first;
 }
 
@@ -132,15 +125,9 @@ class Server {
   bool get hasSuccessfulProbe =>
       (selectionHistory?.lastSuccessDelayMs ?? 0) > 0;
 
-  bool get hasFailedProbeEvidence =>
-      (selectionHistory?.consecutiveFailures ?? 0) >=
-      _manualSelectionFailureWarningThreshold;
-
-  /// Manual mode pins traffic to exactly this server. Warn only after URL tests
-  /// have produced enough failed probe evidence; missing probe data means
-  /// unknown/untested, not unreachable.
-  bool get shouldWarnBeforeManualSelection =>
-      isLantern && hasFailedProbeEvidence;
+  /// Manual mode pins traffic to exactly this server. If Smart Location has no
+  /// successful probe for it, warn before pinning so users can stay on auto.
+  bool get shouldWarnBeforeManualSelection => isLantern && !hasSuccessfulProbe;
 }
 
 class GeoLocation {

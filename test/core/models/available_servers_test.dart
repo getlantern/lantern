@@ -16,18 +16,9 @@ void main() {
     });
 
     test('lanternServerLocations picks one best server per location', () {
-      final nyFailed = _server(
-        tag: 'ny-failed',
-        consecutiveFailures: 3,
-        city: 'New York',
-      );
+      final nyFailed = _server(tag: 'ny-failed', delay: 0, city: 'New York');
       final nySlow = _server(tag: 'ny-slow', delay: 220, city: 'New York');
       final nyFast = _server(tag: 'ny-fast', delay: 90, city: 'New York');
-      final laFailed = _server(
-        tag: 'la-failed',
-        consecutiveFailures: 3,
-        city: 'Los Angeles',
-      );
       final laNoProbe = _server(tag: 'la-no-probe', city: 'Los Angeles');
       final private = _server(
         tag: 'private',
@@ -40,7 +31,6 @@ void main() {
         nyFailed,
         nySlow,
         nyFast,
-        laFailed,
         laNoProbe,
         private,
       ]).lanternServerLocations;
@@ -51,35 +41,27 @@ void main() {
         nyFast,
       );
       expect(
-        locations.singleWhere((s) => s.location.city == 'Los Angeles'),
-        laNoProbe,
+        locations
+            .singleWhere((s) => s.location.city == 'Los Angeles')
+            .shouldWarnBeforeManualSelection,
+        isTrue,
       );
     });
 
     test(
-      'warns before manually selecting Lantern servers with failed probe evidence',
+      'warns before manually selecting Lantern servers without a successful probe',
       () {
         expect(
           _server(tag: 'reachable', delay: 100).shouldWarnBeforeManualSelection,
           isFalse,
         );
         expect(
-          _server(
-            tag: 'one-failure',
-            consecutiveFailures: 1,
-          ).shouldWarnBeforeManualSelection,
-          isFalse,
-        );
-        expect(
-          _server(
-            tag: 'failed',
-            consecutiveFailures: 3,
-          ).shouldWarnBeforeManualSelection,
+          _server(tag: 'failed', delay: 0).shouldWarnBeforeManualSelection,
           isTrue,
         );
         expect(
           _server(tag: 'no-probe').shouldWarnBeforeManualSelection,
-          isFalse,
+          isTrue,
         );
         expect(
           _server(
@@ -97,7 +79,6 @@ Server _server({
   required String tag,
   bool isLantern = true,
   int? delay,
-  int consecutiveFailures = 0,
   String country = 'United States',
   String countryCode = 'US',
   String city = 'New York',
@@ -113,11 +94,10 @@ Server _server({
       latitude: 40.7128,
       longitude: -74.006,
     ),
-    selectionHistory: delay == null && consecutiveFailures == 0
+    selectionHistory: delay == null
         ? null
         : SelectionHistory(
-            lastSuccessDelayMs: delay ?? 0,
-            consecutiveFailures: consecutiveFailures,
+            lastSuccessDelayMs: delay,
             updatedAt: DateTime.utc(2026, 1, 1),
           ),
   );
