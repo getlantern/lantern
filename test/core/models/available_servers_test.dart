@@ -3,17 +3,28 @@ import 'package:lantern/core/models/available_servers.dart';
 
 void main() {
   group('AvailableServers', () {
-    test('fastestLanternServer only considers successful Lantern probes', () {
-      final slow = _server(tag: 'slow', delay: 320);
-      final failed = _server(tag: 'failed', delay: 0, failures: 3);
-      final noProbe = _server(tag: 'no-probe');
-      final fast = _server(tag: 'fast', delay: 85);
-      final private = _server(tag: 'private', isLantern: false, delay: 40);
+    test(
+      'fastestLanternServer only considers usable successful Lantern probes',
+      () {
+        final slow = _server(tag: 'slow', delay: 320);
+        final failed = _server(tag: 'failed', delay: 0, failures: 3);
+        final noProbe = _server(tag: 'no-probe');
+        final staleFast = _server(tag: 'stale-fast', delay: 10, failures: 3);
+        final fast = _server(tag: 'fast', delay: 85);
+        final private = _server(tag: 'private', isLantern: false, delay: 40);
 
-      final servers = AvailableServers([slow, failed, noProbe, fast, private]);
+        final servers = AvailableServers([
+          slow,
+          failed,
+          noProbe,
+          staleFast,
+          fast,
+          private,
+        ]);
 
-      expect(servers.fastestLanternServer, fast);
-    });
+        expect(servers.fastestLanternServer, fast);
+      },
+    );
 
     test('lanternServerLocations picks one best server per location', () {
       final nyFailed = _server(
@@ -147,6 +158,36 @@ void main() {
         expect(locations.single.shouldWarnBeforeManualSelection, isFalse);
       },
     );
+
+    test(
+      'lanternServerLocations does not prefer stale latency from a hard-failed server',
+      () {
+        final staleFailed = _server(
+          tag: 'paris-fast-stale',
+          delay: 10,
+          failures: 3,
+          city: 'Paris',
+          country: 'France',
+          countryCode: 'FR',
+        );
+        final usable = _server(
+          tag: 'paris-usable',
+          delay: 100,
+          city: 'Paris',
+          country: 'France',
+          countryCode: 'FR',
+        );
+
+        final locations = AvailableServers([
+          staleFailed,
+          usable,
+        ]).lanternServerLocations;
+
+        expect(locations, hasLength(1));
+        expect(locations.single, usable);
+        expect(locations.single.shouldWarnBeforeManualSelection, isFalse);
+      },
+    );
   });
 
   group('Server probe state', () {
@@ -168,6 +209,19 @@ void main() {
       expect(s.isProbedUnreachable, isTrue);
       expect(s.shouldWarnBeforeManualSelection, isTrue);
     });
+
+    test(
+      'stale successful probe with current sustained failures: warns and is unreachable',
+      () {
+        final s = _server(tag: 'stale-failed', delay: 100, failures: 3);
+        expect(s.hasSuccessfulProbe, isTrue);
+        expect(s.hasProbeVerdict, isTrue);
+        expect(s.hasFailedProbeEvidence, isTrue);
+        expect(s.isAwaitingProbe, isFalse);
+        expect(s.isProbedUnreachable, isTrue);
+        expect(s.shouldWarnBeforeManualSelection, isTrue);
+      },
+    );
 
     test('transient failure below threshold: uncertain, not unreachable', () {
       final s = _server(tag: 'flapping', delay: 0, failures: 2);
