@@ -937,6 +937,9 @@ msgstr "Private Servers"
 msgid "fastest_server"
 msgstr "Fastest Server"
 
+msgid "server_testing"
+msgstr "Testing…"
+
 msgid "server_may_be_unreachable"
 msgstr "May be unreachable"
 

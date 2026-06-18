@@ -69,6 +69,7 @@ export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/core/widgets/server_reachability_warning_icon.dart';
+export 'package:lantern/core/widgets/server_testing_indicator.dart';
 export 'package:lantern/features/home/data_usage.dart';
 
 export '../../core/widgets/divider_space.dart';

@@ -739,10 +739,12 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                         color: context.textSecondary,
                       ),
                     ),
-              trailing:
-                  widget.showReachabilityWarning &&
-                      server.shouldWarnBeforeManualSelection
+              trailing: !widget.showReachabilityWarning
+                  ? null
+                  : server.isProbedUnreachable
                   ? const ServerReachabilityWarningIcon()
+                  : server.isAwaitingProbe
+                  ? const ServerTestingIndicator()
                   : null,
               tileTextStyle: Theme.of(
                 context,
