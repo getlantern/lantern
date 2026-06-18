@@ -46,19 +46,28 @@ class AppEventNotifier extends _$AppEventNotifier {
       appLogger.debug('Received app event of type: $eventType');
       switch (eventType) {
         case 'config':
-          ref
-              .read(availableServersProvider.notifier)
-              .forceFetchAvailableServers();
-
-          break;
-        case 'url-test':
-          // A URL-test run produced fresh latency results. Re-fetch the
-          // available servers so the UI reflects the updated probe data.
           unawaited(
             ref
                 .read(availableServersProvider.notifier)
                 .forceFetchAvailableServers(),
           );
+          break;
+        case 'url-test':
+          appLogger.debug('Received url-test event, updating server delays...');
+          try {
+            final payload = jsonDecode(event.message) as Map<String, dynamic>;
+            final rawResults = payload['results'] as Map<String, dynamic>?;
+            if (rawResults != null && rawResults.isNotEmpty) {
+              final results = rawResults.map(
+                (tag, delay) => MapEntry(tag, (delay as num).toInt()),
+              );
+              ref
+                  .read(availableServersProvider.notifier)
+                  .updateServerDelays(results);
+            }
+          } catch (e) {
+            appLogger.error('Error parsing url-test event: $e');
+          }
           break;
         case 'server-location':
           // The selected server event is also our current Lantern-only signal

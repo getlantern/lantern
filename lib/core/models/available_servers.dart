@@ -118,6 +118,17 @@ class Server {
         : SelectionHistory.fromJson(json["selection_history"]),
   );
 
+  Server copyWith({SelectionHistory? selectionHistory}) => Server(
+    tag: tag,
+    type: type,
+    isLantern: isLantern,
+    outbound: outbound,
+    endpoint: endpoint,
+    location: location,
+    credentials: credentials,
+    selectionHistory: selectionHistory ?? this.selectionHistory,
+  );
+
   /// IP address extracted from outbound or endpoint options.
   String get serverIP =>
       outbound?['server'] as String? ?? endpoint?['server'] as String? ?? '';
@@ -201,6 +212,20 @@ class SelectionHistory {
     this.userFailures = const [],
     this.updatedAt,
   });
+
+  SelectionHistory copyWith({
+    int? lastSuccessDelayMs,
+    DateTime? lastOutcomeAt,
+    int? consecutiveFailures,
+    List<DateTime>? userFailures,
+    DateTime? updatedAt,
+  }) => SelectionHistory(
+    lastSuccessDelayMs: lastSuccessDelayMs ?? this.lastSuccessDelayMs,
+    lastOutcomeAt: lastOutcomeAt ?? this.lastOutcomeAt,
+    consecutiveFailures: consecutiveFailures ?? this.consecutiveFailures,
+    userFailures: userFailures ?? this.userFailures,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 
   factory SelectionHistory.fromJson(Map<String, dynamic> json) =>
       SelectionHistory(
