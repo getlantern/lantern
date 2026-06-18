@@ -35,15 +35,18 @@ class AvailableServers {
     return null;
   }
 
-  /// Lantern server with the lowest successful probe delay. Null when no
-  /// Lantern server has a successful probe.
+  /// Lantern server with the lowest usable successful probe delay. Null when no
+  /// Lantern server has a successful probe that is not currently hard-failing.
   Server? get fastestLanternServer {
-    final ranked = lanternServers.where((s) => s.hasSuccessfulProbe).toList()
-      ..sort(
-        (a, b) => a.selectionHistory!.lastSuccessDelayMs.compareTo(
-          b.selectionHistory!.lastSuccessDelayMs,
-        ),
-      );
+    final ranked =
+        lanternServers
+            .where((s) => s.hasSuccessfulProbe && !s.isProbedUnreachable)
+            .toList()
+          ..sort(
+            (a, b) => a.selectionHistory!.lastSuccessDelayMs.compareTo(
+              b.selectionHistory!.lastSuccessDelayMs,
+            ),
+          );
     return ranked.isEmpty ? null : ranked.first;
   }
 }
@@ -63,7 +66,9 @@ String _locationKey(Server server) {
 }
 
 Server _bestServerForLocation(List<Server> servers) {
-  final successful = servers.where((s) => s.hasSuccessfulProbe).toList();
+  final successful = servers
+      .where((s) => s.hasSuccessfulProbe && !s.isProbedUnreachable)
+      .toList();
   if (successful.isNotEmpty) {
     successful.sort((a, b) {
       final delay = a.selectionHistory!.lastSuccessDelayMs.compareTo(
@@ -81,9 +86,7 @@ Server _bestServerForLocation(List<Server> servers) {
   // has sustained enough failures — so a location is "unavailable" only once
   // all of its servers are.
   final awaiting = servers.where((s) => s.isAwaitingProbe).toList();
-  final notUnreachable = servers
-      .where((s) => !s.isProbedUnreachable)
-      .toList();
+  final notUnreachable = servers.where((s) => !s.isProbedUnreachable).toList();
   final pool = awaiting.isNotEmpty
       ? awaiting
       : (notUnreachable.isNotEmpty ? notUnreachable : servers);
@@ -151,10 +154,11 @@ class Server {
   bool get hasProbeVerdict =>
       hasSuccessfulProbe || (selectionHistory?.consecutiveFailures ?? 0) > 0;
 
-  /// Sustained probe failures past
-  /// [_manualSelectionFailureWarningThreshold] with no success — enough
-  /// evidence to treat the server as unreachable rather than merely uncertain.
-  /// One or two failures are still "unknown", not "unavailable".
+  /// Sustained probe failures past [_manualSelectionFailureWarningThreshold] —
+  /// enough current evidence to treat the server as unreachable rather than
+  /// merely uncertain. One or two failures are still "unknown", not
+  /// "unavailable". A prior success can still provide historical latency, but
+  /// it does not override repeated current failures.
   bool get hasFailedProbeEvidence =>
       (selectionHistory?.consecutiveFailures ?? 0) >=
       _manualSelectionFailureWarningThreshold;
@@ -164,12 +168,10 @@ class Server {
   /// "testing", never as unavailable.
   bool get isAwaitingProbe => isLantern && !hasProbeVerdict;
 
-  /// Probed and sustained-failing: no probe has ever succeeded and failures
-  /// have passed the warning threshold. This is the only state that surfaces
-  /// the unreachable warning; a server failing only once or twice is shown
-  /// normally (uncertain, not unavailable).
-  bool get isProbedUnreachable =>
-      isLantern && !hasSuccessfulProbe && hasFailedProbeEvidence;
+  /// Probed and sustained-failing: failures have passed the warning threshold.
+  /// This is the only state that surfaces the unreachable warning; a server
+  /// failing only once or twice is shown normally (uncertain, not unavailable).
+  bool get isProbedUnreachable => isLantern && hasFailedProbeEvidence;
 
   /// Manual mode pins traffic to exactly this server. Warn before pinning only
   /// once the server has sustained enough failed probes — never while it is
