@@ -12,8 +12,10 @@ class AvailableServers {
   List<Server> get userServers => servers.where((s) => !s.isLantern).toList();
 
   /// One representative Lantern server per country/city. If any server for the
-  /// location has a successful probe, use the fastest one; otherwise keep a
-  /// deterministic representative so the location can be shown as unavailable.
+  /// location has a successful probe, use the fastest one; otherwise prefer a
+  /// server still awaiting its first probe (so the location reads as "testing")
+  /// over one already probed-and-failing, falling back to a deterministic
+  /// representative.
   List<Server> get lanternServerLocations {
     final grouped = <String, List<Server>>{};
     for (final server in lanternServers) {
@@ -33,18 +35,26 @@ class AvailableServers {
     return null;
   }
 
-  /// Lantern server with the lowest successful probe delay. Null when no
-  /// Lantern server has a successful probe.
+  /// Lantern server with the lowest usable successful probe delay. Null when no
+  /// Lantern server has a successful probe that is not currently hard-failing.
   Server? get fastestLanternServer {
-    final ranked = lanternServers.where((s) => s.hasSuccessfulProbe).toList()
-      ..sort(
-        (a, b) => a.selectionHistory!.lastSuccessDelayMs.compareTo(
-          b.selectionHistory!.lastSuccessDelayMs,
-        ),
-      );
+    final ranked =
+        lanternServers
+            .where((s) => s.hasSuccessfulProbe && !s.isProbedUnreachable)
+            .toList()
+          ..sort(
+            (a, b) => a.selectionHistory!.lastSuccessDelayMs.compareTo(
+              b.selectionHistory!.lastSuccessDelayMs,
+            ),
+          );
     return ranked.isEmpty ? null : ranked.first;
   }
 }
+
+/// Consecutive failed probes before a server is treated as unreachable rather
+/// than merely uncertain. A single transient probe failure shouldn't brand a
+/// server "unavailable", so require sustained failures.
+const _manualSelectionFailureWarningThreshold = 3;
 
 String _locationKey(Server server) {
   final location = server.location;
@@ -56,7 +66,9 @@ String _locationKey(Server server) {
 }
 
 Server _bestServerForLocation(List<Server> servers) {
-  final successful = servers.where((s) => s.hasSuccessfulProbe).toList();
+  final successful = servers
+      .where((s) => s.hasSuccessfulProbe && !s.isProbedUnreachable)
+      .toList();
   if (successful.isNotEmpty) {
     successful.sort((a, b) {
       final delay = a.selectionHistory!.lastSuccessDelayMs.compareTo(
@@ -68,7 +80,17 @@ Server _bestServerForLocation(List<Server> servers) {
     return successful.first;
   }
 
-  final sorted = [...servers]..sort(_compareServersByLocation);
+  // No successful probe for this location. Prefer a server still awaiting its
+  // first probe (so the location reads as "testing"), then any server not yet
+  // ruled unreachable, falling back to the failed pool only when every server
+  // has sustained enough failures — so a location is "unavailable" only once
+  // all of its servers are.
+  final awaiting = servers.where((s) => s.isAwaitingProbe).toList();
+  final notUnreachable = servers.where((s) => !s.isProbedUnreachable).toList();
+  final pool = awaiting.isNotEmpty
+      ? awaiting
+      : (notUnreachable.isNotEmpty ? notUnreachable : servers);
+  final sorted = [...pool]..sort(_compareServersByLocation);
   return sorted.first;
 }
 
@@ -125,9 +147,36 @@ class Server {
   bool get hasSuccessfulProbe =>
       (selectionHistory?.lastSuccessDelayMs ?? 0) > 0;
 
-  /// Manual mode pins traffic to exactly this server. If Smart Location has no
-  /// successful probe for it, warn before pinning so users can stay on auto.
-  bool get shouldWarnBeforeManualSelection => isLantern && !hasSuccessfulProbe;
+  /// True once a probe has returned a verdict for this server — either a
+  /// success, or at least one recorded failure
+  /// ([SelectionHistory.consecutiveFailures]). Until then the server is still
+  /// awaiting its first probe and must not be presented as unreachable.
+  bool get hasProbeVerdict =>
+      hasSuccessfulProbe || (selectionHistory?.consecutiveFailures ?? 0) > 0;
+
+  /// Sustained probe failures past [_manualSelectionFailureWarningThreshold] —
+  /// enough current evidence to treat the server as unreachable rather than
+  /// merely uncertain. One or two failures are still "unknown", not
+  /// "unavailable". A prior success can still provide historical latency, but
+  /// it does not override repeated current failures.
+  bool get hasFailedProbeEvidence =>
+      (selectionHistory?.consecutiveFailures ?? 0) >=
+      _manualSelectionFailureWarningThreshold;
+
+  /// Still waiting for the first probe result. During the multi-minute Smart
+  /// Location convergence most Lantern servers sit here briefly — shown as
+  /// "testing", never as unavailable.
+  bool get isAwaitingProbe => isLantern && !hasProbeVerdict;
+
+  /// Probed and sustained-failing: failures have passed the warning threshold.
+  /// This is the only state that surfaces the unreachable warning; a server
+  /// failing only once or twice is shown normally (uncertain, not unavailable).
+  bool get isProbedUnreachable => isLantern && hasFailedProbeEvidence;
+
+  /// Manual mode pins traffic to exactly this server. Warn before pinning only
+  /// once the server has sustained enough failed probes — never while it is
+  /// still being tested ([isAwaitingProbe]) or after only a transient failure.
+  bool get shouldWarnBeforeManualSelection => isProbedUnreachable;
 }
 
 class GeoLocation {

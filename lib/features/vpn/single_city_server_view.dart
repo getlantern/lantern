@@ -48,10 +48,12 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
                 color: context.textTertiary,
               ),
             ),
-      trailing:
-          widget.showReachabilityWarning &&
-              widget.server.shouldWarnBeforeManualSelection
+      trailing: !widget.showReachabilityWarning
+          ? null
+          : widget.server.isProbedUnreachable
           ? const ServerReachabilityWarningIcon()
+          : widget.server.isAwaitingProbe
+          ? const ServerTestingIndicator()
           : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
