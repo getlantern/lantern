@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 
 import '../../core/common/common.dart';
@@ -12,6 +13,19 @@ class LocationSetting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
+    final selectedServer = ref
+        .watch(availableServersProvider)
+        .maybeWhen(
+          data: (servers) => servers.serverByTag(serverLocation.serverName),
+          orElse: () => null,
+        );
+    final isManualLanternLocation =
+        serverType == ServerLocationType.lanternLocation;
+    final shouldWarnBeforeManualSelection =
+        isManualLanternLocation &&
+        selectedServer?.shouldWarnBeforeManualSelection == true;
+    final isAwaitingProbe =
+        isManualLanternLocation && selectedServer?.isAwaitingProbe == true;
 
     String title = '';
     String value = '';
@@ -50,14 +64,22 @@ class LocationSetting extends HookConsumerWidget {
       tileKey: const Key('home.location_setting'),
       label: title,
       value: value.i18n,
-      subtitle: protocol,
+      subtitle: shouldWarnBeforeManualSelection
+          ? 'server_may_be_unreachable'.i18n
+          : isAwaitingProbe
+          ? 'server_testing'.i18n
+          : protocol,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)
-          AppImage(
-            path: AppImagePaths.blot,
-            useThemeColor: false,
-          ),
+          AppImage(path: AppImagePaths.blot, useThemeColor: false),
+        if (shouldWarnBeforeManualSelection) ...[
+          const ServerReachabilityWarningIcon(),
+          const SizedBox(width: 8),
+        ] else if (isAwaitingProbe) ...[
+          const ServerTestingIndicator(),
+          const SizedBox(width: 8),
+        ],
         const SizedBox(width: 8),
         IconButton(
           onPressed: () => appRouter.push(const ServerSelection()),

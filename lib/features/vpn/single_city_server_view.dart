@@ -12,12 +12,17 @@ class SingleCityServerView extends StatefulWidget {
   final bool isSelected;
   final bool nested;
 
+  /// Whether to surface the "may be unreachable" warning icon. Disabled for
+  /// free users, who see every location without the reachability distinction.
+  final bool showReachabilityWarning;
+
   const SingleCityServerView({
     super.key,
     required this.onServerSelected,
     required this.server,
     this.isSelected = false,
     this.nested = false,
+    this.showReachabilityWarning = true,
   });
 
   @override
@@ -37,10 +42,19 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? null
           : Text(
               widget.server.type.capitalize,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.labelMedium!.copyWith(
                 color: context.textTertiary,
               ),
             ),
+      trailing: !widget.showReachabilityWarning
+          ? null
+          : widget.server.isProbedUnreachable
+          ? const ServerReachabilityWarningIcon()
+          : widget.server.isAwaitingProbe
+          ? const ServerTestingIndicator()
+          : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.server);
