@@ -13,9 +13,8 @@ class AvailableServers {
 
   /// One representative Lantern server per country/city. If any server for the
   /// location has a successful probe, use the fastest one; otherwise prefer a
-  /// server still awaiting its first probe (so the location reads as "testing")
-  /// over one already probed-and-failing, falling back to a deterministic
-  /// representative.
+  /// server still awaiting its first probe over one already probed-and-failing,
+  /// falling back to a deterministic representative.
   List<Server> get lanternServerLocations {
     final grouped = <String, List<Server>>{};
     for (final server in lanternServers) {
@@ -81,10 +80,9 @@ Server _bestServerForLocation(List<Server> servers) {
   }
 
   // No successful probe for this location. Prefer a server still awaiting its
-  // first probe (so the location reads as "testing"), then any server not yet
-  // ruled unreachable, falling back to the failed pool only when every server
-  // has sustained enough failures — so a location is "unavailable" only once
-  // all of its servers are.
+  // first probe, then any server not yet ruled unreachable, falling back to the
+  // failed pool only when every server has sustained enough failures — so a
+  // location is "unavailable" only once all of its servers are.
   final awaiting = servers.where((s) => s.isAwaitingProbe).toList();
   final notUnreachable = servers.where((s) => !s.isProbedUnreachable).toList();
   final pool = awaiting.isNotEmpty
@@ -163,9 +161,9 @@ class Server {
       (selectionHistory?.consecutiveFailures ?? 0) >=
       _manualSelectionFailureWarningThreshold;
 
-  /// Still waiting for the first probe result. During the multi-minute Smart
-  /// Location convergence most Lantern servers sit here briefly — shown as
-  /// "testing", never as unavailable.
+  /// Still waiting for the first probe result. During Smart Location
+  /// convergence most Lantern servers can sit here briefly; this is unknown,
+  /// not unavailable.
   bool get isAwaitingProbe => isLantern && !hasProbeVerdict;
 
   /// Probed and sustained-failing: failures have passed the warning threshold.

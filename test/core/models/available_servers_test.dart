@@ -56,7 +56,7 @@ void main() {
         locations.singleWhere((s) => s.location.city == 'New York'),
         nyFast,
       );
-      // A location whose only server has never been probed is "testing", not
+      // A location whose only server has never been probed is unknown, not
       // unreachable — it must not surface the warning during convergence.
       final la = locations.singleWhere((s) => s.location.city == 'Los Angeles');
       expect(la.isAwaitingProbe, isTrue);
@@ -87,8 +87,8 @@ void main() {
         ]).lanternServerLocations;
 
         expect(locations, hasLength(1));
-        // Even though 'a-failed' sorts first by tag, the still-testing server
-        // represents the location so it reads as "testing", not "unavailable".
+        // Even though 'a-failed' sorts first by tag, the untested server
+        // represents the location so it is unknown, not unavailable.
         expect(locations.single.isAwaitingProbe, isTrue);
         expect(locations.single.shouldWarnBeforeManualSelection, isFalse);
       },
@@ -228,14 +228,14 @@ void main() {
       expect(s.hasSuccessfulProbe, isFalse);
       expect(s.hasProbeVerdict, isTrue);
       expect(s.hasFailedProbeEvidence, isFalse);
-      // Has a verdict, so not "testing"; below threshold, so not "unreachable":
+      // Has a verdict, so not unknown; below threshold, so not "unreachable":
       // shown as a normal row, no spinner and no warning.
       expect(s.isAwaitingProbe, isFalse);
       expect(s.isProbedUnreachable, isFalse);
       expect(s.shouldWarnBeforeManualSelection, isFalse);
     });
 
-    test('untested (no history): testing, never unreachable', () {
+    test('untested (no history): unknown, never unreachable', () {
       final s = _server(tag: 'no-probe');
       expect(s.hasSuccessfulProbe, isFalse);
       expect(s.hasProbeVerdict, isFalse);
@@ -244,7 +244,7 @@ void main() {
       expect(s.shouldWarnBeforeManualSelection, isFalse);
     });
 
-    test('history present but no probe verdict: still testing', () {
+    test('history present but no probe verdict: still unknown', () {
       // e.g. a user-traffic-only history with no probe outcome yet.
       final s = _server(tag: 'no-verdict', delay: 0, failures: 0);
       expect(s.hasProbeVerdict, isFalse);
@@ -252,7 +252,7 @@ void main() {
       expect(s.shouldWarnBeforeManualSelection, isFalse);
     });
 
-    test('private servers never warn or show testing', () {
+    test('private servers never warn or await probes', () {
       final s = _server(tag: 'private', isLantern: false);
       expect(s.isAwaitingProbe, isFalse);
       expect(s.isProbedUnreachable, isFalse);
