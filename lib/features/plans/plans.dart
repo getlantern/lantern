@@ -205,7 +205,7 @@ class _PlansState extends ConsumerState<Plans>
             if (!isStoreVersion() && !isReferralApplied) ...{
               AppTile(
                 icon: AppImagePaths.star,
-                label: 'referral_code'.i18n,
+                label: 'promo_referral_code'.i18n,
                 onPressed: () {
                   context.pop();
                   showReferralCodeDialog();
@@ -246,14 +246,14 @@ class _PlansState extends ConsumerState<Plans>
           AppImage(path: AppImagePaths.star, height: 48),
           SizedBox(height: defaultSize),
           Text(
-            'referral_code'.i18n,
+            'promo_referral_code'.i18n,
             style: textTheme.headlineSmall!.copyWith(
               color: context.textPrimary,
             ),
           ),
           SizedBox(height: 24),
           AppTextField(
-            label: 'referral_code'.i18n,
+            label: 'promo_referral_code'.i18n,
             controller: referralCodeController,
             inputFormatters: [UpperCaseTextFormatter()],
             hintText: 'XXXXXX',

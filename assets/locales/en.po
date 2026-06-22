@@ -1674,6 +1674,9 @@ msgstr "The VPN needs to be off before you can refresh your configuration. Turn 
 msgid "configuration_message"
 msgstr "Your old configuration has been cleared. Turn the VPN on to automatically download the latest."
 
+msgid "promo_referral_code"
+msgstr "Promo / Referral Code"
+
 
 
 
