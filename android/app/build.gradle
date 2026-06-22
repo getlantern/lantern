@@ -38,9 +38,21 @@ def generateSideloadManifest = tasks.register("generateSideloadManifest") {
     }
 }
 
-def start = new Date(2015, 1, 1).getTime()
-def now = System.currentTimeMillis()
-def code = (int)((now - start) / 1000)
+// versionCode = whole seconds since a fixed epoch. The only hard constraints
+// are that it increases monotonically (Play/Android reject a lower code on
+// upgrade) and stays below 2^31. EPOCH_2009 keeps today's value (~5.5e8) just
+// above the previous sequence and leaves ~50 years of int headroom.
+//
+// This used to be `new Date(2015, 1, 1).getTime()`, but that's the deprecated
+// java.util.Date(year, month, day) constructor: `year` is years-since-1900 and
+// `month` is 0-indexed, so it actually meant Feb 1 of year 3915 — ~1900 years
+// in the future. `now - start` was a large negative that wrapped on the (int)
+// cast to a positive ~5.3e8, which happened to stay monotonic (so upgrades
+// worked) but was meaningless and fragile. Do NOT "fix" this to a true
+// 2015-01-01 origin: that yields ~3.6e8 today, LOWER than shipped codes, which
+// would break upgrades.
+def EPOCH_2009 = 1230768000L // 2009-01-01T00:00:00Z, in seconds
+def code = (int)((System.currentTimeMillis() / 1000L) - EPOCH_2009)
 
 android {
     namespace = "org.getlantern.lantern"
