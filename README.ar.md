@@ -34,27 +34,27 @@
     <tr>
         <th>نظام Android</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">Android 6&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 6&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 6&#43;</a>
+            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">Android 7&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 7&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43;</a>
         </td>
         <td>
-            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 6&#43;</a>
+            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 7&#43;</a>
         </td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.apk">Android 6&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.apk">Android 7&#43;</a>
         </td>
     </tr>
     <tr>
         <th>نظام التشغيل macOS</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.13&#43;</a>
+            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 15.0&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 15.0&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 15.0&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 10.13&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 15.0&#43;</a>
         </td>
     </tr>
     <tr>
