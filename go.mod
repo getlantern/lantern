@@ -18,14 +18,14 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
-replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
+replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260619150927-31d1e50fe910
 
 replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260617195940-99d3ff55fef1
+	github.com/getlantern/radiance v0.0.0-20260623195019-2a42d8e81340
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.42.0
@@ -171,7 +171,7 @@ require (
 	github.com/getlantern/domainfront v0.0.0-20260419161617-0bff0b2169f4 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
 	github.com/getlantern/kindling v0.0.0-20260611181428-9a360f63ad5a // indirect
-	github.com/getlantern/lantern-box v0.0.93 // indirect
+	github.com/getlantern/lantern-box v0.0.96-0.20260622145128-fb8f4d04d83c // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
