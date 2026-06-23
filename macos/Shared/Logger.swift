@@ -43,13 +43,9 @@ class LanternLogger {
       let timestamp = formatTimestamp(Date())
       let formatted = "time=\"\(timestamp)\" level \(level) \(message)\n"
       guard let data = formatted.data(using: .utf8) else { return }
-      do {
-        self.fileHandle?.seekToEndOfFile()
-        self.fileHandle?.write(data)
-        self.fileHandle?.synchronizeFile()
-      } catch {
-        print("Log write error: \(error)")
-      }
+      self.fileHandle?.seekToEndOfFile()
+      self.fileHandle?.write(data)
+      self.fileHandle?.synchronizeFile()
     }
   }
 
