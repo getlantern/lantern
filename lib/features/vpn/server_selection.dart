@@ -743,8 +743,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   ? null
                   : server.isProbedUnreachable
                   ? const ServerReachabilityWarningIcon()
-                  : server.isAwaitingProbe
-                  ? const ServerTestingIndicator()
                   : null,
               tileTextStyle: Theme.of(
                 context,
