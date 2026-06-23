@@ -937,9 +937,6 @@ msgstr "Private Servers"
 msgid "fastest_server"
 msgstr "Fastest Server"
 
-msgid "server_testing"
-msgstr "Testing…"
-
 msgid "server_may_be_unreachable"
 msgstr "May be unreachable"
 
@@ -1673,7 +1670,6 @@ msgstr "The VPN needs to be off before you can refresh your configuration. Turn 
 
 msgid "configuration_message"
 msgstr "Your old configuration has been cleared. Turn the VPN on to automatically download the latest."
-
 
 
 
