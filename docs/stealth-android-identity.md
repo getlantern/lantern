@@ -114,9 +114,14 @@ quickTileIcon=@drawable/neutral_notification_icon
 appAuthScheme=clearnotes2f143e88
 ```
 
-The Makefile passes `appAuthScheme` to Flutter as
-`--dart-define=APP_AUTH_SCHEME=...` for Android release builds so Dart deep-link
-handling accepts the same private scheme that Gradle writes into the manifest.
+For **non-stealth** Android release builds that set an identity profile, the
+Makefile passes `appAuthScheme` to Flutter as `--dart-define=APP_AUTH_SCHEME=...`
+so Dart deep-link handling accepts the same private scheme that Gradle writes
+into the manifest. For **stealth** builds (`STEALTH_MODE`/`STEALTH_PROFILE`
+set), `ANDROID_IDENTITY_DART_DEFINES` is empty — the Makefile does not inject
+`APP_AUTH_SCHEME`, so `AppBuildInfo.isAppAuthUri()` keeps its default scheme.
+Pass `--dart-define=APP_AUTH_SCHEME=<appAuthScheme>` explicitly if a stealth
+build needs Dart-side deep-link routing to match the manifest scheme.
 
 This ticket intentionally leaves broader manifest minimization to the related
 manifest work. The identity profile exposes placeholders where this branch needs

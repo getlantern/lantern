@@ -90,7 +90,7 @@ object BridgeNotification {
         }
         return builder
             .setSmallIcon(R.drawable.neutral_notification_icon)
-            .setContentTitle(context.getString(R.string.app_name))
+            .setContentTitle(context.applicationInfo.loadLabel(context.packageManager))
             .setContentText(text)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

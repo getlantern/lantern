@@ -386,6 +386,77 @@ class NoVpnModeTest(unittest.TestCase):
         )
 
 
+# A merged manifest that already declares a legacy-named no-VPN special-use
+# foreground service (as android/app/src/main/AndroidManifest.novpn.xml does).
+LEGACY_NOVPN_MANIFEST = """\
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:name=".LanternApp">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name="foundation.bridge.SyncService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-controlled local proxy connection" />
+        </service>
+    </application>
+</manifest>
+"""
+
+
+class NoVpnLegacyServiceTest(unittest.TestCase):
+    """A pre-existing legacy no-VPN service is normalized, never duplicated."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self._tmp.name)
+        src = tmp / "AndroidManifest.xml"
+        src.write_text(LEGACY_NOVPN_MANIFEST, encoding="utf-8")
+        self.out = tmp / "out.xml"
+        f.filter_manifest(src, self.out, "novpn")
+        self.root = _parse(self.out)
+        self.app = _app(self.root)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_legacy_alias_normalized(self) -> None:
+        names = _names(self.app.findall("service"))
+        self.assertIn(f.STEALTH_NOVPN_SERVICE_NAME, names)
+        self.assertNotIn("foundation.bridge.SyncService", names)
+
+    def test_no_duplicate_novpn_service(self) -> None:
+        canonical = [
+            s for s in self.app.findall("service")
+            if s.attrib.get(f"{ANDROID}name") == f.STEALTH_NOVPN_SERVICE_NAME
+        ]
+        self.assertEqual(len(canonical), 1)
+
+    def test_single_special_use_property(self) -> None:
+        special = [
+            p for p in self.app.findall("service/property")
+            if p.attrib.get(f"{ANDROID}name")
+            == "android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        ]
+        self.assertEqual(len(special), 1)
+
+    def test_idempotent(self) -> None:
+        tmp2 = tempfile.mkdtemp()
+        out2 = Path(tmp2) / "out2.xml"
+        f.filter_manifest(self.out, out2, "novpn")
+        self.assertEqual(
+            self.out.read_text(encoding="utf-8"),
+            out2.read_text(encoding="utf-8"),
+        )
+
+
 class NormalBuildUnaffectedTest(unittest.TestCase):
     """Ensure the filter is not called for normal builds (smoke-test the guard)."""
 
