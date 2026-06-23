@@ -48,13 +48,13 @@
     <tr>
         <th>苹果Mac系统</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a>
+            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">苹果Mac系统 12.0&#43;</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">苹果Mac系统 12.0&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">苹果Mac系统 12.0&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">苹果Mac系统 10.15&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">苹果Mac系统 12.0&#43;</a>
         </td>
     </tr>
     <tr>
