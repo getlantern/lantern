@@ -170,6 +170,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    # Validate resource arguments before writing any output, rather than
+    # silently producing an incomplete (or no) de-branded resource tree.
+    if bool(args.res_source) != bool(args.res_output):
+        print(
+            "error: --res-source and --res-output must be provided together",
+            file=sys.stderr,
+        )
+        return 2
+    if args.res_overlay and not args.res_overlay.is_dir():
+        print(f"error: res overlay not found: {args.res_overlay}", file=sys.stderr)
+        return 2
     output_pkg_root = args.output / TARGET_PACKAGE_DIR
     rc = generate(args.source, output_pkg_root)
     if rc != 0:

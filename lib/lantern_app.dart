@@ -16,6 +16,7 @@ import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
+import 'core/common/app_build_info.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
@@ -100,7 +101,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     final path = uri.path;
 
     if (path.startsWith('/report-issue') ||
-        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final fragment = uri.fragment;
@@ -120,12 +121,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
         _pushWithHome(ReportIssue());
       }
     } else if (path.startsWith('/auth') ||
-        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'auth')) {
       if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/private-server') ||
-        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);

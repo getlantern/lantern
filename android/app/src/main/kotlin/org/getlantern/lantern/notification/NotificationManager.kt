@@ -247,6 +247,12 @@ class NotificationHelper {
                 return resolved
             }
         }
-        return R.drawable.lantern_notification_icon
+        // Stealth builds must never fall back to the branded icon, even when
+        // the configured resource fails to resolve.
+        return if (BuildConfig.STEALTH_ENABLED) {
+            R.drawable.neutral_notification_icon
+        } else {
+            R.drawable.lantern_notification_icon
+        }
     }
 }

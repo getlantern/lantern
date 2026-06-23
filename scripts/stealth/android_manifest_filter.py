@@ -138,6 +138,13 @@ STEALTH_TILE_SERVICE_NAME = "foundation.bridge.service.QuickTileService"
 # log tag do not advertise VPN heritage. Keep in sync with debrand_kotlin.py.
 STEALTH_NOVPN_SERVICE_NAME = "foundation.bridge.service.LocalConnectionService"
 NOVPN_SPECIAL_USE_REASON = "User-controlled local proxy connection"
+# Pre-existing no-VPN service names that may already be declared in the input
+# manifest (e.g. android/app/src/main/AndroidManifest.novpn.xml). These are
+# normalized to STEALTH_NOVPN_SERVICE_NAME so the filter never emits duplicate
+# special-use foreground services.
+LEGACY_NOVPN_SERVICE_NAMES = {
+    "foundation.bridge.SyncService",
+}
 
 BASE_APPLICATION_NAMES = {".LanternApp", "org.getlantern.lantern.LanternApp"}
 BASE_ACTIVITY_NAMES = {".MainActivity", "org.getlantern.lantern.MainActivity"}
@@ -211,21 +218,32 @@ def rewrite_stealth_components(application: ET.Element) -> None:
 
 
 def ensure_novpn_service(application: ET.Element) -> None:
-    if any(
-        android_attr(service, ANDROID_NAME) == STEALTH_NOVPN_SERVICE_NAME
+    novpn_names = {STEALTH_NOVPN_SERVICE_NAME} | LEGACY_NOVPN_SERVICE_NAMES
+    existing = [
+        service
         for service in application.findall("service")
-    ):
-        return
+        if android_attr(service, ANDROID_NAME) in novpn_names
+    ]
 
-    service = ET.Element("service")
+    # Collapse any pre-existing no-VPN services (canonical or legacy alias) into
+    # a single canonical entry; drop the extras to avoid duplicate special-use
+    # foreground services.
+    service = existing[0] if existing else ET.SubElement(application, "service")
+    for extra in existing[1:]:
+        application.remove(extra)
+
     service.set(ANDROID_NAME, STEALTH_NOVPN_SERVICE_NAME)
     service.set(ANDROID_EXPORTED, "false")
     service.set(ANDROID_FOREGROUND_SERVICE_TYPE, "specialUse")
 
+    # Rewrite the special-use property deterministically so re-runs and legacy
+    # entries converge on identical output (idempotency).
+    for prop in list(service.findall("property")):
+        if android_attr(prop, ANDROID_NAME) == "android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE":
+            service.remove(prop)
     special_use = ET.SubElement(service, "property")
     special_use.set(ANDROID_NAME, "android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE")
     special_use.set(ANDROID_VALUE, NOVPN_SPECIAL_USE_REASON)
-    application.append(service)
 
 
 def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
