@@ -458,9 +458,6 @@ android {
             }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (stealthNoVpn) {
-                proguardFiles 'proguard-stealth-novpn.pro'
-            }
         }
     }
 
@@ -521,10 +518,10 @@ flutter {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation fileTree(dir: "libs", include: "liblantern.aar")
-    if (!stealthMode) {
-        implementation 'androidx.core:core-ktx:1.15.0'
-        implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
-        implementation 'androidx.work:work-runtime-ktx:2.10.0'
-    }
+    // Used by the real app code (VPN status, logs, background work) in both
+    // stealth and regular builds, so these are always included.
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
+    implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
