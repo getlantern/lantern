@@ -9,10 +9,15 @@ is set.
 
 ## Generate a Profile
 
-Generate a private profile under `build/stealth/`:
+Generate a private profile under `build/stealth/`. Stealth modes require
+non-branded app and session names (the generator rejects empty or
+Lantern-branded values):
 
 ```sh
-make stealth-profile STEALTH_MODE=stealth-vpn
+make stealth-profile \
+  STEALTH_MODE=stealth-vpn \
+  STEALTH_APP_NAME=Client \
+  STEALTH_SESSION_NAME=ClientVpn
 ```
 
 Supported modes are:
@@ -52,7 +57,10 @@ make stealth-profile STEALTH_PROFILE=/secure/profiles/client.json
 Android build targets generate or normalize the profile before invoking Flutter:
 
 ```sh
-make android-release STEALTH_MODE=stealth-vpn
+make android-release \
+  STEALTH_MODE=stealth-vpn \
+  STEALTH_APP_NAME=Client \
+  STEALTH_SESSION_NAME=ClientVpn
 make android-release STEALTH_PROFILE=/secure/profiles/client.json
 ```
 

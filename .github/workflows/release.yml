@@ -105,6 +105,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REQUESTED_STEALTH_LEAKAGE_MODE: ${{ github.event.inputs.stealth_leakage_mode }}
         run: |
           EVENT="${{ github.event_name }}"
           REQUEST_MOBILE_STORE_PUBLISH="false"
@@ -269,10 +270,15 @@ jobs:
           SMOKE_ENABLE_IP_CHECK="false"
           STEALTH_LEAKAGE_MODE=""
           if [[ "$EVENT" == "workflow_dispatch" ]]; then
-            requested_stealth_leakage_mode="${{ github.event.inputs.stealth_leakage_mode }}"
-            if [[ "$requested_stealth_leakage_mode" != "none" ]]; then
-              STEALTH_LEAKAGE_MODE="$requested_stealth_leakage_mode"
-            fi
+            requested_stealth_leakage_mode="${REQUESTED_STEALTH_LEAKAGE_MODE:-none}"
+            case "$requested_stealth_leakage_mode" in
+              none|'') ;;
+              stealth|stealth-novpn) STEALTH_LEAKAGE_MODE="$requested_stealth_leakage_mode" ;;
+              *)
+                echo "Error: invalid stealth_leakage_mode '$requested_stealth_leakage_mode'" >&2
+                exit 1
+                ;;
+            esac
           fi
 
           echo "Build Configuration:"

@@ -75,7 +75,10 @@ endif
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
-STEALTH_GO_LDFLAGS := $(if $(filter stealth stealth-%,$(BUILD_TYPE)),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
+# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
+# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
+STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
 LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
 
@@ -110,7 +113,7 @@ LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYP
 LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
 LANTERND := lanternd
 LANTERND_SRC := $(RADIANCE_REPO)/cmd/lanternd
-LANTERND_SERVICE_LOG_LEVEL ?= $(if $(filter stealth stealth-%,$(BUILD_TYPE)),warn,trace)
+LANTERND_SERVICE_LOG_LEVEL ?= $(if $(STEALTH_ACTIVE),warn,trace)
 LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
 LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
 LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
@@ -333,11 +336,11 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
 	@set -e; { \
 	  printf 'STEALTH_PROFILE_SCRIPT_SHA256='; \
-	  python3 -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE_SCRIPT)"; \
+	  $(PYTHON) -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE_SCRIPT)"; \
 	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
 	  printf 'STEALTH_PROFILE_SHA256='; \
 	  if [ -n "$(STEALTH_PROFILE)" ] && [ -f "$(STEALTH_PROFILE)" ]; then \
-	    python3 -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE)"; \
+	    $(PYTHON) -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE)"; \
 	  else \
 	    printf '\n'; \
 	  fi; \
@@ -347,7 +350,7 @@ $(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
 	  printf 'STEALTH_SESSION_NAME=%s\n' "$(STEALTH_SESSION_NAME)"; \
 	  printf 'STEALTH_GO_OBFUSCATION_SEED_SHA256='; \
 	  if [ -n "$(STEALTH_GO_OBFUSCATION_SEED)" ]; then \
-	    python3 -c 'import hashlib, sys; print(hashlib.sha256(sys.argv[1].encode("utf-8")).hexdigest())' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
+	    $(PYTHON) -c 'import hashlib, sys; print(hashlib.sha256(sys.argv[1].encode("utf-8")).hexdigest())' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
 	  else \
 	    printf '\n'; \
 	  fi; \
@@ -417,7 +420,7 @@ check-garble-go:
 
 .PHONY: stealth-android-icons
 stealth-android-icons: guard-STEALTH_ICON_SEED
-	python3 scripts/stealth/generate_android_icons.py \
+	$(PYTHON) scripts/stealth/generate_android_icons.py \
 		--output-res-dir "$(STEALTH_ICON_RES_DIR)"
 
 
@@ -784,12 +787,12 @@ android-identity-profile: $(MAYBE_STEALTH_PROFILE)
 	  fi; \
 		  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
 		    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
-		    python3 scripts/stealth/generate_android_identity.py \
+		    $(PYTHON) scripts/stealth/generate_android_identity.py \
 		      --output "$(ANDROID_IDENTITY_PROFILE)" \
 		      $(if $(STEALTH_ENABLED),--profile "$(STEALTH_PROFILE_OUT)",) \
 		      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
 		  elif [ -n "$(STEALTH_ENABLED)" ]; then \
-		    python3 scripts/stealth/generate_android_identity.py \
+		    $(PYTHON) scripts/stealth/generate_android_identity.py \
 		      --output "$(ANDROID_IDENTITY_PROFILE)" \
 		      --profile "$(STEALTH_PROFILE_OUT)"; \
 		  else \

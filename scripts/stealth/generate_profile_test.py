@@ -252,6 +252,44 @@ class GenerateProfileTest(unittest.TestCase):
             )
             self.assertNotEqual(exit_code, 0)
 
+    def test_stealth_build_rejects_branded_app_name(self):
+        """De-branding rule: a Lantern-branded --app-name must fail validation."""
+        with tempfile.TemporaryDirectory() as tmp:
+            exit_code = generate_profile.main(
+                [
+                    "--mode",
+                    "stealth-vpn",
+                    "--package-name",
+                    "org.example.safe.s123",
+                    "--app-name",
+                    "Lantern",
+                    "--session-name",
+                    "BeaconLink",
+                    "--output",
+                    str(Path(tmp) / "profile.json"),
+                ]
+            )
+            self.assertNotEqual(exit_code, 0)
+
+    def test_stealth_build_rejects_branded_session_name(self):
+        """De-branding rule: a Lantern-branded --session-name must fail validation."""
+        with tempfile.TemporaryDirectory() as tmp:
+            exit_code = generate_profile.main(
+                [
+                    "--mode",
+                    "stealth-vpn",
+                    "--package-name",
+                    "org.example.safe.s123",
+                    "--app-name",
+                    "Beacon",
+                    "--session-name",
+                    "LanternVpn",
+                    "--output",
+                    str(Path(tmp) / "profile.json"),
+                ]
+            )
+            self.assertNotEqual(exit_code, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -216,6 +216,9 @@ if (stealthMode && !stealthModes.contains(stealthMode)) {
     throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")
 }
 def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
+// Emit the resolved mode (e.g. "stealth-vpn"), not stealthProfile.mode, which
+// stays "normal" when stealth is enabled via -PSTEALTH_MODE without a profile.
+def resolvedStealthMode = stealthMode ? "${stealthModePrefix}${stealthMode}" : "normal"
 def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
 def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
 def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
@@ -405,7 +408,7 @@ android {
         // BOTH stealth and regular builds (stealth now compiles the real handlers,
         // not the legacy stub). Only STEALTH_ENABLED differs by build.
         buildConfigField "boolean", "STEALTH_ENABLED", stealthMode ? "true" : "false"
-        buildConfigField "String", "STEALTH_MODE", buildConfigString(stealthProfile.mode)
+        buildConfigField "String", "STEALTH_MODE", buildConfigString(resolvedStealthMode)
         buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
         buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
         buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)

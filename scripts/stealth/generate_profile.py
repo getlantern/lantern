@@ -46,6 +46,9 @@ ARTIFACT_METADATA_KEYS = (
 )
 PACKAGE_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 XML_ATTRIBUTE_RESERVED = set("\"'&<>")
+# De-branding privacy rule: stealth identity names must not leak Lantern
+# branding into shipped artifacts (manifest labels, notification text, ...).
+BRANDED_TOKEN_RE = re.compile(r"lantern", re.IGNORECASE)
 
 
 class ProfileError(ValueError):
@@ -129,6 +132,12 @@ def validate_manifest_placeholder_text(field: str, value: str) -> str:
     return value
 
 
+def validate_non_branded_text(field: str, value: str) -> str:
+    if BRANDED_TOKEN_RE.search(value):
+        raise ProfileError(f"{field} must not contain Lantern-branded text")
+    return value
+
+
 def normalize_mode(value: Any) -> str:
     mode = str(value or "").strip()
     return MODE_ALIASES.get(mode, mode)
@@ -149,9 +158,11 @@ def validate_profile(profile: dict[str, Any]) -> dict[str, Any]:
 
     app_name = str(profile.get("appName", "")).strip()
     validate_manifest_placeholder_text("appName", app_name)
+    validate_non_branded_text("appName", app_name)
 
     session_name = str(profile.get("sessionName", "")).strip()
     validate_manifest_placeholder_text("sessionName", session_name)
+    validate_non_branded_text("sessionName", session_name)
 
     go_obfuscation_seed = str(
         profile.get("goObfuscationSeed") or profile.get("obfuscationSeed", "")
