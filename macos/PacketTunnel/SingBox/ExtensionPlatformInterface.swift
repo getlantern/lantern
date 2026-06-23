@@ -484,7 +484,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
         content.userInfo["OPEN_URL"] = notification.openURL
         content.categoryIdentifier = "OPEN_URL"
       }
-      content.interruptionLevel = .active
+      if #available(macOS 12.0, *) {
+        content.interruptionLevel = .active
+      }
       let request = UNNotificationRequest(
         identifier: notification.identifier, content: content, trigger: nil)
       try runBlocking {
