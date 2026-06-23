@@ -163,7 +163,7 @@ make linux
   sudo xcodebuild -runFirstLaunch
   ```
 
-- **Minimum supported macOS: 15.0 (Sequoia).** This is the deployment target for every macOS target — the Runner app, the `PacketTunnel` system extension, and the CocoaPods floor (`macos/Podfile`) are all set to `15.0`. The minimum is gated by the VPN system-extension activation code in `macos/Runner/VPN/SystemExtensionManager.swift`. Note this is independent of the build SDK: we always build against the latest installed SDK via `SDKROOT = macosx` (Xcode 26.x) and only the *minimum* OS a user can run is 15.0.
+- **Minimum supported macOS: 15.0 (Sequoia).** This is enforced by the `MACOSX_DEPLOYMENT_TARGET = 15.0` build setting on every macOS target — the Runner app and the `PacketTunnel` system extension — together with the CocoaPods floor (`macos/Podfile`), which are all set to `15.0`. Note this is independent of the build SDK: we always build against the latest installed SDK via `SDKROOT = macosx` (Xcode 26.x) and only the *minimum* OS a user can run is 15.0.
 
 #### Provisioning profile
 
