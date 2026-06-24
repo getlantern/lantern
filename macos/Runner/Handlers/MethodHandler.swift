@@ -750,8 +750,21 @@ class MethodHandler {
 
   func verifyPassword(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let password = data["password"] as? String ?? ""
+      guard
+        let email = data["email"] as? String, !email.isEmpty,
+        let password = data["password"] as? String, !password.isEmpty
+      else {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid email/password",
+              details: nil
+            )
+          )
+        }
+        return
+      }
       var error: NSError?
       MobileVerifyPassword(email, password, &error)
       if let error {

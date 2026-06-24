@@ -1461,9 +1461,19 @@ class LanternFFIService implements LanternCoreService {
   ) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .verifyPassword(email.toCharPtr, password.toCharPtr)
-            .toDartString();
+        final emailPtr = email.toCharPtr;
+        final passwordPtr = password.toCharPtr;
+        try {
+          final resultPtr = _ffiService.verifyPassword(emailPtr, passwordPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(emailPtr);
+          malloc.free(passwordPtr);
+        }
       });
       checkAPIError(result);
       return Right('ok');
