@@ -9,6 +9,7 @@ import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
@@ -176,12 +177,13 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
   /// navigate to [AddEmail], carrying the verified password forward so the
   /// downstream startChangeEmail call can reuse it.
   Future<void> verifyPasswordForChangeEmail(String password) async {
-    context.showLoadingDialog();
+    final loadingOverlay = context.loaderOverlay;
+    loadingOverlay.show();
     final result = await ref
         .read(authProvider.notifier)
         .verifyPassword(widget.email, password);
+    loadingOverlay.hide();
     if (!mounted) return;
-    context.hideLoadingDialog();
     result.fold(
       (error) {
         AppDialog.errorDialog(
