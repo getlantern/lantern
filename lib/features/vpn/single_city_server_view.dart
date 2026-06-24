@@ -52,8 +52,6 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? null
           : widget.server.isProbedUnreachable
           ? const ServerReachabilityWarningIcon()
-          : widget.server.isAwaitingProbe
-          ? const ServerTestingIndicator()
           : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {

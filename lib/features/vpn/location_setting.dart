@@ -24,8 +24,6 @@ class LocationSetting extends HookConsumerWidget {
     final shouldWarnBeforeManualSelection =
         isManualLanternLocation &&
         selectedServer?.shouldWarnBeforeManualSelection == true;
-    final isAwaitingProbe =
-        isManualLanternLocation && selectedServer?.isAwaitingProbe == true;
 
     String title = '';
     String value = '';
@@ -66,8 +64,6 @@ class LocationSetting extends HookConsumerWidget {
       value: value.i18n,
       subtitle: shouldWarnBeforeManualSelection
           ? 'server_may_be_unreachable'.i18n
-          : isAwaitingProbe
-          ? 'server_testing'.i18n
           : protocol,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
@@ -75,9 +71,6 @@ class LocationSetting extends HookConsumerWidget {
           AppImage(path: AppImagePaths.blot, useThemeColor: false),
         if (shouldWarnBeforeManualSelection) ...[
           const ServerReachabilityWarningIcon(),
-          const SizedBox(width: 8),
-        ] else if (isAwaitingProbe) ...[
-          const ServerTestingIndicator(),
           const SizedBox(width: 8),
         ],
         const SizedBox(width: 8),

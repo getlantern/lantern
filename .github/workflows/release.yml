@@ -49,6 +49,15 @@ on:
         required: false
         type: boolean
         default: false
+      stealth_leakage_mode:
+        description: "Run Android stealth leakage scanner for manual Android builds"
+        required: false
+        type: choice
+        options:
+          - none
+          - stealth
+          - stealth-novpn
+        default: none
 
 env:
   # Scheduled nightly store uploads run on these UTC weekdays. Configure via
@@ -81,6 +90,7 @@ jobs:
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
       publish_mobile_stores: ${{ steps.meta.outputs.publish_mobile_stores }}
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
+      stealth_leakage_mode: ${{ steps.meta.outputs.stealth_leakage_mode }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -95,6 +105,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REQUESTED_STEALTH_LEAKAGE_MODE: ${{ github.event.inputs.stealth_leakage_mode }}
         run: |
           EVENT="${{ github.event_name }}"
           REQUEST_MOBILE_STORE_PUBLISH="false"
@@ -257,6 +268,18 @@ jobs:
           fi
 
           SMOKE_ENABLE_IP_CHECK="false"
+          STEALTH_LEAKAGE_MODE=""
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            requested_stealth_leakage_mode="${REQUESTED_STEALTH_LEAKAGE_MODE:-none}"
+            case "$requested_stealth_leakage_mode" in
+              none|'') ;;
+              stealth|stealth-novpn) STEALTH_LEAKAGE_MODE="$requested_stealth_leakage_mode" ;;
+              *)
+                echo "Error: invalid stealth_leakage_mode '$requested_stealth_leakage_mode'" >&2
+                exit 1
+                ;;
+            esac
+          fi
 
           echo "Build Configuration:"
           echo "  Event:         $EVENT"
@@ -277,6 +300,7 @@ jobs:
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
           echo "publish_mobile_stores=$PUBLISH_MOBILE_STORES" >> $GITHUB_OUTPUT
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
+          echo "stealth_leakage_mode=$STEALTH_LEAKAGE_MODE" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -421,6 +445,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      stealth_leakage_mode: ${{ needs.set-metadata.outputs.stealth_leakage_mode }}
 
   release-create:
     needs: set-metadata
