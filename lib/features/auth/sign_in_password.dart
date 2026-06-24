@@ -130,10 +130,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
   Future<void> signInWithPassword(String password) async {
     hideKeyboard();
     if (widget.fromChangeEmail) {
-      /// If the user is changing email, we need to verify the password
-      context.pushRoute(
-        AddEmail(authFlow: AuthFlow.changeEmail, password: password),
-      );
+      await verifyPasswordForChangeEmail(password);
       return;
     }
     context.showLoadingDialog();
@@ -170,6 +167,33 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
+      },
+    );
+  }
+
+  /// Change-email flow: verify the current password against the backend before
+  /// letting the user proceed to enter a new email. Only on success do we
+  /// navigate to [AddEmail], carrying the verified password forward so the
+  /// downstream startChangeEmail call can reuse it.
+  Future<void> verifyPasswordForChangeEmail(String password) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authProvider.notifier)
+        .verifyPassword(widget.email, password);
+    if (!mounted) return;
+    context.hideLoadingDialog();
+    result.fold(
+      (error) {
+        AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: error.localizedErrorMessage,
+        );
+      },
+      (_) {
+        context.pushRoute(
+          AddEmail(authFlow: AuthFlow.changeEmail, password: password),
+        );
       },
     );
   }
