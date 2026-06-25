@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -23,7 +25,11 @@ class WindowNotifier extends _$WindowNotifier {
     if (Platform.isMacOS) {
       await windowManager.setSkipTaskbar(true);
     }
-    await windowManager.destroy();
-    await Future.microtask(() => exit(0));
+    final response = await ServicesBinding.instance.exitApplication(
+      AppExitType.required,
+    );
+    if (response == AppExitResponse.exit) {
+      await windowManager.destroy();
+    }
   }
 }

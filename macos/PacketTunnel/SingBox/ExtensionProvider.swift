@@ -30,7 +30,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       platformInterface = ExtensionPlatformInterface(self)
     }
 
-    // Start the IPC server before any VPN operations
+    // Start the IPC server before any VPN operations.
     var ipcError: NSError?
     MobileStartIPCServer(platformInterface, opts(), &ipcError)
     if let ipcError {
@@ -43,7 +43,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     case "Lantern":
       appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
-    case "PrivateServer":
+    case "PrivateServer", "LanternLocation":
       guard let serverName = options?["netEx.ServerName"] as? String else {
         writeFatalError("Missing netEx.ServerName")
         return

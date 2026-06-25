@@ -121,7 +121,21 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     appLogger.info("Current System Extension Status: $systemExtensionStatus");
     if (systemExtensionStatus.status ==
         SystemExtensionStatus.requiresApproval) {
-      ref.read(macosExtensionProvider.notifier).openSystemExtension();
+      appLogger.info(
+        "System Extension requires approval; retrying activation before opening System Settings",
+      );
+      final retryResult = await ref
+          .read(macosExtensionProvider.notifier)
+          .triggerSystemExtensionInstallation();
+      retryResult.fold(
+        (failure) => appLogger.error(
+          "Retrying System Extension activation failed: ${failure.error}",
+        ),
+        (result) => appLogger.info(
+          "System Extension activation retry triggered: $result",
+        ),
+      );
+      await ref.read(macosExtensionProvider.notifier).openSystemExtension();
       appLogger.info("Opening System Settings for Approval");
       return;
     }

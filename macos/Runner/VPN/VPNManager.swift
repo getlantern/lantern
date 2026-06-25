@@ -11,6 +11,9 @@ class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
   //Do not switch to NEVPNManager.shared() that is only for class app extension
   private var manager: NEVPNManager = NETunnelProviderManager()
+  private let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
+  private let stopPollIntervalNanoseconds: UInt64 = 200_000_000
+  private let stopTimeoutSeconds: TimeInterval = 8
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
@@ -60,7 +63,7 @@ class VPNManager: VPNBase {
   /// avoiding the system VPN permission prompt on first launch.
   func syncStatus() async {
     do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      let managers = try await loadLanternVPNProfiles()
       guard let existing = managers.first else {
         // No VPN profile configured yet — nothing to sync.
         return
@@ -84,7 +87,7 @@ class VPNManager: VPNBase {
 
   private func removeExistingVPNProfiles() async {
     do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      let managers = try await loadLanternVPNProfiles()
       for manager in managers {
         appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
         try await manager.removeFromPreferences()
@@ -96,7 +99,7 @@ class VPNManager: VPNBase {
 
   private func setupVPN() async {
     do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      let managers = try await loadLanternVPNProfiles()
       if let existing = managers.first {
         self.manager = existing
         appLogger.log("Found existing VPN manager")
@@ -194,25 +197,79 @@ class VPNManager: VPNBase {
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
     appLogger.log("Stopping tunnel..")
-    await syncStatus()
-    guard connectionStatus == .connected else {
-      appLogger.log("In unexpected state: \(connectionStatus)")
+    let managers = try await loadLanternVPNProfiles()
+    guard !managers.isEmpty else {
+      await syncStatus()
+      appLogger.log("No Lantern VPN profile found while stopping.")
       return
     }
 
-    if manager.isOnDemandEnabled {
-      appLogger.info("Turning off on demand..")
-      manager.isOnDemandEnabled = false
-      try await manager.saveToPreferences()
+    let primary = managers.first { !$0.connection.status.isTerminalForLanternStop } ?? managers[0]
+    self.manager = primary
+    connectionStatus = primary.connection.status
+
+    for manager in managers {
+      let status = manager.connection.status
+      appLogger.info(
+        "Considering Lantern VPN profile for stop: \(manager.localizedDescription ?? "Unnamed") status=\(status.logDescription)"
+      )
+
+      if manager.isOnDemandEnabled {
+        appLogger.info("Turning off on demand..")
+        manager.isOnDemandEnabled = false
+        try await manager.saveToPreferences()
+      }
+
+      guard !status.isTerminalForLanternStop else {
+        continue
+      }
+
+      if status.shouldRequestTunnelStop {
+        manager.connection.stopVPNTunnel()
+      } else {
+        appLogger.info("Tunnel already stopping; waiting for status to settle.")
+      }
     }
-    manager.connection.stopVPNTunnel()
-    appLogger.log("Tunnel stopped.")
+
+    await waitForTunnelToStop(managers)
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.
   private func saveThenLoadProvider() async throws {
     try await self.manager.saveToPreferences()
     try await self.manager.loadFromPreferences()
+  }
+
+  private func loadLanternVPNProfiles() async throws -> [NETunnelProviderManager] {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    return managers.filter { manager in
+      guard let tunnelProtocol = manager.protocolConfiguration as? NETunnelProviderProtocol else {
+        return false
+      }
+      return tunnelProtocol.providerBundleIdentifier == tunnelBundleID
+    }
+  }
+
+  private func waitForTunnelToStop(_ managers: [NETunnelProviderManager]) async {
+    let deadline = Date().addingTimeInterval(stopTimeoutSeconds)
+
+    while Date() < deadline {
+      let activeManagers = managers.filter { !$0.connection.status.isTerminalForLanternStop }
+      if activeManagers.isEmpty {
+        connectionStatus = manager.connection.status
+        appLogger.log("Tunnel stopped.")
+        return
+      }
+
+      connectionStatus = manager.connection.status
+      try? await Task.sleep(nanoseconds: stopPollIntervalNanoseconds)
+    }
+
+    connectionStatus = manager.connection.status
+    let statuses = managers
+      .map { "\($0.localizedDescription ?? "Unnamed")=\($0.connection.status.logDescription)" }
+      .joined(separator: ", ")
+    appLogger.error("Timed out waiting for Lantern VPN tunnel to stop. statuses=[\(statuses)]")
   }
 
   /// MARK: - Extension Communication
@@ -261,4 +318,47 @@ class VPNManager: VPNBase {
     }
   }
 
+}
+
+private extension NEVPNStatus {
+  var isTerminalForLanternStop: Bool {
+    switch self {
+    case .invalid, .disconnected:
+      return true
+    case .connecting, .connected, .reasserting, .disconnecting:
+      return false
+    @unknown default:
+      return false
+    }
+  }
+
+  var shouldRequestTunnelStop: Bool {
+    switch self {
+    case .connecting, .connected, .reasserting:
+      return true
+    case .invalid, .disconnected, .disconnecting:
+      return false
+    @unknown default:
+      return true
+    }
+  }
+
+  var logDescription: String {
+    switch self {
+    case .invalid:
+      return "invalid"
+    case .disconnected:
+      return "disconnected"
+    case .connecting:
+      return "connecting"
+    case .connected:
+      return "connected"
+    case .reasserting:
+      return "reasserting"
+    case .disconnecting:
+      return "disconnecting"
+    @unknown default:
+      return "unknown(\(rawValue))"
+    }
+  }
 }

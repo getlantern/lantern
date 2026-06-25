@@ -50,10 +50,22 @@ class _LanternAppState extends ConsumerState<LanternApp>
     _lifecycle = AppLifecycleListener(
       onExitRequested: () async {
         appLogger.info("Exit requested");
-        await ref
-            .read(lanternServiceProvider)
-            .stopVPN()
-            .timeout(const Duration(seconds: 5));
+        try {
+          final result = await ref
+              .read(lanternServiceProvider)
+              .stopVPN()
+              .timeout(const Duration(seconds: 10));
+          result.fold(
+            (failure) => appLogger.error(
+              "Failed to stop VPN before exit: ${failure.error}",
+            ),
+            (_) => appLogger.info("VPN stopped before exit"),
+          );
+        } on TimeoutException catch (e, st) {
+          appLogger.error("Timed out stopping VPN before exit", e, st);
+        } catch (e, st) {
+          appLogger.error("Unexpected error stopping VPN before exit", e, st);
+        }
         return AppExitResponse.exit;
       },
     );

@@ -187,7 +187,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         || nsError.code == OSSystemExtensionError.requestSuperseded.rawValue)
     {
       appLogger.info(
-        "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
+        "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.systemExtensionLogDescription)"
       )
       submitPropertiesRequest(context: .inspectStatus)
       return
@@ -222,9 +222,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     }
 
     appLogger.error(
-      "System extension request failed: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
+      "System extension request failed: context=\(context?.logDescription ?? "unknown") error=\(nsError.systemExtensionLogDescription)"
     )
-    updateStatus(.error(nsError.localizedDescription))
+    updateStatus(.error(nsError.systemExtensionLogDescription))
   }
 
   public func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
@@ -773,7 +773,7 @@ internal enum SystemExtensionReconciler {
     if installed.contains(where: \.isAwaitingUserApproval) {
       return SystemExtensionReconciliation(
         status: .requiresApproval,
-        action: .none,
+        action: .activate(reason: "request approval for pending system extension"),
         change: enabled == nil ? .install : classifyChange(current: enabled, desired: bundled))
     }
 
@@ -884,6 +884,12 @@ internal enum SystemExtensionReconciler {
     desired: SystemExtensionDescriptor
   ) -> String {
     classifyChange(current: current, desired: desired).rawValue
+  }
+}
+
+private extension NSError {
+  var systemExtensionLogDescription: String {
+    "\(domain) code=\(code): \(localizedDescription)"
   }
 }
 

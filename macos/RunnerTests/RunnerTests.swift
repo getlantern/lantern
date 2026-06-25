@@ -178,7 +178,10 @@ final class RunnerTests: XCTestCase {
     )
 
     XCTAssertEqual(reconciliation.status, .requiresApproval)
-    XCTAssertEqual(reconciliation.action, .none)
+    assertActivate(
+      reconciliation.action,
+      contains: "pending system extension"
+    )
   }
 
   func testReconcileReplacesEnabledExtensionThatIsUninstallingWhenContentDiffers() {

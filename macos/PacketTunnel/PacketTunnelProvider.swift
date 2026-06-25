@@ -33,7 +33,7 @@ public class PacketTunnelProvider: ExtensionProvider {
     appLogger.info("PacketTunnelProvider handling method: \(method) with params: \(params)")
 
     switch method {
-    case "PrivateServer":
+    case "PrivateServer", "LanternLocation":
       appLogger.info("Received connectServer command with params: \(params)")
       guard let server = params["server"] as? String else {
         return respond(["error": "Missing parameters"])

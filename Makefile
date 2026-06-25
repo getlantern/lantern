@@ -98,6 +98,8 @@ MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
 MACOS_FFI_HEADER := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h
+MACOS_FRAMEWORK_MIN_VERSION ?= 10.15
+MACOS_FRAMEWORK_ARM64_MIN_VERSION ?= 11.0
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
 SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
@@ -480,6 +482,10 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
+	bash scripts/macos/patch_liblantern_deployment_target.sh \
+		$(MACOS_FRAMEWORK_BUILD) \
+		$(MACOS_FRAMEWORK_MIN_VERSION) \
+		$(MACOS_FRAMEWORK_ARM64_MIN_VERSION)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
