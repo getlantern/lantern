@@ -60,6 +60,13 @@ class AuthNotifier extends _$AuthNotifier {
         );
   }
 
+  /// Verifies the account password without mutating anything. Used to gate
+  /// the change-email flow before the user enters a new email.
+  Future<Either<Failure, String>> verifyPassword(
+      String email, String password) async {
+    return ref.read(lanternServiceProvider).verifyPassword(email, password);
+  }
+
   Future<Either<Failure, String>> startChangeEmail(
       String newEmail, String password) async {
     return ref

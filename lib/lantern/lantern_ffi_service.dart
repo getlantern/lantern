@@ -1455,6 +1455,35 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final emailPtr = email.toCharPtr;
+        final passwordPtr = password.toCharPtr;
+        try {
+          final resultPtr = _ffiService.verifyPassword(emailPtr, passwordPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(emailPtr);
+          malloc.free(passwordPtr);
+        }
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error verifying password', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,
