@@ -87,24 +87,22 @@ class VPNSwitch extends HookConsumerWidget {
     if (PlatformUtils.isMacOS) {
       final systemExtensionStatus = ref.read(macosExtensionProvider);
       if (!systemExtensionStatus.isReady) {
-        appRouter.push(const MacOSExtensionDialog()).then((value) {
+        final value = await appRouter.push(const MacOSExtensionDialog());
+        if (!context.mounted) return;
+        appLogger.info(
+          'Returned from MacOS Extension Dialog with value: $value',
+        );
+        if (value is bool && value) {
           appLogger.info(
-            'Returned from MacOS Extension Dialog with value: $value',
+            'Retrying VPN state change after MacOS Extension setup',
           );
-          if (value != null && value as bool) {
-            appLogger.info(
-              'Retrying VPN state change after MacOS Extension setup',
-            );
-            onVPNStateChange(ref, context);
-          }
-        });
+          await onVPNStateChange(ref, context);
+        }
         return;
       }
     }
 
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .onVPNStateChange(context);
+    final result = await ref.read(vpnProvider.notifier).onVPNStateChange();
 
     if (!context.mounted) return;
     result.fold((failure) {

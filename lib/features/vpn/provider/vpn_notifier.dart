@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
@@ -20,11 +20,25 @@ part 'vpn_notifier.g.dart';
 class VpnNotifier extends _$VpnNotifier {
   @override
   VPNStatus build() {
-    ref.read(lanternServiceProvider).isVPNConnected();
+    unawaited(_hydrateInitialStatus());
     ref.listen(vPNStatusProvider, (previous, next) {
-      final previousStatus = previous?.value?.status;
-      final nextStatus = next.value!.status;
-      final nextOrigin = next.value!.origin;
+      if (next.hasError) {
+        appLogger.error(
+          'VPN status provider failed',
+          next.error,
+          next.stackTrace,
+        );
+        state = VPNStatus.error;
+        return;
+      }
+      if (!next.hasValue) return;
+      final lanternStatus = next.value;
+      if (lanternStatus == null) return;
+      final previousStatus = previous?.hasValue == true
+          ? previous!.value?.status
+          : null;
+      final nextStatus = lanternStatus.status;
+      final nextOrigin = lanternStatus.origin;
       // [vpn-state-trace] hop=dart_applied — moment Riverpod fires the listener
       // after the FFI ReceivePort delivers a status. Pairs with ffi_to_port
       // (lantern-core) and ssehandler_flushed / sse_parsed / daemon_setstatus
@@ -84,12 +98,33 @@ class VpnNotifier extends _$VpnNotifier {
     return VPNStatus.disconnected;
   }
 
-  Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {
+  Future<void> _hydrateInitialStatus() async {
+    final result = await ref.read(lanternServiceProvider).isVPNConnected();
+    if (!ref.mounted) return;
+    result.fold(
+      (failure) {
+        appLogger.error(
+          'Failed to hydrate VPN status: ${failure.error}',
+          failure.error,
+        );
+        if (state == VPNStatus.disconnected) {
+          state = VPNStatus.error;
+        }
+      },
+      (connected) {
+        if (state == VPNStatus.disconnected) {
+          state = connected ? VPNStatus.connected : VPNStatus.disconnected;
+        }
+      },
+    );
+  }
+
+  Future<Either<Failure, String>> onVPNStateChange() async {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
       return Right("");
     }
     appLogger.info("VPN State Change requested. Current state: $state");
-    return state == VPNStatus.disconnected ? startVPN() : stopVPN();
+    return state == VPNStatus.connected ? stopVPN() : startVPN();
   }
 
   /// Starts the VPN connection.
