@@ -630,6 +630,10 @@ func Login(email, password string) (string, error) {
 	})
 }
 
+func VerifyPassword(email, password string) error {
+	return withCore(func(c lanterncore.Core) error { return c.VerifyPassword(email, password) })
+}
+
 func StartChangeEmail(newEmail, password string) error {
 	return withCore(func(c lanterncore.Core) error { return c.StartChangeEmail(newEmail, password) })
 }
