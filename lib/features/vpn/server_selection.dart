@@ -346,49 +346,10 @@ class _ServerLocationListViewState
                   return const Center(child: Text("No locations available"));
                 }
 
-                final List<Widget> sections;
-                if (widget.userPro) {
-                  // Pro users get the reachable / currently-unavailable split.
-                  final reachableLocations = allLocations
-                      .where((s) => !s.shouldWarnBeforeManualSelection)
-                      .toList();
-                  final unavailableLocations =
-                      allLocations
-                          .where((s) => s.shouldWarnBeforeManualSelection)
-                          .toList()
-                        ..sort(_compareServersByLocation);
-
-                  sections = [
-                    if (reachableLocations.isNotEmpty) ...[
-                      _sectionHeader('pro_locations'.i18n),
-                      _sectionCard(
-                        _reachableLocationTiles(
-                          reachableLocations,
-                          selectedTag,
-                        ),
-                      ),
-                    ],
-                    if (unavailableLocations.isNotEmpty) ...[
-                      SizedBox(height: reachableLocations.isEmpty ? 4 : size24),
-                      _sectionHeader('currently_unavailable'.i18n),
-                      _sectionCard(
-                        _unavailableLocationTiles(
-                          unavailableLocations,
-                          selectedTag,
-                        ),
-                      ),
-                    ],
-                  ];
-                } else {
-                  // Free users see every location in a single list, without the
-                  // reachable / unavailable distinction.
-                  sections = [
-                    _sectionHeader('pro_locations'.i18n),
-                    _sectionCard(
-                      _reachableLocationTiles(allLocations, selectedTag),
-                    ),
-                  ];
-                }
+                final sections = [
+                  _sectionHeader('pro_locations'.i18n),
+                  _sectionCard(_locationTiles(allLocations, selectedTag)),
+                ];
 
                 return Stack(
                   children: [
@@ -445,10 +406,7 @@ class _ServerLocationListViewState
     );
   }
 
-  List<Widget> _reachableLocationTiles(
-    List<Server> locations,
-    String selectedTag,
-  ) {
+  List<Widget> _locationTiles(List<Server> locations, String selectedTag) {
     final grouped = _groupLocationsByCountry(locations);
     final countryEntries = grouped.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
@@ -464,7 +422,6 @@ class _ServerLocationListViewState
           onServerSelected: onServerSelected,
           server: serverData,
           isSelected: selectedTag == serverData.tag,
-          showReachabilityWarning: widget.userPro,
         );
       }
 
@@ -473,22 +430,6 @@ class _ServerLocationListViewState
         locations: countryLocations,
         selectedServerTag: selectedTag,
         onServerSelected: onServerSelected,
-        showReachabilityWarning: widget.userPro,
-      );
-    }).toList();
-  }
-
-  List<Widget> _unavailableLocationTiles(
-    List<Server> locations,
-    String selectedTag,
-  ) {
-    return locations.map((server) {
-      return SingleCityServerView(
-        key: ValueKey(server.tag),
-        onServerSelected: onServerSelected,
-        server: server,
-        isSelected: selectedTag == server.tag,
-        showReachabilityWarning: widget.userPro,
       );
     }).toList();
   }
@@ -504,14 +445,6 @@ class _ServerLocationListViewState
     return children;
   }
 
-  int _compareServersByLocation(Server a, Server b) {
-    final country = a.location.country.compareTo(b.location.country);
-    if (country != 0) return country;
-    final city = a.location.city.compareTo(b.location.city);
-    if (city != 0) return city;
-    return a.tag.compareTo(b.tag);
-  }
-
   Future<void> onServerSelected(Server selectedServer) async {
     if (PlatformUtils.isMacOS) {
       /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
@@ -522,85 +455,7 @@ class _ServerLocationListViewState
       }
     }
 
-    // The unreachable-server warning is part of the Pro reachability
-    // experience; free users select any location without it.
-    if (widget.userPro && selectedServer.shouldWarnBeforeManualSelection) {
-      _showManualServerWarning(selectedServer);
-      return;
-    }
-
     await _connectToServer(selectedServer);
-  }
-
-  void _showManualServerWarning(Server selectedServer) {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 24),
-          const Center(child: ServerReachabilityWarningIcon(size: 48)),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
-              'server_may_be_unreachable_title'.i18n,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'server_may_be_unreachable_message'.i18n,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'try_anyway'.i18n,
-          textColor: context.textTertiary,
-          onPressed: () async {
-            appRouter.maybePop();
-            await _connectToServer(selectedServer);
-          },
-        ),
-        AppTextButton(
-          label: 'use_smart_location'.i18n,
-          onPressed: () async {
-            appRouter.maybePop();
-            await _switchToSmartLocation();
-          },
-        ),
-      ],
-    );
-  }
-
-  Future<void> _switchToSmartLocation({bool skipConflictCheck = false}) async {
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .startVPN(force: true, skipConflictCheck: skipConflictCheck);
-    if (!mounted) return;
-
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              await _switchToSmartLocation(skipConflictCheck: true);
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) async {
-        await ref.read(serverLocationProvider.notifier).switchToAuto();
-        appRouter.popUntilRoot();
-      },
-    );
   }
 
   Future<void> _connectToServer(Server selectedServer) async {
@@ -679,14 +534,12 @@ class _CountryCityListView extends StatefulWidget {
   final List<Server> locations;
   final String selectedServerTag;
   final OnServerSelected onServerSelected;
-  final bool showReachabilityWarning;
 
   const _CountryCityListView({
     required this.country,
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
-    this.showReachabilityWarning = true,
   });
 
   @override
@@ -739,11 +592,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                         color: context.textSecondary,
                       ),
                     ),
-              trailing: !widget.showReachabilityWarning
-                  ? null
-                  : server.isProbedUnreachable
-                  ? const ServerReachabilityWarningIcon()
-                  : null,
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
@@ -789,7 +637,6 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
 
               return SingleCityServerView(
                 nested: true,
-                showReachabilityWarning: widget.showReachabilityWarning,
                 onServerSelected: (selected) {
                   Navigator.of(bottomSheetContext).pop();
                   widget.onServerSelected(selected);
