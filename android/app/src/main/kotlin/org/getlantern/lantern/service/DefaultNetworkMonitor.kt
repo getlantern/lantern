@@ -71,10 +71,10 @@ object DefaultNetworkMonitor {
                 // there); Os.if_nametoindex recovers the index so the default
                 // interface is still delivered, otherwise every outbound fails to bind.
                 val interfaceIndex = try {
-                    NetworkInterface.getByName(interfaceName)?.index
+                    NetworkInterface.getByName(interfaceName)?.index ?: Os.if_nametoindex(interfaceName)
                 } catch (e: Exception) {
-                    null
-                } ?: Os.if_nametoindex(interfaceName)
+                    0
+                }
                 if (interfaceIndex <= 0) {
                     Thread.sleep(100)
                     continue
