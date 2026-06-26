@@ -18,11 +18,14 @@ part 'vpn_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
+  bool _hasStatusStreamEmission = false;
+
   @override
   VPNStatus build() {
     unawaited(_hydrateInitialStatus());
     ref.listen(vPNStatusProvider, (previous, next) {
       if (next.hasError) {
+        _hasStatusStreamEmission = true;
         appLogger.error(
           'VPN status provider failed',
           next.error,
@@ -34,6 +37,7 @@ class VpnNotifier extends _$VpnNotifier {
       if (!next.hasValue) return;
       final lanternStatus = next.value;
       if (lanternStatus == null) return;
+      _hasStatusStreamEmission = true;
       final previousStatus = previous?.hasValue == true
           ? previous!.value?.status
           : null;
@@ -99,20 +103,31 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   Future<void> _hydrateInitialStatus() async {
-    final result = await ref.read(lanternServiceProvider).isVPNConnected();
-    if (!ref.mounted) return;
+    late final Either<Failure, bool> result;
+    try {
+      result = await ref.read(lanternServiceProvider).isVPNConnected();
+    } catch (e, stackTrace) {
+      appLogger.error('Failed to hydrate VPN status', e, stackTrace);
+      if (ref.mounted &&
+          !_hasStatusStreamEmission &&
+          state == VPNStatus.disconnected) {
+        state = VPNStatus.error;
+      }
+      return;
+    }
+    if (!ref.mounted || _hasStatusStreamEmission) return;
     result.fold(
       (failure) {
         appLogger.error(
           'Failed to hydrate VPN status: ${failure.error}',
           failure.error,
         );
-        if (state == VPNStatus.disconnected) {
+        if (!_hasStatusStreamEmission && state == VPNStatus.disconnected) {
           state = VPNStatus.error;
         }
       },
       (connected) {
-        if (state == VPNStatus.disconnected) {
+        if (!_hasStatusStreamEmission && state == VPNStatus.disconnected) {
           state = connected ? VPNStatus.connected : VPNStatus.disconnected;
         }
       },

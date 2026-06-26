@@ -96,7 +96,7 @@ class VPNSwitch extends HookConsumerWidget {
           appLogger.info(
             'Retrying VPN state change after MacOS Extension setup',
           );
-          await onVPNStateChange(ref, context);
+          return onVPNStateChange(ref, context);
         }
         return;
       }

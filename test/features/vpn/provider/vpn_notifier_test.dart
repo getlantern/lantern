@@ -15,6 +15,8 @@ class _FakeLanternService implements LanternService {
   final statusController = StreamController<LanternStatus>.broadcast();
 
   Either<Failure, bool> isConnectedResult = right(false);
+  Completer<Either<Failure, bool>>? isConnectedCompleter;
+  Object? isConnectedException;
   int isVPNConnectedCalls = 0;
   int startVPNCalls = 0;
   int stopVPNCalls = 0;
@@ -22,6 +24,13 @@ class _FakeLanternService implements LanternService {
   @override
   Future<Either<Failure, bool>> isVPNConnected() async {
     isVPNConnectedCalls += 1;
+    if (isConnectedException != null) {
+      throw isConnectedException!;
+    }
+    final completer = isConnectedCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
     return isConnectedResult;
   }
 
@@ -61,6 +70,16 @@ ProviderContainer _container(_FakeLanternService service) {
   );
 }
 
+void _disposeContainerAndService(
+  ProviderContainer container,
+  _FakeLanternService service,
+) {
+  addTearDown(() async {
+    container.dispose();
+    await service.dispose();
+  });
+}
+
 Future<void> _pumpProviderQueue() async {
   await Future<void>.delayed(Duration.zero);
   await Future<void>.delayed(Duration.zero);
@@ -71,8 +90,7 @@ void main() {
     test('hydrates initial connected state from core', () async {
       final service = _FakeLanternService()..isConnectedResult = right(true);
       final container = _container(service);
-      addTearDown(container.dispose);
-      addTearDown(service.dispose);
+      _disposeContainerAndService(container, service);
 
       expect(container.read(vpnProvider), VPNStatus.disconnected);
 
@@ -82,13 +100,53 @@ void main() {
       expect(container.read(vpnProvider), VPNStatus.connected);
     });
 
+    test('stream status wins over slower initial hydration', () async {
+      final service = _FakeLanternService()
+        ..isConnectedCompleter = Completer<Either<Failure, bool>>();
+      final container = _container(service);
+      _disposeContainerAndService(container, service);
+      final statusSub = container.listen<AsyncValue<LanternStatus>>(
+        vPNStatusProvider,
+        (previous, next) {},
+        fireImmediately: true,
+      );
+      addTearDown(statusSub.close);
+
+      container.read(vpnProvider);
+      await _pumpProviderQueue();
+      service.statusController.add(
+        LanternStatus(status: VPNStatus.disconnected),
+      );
+      await _pumpProviderQueue();
+
+      expect(container.read(vpnProvider), VPNStatus.disconnected);
+
+      service.isConnectedCompleter!.complete(right(true));
+      await _pumpProviderQueue();
+
+      expect(container.read(vpnProvider), VPNStatus.disconnected);
+    });
+
+    test('thrown hydration failures become VPNStatus.error', () async {
+      final service = _FakeLanternService()
+        ..isConnectedException = StateError('hydration failed');
+      final container = _container(service);
+      _disposeContainerAndService(container, service);
+
+      expect(container.read(vpnProvider), VPNStatus.disconnected);
+
+      await _pumpProviderQueue();
+
+      expect(service.isVPNConnectedCalls, 1);
+      expect(container.read(vpnProvider), VPNStatus.error);
+    });
+
     test(
       'starts VPN from an error state because the switch displays off',
       () async {
         final service = _FakeLanternService();
         final container = _container(service);
-        addTearDown(container.dispose);
-        addTearDown(service.dispose);
+        _disposeContainerAndService(container, service);
         final statusSub = container.listen<AsyncValue<LanternStatus>>(
           vPNStatusProvider,
           (previous, next) {},
@@ -120,8 +178,7 @@ void main() {
       () async {
         final service = _FakeLanternService();
         final container = _container(service);
-        addTearDown(container.dispose);
-        addTearDown(service.dispose);
+        _disposeContainerAndService(container, service);
         final statusSub = container.listen<AsyncValue<LanternStatus>>(
           vPNStatusProvider,
           (previous, next) {},
@@ -139,6 +196,19 @@ void main() {
         expect(status.hasValue, isTrue);
         expect(status.value?.status, VPNStatus.error);
         expect(status.value?.error, contains('status stream failed'));
+
+        service.statusController.add(
+          LanternStatus(
+            status: VPNStatus.disconnected,
+            origin: VPNStatusOrigin.settingsMutation,
+          ),
+        );
+        await _pumpProviderQueue();
+
+        expect(container.read(vpnProvider), VPNStatus.disconnected);
+        final recoveredStatus = container.read(vPNStatusProvider);
+        expect(recoveredStatus.hasValue, isTrue);
+        expect(recoveredStatus.value?.status, VPNStatus.disconnected);
       },
     );
   });
