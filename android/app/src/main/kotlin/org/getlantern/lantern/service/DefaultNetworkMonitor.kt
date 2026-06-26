@@ -2,6 +2,7 @@ package org.getlantern.lantern.service
 
 import android.net.Network
 import android.os.Build
+import android.system.Os
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -63,11 +64,18 @@ object DefaultNetworkMonitor {
         if (newNetwork != null) {
             val interfaceName =
                 (LanternApp.connectivity.getLinkProperties(newNetwork) ?: return).interfaceName
+                    ?: return
             for (times in 0 until 10) {
-                var interfaceIndex: Int
-                try {
-                    interfaceIndex = NetworkInterface.getByName(interfaceName).index
+                // getByName relies on the interface-enumeration syscall, which is
+                // restricted on some Android versions/ROMs (returns null or throws
+                // there); Os.if_nametoindex recovers the index so the default
+                // interface is still delivered, otherwise every outbound fails to bind.
+                val interfaceIndex = try {
+                    NetworkInterface.getByName(interfaceName)?.index
                 } catch (e: Exception) {
+                    null
+                } ?: Os.if_nametoindex(interfaceName)
+                if (interfaceIndex <= 0) {
                     Thread.sleep(100)
                     continue
                 }
