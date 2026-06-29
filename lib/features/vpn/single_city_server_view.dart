@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
@@ -8,7 +7,7 @@ import '../../core/common/common.dart';
 
 class SingleCityServerView extends StatefulWidget {
   final Server server;
-  final OnServerSelected onServerSelected;
+  final ValueChanged<Server> onServerSelected;
   final bool isSelected;
   final bool nested;
 
