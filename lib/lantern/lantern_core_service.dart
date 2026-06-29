@@ -206,6 +206,13 @@ abstract class LanternCoreService {
   Future<Either<Failure, UserResponseModel>> logout(String email);
 
   //Change email
+  /// Verifies the account password without mutating anything. Used to gate
+  /// the change-email flow before the user enters a new email.
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  );
+
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,
