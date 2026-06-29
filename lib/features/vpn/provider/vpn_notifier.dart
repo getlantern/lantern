@@ -122,12 +122,12 @@ class VpnNotifier extends _$VpnNotifier {
           'Failed to hydrate VPN status: ${failure.error}',
           failure.error,
         );
-        if (!_hasStatusStreamEmission && state == VPNStatus.disconnected) {
+        if (state == VPNStatus.disconnected) {
           state = VPNStatus.error;
         }
       },
       (connected) {
-        if (!_hasStatusStreamEmission && state == VPNStatus.disconnected) {
+        if (state == VPNStatus.disconnected) {
           state = connected ? VPNStatus.connected : VPNStatus.disconnected;
         }
       },

@@ -12,9 +12,11 @@ class VPNStatusNotifier extends _$VPNStatusNotifier {
   @override
   Stream<LanternStatus> build() {
     final statusStream = ref.read(lanternServiceProvider).watchVPNStatus();
+    // Forward data events unchanged (the default when handleData is omitted)
+    // and convert stream errors into an error status without closing the
+    // subscription, so status updates keep flowing after a transient failure.
     return statusStream.transform(
       StreamTransformer.fromHandlers(
-        handleData: (status, sink) => sink.add(status),
         handleError: (e, stackTrace, sink) {
           appLogger.error('VPN status stream failed', e, stackTrace);
           sink.add(
