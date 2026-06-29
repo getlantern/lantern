@@ -42,7 +42,7 @@ class LanternStatus {
   factory LanternStatus.fromJson(Map<String, dynamic> json) {
     appLogger.info('LanternStatus.fromJson $json');
     final VPNStatus status;
-    final String statusStr = json['status'].toLowerCase();
+    final String statusStr = (json['status'] as String?)?.toLowerCase() ?? '';
     if (statusStr == 'connected') {
       status = VPNStatus.connected;
     } else if (statusStr == 'disconnected') {
