@@ -5940,6 +5940,21 @@ class LanternBindings {
   late final _referralAttachment = _referralAttachmentPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> referralAttachmentV2(
+    ffi.Pointer<ffi.Char> _referralCode,
+  ) {
+    return _referralAttachmentV2(_referralCode);
+  }
+
+  late final _referralAttachmentV2Ptr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('referralAttachmentV2');
+  late final _referralAttachmentV2 = _referralAttachmentV2Ptr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> startChangeEmail(
     ffi.Pointer<ffi.Char> _newEmail,
     ffi.Pointer<ffi.Char> _password,

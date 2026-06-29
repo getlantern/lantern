@@ -82,6 +82,7 @@ enum class Methods(val method: String) {
     //Device
     RemoveDevice("removeDevice"),
     AttachReferralCode("attachReferralCode"),
+    AttachReferralCodeV2("attachReferralCodeV2"),
 
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
@@ -823,6 +824,24 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "AttachReferralCode",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AttachReferralCodeV2.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.arguments as String
+                        val response = Mobile.referralAttachmentV2(code)
+                        withContext(Dispatchers.Main) {
+                            success(response)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCodeV2",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

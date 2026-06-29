@@ -10,6 +10,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
@@ -243,6 +244,11 @@ abstract class LanternCoreService {
 
   //Referral attachment
   Future<Either<Failure, String>> attachReferralCode(String code);
+
+  //Referral attachment V2 — returns discounted plans, providers and discount
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  );
 
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();

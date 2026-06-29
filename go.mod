@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.26.2
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -168,10 +168,10 @@ require (
 	github.com/getlantern/broflake v0.0.0-20260612203837-c4d1516de8dc // indirect
 	github.com/getlantern/common v1.2.1-0.20260326210434-cb69537aaf46 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
-	github.com/getlantern/domainfront v0.0.0-20260419161617-0bff0b2169f4 // indirect
+	github.com/getlantern/domainfront v0.0.0-20260625001429-518c0256669b // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
-	github.com/getlantern/kindling v0.0.0-20260611181428-9a360f63ad5a // indirect
-	github.com/getlantern/lantern-box v0.0.93 // indirect
+	github.com/getlantern/kindling v0.0.0-20260625002640-7cdf7184420c // indirect
+	github.com/getlantern/lantern-box v0.0.95 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect

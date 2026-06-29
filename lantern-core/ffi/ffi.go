@@ -892,6 +892,25 @@ func referralAttachment(_referralCode *C.char) *C.char {
 	})
 }
 
+// referralAttachmentV2 attaches a referral code to the user's account and
+// returns the resulting plans, providers, code, and discount as JSON.
+//
+//export referralAttachmentV2
+func referralAttachmentV2(_referralCode *C.char) *C.char {
+	referralCode := C.GoString(_referralCode)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.ReferralAttachmentV2(referralCode)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(bytes))
+	})
+}
+
 // startChangeEmail initiates the process of changing the user's email address.
 //
 //export startChangeEmail

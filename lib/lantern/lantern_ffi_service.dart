@@ -29,6 +29,7 @@ import '../core/models/available_servers.dart';
 import '../core/models/server_location.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
+import '../core/models/referral_attach_response.dart';
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -1426,6 +1427,23 @@ class LanternFFIService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.referralAttachmentV2(code.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      final response = ReferralAttachV2Response.fromJson(jsonDecode(result));
+      return Right(response);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code v2', e, stackTrace);
       return Left(e.toFailure());
     }
   }

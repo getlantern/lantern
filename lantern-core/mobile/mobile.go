@@ -689,6 +689,15 @@ func ReferralAttachment(referralCode string) error {
 	})
 }
 
+// ReferralAttachmentV2 attaches a referral code and returns the resulting
+// plans, providers, code, and discount as a JSON string.
+func ReferralAttachmentV2(referralCode string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.ReferralAttachmentV2(referralCode)
+		return string(b), err
+	})
+}
+
 func DeleteAccount(email, password string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.DeleteAccount(email, password)
