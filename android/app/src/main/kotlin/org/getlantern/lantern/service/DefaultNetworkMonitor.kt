@@ -62,10 +62,15 @@ object DefaultNetworkMonitor {
     ) {
         val listener = listener ?: return
         if (newNetwork != null) {
-            val interfaceName =
-                (LanternApp.connectivity.getLinkProperties(newNetwork) ?: return).interfaceName
-                    ?: return
             for (times in 0 until 10) {
+                // getLinkProperties can briefly return null (or a null interfaceName)
+                // right after a network change, so resolve inside the retry loop.
+                val interfaceName =
+                    LanternApp.connectivity.getLinkProperties(newNetwork)?.interfaceName
+                if (interfaceName == null) {
+                    Thread.sleep(100)
+                    continue
+                }
                 // getByName relies on the interface-enumeration syscall, which is
                 // restricted on some Android versions/ROMs (returns null or throws
                 // there); Os.if_nametoindex recovers the index so the default
