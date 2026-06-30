@@ -4,15 +4,13 @@ import android.net.Network
 import android.os.Build
 import android.system.Os
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import lantern.io.libbox.InterfaceUpdateListener
 import org.getlantern.lantern.LanternApp
-import org.getlantern.lantern.utils.Bugs
 import java.net.NetworkInterface
 
 object DefaultNetworkMonitor {
+    private const val NO_INTERFACE_NAME = ""
+    private const val NO_INTERFACE_INDEX = -1
 
     var defaultNetwork: Network? = null
     private var listener: InterfaceUpdateListener? = null
@@ -84,23 +82,13 @@ object DefaultNetworkMonitor {
                     Thread.sleep(100)
                     continue
                 }
-                if (Bugs.fixAndroidStack) {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
-                    }
-                } else {
-                    listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
-                }
+                // Delivered synchronously so updates apply in network-change order.
+                // The golang/go#68760 stack workaround is handled on the Go side
+                listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
                 return // successfully notified, don't retry
             }
         } else {
-            if (Bugs.fixAndroidStack) {
-                GlobalScope.launch(Dispatchers.IO) {
-                    listener.updateDefaultInterface("", -1, false, false)
-                }
-            } else {
-                listener.updateDefaultInterface("", -1, false, false)
-            }
+            listener.updateDefaultInterface(NO_INTERFACE_NAME, NO_INTERFACE_INDEX, false, false)
         }
     }
 
