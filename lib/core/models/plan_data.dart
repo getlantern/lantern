@@ -1,3 +1,5 @@
+import 'package:lantern/core/common/common.dart';
+
 class PlansData {
   Providers providers;
   List<Plan> plans;
@@ -6,6 +8,28 @@ class PlansData {
     required this.providers,
     required this.plans,
   });
+
+  /// Sorts plans (best-value first, then by descending price) and orders the
+  /// platform's payment providers so subscription-capable ones come first.
+  /// Applied after fetching/attaching plans (including referral V2).
+  void sortPlansAndProviders() {
+    plans.sort((a, b) {
+      if (a.bestValue != b.bestValue) {
+        return a.bestValue ? -1 : 1;
+      }
+      // Then: sort by usdPrice descending
+      return b.usdPrice.compareTo(a.usdPrice);
+    });
+
+    int bySubscription(Android a, Android b) =>
+        (b.providers.supportSubscription ? 1 : 0) -
+        (a.providers.supportSubscription ? 1 : 0);
+    if (PlatformUtils.isMobile) {
+      providers.android.sort(bySubscription);
+    } else {
+      providers.desktop.sort(bySubscription);
+    }
+  }
 
   factory PlansData.fromJson(Map<String, dynamic> json) => PlansData(
         providers: Providers.fromJson(json["providers"]),

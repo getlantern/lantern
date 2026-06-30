@@ -155,6 +155,10 @@ class MethodHandler {
         let code = call.arguments as? String ?? ""
         self.referralAttach(result: result, code: code)
 
+      case "attachReferralCodeV2":
+        let code = call.arguments as? String ?? ""
+        self.referralAttachV2(result: result, code: code)
+
       // Private server methods
       case "digitalOcean":
         self.digitalOcean(result: result)
@@ -803,6 +807,22 @@ class MethodHandler {
       await MainActor.run {
         appLogger.info("Referral code attached successfully.")
         result("ok")
+      }
+    }
+  }
+
+  func referralAttachV2(result: @escaping FlutterResult, code: String) {
+    Task {
+      var error: NSError?
+      let json = MobileReferralAttachmentV2(code, &error)
+      if let error {
+        appLogger.error("Failed to attach referral code v2: \(error.localizedDescription)")
+        await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_V2_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Referral code attached successfully (v2).")
+        result(json)
       }
     }
   }

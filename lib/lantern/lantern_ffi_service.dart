@@ -808,22 +808,7 @@ class LanternFFIService implements LanternCoreService {
       });
       checkAPIError(result);
       final map = jsonDecode(result);
-      final plans = PlansData.fromJson(map);
-
-      // Sort plans
-      plans.plans.sort((a, b) {
-        if (a.bestValue != b.bestValue) {
-          return a.bestValue ? -1 : 1;
-        }
-        // Then: sort by usdPrice descending
-        return b.usdPrice.compareTo(a.usdPrice);
-      });
-
-      plans.providers.desktop.sort((a, b) {
-        return (b.providers.supportSubscription ? 1 : 0) -
-            (a.providers.supportSubscription ? 1 : 0);
-      });
-
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {

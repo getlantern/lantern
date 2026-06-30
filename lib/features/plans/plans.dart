@@ -9,7 +9,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_code.dart';
-import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -73,7 +72,7 @@ class _PlansState extends ConsumerState<Plans>
           child: SizedBox(
             height: context.isSmallDevice
                 ? size.height * 0.4
-                : size.height * 0.37,
+                : size.height * 0.36,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -90,6 +89,7 @@ class _PlansState extends ConsumerState<Plans>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 SizedBox(height: 10),
+                _buildAffiliateBanner(),
                 Padding(
                   padding: EdgeInsets.only(
                     left: context.isSmallDevice ? 16 : 0,
@@ -190,6 +190,64 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
+  /// Banner shown above the plans list when an affiliate code is applied:
+  /// the discount percentage plus a removable chip with the applied code.
+  /// Referral (non-affiliate) codes keep the existing per-plan bonus message.
+  Widget _buildAffiliateBanner() {
+    final referralApplied = ref.watch(referralProvider);
+    final response = ref.read(referralProvider.notifier).appliedReferral;
+    if (!referralApplied || response == null || !response.isAffiliate) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: defaultSize),
+            child: Text(
+              'discount_applied'.i18n.fill(['${response.discountPct}%']),
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
+          SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Chip(
+              label: Text(response.code),
+              labelStyle: textTheme.titleSmall!.copyWith(
+                color: context.textAttention,
+              ),
+              backgroundColor: context.bgAttention,
+              deleteIcon: Icon(
+                Icons.close,
+                size: 18,
+                color: context.textAttention,
+              ),
+              onDeleted: _onRemoveAffiliateCode,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: context.borderAttention),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Removes the applied affiliate code: clears the referral state and
+  /// re-fetches the original (non-discounted) plans.
+  void _onRemoveAffiliateCode() {
+    appLogger.info('Removing applied affiliate code');
+    ref.read(referralProvider.notifier).resetReferral();
+    ref.read(plansProvider.notifier).fetchPlans();
+  }
+
   void onMenuTap() {
     final isReferralApplied = ref.read(referralProvider);
     showAppBottomSheet(
@@ -255,7 +313,6 @@ class _PlansState extends ConsumerState<Plans>
           AppTextField(
             label: 'promo_referral_code'.i18n,
             controller: referralCodeController,
-            inputFormatters: [UpperCaseTextFormatter()],
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
           ),
@@ -289,7 +346,7 @@ class _PlansState extends ConsumerState<Plans>
     context.showLoadingDialog();
     final result = await ref
         .read(referralProvider.notifier)
-        .applyReferralCode(code);
+        .applyReferralCodeV2(code);
 
     result.fold(
       (error) {

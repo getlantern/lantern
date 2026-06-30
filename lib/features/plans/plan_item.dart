@@ -11,12 +11,17 @@ class PlanItem extends StatelessWidget {
   final Function(Plan plans) onPressed;
   final String referralMessage;
 
+  /// When > 0, an affiliate discount is applied: the (discounted) price is
+  /// shown alongside the strikethrough original price.
+  final int discountPct;
+
   const PlanItem({
     super.key,
     required this.plan,
     required this.planSelected,
     required this.onPressed,
     this.referralMessage = '',
+    this.discountPct = 0,
   });
 
   @override
@@ -26,31 +31,23 @@ class PlanItem extends StatelessWidget {
     final finalSize = (width * 0.5) - (defaultSize * 3);
     return badges.Badge(
       showBadge: plan.bestValue ?? false,
-      badgeAnimation: badges.BadgeAnimation.scale(
-        toAnimate: false,
-      ),
+      badgeAnimation: badges.BadgeAnimation.scale(toAnimate: false),
       position: badges.BadgePosition.custom(start: (finalSize - 10)),
       // Adjust values as needed
       badgeStyle: badges.BadgeStyle(
         shape: badges.BadgeShape.square,
-        borderSide: BorderSide(
-          color: context.statusWarningText,
-          width: 1,
-        ),
+        borderSide: BorderSide(color: context.statusWarningText, width: 1),
         borderRadius: BorderRadius.circular(16),
         badgeColor: context.statusWarningBgDot,
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
-      badgeContent: Text(
-        'best_value'.i18n,
-        style: textTheme.labelMedium!,
-      ),
+      badgeContent: Text('best_value'.i18n, style: textTheme.labelMedium!),
       child: GestureDetector(
         onTap: () {
           onPressed.call(plan);
         },
         child: AnimatedContainer(
-          margin: EdgeInsets.only(top: 16),
+          margin: EdgeInsets.only(top: 14),
           padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
           duration: Duration(milliseconds: 300),
           decoration: getPlanDecoration(planSelected, context),
@@ -66,21 +63,33 @@ class PlanItem extends StatelessWidget {
                     ),
                   ),
                   if (referralMessage.isNotEmpty)
-                    Text(
-                      referralMessage,
-                      style: textTheme.labelMedium,
-                    ),
+                    Text(referralMessage, style: textTheme.labelMedium),
                 ],
               ),
               Spacer(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
-                  Text(
-                    plan.formattedYearlyPrice,
-                    style: textTheme.titleMedium!.copyWith(
-                      color: context.textLink,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        plan.formattedYearlyPrice,
+                        style: textTheme.titleMedium!.copyWith(
+                          color: context.textLink,
+                        ),
+                      ),
+                      if (discountPct > 0) ...[
+                        SizedBox(width: 6),
+                        Text(
+                          plan.formattedYearlyOriginalPrice(discountPct),
+                          style: textTheme.labelMedium!.copyWith(
+                            color: context.textTertiary,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   Text(
                     '${plan.formattedMonthlyPrice}/month',

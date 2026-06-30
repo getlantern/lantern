@@ -11,34 +11,42 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 class PlansListView extends HookConsumerWidget {
   final PlansData data;
 
-  const PlansListView({
-    super.key,
-    required this.data,
-  });
+  const PlansListView({super.key, required this.data});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final referralEnable = ref.watch(referralProvider);
+    final referralNotifier = ref.read(referralProvider.notifier);
+    final isAffiliate = referralNotifier.isAffiliateApplied;
+    final discountPct = referralNotifier.appliedReferral?.discountPct ?? 0;
     final size = MediaQuery.of(context).size;
     final plan = useState<Plan>(
-        data.plans.firstWhere((Plan plan) => plan.bestValue == true));
+      data.plans.firstWhere((Plan plan) => plan.bestValue == true),
+    );
     ref.read(plansProvider.notifier).setSelectedPlan(plan.value);
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 : null,
       child: ListView.builder(
         shrinkWrap: true,
         itemCount: data.plans.length,
-        scrollDirection:
-            context.isSmallDevice ? Axis.horizontal : Axis.vertical,
+        scrollDirection: context.isSmallDevice
+            ? Axis.horizontal
+            : Axis.vertical,
         padding: EdgeInsets.zero,
-        physics:
-            context.isSmallDevice ? null : const NeverScrollableScrollPhysics(),
+        physics: context.isSmallDevice
+            ? null
+            : const NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
           final item = data.plans[index];
           return PlanItem(
             plan: item,
             planSelected: plan.value.id == item.id,
-            referralMessage: referralEnable ? getReferralMessage(item.id) : '',
+            // Affiliate codes show strikethrough discount pricing instead of
+            // the per-plan referral bonus message.
+            referralMessage: (referralEnable && !isAffiliate)
+                ? getReferralMessage(item.id)
+                : '',
+            discountPct: isAffiliate ? discountPct : 0,
             onPressed: (plans) {
               plan.value = plans;
               ref.read(plansProvider.notifier).setSelectedPlan(plans);

@@ -78,6 +78,11 @@ class PlansNotifier extends _$PlansNotifier {
           '[PlansNotifier] Plans fetched successfully: ${remote.plans.length} plans',
         );
         unawaited(_storage.savePlans(remote));
+        // Publish the result so standalone callers (the "Try again" button and
+        // removing an affiliate code) leave the loading state. When invoked
+        // from build() the framework also assigns the returned value — this
+        // extra set is harmless and redundant there.
+        state = AsyncData(remote);
         return remote;
       },
     );
@@ -90,6 +95,17 @@ class PlansNotifier extends _$PlansNotifier {
       '[PlansNotifier] Background refresh complete, updating state',
     );
     state = AsyncData(remotePlans);
+  }
+
+  /// Replaces the current plans with [plans] — e.g. the discounted plans
+  /// returned after applying a referral code. Kept in-memory only: the
+  /// discount is session-specific and must not overwrite the cached base
+  /// plans used by non-referral sessions.
+  void updatePlans(PlansData plans) {
+    appLogger.info(
+      '[PlansNotifier] updatePlans: ${plans.plans.length} plans (referral)',
+    );
+    state = AsyncData(plans);
   }
 
   void setSelectedPlan(Plan plan) {

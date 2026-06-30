@@ -733,28 +733,7 @@ class LanternPlatformService implements LanternCoreService {
         channel,
       );
       final map = jsonDecode(subData!);
-      final plans = PlansData.fromJson(map);
-      //Sort plans
-      plans.plans.sort((a, b) {
-        if (a.bestValue != b.bestValue) {
-          return a.bestValue ? -1 : 1;
-        }
-        // Then: sort by usdPrice descending
-        return b.usdPrice.compareTo(a.usdPrice);
-      });
-
-      //Sort provider
-      if (PlatformUtils.isMobile) {
-        plans.providers.android.sort((a, b) {
-          return (b.providers.supportSubscription ? 1 : 0) -
-              (a.providers.supportSubscription ? 1 : 0);
-        });
-      } else {
-        plans.providers.desktop.sort((a, b) {
-          return (b.providers.supportSubscription ? 1 : 0) -
-              (a.providers.supportSubscription ? 1 : 0);
-        });
-      }
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);

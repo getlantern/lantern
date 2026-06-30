@@ -19,6 +19,17 @@ extension PlanExtension on Plan {
         expectedMonthlyPrice.keys.first);
   }
 
+  /// The original (pre-discount) yearly price, reconstructed from the current
+  /// (discounted) price and [discountPct]. Used for the affiliate strikethrough
+  /// price shown next to the discounted price.
+  String formattedYearlyOriginalPrice(int discountPct) {
+    final discounted = double.parse(price.values.first.toString());
+    final original = (discountPct > 0 && discountPct < 100)
+        ? discounted / (1 - discountPct / 100)
+        : discounted;
+    return CurrencyUtils.formatCurrency(original, price.keys.first);
+  }
+
   String getDurationText() {
     final durationMap = {
       '1y': 'year',

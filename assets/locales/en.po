@@ -1245,6 +1245,9 @@ msgstr  "Server alias cannot be empty"
 msgid "referral_code_applied"
 msgstr "Your referral code has been applied!"
 
+msgid "discount_applied"
+msgstr "%s discount applied"
+
 msgid "referral_message_1m"
 msgstr "+ 15 additional days free"
 
