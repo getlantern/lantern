@@ -35,6 +35,21 @@ extension PlanExtension on Plan {
     );
   }
 
+  /// The amount deducted by the affiliate discount: original − discounted
+  /// yearly price, both taken directly from the backend (no percentage math).
+  /// Shown as the "Promo Code" deduction at checkout. Empty when the backend
+  /// didn't supply an original price.
+  String get formatDiscountAmount {
+    final original = originalPrice;
+    if (original == null || original.isEmpty) return '';
+    final originalAmount = double.parse(original.values.first.toString());
+    final discountedAmount = double.parse(price.values.first.toString());
+    return CurrencyUtils.formatCurrency(
+      originalAmount - discountedAmount,
+      price.keys.first,
+    );
+  }
+
   String getDurationText() {
     final durationMap = {'1y': 'year', '2y': 'two year', '1m': 'month'};
 

@@ -5681,12 +5681,14 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _planId,
     ffi.Pointer<ffi.Char> _email,
     ffi.Pointer<ffi.Char> _idempotencyKey,
+    ffi.Pointer<ffi.Char> _couponCode,
   ) {
     return _stripeSubscriptionPaymentRedirect(
       subType,
       _planId,
       _email,
       _idempotencyKey,
+      _couponCode,
     );
   }
 
@@ -5698,6 +5700,7 @@ class LanternBindings {
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('stripeSubscriptionPaymentRedirect');
@@ -5705,6 +5708,7 @@ class LanternBindings {
       _stripeSubscriptionPaymentRedirectPtr
           .asFunction<
             ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,

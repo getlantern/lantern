@@ -2,9 +2,11 @@ import 'package:lantern/core/models/plan_data.dart';
 
 /// The kind of code applied via the referral-attach V2 endpoint.
 ///
+/// - [none] nothing applied (the notifier's default/null state).
 /// - [affiliate] applies a discount to the plans (strikethrough pricing UI).
 /// - [referral] keeps the existing per-plan bonus message UI.
 enum ReferralType {
+  none,
   referral,
   affiliate;
 
@@ -41,4 +43,17 @@ class ReferralAttachV2Response {
     "discountPct": discountPct,
     "type": type.name,
   };
+}
+
+/// Null-safe accessors for the referral notifier state
+/// (`ReferralAttachV2Response?`). Lets callers branch on [type] and read
+/// [code] / [discountPct] directly, without repeated `!= null` checks — a
+/// null state simply reports [ReferralType.none], empty code, and 0 discount.
+extension ReferralStateX on ReferralAttachV2Response? {
+  ReferralType get type => this?.type ?? ReferralType.none;
+  bool get isApplied => this != null;
+  bool get isAffiliate => type == ReferralType.affiliate;
+  bool get isReferral => type == ReferralType.referral;
+  String get code => this?.code ?? '';
+  int get discountPct => this?.discountPct ?? 0;
 }

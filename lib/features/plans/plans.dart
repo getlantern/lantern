@@ -22,6 +22,7 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 
 import '../../core/models/plan_data.dart';
+import '../../core/models/referral_attach_response.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
@@ -195,7 +196,7 @@ class _PlansState extends ConsumerState<Plans>
   /// Referral (non-affiliate) codes keep the existing per-plan bonus message.
   Widget _buildAffiliateBanner() {
     final response = ref.watch(referralProvider);
-    if (response == null || !response.isAffiliate) {
+    if (!response.isAffiliate) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -248,7 +249,7 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void onMenuTap() {
-    final isReferralApplied = ref.read(referralProvider) != null;
+    final isReferralApplied = ref.read(referralProvider).isApplied;
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,

@@ -120,7 +120,7 @@ type PrivateServer interface {
 }
 
 type Payment interface {
-	StripeSubscription(email, planID string) (string, error)
+	StripeSubscription(email, planID, couponCode string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
 	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
@@ -130,7 +130,7 @@ type Payment interface {
 	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
-	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error)
+	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error)
 }
 
 type SplitTunnel interface {
@@ -873,8 +873,8 @@ func (lc *LanternCore) ReferralAttachmentV2(referralCode string) ([]byte, error)
 //  Payments   //
 /////////////////
 
-func (lc *LanternCore) StripeSubscription(email, planID string) (string, error) {
-	return lc.client.NewStripeSubscription(lc.ctx, email, planID)
+func (lc *LanternCore) StripeSubscription(email, planID, couponCode string) (string, error) {
+	return lc.client.NewStripeSubscription(lc.ctx, email, planID, couponCode)
 }
 
 func (lc *LanternCore) Plans(channel string) (string, error) {
@@ -937,7 +937,7 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.Payme
 	return lc.client.SubscriptionPaymentRedirectURL(lc.ctx, redirectBody)
 }
 
-func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error) {
+func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error) {
 	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
 	if err != nil {
 		return "", err
@@ -950,6 +950,7 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 		Email:          email,
 		BillingType:    account.SubscriptionType(subscriptionType),
 		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
 	}
 	return lc.SubscriptionPaymentRedirectURL(redirectBody)
 }

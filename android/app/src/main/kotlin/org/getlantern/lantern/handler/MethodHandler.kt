@@ -439,7 +439,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.stripeSubscription(
                             map["email"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)

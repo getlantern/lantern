@@ -179,6 +179,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
@@ -186,6 +187,7 @@ class LanternService implements LanternCoreService {
         planId: planId,
         email: email,
         idempotencyKey: idempotencyKey,
+        couponCode: couponCode,
       );
     }
     return _platformService.stipeSubscriptionPaymentRedirect(
@@ -193,6 +195,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       email: email,
       idempotencyKey: idempotencyKey,
+      couponCode: couponCode,
     );
   }
 
@@ -200,11 +203,16 @@ class LanternService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
     }
-    return _platformService.stipeSubscription(planId: planId, email: email);
+    return _platformService.stipeSubscription(
+      planId: planId,
+      email: email,
+      couponCode: couponCode,
+    );
   }
 
   @override

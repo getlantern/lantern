@@ -744,6 +744,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
@@ -753,6 +754,7 @@ class LanternFFIService implements LanternCoreService {
           planId.toCharPtr,
           email.toCharPtr,
           idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
         );
         try {
           return resultPtr.toDartString();
@@ -777,6 +779,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) {
     throw Exception("Desktop flow should not be here, this is just for mobile");
   }

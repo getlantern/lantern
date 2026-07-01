@@ -1281,6 +1281,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let type = data["type"] as? String ?? ""
+      let couponCode = data["couponCode"] as? String ?? ""
       let idempotencyKey: String
       do {
         idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
@@ -1294,6 +1295,7 @@ class MethodHandler {
         planId,
         email,
         idempotencyKey,
+        couponCode,
         &error
       )
       if let err = error {

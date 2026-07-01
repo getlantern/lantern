@@ -61,8 +61,9 @@ class PaymentNotifier extends _$PaymentNotifier {
   Future<Either<Failure, String>> stripeSubscriptionLink(
     BillingType type,
     String planId,
-    String email,
-  ) async {
+    String email, {
+    String couponCode = '',
+  }) async {
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
@@ -71,16 +72,18 @@ class PaymentNotifier extends _$PaymentNotifier {
           planId: planId,
           email: email,
           idempotencyKey: idempotencyKey,
+          couponCode: couponCode,
         );
   }
 
   Future<Either<Failure, Map<String, dynamic>>> stripeSubscription(
     String planId,
-    String email,
-  ) async {
+    String email, {
+    String couponCode = '',
+  }) async {
     return ref
         .read(lanternServiceProvider)
-        .stipeSubscription(planId: planId, email: email);
+        .stipeSubscription(planId: planId, email: email, couponCode: couponCode);
   }
 
   Future<Either<Failure, String>> paymentRedirect({

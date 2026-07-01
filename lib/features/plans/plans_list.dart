@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -16,12 +17,10 @@ class PlansListView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final referral = ref.watch(referralProvider);
-    // Referral (non-affiliate) codes show the per-plan bonus message; affiliate
-    // codes instead show strikethrough discount pricing.
-    final showReferralBonus = referral != null && !referral.isAffiliate;
-    final discountPct = (referral != null && referral.isAffiliate)
-        ? referral.discountPct
-        : 0;
+    // Referral codes show the per-plan bonus message; affiliate codes instead
+    // show strikethrough discount pricing.
+    final showReferralBonus = referral.isReferral;
+    final discountPct = referral.isAffiliate ? referral.discountPct : 0;
     final size = MediaQuery.of(context).size;
     final plan = useState<Plan>(
       data.plans.firstWhere((Plan plan) => plan.bestValue == true),

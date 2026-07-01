@@ -79,13 +79,16 @@ class PlanItem extends StatelessWidget {
                           color: context.textLink,
                         ),
                       ),
-                      if (discountPct > 0 && plan.formatOriginalPrice.isNotEmpty) ...[
+                      if (discountPct > 0 &&
+                          plan.formatOriginalPrice.isNotEmpty) ...[
                         SizedBox(width: 6),
                         Text(
                           plan.formatOriginalPrice,
                           style: textTheme.labelMedium!.copyWith(
                             color: context.textTertiary,
                             decoration: TextDecoration.lineThrough,
+                            decorationColor: context.textTertiary,
+                            decorationThickness: 4,
                           ),
                         ),
                       ],

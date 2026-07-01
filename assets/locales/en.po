@@ -1683,6 +1683,9 @@ msgstr "Promo / Referral Code"
 msgid "promo_code"
 msgstr "Promo Code (%s)"
 
+msgid "order_total"
+msgstr "Order Total"
+
 
 
 

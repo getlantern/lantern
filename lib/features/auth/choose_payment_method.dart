@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
@@ -132,6 +133,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
   }
 
+  /// The applied affiliate code (coupon) to forward to Stripe, or '' when the
+  /// applied code is a plain referral / nothing is applied.
+  String _affiliateCoupon(WidgetRef ref) {
+    final referral = ref.read(referralProvider);
+    return referral.isAffiliate ? referral.code : '';
+  }
+
   Future<void> onSubscribe(
     Android provider,
     WidgetRef ref,
@@ -192,7 +200,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     context.showLoadingDialog();
 
     ///get stripe details
-    final result = await payments.stripeSubscription(userPlan.id, email);
+    final result = await payments.stripeSubscription(
+      userPlan.id,
+      email,
+      couponCode: _affiliateCoupon(ref),
+    );
     result.fold(
       (error) {
         context.showSnackBar(error.localizedErrorMessage);
@@ -248,6 +260,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         BillingType.subscription,
         userPlan.id,
         email,
+        couponCode: _affiliateCoupon(ref),
       );
       if (!context.mounted) return;
       await result.fold<Future<void>>(
@@ -492,7 +505,10 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text(userPlan.description, style: theme.bodyMedium),
                   Text(
-                    userPlan.formattedYearlyPrice,
+                    (referral.isAffiliate &&
+                            userPlan.formatOriginalPrice.isNotEmpty)
+                        ? userPlan.formatOriginalPrice
+                        : userPlan.formattedYearlyPrice,
                     style: theme.bodyMedium!.copyWith(
                       color: context.textDisabled,
                     ),
@@ -500,7 +516,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 ],
               ),
               DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-              if (referral != null && !referral.isAffiliate) ...[
+              if (referral.isReferral) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -520,9 +536,10 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 ),
                 DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               ],
-              // Affiliate codes: show the applied promo code and the discounted
-              // price (taken directly from the plans, same as the plan screen).
-              if (referral != null && referral.isAffiliate) ...[
+              // Affiliate codes: show the applied promo code and the amount
+              // deducted (original − discounted, from the backend).
+              if (referral.isAffiliate &&
+                  userPlan.formatDiscountAmount.isNotEmpty) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -534,7 +551,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ),
                     SizedBox(width: defaultSize),
                     Text(
-                      userPlan.formattedYearlyPrice,
+                      '-${userPlan.formatDiscountAmount}',
                       style: theme.bodyMedium!.copyWith(
                         color: context.textDisabled,
                       ),
@@ -547,7 +564,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Order Total:',
+                    'order_total'.i18n,
                     style: theme.titleSmall!.copyWith(
                       color: context.textPrimary,
                     ),

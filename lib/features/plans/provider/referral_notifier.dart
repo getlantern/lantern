@@ -7,10 +7,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'referral_notifier.g.dart';
 
-/// Holds the applied V2 referral/affiliate response, or null when no code is
-/// applied. The response's [ReferralType] drives the UI, so callers branch on
-/// `state == null` (none) / `state!.isAffiliate` (affiliate) / else (referral)
-/// and read `code`/`discountPct`/`plansData` off the same object.
 @Riverpod(keepAlive: true)
 class ReferralNotifier extends _$ReferralNotifier {
   @override
@@ -23,8 +19,9 @@ class ReferralNotifier extends _$ReferralNotifier {
   Future<Either<Failure, ReferralAttachV2Response>> applyReferralCodeV2(
     String code,
   ) async {
-    final result =
-        await ref.read(lanternServiceProvider).attachReferralCodeV2(code);
+    final result = await ref
+        .read(lanternServiceProvider)
+        .attachReferralCodeV2(code);
     if (result.isRight()) {
       final response = result.getRight().toNullable();
       state = response;

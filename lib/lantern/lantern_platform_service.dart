@@ -655,6 +655,7 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     if (!PlatformUtils.isMacOS) {
       return left(
@@ -671,6 +672,7 @@ class LanternPlatformService implements LanternCoreService {
             "planId": planId,
             "email": email,
             "idempotencyKey": idempotencyKey,
+            "couponCode": couponCode,
           });
       if (redirectUrl == null || redirectUrl.isEmpty) {
         return Left(
@@ -694,11 +696,12 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) async {
     try {
       final subData = await _methodChannel.invokeMethod<String>(
         'stripeSubscription',
-        {"planId": planId, "email": email},
+        {"planId": planId, "email": email, "couponCode": couponCode},
       );
       final map = jsonDecode(subData!);
       return Right(map);

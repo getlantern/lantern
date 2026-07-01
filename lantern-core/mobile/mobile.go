@@ -497,8 +497,10 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	})
 }
 
-func StripeSubscription(email, planID string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
+func StripeSubscription(email, planID, couponCode string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.StripeSubscription(email, planID, couponCode)
+	})
 }
 
 func Plans(channel string) (string, error) {
@@ -613,10 +615,10 @@ func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, er
 
 // /This is specifically for stripe subscriptions that require a redirect to complete the payment
 // This is only used for macos
-func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey string) (string, error) {
+func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode string) (string, error) {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey)
+		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode)
 	})
 }
 

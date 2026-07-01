@@ -94,6 +94,7 @@ abstract class LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   });
 
   Future<Either<Failure, String>> paymentRedirect({
@@ -107,6 +108,7 @@ abstract class LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   });
 
   Future<Either<Failure, String>> stripeBillingPortal();

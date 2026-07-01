@@ -645,17 +645,18 @@ func fetchUserData() *C.char {
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey, _couponCode *C.char) *C.char {
 	subscriptionType := C.GoString(subType)
 	planID := C.GoString(_planId)
 	email := C.GoString(_email)
 	idempotencyKey := C.GoString(_idempotencyKey)
+	couponCode := C.GoString(_couponCode)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey)
+		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode)
 		if err != nil {
 			return SendError(err)
 		}
