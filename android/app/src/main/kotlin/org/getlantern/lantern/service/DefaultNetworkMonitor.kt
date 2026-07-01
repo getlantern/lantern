@@ -4,17 +4,29 @@ import android.net.Network
 import android.os.Build
 import android.system.Os
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import lantern.io.libbox.InterfaceUpdateListener
 import org.getlantern.lantern.LanternApp
-import org.getlantern.lantern.utils.Bugs
+import org.getlantern.lantern.utils.AppLogger
 import java.net.NetworkInterface
+import java.util.concurrent.Executors
 
 object DefaultNetworkMonitor {
+    private const val TAG = "DefaultNetworkMonitor"
+    private const val NO_INTERFACE_NAME = ""
+    private const val NO_INTERFACE_INDEX = -1
+    private const val INTERFACE_RESOLUTION_RETRY_COUNT = 10
+    private const val INTERFACE_RESOLUTION_RETRY_DELAY_MS = 100L
+
+    private data class ResolvedInterface(
+        val name: String,
+        val index: Int,
+    )
 
     var defaultNetwork: Network? = null
+
+    // Written by setListener and read by checkDefaultInterfaceUpdate on possibly
+    // different threads, so @Volatile guarantees the read sees the latest write.
+    @Volatile
     private var listener: InterfaceUpdateListener? = null
     private var networkChangeCallback: ((Network?) -> Unit)? = null
 
@@ -57,51 +69,94 @@ object DefaultNetworkMonitor {
         checkDefaultInterfaceUpdate(defaultNetwork)
     }
 
-    private fun checkDefaultInterfaceUpdate(
-        newNetwork: Network?
-    ) {
+    // Default-network callbacks arrive on the main looper, so resolution runs on a
+    // single background thread to keep the retry loop's sleeps and the JNI call off
+    // the UI thread while still applying updates in network-change order. The monitor
+    // is a process-wide singleton; the daemon worker intentionally lives for the
+    // process lifetime, so there is no per-session shutdown.
+    private val updateExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "default-interface-monitor").apply { isDaemon = true }
+    }
+
+    private fun checkDefaultInterfaceUpdate(newNetwork: Network?) {
         val listener = listener ?: return
-        if (newNetwork != null) {
-            for (times in 0 until 10) {
-                // getLinkProperties can briefly return null (or a null interfaceName)
-                // right after a network change, so resolve inside the retry loop.
-                val interfaceName =
-                    LanternApp.connectivity.getLinkProperties(newNetwork)?.interfaceName
-                if (interfaceName == null) {
-                    Thread.sleep(100)
-                    continue
+        updateExecutor.execute {
+            when (newNetwork) {
+                null -> {
+                    AppLogger.i(TAG, "Default network lost; clearing default interface")
+                    notifyDefaultInterface(listener, NO_INTERFACE_NAME, NO_INTERFACE_INDEX)
                 }
-                // getByName relies on the interface-enumeration syscall, which is
-                // restricted on some Android versions/ROMs (returns null or throws
-                // there); Os.if_nametoindex recovers the index so the default
-                // interface is still delivered, otherwise every outbound fails to bind.
-                val interfaceIndex = try {
-                    NetworkInterface.getByName(interfaceName)?.index ?: Os.if_nametoindex(interfaceName)
-                } catch (e: Exception) {
-                    0
-                }
-                if (interfaceIndex <= 0) {
-                    Thread.sleep(100)
-                    continue
-                }
-                if (Bugs.fixAndroidStack) {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
+                else -> {
+                    val resolved = resolveDefaultInterface(newNetwork)
+                    if (resolved == null) {
+                        AppLogger.w(TAG, "Failed to resolve default interface for the new default network")
+                        return@execute
                     }
-                } else {
-                    listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
+                    AppLogger.i(TAG, "Default interface resolved: ${resolved.name} (index ${resolved.index})")
+                    notifyDefaultInterface(listener, resolved.name, resolved.index)
                 }
-                return // successfully notified, don't retry
-            }
-        } else {
-            if (Bugs.fixAndroidStack) {
-                GlobalScope.launch(Dispatchers.IO) {
-                    listener.updateDefaultInterface("", -1, false, false)
-                }
-            } else {
-                listener.updateDefaultInterface("", -1, false, false)
             }
         }
     }
 
+    private fun notifyDefaultInterface(listener: InterfaceUpdateListener, name: String, index: Int) {
+        // A teardown may clear or replace the listener while this update sits queued
+        // or is being resolved; don't call into a stale (closed) libbox handler.
+        if (this.listener !== listener) return
+        listener.updateDefaultInterface(name, index, false, false)
+    }
+
+    private fun resolveDefaultInterface(network: Network): ResolvedInterface? {
+        repeat(INTERFACE_RESOLUTION_RETRY_COUNT) { attempt ->
+            // getLinkProperties can briefly return null (or a null interfaceName)
+            // right after a network change, so resolve inside the retry loop.
+            val interfaceName = LanternApp.connectivity
+                .getLinkProperties(network)
+                ?.interfaceName
+
+            if (interfaceName != null) {
+                // getByName relies on the interface-enumeration syscall, which is
+                // restricted on some Android versions/ROMs (returns null or throws
+                // there); Os.if_nametoindex recovers the index so the default
+                // interface is still delivered, otherwise every outbound fails to bind.
+                val interfaceIndex = getInterfaceIndex(interfaceName)
+                if (interfaceIndex > 0) {
+                    return ResolvedInterface(interfaceName, interfaceIndex)
+                }
+            }
+
+            val hasMoreAttempts = attempt < INTERFACE_RESOLUTION_RETRY_COUNT - 1
+            if (hasMoreAttempts && !sleepBeforeRetry()) {
+                return null
+            }
+        }
+
+        return null
+    }
+
+    private fun getInterfaceIndex(interfaceName: String): Int {
+        val indexByName = try {
+            NetworkInterface.getByName(interfaceName)?.index
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "getByName failed for $interfaceName; falling back to if_nametoindex", e)
+            null
+        }
+        if (indexByName != null) {
+            return indexByName
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Os.if_nametoindex(interfaceName)
+        } else {
+            0
+        }
+    }
+
+    private fun sleepBeforeRetry(): Boolean =
+        try {
+            Thread.sleep(INTERFACE_RESOLUTION_RETRY_DELAY_MS)
+            true
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            false
+        }
 }
