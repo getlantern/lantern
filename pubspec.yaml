@@ -84,7 +84,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
   # share
-  share_plus: ^12.0.1
+  share_plus: ^13.2.0
   # Deeplink handling
   app_links: ^7.0.0
   # Desktop
@@ -95,12 +95,12 @@ dependencies:
       url: https://github.com/getlantern/tray_manager.git
       path: packages/tray_manager
       ref: e4f69663ca467c1108c1ccad9f55cf5a2154adc2
-  win32_registry: ^2.1.0
+  win32_registry: ^3.0.3
   # Utils
   fpdart: ^1.2.0
   jwt_decoder: ^2.0.1
   mobile_scanner: ^7.2.0
-  device_info_plus: ^12.3.0
+  device_info_plus: ^13.2.0
 
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
@@ -116,9 +116,8 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   timezone: ^0.11.0
   flutter_timezone: ^5.0.1
-  win32: ^5.15.0
   fixnum: ^1.1.1
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.2.0
   shared_preferences: ^2.5.4
   flutter_carousel_widget: ^3.1.0
   file_selector: ^1.1.0

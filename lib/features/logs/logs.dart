@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart' as file_selector;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/features/logs/log_exporter.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/logs/log_line.dart';
 import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
@@ -43,6 +45,7 @@ class _LogsState extends ConsumerState<Logs> {
   }
 
   Future<void> _shareLogFile() async {
+    List<File> files = const [];
     try {
       List<String> filePaths;
       if (Platform.isIOS) {
@@ -57,43 +60,61 @@ class _LogsState extends ConsumerState<Logs> {
 
       appLogger.debug('Sharing log files: $filePaths');
 
-      if (filePaths.isEmpty) {
-        appLogger.error('No log files found to share');
-        return;
-      }
-
-      final xFiles = (await Future.wait(
-        filePaths.map((path) async {
-          final file = File(path);
-          final exists = await file.exists();
-          appLogger.debug(
-            'Log file $path exists=$exists size=${exists ? await file.length() : 0}',
-          );
-          if (!exists) {
-            appLogger.debug('Skipping missing log file: $path');
-            return null;
-          }
-          return XFile(path);
-        }),
-      ))
-          .whereType<XFile>()
-          .toList();
-
-      if (xFiles.isEmpty) {
+      files = await existingLogFiles(filePaths);
+      if (files.isEmpty) {
         appLogger.error('No existing log files found to share');
+        if (mounted) {
+          context.showSnackBarError('No diagnostic log files found');
+        }
         return;
       }
 
-      await SharePlus.instance.share(
+      final xFiles = files.map((file) => XFile(file.path)).toList();
+
+      final result = await SharePlus.instance.share(
         ShareParams(
           title: 'logs'.i18n,
           text: 'logs_share_message'.i18n,
           files: xFiles,
-
         ),
       );
-    } catch (e) {
-      appLogger.error('Error sharing log file: $e');
+      if (!Platform.isWindows &&
+          result.status == ShareResultStatus.unavailable &&
+          mounted) {
+        context.showSnackBarError('Unable to export diagnostic logs');
+      }
+    } catch (e, st) {
+      appLogger.error('Error sharing log file', e, st);
+      if (Platform.isWindows) {
+        await _exportWindowsLogFiles(files);
+        return;
+      }
+      if (mounted) {
+        context.showSnackBarError('Unable to export diagnostic logs');
+      }
+    }
+  }
+
+  Future<void> _exportWindowsLogFiles(List<File> files) async {
+    final location = await file_selector.getSaveLocation(
+      acceptedTypeGroups: const [
+        file_selector.XTypeGroup(label: 'Text files', extensions: ['txt']),
+      ],
+      suggestedName: diagnosticLogExportFileName(DateTime.now()),
+      confirmButtonText: 'Export',
+      canCreateDirectories: true,
+    );
+    if (location == null) {
+      return;
+    }
+
+    final exported = await writeDiagnosticLogBundle(files, location.path);
+    appLogger.info('Exported diagnostic logs to ${exported.path}');
+    if (mounted) {
+      context.showSnackBar(
+        'Diagnostic logs exported to ${exported.path}',
+        closeButton: true,
+      );
     }
   }
 
@@ -113,10 +134,7 @@ class _LogsState extends ConsumerState<Logs> {
         title: Text('Diagnostic Logs'.i18n),
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
-          AppIconButton(
-            onPressed: _shareLogFile,
-            path: AppImagePaths.upArrow,
-          ),
+          AppIconButton(onPressed: _shareLogFile, path: AppImagePaths.upArrow),
         ],
       ),
       body: Column(
@@ -153,9 +171,7 @@ class _LogsState extends ConsumerState<Logs> {
                     },
                   );
                 },
-                loading: () => const Center(
-                  child: LoadingIndicator(),
-                ),
+                loading: () => const Center(child: LoadingIndicator()),
                 error: (error, stack) => Center(
                   child: Text(
                     "Error: $error",
@@ -178,4 +194,3 @@ List<String> latestLogsForDisplay(List<String> logs) {
   }
   return logs.sublist(logs.length - _maxVisibleLogLines);
 }
-
