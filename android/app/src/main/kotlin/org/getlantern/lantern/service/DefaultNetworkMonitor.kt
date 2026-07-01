@@ -89,10 +89,7 @@ object DefaultNetworkMonitor {
                 else -> {
                     val resolved = resolveDefaultInterface(newNetwork)
                     if (resolved == null) {
-                        AppLogger.w(
-                            TAG,
-                            "Failed to resolve default interface after $INTERFACE_RESOLUTION_RETRY_COUNT attempts",
-                        )
+                        AppLogger.w(TAG, "Failed to resolve default interface for the new default network")
                         return@execute
                     }
                     AppLogger.i(TAG, "Default interface resolved: ${resolved.name} (index ${resolved.index})")
@@ -103,6 +100,9 @@ object DefaultNetworkMonitor {
     }
 
     private fun notifyDefaultInterface(listener: InterfaceUpdateListener, name: String, index: Int) {
+        // A teardown may clear or replace the listener while this update sits queued
+        // or is being resolved; don't call into a stale (closed) libbox handler.
+        if (this.listener !== listener) return
         listener.updateDefaultInterface(name, index, false, false)
     }
 
@@ -134,14 +134,15 @@ object DefaultNetworkMonitor {
         return null
     }
 
-    private fun getInterfaceIndex(interfaceName: String): Int =
-        try {
+    private fun getInterfaceIndex(interfaceName: String): Int {
+        val indexByName = try {
             NetworkInterface.getByName(interfaceName)?.index
-                ?: Os.if_nametoindex(interfaceName)
         } catch (e: Exception) {
             AppLogger.w(TAG, "getByName failed for $interfaceName; falling back to if_nametoindex", e)
-            runCatching { Os.if_nametoindex(interfaceName) }.getOrDefault(0)
+            null
         }
+        return indexByName ?: runCatching { Os.if_nametoindex(interfaceName) }.getOrDefault(0)
+    }
 
     private fun sleepBeforeRetry(): Boolean =
         try {
