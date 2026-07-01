@@ -141,7 +141,14 @@ object DefaultNetworkMonitor {
             AppLogger.w(TAG, "getByName failed for $interfaceName; falling back to if_nametoindex", e)
             null
         }
-        return indexByName ?: runCatching { Os.if_nametoindex(interfaceName) }.getOrDefault(0)
+        if (indexByName != null) {
+            return indexByName
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Os.if_nametoindex(interfaceName)
+        } else {
+            0
+        }
     }
 
     private fun sleepBeforeRetry(): Boolean =
