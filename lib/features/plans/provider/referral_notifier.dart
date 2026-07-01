@@ -7,34 +7,19 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'referral_notifier.g.dart';
 
+/// Holds the applied V2 referral/affiliate response, or null when no code is
+/// applied. The response's [ReferralType] drives the UI, so callers branch on
+/// `state == null` (none) / `state!.isAffiliate` (affiliate) / else (referral)
+/// and read `code`/`discountPct`/`plansData` off the same object.
 @Riverpod(keepAlive: true)
 class ReferralNotifier extends _$ReferralNotifier {
-  /// The applied V2 referral/affiliate response, populated on a successful
-  /// [applyReferralCodeV2]. Drives the affiliate discount UI (code chip,
-  /// "X% discount applied" banner, strikethrough pricing). Null when no V2
-  /// code is applied. The `state` bool remains the simple applied/not flag
-  /// that existing widgets watch.
-  ReferralAttachV2Response? appliedReferral;
-
-  bool get isAffiliateApplied => appliedReferral?.isAffiliate ?? false;
-
   @override
-  bool build() {
-    return false;
-  }
-
-  Future<Either<Failure, String>> applyReferralCode(String code) async {
-    final result =
-        await ref.read(lanternServiceProvider).attachReferralCode(code);
-    if (result.isRight()) {
-      state = true;
-    }
-    return result;
-  }
+  ReferralAttachV2Response? build() => null;
 
   /// Applies a referral code via the V2 endpoint. On success the returned
   /// discounted plans are pushed into [plansProvider] so the plans UI updates
-  /// immediately, and the resulting response is returned to the caller.
+  /// immediately, the response becomes the notifier state, and it is returned
+  /// to the caller.
   Future<Either<Failure, ReferralAttachV2Response>> applyReferralCodeV2(
     String code,
   ) async {
@@ -42,8 +27,7 @@ class ReferralNotifier extends _$ReferralNotifier {
         await ref.read(lanternServiceProvider).attachReferralCodeV2(code);
     if (result.isRight()) {
       final response = result.getRight().toNullable();
-      appliedReferral = response;
-      state = true;
+      state = response;
       if (response != null) {
         ref.read(plansProvider.notifier).updatePlans(response.plansData);
       }
@@ -51,8 +35,5 @@ class ReferralNotifier extends _$ReferralNotifier {
     return result;
   }
 
-  void resetReferral() {
-    appliedReferral = null;
-    state = false;
-  }
+  void resetReferral() => state = null;
 }

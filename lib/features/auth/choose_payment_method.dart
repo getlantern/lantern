@@ -446,7 +446,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final referralEnable = ref.watch(referralProvider);
+    final referral = ref.watch(referralProvider);
     final theme = Theme.of(context).textTheme;
     return ListView.builder(
       shrinkWrap: true,
@@ -492,7 +492,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text(userPlan.description, style: theme.bodyMedium),
                   Text(
-                    '${userPlan.formattedMonthlyPrice}/month',
+                    userPlan.formattedYearlyPrice,
                     style: theme.bodyMedium!.copyWith(
                       color: context.textDisabled,
                     ),
@@ -500,7 +500,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 ],
               ),
               DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-              if (referralEnable) ...[
+              if (referral != null && !referral.isAffiliate) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -512,6 +512,29 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ),
                     Text(
                       'free'.i18n,
+                      style: theme.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
+                  ],
+                ),
+                DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              ],
+              // Affiliate codes: show the applied promo code and the discounted
+              // price (taken directly from the plans, same as the plan screen).
+              if (referral != null && referral.isAffiliate) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'promo_code'.i18n.fill([referral.code]),
+                        style: theme.bodyMedium,
+                      ),
+                    ),
+                    SizedBox(width: defaultSize),
+                    Text(
+                      userPlan.formattedYearlyPrice,
                       style: theme.bodyMedium!.copyWith(
                         color: context.textDisabled,
                       ),

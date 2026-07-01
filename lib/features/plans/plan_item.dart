@@ -11,8 +11,8 @@ class PlanItem extends StatelessWidget {
   final Function(Plan plans) onPressed;
   final String referralMessage;
 
-  /// When > 0, an affiliate discount is applied: the (discounted) price is
-  /// shown alongside the strikethrough original price.
+  /// When > 0, an affiliate discount is applied: the discounted price is shown
+  /// alongside the strikethrough original price.
   final int discountPct;
 
   const PlanItem({
@@ -79,10 +79,10 @@ class PlanItem extends StatelessWidget {
                           color: context.textLink,
                         ),
                       ),
-                      if (discountPct > 0) ...[
+                      if (discountPct > 0 && plan.formatOriginalPrice.isNotEmpty) ...[
                         SizedBox(width: 6),
                         Text(
-                          plan.formattedYearlyOriginalPrice(discountPct),
+                          plan.formatOriginalPrice,
                           style: textTheme.labelMedium!.copyWith(
                             color: context.textTertiary,
                             decoration: TextDecoration.lineThrough,

@@ -15,10 +15,13 @@ class PlansListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final referralEnable = ref.watch(referralProvider);
-    final referralNotifier = ref.read(referralProvider.notifier);
-    final isAffiliate = referralNotifier.isAffiliateApplied;
-    final discountPct = referralNotifier.appliedReferral?.discountPct ?? 0;
+    final referral = ref.watch(referralProvider);
+    // Referral (non-affiliate) codes show the per-plan bonus message; affiliate
+    // codes instead show strikethrough discount pricing.
+    final showReferralBonus = referral != null && !referral.isAffiliate;
+    final discountPct = (referral != null && referral.isAffiliate)
+        ? referral.discountPct
+        : 0;
     final size = MediaQuery.of(context).size;
     final plan = useState<Plan>(
       data.plans.firstWhere((Plan plan) => plan.bestValue == true),
@@ -41,12 +44,10 @@ class PlansListView extends HookConsumerWidget {
           return PlanItem(
             plan: item,
             planSelected: plan.value.id == item.id,
-            // Affiliate codes show strikethrough discount pricing instead of
-            // the per-plan referral bonus message.
-            referralMessage: (referralEnable && !isAffiliate)
+            referralMessage: showReferralBonus
                 ? getReferralMessage(item.id)
                 : '',
-            discountPct: isAffiliate ? discountPct : 0,
+            discountPct: discountPct,
             onPressed: (plans) {
               plan.value = plans;
               ref.read(plansProvider.notifier).setSelectedPlan(plans);

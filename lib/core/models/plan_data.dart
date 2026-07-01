@@ -4,10 +4,7 @@ class PlansData {
   Providers providers;
   List<Plan> plans;
 
-  PlansData({
-    required this.providers,
-    required this.plans,
-  });
+  PlansData({required this.providers, required this.plans});
 
   /// Sorts plans (best-value first, then by descending price) and orders the
   /// platform's payment providers so subscription-capable ones come first.
@@ -32,9 +29,9 @@ class PlansData {
   }
 
   factory PlansData.fromJson(Map<String, dynamic> json) => PlansData(
-        providers: Providers.fromJson(json["providers"]),
-        plans: List<Plan>.from(json["plans"].map((x) => Plan.fromJson(x))),
-      );
+    providers: Providers.fromJson(json["providers"]),
+    plans: List<Plan>.from(json["plans"].map((x) => Plan.fromJson(x))),
+  );
 
   PlansData copyWith({
     Providers? providers,
@@ -48,9 +45,9 @@ class PlansData {
   }
 
   Map<String, dynamic> toJson() => {
-        "providers": providers.toJson(),
-        "plans": List<dynamic>.from(plans.map((x) => x.toJson())),
-      };
+    "providers": providers.toJson(),
+    "plans": List<dynamic>.from(plans.map((x) => x.toJson())),
+  };
 }
 
 class Plan {
@@ -61,6 +58,14 @@ class Plan {
   Map<String, dynamic> expectedMonthlyPrice;
   bool bestValue;
 
+  // Original (pre-discount) prices. Only present when a discount (affiliate
+  // code) is applied; null otherwise.
+  int? originalUsdPrice;
+  int? originalUsdPrice1Y;
+  int? originalUsdPrice2Y;
+  Map<String, dynamic>? originalPrice;
+  Map<String, dynamic>? originalExpectedMonthlyPrice;
+
   Plan({
     required this.id,
     required this.description,
@@ -68,65 +73,82 @@ class Plan {
     required this.price,
     required this.expectedMonthlyPrice,
     this.bestValue = false,
+    this.originalUsdPrice,
+    this.originalUsdPrice1Y,
+    this.originalUsdPrice2Y,
+    this.originalPrice,
+    this.originalExpectedMonthlyPrice,
   });
 
   factory Plan.fromJson(Map<String, dynamic> json) => Plan(
-        id: json["id"],
-        description: json["description"],
-        usdPrice: json["usdPrice"],
-        price: json["price"],
-        expectedMonthlyPrice: json["expectedMonthlyPrice"],
-        bestValue: json["bestValue"] ?? false,
-      );
+    id: json["id"],
+    description: json["description"],
+    usdPrice: json["usdPrice"],
+    price: json["price"],
+    expectedMonthlyPrice: json["expectedMonthlyPrice"],
+    bestValue: json["bestValue"] ?? false,
+    originalUsdPrice: json["originalUsdPrice"],
+    originalUsdPrice1Y: json["originalUsdPrice1Y"],
+    originalUsdPrice2Y: json["originalUsdPrice2Y"],
+    originalPrice: json["originalPrice"] == null
+        ? null
+        : Map<String, dynamic>.from(json["originalPrice"]),
+    originalExpectedMonthlyPrice: json["originalExpectedMonthlyPrice"] == null
+        ? null
+        : Map<String, dynamic>.from(json["originalExpectedMonthlyPrice"]),
+  );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
-        "description": description,
-        "usdPrice": usdPrice,
-        "price": price,
-        "expectedMonthlyPrice": expectedMonthlyPrice,
-        "bestValue": bestValue,
-      };
+    "id": id,
+    "description": description,
+    "usdPrice": usdPrice,
+    "price": price,
+    "expectedMonthlyPrice": expectedMonthlyPrice,
+    "bestValue": bestValue,
+    "originalUsdPrice": originalUsdPrice,
+    "originalUsdPrice1Y": originalUsdPrice1Y,
+    "originalUsdPrice2Y": originalUsdPrice2Y,
+    "originalPrice": originalPrice,
+    "originalExpectedMonthlyPrice": originalExpectedMonthlyPrice,
+  };
 }
 
 class Providers {
   List<Android> android;
   List<Android> desktop;
 
-  Providers({
-    required this.android,
-    required this.desktop,
-  });
+  Providers({required this.android, required this.desktop});
 
   factory Providers.fromJson(Map<String, dynamic> json) => Providers(
-        android:
-            List<Android>.from(json["android"].map((x) => Android.fromJson(x))),
-        desktop:
-            List<Android>.from(json["desktop"].map((x) => Android.fromJson(x))),
-      );
+    android: List<Android>.from(
+      json["android"].map((x) => Android.fromJson(x)),
+    ),
+    desktop: List<Android>.from(
+      json["desktop"].map((x) => Android.fromJson(x)),
+    ),
+  );
 
   Map<String, dynamic> toJson() => {
-        "android": List<dynamic>.from(android.map((x) => x.toJson())),
-        "desktop": List<dynamic>.from(desktop.map((x) => x.toJson())),
-      };
+    "android": List<dynamic>.from(android.map((x) => x.toJson())),
+    "desktop": List<dynamic>.from(desktop.map((x) => x.toJson())),
+  };
 }
 
 class Android {
   String method;
   Provider providers;
 
-  Android({
-    required this.method,
-    required this.providers,
-  });
+  Android({required this.method, required this.providers});
 
   factory Android.fromJson(Map<String, dynamic> json) => Android(
-        method: json["method"],
-        providers: Provider.fromJson(json["provider"]),
-      );
+    method: json["method"],
+    providers: Provider.fromJson(json["provider"]),
+  );
 
-  Map<String, dynamic> toJson() =>
-      {"method": method, "provider": providers.toJson()};
+  Map<String, dynamic> toJson() => {
+    "method": method,
+    "provider": providers.toJson(),
+  };
 }
 
 class Provider {
@@ -143,19 +165,20 @@ class Provider {
   });
 
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
-        name: json["name"],
-        data: json["data"] == null
-            ? {}
-            : (json["data"] as Map<String, dynamic>)
-                .map((key, value) => MapEntry(key, value)),
-        icons: List<String>.from(json["icons"].map((x) => x)),
-        supportSubscription: json["supportsSubscription"] ?? false,
-      );
+    name: json["name"],
+    data: json["data"] == null
+        ? {}
+        : (json["data"] as Map<String, dynamic>).map(
+            (key, value) => MapEntry(key, value),
+          ),
+    icons: List<String>.from(json["icons"].map((x) => x)),
+    supportSubscription: json["supportsSubscription"] ?? false,
+  );
 
   Map<String, dynamic> toJson() => {
-        "name": name,
-        "data": data,
-        "icons": List<dynamic>.from(icons.map((x) => x)),
-        "supportsSubscription": supportSubscription,
-      };
+    "name": name,
+    "data": data,
+    "icons": List<dynamic>.from(icons.map((x) => x)),
+    "supportsSubscription": supportSubscription,
+  };
 }

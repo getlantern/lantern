@@ -1,8 +1,8 @@
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/utils/currency_utils.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/utils/currency_utils.dart';
 
 final _ddmmyyFormatter = DateFormat('dd/MM/yy');
 final _mmddyyFormatter = DateFormat('MM/dd/yy');
@@ -10,32 +10,33 @@ final _mmddyyFormatter = DateFormat('MM/dd/yy');
 extension PlanExtension on Plan {
   String get formattedYearlyPrice {
     return CurrencyUtils.formatCurrency(
-        double.parse(price.values.first.toString()), price.keys.first);
+      double.parse(price.values.first.toString()),
+      price.keys.first,
+    );
   }
 
   String get formattedMonthlyPrice {
     return CurrencyUtils.formatCurrency(
-        double.parse(expectedMonthlyPrice.values.first.toString()),
-        expectedMonthlyPrice.keys.first);
+      double.parse(expectedMonthlyPrice.values.first.toString()),
+      expectedMonthlyPrice.keys.first,
+    );
   }
 
-  /// The original (pre-discount) yearly price, reconstructed from the current
-  /// (discounted) price and [discountPct]. Used for the affiliate strikethrough
-  /// price shown next to the discounted price.
-  String formattedYearlyOriginalPrice(int discountPct) {
-    final discounted = double.parse(price.values.first.toString());
-    final original = (discountPct > 0 && discountPct < 100)
-        ? discounted / (1 - discountPct / 100)
-        : discounted;
-    return CurrencyUtils.formatCurrency(original, price.keys.first);
+  /// The original (pre-discount) yearly price, taken directly from the
+  /// backend's `originalPrice` (no calculation). Shown as the strikethrough
+  /// price next to the discounted price when an affiliate code is applied.
+  /// Empty when the backend didn't supply an original price.
+  String get formatOriginalPrice {
+    final original = originalPrice;
+    if (original == null || original.isEmpty) return '';
+    return CurrencyUtils.formatCurrency(
+      double.parse(original.values.first.toString()),
+      original.keys.first,
+    );
   }
 
   String getDurationText() {
-    final durationMap = {
-      '1y': 'year',
-      '2y': 'two year',
-      '1m': 'month',
-    };
+    final durationMap = {'1y': 'year', '2y': 'two year', '1m': 'month'};
 
     final key = id.split('-').first;
     return durationMap[key] ?? '';

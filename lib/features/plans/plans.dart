@@ -194,9 +194,8 @@ class _PlansState extends ConsumerState<Plans>
   /// the discount percentage plus a removable chip with the applied code.
   /// Referral (non-affiliate) codes keep the existing per-plan bonus message.
   Widget _buildAffiliateBanner() {
-    final referralApplied = ref.watch(referralProvider);
-    final response = ref.read(referralProvider.notifier).appliedReferral;
-    if (!referralApplied || response == null || !response.isAffiliate) {
+    final response = ref.watch(referralProvider);
+    if (response == null || !response.isAffiliate) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -249,7 +248,7 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void onMenuTap() {
-    final isReferralApplied = ref.read(referralProvider);
+    final isReferralApplied = ref.read(referralProvider) != null;
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,

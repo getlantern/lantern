@@ -1680,6 +1680,9 @@ msgstr "Your old configuration has been cleared. Turn the VPN on to automaticall
 msgid "promo_referral_code"
 msgstr "Promo / Referral Code"
 
+msgid "promo_code"
+msgstr "Promo Code (%s)"
+
 
 
 

@@ -13,7 +13,7 @@ part of 'referral_notifier.dart';
 final referralProvider = ReferralNotifierProvider._();
 
 final class ReferralNotifierProvider
-    extends $NotifierProvider<ReferralNotifier, bool> {
+    extends $NotifierProvider<ReferralNotifier, ReferralAttachV2Response?> {
   ReferralNotifierProvider._()
     : super(
         from: null,
@@ -33,27 +33,33 @@ final class ReferralNotifierProvider
   ReferralNotifier create() => ReferralNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
+  Override overrideWithValue(ReferralAttachV2Response? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
+      providerOverride: $SyncValueProvider<ReferralAttachV2Response?>(value),
     );
   }
 }
 
-String _$referralNotifierHash() => r'6b028ac616c6b663b1e38d2769ca69f063924721';
+String _$referralNotifierHash() => r'a00524678cd445e36352bf7f53184c4da3e5095d';
 
-abstract class _$ReferralNotifier extends $Notifier<bool> {
-  bool build();
+/// Holds the applied V2 referral/affiliate response, or null when no code is
+/// applied. The response's [ReferralType] drives the UI, so callers branch on
+/// `state == null` (none) / `state!.isAffiliate` (affiliate) / else (referral)
+/// and read `code`/`discountPct`/`plansData` off the same object.
+
+abstract class _$ReferralNotifier extends $Notifier<ReferralAttachV2Response?> {
+  ReferralAttachV2Response? build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
+    final ref =
+        this.ref as $Ref<ReferralAttachV2Response?, ReferralAttachV2Response?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
+              AnyNotifier<ReferralAttachV2Response?, ReferralAttachV2Response?>,
+              ReferralAttachV2Response?,
               Object?,
               Object?
             >;
