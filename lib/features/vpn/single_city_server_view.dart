@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/features/vpn/server_selection.dart';
+import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 
 import '../../core/common/common.dart';
 
@@ -12,17 +12,12 @@ class SingleCityServerView extends StatefulWidget {
   final bool isSelected;
   final bool nested;
 
-  /// Whether to surface the "may be unreachable" warning icon. Disabled for
-  /// free users, who see every location without the reachability distinction.
-  final bool showReachabilityWarning;
-
   const SingleCityServerView({
     super.key,
     required this.onServerSelected,
     required this.server,
     this.isSelected = false,
     this.nested = false,
-    this.showReachabilityWarning = true,
   });
 
   @override
@@ -48,11 +43,6 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
                 color: context.textTertiary,
               ),
             ),
-      trailing: !widget.showReachabilityWarning
-          ? null
-          : widget.server.isProbedUnreachable
-          ? const ServerReachabilityWarningIcon()
-          : null,
       icon: Flag(countryCode: widget.server.location.countryCode),
       onPressed: () {
         widget.onServerSelected(widget.server);
