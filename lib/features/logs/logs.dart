@@ -78,6 +78,9 @@ class _LogsState extends ConsumerState<Logs> {
           files: xFiles,
         ),
       );
+      appLogger.debug("Share result: $result");
+      // The Windows native share sheet always reports `unavailable` even on
+      // success, so only treat it as an error on other platforms.
       if (!Platform.isWindows &&
           result.status == ShareResultStatus.unavailable &&
           mounted) {
@@ -85,7 +88,9 @@ class _LogsState extends ConsumerState<Logs> {
       }
     } catch (e, st) {
       appLogger.error('Error sharing log file', e, st);
-      if (Platform.isWindows) {
+      // On Windows, if the native share sheet fails, fall back to writing the
+      // collected logs to a file the user chooses.
+      if (Platform.isWindows && files.isNotEmpty) {
         await _exportWindowsLogFiles(files);
         return;
       }
