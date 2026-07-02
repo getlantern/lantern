@@ -71,6 +71,13 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     submitPropertiesRequest(context: .inspectStatus)
   }
 
+  private var supportsSystemExtensionProperties: Bool {
+    if #available(macOS 12.0, *) {
+      return true
+    }
+    return false
+  }
+
   public func request(
     _ request: OSSystemExtensionRequest,
     actionForReplacingExtension existing: OSSystemExtensionProperties,
@@ -120,6 +127,12 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         submitPropertiesRequest(context: .inspectStatus)
         return
       }
+
+      guard supportsSystemExtensionProperties else {
+        completeLegacyRequest(context)
+        return
+      }
+
       switch context {
       case .deactivateThenActivate(_, let activateAfter):
         if activateAfter {
@@ -278,6 +291,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   private func submitPropertiesRequest(context: RequestContext) {
+    guard #available(macOS 12.0, *) else {
+      handleLegacyPropertiesRequest(context: context)
+      return
+    }
+
     let request = OSSystemExtensionRequest.propertiesRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
@@ -310,6 +328,39 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     contextQueue.sync { requestContexts[ObjectIdentifier(request)] = context }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
+  }
+
+  private func handleLegacyPropertiesRequest(context: RequestContext) {
+    appLogger.info(
+      "System extension properties are unavailable before macOS 12.0; using legacy fallback for context=\(context.logDescription)"
+    )
+
+    switch context {
+    case .inspectStatus:
+      updateStatus(.notInstalled)
+    case .reconcile:
+      let reason = "activate bundled system extension on macOS 10.15/11"
+      updateStatus(.updatePending(details: reason))
+      submitActivationRequest(reason: reason)
+    case .activate, .deactivateThenActivate:
+      completeLegacyRequest(context)
+    }
+  }
+
+  private func completeLegacyRequest(_ context: RequestContext) {
+    switch context {
+    case .activate, .reconcile:
+      updateStatus(.activated)
+    case .deactivateThenActivate(_, let activateAfter):
+      if activateAfter {
+        submitActivationRequest(
+          reason: "activating bundled extension after legacy deactivation")
+      } else {
+        updateStatus(.deactivated)
+      }
+    case .inspectStatus:
+      updateStatus(.notInstalled)
+    }
   }
 
   private func requestContext(for request: OSSystemExtensionRequest) -> RequestContext? {
@@ -524,16 +575,26 @@ internal struct SystemExtensionDescriptor: Equatable {
 
   init(properties: OSSystemExtensionProperties) {
     let contentHash = Self.resolveInstalledContentHash(for: properties)
-    self.init(
-      bundleIdentifier: properties.bundleIdentifier,
-      bundleShortVersion: properties.bundleShortVersion,
-      bundleVersion: properties.bundleVersion,
-      contentHash: contentHash,
-      isEnabled: properties.isEnabled,
-      isAwaitingUserApproval: properties.isAwaitingUserApproval,
-      isUninstalling: properties.isUninstalling,
-      url: properties.url
-    )
+    if #available(macOS 12.0, *) {
+      self.init(
+        bundleIdentifier: properties.bundleIdentifier,
+        bundleShortVersion: properties.bundleShortVersion,
+        bundleVersion: properties.bundleVersion,
+        contentHash: contentHash,
+        isEnabled: properties.isEnabled,
+        isAwaitingUserApproval: properties.isAwaitingUserApproval,
+        isUninstalling: properties.isUninstalling,
+        url: properties.url
+      )
+    } else {
+      self.init(
+        bundleIdentifier: properties.bundleIdentifier,
+        bundleShortVersion: properties.bundleShortVersion,
+        bundleVersion: properties.bundleVersion,
+        contentHash: contentHash,
+        url: properties.url
+      )
+    }
   }
 
   // Resolves the content hash for an installed system extension while avoiding
@@ -543,7 +604,10 @@ internal struct SystemExtensionDescriptor: Equatable {
   private static func resolveInstalledContentHash(
     for properties: OSSystemExtensionProperties
   ) -> String? {
-    resolveInstalledContentHash(url: properties.url, isUninstalling: properties.isUninstalling)
+    if #available(macOS 12.0, *) {
+      return resolveInstalledContentHash(url: properties.url, isUninstalling: properties.isUninstalling)
+    }
+    return resolveInstalledContentHash(url: properties.url, isUninstalling: false)
   }
 
   internal static func resolveInstalledContentHash(
@@ -926,12 +990,22 @@ internal enum SystemExtensionBundleHasher {
     hasher.update(data: Data(relativePath.utf8))
     hasher.update(data: Data([0]))
 
-    do {
-      while let chunk = try fileHandle.read(upToCount: readChunkSize), !chunk.isEmpty {
+    if #available(macOS 10.15.4, *) {
+      do {
+        while let chunk = try fileHandle.read(upToCount: readChunkSize), !chunk.isEmpty {
+          hasher.update(data: chunk)
+        }
+      } catch {
+        return false
+      }
+    } else {
+      while true {
+        let chunk = fileHandle.readData(ofLength: readChunkSize)
+        if chunk.isEmpty {
+          break
+        }
         hasher.update(data: chunk)
       }
-    } catch {
-      return false
     }
 
     hasher.update(data: Data([0]))

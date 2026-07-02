@@ -83,7 +83,10 @@ extension FilePath {
   private static let containerSharedDirectory: URL! = FileManager.default.containerURL(
     forSecurityApplicationGroupIdentifier: FilePath.groupName)
 
-  public static let sharedDirectory = URL(filePath: "/Users/Shared/Lantern")
+  public static let sharedDirectory = URL(
+    fileURLWithPath: "/Users/Shared/Lantern",
+    isDirectory: true
+  )
 
   public static var dataDirectory = sharedDirectory
 
