@@ -60,7 +60,7 @@ Future<File> writeDiagnosticLogBundle(
     sink.writeln();
     sink.writeln('Source files:');
     for (final file in sourceFiles) {
-      sink.writeln('- ${file.path}');
+      sink.writeln('- ${p.basename(file.path)}');
     }
 
     for (final file in sourceFiles) {
@@ -79,9 +79,11 @@ Future<File> writeDiagnosticLogBundle(
     }
   }
 
-  final exported = await temp.copy(target.path);
-  if (await temp.exists()) {
-    await temp.delete();
+  try {
+    return await temp.copy(target.path);
+  } finally {
+    if (await temp.exists()) {
+      await temp.delete();
+    }
   }
-  return exported;
 }
