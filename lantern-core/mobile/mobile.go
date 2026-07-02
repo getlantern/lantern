@@ -310,7 +310,6 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		}
 		// Start the Go-side memory logger for the tunnel process, mirroring the
 		// Swift PacketTunnelProvider logger. Stopped from CloseIPCServer.
-		// startMemoryLogger()
 		return struct{}{}, nil
 	})
 	return err
@@ -320,7 +319,6 @@ func CloseIPCServer() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
 		defer ipcMu.Unlock()
-		// stopMemoryLogger()
 		if ipcBackend != nil {
 			ipcBackend.Close()
 			ipcBackend = nil
