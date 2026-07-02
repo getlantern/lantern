@@ -8,32 +8,15 @@ final _ddmmyyFormatter = DateFormat('dd/MM/yy');
 final _mmddyyFormatter = DateFormat('MM/dd/yy');
 
 extension PlanExtension on Plan {
-  String get formattedYearlyPrice {
-    return CurrencyUtils.formatCurrency(
-      double.parse(price.values.first.toString()),
-      price.keys.first,
-    );
-  }
+  String get formattedYearlyPrice => _formatPriceMap(price);
 
-  String get formattedMonthlyPrice {
-    return CurrencyUtils.formatCurrency(
-      double.parse(expectedMonthlyPrice.values.first.toString()),
-      expectedMonthlyPrice.keys.first,
-    );
-  }
+  String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
 
   /// The original (pre-discount) yearly price, taken directly from the
   /// backend's `originalPrice` (no calculation). Shown as the strikethrough
   /// price next to the discounted price when an affiliate code is applied.
   /// Empty when the backend didn't supply an original price.
-  String get formatOriginalPrice {
-    final original = originalPrice;
-    if (original == null || original.isEmpty) return '';
-    return CurrencyUtils.formatCurrency(
-      double.parse(original.values.first.toString()),
-      original.keys.first,
-    );
-  }
+  String get formatOriginalPrice => _formatPriceMap(originalPrice);
 
   /// The amount deducted by the affiliate discount: original − discounted
   /// yearly price, both taken directly from the backend (no percentage math).
@@ -42,13 +25,19 @@ extension PlanExtension on Plan {
   String get formatDiscountAmount {
     final original = originalPrice;
     if (original == null || original.isEmpty) return '';
-    final originalAmount = double.parse(original.values.first.toString());
-    final discountedAmount = double.parse(price.values.first.toString());
-    return CurrencyUtils.formatCurrency(
-      originalAmount - discountedAmount,
-      price.keys.first,
-    );
+    final deducted = _amountOf(original) - _amountOf(price);
+    return CurrencyUtils.formatCurrency(deducted, price.keys.first);
   }
+
+  /// Formats the first `<currency>: amount` entry of [prices] as currency;
+  /// returns '' when [prices] is null or empty.
+  String _formatPriceMap(Map<String, dynamic>? prices) {
+    if (prices == null || prices.isEmpty) return '';
+    return CurrencyUtils.formatCurrency(_amountOf(prices), prices.keys.first);
+  }
+
+  double _amountOf(Map<String, dynamic> prices) =>
+      double.parse(prices.values.first.toString());
 
   String getDurationText() {
     final durationMap = {'1y': 'year', '2y': 'two year', '1m': 'month'};

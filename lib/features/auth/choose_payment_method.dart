@@ -461,6 +461,14 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final referral = ref.watch(referralProvider);
     final theme = Theme.of(context).textTheme;
+    // Affiliate: show the full (pre-discount) price on the plan line and the
+    // deducted amount on the promo line; the discounted total stays in Order
+    // Total. Computed once here (constant across the provider list).
+    final originalPrice = userPlan.formatOriginalPrice;
+    final discountAmount = userPlan.formatDiscountAmount;
+    final showOriginalPrice = referral.isAffiliate && originalPrice.isNotEmpty;
+    final showDiscountDeduction =
+        referral.isAffiliate && discountAmount.isNotEmpty;
     return ListView.builder(
       shrinkWrap: true,
       itemCount: providers.length,
@@ -505,9 +513,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 children: [
                   Text(userPlan.description, style: theme.bodyMedium),
                   Text(
-                    (referral.isAffiliate &&
-                            userPlan.formatOriginalPrice.isNotEmpty)
-                        ? userPlan.formatOriginalPrice
+                    showOriginalPrice
+                        ? originalPrice
                         : userPlan.formattedYearlyPrice,
                     style: theme.bodyMedium!.copyWith(
                       color: context.textDisabled,
@@ -538,8 +545,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               ],
               // Affiliate codes: show the applied promo code and the amount
               // deducted (original − discounted, from the backend).
-              if (referral.isAffiliate &&
-                  userPlan.formatDiscountAmount.isNotEmpty) ...[
+              if (showDiscountDeduction) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -551,7 +557,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ),
                     SizedBox(width: defaultSize),
                     Text(
-                      '-${userPlan.formatDiscountAmount}',
+                      '-$discountAmount',
                       style: theme.bodyMedium!.copyWith(
                         color: context.textDisabled,
                       ),

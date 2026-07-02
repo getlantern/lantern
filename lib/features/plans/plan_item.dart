@@ -29,6 +29,8 @@ class PlanItem extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     final finalSize = (width * 0.5) - (defaultSize * 3);
+    final originalPrice = plan.formatOriginalPrice;
+    final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;
     return badges.Badge(
       showBadge: plan.bestValue ?? false,
       badgeAnimation: badges.BadgeAnimation.scale(toAnimate: false),
@@ -79,11 +81,10 @@ class PlanItem extends StatelessWidget {
                           color: context.textLink,
                         ),
                       ),
-                      if (discountPct > 0 &&
-                          plan.formatOriginalPrice.isNotEmpty) ...[
+                      if (showOriginalPrice) ...[
                         SizedBox(width: 6),
                         Text(
-                          plan.formatOriginalPrice,
+                          originalPrice,
                           style: textTheme.labelMedium!.copyWith(
                             color: context.textTertiary,
                             decoration: TextDecoration.lineThrough,

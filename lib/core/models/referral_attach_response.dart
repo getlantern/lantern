@@ -27,8 +27,6 @@ class ReferralAttachV2Response {
     required this.type,
   });
 
-  bool get isAffiliate => type == ReferralType.affiliate;
-
   factory ReferralAttachV2Response.fromJson(Map<String, dynamic> json) =>
       ReferralAttachV2Response(
         plansData: PlansData.fromJson(json)..sortPlansAndProviders(),
