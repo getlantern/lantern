@@ -7,8 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:lantern/features/logs/log_exporter.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/logs/log_exporter.dart';
 import 'package:lantern/features/logs/log_line.dart';
 import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
 import 'package:share_plus/share_plus.dart';
@@ -91,7 +91,14 @@ class _LogsState extends ConsumerState<Logs> {
       // On Windows, if the native share sheet fails, fall back to writing the
       // collected logs to a file the user chooses.
       if (Platform.isWindows && files.isNotEmpty) {
-        await _exportWindowsLogFiles(files);
+        try {
+          await _exportWindowsLogFiles(files);
+        } catch (e, st) {
+          appLogger.error('Error exporting log files on Windows', e, st);
+          if (mounted) {
+            context.showSnackBarError('Unable to export diagnostic logs');
+          }
+        }
         return;
       }
       if (mounted) {
