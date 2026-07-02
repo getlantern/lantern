@@ -308,8 +308,6 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if err := ipcServer.Start(); err != nil {
 			return struct{}{}, err
 		}
-		// Start the Go-side memory logger for the tunnel process, mirroring the
-		// Swift PacketTunnelProvider logger. Stopped from CloseIPCServer.
 		return struct{}{}, nil
 	})
 	return err
