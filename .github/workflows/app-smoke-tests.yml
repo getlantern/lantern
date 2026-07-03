@@ -49,7 +49,7 @@ on:
 
 permissions:
   contents: read
-  id-token: none
+  id-token: write
 
 concurrency:
   group: app-smoke-tests-${{ github.ref }}
