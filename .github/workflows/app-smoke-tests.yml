@@ -49,7 +49,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+  id-token: none
 
 concurrency:
   group: app-smoke-tests-${{ github.ref }}
@@ -94,7 +94,8 @@ jobs:
     needs: prepare
     if: ${{ inputs.platforms == 'all' || inputs.platforms == 'linux' }}
     uses: ./.github/workflows/build-linux.yml
-    secrets: inherit
+    secrets:
+      APP_ENV: ${{ secrets.APP_ENV }}
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
@@ -108,7 +109,8 @@ jobs:
     needs: prepare
     if: ${{ inputs.platforms == 'all' || inputs.platforms == 'windows' }}
     uses: ./.github/workflows/build-windows.yml
-    secrets: inherit
+    secrets:
+      APP_ENV: ${{ secrets.APP_ENV }}
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
