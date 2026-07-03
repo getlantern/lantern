@@ -1,0 +1,124 @@
+name: App Smoke Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Platforms to smoke test"
+        required: true
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+        default: all
+      linux_arch:
+        description: "Linux arch to test"
+        required: false
+        type: choice
+        options:
+          - amd64
+          - arm64
+          - all
+        default: amd64
+      windows_connect_smoke:
+        description: "Run Windows connect/disconnect smoke"
+        required: false
+        type: boolean
+        default: true
+      windows_split_tunnel_website_smoke:
+        description: "Run Windows split-tunneling website smoke"
+        required: false
+        type: boolean
+        default: false
+      auth_smoke:
+        description: "Run existing auth smoke tests"
+        required: false
+        type: boolean
+        default: false
+      enable_ip_check:
+        description: "Validate public IP change during VPN connect smoke"
+        required: false
+        type: boolean
+        default: false
+      force_full_tunnel_smoke:
+        description: "Force full-tunnel mode during VPN connect smoke"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: none
+
+concurrency:
+  group: app-smoke-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(./scripts/ci/version.sh generate nightly)"
+          BASE_VERSION="$(./scripts/ci/version.sh extract "$VERSION")"
+          FULL_VERSION="${BASE_VERSION}+${GITHUB_RUN_NUMBER}"
+          INSTALLER_BASE_NAME="lantern-smoke-test"
+
+          sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "installer_base_name=$INSTALLER_BASE_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload pubspec.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
+
+  linux:
+    needs: prepare
+    if: ${{ inputs.platforms == 'all' || inputs.platforms == 'linux' }}
+    uses: ./.github/workflows/build-linux.yml
+    secrets:
+      APP_ENV: ${{ secrets.APP_ENV }}
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      linux_arch: ${{ inputs.linux_arch }}
+      enable_ip_check: ${{ inputs.enable_ip_check }}
+      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
+      run_auth_smoke: ${{ inputs.auth_smoke }}
+
+  windows:
+    needs: prepare
+    if: ${{ inputs.platforms == 'all' || inputs.platforms == 'windows' }}
+    uses: ./.github/workflows/build-windows.yml
+    secrets:
+      APP_ENV: ${{ secrets.APP_ENV }}
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      skip_signing: true
+      enable_ip_check: ${{ inputs.enable_ip_check }}
+      run_connect_smoke: ${{ inputs.windows_connect_smoke }}
+      run_split_tunnel_website_smoke: ${{ inputs.windows_split_tunnel_website_smoke }}
+      run_config_url_smoke: false
+      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
+      run_auth_smoke: ${{ inputs.auth_smoke }}
