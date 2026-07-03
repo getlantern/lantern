@@ -40,10 +40,10 @@ on:
         type: boolean
         default: true
       windows_connect_smoke:
-        description: "Run Windows connect/disconnect smoke test on manual dispatch"
+        description: "Run Windows connect/disconnect smoke tests on manual dispatch"
         required: false
         type: boolean
-        default: false
+        default: true
       publish_mobile_stores:
         description: "Upload nightly Android/iOS artifacts to Play internal/TestFlight (default-branch dispatch only)"
         required: false
@@ -390,9 +390,9 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
-      run_connect_smoke: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.windows_connect_smoke == 'true' }}
+      run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
-      run_config_url_smoke: false
+      run_config_url_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       run_auth_smoke: false
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
