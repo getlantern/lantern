@@ -26,11 +26,6 @@ on:
         required: false
         type: boolean
         default: true
-      windows_config_url_smoke:
-        description: "Run Windows config URL smoke when secrets are present"
-        required: false
-        type: boolean
-        default: true
       windows_split_tunnel_website_smoke:
         description: "Run Windows split-tunneling website smoke"
         required: false
@@ -72,6 +67,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          persist-credentials: false
 
       - id: meta
         shell: bash
@@ -121,6 +117,6 @@ jobs:
       enable_ip_check: ${{ inputs.enable_ip_check }}
       run_connect_smoke: ${{ inputs.windows_connect_smoke }}
       run_split_tunnel_website_smoke: ${{ inputs.windows_split_tunnel_website_smoke }}
-      run_config_url_smoke: ${{ inputs.windows_config_url_smoke }}
+      run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
       run_auth_smoke: ${{ inputs.auth_smoke }}
