@@ -5,6 +5,8 @@ import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/models/plan_data.dart';
+
 part 'referral_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
@@ -27,6 +29,11 @@ class ReferralNotifier extends _$ReferralNotifier {
       state = response;
       if (response != null) {
         ref.read(plansProvider.notifier).updatePlans(response.plansData);
+        final plans = response.plansData;
+        final defaultPlan = plans.plans.firstWhere(
+          (Plan plan) => plan.bestValue == true,
+        );
+        ref.read(plansProvider.notifier).setSelectedPlan(defaultPlan);
       }
     }
     return result;

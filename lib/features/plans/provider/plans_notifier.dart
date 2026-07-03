@@ -102,9 +102,7 @@ class PlansNotifier extends _$PlansNotifier {
   /// discount is session-specific and must not overwrite the cached base
   /// plans used by non-referral sessions.
   void updatePlans(PlansData plans) {
-    appLogger.info(
-      '[PlansNotifier] updatePlans: ${plans.plans.length} plans (referral)',
-    );
+    appLogger.info('[PlansNotifier] updatePlans: ${plans.plans.length} plans');
     state = AsyncData(plans);
   }
 
