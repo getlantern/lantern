@@ -107,6 +107,7 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   void setSelectedPlan(Plan plan) {
+    appLogger.info('[PlansNotifier] setSelectedPlan: ${plan.id}');
     userSelectedPlan = plan;
   }
 

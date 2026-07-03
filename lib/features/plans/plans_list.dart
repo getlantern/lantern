@@ -22,10 +22,18 @@ class PlansListView extends HookConsumerWidget {
     final showReferralBonus = referral.isReferral;
     final discountPct = referral.isAffiliate ? referral.discountPct : 0;
     final size = MediaQuery.of(context).size;
-    final plan = useState<Plan>(
-      data.plans.firstWhere((Plan plan) => plan.bestValue == true),
+    final selectedId = useState<String>(
+      data.plans.firstWhere((Plan plan) => plan.bestValue == true).id,
     );
-    ref.read(plansProvider.notifier).setSelectedPlan(plan.value);
+    final selectedPlan = data.plans.firstWhere(
+      (Plan plan) => plan.id == selectedId.value,
+      orElse: () =>
+          data.plans.firstWhere((Plan plan) => plan.bestValue == true),
+    );
+    useEffect(() {
+      ref.read(plansProvider.notifier).setSelectedPlan(selectedPlan);
+      return null;
+    }, [data, selectedId.value]);
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 : null,
       child: ListView.builder(
@@ -42,14 +50,13 @@ class PlansListView extends HookConsumerWidget {
           final item = data.plans[index];
           return PlanItem(
             plan: item,
-            planSelected: plan.value.id == item.id,
+            planSelected: selectedPlan.id == item.id,
             referralMessage: showReferralBonus
                 ? getReferralMessage(item.id)
                 : '',
             discountPct: discountPct,
             onPressed: (plans) {
-              plan.value = plans;
-              ref.read(plansProvider.notifier).setSelectedPlan(plans);
+              selectedId.value = plans.id;
             },
           );
         },
