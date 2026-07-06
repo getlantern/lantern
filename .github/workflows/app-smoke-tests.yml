@@ -10,6 +10,7 @@ on:
         options:
           - all
           - linux
+          - macos
           - windows
         default: all
       linux_arch:
@@ -26,6 +27,11 @@ on:
         required: false
         type: boolean
         default: true
+      macos_connect_smoke:
+        description: "Include macOS connect/disconnect smoke when platforms=all (requires approved system extension)"
+        required: false
+        type: boolean
+        default: false
       windows_split_tunnel_website_smoke:
         description: "Run Windows split-tunneling website smoke"
         required: false
@@ -104,6 +110,20 @@ jobs:
       enable_ip_check: ${{ inputs.enable_ip_check }}
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
       run_auth_smoke: ${{ inputs.auth_smoke }}
+
+  macos:
+    needs: prepare
+    # macOS smoke stays opt-in for "all" until runners have system-extension approval.
+    if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      enable_ip_check: ${{ inputs.enable_ip_check }}
+      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
+      run_connect_smoke: true
 
   windows:
     needs: prepare

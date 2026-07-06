@@ -12,6 +12,21 @@ on:
       installer_base_name:
         required: true
         type: string
+      run_connect_smoke:
+        description: "Run macOS connect/disconnect smoke test"
+        required: false
+        type: boolean
+        default: false
+      enable_ip_check:
+        description: "Enable public IP change validation in macOS connect smoke"
+        required: false
+        type: boolean
+        default: false
+      force_full_tunnel_smoke:
+        description: "Force full tunnel routing mode in macOS connect smoke"
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build-macos:
@@ -149,6 +164,27 @@ jobs:
           INSTALLER_BASE_NAME: ${{ inputs.installer_base_name }}
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
         run: bash ./.github/scripts/check_macos_sysext_build.sh
+
+      - name: macOS connect smoke suite
+        if: ${{ inputs.run_connect_smoke }}
+        shell: bash
+        timeout-minutes: 20
+        env:
+          APP_PATH: build/macos/Build/Products/Release/Lantern.app
+          ARTIFACT_DIR: ${{ runner.temp }}/macos-smoke-artifacts
+          ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
+          FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
+          RUN_CONNECT_SMOKE: true
+        run: ./.github/scripts/macos_smoke_suite.sh
+
+      - name: Upload macOS smoke diagnostics
+        if: ${{ always() && inputs.run_connect_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-smoke-diagnostics
+          path: ${{ runner.temp }}/macos-smoke-artifacts
+          if-no-files-found: ignore
+          retention-days: 2
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
