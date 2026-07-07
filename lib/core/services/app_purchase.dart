@@ -126,23 +126,58 @@ class AppPurchase {
     return ready;
   }
 
-  Future<void> fetchSubscriptions({int maxAttempts = 3}) async {
-    // If a fetch is already running, piggy-back on its result.
-    if (_productsLoadedCompleter != null) {
-      return _productsLoadedCompleter!.future;
+  /// Loads the subscription SKUs to purchase from.
+  ///
+  /// By default only base plans are kept ([includeOffers] false), so the first
+  /// fetch never charges a promotional offer. After a referral/affiliate code
+  /// is applied, call again with [includeOffers] true to load only the offer
+  /// SKUs — then the discounted offer is what gets charged. Either way
+  /// [_normalizePlan] just matches by plan prefix, so the rest of the purchase
+  /// logic is identical for plans and offers.
+  Future<void> fetchSubscriptions({
+    bool includeOffers = false,
+    int maxAttempts = 3,
+  }) async {
+    // Piggy-back only on a fetch that's still running; a completed one must
+    // re-run so the SKU set can switch between base plans and offers.
+    final inFlight = _productsLoadedCompleter;
+    if (inFlight != null && !inFlight.isCompleted) {
+      return inFlight.future;
     }
     _productsLoaded = false;
-    _productsLoadedCompleter = Completer<void>();
+    final completer = Completer<void>();
+    _productsLoadedCompleter = completer;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         appLogger.info(
-          '[AppPurchase] Fetching subscriptions, attempt: ${attempt + 1}/$maxAttempts',
+          '[AppPurchase] Fetching subscriptions (includeOffers=$includeOffers), '
+          'attempt: ${attempt + 1}/$maxAttempts',
         );
 
         final response = await _inAppPurchase.queryProductDetails(
           _subscriptionIds.toSet(),
         );
+
+        // Debug: dump exactly what the store returned, including per-offer
+        // basePlanId/offerId, so we can see whether Play is actually handing
+        // back an offer (vs our filter dropping it or the account being
+        // ineligible). Remove once offer visibility is confirmed.
+        for (final p in response.productDetails) {
+          if (p is GooglePlayProductDetails) {
+            final index = p.subscriptionIndex;
+            final offers = p.productDetails.subscriptionOfferDetails;
+            final offer = (index != null && offers != null && index < offers.length)
+                ? offers[index]
+                : null;
+            appLogger.info(
+              '[AppPurchase] SKU productId=${p.id} '
+              'basePlanId=${offer?.basePlanId} offerId=${offer?.offerId}',
+            );
+          } else {
+            appLogger.info('[AppPurchase] SKU productId=${p.id} (non-Play)');
+          }
+        }
 
         if (response.error != null) {
           appLogger.error(
@@ -153,19 +188,37 @@ class AppPurchase {
             '[AppPurchase] Fetched 0 subscriptions. notFoundIDs=${response.notFoundIDs}',
           );
         } else {
-          _subscriptionSku
-            ..clear()
-            ..addAll(response.productDetails);
-
-          _productsLoaded = true;
-          if (!(_productsLoadedCompleter?.isCompleted ?? true)) {
-            _productsLoadedCompleter?.complete();
-          }
-          appLogger.info(
-            '[AppPurchase] Fetched subscriptions: ${_subscriptionSku.length} items',
+          final products = _selectSkus(
+            response.productDetails,
+            includeOffers: includeOffers,
           );
-          return;
+          appLogger.info(
+            '[AppPurchase] Fetched ${response.productDetails.length} '
+            'subscriptions, ${products.length} match '
+            '(includeOffers=$includeOffers)',
+          );
+          if (products.isNotEmpty) {
+            _subscriptionSku
+              ..clear()
+              ..addAll(products);
+            _productsLoaded = true;
+            if (!completer.isCompleted) completer.complete();
+            return;
+          }
+
+          // The store is reachable and returned SKUs, but none matched the
+          // requested set (e.g. offers requested but none are active).
+          // Retrying the same query won't change that, and this isn't a
+          // Play-unreachable signal, so fail fast without marking the region
+          // censored. Callers fall back to the base-plan fetch.
+          final error = StateError(
+            'No ${includeOffers ? 'offer' : 'base plan'} SKUs available',
+          );
+          if (!completer.isCompleted) completer.completeError(error);
+          throw error;
         }
+      } on StateError {
+        rethrow;
       } catch (e, st) {
         appLogger.error('[AppPurchase] Error fetching subscriptions', e, st);
       }
@@ -189,11 +242,7 @@ class AppPurchase {
     final error = StateError(
       'Unable to load in-app purchase products after $maxAttempts attempts',
     );
-    //  Safely complete the completer with an error, if it is still pending.
-    if (_productsLoadedCompleter != null &&
-        !_productsLoadedCompleter!.isCompleted) {
-      _productsLoadedCompleter!.completeError(error);
-    }
+    if (!completer.isCompleted) completer.completeError(error);
     throw error;
   }
 
@@ -530,17 +579,56 @@ class AppPurchase {
     _onError?.call(error.toString());
   }
 
+  /// Keeps only the SKUs matching the requested mode.
+  ///
+  /// On Android each Play Console offer comes back as its own
+  /// [GooglePlayProductDetails]: base plans have a null (or empty) offerId,
+  /// discount offers have a non-null offerId. When [includeOffers] is false we
+  /// keep base plans (a normal purchase), when true we keep only offers (an
+  /// applied affiliate/referral discount). iOS has no per-offer concept, so its
+  /// products always pass through.
+  List<ProductDetails> _selectSkus(
+    List<ProductDetails> products, {
+    required bool includeOffers,
+  }) {
+    if (!Platform.isAndroid) {
+      return products;
+    }
+    return products.where((product) {
+      final offerId = _offerIdFor(product);
+      final isOffer = offerId != null && offerId.isNotEmpty;
+      return includeOffers ? isOffer : !isOffer;
+    }).toList();
+  }
+
+  /// The Play Console offerId backing [product], or null when it's a base plan
+  /// (or not an Android subscription product).
+  String? _offerIdFor(ProductDetails product) {
+    if (product is! GooglePlayProductDetails) {
+      return null;
+    }
+    final index = product.subscriptionIndex;
+    final offers = product.productDetails.subscriptionOfferDetails;
+    if (index == null || offers == null || index >= offers.length) {
+      return null;
+    }
+    return offers[index].offerId;
+  }
+
+  /// Resolves the store product to purchase for [planId] by matching the plan
+  /// prefix (e.g. "1y"). Whether this returns a base plan or a discount offer
+  /// depends purely on which SKU set was loaded by [fetchSubscriptions].
   ProductDetails? _normalizePlan(String planId) {
     final plan = planId.split('-').first;
     appLogger.info('[AppPurchase] Normalizing planId: $planId to plan: $plan');
     for (final sku in _subscriptionSku) {
-      final subId = sku.id.split('_').first;
-      if (subId == plan) {
+      if (sku.id.split('_').first == plan) {
         return sku;
       }
     }
     appLogger.error(
-      '[AppPurchase] No matching product found for planId: $planId _subscriptionSku length: ${_subscriptionSku.length}',
+      '[AppPurchase] No matching product found for planId: $planId '
+      '_subscriptionSku length: ${_subscriptionSku.length}',
     );
     return null;
   }

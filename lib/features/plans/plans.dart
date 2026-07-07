@@ -241,11 +241,22 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   /// Removes the applied affiliate code: clears the referral state and
-  /// re-fetches the original (non-discounted) plans.
-  void _onRemoveAffiliateCode() {
+  /// re-fetches the original (non-discounted) plans. On a Play Store build the
+  /// SKUs are also reloaded back to base plans so a later purchase is charged
+  /// at full price rather than the (now removed) offer.
+  Future<void> _onRemoveAffiliateCode() async {
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
+    if (isStoreVersion()) {
+      try {
+        await sl<AppPurchase>().fetchSubscriptions();
+      } catch (e) {
+        appLogger.warning(
+          '[Plans] Failed to reload base SKUs after removing code: $e',
+        );
+      }
+    }
   }
 
   void onMenuTap() {
@@ -260,10 +271,12 @@ class _PlansState extends ConsumerState<Plans>
           padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
-            if (!isStoreVersion() && !isReferralApplied) ...{
+            if (!isReferralApplied) ...{
               AppTile(
                 icon: AppImagePaths.star,
-                label: 'promo_referral_code'.i18n,
+                label: isStoreVersion()
+                    ? 'promo_code'.i18n
+                    : 'promo_referral_code'.i18n,
                 onPressed: () {
                   context.pop();
                   showReferralCodeDialog();
@@ -304,7 +317,7 @@ class _PlansState extends ConsumerState<Plans>
           AppImage(path: AppImagePaths.star, height: 48),
           SizedBox(height: defaultSize),
           Text(
-            'promo_referral_code'.i18n,
+            isStoreVersion() ? 'promo_code'.i18n : 'promo_referral_code'.i18n,
             style: textTheme.headlineSmall!.copyWith(
               color: context.textPrimary,
             ),
@@ -347,29 +360,35 @@ class _PlansState extends ConsumerState<Plans>
     final result = await ref
         .read(referralProvider.notifier)
         .applyReferralCodeV2(code);
+    if (!mounted) return;
 
-    result.fold(
-      (error) {
-        if (!mounted) {
-          return;
-        }
-        appLogger.error('Error applying referral code: $error');
-        context.hideLoadingDialog();
-        AppDialog.errorDialog(
-          context: context,
-          title: 'error'.i18n,
-          content: error.localizedErrorMessage,
+    final failure = result.getLeft().toNullable();
+    if (failure != null) {
+      appLogger.error('Error applying referral code: $failure');
+      context.hideLoadingDialog();
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: failure.localizedErrorMessage,
+      );
+      return;
+    }
+
+    appLogger.info('Successfully applied referral code');
+    if (isStoreVersion()) {
+      try {
+        appLogger.info('Reloading SKUs after applying referral code');
+        await sl<AppPurchase>().fetchSubscriptions(includeOffers: true);
+      } catch (e) {
+        appLogger.warning(
+          '[Plans] No offer SKUs after applying code; base plan will be used: $e',
         );
-      },
-      (success) {
-        if (!mounted) {
-          return;
-        }
-        context.hideLoadingDialog();
-        context.showSnackBar('referral_code_applied'.i18n);
-        appLogger.info('Successfully applied referral code');
-      },
-    );
+      }
+      if (!mounted) return;
+    }
+
+    context.hideLoadingDialog();
+    context.showSnackBar('referral_code_applied'.i18n);
   }
 
   void onGetLanternProTap() {

@@ -835,8 +835,11 @@ class MethodHandler : FlutterPlugin,
             Methods.AttachReferralCodeV2.method -> {
                 scope.launch {
                     result.runCatching {
-                        val code = call.arguments as String
-                        val response = Mobile.referralAttachmentV2(code)
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        val distributionChannel =
+                            call.argument<String>("distributionChannel") ?: ""
+                        val response =
+                            Mobile.referralAttachmentV2(code, distributionChannel)
                         withContext(Dispatchers.Main) {
                             success(response)
                         }

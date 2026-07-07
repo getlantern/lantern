@@ -693,9 +693,9 @@ func ReferralAttachment(referralCode string) error {
 
 // ReferralAttachmentV2 attaches a referral code and returns the resulting
 // plans, providers, code, and discount as a JSON string.
-func ReferralAttachmentV2(referralCode string) (string, error) {
+func ReferralAttachmentV2(referralCode, channel string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		b, err := c.ReferralAttachmentV2(referralCode)
+		b, err := c.ReferralAttachmentV2(referralCode, channel)
 		return string(b), err
 	})
 }

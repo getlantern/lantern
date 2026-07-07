@@ -12,18 +12,18 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
-import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
-import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -1518,9 +1518,10 @@ class LanternPlatformService implements LanternCoreService {
     String code,
   ) async {
     try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
       final result = await _methodChannel.invokeMethod<String>(
         'attachReferralCodeV2',
-        code,
+        {'code': code, 'distributionChannel': distributionChannel},
       );
       final response = ReferralAttachV2Response.fromJson(jsonDecode(result!));
       return right(response);

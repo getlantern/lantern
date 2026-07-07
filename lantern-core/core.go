@@ -75,7 +75,7 @@ type App interface {
 	UpdateConfig() error
 	ClearTunnelCache() error
 	ReferralAttachment(referralCode string) (bool, error)
-	ReferralAttachmentV2(referralCode string) ([]byte, error)
+	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
@@ -861,8 +861,8 @@ func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
 
 // ReferralAttachmentV2 attaches a referral code and returns the resulting
 // plans, providers, code, and discount marshalled as JSON.
-func (lc *LanternCore) ReferralAttachmentV2(referralCode string) ([]byte, error) {
-	resp, err := lc.client.ReferralAttachV2(lc.ctx, referralCode)
+func (lc *LanternCore) ReferralAttachmentV2(referralCode, channel string) ([]byte, error) {
+	resp, err := lc.client.ReferralAttachV2(lc.ctx, referralCode, channel)
 	if err != nil {
 		return nil, err
 	}
