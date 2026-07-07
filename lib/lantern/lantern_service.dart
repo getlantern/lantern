@@ -387,6 +387,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.paymentRedirect(
@@ -394,6 +395,7 @@ class LanternService implements LanternCoreService {
         planId: planId,
         email: email,
         idempotencyKey: idempotencyKey,
+        couponCode: couponCode,
       );
     }
     return _platformService.paymentRedirect(
@@ -401,6 +403,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       email: email,
       idempotencyKey: idempotencyKey,
+      couponCode: couponCode,
     );
   }
 

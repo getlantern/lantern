@@ -127,7 +127,7 @@ type Payment interface {
 	AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error)
 	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
 	RestoreApplePurchase(receipt string) (string, error)
-	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
+	PaymentRedirect(provider, planID, email, idempotencyKey, couponCode string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error)
@@ -964,7 +964,7 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 	return lc.SubscriptionPaymentRedirectURL(redirectBody)
 }
 
-func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
 	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
 	if err != nil {
 		return "", err
@@ -976,6 +976,7 @@ func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey s
 		DeviceName:     deviceName,
 		Email:          email,
 		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
 	}
 	return lc.client.PaymentRedirect(lc.ctx, body)
 }

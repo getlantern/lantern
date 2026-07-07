@@ -607,9 +607,9 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 	return data, nil
 }
 
-func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+func PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.PaymentRedirect(provider, planId, email, idempotencyKey)
+		return c.PaymentRedirect(provider, planId, email, idempotencyKey, couponCode)
 	})
 }
 

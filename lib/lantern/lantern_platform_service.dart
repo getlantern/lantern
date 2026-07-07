@@ -757,6 +757,7 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
@@ -768,6 +769,7 @@ class LanternPlatformService implements LanternCoreService {
             'planId': planId,
             'email': email,
             'idempotencyKey': idempotencyKey,
+            'couponCode': couponCode,
           });
       if (redirectUrl == null || redirectUrl.isEmpty) {
         return Left(Exception('No payment redirect URL returned').toFailure());

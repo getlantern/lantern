@@ -330,6 +330,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             provider: provider,
             planId: userPlan.id,
             email: email,
+            couponCode: _affiliateCoupon(ref),
           );
       if (!context.mounted) return;
 

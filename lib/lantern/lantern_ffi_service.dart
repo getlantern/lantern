@@ -917,6 +917,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     try {
       final result = await runInBackground<String>(() async {
@@ -925,6 +926,7 @@ class LanternFFIService implements LanternCoreService {
           provider.toCharPtr,
           email.toCharPtr,
           idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
         );
         try {
           return resultPtr.toDartString();
@@ -1426,8 +1428,11 @@ class LanternFFIService implements LanternCoreService {
     String code,
   ) async {
     try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
       final result = await runInBackground<String>(() async {
-        return _ffiService.referralAttachmentV2(code.toCharPtr).toDartString();
+        return _ffiService
+            .referralAttachmentV2(code.toCharPtr, distributionChannel.toCharPtr)
+            .toDartString();
       });
       checkAPIError(result);
       final response = ReferralAttachV2Response.fromJson(jsonDecode(result));

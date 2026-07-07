@@ -102,6 +102,7 @@ abstract class LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   });
 
   // this is used for stripe subscription
