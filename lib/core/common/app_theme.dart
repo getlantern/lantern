@@ -181,6 +181,10 @@ class AppTheme {
         ),
         titleTextStyle: AppTextStyles.headingSmall,
         contentTextStyle: AppTextStyles.bodyMedium,
+        // Material dialog width: min 280dp, max 560dp (M3 guideline). Applied
+        // app-wide so dialogs stay a sensible width on phones, tablets and
+        // desktop instead of collapsing to content or going full-bleed.
+        constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       ),
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────
@@ -395,6 +399,10 @@ class AppTheme {
         ),
         titleTextStyle: AppTextStyles.headingSmall,
         contentTextStyle: AppTextStyles.bodyMedium,
+        // Material dialog width: min 280dp, max 560dp (M3 guideline). Applied
+        // app-wide so dialogs stay a sensible width on phones, tablets and
+        // desktop instead of collapsing to content or going full-bleed.
+        constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       ),
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────

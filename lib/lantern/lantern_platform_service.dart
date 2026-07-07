@@ -636,12 +636,14 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) async {
     try {
       await sl<AppPurchase>().startSubscription(
         plan: planId,
         onSuccess: onSuccess,
         onError: onError,
+        couponCode: couponCode,
       );
       return Right(unit);
     } catch (e) {
@@ -802,11 +804,13 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) async {
     try {
       await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
         'purchaseToken': purchaseToken,
         'planId': planId,
+        'couponCode': couponCode,
       });
       return Right('ok');
     } catch (e, stackTrace) {

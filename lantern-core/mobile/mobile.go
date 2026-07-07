@@ -510,9 +510,9 @@ func StripeBillingPortalUrl() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
-func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+func AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId)
+		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId, couponCode)
 		if err != nil {
 			return "", err
 		}
@@ -542,9 +542,9 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	})
 }
 
-func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+func AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+		data, err := c.AcknowledgeApplePurchase(receipt, planII, couponCode)
 		if err != nil {
 			return "", err
 		}

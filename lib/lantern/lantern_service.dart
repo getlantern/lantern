@@ -154,6 +154,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
@@ -162,6 +163,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       onSuccess: onSuccess,
       onError: onError,
+      couponCode: couponCode,
     );
   }
 
@@ -345,16 +347,19 @@ class LanternService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.acknowledgeInAppPurchase(
         purchaseToken: purchaseToken,
         planId: planId,
+        couponCode: couponCode,
       );
     }
     return _platformService.acknowledgeInAppPurchase(
       purchaseToken: purchaseToken,
       planId: planId,
+      couponCode: couponCode,
     );
   }
 

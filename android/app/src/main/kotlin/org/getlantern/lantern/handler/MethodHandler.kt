@@ -461,7 +461,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.acknowledgeGooglePurchase(
                             map["purchaseToken"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData.toByteArray(Charsets.UTF_8))

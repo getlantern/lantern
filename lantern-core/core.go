@@ -123,8 +123,8 @@ type Payment interface {
 	StripeSubscription(email, planID, couponCode string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
-	AcknowledgeApplePurchase(receipt, planII string) (string, error)
+	AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error)
+	AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error)
 	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
 	RestoreApplePurchase(receipt string) (string, error)
 	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
@@ -885,18 +885,27 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return lc.client.StripeBillingPortalURL(lc.ctx)
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
+	// Affiliate/referral attribution: forward the applied code so the backend
+	// can credit the purchase to the affiliate. Google Play already applies the
+	// price discount via the offer SKU; this only carries attribution.
+	if couponCode != "" {
+		params["couponCode"] = couponCode
+	}
 	return lc.client.VerifySubscription(lc.ctx, account.GoogleService, params)
 }
 
-func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
+	}
+	if couponCode != "" {
+		params["couponCode"] = couponCode
 	}
 	return lc.client.VerifySubscription(lc.ctx, account.AppleService, params)
 }

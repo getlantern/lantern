@@ -734,6 +734,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) {
     throw UnimplementedError("This not supported on desktop");
   }
@@ -894,6 +895,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) {
     throw UnimplementedError(
       "This is not supported on desktop; this is only for mobile",

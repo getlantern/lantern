@@ -465,9 +465,13 @@ class _PlansState extends ConsumerState<Plans>
     // backs out before signup completes — same protection Stripe and the
     // external paymentRedirect flow already get.
     ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+    // Forward any applied affiliate/referral code so the purchase is attributed
+    // to the affiliate at acknowledgment. Empty when no code is applied.
+    final couponCode = ref.read(referralProvider).code;
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
+      couponCode: couponCode,
       onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
         ref.read(paymentSessionProvider.notifier).clearRedirect();

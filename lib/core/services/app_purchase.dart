@@ -16,6 +16,7 @@ typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
   static const _pendingPurchasePlansKey = 'pending_purchase_plans_json';
+  static const _pendingPurchaseCouponsKey = 'pending_purchase_coupons_json';
   static const _productPlanKeyPrefix = 'product:';
   static const _transactionPlanKeyPrefix = 'transaction:';
   static const _ackRetryDelays = <Duration>[
@@ -43,6 +44,13 @@ class AppPurchase {
 
   // Track what plan the user selected
   String? _pendingPlanId;
+
+  // The affiliate/referral code applied when the purchase started, if any.
+  // Forwarded to the backend at acknowledgment so the sale is attributed to
+  // the affiliate. Empty when no code is applied. Persisted per-purchase
+  // (alongside the plan id) so background acknowledge retries and store
+  // re-delivery after a restart keep the attribution.
+  String _pendingCouponCode = '';
 
   // True while a restore flow is in progress; restored receipts should be
   // acknowledged so the backend can reassociate the user, even when the
@@ -271,11 +279,16 @@ class AppPurchase {
     required String plan,
     required PaymentSuccessCallback onSuccess,
     required void Function(String error) onError,
+    String couponCode = '',
   }) async {
     _onSuccess = onSuccess;
     _onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
     _pendingPlanId = plan;
+    // Capture the applied affiliate/referral code so it can be sent with the
+    // acknowledgment. Reset to '' when none so a prior purchase's code never
+    // leaks into an unrelated one.
+    _pendingCouponCode = couponCode;
 
     if (!await _ensurePurchaseStreamReady()) {
       _onError?.call(
@@ -314,6 +327,7 @@ class AppPurchase {
         '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
       );
       await _rememberPendingPlanForProduct(product.id, plan);
+      await _rememberPendingCouponForProduct(product.id, couponCode);
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
@@ -343,6 +357,7 @@ class AppPurchase {
     _isRestoreFlow = true;
     _restoreReceivedAny = false;
     _pendingPlanId = null;
+    _pendingCouponCode = '';
 
     if (!await _ensurePurchaseStreamReady()) {
       _isRestoreFlow = false;
@@ -538,8 +553,14 @@ class AppPurchase {
             '[AppPurchase] Purchase successful: ${purchaseDetails.productID}',
           );
           final planId = await _resolvePlanId(purchaseDetails);
+          final couponCode = await _resolveCouponCode(purchaseDetails);
           await _rememberPendingPlanForPurchase(purchaseDetails, planId);
-          await _acknowledgePurchase(purchaseDetails, planId: planId);
+          await _rememberPendingCouponForPurchase(purchaseDetails, couponCode);
+          await _acknowledgePurchase(
+            purchaseDetails,
+            planId: planId,
+            couponCode: couponCode,
+          );
         } catch (e, st) {
           await _handleAcknowledgeFailure(purchaseDetails, e, stackTrace: st);
         }
@@ -565,6 +586,7 @@ class AppPurchase {
       appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
       _pendingPlanId = null;
+      _pendingCouponCode = '';
       _isRestoreFlow = false;
     }
   }
@@ -694,16 +716,31 @@ class AppPurchase {
     return '$prefix-usd-10';
   }
 
+  /// Resolves the affiliate/referral code to send with acknowledgment.
+  ///
+  /// Prefers the code captured for the in-flight purchase; falls back to the
+  /// value persisted for this purchase so background retries and store
+  /// re-delivery after a restart still attribute the sale. Returns '' when no
+  /// code was applied.
+  Future<String> _resolveCouponCode(PurchaseDetails purchase) async {
+    if (_pendingCouponCode.isNotEmpty) {
+      return _pendingCouponCode;
+    }
+    return await _pendingCouponForPurchase(purchase) ?? '';
+  }
+
   void clearCallbacks() {
     _onSuccess = null;
     _onError = null;
     _pendingPlanId = null;
+    _pendingCouponCode = '';
     _isRestoreFlow = false;
   }
 
   Future<void> _acknowledgePurchase(
     PurchaseDetails purchaseDetails, {
     required String planId,
+    String couponCode = '',
     bool isRetry = false,
   }) async {
     final key = _purchaseRetryKey(purchaseDetails);
@@ -738,6 +775,7 @@ class AppPurchase {
       final ack = await lanternService.acknowledgeInAppPurchase(
         purchaseToken: purchaseToken,
         planId: planId,
+        couponCode: couponCode,
       );
 
       await ack.fold(
@@ -827,11 +865,13 @@ class AppPurchase {
       unawaited(() async {
         try {
           final planId = await _resolvePlanId(purchaseDetails);
+          final couponCode = await _resolveCouponCode(purchaseDetails);
           _ackRetryTimers.remove(key);
           _ackRetryAttempts[key] = (_ackRetryAttempts[key] ?? 0) + 1;
           await _acknowledgePurchase(
             purchaseDetails,
             planId: planId,
+            couponCode: couponCode,
             isRetry: true,
           );
         } catch (e, st) {
@@ -937,20 +977,24 @@ class AppPurchase {
   }
 
   Future<void> _forgetPendingPlan(PurchaseDetails purchase) async {
-    if (await _forgetPendingPlanKeys(_planKeysForPurchase(purchase))) {
+    final keys = _planKeysForPurchase(purchase);
+    if (await _forgetPendingPlanKeys(keys)) {
       appLogger.info(
         '[AppPurchase] Cleared pending purchase plan: '
         'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
       );
     }
+    await _forgetPendingCouponKeys(keys);
   }
 
   Future<void> _forgetPendingPlanForProduct(String productID) async {
-    if (await _forgetPendingPlanKeys([_productPlanKey(productID)])) {
+    final keys = [_productPlanKey(productID)];
+    if (await _forgetPendingPlanKeys(keys)) {
       appLogger.info(
         '[AppPurchase] Cleared pending purchase plan for productID=$productID',
       );
     }
+    await _forgetPendingCouponKeys(keys);
   }
 
   /// Removes [keys] from the pending plans map, persisting only when something
@@ -972,4 +1016,85 @@ class AppPurchase {
 
   Future<void> _savePendingPurchasePlans(Map<String, String> pending) =>
       sl<LocalStorageService>().setStringMap(_pendingPurchasePlansKey, pending);
+
+  // --- Pending affiliate/referral code persistence ---------------------------
+  // Mirrors the pending-plan storage above, keyed by the same product/
+  // transaction keys so the code applied at purchase time survives a restart
+  // and is available when the store re-delivers the purchase for acknowledgment.
+
+  Future<String?> _pendingCouponForPurchase(PurchaseDetails purchase) async {
+    final pending = await _loadPendingPurchaseCoupons();
+    for (final key in _planKeysForPurchase(purchase)) {
+      final coupon = pending[key];
+      if (coupon != null && coupon.isNotEmpty) {
+        return coupon;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _rememberPendingCouponForProduct(
+    String productID,
+    String couponCode,
+  ) async {
+    if (await _rememberPendingCoupon([_productPlanKey(productID)], couponCode)) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase coupon: productID=$productID',
+      );
+    }
+  }
+
+  Future<void> _rememberPendingCouponForPurchase(
+    PurchaseDetails purchase,
+    String couponCode,
+  ) async {
+    if (await _rememberPendingCoupon(
+      _planKeysForPurchase(purchase),
+      couponCode,
+    )) {
+      appLogger.info(
+        '[AppPurchase] Stored pending purchase coupon: '
+        'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
+      );
+    }
+  }
+
+  /// Stores [couponCode] under each of [keys], persisting only when it is
+  /// non-empty. Returns whether anything was written.
+  Future<bool> _rememberPendingCoupon(
+    List<String> keys,
+    String couponCode,
+  ) async {
+    if (couponCode.isEmpty) {
+      return false;
+    }
+    final pending = await _loadPendingPurchaseCoupons();
+    for (final key in keys) {
+      pending[key] = couponCode;
+    }
+    await _savePendingPurchaseCoupons(pending);
+    return true;
+  }
+
+  /// Removes [keys] from the pending coupons map, persisting only when
+  /// something actually changed.
+  Future<void> _forgetPendingCouponKeys(List<String> keys) async {
+    final pending = await _loadPendingPurchaseCoupons();
+    var changed = false;
+    for (final key in keys) {
+      changed = pending.remove(key) != null || changed;
+    }
+    if (changed) {
+      await _savePendingPurchaseCoupons(pending);
+    }
+  }
+
+  Future<Map<String, String>> _loadPendingPurchaseCoupons() =>
+      sl<LocalStorageService>().getStringMap(_pendingPurchaseCouponsKey);
+
+  Future<void> _savePendingPurchaseCoupons(Map<String, String> pending) =>
+      sl<LocalStorageService>().setStringMap(
+        _pendingPurchaseCouponsKey,
+        pending,
+      );
 }

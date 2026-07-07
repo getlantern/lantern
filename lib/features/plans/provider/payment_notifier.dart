@@ -31,6 +31,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) async {
     return ref
         .read(lanternServiceProvider)
@@ -38,16 +39,22 @@ class PaymentNotifier extends _$PaymentNotifier {
           planId: planId,
           onSuccess: onSuccess,
           onError: onError,
+          couponCode: couponCode,
         );
   }
 
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) async {
     return ref
         .read(lanternServiceProvider)
-        .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+        .acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken,
+          planId: planId,
+          couponCode: couponCode,
+        );
   }
 
   Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
@@ -109,6 +116,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
     required String provider,
+    String couponCode = '',
   }) async {
     if (_isAndroidStoreBuild) {
       // Google Play build uses IAP
@@ -116,6 +124,7 @@ class PaymentNotifier extends _$PaymentNotifier {
         planId: planId,
         onSuccess: onSuccess,
         onError: onError,
+        couponCode: couponCode,
       );
 
       return result.match((failure) => left(failure), (_) => right(null));

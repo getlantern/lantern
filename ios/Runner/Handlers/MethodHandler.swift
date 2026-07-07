@@ -90,7 +90,9 @@ class MethodHandler {
           )
           return
         }
-        self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+        let couponCode = map["couponCode"] as? String ?? ""
+        self.acknowledgeInAppPurchase(
+          token: token, planId: planId, couponCode: couponCode, result: result)
 
       case "restoreInAppPurchase":
         guard
@@ -565,10 +567,12 @@ class MethodHandler {
     }
   }
 
-  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+  func acknowledgeInAppPurchase(
+    token: String, planId: String, couponCode: String, result: @escaping FlutterResult
+  ) {
     Task {
       var error: NSError?
-      let json = MobileAcknowledgeApplePurchase(token, planId, &error)
+      let json = MobileAcknowledgeApplePurchase(token, planId, couponCode, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
