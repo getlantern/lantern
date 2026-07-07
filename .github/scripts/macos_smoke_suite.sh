@@ -132,7 +132,7 @@ run_system_extension_preflight() {
       return 0
       ;;
     20)
-      printf 'System extension requires manual approval before this smoke test can connect.\n' >&2
+      printf 'System extension approval is missing on this runner. Approve Lantern in System Settings or install the MDM approval profile, then rerun this smoke test.\n' >&2
       ;;
     21)
       printf 'System extension activation requires a reboot before this smoke test can connect.\n' >&2
