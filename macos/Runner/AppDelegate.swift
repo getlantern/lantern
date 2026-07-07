@@ -39,7 +39,6 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    // Initialize directories and working paths before any command mode starts logging.
     FilePath.setupFileSystem()
 
     switch SystemExtensionSmokeCommand.parse(arguments: ProcessInfo.processInfo.arguments) {

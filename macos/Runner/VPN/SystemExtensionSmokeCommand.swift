@@ -10,9 +10,8 @@ internal struct SystemExtensionSmokeParseError: Error, Equatable {
   let message: String
 }
 
-/// Command-line wrapper for macOS smoke tests. It uses the same extension
-/// manager as the UI, so approval still belongs to macOS and can return
-/// requiresApproval on runners that are not preapproved.
+/// Command-line entry point for macOS smoke tests. It uses the same extension
+/// manager as the UI, so macOS still owns the approval flow.
 internal struct SystemExtensionSmokeCommand: Equatable {
   static let statusFlag = "--smoke-system-extension-status"
   static let activateFlag = "--smoke-activate-system-extension"
@@ -70,8 +69,17 @@ internal struct SystemExtensionSmokeCommand: Equatable {
     arguments: [String]
   ) -> Result<TimeInterval, SystemExtensionSmokeParseError> {
     var timeout = defaultTimeout
+    var parsedTimeout = false
 
-    if let timeoutIndex = arguments.firstIndex(of: timeoutFlag) {
+    let timeoutIndexes = arguments.indices.filter { arguments[$0] == timeoutFlag }
+    guard timeoutIndexes.count <= 1 else {
+      return .failure(
+        SystemExtensionSmokeParseError(message: "\(timeoutFlag) can only be set once")
+      )
+    }
+
+    if let timeoutIndex = timeoutIndexes.first {
+      parsedTimeout = true
       let valueIndex = arguments.index(after: timeoutIndex)
       guard valueIndex < arguments.endIndex else {
         return .failure(
@@ -88,6 +96,12 @@ internal struct SystemExtensionSmokeCommand: Equatable {
     }
 
     for argument in arguments where argument.hasPrefix("\(timeoutFlag)=") {
+      guard !parsedTimeout else {
+        return .failure(
+          SystemExtensionSmokeParseError(message: "\(timeoutFlag) can only be set once")
+        )
+      }
+
       let rawValue = String(argument.dropFirst(timeoutFlag.count + 1))
       guard let parsed = TimeInterval(rawValue), parsed > 0 else {
         return .failure(
@@ -95,6 +109,7 @@ internal struct SystemExtensionSmokeCommand: Equatable {
         )
       }
       timeout = parsed
+      parsedTimeout = true
     }
 
     return .success(timeout)

@@ -613,6 +613,21 @@ final class RunnerTests: XCTestCase {
     default:
       XCTFail("Expected invalid timeout to fail")
     }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--timeout-seconds",
+        "30",
+        "--timeout-seconds=45",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("can only be set once"))
+    default:
+      XCTFail("Expected duplicate timeout arguments to fail")
+    }
   }
 
   func testSystemExtensionSmokeResultUsesDistinctActivationExitCodes() {
