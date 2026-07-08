@@ -8,6 +8,7 @@ ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
 FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-${RUNNER_TEMP:-/tmp}/lantern-macos-smoke/Lantern.app}"
+LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
 DMG_MOUNT_DIR=""
 
 log_step() {
@@ -41,6 +42,7 @@ extract_app_zip() {
   local zip_path="$1"
   local tmp_dir
   tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
 
   log_step "Extracting Lantern app from $zip_path"
   ditto -x -k "$zip_path" "$tmp_dir"
@@ -49,12 +51,10 @@ extract_app_zip() {
   app_path="$(find_first_name "$tmp_dir" "Lantern.app" || true)"
   if [[ -z "$app_path" ]]; then
     printf 'Lantern.app not found inside %s\n' "$zip_path" >&2
-    rm -rf "$tmp_dir"
     return 1
   fi
 
   copy_app_bundle "$app_path" "$APP_INSTALL_DIR"
-  rm -rf "$tmp_dir"
 }
 
 detach_dmg() {
@@ -143,12 +143,18 @@ capture_lantern_logs() {
   local output_dir="$ARTIFACT_DIR/lantern-logs"
   mkdir -p "$output_dir"
 
-  if [[ -d "/Users/Shared/Lantern/Logs" ]]; then
-    cp -R "/Users/Shared/Lantern/Logs/." "$output_dir/" 2>/dev/null || true
+  if [[ -d "$LANTERN_LOG_DIR" ]]; then
+    cp -R "$LANTERN_LOG_DIR/." "$output_dir/" 2>/dev/null || true
   else
-    printf 'No Lantern log directory found at /Users/Shared/Lantern/Logs\n' \
+    printf 'No Lantern log directory found at %s\n' "$LANTERN_LOG_DIR" \
       >"$output_dir/missing.txt"
   fi
+}
+
+reset_lantern_logs() {
+  log_step "Resetting Lantern logs at $LANTERN_LOG_DIR"
+  rm -rf "$LANTERN_LOG_DIR"
+  mkdir -p "$LANTERN_LOG_DIR"
 }
 
 capture_unified_logs() {
@@ -282,6 +288,7 @@ on_exit() {
 trap on_exit EXIT
 
 mkdir -p "$ARTIFACT_DIR"
+reset_lantern_logs
 capture_command "systemextensionsctl-list-initial" systemextensionsctl list
 
 app_path="$(resolve_app_path)"
