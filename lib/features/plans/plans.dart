@@ -73,7 +73,9 @@ class _PlansState extends ConsumerState<Plans>
           child: SizedBox(
             height: context.isSmallDevice
                 ? size.height * 0.4
-                : size.height * 0.3,
+                : PlatformUtils.isIOS
+                ? size.height * 0.3
+                : size.height * 0.35,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
