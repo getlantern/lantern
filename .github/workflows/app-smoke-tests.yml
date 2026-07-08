@@ -116,7 +116,14 @@ jobs:
     # macOS smoke stays opt-in for "all" until runners have system-extension approval.
     if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
     uses: ./.github/workflows/build-macos.yml
-    secrets: inherit
+    secrets:
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      APP_ENV: ${{ secrets.APP_ENV }}
+      MACOS_BNS_CERT: ${{ secrets.MACOS_BNS_CERT }}
+      MACOS_BNS_CERT_PASS: ${{ secrets.MACOS_BNS_CERT_PASS }}
+      MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
+      MACOS_PROVISION_TUNNEL_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly

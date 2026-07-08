@@ -2,6 +2,21 @@ name: Build macOS
 
 on:
   workflow_call:
+    secrets:
+      AC_USERNAME:
+        required: true
+      AC_PASSWORD:
+        required: true
+      APP_ENV:
+        required: true
+      MACOS_BNS_CERT:
+        required: true
+      MACOS_BNS_CERT_PASS:
+        required: true
+      MACOS_PROVISION_PROFILE_BASE64:
+        required: true
+      MACOS_PROVISION_TUNNEL_BASE64:
+        required: true
     inputs:
       version:
         required: true

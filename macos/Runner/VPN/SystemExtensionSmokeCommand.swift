@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 internal enum SystemExtensionSmokeAction: String, Equatable {
@@ -87,7 +86,14 @@ internal struct SystemExtensionSmokeCommand: Equatable {
         )
       }
 
-      guard let parsed = TimeInterval(arguments[valueIndex]), parsed > 0 else {
+      let rawValue = arguments[valueIndex]
+      guard !rawValue.hasPrefix("--") else {
+        return .failure(
+          SystemExtensionSmokeParseError(message: "\(timeoutFlag) needs a value")
+        )
+      }
+
+      guard let parsed = TimeInterval(rawValue), parsed > 0 else {
         return .failure(
           SystemExtensionSmokeParseError(message: "\(timeoutFlag) must be a positive number")
         )
@@ -157,8 +163,6 @@ internal final class SystemExtensionSmokeCommandRunner {
   private let manager: SystemExtensionManager
   private let output: (String) -> Void
   private let complete: (Int32) -> Void
-  private var cancellable: AnyCancellable?
-  private var commandSubmitted = false
   private var finished = false
 
   init(
@@ -178,30 +182,19 @@ internal final class SystemExtensionSmokeCommandRunner {
       "Starting system extension smoke command: action=\(command.action.rawValue) timeout=\(command.timeout)"
     )
 
-    cancellable = manager.$status
-      .combineLatest(manager.$initialized)
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] status, initialized in
-        guard let self, initialized, self.commandSubmitted else {
-          return
-        }
-        self.handle(status)
-      }
+    DispatchQueue.main.asyncAfter(deadline: .now() + command.timeout) { [weak self] in
+      self?.finish(.timedOut)
+    }
 
     switch command.action {
     case .status:
-      manager.checkInstallationStatus()
+      manager.checkInstallationStatus { [weak self] status in
+        self?.handle(status)
+      }
     case .activate:
-      manager.activateExtension()
-    }
-
-    commandSubmitted = true
-    if manager.initialized {
-      handle(manager.status)
-    }
-
-    DispatchQueue.main.asyncAfter(deadline: .now() + command.timeout) { [weak self] in
-      self?.finish(.timedOut)
+      manager.activateExtension { [weak self] status in
+        self?.handle(status)
+      }
     }
   }
 
@@ -223,7 +216,6 @@ internal final class SystemExtensionSmokeCommandRunner {
     }
 
     finished = true
-    cancellable?.cancel()
 
     let result = SystemExtensionSmokeResult(
       action: command.action,
