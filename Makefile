@@ -72,7 +72,16 @@ APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
 ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
 $(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
 endif
-EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
+## Build stamp injected into the binary so logs and crash reports are
+## self-describing — this is how a stale build (linked deps not matching go.mod)
+## becomes visible. Overridable by the caller / CI.
+ifeq ($(OS),Windows_NT)
+BUILD_TIME ?= $(shell powershell -NoProfile -Command "[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')")
+else
+BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+endif
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_COMMIT)'
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
