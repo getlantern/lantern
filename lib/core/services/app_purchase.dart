@@ -5,6 +5,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/services/purchase/pending_purchase_store.dart';
+import 'package:lantern/core/services/purchase/purchase_acknowledger.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -14,53 +16,80 @@ import 'local_storage_service.dart';
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
-class AppPurchase {
-  static const _pendingPurchasePlansKey = 'pending_purchase_plans_json';
-  static const _pendingPurchaseCouponsKey = 'pending_purchase_coupons_json';
-  static const _productPlanKeyPrefix = 'product:';
-  static const _transactionPlanKeyPrefix = 'transaction:';
-  static const _ackRetryDelays = <Duration>[
-    Duration(seconds: 5),
-    Duration(seconds: 15),
-    Duration(seconds: 45),
-    Duration(minutes: 2),
-    Duration(minutes: 5),
-  ];
+/// Mutable state of the in-progress purchase/restore flow, grouped so the
+/// callbacks and pending selections have a single home and reset point.
+class _PurchaseSession {
+  PaymentSuccessCallback? onSuccess;
+  PaymentErrorCallback? onError;
 
-  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  /// The exact plan id the user chose (e.g. "1y-usd-10").
+  String? pendingPlanId;
+
+  /// Affiliate code applied at purchase start; forwarded to the backend for
+  /// attribution. Empty when none.
+  String pendingCouponCode = '';
+
+  bool isRestoreFlow = false;
+
+  /// Set once a restored receipt arrives, so iOS can detect "nothing to
+  /// restore" (StoreKit emits no empty-stream event the way Play Billing does).
+  bool restoreReceivedAny = false;
+}
+
+class AppPurchase {
+  /// [inAppPurchase], [pendingStore] and [acknowledger] are injectable for
+  /// tests; production uses the store plugin singleton and the service locator.
+  AppPurchase({
+    InAppPurchase? inAppPurchase,
+    PendingPurchaseStore? pendingStore,
+    PurchaseAcknowledger? acknowledger,
+  }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance {
+    _pendingStore =
+        pendingStore ?? PendingPurchaseStore(() => sl<LocalStorageService>());
+    _acknowledger =
+        acknowledger ??
+        PurchaseAcknowledger(
+          acknowledgeReceipt:
+              ({
+                required String purchaseToken,
+                required String planId,
+                required String couponCode,
+              }) => sl<LanternPlatformService>().acknowledgeInAppPurchase(
+                purchaseToken: purchaseToken,
+                planId: planId,
+                couponCode: couponCode,
+              ),
+          resolvePlanId: _resolvePlanId,
+          resolveCouponCode: _resolveCouponCode,
+          retryKeyFor: (purchase) => _pendingStore.retryKeyFor(purchase),
+          isAlreadyActive: _checkIfAlreadyPurchased,
+          onAcknowledged: _onAcknowledged,
+        );
+  }
+
+  final InAppPurchase _inAppPurchase;
+  late final PendingPurchaseStore _pendingStore;
+  late final PurchaseAcknowledger _acknowledger;
+
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   final List<ProductDetails> _subscriptionSku = [];
   final List<String> _subscriptionIds = <String>['1m_sub', '1y_sub'];
-  final Set<String> _acknowledgeInFlight = {};
-  final Map<String, int> _ackRetryAttempts = {};
-  final Map<String, Timer> _ackRetryTimers = {};
 
-  PaymentSuccessCallback? _onSuccess;
-  PaymentErrorCallback? _onError;
+  // iOS-only affiliate SKUs. Each mirrors a base plan but carries an
+  // introductory offer configured in App Store Connect, and is only ever
+  // surfaced once an affiliate/referral code is applied. StoreKit has no
+  // per-offer concept, so the discount has to live on a dedicated product;
+  // Android instead exposes the discount as a Play Console offer on the base
+  // product, so these are never queried there.
+  static const List<String> _iosAffiliateIds = <String>[
+    '1m_sub_affiliate',
+    '1y_sub_affiliate',
+  ];
 
-  // Tracks whether we have real product details loaded
   bool _productsLoaded = false;
   Completer<void>? _productsLoadedCompleter;
 
-  // Track what plan the user selected
-  String? _pendingPlanId;
-
-  // The affiliate/referral code applied when the purchase started, if any.
-  // Forwarded to the backend at acknowledgment so the sale is attributed to
-  // the affiliate. Empty when no code is applied. Persisted per-purchase
-  // (alongside the plan id) so background acknowledge retries and store
-  // re-delivery after a restart keep the attribution.
-  String _pendingCouponCode = '';
-
-  // True while a restore flow is in progress; restored receipts should be
-  // acknowledged so the backend can reassociate the user, even when the
-  // device has no active subscription cached locally.
-  bool _isRestoreFlow = false;
-
-  // Set true when a restored receipt is delivered through the stream during
-  // a restore flow. Used on iOS to detect "no purchases" (StoreKit doesn't
-  // emit an empty stream event the way Play Billing does).
-  bool _restoreReceivedAny = false;
+  final _PurchaseSession _session = _PurchaseSession();
 
   /// Starts listening for store purchase updates without fetching product
   /// details. Product lookup stays user-initiated to keep StoreKit out of the
@@ -134,6 +163,15 @@ class AppPurchase {
     return ready;
   }
 
+  /// The product IDs to query from the store. iOS additionally queries the
+  /// dedicated affiliate SKUs (see [_iosAffiliateIds]); [_selectSkus] then
+  /// keeps whichever set matches the requested mode. Android never queries
+  /// them because its discount is an offer on the base product.
+  Set<String> get _productIdsToQuery => <String>{
+    ..._subscriptionIds,
+    if (Platform.isIOS) ..._iosAffiliateIds,
+  };
+
   /// Loads the subscription SKUs to purchase from.
   ///
   /// By default only base plans are kept ([includeOffers] false), so the first
@@ -164,28 +202,8 @@ class AppPurchase {
         );
 
         final response = await _inAppPurchase.queryProductDetails(
-          _subscriptionIds.toSet(),
+          _productIdsToQuery,
         );
-
-        // Debug: dump exactly what the store returned, including per-offer
-        // basePlanId/offerId, so we can see whether Play is actually handing
-        // back an offer (vs our filter dropping it or the account being
-        // ineligible). Remove once offer visibility is confirmed.
-        for (final p in response.productDetails) {
-          if (p is GooglePlayProductDetails) {
-            final index = p.subscriptionIndex;
-            final offers = p.productDetails.subscriptionOfferDetails;
-            final offer = (index != null && offers != null && index < offers.length)
-                ? offers[index]
-                : null;
-            appLogger.info(
-              '[AppPurchase] SKU productId=${p.id} '
-              'basePlanId=${offer?.basePlanId} offerId=${offer?.offerId}',
-            );
-          } else {
-            appLogger.info('[AppPurchase] SKU productId=${p.id} (non-Play)');
-          }
-        }
 
         if (response.error != null) {
           appLogger.error(
@@ -281,17 +299,17 @@ class AppPurchase {
     required void Function(String error) onError,
     String couponCode = '',
   }) async {
-    _onSuccess = onSuccess;
-    _onError = onError;
+    _session.onSuccess = onSuccess;
+    _session.onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
-    _pendingPlanId = plan;
+    _session.pendingPlanId = plan;
     // Capture the applied affiliate/referral code so it can be sent with the
     // acknowledgment. Reset to '' when none so a prior purchase's code never
     // leaks into an unrelated one.
-    _pendingCouponCode = couponCode;
+    _session.pendingCouponCode = couponCode;
 
     if (!await _ensurePurchaseStreamReady()) {
-      _onError?.call(
+      _session.onError?.call(
         "Unable to access in-app purchases. Check your network and try again.",
       );
       return;
@@ -300,7 +318,7 @@ class AppPurchase {
     try {
       await _waitForProducts();
     } catch (_) {
-      _onError?.call(
+      _session.onError?.call(
         "Unable to load in-app purchase products. Check your network and try again.",
       );
       return;
@@ -308,7 +326,7 @@ class AppPurchase {
 
     final product = _normalizePlan(plan);
     if (product == null) {
-      _onError?.call("Invalid plan: $plan");
+      _session.onError?.call("Invalid plan: $plan");
       return;
     }
 
@@ -324,20 +342,23 @@ class AppPurchase {
 
     try {
       appLogger.info(
-        '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: $_pendingPlanId',
+        '[AppPurchase] Initiating purchase for product: ${product.id} with pendingPlanId: ${_session.pendingPlanId}',
       );
-      await _rememberPendingPlanForProduct(product.id, plan);
-      await _rememberPendingCouponForProduct(product.id, couponCode);
+      await _pendingStore.rememberForProduct(
+        product.id,
+        planId: plan,
+        couponCode: couponCode,
+      );
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
       if (!started) {
-        await _forgetPendingPlanForProduct(product.id);
-        _onError?.call("Failed to initiate purchase flow.");
+        await _pendingStore.forgetProduct(product.id);
+        _session.onError?.call("Failed to initiate purchase flow.");
       }
     } catch (e) {
-      await _forgetPendingPlanForProduct(product.id);
-      _onError?.call("Error starting subscription: $e");
+      await _pendingStore.forgetProduct(product.id);
+      _session.onError?.call("Error starting subscription: $e");
     }
   }
 
@@ -352,16 +373,16 @@ class AppPurchase {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
-    _onSuccess = onSuccess;
-    _onError = onError;
-    _isRestoreFlow = true;
-    _restoreReceivedAny = false;
-    _pendingPlanId = null;
-    _pendingCouponCode = '';
+    _session.onSuccess = onSuccess;
+    _session.onError = onError;
+    _session.isRestoreFlow = true;
+    _session.restoreReceivedAny = false;
+    _session.pendingPlanId = null;
+    _session.pendingCouponCode = '';
 
     if (!await _ensurePurchaseStreamReady()) {
-      _isRestoreFlow = false;
-      final onError = _onError;
+      _session.isRestoreFlow = false;
+      final onError = _session.onError;
       clearCallbacks();
       onError?.call(
         "Unable to access in-app purchases. Check your network and try again.",
@@ -377,10 +398,10 @@ class AppPurchase {
         // purchases to restore, so the only signal "nothing to restore" is
         // the absence of a stream event within a reasonable window.
         Future.delayed(const Duration(seconds: 10), () {
-          if (_isRestoreFlow && !_restoreReceivedAny) {
+          if (_session.isRestoreFlow && !_session.restoreReceivedAny) {
             appLogger.info('[AppPurchase] iOS restore: no purchases delivered');
-            _isRestoreFlow = false;
-            final onError = _onError;
+            _session.isRestoreFlow = false;
+            final onError = _session.onError;
             clearCallbacks();
             onError?.call('No previous purchases found to restore.');
           }
@@ -388,8 +409,8 @@ class AppPurchase {
       }
     } catch (e, st) {
       appLogger.error('[AppPurchase] Error restoring purchases', e, st);
-      _isRestoreFlow = false;
-      final onError = _onError;
+      _session.isRestoreFlow = false;
+      final onError = _session.onError;
       clearCallbacks();
       onError?.call('Error restoring purchases: $e');
     }
@@ -399,12 +420,12 @@ class AppPurchase {
     appLogger.info(
       '[AppPurchase] Received purchase updates: ${purchases.length}',
     );
-    if (_isRestoreFlow && purchases.isEmpty) {
+    if (_session.isRestoreFlow && purchases.isEmpty) {
       appLogger.info(
         '[AppPurchase] Restore flow: purchase stream emitted empty list',
       );
-      _isRestoreFlow = false;
-      final onError = _onError;
+      _session.isRestoreFlow = false;
+      final onError = _session.onError;
       clearCallbacks();
       onError?.call('No previous purchases found to restore.');
       return;
@@ -412,9 +433,9 @@ class AppPurchase {
 
     /// During restore, if more than one restored receipt comes back, batch
     /// them: pick one to surface and finalize the rest. Otherwise _finalize
-    /// would clear _isRestoreFlow after the first item and the second
+    /// would clear isRestoreFlow after the first item and the second
     /// iteration would fall into the regular acknowledge path.
-    if (_isRestoreFlow && purchases.length > 1) {
+    if (_session.isRestoreFlow && purchases.length > 1) {
       final restored = purchases
           .where(
             (p) =>
@@ -434,7 +455,7 @@ class AppPurchase {
   }
 
   /// Picks the latest restored receipt, finalizes every restored receipt
-  /// with the store, and fires `_onSuccess` once.
+  /// with the store, and fires `onSuccess` once.
   Future<void> _handleRestoreBatch(List<PurchaseDetails> restored) async {
     ///Pick the latest purchase
     restored.sort((a, b) {
@@ -448,10 +469,10 @@ class AppPurchase {
       '[AppPurchase] Restore batch: ${restored.length} purchases, choosing ${chosen.productID}',
     );
 
-    _restoreReceivedAny = true;
+    _session.restoreReceivedAny = true;
 
     // Complete each receipt inline (don't call _finalize — its `finally`
-    // clears _isRestoreFlow, which would mis-route any re-entrant stream
+    // clears isRestoreFlow, which would mis-route any re-entrant stream
     // emissions through the regular acknowledge path mid-batch and fire
     // a stray error before our success callback.
     for (final purchase in restored) {
@@ -464,9 +485,9 @@ class AppPurchase {
       }
     }
 
-    final onSuccess = _onSuccess;
-    _isRestoreFlow = false;
-    _pendingPlanId = null;
+    final onSuccess = _session.onSuccess;
+    _session.isRestoreFlow = false;
+    _session.pendingPlanId = null;
     clearCallbacks();
     onSuccess?.call(chosen);
   }
@@ -476,103 +497,125 @@ class AppPurchase {
       '[AppPurchase] Handling purchase: ${purchaseDetails.productID} with status: ${purchaseDetails.status}',
     );
     try {
-      final status = purchaseDetails.status;
-      if (status == PurchaseStatus.error) {
-        /// Error occurred during purchase
-        appLogger.error('Purchase error: ${purchaseDetails.error}');
-        final errorMessage = purchaseDetails.error?.message ?? "Unknown error";
-        await _forgetPendingPlan(purchaseDetails);
-        _pendingPlanId = null;
-
-        /// Invoke error callback
-        _onError?.call(errorMessage);
-        return;
-      }
-      if (status == PurchaseStatus.canceled) {
-        // `canceled` is not necessarily a real user cancel — the
-        // in_app_purchase plugin also maps several silent Google Play
-        // rejections (offer ineligibility, missing payment method, region
-        // mismatch, billing-service hiccups) to the same status. Without
-        // capturing the underlying error we can't distinguish those from a
-        // user who actually X'd the dialog, which is the difference between
-        // "expected" and "a bug to fix." For Android, `error.details`
-        // typically contains a Map with the raw BillingClient
-        // `response_code` and `debug_message`.
-        appLogger.info(
-          '[AppPurchase] Purchase canceled: productID=${purchaseDetails.productID}'
-          ' errorCode=${purchaseDetails.error?.code}'
-          ' message=${purchaseDetails.error?.message}'
-          ' details=${purchaseDetails.error?.details}',
-        );
-        await _forgetPendingPlan(purchaseDetails);
-        _pendingPlanId = null;
-        _onError?.call("Purchase canceled");
-        return;
-      }
-      if (status == PurchaseStatus.pending) {
-        /// Purchase is pending (e.g. deferred payment method on Android).
-        /// Dismiss loading and inform the user — the purchase will complete
-        /// asynchronously when the payment is confirmed.
-        appLogger.info(
-          '[AppPurchase] Purchase is pending: ${purchaseDetails.productID}',
-        );
-        _onError?.call(
-          "Purchase is pending. You will be notified when it completes.",
-        );
-        return;
-      }
-      if (status == PurchaseStatus.purchased ||
-          status == PurchaseStatus.restored) {
-        /// During an explicit restore flow, skip the backend acknowledge call
-        if (_isRestoreFlow) {
-          appLogger.info(
-            '[AppPurchase] Found restore purchase calling success',
-          );
-          _restoreReceivedAny = true;
-          await _finalize(purchaseDetails);
-          final onSuccess = _onSuccess;
-          clearCallbacks();
-          onSuccess?.call(purchaseDetails);
-          return;
-        }
-
-        /// Apple sends purchase updates for previously purchased items when the app starts.
-        /// This check prevents processing the same subscription multiple times.
-        if (await _checkIfAlreadyPurchased()) {
-          appLogger.info(
-            '[AppPurchase] User has already purchased the subscription. Finalizing purchase without processing.',
-          );
-          await _forgetPendingPlan(purchaseDetails);
-          await _finalize(purchaseDetails);
-          _onError?.call('You have already purchased this subscription.');
-          return;
-        }
-
-        try {
-          appLogger.info(
-            '[AppPurchase] Purchase successful: ${purchaseDetails.productID}',
-          );
-          final planId = await _resolvePlanId(purchaseDetails);
-          final couponCode = await _resolveCouponCode(purchaseDetails);
-          await _rememberPendingPlanForPurchase(purchaseDetails, planId);
-          await _rememberPendingCouponForPurchase(purchaseDetails, couponCode);
-          await _acknowledgePurchase(
-            purchaseDetails,
-            planId: planId,
-            couponCode: couponCode,
-          );
-        } catch (e, st) {
-          await _handleAcknowledgeFailure(purchaseDetails, e, stackTrace: st);
-        }
-        return;
+      switch (purchaseDetails.status) {
+        case PurchaseStatus.error:
+          await _handlePurchaseError(purchaseDetails);
+        case PurchaseStatus.canceled:
+          await _handlePurchaseCanceled(purchaseDetails);
+        case PurchaseStatus.pending:
+          _handlePurchasePending(purchaseDetails);
+        case PurchaseStatus.purchased:
+        case PurchaseStatus.restored:
+          await _handleCompletedPurchase(purchaseDetails);
       }
     } catch (e) {
       appLogger.error('[AppPurchase] Error handling purchase: $e', e);
-      _onError?.call(e.toString());
+      _session.onError?.call(e.toString());
     }
   }
 
-  // Separate helper to ensure the Store is cleared
+  Future<void> _handlePurchaseError(PurchaseDetails purchase) async {
+    appLogger.error('Purchase error: ${purchase.error}');
+    final errorMessage = purchase.error?.message ?? 'Unknown error';
+    await _pendingStore.forgetPurchase(purchase);
+    _session.pendingPlanId = null;
+    _session.onError?.call(errorMessage);
+  }
+
+  Future<void> _handlePurchaseCanceled(PurchaseDetails purchase) async {
+    // `canceled` is not necessarily a real user cancel — the in_app_purchase
+    // plugin also maps several silent Google Play rejections (offer
+    // ineligibility, missing payment method, region mismatch, billing-service
+    // hiccups) to the same status. Without capturing the underlying error we
+    // can't distinguish those from a user who actually X'd the dialog, which is
+    // the difference between "expected" and "a bug to fix." For Android,
+    // `error.details` typically contains a Map with the raw BillingClient
+    // `response_code` and `debug_message`.
+    appLogger.info(
+      '[AppPurchase] Purchase canceled: productID=${purchase.productID}'
+      ' errorCode=${purchase.error?.code}'
+      ' message=${purchase.error?.message}'
+      ' details=${purchase.error?.details}',
+    );
+    await _pendingStore.forgetPurchase(purchase);
+    _session.pendingPlanId = null;
+    _session.onError?.call('Purchase canceled');
+  }
+
+  void _handlePurchasePending(PurchaseDetails purchase) {
+    // Deferred payment method (e.g. on Android): the purchase completes
+    // asynchronously when the payment is confirmed; just inform the user.
+    appLogger.info('[AppPurchase] Purchase is pending: ${purchase.productID}');
+    _session.onError?.call(
+      'Purchase is pending. You will be notified when it completes.',
+    );
+  }
+
+  /// Handles a `purchased`/`restored` receipt: during an explicit restore just
+  /// finalize and report success; otherwise verify it with the backend (unless
+  /// the account is already active) through the acknowledger.
+  Future<void> _handleCompletedPurchase(PurchaseDetails purchase) async {
+    if (_session.isRestoreFlow) {
+      appLogger.info('[AppPurchase] Found restore purchase calling success');
+      _session.restoreReceivedAny = true;
+      await _finalize(purchase);
+      final onSuccess = _session.onSuccess;
+      clearCallbacks();
+      onSuccess?.call(purchase);
+      return;
+    }
+
+    // Apple re-delivers previously purchased items at launch; trust fresh
+    // backend state so the same subscription isn't processed twice.
+    if (await _checkIfAlreadyPurchased()) {
+      appLogger.info(
+        '[AppPurchase] User has already purchased the subscription. '
+        'Finalizing purchase without processing.',
+      );
+      await _pendingStore.forgetPurchase(purchase);
+      await _finalize(purchase);
+      _session.onError?.call('You have already purchased this subscription.');
+      return;
+    }
+
+    appLogger.info('[AppPurchase] Purchase successful: ${purchase.productID}');
+    final planId = await _resolvePlanId(purchase);
+    final couponCode = await _resolveCouponCode(purchase);
+    await _pendingStore.rememberForPurchase(
+      purchase,
+      planId: planId,
+      couponCode: couponCode,
+    );
+    await _acknowledger.acknowledge(
+      purchase,
+      planId: planId,
+      couponCode: couponCode,
+      onSuccess: _onAckSuccess,
+      onError: _onAckError,
+    );
+  }
+
+  void _onAckSuccess(PurchaseDetails purchase) =>
+      _session.onSuccess?.call(purchase);
+
+  /// Surfaces the "will retry in the background" message and clears the
+  /// in-memory session, so a later background retry resolves the plan from
+  /// persisted metadata and a stray success can't fire the now-stale callback.
+  void _onAckError(String message) {
+    final onError = _session.onError;
+    _session.onSuccess = null;
+    _session.onError = null;
+    _session.pendingPlanId = null;
+    onError?.call(message);
+  }
+
+  /// Runs once the backend confirms a purchase (or the account is found already
+  /// active): drop its pending metadata and complete the store transaction.
+  Future<void> _onAcknowledged(PurchaseDetails purchase) async {
+    await _pendingStore.forgetPurchase(purchase);
+    await _finalize(purchase);
+  }
+
   Future<void> _finalize(PurchaseDetails purchaseDetails) async {
     try {
       if (purchaseDetails.pendingCompletePurchase) {
@@ -585,9 +628,9 @@ class AppPurchase {
     } catch (e) {
       appLogger.error('[AppPurchase] Error finalizing purchase: $e', e);
     } finally {
-      _pendingPlanId = null;
-      _pendingCouponCode = '';
-      _isRestoreFlow = false;
+      _session.pendingPlanId = null;
+      _session.pendingCouponCode = '';
+      _session.isRestoreFlow = false;
     }
   }
 
@@ -598,7 +641,7 @@ class AppPurchase {
 
   void _updateStreamOnError(Object error) {
     appLogger.error('[AppPurchase] Purchase stream error: $error');
-    _onError?.call(error.toString());
+    _session.onError?.call(error.toString());
   }
 
   /// Keeps only the SKUs matching the requested mode.
@@ -607,14 +650,22 @@ class AppPurchase {
   /// [GooglePlayProductDetails]: base plans have a null (or empty) offerId,
   /// discount offers have a non-null offerId. When [includeOffers] is false we
   /// keep base plans (a normal purchase), when true we keep only offers (an
-  /// applied affiliate/referral discount). iOS has no per-offer concept, so its
-  /// products always pass through.
+  /// applied affiliate/referral discount).
+  ///
+  /// iOS has no per-offer concept, so the discount lives on a dedicated
+  /// affiliate product ([_iosAffiliateIds]). We apply the same split there:
+  /// keep only the affiliate SKUs when an offer was requested, otherwise only
+  /// the base SKUs. Either way `_subscriptionSku` ends up holding just one set,
+  /// so the downstream `_normalizePlan` prefix match resolves unambiguously.
   List<ProductDetails> _selectSkus(
     List<ProductDetails> products, {
     required bool includeOffers,
   }) {
     if (!Platform.isAndroid) {
-      return products;
+      return products.where((product) {
+        final isAffiliate = _iosAffiliateIds.contains(product.id);
+        return includeOffers ? isAffiliate : !isAffiliate;
+      }).toList();
     }
     return products.where((product) {
       final offerId = _offerIdFor(product);
@@ -637,14 +688,19 @@ class AppPurchase {
     return offers[index].offerId;
   }
 
+  /// The plan-family prefix shared by a plan id and its store product id:
+  /// "1y-usd-10" → "1y", "1y_sub" → "1y", "1y_sub_affiliate" → "1y". Splitting
+  /// on either delimiter lets a plan and its (base or affiliate) SKU match.
+  static String _planPrefix(String id) => id.split(RegExp('[-_]')).first;
+
   /// Resolves the store product to purchase for [planId] by matching the plan
   /// prefix (e.g. "1y"). Whether this returns a base plan or a discount offer
   /// depends purely on which SKU set was loaded by [fetchSubscriptions].
   ProductDetails? _normalizePlan(String planId) {
-    final plan = planId.split('-').first;
+    final plan = _planPrefix(planId);
     appLogger.info('[AppPurchase] Normalizing planId: $planId to plan: $plan');
     for (final sku in _subscriptionSku) {
-      if (sku.id.split('_').first == plan) {
+      if (_planPrefix(sku.id) == plan) {
         return sku;
       }
     }
@@ -685,13 +741,17 @@ class AppPurchase {
 
   /// Determines the plan id to send to the backend for acknowledgment.
   ///
-  /// Prefers the exact plan the user selected, then falls back to a default.
+  /// Prefers the exact plan the user selected, then the value persisted for
+  /// this purchase (so background retries and post-restart re-delivery still
+  /// resolve it), then a cached plan matching the product prefix, then a
+  /// default.
   Future<String> _resolvePlanId(PurchaseDetails purchase) async {
-    if (_pendingPlanId != null && _pendingPlanId!.isNotEmpty) {
-      return _pendingPlanId!;
+    final pendingPlanId = _session.pendingPlanId;
+    if (pendingPlanId != null && pendingPlanId.isNotEmpty) {
+      return pendingPlanId;
     }
 
-    final pendingPlan = await _pendingPlanForPurchase(purchase);
+    final pendingPlan = await _pendingStore.planFor(purchase);
     if (pendingPlan != null) {
       appLogger.info(
         '[AppPurchase] Resolved plan from pending purchase metadata: $pendingPlan',
@@ -699,7 +759,7 @@ class AppPurchase {
       return pendingPlan;
     }
 
-    final prefix = purchase.productID.split('_').first; // "1y" or "1m"
+    final prefix = _planPrefix(purchase.productID); // "1y" or "1m"
     final localPlans = sl<LocalStorageService>().getPlans();
     if (localPlans != null) {
       for (final plan in localPlans.plans) {
@@ -723,378 +783,17 @@ class AppPurchase {
   /// re-delivery after a restart still attribute the sale. Returns '' when no
   /// code was applied.
   Future<String> _resolveCouponCode(PurchaseDetails purchase) async {
-    if (_pendingCouponCode.isNotEmpty) {
-      return _pendingCouponCode;
+    if (_session.pendingCouponCode.isNotEmpty) {
+      return _session.pendingCouponCode;
     }
-    return await _pendingCouponForPurchase(purchase) ?? '';
+    return await _pendingStore.couponFor(purchase) ?? '';
   }
 
   void clearCallbacks() {
-    _onSuccess = null;
-    _onError = null;
-    _pendingPlanId = null;
-    _pendingCouponCode = '';
-    _isRestoreFlow = false;
+    _session.onSuccess = null;
+    _session.onError = null;
+    _session.pendingPlanId = null;
+    _session.pendingCouponCode = '';
+    _session.isRestoreFlow = false;
   }
-
-  Future<void> _acknowledgePurchase(
-    PurchaseDetails purchaseDetails, {
-    required String planId,
-    String couponCode = '',
-    bool isRetry = false,
-  }) async {
-    final key = _purchaseRetryKey(purchaseDetails);
-    if (!_acknowledgeInFlight.add(key)) {
-      appLogger.info(
-        '[AppPurchase] Acknowledgment already in flight: '
-        'productID=${purchaseDetails.productID} key=$key',
-      );
-      return;
-    }
-
-    try {
-      final purchaseToken =
-          purchaseDetails.verificationData.serverVerificationData;
-      appLogger.info(
-        '[AppPurchase] Acknowledgment ${isRetry ? 'retry' : 'start'}: '
-        'productID=${purchaseDetails.productID} '
-        'purchaseID=${purchaseDetails.purchaseID} '
-        'planId=$planId receiptLength=${purchaseToken.length}',
-      );
-
-      if (purchaseToken.isEmpty) {
-        await _handleAcknowledgeFailure(
-          purchaseDetails,
-          'Missing purchase receipt',
-          isRetry: isRetry,
-        );
-        return;
-      }
-
-      final lanternService = sl<LanternPlatformService>();
-      final ack = await lanternService.acknowledgeInAppPurchase(
-        purchaseToken: purchaseToken,
-        planId: planId,
-        couponCode: couponCode,
-      );
-
-      await ack.fold(
-        (error) async {
-          await _handleAcknowledgeFailure(
-            purchaseDetails,
-            error,
-            isRetry: isRetry,
-          );
-        },
-        (success) async {
-          appLogger.info(
-            '[AppPurchase] Acknowledgment successful: '
-            'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
-          );
-          _clearAcknowledgeRetry(key);
-          await _forgetPendingPlan(purchaseDetails);
-          await _finalize(purchaseDetails);
-          if (!isRetry) {
-            _onSuccess?.call(purchaseDetails);
-          }
-        },
-      );
-    } finally {
-      _acknowledgeInFlight.remove(key);
-    }
-  }
-
-  Future<void> _handleAcknowledgeFailure(
-    PurchaseDetails purchaseDetails,
-    Object error, {
-    bool isRetry = false,
-    StackTrace? stackTrace,
-  }) async {
-    appLogger.error(
-      '[AppPurchase] Acknowledgment failed; leaving store transaction pending '
-      'for retry: productID=${purchaseDetails.productID} '
-      'purchaseID=${purchaseDetails.purchaseID}',
-      error,
-      stackTrace,
-    );
-
-    if (await _checkIfAlreadyPurchased()) {
-      appLogger.info(
-        '[AppPurchase] Account is already active after acknowledgment failure; '
-        'finalizing store transaction',
-      );
-      _clearAcknowledgeRetry(_purchaseRetryKey(purchaseDetails));
-      await _forgetPendingPlan(purchaseDetails);
-      await _finalize(purchaseDetails);
-      if (!isRetry) {
-        _onSuccess?.call(purchaseDetails);
-      }
-      return;
-    }
-
-    if (!isRetry) {
-      final onError = _onError;
-      _onSuccess = null;
-      _onError = null;
-      _pendingPlanId = null;
-      onError?.call(
-        'Purchase verification failed. We will retry in the background.',
-      );
-    }
-    _scheduleAcknowledgeRetry(purchaseDetails);
-  }
-
-  void _scheduleAcknowledgeRetry(PurchaseDetails purchaseDetails) {
-    final key = _purchaseRetryKey(purchaseDetails);
-    if (_ackRetryTimers.containsKey(key)) {
-      appLogger.info(
-        '[AppPurchase] Acknowledgment retry already scheduled: '
-        'productID=${purchaseDetails.productID} key=$key',
-      );
-      return;
-    }
-
-    final attempt = _ackRetryAttempts[key] ?? 0;
-    final delay = _ackRetryDelayForAttempt(attempt);
-    appLogger.info(
-      '[AppPurchase] Scheduling acknowledgment retry ${attempt + 1} in $delay: '
-      'productID=${purchaseDetails.productID} purchaseID=${purchaseDetails.purchaseID}',
-    );
-
-    _ackRetryTimers[key] = Timer(delay, () {
-      unawaited(() async {
-        try {
-          final planId = await _resolvePlanId(purchaseDetails);
-          final couponCode = await _resolveCouponCode(purchaseDetails);
-          _ackRetryTimers.remove(key);
-          _ackRetryAttempts[key] = (_ackRetryAttempts[key] ?? 0) + 1;
-          await _acknowledgePurchase(
-            purchaseDetails,
-            planId: planId,
-            couponCode: couponCode,
-            isRetry: true,
-          );
-        } catch (e, st) {
-          _ackRetryTimers.remove(key);
-          await _handleAcknowledgeFailure(
-            purchaseDetails,
-            e,
-            isRetry: true,
-            stackTrace: st,
-          );
-        }
-      }());
-    });
-  }
-
-  Duration _ackRetryDelayForAttempt(int attempt) {
-    final index = attempt >= _ackRetryDelays.length
-        ? _ackRetryDelays.length - 1
-        : attempt;
-    return _ackRetryDelays[index];
-  }
-
-  void _clearAcknowledgeRetry(String key) {
-    _ackRetryAttempts.remove(key);
-    _ackRetryTimers.remove(key)?.cancel();
-  }
-
-  // The transaction key when available, otherwise the product key — i.e. the
-  // most specific key `_planKeysForPurchase` would store this purchase under.
-  String _purchaseRetryKey(PurchaseDetails purchase) =>
-      _planKeysForPurchase(purchase).first;
-
-  String _productPlanKey(String productID) =>
-      '$_productPlanKeyPrefix$productID';
-
-  String? _transactionPlanKey(PurchaseDetails purchase) {
-    final purchaseID = purchase.purchaseID;
-    if (purchaseID != null && purchaseID.isNotEmpty) {
-      return '$_transactionPlanKeyPrefix$purchaseID';
-    }
-    final transactionDate = purchase.transactionDate;
-    if (transactionDate != null && transactionDate.isNotEmpty) {
-      return '$_transactionPlanKeyPrefix${purchase.productID}:$transactionDate';
-    }
-    return null;
-  }
-
-  List<String> _planKeysForPurchase(PurchaseDetails purchase) {
-    final transactionKey = _transactionPlanKey(purchase);
-    final keys = <String>[_productPlanKey(purchase.productID)];
-    if (transactionKey != null) {
-      keys.insert(0, transactionKey);
-    }
-    return keys;
-  }
-
-  Future<String?> _pendingPlanForPurchase(PurchaseDetails purchase) async {
-    final pending = await _loadPendingPurchasePlans();
-    for (final key in _planKeysForPurchase(purchase)) {
-      final planId = pending[key];
-      if (planId != null && planId.isNotEmpty) {
-        return planId;
-      }
-    }
-    return null;
-  }
-
-  Future<void> _rememberPendingPlanForProduct(
-    String productID,
-    String planId,
-  ) async {
-    if (await _rememberPendingPlan([_productPlanKey(productID)], planId)) {
-      appLogger.info(
-        '[AppPurchase] Stored pending purchase plan: productID=$productID planId=$planId',
-      );
-    }
-  }
-
-  Future<void> _rememberPendingPlanForPurchase(
-    PurchaseDetails purchase,
-    String planId,
-  ) async {
-    if (await _rememberPendingPlan(_planKeysForPurchase(purchase), planId)) {
-      appLogger.info(
-        '[AppPurchase] Stored pending purchase plan: '
-        'productID=${purchase.productID} purchaseID=${purchase.purchaseID} planId=$planId',
-      );
-    }
-  }
-
-  /// Stores [planId] under each of [keys], persisting only when [planId] is
-  /// non-empty. Returns whether anything was written.
-  Future<bool> _rememberPendingPlan(List<String> keys, String planId) async {
-    if (planId.isEmpty) {
-      return false;
-    }
-    final pending = await _loadPendingPurchasePlans();
-    for (final key in keys) {
-      pending[key] = planId;
-    }
-    await _savePendingPurchasePlans(pending);
-    return true;
-  }
-
-  Future<void> _forgetPendingPlan(PurchaseDetails purchase) async {
-    final keys = _planKeysForPurchase(purchase);
-    if (await _forgetPendingPlanKeys(keys)) {
-      appLogger.info(
-        '[AppPurchase] Cleared pending purchase plan: '
-        'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
-      );
-    }
-    await _forgetPendingCouponKeys(keys);
-  }
-
-  Future<void> _forgetPendingPlanForProduct(String productID) async {
-    final keys = [_productPlanKey(productID)];
-    if (await _forgetPendingPlanKeys(keys)) {
-      appLogger.info(
-        '[AppPurchase] Cleared pending purchase plan for productID=$productID',
-      );
-    }
-    await _forgetPendingCouponKeys(keys);
-  }
-
-  /// Removes [keys] from the pending plans map, persisting only when something
-  /// actually changed. Returns whether any entry was removed.
-  Future<bool> _forgetPendingPlanKeys(List<String> keys) async {
-    final pending = await _loadPendingPurchasePlans();
-    var changed = false;
-    for (final key in keys) {
-      changed = pending.remove(key) != null || changed;
-    }
-    if (changed) {
-      await _savePendingPurchasePlans(pending);
-    }
-    return changed;
-  }
-
-  Future<Map<String, String>> _loadPendingPurchasePlans() =>
-      sl<LocalStorageService>().getStringMap(_pendingPurchasePlansKey);
-
-  Future<void> _savePendingPurchasePlans(Map<String, String> pending) =>
-      sl<LocalStorageService>().setStringMap(_pendingPurchasePlansKey, pending);
-
-  // --- Pending affiliate/referral code persistence ---------------------------
-  // Mirrors the pending-plan storage above, keyed by the same product/
-  // transaction keys so the code applied at purchase time survives a restart
-  // and is available when the store re-delivers the purchase for acknowledgment.
-
-  Future<String?> _pendingCouponForPurchase(PurchaseDetails purchase) async {
-    final pending = await _loadPendingPurchaseCoupons();
-    for (final key in _planKeysForPurchase(purchase)) {
-      final coupon = pending[key];
-      if (coupon != null && coupon.isNotEmpty) {
-        return coupon;
-      }
-    }
-    return null;
-  }
-
-  Future<void> _rememberPendingCouponForProduct(
-    String productID,
-    String couponCode,
-  ) async {
-    if (await _rememberPendingCoupon([_productPlanKey(productID)], couponCode)) {
-      appLogger.info(
-        '[AppPurchase] Stored pending purchase coupon: productID=$productID',
-      );
-    }
-  }
-
-  Future<void> _rememberPendingCouponForPurchase(
-    PurchaseDetails purchase,
-    String couponCode,
-  ) async {
-    if (await _rememberPendingCoupon(
-      _planKeysForPurchase(purchase),
-      couponCode,
-    )) {
-      appLogger.info(
-        '[AppPurchase] Stored pending purchase coupon: '
-        'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
-      );
-    }
-  }
-
-  /// Stores [couponCode] under each of [keys], persisting only when it is
-  /// non-empty. Returns whether anything was written.
-  Future<bool> _rememberPendingCoupon(
-    List<String> keys,
-    String couponCode,
-  ) async {
-    if (couponCode.isEmpty) {
-      return false;
-    }
-    final pending = await _loadPendingPurchaseCoupons();
-    for (final key in keys) {
-      pending[key] = couponCode;
-    }
-    await _savePendingPurchaseCoupons(pending);
-    return true;
-  }
-
-  /// Removes [keys] from the pending coupons map, persisting only when
-  /// something actually changed.
-  Future<void> _forgetPendingCouponKeys(List<String> keys) async {
-    final pending = await _loadPendingPurchaseCoupons();
-    var changed = false;
-    for (final key in keys) {
-      changed = pending.remove(key) != null || changed;
-    }
-    if (changed) {
-      await _savePendingPurchaseCoupons(pending);
-    }
-  }
-
-  Future<Map<String, String>> _loadPendingPurchaseCoupons() =>
-      sl<LocalStorageService>().getStringMap(_pendingPurchaseCouponsKey);
-
-  Future<void> _savePendingPurchaseCoupons(Map<String, String> pending) =>
-      sl<LocalStorageService>().setStringMap(
-        _pendingPurchaseCouponsKey,
-        pending,
-      );
 }

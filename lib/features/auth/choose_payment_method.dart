@@ -90,7 +90,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               icon: AppImagePaths.star,
               onPressed: () {
                 appRouter.pop();
-                showRferralCodeDialog(context);
+                showReferralCodeDialog(context);
               },
             ),
             DividerSpace(),
@@ -100,7 +100,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
   }
 
-  void showRferralCodeDialog(BuildContext context) {
+  void showReferralCodeDialog(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     AppDialog.customDialog(
       context: context,

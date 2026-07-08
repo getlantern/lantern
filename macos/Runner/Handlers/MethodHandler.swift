@@ -89,7 +89,9 @@ class MethodHandler {
           )
           return
         }
-        self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+        let couponCode = map["couponCode"] as? String ?? ""
+        self.acknowledgeInAppPurchase(
+          token: token, planId: planId, couponCode: couponCode, result: result)
 
       // user management
       case "startRecoveryByEmail":
@@ -156,8 +158,11 @@ class MethodHandler {
         self.referralAttach(result: result, code: code)
 
       case "attachReferralCodeV2":
-        let code = call.arguments as? String ?? ""
-        self.referralAttachV2(result: result, code: code)
+        let data = call.arguments as? [String: Any] ?? [:]
+        let code = data["code"] as? String ?? ""
+        let distributionChannel = data["distributionChannel"] as? String ?? ""
+        self.referralAttachV2(
+          result: result, code: code, distributionChannel: distributionChannel)
 
       // Private server methods
       case "digitalOcean":
@@ -607,10 +612,12 @@ class MethodHandler {
     }
   }
 
-  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+  func acknowledgeInAppPurchase(
+    token: String, planId: String, couponCode: String, result: @escaping FlutterResult
+  ) {
     Task {
       var error: NSError?
-      let json = MobileAcknowledgeApplePurchase(token, planId, &error)
+      let json = MobileAcknowledgeApplePurchase(token, planId, couponCode, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
@@ -811,10 +818,12 @@ class MethodHandler {
     }
   }
 
-  func referralAttachV2(result: @escaping FlutterResult, code: String) {
+  func referralAttachV2(
+    result: @escaping FlutterResult, code: String, distributionChannel: String
+  ) {
     Task {
       var error: NSError?
-      let json = MobileReferralAttachmentV2(code, &error)
+      let json = MobileReferralAttachmentV2(code, distributionChannel, &error)
       if let error {
         appLogger.error("Failed to attach referral code v2: \(error.localizedDescription)")
         await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_V2_FAILED")
@@ -1313,6 +1322,7 @@ class MethodHandler {
       let provider = data["provider"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let email = data["email"] as? String ?? ""
+      let couponCode = data["couponCode"] as? String ?? ""
       let idempotencyKey: String
       do {
         idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
@@ -1326,6 +1336,7 @@ class MethodHandler {
         planId,
         email,
         idempotencyKey,
+        couponCode,
         &error
       )
       if let err = error {

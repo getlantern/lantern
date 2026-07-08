@@ -73,7 +73,7 @@ class _PlansState extends ConsumerState<Plans>
           child: SizedBox(
             height: context.isSmallDevice
                 ? size.height * 0.4
-                : size.height * 0.36,
+                : size.height * 0.3,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -120,7 +120,7 @@ class _PlansState extends ConsumerState<Plans>
                     },
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: defaultSize),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: context.isSmallDevice ? defaultSize : 0,
