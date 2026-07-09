@@ -43,6 +43,7 @@ void main() {
     required ReceiptAcknowledger acknowledgeReceipt,
     Future<bool> Function()? isAlreadyActive,
     List<Duration>? retryDelays,
+    int? maxRetries,
   }) => PurchaseAcknowledger(
     acknowledgeReceipt: acknowledgeReceipt,
     resolvePlanId: (_) async => '1y-usd-10',
@@ -51,6 +52,7 @@ void main() {
     isAlreadyActive: isAlreadyActive ?? () async => false,
     onAcknowledged: (_) async => rec.acknowledged++,
     retryDelays: retryDelays ?? const [Duration(milliseconds: 5)],
+    maxRetries: maxRetries,
   );
 
   test('confirms on the first try: finalizes and fires onSuccess once', () async {
@@ -169,6 +171,38 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 40));
     expect(calls, 2); // retried
     expect(rec.acknowledged, 1); // and succeeded
+  });
+
+  test('background retries stop after maxRetries when the backend never recovers', () async {
+    var calls = 0;
+    final ack = build(
+      acknowledgeReceipt: ({required purchaseToken, required planId, required couponCode}) async {
+        calls++;
+        return left(_failure());
+      },
+      retryDelays: const [Duration(milliseconds: 1)],
+      maxRetries: 3,
+    );
+
+    await ack.acknowledge(
+      _purchase(),
+      planId: '1y-usd-10',
+      couponCode: '',
+      onSuccess: (_) => rec.success++,
+      onError: (_) => rec.error++,
+    );
+
+    // Give the bounded retry chain time to run to exhaustion.
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+
+    // 1 initial attempt + 3 retries, then the cap stops further scheduling.
+    expect(calls, 4);
+    expect(rec.error, 1); // surfaced once on the first failure
+    expect(rec.acknowledged, 0);
+
+    // No more calls happen after exhaustion.
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    expect(calls, 4);
   });
 
   test('a duplicate in-flight acknowledge for the same purchase is ignored', () async {

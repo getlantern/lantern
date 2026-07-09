@@ -49,13 +49,18 @@ class PurchaseAcknowledger {
     required Future<bool> Function() isAlreadyActive,
     required PurchaseSideEffect onAcknowledged,
     List<Duration> retryDelays = defaultRetryDelays,
+    int? maxRetries,
   }) : _acknowledgeReceipt = acknowledgeReceipt,
        _resolvePlanId = resolvePlanId,
        _resolveCouponCode = resolveCouponCode,
        _retryKeyFor = retryKeyFor,
        _isAlreadyActive = isAlreadyActive,
        _onAcknowledged = onAcknowledged,
-       _retryDelays = retryDelays;
+       _retryDelays = retryDelays,
+       // Default to the backoff schedule's length so each defined delay runs
+       // exactly once. Previously the final delay repeated forever; capping to
+       // the schedule keeps the deliberate 5s→…→5min progression and no more.
+       _maxRetries = maxRetries ?? retryDelays.length;
 
   static const List<Duration> defaultRetryDelays = <Duration>[
     Duration(seconds: 5),
@@ -72,6 +77,13 @@ class PurchaseAcknowledger {
   final Future<bool> Function() _isAlreadyActive;
   final PurchaseSideEffect _onAcknowledged;
   final List<Duration> _retryDelays;
+
+  /// Max background retries before giving up for this session. The store keeps
+  /// the transaction pending (never completed until acknowledged), so it is
+  /// re-delivered on the next launch and acknowledgment resumes — capping here
+  /// only stops the in-session loop from repeating the final backoff delay
+  /// forever (draining battery/network) when the backend is unreachable.
+  final int _maxRetries;
 
   final Map<String, _RetryState> _retries = {};
 
@@ -227,6 +239,16 @@ class PurchaseAcknowledger {
         '[PurchaseAck] Retry already scheduled: '
         'productID=${purchase.productID} key=$key',
       );
+      return;
+    }
+
+    if (state.attempts >= _maxRetries) {
+      appLogger.warning(
+        '[PurchaseAck] Max retries ($_maxRetries) exhausted this session; '
+        'giving up until re-delivery on next launch: '
+        'productID=${purchase.productID} purchaseID=${purchase.purchaseID}',
+      );
+      _clear(_retryKeyFor(purchase));
       return;
     }
 

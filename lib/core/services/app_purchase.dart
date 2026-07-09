@@ -510,7 +510,12 @@ class AppPurchase {
       }
     } catch (e) {
       appLogger.error('[AppPurchase] Error handling purchase: $e', e);
-      _session.onError?.call(e.toString());
+      // Capture-clear-fire: clear the session before surfacing the error so a
+      // stale onSuccess/onError can't fire again when Apple re-delivers this
+      // pending transaction on the next launch (matches the restore paths).
+      final onError = _session.onError;
+      clearCallbacks();
+      onError?.call(e.toString());
     }
   }
 
