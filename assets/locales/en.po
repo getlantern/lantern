@@ -1653,4 +1653,7 @@ msgstr "The VPN needs to be off before you can refresh your configuration. Turn 
 msgid "configuration_message"
 msgstr "Your old configuration has been cleared. Turn the VPN on to automatically download the latest."
 
+msgid "smart_routing_mode_description"
+msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+
 
