@@ -1152,6 +1152,23 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'verifyPassword',
+        {'email': email, 'password': password},
+      );
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error verifying password', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,

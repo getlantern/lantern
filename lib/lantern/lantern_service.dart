@@ -715,6 +715,17 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.verifyPassword(email, password);
+    }
+    return _platformService.verifyPassword(email, password);
+  }
+
+  @override
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,

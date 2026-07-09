@@ -894,6 +894,24 @@ func referralAttachment(_referralCode *C.char) *C.char {
 	})
 }
 
+// verifyPassword confirms the given password is correct for the email without
+// performing any account mutation. Used to gate the change-email flow.
+//
+//export verifyPassword
+func verifyPassword(_email, _password *C.char) *C.char {
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.VerifyPassword(email, password); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 // referralAttachmentV2 attaches a referral code to the user's account and
 // returns the resulting plans, providers, code, and discount as JSON.
 //

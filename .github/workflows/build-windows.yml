@@ -2,6 +2,13 @@ name: Build Windows
 
 on:
   workflow_call:
+    secrets:
+      APP_ENV:
+        required: true
+      JOIN_SERVER_CONFIG_URLS:
+        required: false
+      SIGNPATH_API_TOKEN:
+        required: false
     inputs:
       version:
         required: true

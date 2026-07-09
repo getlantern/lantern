@@ -40,10 +40,30 @@ on:
         type: boolean
         default: true
       windows_connect_smoke:
-        description: "Run Windows connect/disconnect smoke test on manual dispatch"
+        description: "Run Windows connect/disconnect smoke tests on manual dispatch"
+        required: false
+        type: boolean
+        default: true
+      publish_mobile_stores:
+        description: "Upload nightly Android/iOS artifacts to Play internal/TestFlight (default-branch dispatch only)"
         required: false
         type: boolean
         default: false
+      stealth_leakage_mode:
+        description: "Run Android stealth leakage scanner for manual Android builds"
+        required: false
+        type: choice
+        options:
+          - none
+          - stealth
+          - stealth-novpn
+        default: none
+
+env:
+  # Scheduled nightly store uploads run on these UTC weekdays. Configure via
+  # repo variable without changing workflow logic; accepts names or ISO numbers.
+  NIGHTLY_MOBILE_STORE_PUBLISH_DAYS_UTC: ${{ vars.NIGHTLY_MOBILE_STORE_PUBLISH_DAYS_UTC || 'mon,thu' }}
+  NIGHTLY_GOOGLE_PLAY_TRACK: ${{ vars.NIGHTLY_GOOGLE_PLAY_TRACK || 'internal' }}
 
 permissions:
   contents: write
@@ -68,7 +88,9 @@ jobs:
       platform: ${{ steps.meta.outputs.platform }}
       linux_arch: ${{ steps.meta.outputs.linux_arch }}
       is_test_run: ${{ steps.meta.outputs.is_test_run }}
+      publish_mobile_stores: ${{ steps.meta.outputs.publish_mobile_stores }}
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
+      stealth_leakage_mode: ${{ steps.meta.outputs.stealth_leakage_mode }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -83,8 +105,48 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REQUESTED_STEALTH_LEAKAGE_MODE: ${{ github.event.inputs.stealth_leakage_mode }}
         run: |
           EVENT="${{ github.event_name }}"
+          REQUEST_MOBILE_STORE_PUBLISH="false"
+
+          normalize_publish_day() {
+            local day="$1"
+            day="${day#"${day%%[![:space:]]*}"}"
+            day="${day%"${day##*[![:space:]]}"}"
+            day="$(echo "$day" | tr '[:upper:]' '[:lower:]')"
+            case "$day" in
+              1|mon|monday) echo "1" ;;
+              2|tue|tues|tuesday) echo "2" ;;
+              3|wed|wednesday) echo "3" ;;
+              4|thu|thur|thurs|thursday) echo "4" ;;
+              5|fri|friday) echo "5" ;;
+              6|sat|saturday) echo "6" ;;
+              7|sun|sunday) echo "7" ;;
+              *) echo "" ;;
+            esac
+          }
+
+          is_mobile_store_publish_day() {
+            local today="$1"
+            local days="$2"
+            local part normalized
+
+            IFS=',' read -ra parts <<< "$days"
+            for part in "${parts[@]}"; do
+              normalized="$(normalize_publish_day "$part")"
+              if [[ -z "$normalized" ]]; then
+                echo "Error: invalid NIGHTLY_MOBILE_STORE_PUBLISH_DAYS_UTC entry '$part'" >&2
+                echo "Use comma-separated weekdays like 'mon,thu' or ISO weekday numbers like '1,4'." >&2
+                exit 1
+              fi
+              if [[ "$normalized" == "$today" ]]; then
+                return 0
+              fi
+            done
+
+            return 1
+          }
 
           case "$EVENT" in
             schedule)
@@ -94,6 +156,9 @@ jobs:
               RELEASE_TAG="v${VERSION}"
               PLATFORM="all"
               LINUX_ARCH="all"
+              if is_mobile_store_publish_day "$(date -u +%u)" "$NIGHTLY_MOBILE_STORE_PUBLISH_DAYS_UTC"; then
+                REQUEST_MOBILE_STORE_PUBLISH="true"
+              fi
               ;;
 
             workflow_dispatch)
@@ -101,6 +166,7 @@ jobs:
               BUILD_TYPE="${{ github.event.inputs.build_type }}"
               PLATFORM="${{ github.event.inputs.platforms }}"
               LINUX_ARCH="${{ github.event.inputs.linux_arch }}"
+              REQUEST_MOBILE_STORE_PUBLISH="${{ github.event.inputs.publish_mobile_stores }}"
 
               case "$BUILD_TYPE" in
                 nightly)
@@ -182,15 +248,6 @@ jobs:
           # Installer base name - Makefile will append build type
           INSTALLER_BASE_NAME="lantern-installer"
 
-          echo "Build Configuration:"
-          echo "  Event:         $EVENT"
-          echo "  Build Type:    $BUILD_TYPE"
-          echo "  Release Tag:   $RELEASE_TAG"
-          echo "  Version:       $VERSION"
-          echo "  Platform:      $PLATFORM"
-          echo "  Linux Arch:    $LINUX_ARCH"
-          echo "  Installer:     $INSTALLER_BASE_NAME"
-
           # Test run: workflow_dispatch from non-default branch
           IS_TEST_RUN="false"
           if [[ "$EVENT" == "workflow_dispatch" ]]; then
@@ -201,7 +258,38 @@ jobs:
             fi
           fi
 
+          PUBLISH_MOBILE_STORES="false"
+          if [[ "$BUILD_TYPE" == "nightly" && "$REQUEST_MOBILE_STORE_PUBLISH" == "true" ]]; then
+            if [[ "$IS_TEST_RUN" == "true" ]]; then
+              echo "Skipping mobile store publish for non-default-branch test run"
+            else
+              PUBLISH_MOBILE_STORES="true"
+            fi
+          fi
+
           SMOKE_ENABLE_IP_CHECK="false"
+          STEALTH_LEAKAGE_MODE=""
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            requested_stealth_leakage_mode="${REQUESTED_STEALTH_LEAKAGE_MODE:-none}"
+            case "$requested_stealth_leakage_mode" in
+              none|'') ;;
+              stealth|stealth-novpn) STEALTH_LEAKAGE_MODE="$requested_stealth_leakage_mode" ;;
+              *)
+                echo "Error: invalid stealth_leakage_mode '$requested_stealth_leakage_mode'" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+          echo "Build Configuration:"
+          echo "  Event:         $EVENT"
+          echo "  Build Type:    $BUILD_TYPE"
+          echo "  Release Tag:   $RELEASE_TAG"
+          echo "  Version:       $VERSION"
+          echo "  Platform:      $PLATFORM"
+          echo "  Linux Arch:    $LINUX_ARCH"
+          echo "  Installer:     $INSTALLER_BASE_NAME"
+          echo "  Store Publish: $PUBLISH_MOBILE_STORES"
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
@@ -210,7 +298,9 @@ jobs:
           echo "linux_arch=$LINUX_ARCH" >> $GITHUB_OUTPUT
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> $GITHUB_OUTPUT
           echo "is_test_run=$IS_TEST_RUN" >> $GITHUB_OUTPUT
+          echo "publish_mobile_stores=$PUBLISH_MOBILE_STORES" >> $GITHUB_OUTPUT
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
+          echo "stealth_leakage_mode=$STEALTH_LEAKAGE_MODE" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -300,7 +390,7 @@ jobs:
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
-      run_connect_smoke: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.windows_connect_smoke == 'true' }}
+      run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
@@ -355,6 +445,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      stealth_leakage_mode: ${{ needs.set-metadata.outputs.stealth_leakage_mode }}
 
   release-create:
     needs: set-metadata
@@ -670,7 +761,8 @@ jobs:
           upload_if_exists "lantern-installer-pkg/${FULL_NAME}.pkg.tar.zst"
           upload_if_exists "lantern-installer-ipa/${FULL_NAME}.ipa"
 
-  # Post-publish steps (only for non-nightly production/beta builds)
+  # Post-publish steps. Production/beta always use their release tracks; nightly
+  # mobile store uploads run only when set-metadata enables them.
   upload-google-play:
     needs: [set-metadata, build-android]
     if: |
@@ -678,7 +770,11 @@ jobs:
       needs.set-metadata.result == 'success' &&
       needs.build-android.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
-      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (
+        needs.set-metadata.outputs.build_type == 'beta' ||
+        needs.set-metadata.outputs.build_type == 'production' ||
+        (needs.set-metadata.outputs.build_type == 'nightly' && needs.set-metadata.outputs.publish_mobile_stores == 'true')
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Download AAB artifact
@@ -701,13 +797,19 @@ jobs:
 
       - name: Pick Play track
         id: track
+        env:
+          NIGHTLY_GOOGLE_PLAY_TRACK: ${{ env.NIGHTLY_GOOGLE_PLAY_TRACK }}
         run: |
           bt="${{ needs.set-metadata.outputs.build_type }}"
-          if [ "$bt" = "beta" ]; then
-            echo "track=beta" >> "$GITHUB_OUTPUT"
-          else
-            echo "track=production" >> "$GITHUB_OUTPUT"
-          fi
+          case "$bt" in
+            beta) echo "track=beta" >> "$GITHUB_OUTPUT" ;;
+            production) echo "track=production" >> "$GITHUB_OUTPUT" ;;
+            nightly) echo "track=${NIGHTLY_GOOGLE_PLAY_TRACK:-internal}" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "Unsupported build type for Google Play upload: $bt" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1.1.3
@@ -727,7 +829,11 @@ jobs:
       needs.set-metadata.result == 'success' &&
       needs.build-ios.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
-      (needs.set-metadata.outputs.build_type == 'beta' || needs.set-metadata.outputs.build_type == 'production')
+      (
+        needs.set-metadata.outputs.build_type == 'beta' ||
+        needs.set-metadata.outputs.build_type == 'production' ||
+        (needs.set-metadata.outputs.build_type == 'nightly' && needs.set-metadata.outputs.publish_mobile_stores == 'true')
+      )
     runs-on: macos-14
     steps:
       - name: Download iOS Artifact

@@ -129,6 +129,12 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.activationCode(result: result, data: data)
 
+      case "verifyPassword":
+        self.verifyPassword(
+          result: result,
+          data: call.arguments as? [String: Any] ?? [:]
+        )
+
       case "startChangeEmail":
         self.startChangeEmail(
           result: result,
@@ -745,6 +751,35 @@ class MethodHandler {
       MobileActivationCode(email, resellerCode, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACTIVATION_CODE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func verifyPassword(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      guard
+        let email = data["email"] as? String, !email.isEmpty,
+        let password = data["password"] as? String, !password.isEmpty
+      else {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid email/password",
+              details: nil
+            )
+          )
+        }
+        return
+      }
+      var error: NSError?
+      MobileVerifyPassword(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "VERIFY_PASSWORD_FAILED")
         return
       }
       await MainActor.run {

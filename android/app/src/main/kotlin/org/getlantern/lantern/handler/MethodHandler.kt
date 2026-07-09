@@ -72,6 +72,7 @@ enum class Methods(val method: String) {
     SignUp("signUp"),
 
     //Change Email
+    VerifyPassword("verifyPassword"),
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
 
@@ -1156,6 +1157,26 @@ class MethodHandler : FlutterPlugin,
             }
 
             //Change Email
+            Methods.VerifyPassword.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        Mobile.verifyPassword(email, password)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "VerifyPassword",
+                            e.localizedMessage ?: "Error while verifying password",
+                            e
+                        )
+                    }
+                }
+            }
+
             Methods.StartChangeEmail.method -> {
                 scope.launch {
                     result.runCatching {

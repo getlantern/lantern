@@ -99,6 +99,7 @@ type User interface {
 	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
 	RemoveDevice(deviceId string) (*account.LinkResponse, error)
+	VerifyPassword(email, password string) error
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
 }
@@ -845,6 +846,10 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*account.LinkResponse, error) {
 	return lc.client.RemoveDevice(lc.ctx, deviceID)
+}
+
+func (lc *LanternCore) VerifyPassword(email, password string) error {
+	return lc.client.VerifyPassword(lc.ctx, email, password)
 }
 
 func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
