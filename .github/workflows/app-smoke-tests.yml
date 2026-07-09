@@ -28,7 +28,7 @@ on:
         type: boolean
         default: true
       macos_connect_smoke:
-        description: "Include macOS connect/disconnect smoke when platforms=all (requires approved system extension)"
+        description: "Include macOS connect/disconnect smoke when platforms=all (requires self-hosted runner with approved system extension)"
         required: false
         type: boolean
         default: false
@@ -113,7 +113,6 @@ jobs:
 
   macos:
     needs: prepare
-    # macOS smoke stays opt-in for "all" until runners have system-extension approval.
     if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
     uses: ./.github/workflows/build-macos.yml
     secrets:
@@ -128,9 +127,18 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+
+  macos-connect-smoke:
+    needs: [prepare, macos]
+    if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
+    uses: ./.github/workflows/macos-connect-smoke.yml
+    secrets:
+      APP_ENV: ${{ secrets.APP_ENV }}
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
       enable_ip_check: ${{ inputs.enable_ip_check }}
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
-      run_connect_smoke: true
 
   windows:
     needs: prepare
