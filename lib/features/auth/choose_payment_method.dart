@@ -552,7 +552,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        'promo_code'.i18n.fill([referral.code]),
+                        'promo_code_with'.i18n.fill([referral.code]),
                         style: theme.bodyMedium,
                       ),
                     ),

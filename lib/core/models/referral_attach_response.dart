@@ -10,8 +10,11 @@ enum ReferralType {
   referral,
   affiliate;
 
-  static ReferralType fromString(String? value) =>
-      value == 'referral' ? ReferralType.referral : ReferralType.affiliate;
+  static ReferralType fromString(String? value) => switch (value) {
+    'referral' => ReferralType.referral,
+    'affiliate' => ReferralType.affiliate,
+    _ => ReferralType.none,
+  };
 }
 
 class ReferralAttachV2Response {

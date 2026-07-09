@@ -1430,9 +1430,15 @@ class LanternFFIService implements LanternCoreService {
     try {
       final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .referralAttachmentV2(code.toCharPtr, distributionChannel.toCharPtr)
-            .toDartString();
+        final resultPtr = _ffiService.referralAttachmentV2(
+          code.toCharPtr,
+          distributionChannel.toCharPtr,
+        );
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       final response = ReferralAttachV2Response.fromJson(jsonDecode(result));

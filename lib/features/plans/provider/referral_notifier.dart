@@ -29,11 +29,17 @@ class ReferralNotifier extends _$ReferralNotifier {
       state = response;
       if (response != null) {
         ref.read(plansProvider.notifier).updatePlans(response.plansData);
-        final plans = response.plansData;
-        final defaultPlan = plans.plans.firstWhere(
-          (Plan plan) => plan.bestValue == true,
-        );
-        ref.read(plansProvider.notifier).setSelectedPlan(defaultPlan);
+        final plans = response.plansData.plans;
+        if (plans.isNotEmpty) {
+          // The backend may not flag a best-value plan (and discounted sets
+          // may omit it entirely), so fall back to the first plan rather than
+          // let firstWhere throw and crash the apply-code flow.
+          final defaultPlan = plans.firstWhere(
+            (Plan plan) => plan.bestValue == true,
+            orElse: () => plans.first,
+          );
+          ref.read(plansProvider.notifier).setSelectedPlan(defaultPlan);
+        }
       }
     }
     return result;
