@@ -53,6 +53,9 @@ class MainActivity : FlutterFragmentActivity() {
 
     // Server tag selected before the VPN-consent dialog interrupted the connect;
     // replayed after consent so consent can't collapse a selection into auto. Null = auto.
+    // Volatile: written from MethodHandler's IO coroutine, read on the main thread in the
+    // permission callbacks; single-variable access needs visibility, not atomicity.
+    @Volatile
     private var pendingTag: String? = null
 
 
