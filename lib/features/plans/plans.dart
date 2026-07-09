@@ -490,7 +490,7 @@ class _PlansState extends ConsumerState<Plans>
       context.hideLoadingDialog();
       if (_redirectToSignupIfPlayBlocked()) return;
       context.showSnackBar(error.localizedErrorMessage);
-      appLogger.error('Error subscribing to plan: $error');
+      appLogger.error('Error subscribing to plan: $error', error);
     }, (_) {});
   }
 

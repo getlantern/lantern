@@ -816,7 +816,11 @@ class LanternPlatformService implements LanternCoreService {
       });
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      appLogger.error(
+        'Error acknowledging in-app purchase ${e.toString()} ',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
