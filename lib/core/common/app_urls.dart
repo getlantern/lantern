@@ -13,16 +13,15 @@ class AppUrls {
   static String lanternGithub = 'https://github.com/getlantern/lantern';
   static String telegramBot = 'https://t.me/lantern_official_bot';
   static String unbounded = 'https://unbounded.lantern.io';
-  static const appcastProd =
-      'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
-  static const appcastBeta =
-      'https://s3.amazonaws.com/lantern.io/releases/beta/latest/appcast.xml';
+  static const updateServiceLantern =
+      'https://update.getlantern.org/update/lantern';
+  static const appcastProd = '$updateServiceLantern/appcast.xml?channel=stable';
+  static const appcastBeta = '$updateServiceLantern/appcast.xml?channel=beta';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
       'https://cloud.digitalocean.com/account/billing';
-  static String androidSideloadUpdateEndpoint =
-      'https://update.getlantern.org/update/lantern';
+  static String androidSideloadUpdateEndpoint = updateServiceLantern;
 
   static String appcastFor(String buildType) {
     switch (buildType) {
