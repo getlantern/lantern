@@ -227,6 +227,8 @@ github.com/getlantern/broflake v0.0.0-20260612203837-c4d1516de8dc h1:AVY56mzJHM4
 github.com/getlantern/broflake v0.0.0-20260612203837-c4d1516de8dc/go.mod h1:bIxM6xon/ADgprn6tZXYdXGrUIMCzq6u8zO9rET50IE=
 github.com/getlantern/common v1.2.1-0.20260705172801-57aaafd97c1b h1:R6YoZuQFLdArpovoMtPxa3ohqJzx6bpJ+BRxDaoMdWk=
 github.com/getlantern/common v1.2.1-0.20260705172801-57aaafd97c1b/go.mod h1:eSSuV4bMPgQJnczBw+KWWqWNo1itzmVxC++qUBPRTt0=
+github.com/getlantern/common v1.2.1-0.20260707190506-5d90dcb22437 h1:CXx0ek+MzSbwtJANHGlAWX48jHGLlNC1EM2ZW8iDPXw=
+github.com/getlantern/common v1.2.1-0.20260707190506-5d90dcb22437/go.mod h1:eSSuV4bMPgQJnczBw+KWWqWNo1itzmVxC++qUBPRTt0=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201/go.mod h1:Y9WZUHEb+mpra02CbQ/QczLUe6f0Dezxaw5DCJlJQGo=
 github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac h1:TMvkNgLVyIYAfu1dYrOuRPYMVY+cHEo1C0CYWhtSw2A=
@@ -261,6 +263,8 @@ github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmI
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b/go.mod h1:NpfXdK4ldEKkjQ4P1R+DBF4ua5VFOlxmgHROTnYrApg=
 github.com/getlantern/radiance v0.0.0-20260706185153-bce252479f03 h1:yKLQK9wMXlghg4ksSDenZVYbUBphblutaFMomS6ZqQU=
 github.com/getlantern/radiance v0.0.0-20260706185153-bce252479f03/go.mod h1:p6wcyzCrsFfrdrLNuQirB0ugeg7OjdFlZmBgNTu4D1w=
+github.com/getlantern/radiance v0.0.0-20260707204626-ce70c50cdbc8 h1:bKgIBiEsRpXaSWAhGJgPl4iDerlSnMTBDL3ZikGfg94=
+github.com/getlantern/radiance v0.0.0-20260707204626-ce70c50cdbc8/go.mod h1:4eVZwxd9J7y113n/NGZpexis2MH06MoaA8uDUO4TXOU=
 github.com/getlantern/samizdat v0.0.3-0.20260529191731-5ea8ae61ddbf h1:KxiMF+oG0rTtuBi7GiIaHfccYOf69rLJ/VnO5myoYc4=
 github.com/getlantern/samizdat v0.0.3-0.20260529191731-5ea8ae61ddbf/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb h1:c5YM7b3a4r2J8Eh89KkI6M/iTFe6Bi+b8AJlfkKdFq4=
