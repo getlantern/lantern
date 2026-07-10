@@ -1662,11 +1662,13 @@ msgstr "Promo / Referral Code"
 msgid "promo_code"
 msgstr "Promo Code"
 
-
 msgid "promo_code_with"
 msgstr "Promo Code (%s)"
 
 msgid "order_total"
 msgstr "Order Total"
+
+msgid "smart_routing_mode_description"
+msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
 
 

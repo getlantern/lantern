@@ -101,7 +101,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'automatically_chooses_fastest_location'.i18n,
+                    'smart_routing_mode_description'.i18n,
                     style: _textTheme?.bodyMedium!.copyWith(
                       color: AppColors.gray8,
                     ),
@@ -125,7 +125,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              'automatically_chooses_fastest_location'.i18n,
+              'smart_routing_mode_description'.i18n,
               style: _textTheme?.bodyMedium!.copyWith(color: AppColors.gray8),
             ),
           ),
