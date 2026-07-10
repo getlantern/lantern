@@ -51,10 +51,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
-    // Server tag selected before the VPN-consent dialog interrupted the connect;
-    // replayed after consent so consent can't collapse a selection into auto. Null = auto.
-    // Volatile: written from MethodHandler's IO coroutine, read on the main thread in the
-    // permission callbacks; single-variable access needs visibility, not atomicity.
+    // Pending tag replayed after the VPN-consent dialog so consent can't collapse the
+    // selection into auto. Null = auto.
     @Volatile
     private var pendingTag: String? = null
 
@@ -164,7 +162,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         // Check if VPN is already connected
-        // if so then user already have vpn on now wish to switch auto server
+        // if so then user already have vpn on now wish to switch server
         // Do not need to create service again just switch server
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching auto server")
@@ -197,6 +195,7 @@ class MainActivity : FlutterFragmentActivity() {
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
         // Do not need to create service again just switch server
+
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
@@ -213,8 +212,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
             ContextCompat.startForegroundService(this, vpnIntent)
             AppLogger.d(TAG, "VPN service started")
-            // Clear only after a successful dispatch so a failed start (below) keeps
-            // pendingTag for retry.
+            // Clear only after a successful dispatch so a failed start keeps it for retry.
             pendingTag = null
         } catch (e: Exception) {
             e.printStackTrace()
@@ -224,9 +222,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
 
-    // Resumes the connect the VPN-consent dialog interrupted, replaying the user's
-    // server selection (pendingTag) instead of falling back to auto-select.
-    // connectToServer/startVPN own clearing pendingTag once the connect is dispatched.
+    // Replays the pending selection after VPN consent, so consent doesn't fall back to auto.
     private fun resumePendingConnect() {
         val tag = pendingTag
         if (tag != null) {
