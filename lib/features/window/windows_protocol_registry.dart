@@ -17,21 +17,21 @@ class ProtocolRegistrar {
       String appPath = Platform.resolvedExecutable;
 
       String protocolRegKey = 'Software\\Classes\\$scheme';
-      RegistryValue protocolRegValue = const RegistryValue.string(
-        'URL Protocol',
-        '',
-      );
       String protocolCmdRegKey = 'shell\\open\\command';
-      RegistryValue protocolCmdRegValue = RegistryValue.string(
-        '',
-        '"$appPath" "%1"',
-      );
 
-      final regKey = Registry.currentUser.createKey(protocolRegKey);
-      regKey.createValue(protocolRegValue);
-      regKey.createKey(protocolCmdRegKey).createValue(protocolCmdRegValue);
-      appLogger.debug('Windows protocol registration for $scheme completed');
-      regKey.close();
+      final regKey = CURRENT_USER.create(protocolRegKey);
+      try {
+        regKey.setValue('URL Protocol', const RegistryValue.string(''));
+        final cmdKey = regKey.create(protocolCmdRegKey);
+        try {
+          cmdKey.setValue('', RegistryValue.string('"$appPath" "%1"'));
+        } finally {
+          cmdKey.close();
+        }
+        appLogger.debug('Windows protocol registration for $scheme completed');
+      } finally {
+        regKey.close();
+      }
     } catch (e) {
       appLogger.error("Error registering protocol: $e");
     }
