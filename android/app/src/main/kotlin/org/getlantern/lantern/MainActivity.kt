@@ -51,6 +51,11 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
 
+    // Pending tag replayed after the VPN-consent dialog so consent can't collapse the
+    // selection into auto. Null = auto.
+    @Volatile
+    private var pendingTag: String? = null
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -150,13 +155,14 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     fun startVPN() {
+        pendingTag = null
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
         }
 
         // Check if VPN is already connected
-        // if so then user already have vpn on now wish to switch auto server
+        // if so then user already have vpn on now wish to switch server
         // Do not need to create service again just switch server
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching auto server")
@@ -181,17 +187,21 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun connectToServer(tag: String) {
         if (!isVPNServiceReady()) {
+            // Preserve the selection across the consent dialog; resumePendingConnect replays it.
+            pendingTag = tag
             AppLogger.d(TAG, "VPN service not ready")
             return
         }
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
         // Do not need to create service again just switch server
+
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
                 LanternVpnService.instance.connectToServer(tag)
             }
+            pendingTag = null
             return
         }
 
@@ -202,6 +212,8 @@ class MainActivity : FlutterFragmentActivity() {
             }
             ContextCompat.startForegroundService(this, vpnIntent)
             AppLogger.d(TAG, "VPN service started")
+            // Clear only after a successful dispatch so a failed start keeps it for retry.
+            pendingTag = null
         } catch (e: Exception) {
             e.printStackTrace()
             AppLogger.e(TAG, "Error starting VPN service", e)
@@ -209,6 +221,16 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+
+    // Replays the pending selection after VPN consent, so consent doesn't fall back to auto.
+    private fun resumePendingConnect() {
+        val tag = pendingTag
+        if (tag != null) {
+            connectToServer(tag)
+        } else {
+            startVPN()
+        }
+    }
 
     fun stopVPN() {
         if (isServiceRunning(this, LanternVpnService::class.java)) {
@@ -261,7 +283,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                startVPN()
+                resumePendingConnect()
             } else {
                 VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             }
@@ -285,7 +307,7 @@ class MainActivity : FlutterFragmentActivity() {
     ) {
         if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startVPN()
+                resumePendingConnect()
             } else {
                 VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             }
