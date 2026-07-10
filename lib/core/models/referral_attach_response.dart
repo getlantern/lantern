@@ -11,14 +11,14 @@ enum ReferralType {
   affiliate;
 
   static ReferralType fromString(String? value) => switch (value) {
-    'referral' => ReferralType.referral,
+    'referall' => ReferralType.referral,
     'affiliate' => ReferralType.affiliate,
     _ => ReferralType.none,
   };
 }
 
 class ReferralAttachV2Response {
-  final PlansData plansData;
+  final PlansData? plansData;
   final String code;
   final int discountPct;
   final ReferralType type;
@@ -32,14 +32,18 @@ class ReferralAttachV2Response {
 
   factory ReferralAttachV2Response.fromJson(Map<String, dynamic> json) =>
       ReferralAttachV2Response(
-        plansData: PlansData.fromJson(json)..sortPlansAndProviders(),
+        // `plans` is only present for the affiliate flow; when it's absent this
+        // is a referral-type response, so leave plansData null.
+        plansData: json['plans'] != null
+            ? (PlansData.fromJson(json)..sortPlansAndProviders())
+            : null,
         code: json["code"] ?? '',
+        type: ReferralType.fromString(json["referralType"]),
         discountPct: json["discountPct"] ?? 0,
-        type: ReferralType.fromString(json["type"]),
       );
 
   Map<String, dynamic> toJson() => {
-    ...plansData.toJson(),
+    ...?plansData?.toJson(),
     "code": code,
     "discountPct": discountPct,
     "type": type.name,

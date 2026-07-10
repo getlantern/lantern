@@ -27,9 +27,12 @@ class ReferralNotifier extends _$ReferralNotifier {
     if (result.isRight()) {
       final response = result.getRight().toNullable();
       state = response;
-      if (response != null) {
-        ref.read(plansProvider.notifier).updatePlans(response.plansData);
-        final plans = response.plansData.plans;
+      // plansData is only present for the affiliate flow; the referral flow
+      // has no discounted plans to push into the plans UI.
+      final plansData = response?.plansData;
+      if (plansData != null) {
+        ref.read(plansProvider.notifier).updatePlans(plansData);
+        final plans = plansData.plans;
         if (plans.isNotEmpty) {
           // The backend may not flag a best-value plan (and discounted sets
           // may omit it entirely), so fall back to the first plan rather than
