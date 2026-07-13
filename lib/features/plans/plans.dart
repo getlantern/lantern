@@ -42,6 +42,7 @@ class _PlansState extends ConsumerState<Plans>
     return BaseScreen(
       backgroundColor: context.bgElevated,
       padded: false,
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: SizedBox(
           height: 20.h,
@@ -326,7 +327,9 @@ class _PlansState extends ConsumerState<Plans>
           ),
           SizedBox(height: 24),
           AppTextField(
-            label: 'promo_referral_code'.i18n,
+            label: isStoreVersion()
+                ? 'promo_code'.i18n
+                : 'promo_referral_code'.i18n,
             controller: referralCodeController,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,

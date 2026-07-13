@@ -861,13 +861,17 @@ func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
 }
 
 func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
-	return lc.client.ReferralAttach(lc.ctx, referralCode)
+	// Empty channel selects the legacy v1 referral-attach API.
+	if _, err := lc.client.ReferralAttach(lc.ctx, referralCode, ""); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // ReferralAttachmentV2 attaches a referral code and returns the resulting
 // plans, providers, code, and discount marshalled as JSON.
 func (lc *LanternCore) ReferralAttachmentV2(referralCode, channel string) ([]byte, error) {
-	resp, err := lc.client.ReferralAttachV2(lc.ctx, referralCode, channel)
+	resp, err := lc.client.ReferralAttach(lc.ctx, referralCode, channel)
 	if err != nil {
 		return nil, err
 	}

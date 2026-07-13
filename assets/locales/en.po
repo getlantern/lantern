@@ -1237,7 +1237,7 @@ msgid "referral_message_2y"
 msgstr "+ 2 additional month free"
 
 msgid "referral_code_invalid"
-msgstr "The referral code you entered is invalid. Please check the code and try again."
+msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
 
 msgid "referral_code_own_invalid"
 msgstr "You cannot use your own referral code. Please enter a different code."
