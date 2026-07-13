@@ -66,128 +66,118 @@ class _PlansState extends ConsumerState<Plans>
 
   Widget _buildBody() {
     final plansState = ref.watch(plansProvider);
-    final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: defaultSize),
-          child: SizedBox(
-            height: context.isSmallDevice
-                ? size.height * 0.4
-                : PlatformUtils.isIOS
-                ? size.height * 0.3
-                : size.height * 0.35,
-            child: SingleChildScrollView(child: FeatureList()),
+        // Features fill whatever space the bottom section leaves, centered.
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: defaultSize),
+            child: Center(child: FeatureList()),
           ),
         ),
         SizedBox(height: defaultSize),
         DividerSpace(padding: EdgeInsets.zero),
-        Expanded(
-          child: Container(
-            color: context.bgSurface,
-            padding: EdgeInsets.symmetric(
-              horizontal: context.isSmallDevice ? 0 : defaultSize,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                SizedBox(height: 10),
-                _buildAffiliateBanner(),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: context.isSmallDevice ? 16 : 0,
-                  ),
-                  child: plansState.when(
-                    data: (data) {
-                      return PlansListView(data: data);
-                    },
-                    loading: () {
-                      return Center(child: LoadingIndicator());
-                    },
-                    error: (error, stackTrace) {
-                      return Column(
-                        children: [
-                          Text(
-                            'plans_fetch_error'.i18n,
-                            style: textTheme.labelLarge,
-                          ),
-                          AppTextButton(
-                            label: 'Try again',
-                            onPressed: () {
-                              ref.read(plansProvider.notifier).fetchPlans();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: defaultSize),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.isSmallDevice ? defaultSize : 0,
-                  ),
-                  child: PrimaryButton(
-                    label: 'get_lantern_pro'.i18n,
-                    isTaller: true,
-                    onPressed: onGetLanternProTap,
-                  ),
-                ),
-                if (isStoreVersion()) ...[
-                  SizedBox(height: 8),
-                  Center(
-                    child: AppRichText(
-                      texts: '${'already_purchased'.i18n} ',
-                      boldTexts: 'restore_purchase'.i18n,
-                      boldUnderline: true,
-                      boldOnPressed: _restorePurchaseFlow,
-                    ),
-                  ),
-                ],
-                if (PlatformUtils.isIOS) ...{
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      'subscription_renewal_info'.i18n,
-                      style: textTheme.labelMedium!.copyWith(
-                        color: context.textTertiary,
-                      ),
-                    ),
-                  ),
-                  IntrinsicHeight(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        AppTextButton(
-                          label: 'privacy_policy'.i18n,
-                          fontSize: 12,
-                          textColor: context.textTertiary,
-                          onPressed: () {
-                            UrlUtils.openWithSystemBrowser(
-                              AppUrls.privacyPolicy,
-                            );
-                          },
+        // Bottom section sizes to its content: plans, then the CTA button.
+        Container(
+          color: context.bgSurface,
+          padding: EdgeInsets.symmetric(
+            horizontal: context.isSmallDevice ? 0 : defaultSize,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SizedBox(height: 10),
+              _buildAffiliateBanner(),
+              Padding(
+                padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
+                child: plansState.when(
+                  data: (data) {
+                    return PlansListView(data: data);
+                  },
+                  loading: () {
+                    return Center(child: LoadingIndicator());
+                  },
+                  error: (error, stackTrace) {
+                    return Column(
+                      children: [
+                        Text(
+                          'plans_fetch_error'.i18n,
+                          style: textTheme.labelLarge,
                         ),
-                        VerticalDivider(indent: 10, endIndent: 10),
                         AppTextButton(
-                          label: 'terms_of_service'.i18n,
-                          fontSize: 12,
-                          textColor: context.textTertiary,
+                          label: 'Try again',
                           onPressed: () {
-                            UrlUtils.openWithSystemBrowser(
-                              AppUrls.termsOfService,
-                            );
+                            ref.read(plansProvider.notifier).fetchPlans();
                           },
                         ),
                       ],
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: defaultSize),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isSmallDevice ? defaultSize : 0,
+                ),
+                child: PrimaryButton(
+                  label: 'get_lantern_pro'.i18n,
+                  isTaller: true,
+                  onPressed: onGetLanternProTap,
+                ),
+              ),
+              if (isStoreVersion()) ...[
+                SizedBox(height: 8),
+                Center(
+                  child: AppRichText(
+                    texts: '${'already_purchased'.i18n} ',
+                    boldTexts: 'restore_purchase'.i18n,
+                    boldUnderline: true,
+                    boldOnPressed: _restorePurchaseFlow,
+                  ),
+                ),
+              ],
+              if (PlatformUtils.isIOS) ...{
+                SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    'subscription_renewal_info'.i18n,
+                    style: textTheme.labelMedium!.copyWith(
+                      color: context.textTertiary,
                     ),
                   ),
-                },
-                SizedBox(height: size24),
-              ],
-            ),
+                ),
+                IntrinsicHeight(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      AppTextButton(
+                        label: 'privacy_policy'.i18n,
+                        fontSize: 12,
+                        textColor: context.textTertiary,
+                        onPressed: () {
+                          UrlUtils.openWithSystemBrowser(AppUrls.privacyPolicy);
+                        },
+                      ),
+                      VerticalDivider(indent: 10, endIndent: 10),
+                      AppTextButton(
+                        label: 'terms_of_service'.i18n,
+                        fontSize: 12,
+                        textColor: context.textTertiary,
+                        onPressed: () {
+                          UrlUtils.openWithSystemBrowser(
+                            AppUrls.termsOfService,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              },
+              SizedBox(height: size24),
+            ],
           ),
         ),
       ],
@@ -333,6 +323,10 @@ class _PlansState extends ConsumerState<Plans>
             controller: referralCodeController,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) =>
+                onReferralCodeContinue(value.toUpperCase().trim()),
           ),
         ],
       ),
