@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import CryptoKit
 import Foundation
 import SystemExtensions
@@ -40,10 +41,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
   private let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
-  /// All access to requestContexts must go through contextQueue to avoid
+  /// All access to requestStates must go through contextQueue to avoid
   /// data races between init (possibly off main thread) and delegate
   /// callbacks (delivered on main queue).
-  private var requestContexts: [ObjectIdentifier: RequestContext] = [:]
+  private var requestStates: [ObjectIdentifier: RequestState] = [:]
   private let contextQueue = DispatchQueue(
     label: "org.getlantern.lantern.SystemExtensionManager.contexts"
   )
@@ -116,7 +117,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     _ request: OSSystemExtensionRequest,
     didFinishWithResult result: OSSystemExtensionRequest.Result
   ) {
-    let context = clearRequestContext(for: request)
+    let state = clearRequestState(for: request)
+    let context = state?.context
+    let observer = state?.observer
     appLogger.info(
       "System extension request finished: context=\(context?.logDescription ?? "unknown") result=\(result.logDescription)"
     )
@@ -137,9 +140,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       case .deactivateThenActivate(_, let activateAfter):
         if activateAfter {
           submitActivationRequest(
-            reason: "activating bundled extension after removing mismatched version")
+            reason: "activating bundled extension after removing mismatched version",
+            observer: observer)
         } else {
-          submitPropertiesRequest(context: .inspectStatus)
+          submitPropertiesRequest(context: .inspectStatus, observer: observer)
         }
       case .activate:
         // Activation succeeded — recovery is either complete or wasn't
@@ -151,9 +155,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         // post-recovery activation surfaces as a real error rather than
         // re-entering the loop.
         didAttemptStaleRegistryRecovery = false
-        submitPropertiesRequest(context: .inspectStatus)
+        submitPropertiesRequest(context: .inspectStatus, observer: observer)
       case .inspectStatus, .reconcile:
-        submitPropertiesRequest(context: .inspectStatus)
+        submitPropertiesRequest(context: .inspectStatus, observer: observer)
       }
     case .willCompleteAfterReboot:
       // Even when the deactivation needs a reboot, still attempt activation
@@ -165,13 +169,14 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         appLogger.info(
           "Deactivation needs reboot, but still attempting activation of bundled extension")
         submitActivationRequest(
-          reason: "activating bundled extension while old version awaits reboot removal")
+          reason: "activating bundled extension while old version awaits reboot removal",
+          observer: observer)
         return
       }
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
-      updateStatus(.requiresReboot(details: details))
+      publishStatus(.requiresReboot(details: details), observer: observer)
     @unknown default:
-      updateStatus(.error("Unknown system extension result"))
+      publishStatus(.error("Unknown system extension result"), observer: observer)
     }
   }
 
@@ -179,7 +184,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     _ request: OSSystemExtensionRequest,
     didFailWithError error: Error
   ) {
-    let context = clearRequestContext(for: request)
+    let state = clearRequestState(for: request)
+    let context = state?.context
+    let observer = state?.observer
     let nsError = error as NSError
 
     if nsError.domain == OSSystemExtensionErrorDomain
@@ -189,7 +196,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       appLogger.info(
         "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
       )
-      submitPropertiesRequest(context: .inspectStatus)
+      submitPropertiesRequest(context: .inspectStatus, observer: observer)
       return
     }
 
@@ -204,7 +211,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       )
       submitDeactivationRequest(
         reason: "stale-registry recovery after extensionNotFound",
-        activateAfter: true)
+        activateAfter: true,
+        observer: observer)
       return
     }
 
@@ -217,29 +225,33 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         "Replacement deactivation failed with extensionNotFound — continuing with bundled activation (context=\(context?.logDescription ?? "unknown"))"
       )
       submitActivationRequest(
-        reason: "activating bundled extension after missing stale extension during replacement")
+        reason: "activating bundled extension after missing stale extension during replacement",
+        observer: observer)
       return
     }
 
     appLogger.error(
       "System extension request failed: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
     )
-    updateStatus(.error(nsError.localizedDescription))
+    publishStatus(.error(nsError.localizedDescription), observer: observer)
   }
 
   public func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
-    let context = requestContext(for: request)
+    let state = requestState(for: request)
+    let context = state?.context
     appLogger.info(
       "System extension requires user approval: context=\(context?.logDescription ?? "unknown")"
     )
-    updateStatus(.requiresApproval)
+    publishStatus(.requiresApproval, observer: state?.observer)
   }
 
   public func request(
     _ request: OSSystemExtensionRequest,
     foundProperties properties: [OSSystemExtensionProperties]
   ) {
-    let context = clearRequestContext(for: request) ?? .inspectStatus
+    let state = clearRequestState(for: request)
+    let context = state?.context ?? .inspectStatus
+    let observer = state?.observer
     reconciliationQueue.async { [self] in
       let bundled = SystemExtensionDescriptor.bundled(bundleID: self.tunnelBundleID)
       let installed = properties.map(SystemExtensionDescriptor.init(properties:))
@@ -256,13 +268,13 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
           reconciliation: reconciliation
         )
 
-        self.updateStatus(reconciliation.status)
+        self.publishStatus(reconciliation.status, observer: observer)
 
         guard context == .reconcile else {
           return
         }
 
-        self.perform(reconciliation.action)
+        self.perform(reconciliation.action, observer: observer)
       }
     }
   }
@@ -275,9 +287,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       bundleID: bundleID)
   }
 
-  public func activateExtension() {
+  public func activateExtension(observer: ((ExtensionStatus) -> Void)? = nil) {
     appLogger.info("Reconciling bundled system extension for ID: \(tunnelBundleID)")
-    submitPropertiesRequest(context: .reconcile)
+    submitPropertiesRequest(context: .reconcile, observer: observer)
   }
 
   public func deactivateExtension() {
@@ -285,14 +297,17 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     submitDeactivationRequest(reason: "manual deactivation", activateAfter: false)
   }
 
-  public func checkInstallationStatus() {
+  public func checkInstallationStatus(observer: ((ExtensionStatus) -> Void)? = nil) {
     appLogger.info("Checking installation status for ID: \(tunnelBundleID)")
-    submitPropertiesRequest(context: .inspectStatus)
+    submitPropertiesRequest(context: .inspectStatus, observer: observer)
   }
 
-  private func submitPropertiesRequest(context: RequestContext) {
+  private func submitPropertiesRequest(
+    context: RequestContext,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     guard #available(macOS 12.0, *) else {
-      handleLegacyPropertiesRequest(context: context)
+      handleLegacyPropertiesRequest(context: context, observer: observer)
       return
     }
 
@@ -300,88 +315,111 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
-    submit(request, context: context)
+    submit(request, context: context, observer: observer)
   }
 
-  private func submitActivationRequest(reason: String) {
+  private func submitActivationRequest(
+    reason: String,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     let request = OSSystemExtensionRequest.activationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
-    submit(request, context: .activate(reason: reason))
+    submit(request, context: .activate(reason: reason), observer: observer)
   }
 
   private func submitDeactivationRequest(
     reason: String,
     activateAfter: Bool,
-    bundleID: String? = nil
+    bundleID: String? = nil,
+    observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     let request = OSSystemExtensionRequest.deactivationRequest(
       forExtensionWithIdentifier: bundleID ?? tunnelBundleID,
       queue: .main
     )
-    submit(request, context: .deactivateThenActivate(reason: reason, activateAfter: activateAfter))
+    submit(
+      request,
+      context: .deactivateThenActivate(reason: reason, activateAfter: activateAfter),
+      observer: observer)
   }
 
-  private func submit(_ request: OSSystemExtensionRequest, context: RequestContext) {
+  private func submit(
+    _ request: OSSystemExtensionRequest,
+    context: RequestContext,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     request.delegate = self
-    contextQueue.sync { requestContexts[ObjectIdentifier(request)] = context }
+    contextQueue.sync {
+      requestStates[ObjectIdentifier(request)] = RequestState(context: context, observer: observer)
+    }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
-  private func handleLegacyPropertiesRequest(context: RequestContext) {
+  private func handleLegacyPropertiesRequest(
+    context: RequestContext,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     appLogger.info(
       "System extension properties are unavailable before macOS 12.0; using legacy fallback for context=\(context.logDescription)"
     )
 
     switch context {
     case .inspectStatus:
-      updateStatus(.notInstalled)
+      publishStatus(.notInstalled, observer: observer)
     case .reconcile:
       let reason = "activate bundled system extension on macOS 10.15/11"
-      updateStatus(.updatePending(details: reason))
-      submitActivationRequest(reason: reason)
+      publishStatus(.updatePending(details: reason), observer: observer)
+      submitActivationRequest(reason: reason, observer: observer)
     case .activate, .deactivateThenActivate:
-      completeLegacyRequest(context)
+      completeLegacyRequest(context, observer: observer)
     }
   }
 
-  private func completeLegacyRequest(_ context: RequestContext) {
+  private func completeLegacyRequest(
+    _ context: RequestContext,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     switch context {
     case .activate, .reconcile:
-      updateStatus(.activated)
+      publishStatus(.activated, observer: observer)
     case .deactivateThenActivate(_, let activateAfter):
       if activateAfter {
         submitActivationRequest(
-          reason: "activating bundled extension after legacy deactivation")
+          reason: "activating bundled extension after legacy deactivation",
+          observer: observer)
       } else {
-        updateStatus(.deactivated)
+        publishStatus(.deactivated, observer: observer)
       }
     case .inspectStatus:
-      updateStatus(.notInstalled)
+      publishStatus(.notInstalled, observer: observer)
     }
   }
 
-  private func requestContext(for request: OSSystemExtensionRequest) -> RequestContext? {
-    contextQueue.sync { requestContexts[ObjectIdentifier(request)] }
+  private func requestState(for request: OSSystemExtensionRequest) -> RequestState? {
+    contextQueue.sync { requestStates[ObjectIdentifier(request)] }
   }
 
   @discardableResult
-  private func clearRequestContext(for request: OSSystemExtensionRequest) -> RequestContext? {
-    contextQueue.sync { requestContexts.removeValue(forKey: ObjectIdentifier(request)) }
+  private func clearRequestState(for request: OSSystemExtensionRequest) -> RequestState? {
+    contextQueue.sync { requestStates.removeValue(forKey: ObjectIdentifier(request)) }
   }
 
-  private func perform(_ action: SystemExtensionInstallAction) {
+  private func perform(
+    _ action: SystemExtensionInstallAction,
+    observer: ((ExtensionStatus) -> Void)? = nil
+  ) {
     switch action {
     case .none:
       return
     case .activate(let reason):
-      updateStatus(.updatePending(details: reason))
-      submitActivationRequest(reason: reason)
+      publishStatus(.updatePending(details: reason), observer: observer)
+      submitActivationRequest(reason: reason, observer: observer)
     case .deactivateThenActivate(let reason):
-      updateStatus(.updatePending(details: reason))
-      submitDeactivationRequest(reason: reason, activateAfter: true)
+      publishStatus(.updatePending(details: reason), observer: observer)
+      submitDeactivationRequest(reason: reason, activateAfter: true, observer: observer)
     }
   }
 
@@ -406,6 +444,14 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
     status = newStatus
     appLogger.info("System extension status updated: \(newStatus.logDescription)")
+  }
+
+  private func publishStatus(
+    _ newStatus: ExtensionStatus,
+    observer: ((ExtensionStatus) -> Void)?
+  ) {
+    updateStatus(newStatus)
+    observer?(newStatus)
   }
 
   public func openPrivacyAndSecuritySettings() {
@@ -438,6 +484,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       }
     }
   }
+}
+
+private struct RequestState {
+  let context: RequestContext
+  let observer: ((ExtensionStatus) -> Void)?
 }
 
 private enum RequestContext: Equatable {

@@ -2,6 +2,21 @@ name: Build macOS
 
 on:
   workflow_call:
+    secrets:
+      AC_USERNAME:
+        required: true
+      AC_PASSWORD:
+        required: true
+      APP_ENV:
+        required: true
+      MACOS_BNS_CERT:
+        required: true
+      MACOS_BNS_CERT_PASS:
+        required: true
+      MACOS_PROVISION_PROFILE_BASE64:
+        required: true
+      MACOS_PROVISION_TUNNEL_BASE64:
+        required: true
     inputs:
       version:
         required: true
@@ -12,7 +27,6 @@ on:
       installer_base_name:
         required: true
         type: string
-
 jobs:
   build-macos:
     permissions:
@@ -149,6 +163,24 @@ jobs:
           INSTALLER_BASE_NAME: ${{ inputs.installer_base_name }}
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
         run: bash ./.github/scripts/check_macos_sysext_build.sh
+
+      - name: Package macOS app artifact
+        shell: bash
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/Lantern.app"
+          if [[ ! -d "$APP_PATH" ]]; then
+            printf 'Lantern.app not found at %s\n' "$APP_PATH" >&2
+            exit 1
+          fi
+
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-macos-app
+          path: ${{ runner.temp }}/Lantern.app.zip
+          retention-days: 2
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
