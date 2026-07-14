@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -19,8 +17,10 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
-  static bool get isSmokeUITest =>
-      Platform.environment['LANTERN_SMOKE_UI_TEST'] == 'true';
+  static const bool isSmokeUITest = bool.fromEnvironment(
+    'SMOKE_UI_TEST',
+    defaultValue: false,
+  );
 
   static const String stealthMode = String.fromEnvironment(
     'STEALTH_MODE',

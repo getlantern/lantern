@@ -198,6 +198,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          SMOKE_UI_TEST: ${{ inputs.run_connect_smoke }}
 
       - name: Check system extension build number monotonicity
         if: ${{ inputs.build_type == 'nightly' }}

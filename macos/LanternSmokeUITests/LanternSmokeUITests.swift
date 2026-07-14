@@ -25,7 +25,6 @@ final class LanternSmokeUITests: XCTestCase {
 
     let app = XCUIApplication(url: URL(fileURLWithPath: appPath))
     app.launchArguments = ["--smoke-ui-test", "-ApplePersistenceIgnoreState", "YES"]
-    app.launchEnvironment["LANTERN_SMOKE_UI_TEST"] = "true"
     app.launch()
     app.activate()
     defer { cleanUp(app) }
@@ -103,6 +102,7 @@ final class LanternSmokeUITests: XCTestCase {
       } else if waitForAnyIdentifier(stateIdentifiers, in: app, timeout: 5) != nil {
         return
       } else {
+        print(app.debugDescription)
         throw SmokeError.missingControls
       }
 

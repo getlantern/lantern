@@ -256,7 +256,7 @@ SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
-DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(if $(filter true,$(SMOKE_UI_TEST)),--dart-define=SMOKE_UI_TEST=true,)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
