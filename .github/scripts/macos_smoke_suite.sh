@@ -268,6 +268,18 @@ run_xcui_connect_smoke() {
   local app_path="$1"
   local derived_data="${RUNNER_TEMP:-$ARTIFACT_DIR}/lantern-smoke-derived-data"
   local result_bundle="$ARTIFACT_DIR/LanternSmoke.xcresult"
+  local automation_status
+
+  if ! command -v automationmodetool >/dev/null 2>&1; then
+    printf 'automationmodetool is unavailable on this CI Mac.\n' >&2
+    return 1
+  fi
+  automation_status="$(automationmodetool 2>&1)"
+  if [[ "$automation_status" != *"DOES NOT REQUIRE user authentication"* ]]; then
+    printf '%s\n' "$automation_status" >&2
+    printf 'Configure this CI Mac with automationmodetool enable-automationmode-without-authentication before running XCUITest.\n' >&2
+    return 1
+  fi
 
   rm -rf "$derived_data" "$result_bundle"
   log_step "Running macOS connect smoke against $app_path"
@@ -277,8 +289,7 @@ run_xcui_connect_smoke() {
       -scheme LanternSmokeUITests \
       -destination "platform=macOS" \
       -derivedDataPath "$derived_data" \
-      -resultBundlePath "$result_bundle" \
-      CODE_SIGNING_ALLOWED=NO
+      -resultBundlePath "$result_bundle"
 }
 
 on_exit() {
