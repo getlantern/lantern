@@ -13,11 +13,19 @@ packet_entitlements="$4"
 frameworks_dir="$app_path/Contents/Frameworks"
 system_extension="$app_path/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension"
 
+require_path() {
+  local path="$1"
+  if [[ ! -e "$path" ]]; then
+    printf 'required signing input not found: %s\n' "$path" >&2
+    exit 1
+  fi
+}
+
 sign_code() {
   local target="$1"
   shift
 
-  [[ -e "$target" ]] || return 0
+  require_path "$target"
   codesign \
     --options runtime \
     --strict \
@@ -28,6 +36,13 @@ sign_code() {
     --verbose \
     "$target"
 }
+
+require_path "$app_path"
+require_path "$app_entitlements"
+require_path "$packet_entitlements"
+require_path "$frameworks_dir"
+require_path "$system_extension"
+require_path "$system_extension/Contents/Frameworks/Liblantern.framework"
 
 # Sparkle's helpers must be signed before the framework that contains them.
 sparkle_framework="$frameworks_dir/Sparkle.framework"
