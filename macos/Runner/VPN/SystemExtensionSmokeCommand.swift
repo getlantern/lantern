@@ -163,6 +163,9 @@ internal final class SystemExtensionSmokeCommandRunner {
   private let manager: SystemExtensionManager
   private let output: (String) -> Void
   private let complete: (Int32) -> Void
+  private let timeoutQueue = DispatchQueue(
+    label: "org.getlantern.lantern.system-extension-smoke-timeout")
+  private let finishLock = NSLock()
   private var finished = false
 
   init(
@@ -182,7 +185,7 @@ internal final class SystemExtensionSmokeCommandRunner {
       "Starting system extension smoke command: action=\(command.action.rawValue) timeout=\(command.timeout)"
     )
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + command.timeout) { [weak self] in
+    timeoutQueue.asyncAfter(deadline: .now() + command.timeout) { [weak self] in
       self?.finish(.timedOut)
     }
 
@@ -211,11 +214,13 @@ internal final class SystemExtensionSmokeCommandRunner {
   }
 
   private func finish(_ status: ExtensionStatus) {
+    finishLock.lock()
     guard !finished else {
+      finishLock.unlock()
       return
     }
-
     finished = true
+    finishLock.unlock()
 
     let result = SystemExtensionSmokeResult(
       action: command.action,
