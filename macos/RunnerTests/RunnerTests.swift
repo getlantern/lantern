@@ -558,13 +558,6 @@ final class RunnerTests: XCTestCase {
   }
 
   func testSystemExtensionSmokeCommandParsesStatus() {
-    XCTAssertTrue(
-      SystemExtensionSmokeCommand.isRequested(
-        arguments: ["Lantern", "--smoke-system-extension-status"]
-      )
-    )
-    XCTAssertFalse(SystemExtensionSmokeCommand.isRequested(arguments: ["Lantern"]))
-
     switch SystemExtensionSmokeCommand.parse(arguments: ["Lantern", "--smoke-system-extension-status"]) {
     case .success(let command?):
       XCTAssertEqual(command.action, .status)

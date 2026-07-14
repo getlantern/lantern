@@ -1,17 +1,14 @@
-import Darwin
 import FlutterMacOS
 import Liblantern
 import OSLog
 import app_links
 
-@main
 class AppDelegate: FlutterAppDelegate {
 
   private let systemExtensionManager = SystemExtensionManager.shared
 
   private let vpnManager = VPNManager.shared
   private var methodHandler: MethodHandler?
-  private var systemExtensionSmokeRunner: SystemExtensionSmokeCommandRunner?
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     return false
@@ -40,25 +37,6 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
     FilePath.setupFileSystem()
-
-    switch SystemExtensionSmokeCommand.parse(arguments: ProcessInfo.processInfo.arguments) {
-    case .failure(let error):
-      SystemExtensionSmokeCommand.writeStdout(SystemExtensionSmokeCommand.errorJSON(error.message))
-      exit(64)
-    case .success(let command):
-      if let command {
-        NSApp.setActivationPolicy(.accessory)
-        mainFlutterWindow?.orderOut(nil)
-        systemExtensionSmokeRunner = SystemExtensionSmokeCommandRunner(
-          command: command,
-          manager: systemExtensionManager,
-          output: SystemExtensionSmokeCommand.writeStdout,
-          complete: { code in exit(code) }
-        )
-        systemExtensionSmokeRunner?.start()
-        return
-      }
-    }
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")

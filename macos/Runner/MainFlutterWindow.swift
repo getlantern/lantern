@@ -6,11 +6,6 @@ import IOKit.ps
 class MainFlutterWindow: NSWindow {
 
   override func awakeFromNib() {
-    if SystemExtensionSmokeCommand.isRequested(arguments: ProcessInfo.processInfo.arguments) {
-      super.awakeFromNib()
-      return
-    }
-
     let flutterViewController = FlutterViewController()
 
     let size = NSSize(width: 390, height: 760)

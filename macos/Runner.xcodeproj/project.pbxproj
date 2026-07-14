@@ -52,6 +52,7 @@
 		5F53D0402E4414A100740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5FAE10022F1C000100000001 /* SystemExtensionSmokeCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FAE10012F1C000100000001 /* SystemExtensionSmokeCommand.swift */; };
+		5FAE10042F1C000100000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FAE10032F1C000100000001 /* main.swift */; };
 		5F53D0512E44EBB700740586 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
@@ -181,6 +182,7 @@
 		5F53D0392E44112E00740586 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		5F53D03F2E4414A100740586 /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5FAE10012F1C000100000001 /* SystemExtensionSmokeCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionSmokeCommand.swift; sourceTree = "<group>"; };
+		5FAE10032F1C000100000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		5F7422202E7C1FB000FC72BE /* LogsEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsEventHandler.swift; sourceTree = "<group>"; };
 		5F7B9A592F0C13AC0019E3E0 /* AppStreamHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStreamHandler.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
@@ -351,6 +353,7 @@
 			children = (
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
+				5FAE10032F1C000100000001 /* main.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51914231749380026EE4D /* Release.entitlements */,
@@ -683,6 +686,7 @@
 				03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */,
 				5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */,
 				5FAE10022F1C000100000001 /* SystemExtensionSmokeCommand.swift in Sources */,
+				5FAE10042F1C000100000001 /* main.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
 				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
