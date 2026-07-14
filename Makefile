@@ -96,6 +96,7 @@ MACOS_DIR := macos/
 MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_FRAMEWORK_OUTPUT := $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
 MACOS_FFI_HEADER := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
@@ -469,24 +470,23 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 
 .PHONY: macos
-macos: $(MACOS_FRAMEWORK_BUILD)
+macos: $(MACOS_FRAMEWORK_OUTPUT)
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+$(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
-	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
-	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
-	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
+	mv $(MACOS_FRAMEWORK_BUILD) $@
+	@echo "Built macOS Framework: $@"
 
 
 .PHONY: macos-framework
-macos-framework: $(MACOS_FRAMEWORK_BUILD)
+macos-framework: $(MACOS_FRAMEWORK_OUTPUT)
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
@@ -496,9 +496,10 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: macos-unit-tests
-macos-unit-tests: $(MACOS_FRAMEWORK_BUILD) $(MAYBE_STEALTH_PROFILE)
+macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 	@echo "Preparing macOS test project (building native assets)..."
-	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+		flutter build macos --debug --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	@echo "Running macOS Runner unit tests..."
 	xcodebuild test \
 		-workspace macos/Runner.xcworkspace \
@@ -549,6 +550,9 @@ package-macos: require-appdmg
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-release-ci
+macos-release-ci: macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps

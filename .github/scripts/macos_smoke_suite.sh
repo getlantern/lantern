@@ -30,6 +30,11 @@ copy_app_bundle() {
   local source="$1"
   local destination="$2"
 
+  if [[ "$source" == "$destination" ]]; then
+    printf '%s\n' "$destination"
+    return
+  fi
+
   log_step "Copying Lantern app from $source"
   rm -rf "$destination"
   mkdir -p "$(dirname "$destination")"
@@ -89,7 +94,7 @@ copy_app_from_dmg() {
 
 resolve_app_path() {
   if [[ -n "${APP_PATH:-}" && -x "$APP_PATH/Contents/MacOS/Lantern" ]]; then
-    printf '%s\n' "$APP_PATH"
+    copy_app_bundle "$APP_PATH" "$APP_INSTALL_DIR"
     return
   fi
 
@@ -122,7 +127,7 @@ resolve_app_path() {
 
   for candidate in "${candidates[@]}"; do
     if [[ -d "$candidate" ]]; then
-      printf '%s\n' "$candidate"
+      copy_app_bundle "$candidate" "$APP_INSTALL_DIR"
       return
     fi
   done
