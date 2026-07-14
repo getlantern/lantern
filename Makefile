@@ -253,10 +253,6 @@ GARBLE_BUILD = $(GARBLE) $(GARBLE_FLAGS) -seed="$(GARBLE_SEED)" build
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
-define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
-endef
-
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
@@ -527,6 +523,16 @@ notarize-darwin: require-ac-username require-ac-password
 		--password $$AC_PASSWORD \
 		--wait \
 		--output-format json > notary_output.json
+	@status=$$(jq -r '.status' notary_output.json); \
+	if [ "$$status" != "Accepted" ]; then \
+		id=$$(jq -r '.id' notary_output.json); \
+		echo "Notarization failed with status $$status (submission $$id)" >&2; \
+		xcrun notarytool log "$$id" \
+			--apple-id $$AC_USERNAME \
+			--team-id "ACZRKC3LQ9" \
+			--password $$AC_PASSWORD || true; \
+		exit 1; \
+	fi
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
@@ -540,10 +546,11 @@ notarize-log:
 		--password $$AC_PASSWORD
 	    --output-format json > notary_log.json
 sign-app:
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
-	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
+	scripts/ci/sign_macos_app.sh \
+		$(DARWIN_RELEASE_BUILD) \
+		$(SIGN_ID) \
+		$(MACOS_ENTITLEMENTS) \
+		$(PACKET_ENTITLEMENTS)
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
