@@ -20,13 +20,17 @@ internal struct SystemExtensionSmokeCommand: Equatable {
   let action: SystemExtensionSmokeAction
   let timeout: TimeInterval
 
+  static func isRequested(arguments: [String]) -> Bool {
+    arguments.contains(statusFlag) || arguments.contains(activateFlag)
+  }
+
   static func parse(
     arguments: [String]
   ) -> Result<SystemExtensionSmokeCommand?, SystemExtensionSmokeParseError> {
     let hasStatusFlag = arguments.contains(statusFlag)
     let hasActivateFlag = arguments.contains(activateFlag)
 
-    guard hasStatusFlag || hasActivateFlag else {
+    guard isRequested(arguments: arguments) else {
       return .success(nil)
     }
 
