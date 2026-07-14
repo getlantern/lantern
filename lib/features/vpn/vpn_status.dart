@@ -17,56 +17,71 @@ class VpnStatus extends HookConsumerWidget {
     final vpnStatus = ref.watch(vpnProvider);
     final statusValue = vpnStatus.name.capitalize;
     final textTheme = Theme.of(context).textTheme;
-    MacOSExtensionState systemExtensionStatus =
-        const MacOSExtensionState(SystemExtensionStatus.unknown);
+    MacOSExtensionState systemExtensionStatus = const MacOSExtensionState(
+      SystemExtensionStatus.unknown,
+    );
     if (PlatformUtils.isMacOS) {
       systemExtensionStatus = ref.watch(macosExtensionProvider);
     }
 
-    return SettingTile(
-      key: Key('vpn.status.${vpnStatus.name}'),
-      label: 'vpn_status'.i18n,
+    return Semantics(
+      identifier: 'vpn.status.${vpnStatus.name}',
+      label: 'VPN status',
       value: statusValue,
-      icon: AppImagePaths.glob,
-      onTap: isExtensionNeeded(systemExtensionStatus)
-          ? () {
-              appRouter.push(const MacOSExtensionDialog());
-            }
-          : null,
-      actions: [
-        if (isExtensionNeeded(systemExtensionStatus))
-          AppImage(path: AppImagePaths.warning, color: context.borderError)
-        else
-          VPNStatusIndicator(status: vpnStatus),
-      ],
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
+      container: true,
+      child: SettingTile(
+        key: Key('vpn.status.${vpnStatus.name}'),
+        label: 'vpn_status'.i18n,
+        value: statusValue,
+        icon: AppImagePaths.glob,
+        onTap: isExtensionNeeded(systemExtensionStatus)
+            ? () {
+                appRouter.push(const MacOSExtensionDialog());
+              }
+            : null,
+        actions: [
           if (isExtensionNeeded(systemExtensionStatus))
-            Text(
-              'network_extension_required'.i18n,
-              style:
-                  textTheme.titleMedium!.copyWith(color: context.textPrimary),
-            )
+            AppImage(path: AppImagePaths.warning, color: context.borderError)
           else
-            Text(statusValue,
-                style: textTheme.titleMedium!
-                    .copyWith(color: getStatusColor(vpnStatus, context))),
-          if (vpnStatus == VPNStatus.connecting)
-            AnimatedTextKit(
-              animatedTexts: [
-                TyperAnimatedText(
-                  '... ',
-                  textStyle: textTheme.titleMedium!
-                      .copyWith(color: context.textPrimary),
-                ),
-                TyperAnimatedText('...',
-                    textStyle: textTheme.titleMedium!
-                        .copyWith(color: context.textPrimary)),
-              ],
-              repeatForever: true,
-            )
+            VPNStatusIndicator(status: vpnStatus),
         ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (isExtensionNeeded(systemExtensionStatus))
+              Text(
+                'network_extension_required'.i18n,
+                style: textTheme.titleMedium!.copyWith(
+                  color: context.textPrimary,
+                ),
+              )
+            else
+              Text(
+                statusValue,
+                style: textTheme.titleMedium!.copyWith(
+                  color: getStatusColor(vpnStatus, context),
+                ),
+              ),
+            if (vpnStatus == VPNStatus.connecting)
+              AnimatedTextKit(
+                animatedTexts: [
+                  TyperAnimatedText(
+                    '... ',
+                    textStyle: textTheme.titleMedium!.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                  TyperAnimatedText(
+                    '...',
+                    textStyle: textTheme.titleMedium!.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                ],
+                repeatForever: true,
+              ),
+          ],
+        ),
       ),
     );
   }

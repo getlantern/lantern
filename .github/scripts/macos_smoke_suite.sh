@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEST_PATH="${TEST_PATH:-integration_test/vpn/macos_connect_smoke_test.dart}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
 ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
-FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
@@ -266,26 +264,21 @@ run_system_extension_preflight() {
   return "$exit_code"
 }
 
-run_flutter_connect_smoke() {
-  local args=(
-    "test"
-    "$TEST_PATH"
-    "-d"
-    "macos"
-    "--reporter=expanded"
-    "--dart-define=DISABLE_SYSTEM_TRAY=true"
-  )
+run_xcui_connect_smoke() {
+  local app_path="$1"
+  local derived_data="${RUNNER_TEMP:-$ARTIFACT_DIR}/lantern-smoke-derived-data"
+  local result_bundle="$ARTIFACT_DIR/LanternSmoke.xcresult"
 
-  if [[ "$ENABLE_IP_CHECK" == "true" ]]; then
-    args+=("--dart-define=ENABLE_IP_CHECK=true")
-  fi
-
-  if [[ "$FORCE_FULL_TUNNEL" == "true" ]]; then
-    args+=("--dart-define=SMOKE_FORCE_FULL_TUNNEL=true")
-  fi
-
-  log_step "Running macOS connect smoke: flutter ${args[*]}"
-  flutter "${args[@]}"
+  rm -rf "$derived_data" "$result_bundle"
+  log_step "Running macOS connect smoke against $app_path"
+  LANTERN_APP_PATH="$app_path" ENABLE_IP_CHECK="$ENABLE_IP_CHECK" \
+    xcodebuild test \
+      -project macos/LanternSmokeUITests/LanternSmokeUITests.xcodeproj \
+      -scheme LanternSmokeUITests \
+      -destination "platform=macOS" \
+      -derivedDataPath "$derived_data" \
+      -resultBundlePath "$result_bundle" \
+      CODE_SIGNING_ALLOWED=NO
 }
 
 on_exit() {
@@ -315,7 +308,7 @@ fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
   run_system_extension_preflight "$app_executable"
-  run_flutter_connect_smoke
+  run_xcui_connect_smoke "$app_path"
 else
   log_step "Skipping macOS connect smoke test."
 fi

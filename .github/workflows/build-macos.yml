@@ -42,11 +42,6 @@ on:
         required: false
         type: boolean
         default: false
-      force_full_tunnel_smoke:
-        description: "Force full tunnel routing during the connect smoke"
-        required: false
-        type: boolean
-        default: true
       extension_timeout_seconds:
         description: "Seconds to wait for System Extension activation"
         required: false
@@ -246,7 +241,6 @@ jobs:
           ARTIFACT_DIR: ${{ runner.temp }}/macos-smoke-artifacts
           DMG_ARTIFACT_DIR: ${{ github.workspace }}
           ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
-          FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           EXTENSION_TIMEOUT_SECONDS: ${{ inputs.extension_timeout_seconds }}
           RUN_CONNECT_SMOKE: true
         run: ./.github/scripts/macos_smoke_suite.sh

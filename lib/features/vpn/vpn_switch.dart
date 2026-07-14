@@ -23,63 +23,68 @@ class VPNSwitch extends HookConsumerWidget {
     });
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
-    return CustomAnimatedToggleSwitch<bool>(
-      current: isVPNOn,
-      allowUnlistedValues: false,
-      values: [false, true],
-      spacing: 10.h,
-      onChanged: (value) {
-        appLogger.info('VPN Switch changed to: $value');
-        onVPNStateChange(ref, context);
-      },
-      loading: false,
-      height: PlatformUtils.isDesktop ? 70.h : 65.h,
-      indicatorSize: Size(60.r, 60.r),
-      iconBuilder: (context, local, global) {
-        return SizedBox();
-      },
-      foregroundIndicatorBuilder: (context, global) {
-        if (vpnStatus == VPNStatus.connecting ||
-            vpnStatus == VPNStatus.disconnecting) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(30.r),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(
-                strokeWidth: 8.r,
+    return Semantics(
+      identifier: 'vpn.toggle',
+      label: 'VPN toggle',
+      button: true,
+      child: CustomAnimatedToggleSwitch<bool>(
+        current: isVPNOn,
+        allowUnlistedValues: false,
+        values: [false, true],
+        spacing: 10.h,
+        onChanged: (value) {
+          appLogger.info('VPN Switch changed to: $value');
+          onVPNStateChange(ref, context);
+        },
+        loading: false,
+        height: PlatformUtils.isDesktop ? 70.h : 65.h,
+        indicatorSize: Size(60.r, 60.r),
+        iconBuilder: (context, local, global) {
+          return SizedBox();
+        },
+        foregroundIndicatorBuilder: (context, global) {
+          if (vpnStatus == VPNStatus.connecting ||
+              vpnStatus == VPNStatus.disconnecting) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(30.r),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 8.r,
+                  color: context.actionToggleKnobBg,
+                ),
+              ),
+            );
+          }
+          return GestureDetector(
+            key: const Key('vpn.toggle'),
+            onTap: () {
+              appLogger.info('VPN Switch tapped');
+              onVPNStateChange(ref, context);
+            },
+            child: Container(
+              decoration: BoxDecoration(
                 color: context.actionToggleKnobBg,
+                borderRadius: BorderRadius.circular(30.r),
               ),
             ),
           );
-        }
-        return GestureDetector(
-          key: const Key('vpn.toggle'),
-          onTap: () {
-            appLogger.info('VPN Switch tapped');
-            onVPNStateChange(ref, context);
-          },
-          child: Container(
+        },
+        wrapperBuilder: (context, global, child) {
+          return Container(
+            key: Key('vpn.switch.${vpnStatus.name}'),
+            padding: EdgeInsets.all(5.r),
             decoration: BoxDecoration(
-              color: context.actionToggleKnobBg,
-              borderRadius: BorderRadius.circular(30.r),
+              color: _wrapperColor(vpnStatus, context),
+              borderRadius: BorderRadius.circular(50.r),
             ),
-          ),
-        );
-      },
-      wrapperBuilder: (context, global, child) {
-        return Container(
-          key: Key('vpn.switch.${vpnStatus.name}'),
-          padding: EdgeInsets.all(5.r),
-          decoration: BoxDecoration(
-            color: _wrapperColor(vpnStatus, context),
-            borderRadius: BorderRadius.circular(50.r),
-          ),
-          child: child,
-        );
-      },
+            child: child,
+          );
+        },
+      ),
     );
   }
 

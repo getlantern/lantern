@@ -130,7 +130,6 @@ jobs:
       runner_label: lantern-macos-smoke
       run_connect_smoke: true
       enable_ip_check: ${{ inputs.enable_ip_check }}
-      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
 
   windows:
     needs: prepare

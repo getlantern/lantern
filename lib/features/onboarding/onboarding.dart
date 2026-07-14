@@ -116,33 +116,41 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                   ],
                 ),
               ),
-              PrimaryButton(
-                key: const Key('onboarding.primary'),
-                label:
-                    pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
-                isTaller: true,
-                onPressed: () {
-                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                    onboardingCompleted();
-                    return;
-                  }
-                  if (pageIndex.value == 2) {
-                    onboardingCompleted();
-                    return;
-                  }
-                  controller.value.nextPage();
-                },
+              Semantics(
+                identifier: 'onboarding.primary',
+                button: true,
+                child: PrimaryButton(
+                  key: const Key('onboarding.primary'),
+                  label:
+                      pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
+                  isTaller: true,
+                  onPressed: () {
+                    if (PlatformUtils.isIOS && pageIndex.value == 1) {
+                      onboardingCompleted();
+                      return;
+                    }
+                    if (pageIndex.value == 2) {
+                      onboardingCompleted();
+                      return;
+                    }
+                    controller.value.nextPage();
+                  },
+                ),
               ),
               if (pageIndex.value == 0) ...{
                 SizedBox(height: 12.0),
-                AppTextButton(
-                  key: const Key('onboarding.skip'),
-                  label: 'skip_connect_now'.i18n,
-                  textColor: context.textPrimary,
-                  onPressed: () {
-                    onboardingCompleted();
-                  },
-                )
+                Semantics(
+                  identifier: 'onboarding.skip',
+                  button: true,
+                  child: AppTextButton(
+                    key: const Key('onboarding.skip'),
+                    label: 'skip_connect_now'.i18n,
+                    textColor: context.textPrimary,
+                    onPressed: () {
+                      onboardingCompleted();
+                    },
+                  ),
+                ),
               },
               SizedBox(height: 28.0),
             ],
