@@ -26,7 +26,11 @@ import '../../core/models/referral_attach_response.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
-  const Plans({super.key});
+  const Plans({super.key, this.referralCode});
+
+  /// Referral/affiliate code delivered via a deep link
+  /// (https://lantern.io/affiliate/<code>); applied automatically on open.
+  final String? referralCode;
 
   @override
   ConsumerState<Plans> createState() => _PlansState();
@@ -35,6 +39,15 @@ class Plans extends StatefulHookConsumerWidget {
 class _PlansState extends ConsumerState<Plans>
     with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
+
+  @override
+  void initState() {
+    super.initState();
+    final code = widget.referralCode?.toUpperCase().trim();
+    if (code != null && code.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _applyDeepLinkCode(code));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -349,12 +362,33 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
+  /// Applies a deep-linked affiliate code once the plans have loaded;
+  /// applying earlier would let the in-flight plans fetch overwrite the
+  /// discounted plans returned by the code.
+  Future<void> _applyDeepLinkCode(String code) async {
+    if (!mounted) return;
+    try {
+      await ref.read(plansProvider.future);
+    } catch (e) {
+      appLogger.warning(
+        '[Plans] Plans failed to load, skipping deep-linked code: $e',
+      );
+      return;
+    }
+    if (!mounted) return;
+    await applyReferralCode(code);
+  }
+
   Future<void> onReferralCodeContinue(String code) async {
     if (code.isEmpty) {
       context.showSnackBar('please_enter_referral_code'.i18n);
       return;
     }
     appRouter.pop();
+    await applyReferralCode(code);
+  }
+
+  Future<void> applyReferralCode(String code) async {
     context.showLoadingDialog();
     final result = await ref
         .read(referralProvider.notifier)

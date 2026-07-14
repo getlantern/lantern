@@ -41,12 +41,7 @@ final class ReferralNotifierProvider
   }
 }
 
-String _$referralNotifierHash() => r'a00524678cd445e36352bf7f53184c4da3e5095d';
-
-/// Holds the applied V2 referral/affiliate response, or null when no code is
-/// applied. The response's [ReferralType] drives the UI, so callers branch on
-/// `state == null` (none) / `state!.isAffiliate` (affiliate) / else (referral)
-/// and read `code`/`discountPct`/`plansData` off the same object.
+String _$referralNotifierHash() => r'e5def696bebc6776e566c6f91c98475970497dcc';
 
 abstract class _$ReferralNotifier extends $Notifier<ReferralAttachV2Response?> {
   ReferralAttachV2Response? build();

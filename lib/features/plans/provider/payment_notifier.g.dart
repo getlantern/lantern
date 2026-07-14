@@ -99,7 +99,7 @@ final class PaymentNotifierProvider
   }
 }
 
-String _$paymentNotifierHash() => r'bcdbccc7c098cfc6693ee2219d7853503c8e397f';
+String _$paymentNotifierHash() => r'f07f77a34cc915a8f54f96e68865f7fcd45e7484';
 
 abstract class _$PaymentNotifier extends $Notifier<void> {
   void build();
