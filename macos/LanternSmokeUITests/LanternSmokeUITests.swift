@@ -11,63 +11,45 @@ final class LanternSmokeUITests: XCTestCase {
     "vpn.status.error",
   ]
 
-  private var app: XCUIApplication!
-
   override func setUpWithError() throws {
     continueAfterFailure = false
+  }
 
+  @MainActor
+  func testConnectTrafficAndDisconnect() throws {
     let environment = ProcessInfo.processInfo.environment
     let appPath = environment["LANTERN_APP_PATH"] ?? "/Applications/Lantern.app"
     guard FileManager.default.fileExists(atPath: appPath) else {
       throw SmokeError.missingApp(appPath)
     }
 
-    app = XCUIApplication(url: URL(fileURLWithPath: appPath))
+    let app = XCUIApplication(url: URL(fileURLWithPath: appPath))
     app.launch()
     app.activate()
+    defer { cleanUp(app) }
 
-    addTeardownBlock { [weak self] in
-      guard let self, self.app != nil else { return }
-
-      let screenshot = self.app.screenshot()
-      let attachment = XCTAttachment(screenshot: screenshot)
-      attachment.name = "Lantern final state"
-      attachment.lifetime = .keepAlways
-      self.add(attachment)
-
-      if self.element("vpn.status.connected").exists,
-        self.element("vpn.toggle").exists
-      {
-        self.element("vpn.toggle").click()
-        _ = self.waitForIdentifier("vpn.status.disconnected", timeout: 30)
-      }
-      self.app.terminate()
-    }
-  }
-
-  func testConnectTrafficAndDisconnect() throws {
     let checkIP = ProcessInfo.processInfo.environment["ENABLE_IP_CHECK"] == "true"
     let baselineIP = checkIP ? try fetchPublicIPWithRetry(timeout: 30) : nil
 
-    try finishOnboardingIfNeeded()
-    guard let initialState = waitForAnyIdentifier(stateIdentifiers, timeout: 90) else {
+    try finishOnboardingIfNeeded(app)
+    guard let initialState = waitForAnyIdentifier(stateIdentifiers, in: app, timeout: 90) else {
       XCTFail("Lantern did not expose a VPN state")
       return
     }
 
     if initialState == "vpn.status.connected" {
-      try clickToggle()
+      try clickToggle(in: app)
       XCTAssertTrue(
-        waitForIdentifier("vpn.status.disconnected", timeout: 45),
+        waitForIdentifier("vpn.status.disconnected", in: app, timeout: 45),
         "VPN did not start the smoke test disconnected"
       )
     } else if initialState == "vpn.status.missingPermission" {
       XCTFail("The runner is missing its saved VPN configuration permission")
     }
 
-    try clickToggle()
+    try clickToggle(in: app)
     XCTAssertTrue(
-      waitForIdentifier("vpn.status.connected", timeout: 60),
+      waitForIdentifier("vpn.status.connected", in: app, timeout: 60),
       "VPN did not reach connected state"
     )
 
@@ -77,32 +59,47 @@ final class LanternSmokeUITests: XCTestCase {
       _ = try fetchPublicIPWithRetry(timeout: 45)
     }
 
-    try clickToggle()
+    try clickToggle(in: app)
     XCTAssertTrue(
-      waitForIdentifier("vpn.status.disconnected", timeout: 45),
+      waitForIdentifier("vpn.status.disconnected", in: app, timeout: 45),
       "VPN did not return to disconnected state"
     )
   }
 
-  private func finishOnboardingIfNeeded() throws {
-    if waitForAnyIdentifier(stateIdentifiers, timeout: 5) != nil {
+  private func cleanUp(_ app: XCUIApplication) {
+    let attachment = XCTAttachment(screenshot: app.screenshot())
+    attachment.name = "Lantern final state"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+
+    if element("vpn.status.connected", in: app).exists,
+      element("vpn.toggle", in: app).exists
+    {
+      element("vpn.toggle", in: app).click()
+      _ = waitForIdentifier("vpn.status.disconnected", in: app, timeout: 30)
+    }
+    app.terminate()
+  }
+
+  private func finishOnboardingIfNeeded(_ app: XCUIApplication) throws {
+    if waitForAnyIdentifier(stateIdentifiers, in: app, timeout: 5) != nil {
       return
     }
 
     for _ in 0..<4 {
-      let skip = element("onboarding.skip")
-      let primary = element("onboarding.primary")
+      let skip = element("onboarding.skip", in: app)
+      let primary = element("onboarding.primary", in: app)
       if skip.exists {
         skip.click()
       } else if primary.exists {
         primary.click()
-      } else if waitForAnyIdentifier(stateIdentifiers, timeout: 5) != nil {
+      } else if waitForAnyIdentifier(stateIdentifiers, in: app, timeout: 5) != nil {
         return
       } else {
         throw SmokeError.missingControls
       }
 
-      if waitForAnyIdentifier(stateIdentifiers, timeout: 10) != nil {
+      if waitForAnyIdentifier(stateIdentifiers, in: app, timeout: 10) != nil {
         return
       }
     }
@@ -110,29 +107,34 @@ final class LanternSmokeUITests: XCTestCase {
     throw SmokeError.onboardingDidNotFinish
   }
 
-  private func clickToggle() throws {
-    let toggle = element("vpn.toggle")
+  private func clickToggle(in app: XCUIApplication) throws {
+    let toggle = element("vpn.toggle", in: app)
     guard toggle.waitForExistence(timeout: 20) else {
       throw SmokeError.missingToggle
     }
     toggle.click()
   }
 
-  private func element(_ identifier: String) -> XCUIElement {
+  private func element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
     app.descendants(matching: .any).matching(identifier: identifier).firstMatch
   }
 
-  private func waitForIdentifier(_ identifier: String, timeout: TimeInterval) -> Bool {
-    element(identifier).waitForExistence(timeout: timeout)
+  private func waitForIdentifier(
+    _ identifier: String,
+    in app: XCUIApplication,
+    timeout: TimeInterval
+  ) -> Bool {
+    element(identifier, in: app).waitForExistence(timeout: timeout)
   }
 
   private func waitForAnyIdentifier(
     _ identifiers: [String],
+    in app: XCUIApplication,
     timeout: TimeInterval
   ) -> String? {
     let deadline = Date().addingTimeInterval(timeout)
     repeat {
-      if let identifier = identifiers.first(where: { element($0).exists }) {
+      if let identifier = identifiers.first(where: { element($0, in: app).exists }) {
         return identifier
       }
       Thread.sleep(forTimeInterval: 0.25)
