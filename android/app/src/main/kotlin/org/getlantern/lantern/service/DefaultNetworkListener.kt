@@ -169,8 +169,12 @@ object DefaultNetworkListener {
                     mainHandler
                 )
             }
-            in 24..30 -> {
+            in 26..30 -> {
                 LanternApp.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
+            }
+            // Handler overload was added in API 26; API 24-25 only have the one-arg version.
+            in 24..25 -> {
+                LanternApp.connectivity.registerDefaultNetworkCallback(Callback)
             }
             else -> try {
                 fallback = false
