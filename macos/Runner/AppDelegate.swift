@@ -5,6 +5,8 @@ import app_links
 
 class AppDelegate: FlutterAppDelegate {
 
+  private static let smokeUITestFlag = "--smoke-ui-test"
+
   private let systemExtensionManager = SystemExtensionManager.shared
 
   private let vpnManager = VPNManager.shared
@@ -49,10 +51,22 @@ class AppDelegate: FlutterAppDelegate {
     // Setup native method channel
     setupMethodHandler(controller: controller)
 
+    if CommandLine.arguments.contains(Self.smokeUITestFlag) {
+      showMainWindow()
+    }
+
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
+  }
+
+  private func showMainWindow() {
+    NSApp.setActivationPolicy(.regular)
+    NSApp.unhide(nil)
+    mainFlutterWindow?.deminiaturize(nil)
+    mainFlutterWindow?.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
   }
 
   public override func application(

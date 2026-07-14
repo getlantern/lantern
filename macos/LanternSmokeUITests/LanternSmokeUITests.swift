@@ -24,9 +24,15 @@ final class LanternSmokeUITests: XCTestCase {
     }
 
     let app = XCUIApplication(url: URL(fileURLWithPath: appPath))
+    app.launchArguments = ["--smoke-ui-test", "-ApplePersistenceIgnoreState", "YES"]
     app.launch()
     app.activate()
     defer { cleanUp(app) }
+
+    XCTAssertTrue(
+      app.windows.firstMatch.waitForExistence(timeout: 30),
+      "Lantern did not present its main window"
+    )
 
     let checkIP = ProcessInfo.processInfo.environment["ENABLE_IP_CHECK"] == "true"
     let baselineIP = checkIP ? try fetchPublicIPWithRetry(timeout: 30) : nil
