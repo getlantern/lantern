@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -16,6 +18,9 @@ class AppBuildInfo {
     'DISABLE_SYSTEM_TRAY',
     defaultValue: false,
   );
+
+  static bool get isSmokeUITest =>
+      Platform.environment['LANTERN_SMOKE_UI_TEST'] == 'true';
 
   static const String stealthMode = String.fromEnvironment(
     'STEALTH_MODE',

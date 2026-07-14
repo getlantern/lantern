@@ -25,6 +25,7 @@ final class LanternSmokeUITests: XCTestCase {
 
     let app = XCUIApplication(url: URL(fileURLWithPath: appPath))
     app.launchArguments = ["--smoke-ui-test", "-ApplePersistenceIgnoreState", "YES"]
+    app.launchEnvironment["LANTERN_SMOKE_UI_TEST"] = "true"
     app.launch()
     app.activate()
     defer { cleanUp(app) }
@@ -122,7 +123,13 @@ final class LanternSmokeUITests: XCTestCase {
   }
 
   private func element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
-    app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    let predicate = NSPredicate(
+      format: "identifier == %@ OR label == %@ OR label BEGINSWITH %@",
+      identifier,
+      identifier,
+      identifier
+    )
+    return app.descendants(matching: .any).matching(predicate).firstMatch
   }
 
   private func waitForIdentifier(

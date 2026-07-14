@@ -24,13 +24,14 @@ class VpnStatus extends HookConsumerWidget {
       systemExtensionStatus = ref.watch(macosExtensionProvider);
     }
 
+    final statusIdentifier = 'vpn.status.${vpnStatus.name}';
     return Semantics(
-      identifier: 'vpn.status.${vpnStatus.name}',
-      label: 'VPN status',
+      identifier: statusIdentifier,
+      label: AppBuildInfo.isSmokeUITest ? statusIdentifier : 'VPN status',
       value: statusValue,
       container: true,
       child: SettingTile(
-        key: Key('vpn.status.${vpnStatus.name}'),
+        key: Key(statusIdentifier),
         label: 'vpn_status'.i18n,
         value: statusValue,
         icon: AppImagePaths.glob,

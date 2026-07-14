@@ -118,6 +118,9 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               ),
               Semantics(
                 identifier: 'onboarding.primary',
+                label: AppBuildInfo.isSmokeUITest
+                    ? 'onboarding.primary'
+                    : null,
                 button: true,
                 child: PrimaryButton(
                   key: const Key('onboarding.primary'),
@@ -141,6 +144,9 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                 SizedBox(height: 12.0),
                 Semantics(
                   identifier: 'onboarding.skip',
+                  label: AppBuildInfo.isSmokeUITest
+                      ? 'onboarding.skip'
+                      : null,
                   button: true,
                   child: AppTextButton(
                     key: const Key('onboarding.skip'),

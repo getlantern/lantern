@@ -25,7 +25,7 @@ class VPNSwitch extends HookConsumerWidget {
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     return Semantics(
       identifier: 'vpn.toggle',
-      label: 'VPN toggle',
+      label: AppBuildInfo.isSmokeUITest ? 'vpn.toggle' : 'VPN toggle',
       button: true,
       child: CustomAnimatedToggleSwitch<bool>(
         current: isVPNOn,
