@@ -3,7 +3,6 @@ import Liblantern
 import OSLog
 import app_links
 
-@main
 class AppDelegate: FlutterAppDelegate {
 
   private let systemExtensionManager = SystemExtensionManager.shared
@@ -37,14 +36,13 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
+    FilePath.setupFileSystem()
+
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
 
     registerEventHandlers(controller: controller)
-
-    // Initialize directories and working paths
-    FilePath.setupFileSystem()
 
     setupRadiance()
 

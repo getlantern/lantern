@@ -2,7 +2,7 @@ module github.com/getlantern/lantern
 
 go 1.26.2
 
-//replace github.com/getlantern/radiance => ../radiance
+// replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -25,7 +25,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260713105203-0c80efbadf8e
+	github.com/getlantern/radiance v0.0.0-20260713183736-b48373539f5e
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
@@ -166,7 +166,7 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/broflake v0.0.0-20260612203837-c4d1516de8dc // indirect
-	github.com/getlantern/common v1.2.1-0.20260705172801-57aaafd97c1b // indirect
+	github.com/getlantern/common v1.2.1-0.20260707190506-5d90dcb22437 // indirect
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
 	github.com/getlantern/domainfront v0.0.0-20260625001429-518c0256669b // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
