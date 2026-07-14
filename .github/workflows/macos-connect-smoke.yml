@@ -47,9 +47,6 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, lantern-macos-smoke]
     timeout-minutes: 40
     env:
-      ARTIFACT_DIR: ${{ runner.temp }}/macos-smoke-artifacts
-      APP_ARTIFACT_DIR: ${{ runner.temp }}/lantern-macos-app
-      DMG_ARTIFACT_DIR: ${{ runner.temp }}/lantern-installer-dmg
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
       ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
@@ -69,13 +66,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.app_artifact_name }}
-          path: ${{ env.APP_ARTIFACT_DIR }}
+          path: ${{ runner.temp }}/lantern-macos-app
 
       - name: Download macOS DMG artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.dmg_artifact_name }}
-          path: ${{ env.DMG_ARTIFACT_DIR }}
+          path: ${{ runner.temp }}/lantern-installer-dmg
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -136,6 +133,10 @@ jobs:
       - name: macOS connect smoke suite
         timeout-minutes: 30
         shell: bash
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/macos-smoke-artifacts
+          APP_ARTIFACT_DIR: ${{ runner.temp }}/lantern-macos-app
+          DMG_ARTIFACT_DIR: ${{ runner.temp }}/lantern-installer-dmg
         run: ./.github/scripts/macos_smoke_suite.sh
 
       - name: Upload macOS smoke diagnostics
@@ -143,6 +144,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-smoke-diagnostics
-          path: ${{ env.ARTIFACT_DIR }}
+          path: ${{ runner.temp }}/macos-smoke-artifacts
           if-no-files-found: ignore
           retention-days: 2
