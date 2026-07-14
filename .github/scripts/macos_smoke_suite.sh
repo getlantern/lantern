@@ -268,7 +268,20 @@ run_xcui_connect_smoke() {
   local app_path="$1"
   local derived_data="${RUNNER_TEMP:-$ARTIFACT_DIR}/lantern-smoke-derived-data"
   local result_bundle="$ARTIFACT_DIR/LanternSmoke.xcresult"
-  local automation_status
+  local automation_status console_state developer_mode_status
+
+  console_state="$(ioreg -n Root -d1)"
+  if [[ "$console_state" == *'"CGSSessionScreenIsLocked"=Yes'* ]]; then
+    printf 'The macOS runner console is locked. Log in to the lantern desktop session before running XCUITest.\n' >&2
+    return 1
+  fi
+
+  developer_mode_status="$(DevToolsSecurity -status 2>&1)"
+  if [[ "$developer_mode_status" != *"enabled"* ]]; then
+    printf '%s\n' "$developer_mode_status" >&2
+    printf 'Enable Developer Tools access on this runner with DevToolsSecurity -enable.\n' >&2
+    return 1
+  fi
 
   if ! command -v automationmodetool >/dev/null 2>&1; then
     printf 'automationmodetool is unavailable on this CI Mac.\n' >&2
@@ -284,7 +297,7 @@ run_xcui_connect_smoke() {
   rm -rf "$derived_data" "$result_bundle"
   log_step "Running macOS connect smoke against $app_path"
   LANTERN_APP_PATH="$app_path" ENABLE_IP_CHECK="$ENABLE_IP_CHECK" \
-    xcodebuild test \
+    caffeinate -dimsu xcodebuild test \
       -project macos/LanternSmokeUITests/LanternSmokeUITests.xcodeproj \
       -scheme LanternSmokeUITests \
       -destination "platform=macOS" \
