@@ -81,7 +81,9 @@ jobs:
           set -euo pipefail
           VERSION="$(./scripts/ci/version.sh generate nightly)"
           BASE_VERSION="$(./scripts/ci/version.sh extract "$VERSION")"
-          FULL_VERSION="${BASE_VERSION}+${GITHUB_RUN_NUMBER}"
+          # Reruns rebuild the signed extension, so they need a new CFBundleVersion too.
+          BUILD_NUMBER=$((GITHUB_RUN_NUMBER * 1000 + GITHUB_RUN_ATTEMPT))
+          FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
           INSTALLER_BASE_NAME="lantern-smoke-test"
 
           sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml

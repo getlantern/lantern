@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,6 +16,15 @@ const _enableIpCheck = bool.fromEnvironment(
   'ENABLE_IP_CHECK',
   defaultValue: false,
 );
+
+const _extensionReadyTimeout = Duration(
+  seconds: int.fromEnvironment(
+    'SMOKE_EXTENSION_TIMEOUT_SECONDS',
+    defaultValue: 120,
+  ),
+);
+
+const _triggerRetryCooldown = Duration(seconds: 15);
 
 const _extensionBlockingStatuses = <SystemExtensionStatus>{
   SystemExtensionStatus.requiresApproval,
@@ -53,7 +64,8 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
     finders.onboardingScreen,
   ]);
   var state = container.read(macosExtensionProvider);
-  final end = DateTime.now().add(const Duration(seconds: 45));
+  final end = DateTime.now().add(_extensionReadyTimeout);
+  var lastTriggerAttempt = DateTime.fromMillisecondsSinceEpoch(0);
 
   while (DateTime.now().isBefore(end)) {
     if (state.isReady) {
@@ -63,6 +75,23 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
 
     if (_extensionBlockingStatuses.contains(state.status)) {
       fail(_systemExtensionDebugMessage(tester, state));
+    }
+
+    // Normally activation only happens when the user taps through
+    // MacOSExtensionDialog, so nothing kicks this off on its own. Trigger it
+    // ourselves instead of just sitting here waiting.
+    if (DateTime.now().difference(lastTriggerAttempt) >=
+        _triggerRetryCooldown) {
+      debugPrint(
+        'macOS smoke: triggering system extension installation '
+        '(status: ${state.status.name})',
+      );
+      lastTriggerAttempt = DateTime.now();
+      unawaited(
+        container
+            .read(macosExtensionProvider.notifier)
+            .triggerSystemExtensionInstallation(),
+      );
     }
 
     await tester.pump(const Duration(milliseconds: 300));

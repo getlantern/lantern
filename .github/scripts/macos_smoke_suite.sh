@@ -231,6 +231,15 @@ wait_for_packet_tunnel_exit() {
   return 1
 }
 
+check_gui_session_ready() {
+  local console_state
+  console_state="$(ioreg -n Root -d1)"
+  if [[ "$console_state" == *'"CGSSessionScreenIsLocked"=Yes'* ]]; then
+    printf 'The macOS runner console is locked. Log in to the lantern desktop session before running this smoke test.\n' >&2
+    return 1
+  fi
+}
+
 run_system_extension_preflight() {
   local app_executable="$1"
   local output="$ARTIFACT_DIR/system-extension-preflight.jsonl"
@@ -274,6 +283,7 @@ run_flutter_connect_smoke() {
     "macos"
     "--reporter=expanded"
     "--dart-define=DISABLE_SYSTEM_TRAY=true"
+    "--dart-define=SMOKE_EXTENSION_TIMEOUT_SECONDS=$EXTENSION_TIMEOUT_SECONDS"
   )
 
   if [[ "$ENABLE_IP_CHECK" == "true" ]]; then
@@ -285,7 +295,7 @@ run_flutter_connect_smoke() {
   fi
 
   log_step "Running macOS connect smoke: flutter ${args[*]}"
-  flutter "${args[@]}"
+  caffeinate -dimsu flutter "${args[@]}"
 }
 
 on_exit() {
@@ -314,6 +324,7 @@ if [[ ! -x "$app_executable" ]]; then
 fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  check_gui_session_ready
   run_system_extension_preflight "$app_executable"
   run_flutter_connect_smoke
 else
