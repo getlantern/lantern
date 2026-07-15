@@ -69,6 +69,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Prevent runner idle lock during the build
+        if: ${{ inputs.runner_label == 'lantern-macos-smoke' }}
+        shell: bash
+        run: |
+          nohup caffeinate -disu -t 3600 >/dev/null 2>&1 &
+          disown
+
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
