@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.R
@@ -28,8 +29,6 @@ class NotificationHelper {
         private const val CHANNEL_DATA_USAGE = "data_usage"
         const val OPEN_URL = "SERVICE_OPEN_URL"
 
-        private const val VPN_DESC = "VPN"
-        private const val DATA_USAGE_DESC = "Data Usage"
         var notificationManager = LanternApp.application.getSystemService<NotificationManager>()!!
         val flags =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
@@ -45,6 +44,7 @@ class NotificationHelper {
 
     private lateinit var dataUsageNotificationChannel: NotificationChannel
     private lateinit var vpnNotificationChannel: NotificationChannel
+    private val notificationSmallIconId: Int by lazy { resolveNotificationSmallIcon() }
 
 
     init {
@@ -59,14 +59,14 @@ class NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vpnNotificationChannel = NotificationChannel(
                 CHANNEL_VPN,
-                VPN_DESC,
+                BuildConfig.NOTIFICATION_CHANNEL_VPN,
                 NotificationManager.IMPORTANCE_HIGH,
             )
             notificationManager.createNotificationChannel(vpnNotificationChannel)
 
             dataUsageNotificationChannel = NotificationChannel(
                 CHANNEL_DATA_USAGE,
-                DATA_USAGE_DESC,
+                BuildConfig.NOTIFICATION_CHANNEL_DATA_USAGE,
                 NotificationManager.IMPORTANCE_HIGH,
             )
             notificationManager.createNotificationChannel(dataUsageNotificationChannel)
@@ -96,14 +96,14 @@ class NotificationHelper {
         return NotificationCompat.Builder(LanternApp.application, CHANNEL_VPN)
             .setShowWhen(false)
             .setOngoing(true)
-            .setContentTitle("Lantern")
-            .setContentText("Lantern VPN is running")
+            .setContentTitle(BuildConfig.NOTIFICATION_TITLE)
+            .setContentText(BuildConfig.NOTIFICATION_CONNECTED_TEXT)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setSmallIcon(notificationSmallIconId)
             .addAction(
                 NotificationCompat.Action.Builder(
                     android.R.drawable.ic_menu_close_clear_cancel,
-                    "Disconnect",
+                    BuildConfig.NOTIFICATION_DISCONNECT_ACTION,
                     disconnectVPN()
                 ).build()
             )
@@ -123,10 +123,10 @@ class NotificationHelper {
         return NotificationCompat.Builder(LanternApp.application, CHANNEL_VPN)
             .setShowWhen(false)
             .setOngoing(true)
-            .setContentTitle("Lantern")
-            .setContentText("Starting Lantern VPN...")
+            .setContentTitle(BuildConfig.NOTIFICATION_TITLE)
+            .setContentText(BuildConfig.NOTIFICATION_STARTING_TEXT)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setSmallIcon(notificationSmallIconId)
             .setContentIntent(contentIntent)
             .setSilent(true)
             .build()
@@ -209,7 +209,7 @@ class NotificationHelper {
             .setContentTitle(notification.title)
             .setContentText(notification.body)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setSmallIcon(notificationSmallIconId)
             .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -234,4 +234,25 @@ class NotificationHelper {
         notificationManager.notify(notification.typeID, builder.build())
     }
 
+    private fun resolveNotificationSmallIcon(): Int {
+        val configured = BuildConfig.NOTIFICATION_SMALL_ICON.removePrefix("@")
+        val parts = configured.split("/", limit = 2)
+        if (parts.size == 2) {
+            val resolved = LanternApp.application.resources.getIdentifier(
+                parts[1],
+                parts[0],
+                LanternApp.application.packageName,
+            )
+            if (resolved != 0) {
+                return resolved
+            }
+        }
+        // Stealth builds must never fall back to the branded icon, even when
+        // the configured resource fails to resolve.
+        return if (BuildConfig.STEALTH_ENABLED) {
+            R.drawable.neutral_notification_icon
+        } else {
+            R.drawable.lantern_notification_icon
+        }
+    }
 }
