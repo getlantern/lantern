@@ -268,11 +268,17 @@ run_xcui_connect_smoke() {
   local app_path="$1"
   local derived_data="${RUNNER_TEMP:-$ARTIFACT_DIR}/lantern-smoke-derived-data"
   local result_bundle="$ARTIFACT_DIR/LanternSmoke.xcresult"
-  local automation_status console_state developer_mode_status
+  local automation_status console_user developer_mode_status
 
-  console_state="$(ioreg -n Root -d1)"
-  if [[ "$console_state" == *'"CGSSessionScreenIsLocked"=Yes'* ]]; then
-    printf 'The macOS runner console is locked. Log in to the lantern desktop session before running XCUITest.\n' >&2
+  console_user="$(stat -f '%Su' /dev/console)"
+  if [[ "$console_user" != "$(id -un)" ]]; then
+    printf 'The macOS runner has no active desktop session for %s. Current console user: %s.\n' \
+      "$(id -un)" "$console_user" >&2
+    return 1
+  fi
+
+  if ! launchctl print "gui/$(id -u)" >/dev/null 2>&1; then
+    printf 'The macOS runner has no Aqua session for %s.\n' "$console_user" >&2
     return 1
   fi
 

@@ -59,6 +59,14 @@ jobs:
       VERSION: ${{ inputs.version }}
     runs-on: ${{ inputs.runner_label }}
     steps:
+      - name: Keep macOS smoke runner awake
+        if: ${{ inputs.run_connect_smoke }}
+        shell: bash
+        run: |
+          env -u RUNNER_TRACKING_ID nohup caffeinate -dimsu -t 7200 \
+            >"$RUNNER_TEMP/macos-smoke-caffeinate.log" 2>&1 &
+          echo "$!" >"$RUNNER_TEMP/macos-smoke-caffeinate.pid"
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -260,6 +268,14 @@ jobs:
         shell: bash
         run: |
           security delete-keychain signing_temp.keychain 2>/dev/null || true
+
+      - name: Stop macOS smoke keep-awake
+        if: ${{ always() && inputs.run_connect_smoke }}
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/macos-smoke-caffeinate.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/macos-smoke-caffeinate.pid")" 2>/dev/null || true
+          fi
 
       - name: Remove provisioning profiles
         if: ${{ always() && inputs.runner_label == 'lantern-macos-smoke' }}
