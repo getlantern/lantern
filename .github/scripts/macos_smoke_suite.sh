@@ -282,6 +282,12 @@ run_xcui_connect_smoke() {
     return 1
   fi
 
+  if ioreg -n Root -d1 | grep -Eq '"CGSSessionScreenIsLocked"[[:space:]]*=[[:space:]]*Yes'; then
+    printf 'The macOS runner console is locked. Log in to the %s desktop session before running XCUITest.\n' \
+      "$console_user" >&2
+    return 1
+  fi
+
   developer_mode_status="$(DevToolsSecurity -status 2>&1)"
   if [[ "$developer_mode_status" != *"enabled"* ]]; then
     printf '%s\n' "$developer_mode_status" >&2
