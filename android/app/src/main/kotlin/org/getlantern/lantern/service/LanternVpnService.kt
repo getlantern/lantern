@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import lantern.io.libbox.Notification
@@ -86,6 +88,7 @@ class LanternVpnService :
         }
 
         private val radianceState = MutableStateFlow<RadianceState>(RadianceState.Initializing)
+        private val radianceSetupMutex = Mutex()
 
         suspend fun awaitRadianceReady() {
             if (Mobile.isRadianceConnected()) return
@@ -333,15 +336,22 @@ class LanternVpnService :
         }
     }
 
-    private fun setupRadiance() {
-        radianceState.value = RadianceState.Initializing
-        try {
-            Mobile.startIPCServer(this@LanternVpnService, opts())
-            Mobile.setupRadiance(opts(), flutterEventListener)
-            radianceState.value = RadianceState.Ready
-        } catch (e: Exception) {
-            radianceState.value = RadianceState.Failed(e)
-            throw e
+    private suspend fun setupRadiance() {
+        radianceSetupMutex.withLock {
+            if (Mobile.isRadianceConnected()) {
+                radianceState.value = RadianceState.Ready
+                return@withLock
+            }
+
+            radianceState.value = RadianceState.Initializing
+            try {
+                Mobile.startIPCServer(this@LanternVpnService, opts())
+                Mobile.setupRadiance(opts(), flutterEventListener)
+                radianceState.value = RadianceState.Ready
+            } catch (e: Exception) {
+                radianceState.value = RadianceState.Failed(e)
+                throw e
+            }
         }
     }
 
