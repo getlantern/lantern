@@ -16,21 +16,51 @@ class HomeNotifier extends _$HomeNotifier {
   @override
   Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
-    /// If yes, load it first to avoid delay in UI
-    final result = await ref.read(lanternServiceProvider).getUserData();
-    return result.fold(
-      (failure) {
-        appLogger.error(
-          'Error getting user data: ${failure.error}',
-        );
-        throw Exception('Failed to get user data');
-      },
-      (userData) {
+    /// If yes, load it first to avoid delay in UI.
+    ///
+    /// On a cold start the Go core (radiance) is initialized asynchronously and
+    /// may not be ready when this provider first builds. In that window
+    /// getUserData fails with "radiance not initialized"; throwing immediately
+    /// would leave the app looking logged-out and force a manual re-login on
+    /// every launch — worst on high-latency/censored networks where init is
+    /// slow. Retry a bounded number of times so the persisted session is
+    /// restored once the core comes up, instead of failing permanently.
+    Failure? lastFailure;
+    for (var attempt = 0; attempt < _userDataMaxAttempts; attempt++) {
+      final result = await ref.read(lanternServiceProvider).getUserData();
+      final userData = result.fold<UserResponseModel?>(
+        (failure) {
+          lastFailure = failure;
+          return null;
+        },
+        (userData) => userData,
+      );
+      if (userData != null) {
         appLogger.debug('Got the userdata: ${userData.toJson()}');
         _applyUserData(userData);
         return userData;
-      },
-    );
+      }
+      // Only the core-not-ready race is worth waiting on; any other failure is
+      // surfaced immediately with the original behaviour.
+      if (!_isCoreNotReady(lastFailure!)) break;
+      appLogger.info(
+        'User data not available yet (core initializing); '
+        'retrying (${attempt + 1}/$_userDataMaxAttempts)',
+      );
+      await Future<void>.delayed(_userDataRetryDelay);
+    }
+    appLogger.error('Error getting user data: ${lastFailure?.error}');
+    throw Exception('Failed to get user data');
+  }
+
+  static const _userDataMaxAttempts = 10;
+  static const _userDataRetryDelay = Duration(milliseconds: 500);
+
+  /// True when a getUserData failure is the transient "core not initialized"
+  /// startup race rather than a genuine, persistent error.
+  bool _isCoreNotReady(Failure failure) {
+    final err = failure.error.toLowerCase();
+    return err.contains('not initialized') || err.contains('not ready');
   }
 
   /// Fetches the latest user data from the server
