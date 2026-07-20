@@ -94,6 +94,10 @@ class LanternPlatformService implements LanternCoreService {
     return _appEventStatus;
   }
 
+  Future<void> waitForRadiance() async {
+    await _methodChannel.invokeMethod<void>('waitForRadiance');
+  }
+
   @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {

@@ -15,6 +15,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -76,6 +78,13 @@ class LanternVpnService :
         // new connect attempts while a previous one is still in flight. The
         // flag clears when the orphan's coroutine actually completes.
         private val connectInFlight = AtomicBoolean(false)
+
+        private val radianceReady = MutableStateFlow(false)
+
+        suspend fun awaitRadianceReady() {
+            if (Mobile.isRadianceConnected()) return
+            radianceReady.first { it }
+        }
 
         lateinit var instance: LanternVpnService
 
@@ -306,6 +315,7 @@ class LanternVpnService :
             withContext(Dispatchers.IO) {
                 Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
+                radianceReady.value = true
             }
             AppLogger.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
@@ -356,6 +366,7 @@ class LanternVpnService :
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
                 Mobile.startIPCServer(this@LanternVpnService, opts())
                 Mobile.setupRadiance(opts(), flutterEventListener)
+                radianceReady.value = true
             }
             resetVpnAfterAppUpgradeIfNeeded()
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }

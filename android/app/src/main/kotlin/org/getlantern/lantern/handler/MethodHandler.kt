@@ -23,6 +23,7 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
@@ -66,6 +67,7 @@ enum class Methods(val method: String) {
     //User data
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
+    WaitForRadiance("waitForRadiance"),
 
     //Login
     Login("login"),
@@ -593,6 +595,12 @@ class MethodHandler : FlutterPlugin,
                             e
                         )
                     }
+                }
+            }
+
+            Methods.WaitForRadiance.method -> {
+                scope.handleResult(result, "wait_for_radiance") {
+                    LanternVpnService.awaitRadianceReady()
                 }
             }
 
