@@ -231,13 +231,38 @@ wait_for_packet_tunnel_exit() {
   return 1
 }
 
+run_with_timeout() {
+  local timeout_seconds="$1"
+  shift
+
+  "$@" &
+  local command_pid=$!
+  local deadline=$((SECONDS + timeout_seconds))
+
+  while kill -0 "$command_pid" 2>/dev/null; do
+    if ((SECONDS >= deadline)); then
+      kill -TERM "$command_pid" 2>/dev/null || true
+      sleep 2
+      kill -KILL "$command_pid" 2>/dev/null || true
+      wait "$command_pid" 2>/dev/null || true
+      return 124
+    fi
+    sleep 1
+  done
+
+  local exit_code=0
+  wait "$command_pid" || exit_code=$?
+  return "$exit_code"
+}
+
 run_system_extension_preflight() {
   local app_executable="$1"
   local output="$ARTIFACT_DIR/system-extension-preflight.jsonl"
+  local process_timeout=$((EXTENSION_TIMEOUT_SECONDS + 10))
 
   log_step "Running macOS system extension preflight"
   set +e
-  "$app_executable" \
+  run_with_timeout "$process_timeout" "$app_executable" \
     --smoke-activate-system-extension \
     --timeout-seconds "$EXTENSION_TIMEOUT_SECONDS" \
     >"$output" 2>&1
