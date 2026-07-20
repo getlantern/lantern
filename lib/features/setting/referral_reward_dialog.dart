@@ -1,0 +1,130 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:share_plus/share_plus.dart';
+
+bool _rewardDialogVisible = false;
+
+/// Shows the "A friend upgraded to Pro" dialog when the user's data contains
+/// converted referrals they haven't been congratulated for yet. Each converted
+/// referral triggers the dialog exactly once; seen referrals are persisted in
+/// local storage so the dialog never repeats.
+Future<void> checkAndShowReferralReward(
+  BuildContext context,
+  UserResponseModel user,
+) async {
+  if (_rewardDialogVisible) return;
+
+  final converted = user.legacyUserData.referrals
+      .where((r) => r.converted)
+      .toList();
+  if (converted.isEmpty) return;
+
+  final storage = sl<LocalStorageService>();
+  final seen = storage.getSeenConvertedReferrals().toSet();
+  final unseen = converted.where((r) => !seen.contains(r.userId)).toList();
+  if (unseen.isEmpty) return;
+
+  // Mark as seen before showing so the dialog can't repeat.
+  await storage.saveSeenConvertedReferrals(
+    converted.map((r) => r.userId).toList(),
+  );
+
+  final newDays = unseen.fold<int>(0, (total, r) => total + r.bonusDaysEarned);
+  final newMonths = max(1, newDays ~/ 30);
+  final totalMonths = max(newMonths, user.legacyUserData.referralBonusMonths);
+
+  if (!context.mounted) return;
+  _rewardDialogVisible = true;
+  _showReferralRewardDialog(
+    context: context,
+    newMonths: newMonths,
+    totalMonths: totalMonths,
+    referralCode: user.legacyUserData.referral.toUpperCase(),
+  );
+}
+
+void _showReferralRewardDialog({
+  required BuildContext context,
+  required int newMonths,
+  required int totalMonths,
+  required String referralCode,
+}) {
+  final theme = Theme.of(context).textTheme;
+  AppDialog.customDialog(
+    context: context,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        SizedBox(height: defaultSize),
+        Icon(Icons.redeem, size: 40, color: context.textPrimary),
+        SizedBox(height: defaultSize),
+        Text(
+          'referral_converted_title'.i18n,
+          textAlign: TextAlign.center,
+          style: theme.headlineSmall,
+        ),
+        SizedBox(height: defaultSize),
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: theme.bodyMedium!.copyWith(color: context.textSecondary),
+            children: _messageSpans(context, newMonths, totalMonths),
+          ),
+        ),
+      ],
+    ),
+    action: [
+      AppTextButton(
+        label: 'done'.i18n,
+        textColor: context.textSecondary,
+        onPressed: () {
+          _rewardDialogVisible = false;
+          appRouter.pop();
+        },
+      ),
+      AppTextButton(
+        label: 'share_referral_code'.i18n,
+        onPressed: () {
+          _rewardDialogVisible = false;
+          appRouter.pop();
+          SharePlus.instance.share(
+            ShareParams(
+              text: 'share_message_referral_code'.i18n.fill([referralCode]),
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
+
+String _monthsLabel(int months) => months == 1
+    ? 'month_count'.i18n.fill([months])
+    : 'months_count'.i18n.fill([months]);
+
+List<TextSpan> _messageSpans(
+  BuildContext context,
+  int newMonths,
+  int totalMonths,
+) {
+  final parts = 'referral_converted_message'.i18n.split('%s');
+  final values = [_monthsLabel(newMonths), _monthsLabel(totalMonths)];
+  final boldStyle = AppTextStyles.bodyMediumBold.copyWith(
+    color: context.textPrimary,
+  );
+  final spans = <TextSpan>[];
+  for (var i = 0; i < parts.length; i++) {
+    spans.add(TextSpan(text: parts[i]));
+    if (i < values.length && i < parts.length - 1) {
+      spans.add(TextSpan(text: values[i], style: boldStyle));
+    }
+  }
+  return spans;
+}

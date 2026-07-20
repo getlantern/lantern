@@ -60,6 +60,24 @@ msgstr "When a friend upgrades to Lantern Pro using your referral code, you both
 msgid "months_earned"
 msgstr "%s months earned"
 
+msgid "includes_free_months_from_referrals"
+msgstr "Includes %s free months from referrals"
+
+msgid "referral_converted_title"
+msgstr "A friend upgraded to Pro"
+
+msgid "referral_converted_message"
+msgstr "You both earned %s of Lantern Pro, free. You've earned %s so far. Keep sharing your code to earn more."
+
+msgid "month_count"
+msgstr "%s month"
+
+msgid "months_count"
+msgstr "%s months"
+
+msgid "done"
+msgstr "Done"
+
 msgid "view_account"
 msgstr "View Account"
 

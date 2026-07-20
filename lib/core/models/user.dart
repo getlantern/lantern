@@ -79,6 +79,34 @@ class DeviceModel {
   }
 }
 
+class ReferralModel {
+  final String userId;
+  final bool converted;
+  final int convertedAt;
+  final int bonusDaysEarned;
+
+  const ReferralModel({
+    this.userId = '',
+    this.converted = false,
+    this.convertedAt = 0,
+    this.bonusDaysEarned = 0,
+  });
+
+  factory ReferralModel.fromJson(Map<String, dynamic> json) => ReferralModel(
+    userId: (json['userId'] ?? '').toString(),
+    converted: json['converted'] ?? false,
+    convertedAt: (json['convertedAt'] as num?)?.toInt() ?? 0,
+    bonusDaysEarned: (json['bonusDaysEarned'] as num?)?.toInt() ?? 0,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'userId': userId,
+    'converted': converted,
+    'convertedAt': convertedAt,
+    'bonusDaysEarned': bonusDaysEarned,
+  };
+}
+
 class UserDataModel {
   final int userId;
   final String code;
@@ -98,6 +126,7 @@ class UserDataModel {
   final String inviters;
   final String invitees;
   final List<DeviceModel> devices;
+  final List<ReferralModel> referrals;
   final String purchases;
   final SubscriptionDataModel subscriptionData;
   final String deviceID;
@@ -127,6 +156,7 @@ class UserDataModel {
     this.unpassRegistered = false,
     this.lastExpiredOn = 0,
     this.devices = const [],
+    this.referrals = const [],
     this.subscriptionData = const SubscriptionDataModel(),
   });
 
@@ -155,6 +185,10 @@ class UserDataModel {
     devices: ((json['devices'] as List?) ?? const [])
         .map((m) => DeviceModel.fromJson(Map<String, dynamic>.from(m)))
         .toList(),
+    referrals: ((json['referrals'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((m) => ReferralModel.fromJson(Map<String, dynamic>.from(m)))
+        .toList(),
     subscriptionData: json['subscriptionData'] is Map
         ? SubscriptionDataModel.fromJson(
             Map<String, dynamic>.from(json['subscriptionData'] as Map),
@@ -181,6 +215,7 @@ class UserDataModel {
     'inviters': inviters,
     'invitees': invitees,
     'devices': devices.map((d) => d.toJson()).toList(),
+    'referrals': referrals.map((r) => r.toJson()).toList(),
     'purchases': purchases,
     'subscriptionData': subscriptionData.toJson(),
     'deviceID': deviceID,
