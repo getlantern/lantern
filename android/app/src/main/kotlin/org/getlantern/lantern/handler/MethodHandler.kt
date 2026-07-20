@@ -599,8 +599,9 @@ class MethodHandler : FlutterPlugin,
             }
 
             Methods.WaitForRadiance.method -> {
-                scope.handleResult(result, "wait_for_radiance") {
+                scope.handleValue<Any?>(result, "wait_for_radiance") {
                     LanternVpnService.awaitRadianceReady()
+                    null
                 }
             }
 

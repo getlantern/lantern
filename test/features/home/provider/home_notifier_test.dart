@@ -21,10 +21,16 @@ const _user = UserResponseModel(
 
 class _FakeLanternService implements LanternService {
   final ready = Completer<void>();
+  final waitStarted = Completer<void>();
+  int waitForRadianceCalls = 0;
   int getUserDataCalls = 0;
 
   @override
-  Future<void> waitForRadiance() => ready.future;
+  Future<void> waitForRadiance() {
+    waitForRadianceCalls += 1;
+    waitStarted.complete();
+    return ready.future;
+  }
 
   @override
   Future<Either<Failure, UserResponseModel>> getUserData() async {
@@ -50,8 +56,9 @@ void main() {
     addTearDown(container.dispose);
 
     final user = container.read(homeProvider.future);
-    await Future<void>.delayed(Duration.zero);
+    await service.waitStarted.future;
 
+    expect(service.waitForRadianceCalls, 1);
     expect(service.getUserDataCalls, 0);
 
     service.ready.complete();

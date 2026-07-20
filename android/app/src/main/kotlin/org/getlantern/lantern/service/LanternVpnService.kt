@@ -79,11 +79,23 @@ class LanternVpnService :
         // flag clears when the orphan's coroutine actually completes.
         private val connectInFlight = AtomicBoolean(false)
 
-        private val radianceReady = MutableStateFlow(false)
+        private sealed class RadianceState {
+            data object Initializing : RadianceState()
+            data object Ready : RadianceState()
+            data class Failed(val cause: Throwable) : RadianceState()
+        }
+
+        private val radianceState = MutableStateFlow<RadianceState>(RadianceState.Initializing)
 
         suspend fun awaitRadianceReady() {
             if (Mobile.isRadianceConnected()) return
-            radianceReady.first { it }
+            when (val state = radianceState.first { it !is RadianceState.Initializing }) {
+                RadianceState.Ready -> check(Mobile.isRadianceConnected()) {
+                    "Radiance setup completed but the core is unavailable"
+                }
+                is RadianceState.Failed -> throw state.cause
+                RadianceState.Initializing -> error("Radiance is still initializing")
+            }
         }
 
         lateinit var instance: LanternVpnService
@@ -313,13 +325,23 @@ class LanternVpnService :
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                Mobile.startIPCServer(this@LanternVpnService, opts())
-                Mobile.setupRadiance(opts(), flutterEventListener)
-                radianceReady.value = true
+                setupRadiance()
             }
             AppLogger.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error in Radiance setup", e)
+        }
+    }
+
+    private fun setupRadiance() {
+        radianceState.value = RadianceState.Initializing
+        try {
+            Mobile.startIPCServer(this@LanternVpnService, opts())
+            Mobile.setupRadiance(opts(), flutterEventListener)
+            radianceState.value = RadianceState.Ready
+        } catch (e: Exception) {
+            radianceState.value = RadianceState.Failed(e)
+            throw e
         }
     }
 
@@ -364,9 +386,7 @@ class LanternVpnService :
             // to finish before we attempt to start the VPN tunnel.
             if (!Mobile.isRadianceConnected()) {
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
-                Mobile.startIPCServer(this@LanternVpnService, opts())
-                Mobile.setupRadiance(opts(), flutterEventListener)
-                radianceReady.value = true
+                setupRadiance()
             }
             resetVpnAfterAppUpgradeIfNeeded()
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
