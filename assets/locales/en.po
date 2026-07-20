@@ -54,6 +54,30 @@ msgstr "Share your referral code with a friend. When they purchase Lantern Pro, 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
 
+msgid "invite_friends_description"
+msgstr "When a friend upgrades to Lantern Pro using your referral code, you both get 1 month free."
+
+msgid "months_earned"
+msgstr "%s months earned"
+
+msgid "view_account"
+msgstr "View Account"
+
+msgid "show_download_links"
+msgstr "Show download links"
+
+msgid "get_lantern"
+msgstr "Get Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Send your friend this download link:"
+
+msgid "scan_to_install"
+msgstr "Scan with your camera app to install Lantern"
+
+msgid "remind_use_code"
+msgstr "Remind them to use code %s when they upgrade!"
+
 msgid "unbounded"
 msgstr "Unbounded"
 
