@@ -75,6 +75,7 @@ type App interface {
 	UpdateConfig() error
 	ClearTunnelCache() error
 	ReferralAttachment(referralCode string) (bool, error)
+	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
@@ -120,17 +121,17 @@ type PrivateServer interface {
 }
 
 type Payment interface {
-	StripeSubscription(email, planID string) (string, error)
+	StripeSubscription(email, planID, couponCode string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error)
-	AcknowledgeApplePurchase(receipt, planII string) (string, error)
+	AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error)
+	AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error)
 	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
 	RestoreApplePurchase(receipt string) (string, error)
-	PaymentRedirect(provider, planID, email, idempotencyKey string) (string, error)
+	PaymentRedirect(provider, planID, email, idempotencyKey, couponCode string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
-	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error)
+	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error)
 }
 
 type SplitTunnel interface {
@@ -860,15 +861,29 @@ func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
 }
 
 func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
-	return lc.client.ReferralAttach(lc.ctx, referralCode)
+	// Empty channel selects the legacy v1 referral-attach API.
+	if _, err := lc.client.ReferralAttach(lc.ctx, referralCode, ""); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// ReferralAttachmentV2 attaches a referral code and returns the resulting
+// plans, providers, code, and discount marshalled as JSON.
+func (lc *LanternCore) ReferralAttachmentV2(referralCode, channel string) ([]byte, error) {
+	resp, err := lc.client.ReferralAttach(lc.ctx, referralCode, channel)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(resp)
 }
 
 /////////////////
 //  Payments   //
 /////////////////
 
-func (lc *LanternCore) StripeSubscription(email, planID string) (string, error) {
-	return lc.client.NewStripeSubscription(lc.ctx, email, planID)
+func (lc *LanternCore) StripeSubscription(email, planID, couponCode string) (string, error) {
+	return lc.client.NewStripeSubscription(lc.ctx, email, planID, couponCode)
 }
 
 func (lc *LanternCore) Plans(channel string) (string, error) {
@@ -879,18 +894,27 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return lc.client.StripeBillingPortalURL(lc.ctx)
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
+	// Affiliate/referral attribution: forward the applied code so the backend
+	// can credit the purchase to the affiliate. Google Play already applies the
+	// price discount via the offer SKU; this only carries attribution.
+	if couponCode != "" {
+		params["couponCode"] = couponCode
+	}
 	return lc.client.VerifySubscription(lc.ctx, account.GoogleService, params)
 }
 
-func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
+	}
+	if couponCode != "" {
+		params["couponCode"] = couponCode
 	}
 	return lc.client.VerifySubscription(lc.ctx, account.AppleService, params)
 }
@@ -931,7 +955,7 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.Payme
 	return lc.client.SubscriptionPaymentRedirectURL(lc.ctx, redirectBody)
 }
 
-func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey string) (string, error) {
+func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error) {
 	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
 	if err != nil {
 		return "", err
@@ -944,11 +968,12 @@ func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planI
 		Email:          email,
 		BillingType:    account.SubscriptionType(subscriptionType),
 		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
 	}
 	return lc.SubscriptionPaymentRedirectURL(redirectBody)
 }
 
-func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
 	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
 	if err != nil {
 		return "", err
@@ -960,6 +985,7 @@ func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey s
 		DeviceName:     deviceName,
 		Email:          email,
 		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
 	}
 	return lc.client.PaymentRedirect(lc.ctx, body)
 }

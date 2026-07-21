@@ -12,17 +12,18 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
-import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -635,12 +636,14 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) async {
     try {
       await sl<AppPurchase>().startSubscription(
         plan: planId,
         onSuccess: onSuccess,
         onError: onError,
+        couponCode: couponCode,
       );
       return Right(unit);
     } catch (e) {
@@ -654,6 +657,7 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     if (!PlatformUtils.isMacOS) {
       return left(
@@ -670,6 +674,7 @@ class LanternPlatformService implements LanternCoreService {
             "planId": planId,
             "email": email,
             "idempotencyKey": idempotencyKey,
+            "couponCode": couponCode,
           });
       if (redirectUrl == null || redirectUrl.isEmpty) {
         return Left(
@@ -693,11 +698,12 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) async {
     try {
       final subData = await _methodChannel.invokeMethod<String>(
         'stripeSubscription',
-        {"planId": planId, "email": email},
+        {"planId": planId, "email": email, "couponCode": couponCode},
       );
       final map = jsonDecode(subData!);
       return Right(map);
@@ -732,28 +738,7 @@ class LanternPlatformService implements LanternCoreService {
         channel,
       );
       final map = jsonDecode(subData!);
-      final plans = PlansData.fromJson(map);
-      //Sort plans
-      plans.plans.sort((a, b) {
-        if (a.bestValue != b.bestValue) {
-          return a.bestValue ? -1 : 1;
-        }
-        // Then: sort by usdPrice descending
-        return b.usdPrice.compareTo(a.usdPrice);
-      });
-
-      //Sort provider
-      if (PlatformUtils.isMobile) {
-        plans.providers.android.sort((a, b) {
-          return (b.providers.supportSubscription ? 1 : 0) -
-              (a.providers.supportSubscription ? 1 : 0);
-        });
-      } else {
-        plans.providers.desktop.sort((a, b) {
-          return (b.providers.supportSubscription ? 1 : 0) -
-              (a.providers.supportSubscription ? 1 : 0);
-        });
-      }
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);
@@ -772,6 +757,7 @@ class LanternPlatformService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
@@ -783,6 +769,7 @@ class LanternPlatformService implements LanternCoreService {
             'planId': planId,
             'email': email,
             'idempotencyKey': idempotencyKey,
+            'couponCode': couponCode,
           });
       if (redirectUrl == null || redirectUrl.isEmpty) {
         return Left(Exception('No payment redirect URL returned').toFailure());
@@ -819,15 +806,21 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) async {
     try {
       await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
         'purchaseToken': purchaseToken,
         'planId': planId,
+        'couponCode': couponCode,
       });
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      appLogger.error(
+        'Error acknowledging in-app purchase ${e.toString()} ',
+        e,
+        stackTrace,
+      );
       return Left(e.toFailure());
     }
   }
@@ -1543,6 +1536,24 @@ class LanternPlatformService implements LanternCoreService {
       return right(result!);
     } catch (e, stackTrace) {
       appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
+      final result = await _methodChannel.invokeMethod<String>(
+        'attachReferralCodeV2',
+        {'code': code, 'distributionChannel': distributionChannel},
+      );
+      final response = ReferralAttachV2Response.fromJson(jsonDecode(result!));
+      return right(response);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code v2', e, stackTrace);
       return Left(e.toFailure());
     }
   }

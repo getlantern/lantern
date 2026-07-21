@@ -83,6 +83,7 @@ enum class Methods(val method: String) {
     //Device
     RemoveDevice("removeDevice"),
     AttachReferralCode("attachReferralCode"),
+    AttachReferralCodeV2("attachReferralCodeV2"),
 
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
@@ -439,7 +440,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.stripeSubscription(
                             map["email"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
@@ -460,7 +462,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.acknowledgeGooglePurchase(
                             map["purchaseToken"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData.toByteArray(Charsets.UTF_8))
@@ -507,7 +510,8 @@ class MethodHandler : FlutterPlugin,
                             map["provider"] as String,
                             map["planId"] as String,
                             map["email"] as String,
-                            idempotencyKey
+                            idempotencyKey,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(url)
@@ -824,6 +828,27 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "AttachReferralCode",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AttachReferralCodeV2.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        val distributionChannel =
+                            call.argument<String>("distributionChannel") ?: ""
+                        val response =
+                            Mobile.referralAttachmentV2(code, distributionChannel)
+                        withContext(Dispatchers.Main) {
+                            success(response)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCodeV2",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
