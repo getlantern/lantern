@@ -186,7 +186,7 @@ class AppDialog {
           actionsAlignment: MainAxisAlignment.end,
           actionsOverflowAlignment: OverflowBarAlignment.end,
           // backgroundColor and shape come from dialogTheme in app_theme.dart
-          contentPadding: EdgeInsets.symmetric(horizontal: size24),
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding:
               actionPadding ??
               EdgeInsets.only(
@@ -195,7 +195,10 @@ class AppDialog {
                 left: defaultSize,
                 right: defaultSize,
               ),
-          content: content,
+          // AlertDialog sizes to the content's intrinsic width, which collapses
+          // this custom content. maxFinite makes it fill instead; the min/max
+          // width bounds come from dialogTheme (Material 280–560dp).
+          content: SizedBox(width: double.maxFinite, child: content),
           actions: action,
         );
       },

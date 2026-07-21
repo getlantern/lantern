@@ -1272,6 +1272,9 @@ msgstr  "Server alias cannot be empty"
 msgid "referral_code_applied"
 msgstr "Your referral code has been applied!"
 
+msgid "discount_applied"
+msgstr "%s discount applied"
+
 msgid "referral_message_1m"
 msgstr "+ 15 additional days free"
 
@@ -1282,7 +1285,7 @@ msgid "referral_message_2y"
 msgstr "+ 2 additional month free"
 
 msgid "referral_code_invalid"
-msgstr "The referral code you entered is invalid. Please check the code and try again."
+msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
 
 msgid "referral_code_own_invalid"
 msgstr "You cannot use your own referral code. Please enter a different code."
@@ -1471,7 +1474,7 @@ msgid "daily_data_cap_reached_message"
 msgstr "Speed reduced to 128 kb/sec - Resets at %s."
 
 msgid "subscription_renewal_info"
-msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in App Store Settings."
+msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Failed to update routing mode. Please try again."
@@ -1700,6 +1703,18 @@ msgstr "The VPN needs to be off before you can refresh your configuration. Turn 
 
 msgid "configuration_message"
 msgstr "Your old configuration has been cleared. Turn the VPN on to automatically download the latest."
+
+msgid "promo_referral_code"
+msgstr "Promo / Referral Code"
+
+msgid "promo_code"
+msgstr "Promo Code"
+
+msgid "promo_code_with"
+msgstr "Promo Code (%s)"
+
+msgid "order_total"
+msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."

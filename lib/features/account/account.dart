@@ -57,7 +57,7 @@ class Account extends HookConsumerWidget {
           if (isUserFree)
             ProButton(
               onPressed: () {
-                appRouter.push(const Plans());
+                appRouter.push(Plans());
               },
             ),
           if (isExpired) ...{
@@ -74,7 +74,7 @@ class Account extends HookConsumerWidget {
             ProButton(
               label: 'renew_pro_subscription'.i18n,
               onPressed: () {
-                appRouter.push(const Plans());
+                appRouter.push(Plans());
               },
             ),
           },
@@ -273,7 +273,7 @@ class Account extends HookConsumerWidget {
   void onRenewTap() {
     /// Most user renewal attempts are one-time purchases.
     /// Send the user to the plans page.
-    appRouter.push(const Plans());
+    appRouter.push(Plans());
   }
 
   Future<void> openGooglePlaySubscriptions() async {

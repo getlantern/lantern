@@ -127,16 +127,8 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
-
-  macos-connect-smoke:
-    needs: [prepare, macos]
-    if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
-    uses: ./.github/workflows/macos-connect-smoke.yml
-    secrets:
-      APP_ENV: ${{ secrets.APP_ENV }}
-    with:
-      version: ${{ needs.prepare.outputs.version }}
-      build_type: nightly
+      runner_label: lantern-macos-smoke
+      run_connect_smoke: true
       enable_ip_check: ${{ inputs.enable_ip_check }}
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
 

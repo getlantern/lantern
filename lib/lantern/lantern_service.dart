@@ -8,6 +8,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -153,6 +154,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
@@ -161,6 +163,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       onSuccess: onSuccess,
       onError: onError,
+      couponCode: couponCode,
     );
   }
 
@@ -178,6 +181,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
@@ -185,6 +189,7 @@ class LanternService implements LanternCoreService {
         planId: planId,
         email: email,
         idempotencyKey: idempotencyKey,
+        couponCode: couponCode,
       );
     }
     return _platformService.stipeSubscriptionPaymentRedirect(
@@ -192,6 +197,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       email: email,
       idempotencyKey: idempotencyKey,
+      couponCode: couponCode,
     );
   }
 
@@ -199,11 +205,16 @@ class LanternService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
     }
-    return _platformService.stipeSubscription(planId: planId, email: email);
+    return _platformService.stipeSubscription(
+      planId: planId,
+      email: email,
+      couponCode: couponCode,
+    );
   }
 
   @override
@@ -336,16 +347,19 @@ class LanternService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.acknowledgeInAppPurchase(
         purchaseToken: purchaseToken,
         planId: planId,
+        couponCode: couponCode,
       );
     }
     return _platformService.acknowledgeInAppPurchase(
       purchaseToken: purchaseToken,
       planId: planId,
+      couponCode: couponCode,
     );
   }
 
@@ -373,6 +387,7 @@ class LanternService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.paymentRedirect(
@@ -380,6 +395,7 @@ class LanternService implements LanternCoreService {
         planId: planId,
         email: email,
         idempotencyKey: idempotencyKey,
+        couponCode: couponCode,
       );
     }
     return _platformService.paymentRedirect(
@@ -387,6 +403,7 @@ class LanternService implements LanternCoreService {
       planId: planId,
       email: email,
       idempotencyKey: idempotencyKey,
+      couponCode: couponCode,
     );
   }
 
@@ -843,6 +860,16 @@ class LanternService implements LanternCoreService {
       return _ffiService.attachReferralCode(code);
     }
     return _platformService.attachReferralCode(code);
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.attachReferralCodeV2(code);
+    }
+    return _platformService.attachReferralCodeV2(code);
   }
 
   @override

@@ -15,6 +15,14 @@ log_step() {
   printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*" >&2
 }
 
+trim_trailing_slashes() {
+  local path="$1"
+  while [[ "$path" != "/" && "$path" == */ ]]; do
+    path="${path%/}"
+  done
+  printf '%s\n' "$path"
+}
+
 find_first_name() {
   local root="$1"
   local name="$2"
@@ -27,8 +35,15 @@ find_first_name() {
 }
 
 copy_app_bundle() {
-  local source="$1"
-  local destination="$2"
+  local source
+  local destination
+  source="$(trim_trailing_slashes "$1")"
+  destination="$(trim_trailing_slashes "$2")"
+
+  if [[ "$source" == "$destination" ]]; then
+    printf '%s\n' "$destination"
+    return
+  fi
 
   log_step "Copying Lantern app from $source"
   rm -rf "$destination"
@@ -89,7 +104,7 @@ copy_app_from_dmg() {
 
 resolve_app_path() {
   if [[ -n "${APP_PATH:-}" && -x "$APP_PATH/Contents/MacOS/Lantern" ]]; then
-    printf '%s\n' "$APP_PATH"
+    copy_app_bundle "$APP_PATH" "$APP_INSTALL_DIR"
     return
   fi
 
@@ -122,7 +137,7 @@ resolve_app_path() {
 
   for candidate in "${candidates[@]}"; do
     if [[ -d "$candidate" ]]; then
-      printf '%s\n' "$candidate"
+      copy_app_bundle "$candidate" "$APP_INSTALL_DIR"
       return
     fi
   done

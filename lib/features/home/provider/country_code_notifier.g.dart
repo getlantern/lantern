@@ -42,7 +42,7 @@ final class CountryCodeNotifierProvider
 }
 
 String _$countryCodeNotifierHash() =>
-    r'0c1a08bc664de1c57b27ed7b9ab5872e929718d1';
+    r'6d4e2e5976694966396a758ca782c20d16b3a474';
 
 abstract class _$CountryCodeNotifier extends $Notifier<String> {
   String build();
