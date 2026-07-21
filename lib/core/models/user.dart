@@ -94,7 +94,7 @@ class ReferralModel {
 
   factory ReferralModel.fromJson(Map<String, dynamic> json) => ReferralModel(
     userId: (json['userId'] ?? '').toString(),
-    converted: json['converted'] ?? false,
+    converted: json['converted'] == true,
     convertedAt: (json['convertedAt'] as num?)?.toInt() ?? 0,
     bonusDaysEarned: (json['bonusDaysEarned'] as num?)?.toInt() ?? 0,
   );

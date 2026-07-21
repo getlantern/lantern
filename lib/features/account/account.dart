@@ -197,7 +197,9 @@ class Account extends HookConsumerWidget {
     final months = user.legacyUserData.referralBonusMonths;
     if (months <= 0) return null;
     return Text(
-      'includes_free_months_from_referrals'.i18n.fill([months]),
+      months == 1
+          ? 'includes_free_month_from_referrals'.i18n.fill([months])
+          : 'includes_free_months_from_referrals'.i18n.fill([months]),
       style: theme.labelMedium!.copyWith(color: buildContext.textSecondary),
     );
   }

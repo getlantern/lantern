@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -18,7 +19,7 @@ class InviteFriends extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(homeProvider).value;
     final referralCode = user!.legacyUserData.referral.toUpperCase();
-    final bonusMonths = int.tryParse(user.legacyUserData.bonusMonths) ?? 0;
+    final bonusMonths = user.legacyUserData.referralBonusMonths;
     final isCopied = useState(false);
     final textTheme = Theme.of(context).textTheme;
 
@@ -77,7 +78,9 @@ class InviteFriends extends HookConsumerWidget {
                       Icons.emoji_events_outlined,
                       color: context.textPromoIcon,
                     ),
-                    label: 'months_earned'.i18n.fill([bonusMonths]),
+                    label: bonusMonths == 1
+                        ? 'month_earned'.i18n.fill([bonusMonths])
+                        : 'months_earned'.i18n.fill([bonusMonths]),
                     trailing: AppTextButton(
                       label: 'view_account'.i18n,
                       underLine: false,
@@ -151,7 +154,7 @@ class InviteFriends extends HookConsumerWidget {
 enum _DownloadPlatform {
   android('Android'),
   windows('Windows'),
-  macos('MacOS');
+  macos('macOS');
 
   const _DownloadPlatform(this.label);
 

@@ -30,34 +30,40 @@ Future<void> checkAndShowReferralReward(
   final seen = storage.getSeenConvertedReferrals().toSet();
   final unseen = converted.where((r) => !seen.contains(r.userId)).toList();
   if (unseen.isEmpty) return;
+  _rewardDialogVisible = true;
 
-  // Mark as seen before showing so the dialog can't repeat.
+  // Mark as seen before showing so the dialog can't repeat. Merge with the
+  // already-seen ids so referrals missing from this response stay seen.
   await storage.saveSeenConvertedReferrals(
-    converted.map((r) => r.userId).toList(),
+    {...seen, ...converted.map((r) => r.userId)}.toList(),
   );
 
   final newDays = unseen.fold<int>(0, (total, r) => total + r.bonusDaysEarned);
   final newMonths = max(1, newDays ~/ 30);
   final totalMonths = max(newMonths, user.legacyUserData.referralBonusMonths);
 
-  if (!context.mounted) return;
-  _rewardDialogVisible = true;
-  _showReferralRewardDialog(
+  if (!context.mounted) {
+    _rewardDialogVisible = false;
+    return;
+  }
+  await _showReferralRewardDialog(
     context: context,
     newMonths: newMonths,
     totalMonths: totalMonths,
     referralCode: user.legacyUserData.referral.toUpperCase(),
   );
+  // Reset once the dialog closes, however it was dismissed.
+  _rewardDialogVisible = false;
 }
 
-void _showReferralRewardDialog({
+Future<void> _showReferralRewardDialog({
   required BuildContext context,
   required int newMonths,
   required int totalMonths,
   required String referralCode,
 }) {
   final theme = Theme.of(context).textTheme;
-  AppDialog.customDialog(
+  return AppDialog.customDialog(
     context: context,
     content: Column(
       mainAxisSize: MainAxisSize.min,
@@ -85,14 +91,12 @@ void _showReferralRewardDialog({
         label: 'done'.i18n,
         textColor: context.textSecondary,
         onPressed: () {
-          _rewardDialogVisible = false;
           appRouter.pop();
         },
       ),
       AppTextButton(
         label: 'share_referral_code'.i18n,
         onPressed: () {
-          _rewardDialogVisible = false;
           appRouter.pop();
           SharePlus.instance.share(
             ShareParams(
