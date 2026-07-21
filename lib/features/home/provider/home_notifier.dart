@@ -15,21 +15,39 @@ part 'home_notifier.g.dart';
 class HomeNotifier extends _$HomeNotifier {
   @override
   Future<UserResponseModel> build() async {
-    /// Check if user data is stored locally
-    /// If yes, load it first to avoid delay in UI
-    final result = await ref.read(lanternServiceProvider).getUserData();
-    return result.fold(
-      (failure) {
-        appLogger.error(
-          'Error getting user data: ${failure.error}',
-        );
-        throw Exception('Failed to get user data');
-      },
-      (userData) {
-        appLogger.debug('Got the userdata: ${userData.toJson()}');
-        _applyUserData(userData);
-        return userData;
-      },
+    /// Check if user data is stored locally and load it.
+    ///
+    /// On a cold start the Go core (radiance) is set up asynchronously and may
+    /// not be ready when this keepAlive provider first builds, in which case
+    /// getUserData() fails with "radiance not initialized". Retry with a short
+    /// backoff so the account loads once the core finishes starting, instead of
+    /// caching the transient startup failure for the rest of the session.
+    const maxAttempts = 10;
+    const retryDelay = Duration(seconds: 1);
+    Failure? lastFailure;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      final result = await ref.read(lanternServiceProvider).getUserData();
+      final userData = result.fold<UserResponseModel?>(
+        (failure) {
+          lastFailure = failure;
+          appLogger.error(
+            'Error getting user data '
+            '(attempt $attempt/$maxAttempts): ${failure.error}',
+          );
+          return null;
+        },
+        (userData) {
+          appLogger.debug('Got the userdata: ${userData.toJson()}');
+          _applyUserData(userData);
+          return userData;
+        },
+      );
+      if (userData != null) return userData;
+      if (attempt < maxAttempts) await Future<void>.delayed(retryDelay);
+    }
+    throw Exception(
+      'Failed to get user data after $maxAttempts attempts: '
+      '${lastFailure?.error}',
     );
   }
 
