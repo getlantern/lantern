@@ -498,15 +498,20 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               horizontal: defaultSize,
               vertical: defaultSize,
             ),
-            title: Row(
-              children: [
-                Text(
-                  method.method.replaceAll('-', " ").toTitleCase(),
-                  style: theme.titleMedium,
-                ),
-                SizedBox(width: defaultSize),
-                LogsPath(logoPaths: method.providers.icons),
-              ],
+            title: Semantics(
+              container: true,
+              excludeSemantics: true,
+              label: 'payment-provider-${method.providers.name}',
+              child: Row(
+                children: [
+                  Text(
+                    method.method.replaceAll('-', " ").toTitleCase(),
+                    style: theme.titleMedium,
+                  ),
+                  SizedBox(width: defaultSize),
+                  LogsPath(logoPaths: method.providers.icons),
+                ],
+              ),
             ),
             children: [
               Row(
@@ -593,14 +598,22 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 style: theme.bodySmall!.copyWith(color: context.textDisabled),
               ),
               SizedBox(height: defaultSize),
-              PrimaryButton(
-                label: method.providers.supportSubscription
-                    ? 'subscribe'.i18n
-                    : 'checkout'.i18n,
+              Semantics(
+                container: true,
+                excludeSemantics: true,
+                label: 'payment-checkout-${method.providers.name}',
+                button: true,
                 enabled: !isSubmitting,
-                onPressed: () {
-                  onSubscribe.call(method);
-                },
+                onTap: isSubmitting ? null : () => onSubscribe.call(method),
+                child: PrimaryButton(
+                  label: method.providers.supportSubscription
+                      ? 'subscribe'.i18n
+                      : 'checkout'.i18n,
+                  enabled: !isSubmitting,
+                  onPressed: () {
+                    onSubscribe.call(method);
+                  },
+                ),
               ),
             ],
           ),

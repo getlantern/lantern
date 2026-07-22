@@ -16,6 +16,8 @@ param(
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
+  [switch]$RunPaymentCheckoutSmoke,
+  [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-checkout-smoke",
   [switch]$UseInstaller
 )
 
@@ -364,6 +366,21 @@ try {
         -Description "Windows config URL UI smoke test" `
         -ForceFullTunnel:$ForceFullTunnel
     }
+  }
+
+  if ($RunPaymentCheckoutSmoke) {
+    if (-not $UseInstaller) {
+      throw "The payment checkout smoke requires the generated installer"
+    }
+    Write-Step "Running installed Windows payment checkout smoke tests"
+    & "$PSScriptRoot/windows_payment_checkout_smoke.ps1" `
+      -ServiceName $ServiceName `
+      -ArtifactDirectory $PaymentSmokeArtifactDirectory
+    if ($LASTEXITCODE -ne 0) {
+      throw "Windows payment checkout smoke failed with exit code $LASTEXITCODE"
+    }
+  } else {
+    Write-Step "Skipping installed Windows payment checkout smoke tests."
   }
 }
 finally {

@@ -27,6 +27,11 @@ on:
         required: false
         type: boolean
         default: true
+      windows_payment_checkout_smoke:
+        description: "Render staging Stripe and Shepherd checkout in the installed Windows app"
+        required: false
+        type: boolean
+        default: true
       macos_connect_smoke:
         description: "Include macOS connect/disconnect smoke when platforms=all (requires self-hosted runner with approved system extension)"
         required: false
@@ -145,6 +150,7 @@ jobs:
       skip_signing: true
       enable_ip_check: ${{ inputs.enable_ip_check }}
       run_connect_smoke: ${{ inputs.windows_connect_smoke }}
+      run_payment_checkout_smoke: ${{ inputs.windows_payment_checkout_smoke }}
       run_split_tunnel_website_smoke: ${{ inputs.windows_split_tunnel_website_smoke }}
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}

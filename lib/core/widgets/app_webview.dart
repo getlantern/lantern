@@ -100,7 +100,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {},
+      onWebViewCreated: (controller) {
+        final uri = Uri.tryParse(widget.url);
+        _logSmokeEvent('created', uri);
+      },
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {
@@ -120,28 +123,74 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         return false;
       },
       onLoadStart: (_, webUri) async {
-        // Handle load start
         final loading = ref.read(webViewLoadingProvider.notifier);
         loading.start();
-      },
-      onLoadStop: (controller, webUri) async {
-        // Handle load stop
-        ref.read(webViewLoadingProvider.notifier).stop();
-        await _handleCompletionUrl(
+        _logSmokeEvent(
+          'load_start',
           webUri == null ? null : Uri.tryParse(webUri.toString()),
         );
       },
-      onReceivedError: (_, webResourceRequest, error) async {
-        // Handle received error
-        appLogger.error("Received error: $error");
-        // Handle load stop
+      onLoadStop: (controller, webUri) async {
         ref.read(webViewLoadingProvider.notifier).stop();
-        await _handleCompletionUrl(
+        final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
+        var documentLength = -1;
+        try {
+          final rawLength = await controller.evaluateJavascript(
+            source:
+                "(document.documentElement && document.documentElement.outerHTML || '').length",
+          );
+          documentLength = rawLength is num
+              ? rawLength.toInt()
+              : int.tryParse(rawLength.toString()) ?? -1;
+        } catch (error) {
+          appLogger.error(
+            'PAYMENT_WEBVIEW_SMOKE event=document_error '
+            'host=${uri?.host ?? '<none>'} error=$error',
+          );
+        }
+        _logSmokeEvent(
+          'load_stop',
+          uri,
+          detail: 'document_length=$documentLength',
+        );
+        await _handleCompletionUrl(uri);
+      },
+      onReceivedError: (_, webResourceRequest, error) async {
+        appLogger.error("Received error: $error");
+        final uri = Uri.tryParse(webResourceRequest.url.toString());
+        _logSmokeEvent(
+          webResourceRequest.isForMainFrame == true
+              ? 'navigation_error'
+              : 'resource_error',
+          uri,
+          detail: 'error=${_singleLine(error.toString())}',
+        );
+        ref.read(webViewLoadingProvider.notifier).stop();
+        await _handleCompletionUrl(uri);
+      },
+      onReceivedHttpError: (_, webResourceRequest, errorResponse) async {
+        if (webResourceRequest.isForMainFrame != true) return;
+        _logSmokeEvent(
+          'navigation_error',
           Uri.tryParse(webResourceRequest.url.toString()),
+          detail: 'http_status=${errorResponse.statusCode}',
         );
       },
     );
   }
+
+  void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
+    final safeUri = uri == null
+        ? '<none>'
+        : uri.replace(query: '', fragment: '').toString();
+    final suffix = detail.isEmpty ? '' : ' $detail';
+    appLogger.info(
+      'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '
+      'url=$safeUri$suffix',
+    );
+  }
+
+  String _singleLine(String value) => value.replaceAll(RegExp(r'[\r\n]+'), ' ');
 
   bool isLanternHost(String host) =>
       host == 'lantern.io' || host == 'www.lantern.io';

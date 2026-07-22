@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Website split tunneling smoke', (tester) async {
-    await app.main();
+    await app.main(const []);
     await runSplitTunnelingWebsiteSmokeHarness(
       tester,
       enableIpCheck: _enableIpCheck,
