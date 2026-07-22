@@ -20,6 +20,8 @@ param(
   [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-checkout-smoke",
   [switch]$RunPaymentConversionSmoke,
   [string]$PaymentConversionArtifactDirectory = "build/windows-payment-conversion-smoke",
+  [switch]$RunStripeProviderE2E,
+  [string]$StripeProviderArtifactDirectory = "build/windows-stripe-provider-e2e",
   [switch]$UseInstaller
 )
 
@@ -400,6 +402,24 @@ try {
     }
   } else {
     Write-Step "Skipping installed Windows payment conversion smoke test."
+  }
+
+  if ($RunStripeProviderE2E) {
+    if (-not $UseInstaller) {
+      throw "The Stripe provider E2E smoke requires the generated installer"
+    }
+    Write-Step "Running installed Windows Stripe provider E2E smoke test"
+    & "$PSScriptRoot/windows_payment_checkout_smoke.ps1" `
+      -ServiceName $ServiceName `
+      -ArtifactDirectory $StripeProviderArtifactDirectory `
+      -RunCheckoutCases:$false `
+      -RunPaymentConversion:$false `
+      -RunStripeProviderE2E:$true
+    if ($LASTEXITCODE -ne 0) {
+      throw "Windows Stripe provider E2E smoke failed with exit code $LASTEXITCODE"
+    }
+  } else {
+    Write-Step "Skipping installed Windows Stripe provider E2E smoke test."
   }
 }
 finally {

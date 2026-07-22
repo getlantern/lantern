@@ -44,6 +44,11 @@ on:
         required: false
         type: boolean
         default: true
+      windows_stripe_provider_e2e:
+        description: "Complete Stripe test-mode Checkout on manual Windows builds"
+        required: false
+        type: boolean
+        default: false
       publish_mobile_stores:
         description: "Upload nightly Android/iOS artifacts to Play internal/TestFlight (default-branch dispatch only)"
         required: false
@@ -391,6 +396,7 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
+      run_stripe_provider_e2e: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.windows_stripe_provider_e2e == 'true') }}
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}

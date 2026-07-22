@@ -6,12 +6,18 @@ param(
   [int]$WaitSeconds = 180,
   [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
   [bool]$RunCheckoutCases = $true,
-  [bool]$RunPaymentConversion = $false
+  [bool]$RunPaymentConversion = $false,
+  [bool]$RunStripeProviderE2E = $false,
+  [string]$StripeHelperDirectory = ""
 )
 
 $ErrorActionPreference = "Stop"
 $resolvedArtifacts = [System.IO.Path]::GetFullPath($ArtifactDirectory)
 New-Item -ItemType Directory -Path $resolvedArtifacts -Force | Out-Null
+if ([string]::IsNullOrWhiteSpace($StripeHelperDirectory)) {
+  $StripeHelperDirectory = Join-Path $PSScriptRoot "stripe_provider_e2e"
+}
+$resolvedStripeHelper = [System.IO.Path]::GetFullPath($StripeHelperDirectory)
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -104,6 +110,19 @@ function Wait-ServiceRunning {
     Start-Sleep -Seconds 1
   }
   throw "Service $Name did not reach Running state"
+}
+
+function Get-FreeTcpPort {
+  $listener = [System.Net.Sockets.TcpListener]::new(
+    [System.Net.IPAddress]::Loopback,
+    0
+  )
+  try {
+    $listener.Start()
+    return ([System.Net.IPEndPoint]$listener.LocalEndpoint).Port
+  } finally {
+    $listener.Stop()
+  }
 }
 
 function Use-StagingService {
@@ -353,13 +372,26 @@ function Invoke-CheckoutCase {
     [string]$Provider,
     [string]$HostPattern,
     [string]$RunID,
-    [switch]$CompletePayment
+    [switch]$CompletePayment,
+    [switch]$CompleteStripePayment
   )
 
   $caseDirectory = Join-Path $resolvedArtifacts $Provider
   New-Item -ItemType Directory -Path $caseDirectory -Force | Out-Null
-  $mode = if ($CompletePayment) { "conversion" } else { "render" }
-  $remoteCleanup = if ($CompletePayment) {
+  $completesConversion = $CompletePayment -or $CompleteStripePayment
+  $mode = if ($CompleteStripePayment) {
+    "stripe_provider_e2e"
+  } elseif ($CompletePayment) {
+    "conversion"
+  } else {
+    "render"
+  }
+  $remoteDebuggingPort = if ($CompleteStripePayment) {
+    Get-FreeTcpPort
+  } else {
+    0
+  }
+  $remoteCleanup = if ($completesConversion) {
     "queued by the staging redirect before checkout issuance"
   } else {
     "not applicable"
@@ -371,6 +403,8 @@ function Invoke-CheckoutCase {
     githubRunAttempt = $env:GITHUB_RUN_ATTEMPT
     mode = $mode
     remoteCleanup = $remoteCleanup
+    remoteDebuggingEnabled = [bool]$CompleteStripePayment
+    remoteDebuggingPort = $remoteDebuggingPort
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "automation.log"
   Start-Transcript -Path $transcript -Force | Out-Null
@@ -422,7 +456,8 @@ param(
   [string]$Provider,
   [string]$RunID,
   [string]$DiagnosticsPath,
-  [string]$UDFCheckPath
+  [string]$UDFCheckPath,
+  [int]$RemoteDebuggingPort
 )
 $ErrorActionPreference = "Stop"
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -439,6 +474,13 @@ try {
 }
 $localAppData = [Environment]::GetFolderPath("LocalApplicationData")
 $externalUDF = [Environment]::GetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", "Process")
+if ($RemoteDebuggingPort -gt 0) {
+  $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$RemoteDebuggingPort"
+}
+$additionalBrowserArguments = [Environment]::GetEnvironmentVariable(
+  "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+  "Process"
+)
 $app = Start-Process -FilePath $AppPath -ArgumentList @(
   "--payment-checkout-smoke=$Provider",
   "--payment-checkout-run-id=$RunID"
@@ -449,6 +491,8 @@ $app = Start-Process -FilePath $AppPath -ArgumentList @(
   isAdmin = $isAdmin
   canWriteInstallDirectory = $canWriteInstallDirectory
   externalWebView2UserDataFolder = $externalUDF
+  webView2AdditionalBrowserArguments = $additionalBrowserArguments
+  remoteDebuggingPort = $RemoteDebuggingPort
   localAppData = $localAppData
 } | ConvertTo-Json | Set-Content $DiagnosticsPath
 
@@ -486,7 +530,8 @@ $app.WaitForExit()
       "-Provider", $Provider,
       "-RunID", $RunID,
       "-DiagnosticsPath", "`"$diagnosticsPath`"",
-      "-UDFCheckPath", "`"$udfCheckPath`""
+      "-UDFCheckPath", "`"$udfCheckPath`"",
+      "-RemoteDebuggingPort", $remoteDebuggingPort
     )
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
@@ -502,6 +547,12 @@ $app.WaitForExit()
     }
     if (-not [string]::IsNullOrWhiteSpace($diagnostics.externalWebView2UserDataFolder)) {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$($diagnostics.externalWebView2UserDataFolder)"
+    }
+    if ($CompleteStripePayment) {
+      $expectedBrowserArguments = "--remote-debugging-port=$remoteDebuggingPort"
+      if ($diagnostics.webView2AdditionalBrowserArguments -ne $expectedBrowserArguments) {
+        throw "Stripe smoke did not configure the expected WebView2 remote debugging port"
+      }
     }
 
     $appProcess = Wait-ProcessMainWindow -ProcessID $diagnostics.processId -TimeoutSeconds 90
@@ -543,6 +594,42 @@ $app.WaitForExit()
         -Name "payment-conversion-success" -TimeoutSeconds 30
       Save-WindowScreenshot -Root $root `
         -Path (Join-Path $caseDirectory "pro-success.png")
+    } elseif ($CompleteStripePayment) {
+      Save-WindowScreenshot -Root $root `
+        -Path (Join-Path $caseDirectory "checkout.png")
+      $helperScript = Join-Path $resolvedStripeHelper "stripe_checkout_cdp.mjs"
+      $helperDependency = Join-Path $resolvedStripeHelper `
+        "node_modules\playwright-core\package.json"
+      if (-not (Test-Path $helperScript) -or -not (Test-Path $helperDependency)) {
+        throw "Pinned Stripe CDP helper dependencies are not installed"
+      }
+      $helperResultPath = Join-Path $caseDirectory "stripe-cdp.json"
+      Push-Location $resolvedStripeHelper
+      try {
+        & node $helperScript `
+          --port $remoteDebuggingPort `
+          --run-id $RunID `
+          --email "e2e+$RunID@getlantern.org" `
+          --output $helperResultPath `
+          --timeout-seconds $WaitSeconds
+        $helperExitCode = $LASTEXITCODE
+      } finally {
+        Pop-Location
+      }
+      if ($helperExitCode -ne 0) {
+        throw "Stripe CDP helper failed with exit code $helperExitCode"
+      }
+      $helperResult = Get-Content $helperResultPath -Raw | ConvertFrom-Json
+      if (-not $helperResult.success -or -not $helperResult.checkoutSubmitted) {
+        throw "Stripe Checkout did not submit successfully"
+      }
+      Wait-PaymentConversion -LogPath $flutterLog `
+        -TimeoutSeconds $WaitSeconds `
+        -ResultPath (Join-Path $caseDirectory "conversion.json")
+      $successElement = Find-AutomationElement -Root $root `
+        -Name "payment-conversion-success" -TimeoutSeconds 30
+      Save-WindowScreenshot -Root $root `
+        -Path (Join-Path $caseDirectory "pro-success.png")
     }
 
     Wait-File -Path $udfCheckPath -TimeoutSeconds 30
@@ -558,7 +645,9 @@ $app.WaitForExit()
       throw "Flutter did not record the actual per-user WebView2 folder $expectedUDF"
     }
 
-    if ($CompletePayment) {
+    if ($CompleteStripePayment) {
+      Write-Step "Stripe test-mode Checkout converted the installed app to Pro"
+    } elseif ($CompletePayment) {
       Write-Step "$Provider checkout converted the installed app to Pro"
     } else {
       Save-WindowScreenshot -Root $root `
@@ -631,7 +720,8 @@ if (-not (Test-Path $InstalledAppPath)) {
   throw "Installed Lantern executable not found: $InstalledAppPath"
 }
 
-if (-not $RunCheckoutCases -and -not $RunPaymentConversion) {
+if (-not $RunCheckoutCases -and -not $RunPaymentConversion -and
+    -not $RunStripeProviderE2E) {
   throw "No payment smoke cases were selected"
 }
 Use-StagingService
@@ -646,4 +736,10 @@ if ($RunPaymentConversion) {
     -HostPattern '^api\.staging\.iantem\.io$' `
     -RunID ([Guid]::NewGuid().ToString()) `
     -CompletePayment
+}
+if ($RunStripeProviderE2E) {
+  Invoke-CheckoutCase -Provider "stripe" `
+    -HostPattern '^checkout\.stripe\.com$' `
+    -RunID ([Guid]::NewGuid().ToString()) `
+    -CompleteStripePayment
 }

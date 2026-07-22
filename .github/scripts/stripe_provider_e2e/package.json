@@ -1,0 +1,15 @@
+{
+  "name": "lantern-windows-stripe-provider-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test stripe_checkout_cdp.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "playwright-core": "1.61.1"
+  }
+}

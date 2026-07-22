@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: false
+      windows_stripe_provider_e2e:
+        description: "Complete Stripe test-mode Checkout and verify Pro conversion"
+        required: false
+        type: boolean
+        default: false
       macos_connect_smoke:
         description: "Include macOS connect/disconnect smoke when platforms=all (requires self-hosted runner with approved system extension)"
         required: false
@@ -157,6 +162,7 @@ jobs:
       run_connect_smoke: ${{ inputs.windows_connect_smoke }}
       run_payment_checkout_smoke: ${{ inputs.windows_payment_checkout_smoke }}
       run_payment_conversion_smoke: ${{ inputs.windows_payment_conversion_smoke }}
+      run_stripe_provider_e2e: ${{ inputs.windows_stripe_provider_e2e }}
       run_split_tunnel_website_smoke: ${{ inputs.windows_split_tunnel_website_smoke }}
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}

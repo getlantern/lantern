@@ -44,6 +44,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_stripe_provider_e2e:
+        description: "Complete Stripe test-mode Checkout in the installed app"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -297,6 +302,22 @@ jobs:
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
+      - name: Set up Node for Stripe provider E2E
+        if: ${{ inputs.run_stripe_provider_e2e }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: .github/scripts/stripe_provider_e2e/package-lock.json
+
+      - name: Install and test pinned Stripe CDP helper
+        if: ${{ inputs.run_stripe_provider_e2e }}
+        shell: pwsh
+        working-directory: .github/scripts/stripe_provider_e2e
+        run: |
+          npm ci --ignore-scripts
+          npm test
+
       - name: Windows installer smoke suite
         shell: pwsh
         timeout-minutes: 30
@@ -314,13 +335,15 @@ jobs:
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
           $runPaymentCheckoutSmoke = "${{ inputs.run_payment_checkout_smoke }}" -eq "true"
           $runPaymentConversionSmoke = "${{ inputs.run_payment_conversion_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke paymentConversion=$runPaymentConversionSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          $runStripeProviderE2E = "${{ inputs.run_stripe_provider_e2e }}" -eq "true"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke paymentConversion=$runPaymentConversionSmoke stripeProviderE2E=$runStripeProviderE2E splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
             -RunPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
             -RunPaymentConversionSmoke:$runPaymentConversionSmoke `
+            -RunStripeProviderE2E:$runStripeProviderE2E `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
@@ -341,6 +364,15 @@ jobs:
         with:
           name: windows-payment-conversion-smoke
           path: build/windows-payment-conversion-smoke
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows Stripe provider E2E artifacts
+        if: ${{ always() && inputs.run_stripe_provider_e2e }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-stripe-provider-e2e
+          path: build/windows-stripe-provider-e2e
           if-no-files-found: warn
           retention-days: 7
 
