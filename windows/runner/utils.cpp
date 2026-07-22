@@ -36,6 +36,15 @@ void EnsureWebView2UserDataFolder() {
     return;
   }
 
+  // If a referenced variable (e.g. %LOCALAPPDATA%) is undefined, it is left
+  // literally in the output. Don't proceed with an unexpanded path — that would
+  // create a garbage relative folder and point WebView2 at an unusable value.
+  for (const wchar_t* p = path; *p != L'\0'; ++p) {
+    if (*p == L'%') {
+      return;
+    }
+  }
+
   // Create each directory component in turn; CreateDirectoryW only creates the
   // final segment, so intermediate parents must be created first.
   for (wchar_t* cursor = path; *cursor != L'\0'; ++cursor) {
@@ -46,6 +55,15 @@ void EnsureWebView2UserDataFolder() {
     }
   }
   ::CreateDirectoryW(path, nullptr);
+
+  // Only advertise the folder if it now exists as a directory: CreateDirectoryW
+  // may have failed (permissions, invalid path), and pointing WebView2 at a
+  // nonexistent folder just moves the failure somewhere harder to diagnose. If
+  // we couldn't create it, leave WebView2 to its default.
+  DWORD attrs = ::GetFileAttributesW(path);
+  if (attrs == INVALID_FILE_ATTRIBUTES || !(attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+    return;
+  }
 
   ::SetEnvironmentVariableW(L"WEBVIEW2_USER_DATA_FOLDER", path);
 }
