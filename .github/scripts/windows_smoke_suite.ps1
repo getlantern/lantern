@@ -21,6 +21,8 @@ param(
   [switch]$RunConfigUrlSmoke,
   [switch]$RunPaymentCheckoutSmoke,
   [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-checkout-smoke",
+  [switch]$RunPaymentConversionSmoke,
+  [string]$PaymentConversionArtifactDirectory = "build/windows-payment-conversion-smoke",
   [switch]$UseInstaller
 )
 
@@ -397,6 +399,23 @@ try {
     }
   } else {
     Write-Step "Skipping installed Windows payment checkout smoke tests."
+  }
+
+  if ($RunPaymentConversionSmoke) {
+    if (-not $UseInstaller) {
+      throw "The payment conversion smoke requires the generated installer"
+    }
+    Write-Step "Running installed Windows payment conversion smoke test"
+    & "$PSScriptRoot/windows_payment_checkout_smoke.ps1" `
+      -ServiceName $ServiceName `
+      -ArtifactDirectory $PaymentConversionArtifactDirectory `
+      -RunCheckoutCases:$false `
+      -RunPaymentConversion:$true
+    if ($LASTEXITCODE -ne 0) {
+      throw "Windows payment conversion smoke failed with exit code $LASTEXITCODE"
+    }
+  } else {
+    Write-Step "Skipping installed Windows payment conversion smoke test."
   }
 }
 finally {

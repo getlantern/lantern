@@ -148,3 +148,4 @@ jobs:
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_payment_checkout_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_payment_conversion_smoke: ${{ (inputs.tests || 'all') == 'all' }}

@@ -4,7 +4,9 @@ param(
   [string]$InstalledDaemonPath = "C:\Program Files\Lantern\lanternd.exe",
   [string]$ArtifactDirectory = "build/windows-payment-checkout-smoke",
   [int]$WaitSeconds = 180,
-  [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$'
+  [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
+  [bool]$RunCheckoutCases = $true,
+  [bool]$RunPaymentConversion = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -294,6 +296,40 @@ function Wait-CheckoutDocument {
   throw "No non-empty checkout document loaded from expected host pattern $HostPattern"
 }
 
+function Wait-PaymentConversion {
+  param(
+    [string]$LogPath,
+    [int]$TimeoutSeconds,
+    [string]$ResultPath
+  )
+  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
+    if (Test-Path $LogPath) {
+      $logText = Get-Content $LogPath -Raw -ErrorAction SilentlyContinue
+      if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
+        throw "The conversion WebView reported a main-frame navigation error"
+      }
+      $callback = $logText -match 'PAYMENT_WEBVIEW_SMOKE event=purchase_result .* result=true'
+      $serverPro = $logText -match 'PAYMENT_CONVERSION_SMOKE event=server_user attempt=\d+ userLevel=pro'
+      $localPro = $logText -match 'PAYMENT_CONVERSION_SMOKE event=local_user userLevel=pro'
+      $successUI = $logText -match 'PAYMENT_CONVERSION_SMOKE event=success_ui userLevel=pro'
+      if ($callback -and $serverPro -and $localPro -and $successUI) {
+        @{
+          purchaseResult = $true
+          serverUserLevel = "pro"
+          localUserLevel = "pro"
+          successUI = $true
+        } | ConvertTo-Json | Set-Content $ResultPath
+        return
+      }
+      if ($logText -match 'PAYMENT_CONVERSION_SMOKE event=account_timeout') {
+        throw "The app timed out waiting for the staging account to become Pro"
+      }
+    }
+    Start-Sleep -Seconds 1
+  }
+  throw "The installed app did not complete the payment-to-Pro flow"
+}
+
 function Remove-SmokeAccount {
   param([string]$Username, [string]$SID)
   Get-Process Lantern -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -313,15 +349,28 @@ function Remove-SmokeAccount {
 }
 
 function Invoke-CheckoutCase {
-  param([string]$Provider, [string]$HostPattern, [string]$RunID)
+  param(
+    [string]$Provider,
+    [string]$HostPattern,
+    [string]$RunID,
+    [switch]$CompletePayment
+  )
 
   $caseDirectory = Join-Path $resolvedArtifacts $Provider
   New-Item -ItemType Directory -Path $caseDirectory -Force | Out-Null
+  $mode = if ($CompletePayment) { "conversion" } else { "render" }
+  $remoteCleanup = if ($CompletePayment) {
+    "queued by the staging redirect before checkout issuance"
+  } else {
+    "not applicable"
+  }
   @{
     provider = $Provider
     runId = $RunID
     githubRunId = $env:GITHUB_RUN_ID
     githubRunAttempt = $env:GITHUB_RUN_ATTEMPT
+    mode = $mode
+    remoteCleanup = $remoteCleanup
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "automation.log"
   Start-Transcript -Path $transcript -Force | Out-Null
@@ -481,6 +530,21 @@ $app.WaitForExit()
     Wait-CheckoutDocument -LogPath $flutterLog -HostPattern $HostPattern `
       -TimeoutSeconds $WaitSeconds -ResultPath (Join-Path $caseDirectory "webview.json")
 
+    if ($CompletePayment) {
+      Save-WindowScreenshot -Root $root `
+        -Path (Join-Path $caseDirectory "checkout.png")
+      $completeElement = Find-AutomationElement -Root $root `
+        -Name "Complete" -TimeoutSeconds 30
+      Invoke-AutomationElement -Element $completeElement
+      Wait-PaymentConversion -LogPath $flutterLog `
+        -TimeoutSeconds $WaitSeconds `
+        -ResultPath (Join-Path $caseDirectory "conversion.json")
+      $successElement = Find-AutomationElement -Root $root `
+        -Name "payment-conversion-success" -TimeoutSeconds 30
+      Save-WindowScreenshot -Root $root `
+        -Path (Join-Path $caseDirectory "pro-success.png")
+    }
+
     Wait-File -Path $udfCheckPath -TimeoutSeconds 30
     $udf = Get-Content $udfCheckPath -Raw | ConvertFrom-Json
     Copy-Item $udfCheckPath (Join-Path $caseDirectory "webview2-udf.json") -Force
@@ -494,8 +558,13 @@ $app.WaitForExit()
       throw "Flutter did not record the actual per-user WebView2 folder $expectedUDF"
     }
 
-    Save-WindowScreenshot -Root $root -Path (Join-Path $caseDirectory "checkout.png")
-    Write-Step "$Provider checkout rendered successfully"
+    if ($CompletePayment) {
+      Write-Step "$Provider checkout converted the installed app to Pro"
+    } else {
+      Save-WindowScreenshot -Root $root `
+        -Path (Join-Path $caseDirectory "checkout.png")
+      Write-Step "$Provider checkout rendered successfully"
+    }
   } finally {
     try {
       if ($root) {
@@ -529,7 +598,7 @@ $app.WaitForExit()
     $finalFlutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     if (Test-Path $finalFlutterLog) {
       Select-String -Path $finalFlutterLog `
-        -Pattern 'PAYMENT_WEBVIEW_SMOKE|WEBVIEW2_DIAGNOSTIC|PAYMENT_CHECKOUT_SMOKE' |
+        -Pattern 'PAYMENT_WEBVIEW_SMOKE|WEBVIEW2_DIAGNOSTIC|PAYMENT_CHECKOUT_SMOKE|PAYMENT_CONVERSION_SMOKE' |
         ForEach-Object { $_.Line } |
         Set-Content (Join-Path $caseDirectory "webview-events.log")
     }
@@ -562,8 +631,19 @@ if (-not (Test-Path $InstalledAppPath)) {
   throw "Installed Lantern executable not found: $InstalledAppPath"
 }
 
+if (-not $RunCheckoutCases -and -not $RunPaymentConversion) {
+  throw "No payment smoke cases were selected"
+}
 Use-StagingService
-Invoke-CheckoutCase -Provider "stripe" -HostPattern '^checkout\.stripe\.com$' `
-  -RunID ([Guid]::NewGuid().ToString())
-Invoke-CheckoutCase -Provider "shepherd" -HostPattern $ShepherdHostPattern `
-  -RunID ([Guid]::NewGuid().ToString())
+if ($RunCheckoutCases) {
+  Invoke-CheckoutCase -Provider "stripe" -HostPattern '^checkout\.stripe\.com$' `
+    -RunID ([Guid]::NewGuid().ToString())
+  Invoke-CheckoutCase -Provider "shepherd" -HostPattern $ShepherdHostPattern `
+    -RunID ([Guid]::NewGuid().ToString())
+}
+if ($RunPaymentConversion) {
+  Invoke-CheckoutCase -Provider "e2e" `
+    -HostPattern '^api\.staging\.iantem\.io$' `
+    -RunID ([Guid]::NewGuid().ToString()) `
+    -CompletePayment
+}

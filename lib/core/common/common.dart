@@ -12,8 +12,10 @@ import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/bounded_poll.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -138,37 +140,51 @@ Future<String> pasteFromClipboard() async {
 }
 
 /// Check user account status and updates user data if the user has a pro plan
-Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [
-    Duration(seconds: 1),
-    Duration(seconds: 2),
-    Duration(seconds: 3),
-  ];
-  for (final delay in delays) {
-    appLogger.info("Checking user account status with delay: $delay");
-    if (delay != Duration.zero) await Future.delayed(delay);
+Future<bool> checkUserAccountStatus(
+  WidgetRef ref,
+  BuildContext context, {
+  Duration timeout = const Duration(seconds: 45),
+}) async {
+  final proUser = await boundedPoll<UserResponseModel>(
+    timeout: timeout,
+    initialDelay: const Duration(seconds: 1),
+    interval: const Duration(seconds: 2),
+    fetch: (attempt) async {
+      appLogger.info(
+        'PAYMENT_CONVERSION_SMOKE event=account_fetch attempt=$attempt',
+      );
+      final result = await ref.read(lanternServiceProvider).fetchUserData();
+      return result.fold(
+        (failure) {
+          appLogger.error(
+            'PAYMENT_CONVERSION_SMOKE event=account_fetch_error '
+            'attempt=$attempt error=$failure',
+          );
+          return null;
+        },
+        (newUser) {
+          final userLevel = newUser.legacyUserData.userLevel;
+          appLogger.info(
+            'PAYMENT_CONVERSION_SMOKE event=server_user attempt=$attempt '
+            'userLevel=$userLevel',
+          );
+          return userLevel == 'pro' ? newUser : null;
+        },
+      );
+    },
+  );
 
-    final result = await ref.read(lanternServiceProvider).fetchUserData();
-    final isPro = result.fold(
-      (failure) {
-        appLogger.error("Failed to fetch user data: $failure");
-        return false;
-      },
-      (newUser) {
-        final isPro = newUser.legacyUserData.isPro;
-        if (isPro) {
-          // User has bought a plan
-          // update user data
-          appLogger.info("User is Pro: ${newUser.legacyUserData.email}");
-          ref.read(homeProvider.notifier).updateUserData(newUser);
-        }
-        return isPro;
-      },
+  if (proUser == null) {
+    appLogger.warning(
+      'PAYMENT_CONVERSION_SMOKE event=account_timeout '
+      'timeout_seconds=${timeout.inSeconds}',
     );
-
-    if (isPro) return true; //Exit loop is found
+    return false;
   }
-  return false;
+
+  ref.read(homeProvider.notifier).updateUserData(proUser);
+  appLogger.info('PAYMENT_CONVERSION_SMOKE event=local_user userLevel=pro');
+  return true;
 }
 
 void hideKeyboard() {

@@ -16,6 +16,8 @@ class PaymentCheckoutSmokeConfig {
 
   String get email => 'e2e+$runID@getlantern.org';
 
+  bool get completesPurchase => provider == 'e2e';
+
   static PaymentCheckoutSmokeConfig? parse(
     List<String> arguments, {
     required bool isWindows,
@@ -39,7 +41,7 @@ class PaymentCheckoutSmokeConfig {
     }
 
     final provider = providerArgument.toLowerCase();
-    if (provider != 'stripe' && provider != 'shepherd') {
+    if (provider != 'stripe' && provider != 'shepherd' && provider != 'e2e') {
       throw FormatException('Unsupported payment checkout provider: $provider');
     }
     if (!_runIDPattern.hasMatch(runIDArgument)) {

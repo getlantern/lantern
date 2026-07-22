@@ -114,27 +114,32 @@ class AppDialog {
       context: context,
       centered: true,
       header: LanternRoundedLogo(height: 45),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(
-            width: size.width * 0.7,
-            height: 40,
-            child: AutoSizeText(
-              'welcome_to_lantern_pro'.i18n,
-              style: textTheme.headlineMedium,
-              maxLines: 1,
-              minFontSize: 20,
-              maxFontSize: 24,
-              textAlign: TextAlign.center,
+      content: Semantics(
+        container: true,
+        explicitChildNodes: true,
+        label: 'payment-conversion-success',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(
+              width: size.width * 0.7,
+              height: 40,
+              child: AutoSizeText(
+                'welcome_to_lantern_pro'.i18n,
+                style: textTheme.headlineMedium,
+                maxLines: 1,
+                minFontSize: 20,
+                maxFontSize: 24,
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            'lantern_pro_description'.i18n,
-            style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
-          ),
-        ],
+            SizedBox(height: defaultSize),
+            Text(
+              'lantern_pro_description'.i18n,
+              style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+            ),
+          ],
+        ),
       ),
       primaryLabel: label ?? 'continue'.i18n,
       onPrimaryPressed: onPressed,

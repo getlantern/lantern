@@ -189,6 +189,18 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           return;
         }
         break;
+
+      case 'e2e':
+        if (isDesktop) {
+          await paymentRedirectFlow(
+            provider.providers.name,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
+          return;
+        }
+        break;
     }
   }
 
@@ -430,6 +442,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    appLogger.info(
+      'PAYMENT_CONVERSION_SMOKE event=webview_callback purchased=$purchased',
+    );
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
       ref.read(paymentSessionProvider.notifier).clearRedirect();
@@ -472,6 +487,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
       case AuthFlow.renewSubscription:
+        appLogger.info(
+          'PAYMENT_CONVERSION_SMOKE event=success_ui userLevel=pro',
+        );
         AppDialog.showLanternProDialog(
           context: context,
           onPressed: () {
