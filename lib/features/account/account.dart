@@ -223,7 +223,6 @@ class Account extends HookConsumerWidget {
     if (isUserPro && !autoRenew) {
       return AppTextButton(label: 'renew'.i18n, onPressed: onRenewTap);
     }
-
     return null;
   }
 

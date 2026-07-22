@@ -206,16 +206,8 @@ bool isSmallScreen(BuildContext context) {
   return MediaQuery.of(context).size.width <= 380;
 }
 
-String getReferralMessage(String planId) {
-  final id = planId.split('-').first;
-  if (id == '1m') {
-    return 'referral_message_1m'.i18n;
-  } else if (id == '1y') {
-    return 'referral_message_1y'.i18n;
-  } else if (id == '2y') {
-    return 'referral_message_2y'.i18n;
-  }
-  return '';
+String getReferralMessage() {
+  return 'referral_message_1m'.i18n;
 }
 
 /// Initial server location set to auto (fastest server)

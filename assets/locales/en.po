@@ -1276,7 +1276,7 @@ msgid "discount_applied"
 msgstr "%s discount applied"
 
 msgid "referral_message_1m"
-msgstr "+ 15 additional days free"
+msgstr "+ 1 additional month free"
 
 msgid "referral_message_1y"
 msgstr "+ 1 additional month free"
