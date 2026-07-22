@@ -21,6 +21,35 @@ void CreateAndAttachConsole() {
   }
 }
 
+void EnsureWebView2UserDataFolder() {
+  // Respect an existing value (e.g. a machine-level override or a debug
+  // configuration) rather than clobbering it.
+  if (::GetEnvironmentVariableW(L"WEBVIEW2_USER_DATA_FOLDER", nullptr, 0) > 0) {
+    return;
+  }
+
+  const wchar_t kUnexpanded[] = L"%LOCALAPPDATA%\\Lantern\\WebView2";
+  wchar_t path[MAX_PATH];
+  DWORD length =
+      ::ExpandEnvironmentStringsW(kUnexpanded, path, ARRAYSIZE(path));
+  if (length == 0 || length > ARRAYSIZE(path)) {
+    return;
+  }
+
+  // Create each directory component in turn; CreateDirectoryW only creates the
+  // final segment, so intermediate parents must be created first.
+  for (wchar_t* cursor = path; *cursor != L'\0'; ++cursor) {
+    if (*cursor == L'\\' && cursor != path && *(cursor - 1) != L':') {
+      *cursor = L'\0';
+      ::CreateDirectoryW(path, nullptr);
+      *cursor = L'\\';
+    }
+  }
+  ::CreateDirectoryW(path, nullptr);
+
+  ::SetEnvironmentVariableW(L"WEBVIEW2_USER_DATA_FOLDER", path);
+}
+
 std::vector<std::string> GetCommandLineArguments() {
   // Convert the UTF-16 command line arguments to UTF-8 for the Engine to use.
   int argc;
