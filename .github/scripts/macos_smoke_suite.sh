@@ -11,6 +11,12 @@ APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
 DMG_MOUNT_DIR=""
 
+if ! [[ "$EXTENSION_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+  printf 'EXTENSION_TIMEOUT_SECONDS must be a positive integer, got %q.\n' \
+    "$EXTENSION_TIMEOUT_SECONDS" >&2
+  exit 2
+fi
+
 log_step() {
   printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*" >&2
 }
@@ -243,7 +249,9 @@ run_with_timeout() {
     if ((SECONDS >= deadline)); then
       kill -TERM "$command_pid" 2>/dev/null || true
       sleep 2
-      kill -KILL "$command_pid" 2>/dev/null || true
+      if kill -0 "$command_pid" 2>/dev/null; then
+        kill -KILL "$command_pid" 2>/dev/null || true
+      fi
       wait "$command_pid" 2>/dev/null || true
       return 124
     fi
@@ -281,7 +289,8 @@ run_system_extension_preflight() {
       printf 'System extension activation requires a reboot before this smoke test can connect.\n' >&2
       ;;
     124)
-      printf 'System extension preflight timed out after %s seconds.\n' "$EXTENSION_TIMEOUT_SECONDS" >&2
+      printf 'System extension preflight exceeded the %s-second wrapper deadline (activation timeout: %s seconds), followed by a 2-second termination grace period.\n' \
+        "$process_timeout" "$EXTENSION_TIMEOUT_SECONDS" >&2
       ;;
     *)
       printf 'System extension preflight failed with exit code %s.\n' "$exit_code" >&2
