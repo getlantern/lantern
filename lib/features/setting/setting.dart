@@ -84,7 +84,7 @@ class _SettingState extends ConsumerState<Setting>
                     ? 'renew_pro_subscription'.i18n
                     : 'upgrade_to_pro'.i18n,
                 onPressed: () {
-                  appRouter.push(const Plans());
+                  appRouter.push(Plans());
                 },
               ),
             ),

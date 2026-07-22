@@ -9,7 +9,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_code.dart';
-import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -23,10 +22,15 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 
 import '../../core/models/plan_data.dart';
+import '../../core/models/referral_attach_response.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
-  const Plans({super.key});
+  const Plans({super.key, this.referralCode});
+
+  /// Referral/affiliate code delivered via a deep link
+  /// (https://lantern.io/affiliate/<code>); applied automatically on open.
+  final String? referralCode;
 
   @override
   ConsumerState<Plans> createState() => _PlansState();
@@ -37,11 +41,21 @@ class _PlansState extends ConsumerState<Plans>
   late TextTheme textTheme;
 
   @override
+  void initState() {
+    super.initState();
+    final code = widget.referralCode?.toUpperCase().trim();
+    if (code != null && code.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _applyDeepLinkCode(code));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       backgroundColor: context.bgElevated,
       padded: false,
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: SizedBox(
           height: 20.h,
@@ -65,133 +79,194 @@ class _PlansState extends ConsumerState<Plans>
 
   Widget _buildBody() {
     final plansState = ref.watch(plansProvider);
-    final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: defaultSize),
-          child: SizedBox(
-            height: context.isSmallDevice
-                ? size.height * 0.4
-                : size.height * 0.37,
-            child: SingleChildScrollView(child: FeatureList()),
+        // Features fill whatever space the bottom section leaves, centered.
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: defaultSize),
+            child: Center(child: FeatureList()),
           ),
         ),
         SizedBox(height: defaultSize),
         DividerSpace(padding: EdgeInsets.zero),
-        Expanded(
-          child: Container(
-            color: context.bgSurface,
-            padding: EdgeInsets.symmetric(
-              horizontal: context.isSmallDevice ? 0 : defaultSize,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: context.isSmallDevice ? 16 : 0,
-                  ),
-                  child: plansState.when(
-                    data: (data) {
-                      return PlansListView(data: data);
-                    },
-                    loading: () {
-                      return Center(child: LoadingIndicator());
-                    },
-                    error: (error, stackTrace) {
-                      return Column(
-                        children: [
-                          Text(
-                            'plans_fetch_error'.i18n,
-                            style: textTheme.labelLarge,
-                          ),
-                          AppTextButton(
-                            label: 'Try again',
-                            onPressed: () {
-                              ref.read(plansProvider.notifier).fetchPlans();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: 24),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.isSmallDevice ? defaultSize : 0,
-                  ),
-                  child: PrimaryButton(
-                    label: 'get_lantern_pro'.i18n,
-                    isTaller: true,
-                    onPressed: onGetLanternProTap,
-                  ),
-                ),
-                if (isStoreVersion()) ...[
-                  SizedBox(height: 8),
-                  Center(
-                    child: AppRichText(
-                      texts: '${'already_purchased'.i18n} ',
-                      boldTexts: 'restore_purchase'.i18n,
-                      boldUnderline: true,
-                      boldOnPressed: _restorePurchaseFlow,
-                    ),
-                  ),
-                ],
-                if (PlatformUtils.isIOS) ...{
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      'subscription_renewal_info'.i18n,
-                      style: textTheme.labelMedium!.copyWith(
-                        color: context.textTertiary,
-                      ),
-                    ),
-                  ),
-                  IntrinsicHeight(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        AppTextButton(
-                          label: 'privacy_policy'.i18n,
-                          fontSize: 12,
-                          textColor: context.textTertiary,
-                          onPressed: () {
-                            UrlUtils.openWithSystemBrowser(
-                              AppUrls.privacyPolicy,
-                            );
-                          },
+        // Bottom section sizes to its content: plans, then the CTA button.
+        Container(
+          color: context.bgSurface,
+          padding: EdgeInsets.symmetric(
+            horizontal: context.isSmallDevice ? 0 : defaultSize,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SizedBox(height: 10),
+              _buildAffiliateBanner(),
+              Padding(
+                padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
+                child: plansState.when(
+                  data: (data) {
+                    return PlansListView(data: data);
+                  },
+                  loading: () {
+                    return Center(child: LoadingIndicator());
+                  },
+                  error: (error, stackTrace) {
+                    return Column(
+                      children: [
+                        Text(
+                          'plans_fetch_error'.i18n,
+                          style: textTheme.labelLarge,
                         ),
-                        VerticalDivider(indent: 10, endIndent: 10),
                         AppTextButton(
-                          label: 'terms_of_service'.i18n,
-                          fontSize: 12,
-                          textColor: context.textTertiary,
+                          label: 'Try again',
                           onPressed: () {
-                            UrlUtils.openWithSystemBrowser(
-                              AppUrls.termsOfService,
-                            );
+                            ref.read(plansProvider.notifier).fetchPlans();
                           },
                         ),
                       ],
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: defaultSize),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isSmallDevice ? defaultSize : 0,
+                ),
+                child: PrimaryButton(
+                  label: 'get_lantern_pro'.i18n,
+                  isTaller: true,
+                  onPressed: onGetLanternProTap,
+                ),
+              ),
+              if (isStoreVersion()) ...[
+                SizedBox(height: 8),
+                Center(
+                  child: AppRichText(
+                    texts: '${'already_purchased'.i18n} ',
+                    boldTexts: 'restore_purchase'.i18n,
+                    boldUnderline: true,
+                    boldOnPressed: _restorePurchaseFlow,
+                  ),
+                ),
+              ],
+              if (PlatformUtils.isIOS) ...{
+                SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    'subscription_renewal_info'.i18n,
+                    style: textTheme.labelMedium!.copyWith(
+                      color: context.textTertiary,
                     ),
                   ),
-                },
-                SizedBox(height: size24),
-              ],
-            ),
+                ),
+                IntrinsicHeight(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      AppTextButton(
+                        label: 'privacy_policy'.i18n,
+                        fontSize: 12,
+                        textColor: context.textTertiary,
+                        onPressed: () {
+                          UrlUtils.openWithSystemBrowser(AppUrls.privacyPolicy);
+                        },
+                      ),
+                      VerticalDivider(indent: 10, endIndent: 10),
+                      AppTextButton(
+                        label: 'terms_of_service'.i18n,
+                        fontSize: 12,
+                        textColor: context.textTertiary,
+                        onPressed: () {
+                          UrlUtils.openWithSystemBrowser(
+                            AppUrls.termsOfService,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              },
+              SizedBox(height: size24),
+            ],
           ),
         ),
       ],
     );
   }
 
+  /// Banner shown above the plans list when an affiliate code is applied:
+  /// the discount percentage plus a removable chip with the applied code.
+  /// Referral (non-affiliate) codes keep the existing per-plan bonus message.
+  Widget _buildAffiliateBanner() {
+    final response = ref.watch(referralProvider);
+    if (!response.isAffiliate) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: defaultSize),
+            child: Text(
+              'discount_applied'.i18n.fill(['${response.discountPct}%']),
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
+          SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Chip(
+              label: Text(response.code),
+              labelStyle: textTheme.titleSmall!.copyWith(
+                color: context.textAttention,
+              ),
+              backgroundColor: context.bgAttention,
+              deleteIcon: Icon(
+                Icons.close,
+                size: 18,
+                color: context.textAttention,
+              ),
+              onDeleted: _onRemoveAffiliateCode,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: context.borderAttention),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Removes the applied affiliate code: clears the referral state and
+  /// re-fetches the original (non-discounted) plans. On a Play Store build the
+  /// SKUs are also reloaded back to base plans so a later purchase is charged
+  /// at full price rather than the (now removed) offer.
+  Future<void> _onRemoveAffiliateCode() async {
+    appLogger.info('Removing applied affiliate code');
+    ref.read(referralProvider.notifier).resetReferral();
+    ref.read(plansProvider.notifier).fetchPlans();
+    if (isStoreVersion()) {
+      try {
+        await sl<AppPurchase>().fetchSubscriptions();
+      } catch (e) {
+        appLogger.warning(
+          '[Plans] Failed to reload base SKUs after removing code: $e',
+        );
+      }
+    }
+  }
+
   void onMenuTap() {
-    final isReferralApplied = ref.read(referralProvider);
+    final isReferralApplied = ref.read(referralProvider).isApplied;
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
@@ -202,10 +277,12 @@ class _PlansState extends ConsumerState<Plans>
           padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
-            if (!isStoreVersion() && !isReferralApplied) ...{
+            if (!isReferralApplied) ...{
               AppTile(
                 icon: AppImagePaths.star,
-                label: 'referral_code'.i18n,
+                label: isStoreVersion()
+                    ? 'promo_code'.i18n
+                    : 'promo_referral_code'.i18n,
                 onPressed: () {
                   context.pop();
                   showReferralCodeDialog();
@@ -246,18 +323,23 @@ class _PlansState extends ConsumerState<Plans>
           AppImage(path: AppImagePaths.star, height: 48),
           SizedBox(height: defaultSize),
           Text(
-            'referral_code'.i18n,
+            isStoreVersion() ? 'promo_code'.i18n : 'promo_referral_code'.i18n,
             style: textTheme.headlineSmall!.copyWith(
               color: context.textPrimary,
             ),
           ),
           SizedBox(height: 24),
           AppTextField(
-            label: 'referral_code'.i18n,
+            label: isStoreVersion()
+                ? 'promo_code'.i18n
+                : 'promo_referral_code'.i18n,
             controller: referralCodeController,
-            inputFormatters: [UpperCaseTextFormatter()],
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) =>
+                onReferralCodeContinue(value.toUpperCase().trim()),
           ),
         ],
       ),
@@ -280,39 +362,66 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
+  /// Applies a deep-linked affiliate code once the plans have loaded;
+  /// applying earlier would let the in-flight plans fetch overwrite the
+  /// discounted plans returned by the code.
+  Future<void> _applyDeepLinkCode(String code) async {
+    if (!mounted) return;
+    try {
+      await ref.read(plansProvider.future);
+    } catch (e) {
+      appLogger.warning(
+        '[Plans] Plans failed to load, skipping deep-linked code: $e',
+      );
+      return;
+    }
+    if (!mounted) return;
+    await applyReferralCode(code);
+  }
+
   Future<void> onReferralCodeContinue(String code) async {
     if (code.isEmpty) {
       context.showSnackBar('please_enter_referral_code'.i18n);
       return;
     }
     appRouter.pop();
+    await applyReferralCode(code);
+  }
+
+  Future<void> applyReferralCode(String code) async {
     context.showLoadingDialog();
     final result = await ref
         .read(referralProvider.notifier)
-        .applyReferralCode(code);
+        .applyReferralCodeV2(code);
+    if (!mounted) return;
 
-    result.fold(
-      (error) {
-        if (!mounted) {
-          return;
-        }
-        appLogger.error('Error applying referral code: $error');
-        context.hideLoadingDialog();
-        AppDialog.errorDialog(
-          context: context,
-          title: 'error'.i18n,
-          content: error.localizedErrorMessage,
+    final failure = result.getLeft().toNullable();
+    if (failure != null) {
+      appLogger.error('Error applying referral code: $failure');
+      context.hideLoadingDialog();
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: failure.localizedErrorMessage,
+      );
+      return;
+    }
+
+    appLogger.info('Successfully applied referral code');
+    if (isStoreVersion()) {
+      try {
+        appLogger.info('Reloading SKUs after applying referral code');
+        await sl<AppPurchase>().fetchSubscriptions(includeOffers: true);
+      } catch (e) {
+        appLogger.warning(
+          '[Plans] No offer SKUs after applying code; base plan will be used: $e',
         );
-      },
-      (success) {
-        if (!mounted) {
-          return;
-        }
-        context.hideLoadingDialog();
-        context.showSnackBar('referral_code_applied'.i18n);
-        appLogger.info('Successfully applied referral code');
-      },
-    );
+      }
+      if (!mounted) return;
+    }
+
+    context.hideLoadingDialog();
+    context.showSnackBar('referral_code_applied'.i18n);
   }
 
   void onGetLanternProTap() {
@@ -389,9 +498,13 @@ class _PlansState extends ConsumerState<Plans>
     // backs out before signup completes — same protection Stripe and the
     // external paymentRedirect flow already get.
     ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+    // Forward any applied affiliate/referral code so the purchase is attributed
+    // to the affiliate at acknowledgment. Empty when no code is applied.
+    final couponCode = ref.read(referralProvider).code;
     final payments = ref.read(paymentProvider.notifier);
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
+      couponCode: couponCode,
       onSuccess: (purchase) => processPurchase(purchase, plan),
       onError: (error) {
         ref.read(paymentSessionProvider.notifier).clearRedirect();
@@ -408,7 +521,7 @@ class _PlansState extends ConsumerState<Plans>
       context.hideLoadingDialog();
       if (_redirectToSignupIfPlayBlocked()) return;
       context.showSnackBar(error.localizedErrorMessage);
-      appLogger.error('Error subscribing to plan: $error');
+      appLogger.error('Error subscribing to plan: $error', error);
     }, (_) {});
   }
 

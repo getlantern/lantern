@@ -29,6 +29,7 @@ import '../core/models/available_servers.dart';
 import '../core/models/server_location.dart';
 import '../core/models/macos_extension_state.dart';
 import '../core/models/plan_data.dart';
+import '../core/models/referral_attach_response.dart';
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -733,6 +734,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) {
     throw UnimplementedError("This not supported on desktop");
   }
@@ -743,6 +745,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
@@ -752,6 +755,7 @@ class LanternFFIService implements LanternCoreService {
           planId.toCharPtr,
           email.toCharPtr,
           idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
         );
         try {
           return resultPtr.toDartString();
@@ -776,6 +780,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
     required String planId,
     required String email,
+    String couponCode = '',
   }) {
     throw Exception("Desktop flow should not be here, this is just for mobile");
   }
@@ -807,22 +812,7 @@ class LanternFFIService implements LanternCoreService {
       });
       checkAPIError(result);
       final map = jsonDecode(result);
-      final plans = PlansData.fromJson(map);
-
-      // Sort plans
-      plans.plans.sort((a, b) {
-        if (a.bestValue != b.bestValue) {
-          return a.bestValue ? -1 : 1;
-        }
-        // Then: sort by usdPrice descending
-        return b.usdPrice.compareTo(a.usdPrice);
-      });
-
-      plans.providers.desktop.sort((a, b) {
-        return (b.providers.supportSubscription ? 1 : 0) -
-            (a.providers.supportSubscription ? 1 : 0);
-      });
-
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
@@ -905,6 +895,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) {
     throw UnimplementedError(
       "This is not supported on desktop; this is only for mobile",
@@ -926,6 +917,7 @@ class LanternFFIService implements LanternCoreService {
     required String planId,
     required String email,
     required String idempotencyKey,
+    String couponCode = '',
   }) async {
     try {
       final result = await runInBackground<String>(() async {
@@ -934,6 +926,7 @@ class LanternFFIService implements LanternCoreService {
           provider.toCharPtr,
           email.toCharPtr,
           idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
         );
         try {
           return resultPtr.toDartString();
@@ -1426,6 +1419,32 @@ class LanternFFIService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.referralAttachmentV2(
+          code.toCharPtr,
+          distributionChannel.toCharPtr,
+        );
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      final response = ReferralAttachV2Response.fromJson(jsonDecode(result));
+      return Right(response);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code v2', e, stackTrace);
       return Left(e.toFailure());
     }
   }

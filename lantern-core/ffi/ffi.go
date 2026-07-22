@@ -645,17 +645,18 @@ func fetchUserData() *C.char {
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey, _couponCode *C.char) *C.char {
 	subscriptionType := C.GoString(subType)
 	planID := C.GoString(_planId)
 	email := C.GoString(_email)
 	idempotencyKey := C.GoString(_idempotencyKey)
+	couponCode := C.GoString(_couponCode)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey)
+		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode)
 		if err != nil {
 			return SendError(err)
 		}
@@ -666,17 +667,18 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey
 // Fetch payment redirect link for providers like alipay
 //
 //export paymentRedirect
-func paymentRedirect(_plan, _provider, _email, _idempotencyKey *C.char) *C.char {
+func paymentRedirect(_plan, _provider, _email, _idempotencyKey, _couponCode *C.char) *C.char {
 	plan := C.GoString(_plan)
 	provider := C.GoString(_provider)
 	email := C.GoString(_email)
 	idempotencyKey := C.GoString(_idempotencyKey)
+	couponCode := C.GoString(_couponCode)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.PaymentRedirect(provider, plan, email, idempotencyKey)
+		redirect, err := c.PaymentRedirect(provider, plan, email, idempotencyKey, couponCode)
 		if err != nil {
 			return SendError(err)
 		}
@@ -907,6 +909,26 @@ func verifyPassword(_email, _password *C.char) *C.char {
 			return SendError(err)
 		}
 		return C.CString("ok")
+	})
+}
+
+// referralAttachmentV2 attaches a referral code to the user's account and
+// returns the resulting plans, providers, code, and discount as JSON.
+//
+//export referralAttachmentV2
+func referralAttachmentV2(_referralCode, _channel *C.char) *C.char {
+	referralCode := C.GoString(_referralCode)
+	channel := C.GoString(_channel)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.ReferralAttachmentV2(referralCode, channel)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(bytes))
 	})
 }
 
