@@ -22,9 +22,15 @@ void CreateAndAttachConsole() {
 }
 
 void EnsureWebView2UserDataFolder() {
-  // Respect an existing value (e.g. a machine-level override or a debug
-  // configuration) rather than clobbering it.
-  if (::GetEnvironmentVariableW(L"WEBVIEW2_USER_DATA_FOLDER", nullptr, 0) > 0) {
+  // Respect an existing non-empty override (machine-level or debug config)
+  // rather than clobbering it. Read into a buffer instead of probing with a
+  // null one: the size probe can't tell "unset" from "set but empty", and an
+  // empty value isn't a meaningful override. GetEnvironmentVariableW returns the
+  // number of chars written — 0 when unset or empty, or the required size when
+  // an override is too long to fit (still counts as present).
+  wchar_t existing[MAX_PATH];
+  if (::GetEnvironmentVariableW(L"WEBVIEW2_USER_DATA_FOLDER", existing,
+                                ARRAYSIZE(existing)) > 0) {
     return;
   }
 
