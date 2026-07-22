@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/core/models/plan_data.dart' as plan_models;
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/smoke/payment_checkout_smoke.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -60,6 +61,29 @@ class _LanternAppState extends ConsumerState<LanternApp>
   ) async {
     try {
       final planData = await ref.read(plansProvider.future);
+      if (smoke.completesPurchase &&
+          !planData.providers.desktop.any(
+            (provider) => provider.providers.name == smoke.provider,
+          )) {
+        // The deployed staging API deliberately does not advertise the E2E
+        // provider. Expose it only through this Windows-nightly, UUID-gated
+        // smoke entry point; the server independently enforces the same tag.
+        planData.providers.desktop.insert(
+          0,
+          plan_models.Android(
+            method: 'E2E Checkout',
+            providers: plan_models.Provider(
+              name: smoke.provider,
+              icons: const [],
+              supportSubscription: false,
+            ),
+          ),
+        );
+        appLogger.info(
+          'PAYMENT_CONVERSION_SMOKE event=provider_enabled '
+          'provider=${smoke.provider} run_id=${smoke.runID}',
+        );
+      }
       final matchingProviders = planData.providers.desktop.where(
         (provider) => provider.providers.name == smoke.provider,
       );

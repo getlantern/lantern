@@ -245,8 +245,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     final purchaseResult = _extractPurchaseResult(uri);
     if (purchaseResult != null && isLanternHost(uri.host)) {
+      final purchased = purchaseResult.toLowerCase() == 'true';
+      _logSmokeEvent('purchase_result', uri, detail: 'result=$purchased');
       loading.stop();
-      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
+      await appRouter.maybePop(purchased);
       return true;
     }
 

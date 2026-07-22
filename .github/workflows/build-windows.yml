@@ -39,6 +39,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_payment_conversion_smoke:
+        description: "Run installed-app staging payment-to-Pro conversion smoke test"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -308,12 +313,14 @@ jobs:
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
           $runPaymentCheckoutSmoke = "${{ inputs.run_payment_checkout_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          $runPaymentConversionSmoke = "${{ inputs.run_payment_conversion_smoke }}" -eq "true"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke paymentConversion=$runPaymentConversionSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
             -RunPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
+            -RunPaymentConversionSmoke:$runPaymentConversionSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
@@ -325,6 +332,15 @@ jobs:
         with:
           name: windows-payment-checkout-smoke
           path: build/windows-payment-checkout-smoke
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows payment conversion smoke artifacts
+        if: ${{ always() && inputs.run_payment_conversion_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-conversion-smoke
+          path: build/windows-payment-conversion-smoke
           if-no-files-found: warn
           retention-days: 7
 
