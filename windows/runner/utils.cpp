@@ -36,13 +36,13 @@ void EnsureWebView2UserDataFolder() {
     return;
   }
 
-  // If a referenced variable (e.g. %LOCALAPPDATA%) is undefined, it is left
-  // literally in the output. Don't proceed with an unexpanded path — that would
-  // create a garbage relative folder and point WebView2 at an unusable value.
-  for (const wchar_t* p = path; *p != L'\0'; ++p) {
-    if (*p == L'%') {
-      return;
-    }
+  // If %LOCALAPPDATA% is undefined, ExpandEnvironmentStringsW leaves the
+  // template literal, so the result starts with '%'; a real expanded path
+  // starts with a drive letter. Only the leading char is a reliable signal —
+  // '%' is legal elsewhere in a folder name — so don't reject those. Bail on an
+  // unexpanded path rather than create a garbage relative folder.
+  if (path[0] == L'%') {
+    return;
   }
 
   // Create each directory component in turn; CreateDirectoryW only creates the
