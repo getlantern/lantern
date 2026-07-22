@@ -117,7 +117,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {},
+      onWebViewCreated: (controller) {
+        final uri = Uri.tryParse(widget.url);
+        _logSmokeEvent('created', uri);
+      },
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {
@@ -137,9 +140,12 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         return false;
       },
       onLoadStart: (_, webUri) async {
-        // Handle load start
         final loading = ref.read(webViewLoadingProvider.notifier);
         loading.start();
+        _logSmokeEvent(
+          'load_start',
+          webUri == null ? null : Uri.tryParse(webUri.toString()),
+        );
       },
       onLoadStop: (controller, webUri) async {
         ref.read(webViewLoadingProvider.notifier).stop();
@@ -151,6 +157,13 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         appLogger.error("Received error: $error");
         ref.read(webViewLoadingProvider.notifier).stop();
         final uri = Uri.tryParse(webResourceRequest.url.toString());
+        _logSmokeEvent(
+          webResourceRequest.isForMainFrame == true
+              ? 'navigation_error'
+              : 'resource_error',
+          uri,
+          detail: 'error=${_singleLine(error.toString())}',
+        );
         if (webResourceRequest.isForMainFrame == true) {
           widget.observer?.onPageLoadFailed(
             uri,
@@ -163,6 +176,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         if (request.isForMainFrame != true) return;
         ref.read(webViewLoadingProvider.notifier).stop();
         final uri = Uri.tryParse(request.url.toString());
+        _logSmokeEvent(
+          'navigation_error',
+          uri,
+          detail: 'http_status=${response.statusCode}',
+        );
         widget.observer?.onPageLoadFailed(uri, 'HTTP ${response.statusCode}');
       },
     );
@@ -182,12 +200,31 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       final documentLength = value is num
           ? value.toInt()
           : int.tryParse(value?.toString() ?? '') ?? 0;
+      _logSmokeEvent(
+        'load_stop',
+        uri,
+        detail: 'document_length=$documentLength',
+      );
       observer.onPageLoaded(uri, documentLength: documentLength);
     } catch (error, stackTrace) {
       appLogger.error('Unable to inspect WebView document', error, stackTrace);
+      _logSmokeEvent('document_error', uri, detail: 'error=$error');
       observer.onPageLoadFailed(uri, error.toString());
     }
   }
+
+  void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
+    final safeUri = uri == null
+        ? '<none>'
+        : uri.replace(query: '', fragment: '').toString();
+    final suffix = detail.isEmpty ? '' : ' $detail';
+    appLogger.info(
+      'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '
+      'url=$safeUri$suffix',
+    );
+  }
+
+  String _singleLine(String value) => value.replaceAll(RegExp(r'[\r\n]+'), ' ');
 
   bool isLanternHost(String host) =>
       host == 'lantern.io' || host == 'www.lantern.io';

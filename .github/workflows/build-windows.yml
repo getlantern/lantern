@@ -34,6 +34,11 @@ on:
         required: false
         type: boolean
         default: true
+      run_payment_checkout_smoke:
+        description: "Run installed-app staging payment checkout smoke tests"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -318,15 +323,26 @@ jobs:
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          $runPaymentCheckoutSmoke = "${{ inputs.run_payment_checkout_smoke }}" -eq "true"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
+            -RunPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke
+
+      - name: Upload Windows payment checkout smoke artifacts
+        if: ${{ always() && inputs.run_payment_checkout_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-checkout-smoke
+          path: build/windows-payment-checkout-smoke
+          if-no-files-found: warn
+          retention-days: 7
 
       # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
       - name: Windows UI auth smoke integration

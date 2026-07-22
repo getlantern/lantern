@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Linux VPN connect/disconnect smoke', (tester) async {
-    await app.main();
+    await app.main(const []);
     await runConnectSmokeHarness(tester, enableIpCheck: _enableIpCheck);
   });
 }
