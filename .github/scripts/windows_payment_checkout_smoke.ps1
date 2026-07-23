@@ -125,6 +125,45 @@ function Get-FreeTcpPort {
   }
 }
 
+function Invoke-RemoteE2EPaymentCleanup {
+  param(
+    [string]$RunID,
+    [string]$ResultPath
+  )
+  $cleanupURI = "https://api.staging.iantem.io/pro-server/e2e-payment-cleanup"
+  $requestBody = @{ runId = $RunID } | ConvertTo-Json -Compress
+  $lastError = $null
+  for ($attempt = 1; $attempt -le 3; $attempt++) {
+    try {
+      Write-Step "Requesting immediate staging cleanup for E2E run $RunID (attempt $attempt)"
+      $response = Invoke-RestMethod -Method Post -Uri $cleanupURI `
+        -ContentType "application/json" -Body $requestBody -TimeoutSec 30
+      if ($response.status -ne "ok" -or
+          $response.cleanup -notin @("completed", "already_completed")) {
+        throw "Unexpected cleanup status: $($response.cleanup)"
+      }
+      @{
+        success = $true
+        runId = $RunID
+        cleanup = $response.cleanup
+        attempt = $attempt
+      } | ConvertTo-Json | Set-Content $ResultPath
+      return
+    } catch {
+      $lastError = $_.Exception.Message
+      if ($attempt -lt 3) {
+        Start-Sleep -Seconds (2 * $attempt)
+      }
+    }
+  }
+  @{
+    success = $false
+    runId = $RunID
+    error = $lastError
+  } | ConvertTo-Json | Set-Content $ResultPath
+  throw "Immediate staging E2E cleanup failed after 3 attempts: $lastError"
+}
+
 function Use-StagingService {
   if (-not (Test-Path $InstalledDaemonPath)) {
     throw "Installed daemon not found: $InstalledDaemonPath"
@@ -392,7 +431,7 @@ function Invoke-CheckoutCase {
     0
   }
   $remoteCleanup = if ($completesConversion) {
-    "queued by the staging redirect before checkout issuance"
+    "immediate staging endpoint with delayed cleanup fallback"
   } else {
     "not applicable"
   }
@@ -422,6 +461,7 @@ function Invoke-CheckoutCase {
   $launcherProcess = $null
   $appProcess = $null
   $root = $null
+  $remoteCleanupError = $null
   $priorUDF = [Environment]::GetEnvironmentVariable(
     "WEBVIEW2_USER_DATA_FOLDER",
     [EnvironmentVariableTarget]::Process
@@ -676,6 +716,15 @@ $app.WaitForExit()
     if ($launcherProcess) {
       Stop-Process -Id $launcherProcess.Id -Force -ErrorAction SilentlyContinue
     }
+    if ($completesConversion) {
+      try {
+        Invoke-RemoteE2EPaymentCleanup -RunID $RunID `
+          -ResultPath (Join-Path $caseDirectory "remote-cleanup.json")
+      } catch {
+        $remoteCleanupError = $_.Exception.Message
+        Write-Warning $remoteCleanupError
+      }
+    }
     Start-Sleep -Seconds 1
     if ($udfCheckPath -and (Test-Path $udfCheckPath)) {
       Copy-Item $udfCheckPath (Join-Path $caseDirectory "webview2-udf.json") -Force
@@ -712,6 +761,9 @@ $app.WaitForExit()
     try {
       Stop-Transcript | Out-Null
     } catch {
+    }
+    if ($remoteCleanupError) {
+      throw $remoteCleanupError
     }
   }
 }
