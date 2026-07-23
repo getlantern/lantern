@@ -1238,7 +1238,7 @@ msgid "referral_message_1m"
 msgstr "+ 15 ngày bổ sung miễn phí"
 
 msgid "referral_message_1y"
-msgstr "+ 15 ngày bổ sung miễn phí"
+msgstr "+ 1 tháng bổ sung miễn phí"
 
 msgid "referral_message_2y"
 msgstr "+ 2 tháng bổ sung miễn phí"

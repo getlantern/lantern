@@ -207,7 +207,9 @@ bool isSmallScreen(BuildContext context) {
 }
 
 String getReferralMessage() {
-  return 'referral_message_1m'.i18n;
+  // Referral rewards are now a fixed 30 days for every plan. The existing
+  // annual-plan key already has the correct one-month copy in every locale.
+  return 'referral_message_1y'.i18n;
 }
 
 /// Initial server location set to auto (fastest server)

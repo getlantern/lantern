@@ -1276,13 +1276,13 @@ msgid "discount_applied"
 msgstr "%s discount applied"
 
 msgid "referral_message_1m"
-msgstr "+ 1 additional month free"
+msgstr "+ 15 additional days free"
 
 msgid "referral_message_1y"
 msgstr "+ 1 additional month free"
 
 msgid "referral_message_2y"
-msgstr "+ 2 additional month free"
+msgstr "+ 2 additional months free"
 
 msgid "referral_code_invalid"
 msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
@@ -1718,5 +1718,4 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
-
 

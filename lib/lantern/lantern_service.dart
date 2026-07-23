@@ -43,6 +43,13 @@ class LanternService implements LanternCoreService {
     return _platformService.init();
   }
 
+  Future<void> waitForRadiance() {
+    if (PlatformUtils.isAndroid) {
+      return _platformService.waitForRadiance();
+    }
+    return Future.value();
+  }
+
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (PlatformUtils.isFFISupported) {

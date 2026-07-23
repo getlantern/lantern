@@ -178,7 +178,7 @@ class AppDialog {
     required List<Widget> action,
     EdgeInsetsGeometry? actionPadding,
   }) {
-    return showDialog(
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
