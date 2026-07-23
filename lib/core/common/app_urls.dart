@@ -30,7 +30,7 @@ class AppUrls {
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
       'https://cloud.digitalocean.com/account/billing';
-  static String androidSideloadUpdateEndpoint = updateServiceLantern;
+  static const androidSideloadUpdateEndpoint = updateServiceLantern;
 
   static String appcastFor(String buildType) {
     switch (buildType) {

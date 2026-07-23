@@ -7,15 +7,14 @@ import pathlib
 import subprocess
 import sys
 import tempfile
-import unittest
-from unittest import mock
+from unittest import TestCase, main, mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import generate_update_metadata
 
 
-class GenerateUpdateMetadataTest(unittest.TestCase):
+class GenerateUpdateMetadataTest(TestCase):
     def test_release_channel_maps_build_types(self) -> None:
         cases = {
             "production": "stable",
@@ -91,6 +90,28 @@ class GenerateUpdateMetadataTest(unittest.TestCase):
             },
         )
 
+    def test_sidecar_for_normalizes_channel_without_changing_release_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = pathlib.Path(tmp) / "lantern-installer-production.deb"
+            artifact.write_bytes(b"deb bytes")
+
+            metadata = generate_update_metadata.sidecar_for(
+                artifact,
+                "production",
+                "9.2.0",
+                "lantern.io",
+            )
+
+        self.assertEqual(metadata["channel"], "stable")
+        self.assertEqual(metadata["build_type"], "production")
+        self.assertEqual(
+            metadata["url"],
+            (
+                "https://s3.amazonaws.com/lantern.io/releases/"
+                "production/9.2.0/lantern-installer-production.deb"
+            ),
+        )
+
     def test_sidecar_for_skips_unknown_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             artifact = pathlib.Path(tmp) / "lantern-installer-beta.ipa"
@@ -156,4 +177,4 @@ class GenerateUpdateMetadataTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

@@ -233,6 +233,26 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         self.assertEqual(version, "9.2.0-beta")
         self.assertEqual(enclosures[0]["signature"], "")
 
+    def test_parse_appcast_rejects_internal_entities(self) -> None:
+        xml_text = """<?xml version="1.0"?>
+<!DOCTYPE rss [<!ENTITY version "9.2.0-beta">]>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <item>
+      <sparkle:version>&version;</sparkle:version>
+      <enclosure url="https://example.com/lantern.dmg"
+                 sparkle:edSignature="signature"
+                 sparkle:os="macos"/>
+    </item>
+  </channel>
+</rss>
+"""
+        with self.assertRaisesRegex(
+            verify_update_service.VerificationError,
+            "unsafe appcast XML",
+        ):
+            verify_update_service.parse_appcast(xml_text)
+
 
 if __name__ == "__main__":
     unittest.main()

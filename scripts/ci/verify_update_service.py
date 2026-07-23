@@ -8,9 +8,11 @@ import json
 import time
 import urllib.error
 import urllib.request
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import Any, Optional
+
+from defusedxml import ElementTree as ET
+from defusedxml.common import DefusedXmlException
 
 
 SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
@@ -153,7 +155,10 @@ def verify_stable_excludes_beta(update_url: str, beta_version: str, platform: st
 
 
 def parse_appcast(xml_text: str) -> tuple[str, list[dict[str, str]]]:
-    root = ET.fromstring(xml_text)
+    try:
+        root = ET.fromstring(xml_text)
+    except DefusedXmlException as err:
+        raise VerificationError(f"unsafe appcast XML: {err}") from err
     item = root.find("./channel/item")
     require(item is not None, "appcast has no release item")
     version_node = item.find(f"{{{SPARKLE_NS}}}version")

@@ -74,15 +74,25 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
       - name: Test update service verifier
         run: python3 -m unittest scripts/ci/verify_update_service_test.py
 
       - name: Run update service verifier
+        env:
+          UPDATE_URL: ${{ inputs.update_url }}
+          CHANNEL: ${{ inputs.channel }}
+          PLATFORM: ${{ inputs.platform }}
+          VERSION: ${{ inputs.version }}
+          TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          INTERVAL_SECONDS: ${{ inputs.interval_seconds }}
         run: |
           python3 scripts/ci/verify_update_service.py \
-            --update-url "${{ inputs.update_url }}" \
-            --channel "${{ inputs.channel }}" \
-            --platform "${{ inputs.platform }}" \
-            --version "${{ inputs.version }}" \
-            --timeout-seconds "${{ inputs.timeout_seconds }}" \
-            --interval-seconds "${{ inputs.interval_seconds }}"
+            --update-url "$UPDATE_URL" \
+            --channel "$CHANNEL" \
+            --platform "$PLATFORM" \
+            --version "$VERSION" \
+            --timeout-seconds "$TIMEOUT_SECONDS" \
+            --interval-seconds "$INTERVAL_SECONDS"
