@@ -54,6 +54,54 @@ msgstr "Share your referral code with a friend. When they purchase Lantern Pro, 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
 
+msgid "invite_friends_description"
+msgstr "When a friend upgrades to Lantern Pro using your referral code, you both get 1 month free."
+
+msgid "month_earned"
+msgstr "%s month earned"
+
+msgid "months_earned"
+msgstr "%s months earned"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Includes %s free month from referrals"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Includes %s free months from referrals"
+
+msgid "referral_converted_title"
+msgstr "A friend upgraded to Pro"
+
+msgid "referral_converted_message"
+msgstr "You both earned %s of Lantern Pro, free. You've earned %s so far. Keep sharing your code to earn more."
+
+msgid "month_count"
+msgstr "%s month"
+
+msgid "months_count"
+msgstr "%s months"
+
+msgid "done"
+msgstr "Done"
+
+msgid "view_account"
+msgstr "View Account"
+
+msgid "show_download_links"
+msgstr "Show download links"
+
+msgid "get_lantern"
+msgstr "Get Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Send your friend this download link:"
+
+msgid "scan_to_install"
+msgstr "Scan with your camera app to install Lantern"
+
+msgid "remind_use_code"
+msgstr "Remind them to use code %s when they upgrade!"
+
 msgid "unbounded"
 msgstr "Unbounded"
 
@@ -1234,7 +1282,7 @@ msgid "referral_message_1y"
 msgstr "+ 1 additional month free"
 
 msgid "referral_message_2y"
-msgstr "+ 2 additional month free"
+msgstr "+ 2 additional months free"
 
 msgid "referral_code_invalid"
 msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
@@ -1670,5 +1718,4 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
-
 

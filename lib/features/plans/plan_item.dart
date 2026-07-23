@@ -31,6 +31,7 @@ class PlanItem extends StatelessWidget {
     final finalSize = (width * 0.5) - (defaultSize * 3);
     final originalPrice = plan.formatOriginalPrice;
     final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;
+
     return badges.Badge(
       // Hide the Best Value badge when an affiliate discount is applied so it
       // doesn't compete with the discounted strikethrough pricing.

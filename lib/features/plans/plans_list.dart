@@ -51,9 +51,7 @@ class PlansListView extends HookConsumerWidget {
           return PlanItem(
             plan: item,
             planSelected: selectedPlan.id == item.id,
-            referralMessage: showReferralBonus
-                ? getReferralMessage(item.id)
-                : '',
+            referralMessage: showReferralBonus ? getReferralMessage() : '',
             discountPct: discountPct,
             onPressed: (plans) {
               selectedId.value = plans.id;
