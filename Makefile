@@ -96,6 +96,7 @@ MACOS_DIR := macos/
 MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_FRAMEWORK_OUTPUT := $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
 MACOS_FFI_HEADER := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
@@ -251,10 +252,6 @@ endif
 GARBLE_BUILD = $(GARBLE) $(GARBLE_FLAGS) -seed="$(GARBLE_SEED)" build
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
-
-define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
-endef
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
@@ -469,24 +466,23 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 
 .PHONY: macos
-macos: $(MACOS_FRAMEWORK_BUILD)
+macos: $(MACOS_FRAMEWORK_OUTPUT)
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+$(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
-	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
-	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
-	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
+	mv $(MACOS_FRAMEWORK_BUILD) $@
+	@echo "Built macOS Framework: $@"
 
 
 .PHONY: macos-framework
-macos-framework: $(MACOS_FRAMEWORK_BUILD)
+macos-framework: $(MACOS_FRAMEWORK_OUTPUT)
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
@@ -496,9 +492,10 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: macos-unit-tests
-macos-unit-tests: $(MACOS_FRAMEWORK_BUILD) $(MAYBE_STEALTH_PROFILE)
+macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 	@echo "Preparing macOS test project (building native assets)..."
-	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+		flutter build macos --debug --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 	@echo "Running macOS Runner unit tests..."
 	xcodebuild test \
 		-workspace macos/Runner.xcworkspace \
@@ -526,6 +523,16 @@ notarize-darwin: require-ac-username require-ac-password
 		--password $$AC_PASSWORD \
 		--wait \
 		--output-format json > notary_output.json
+	@status=$$(jq -r '.status' notary_output.json); \
+	if [ "$$status" != "Accepted" ]; then \
+		id=$$(jq -r '.id' notary_output.json); \
+		echo "Notarization failed with status $$status (submission $$id)" >&2; \
+		xcrun notarytool log "$$id" \
+			--apple-id $$AC_USERNAME \
+			--team-id "ACZRKC3LQ9" \
+			--password $$AC_PASSWORD || true; \
+		exit 1; \
+	fi
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
@@ -536,19 +543,23 @@ notarize-log:
 	xcrun notarytool log 3036c6b2-8f99-44d7-8c3e-6c9c007b2524 \
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
-		--password $$AC_PASSWORD
-	    --output-format json > notary_log.json
+		--password $$AC_PASSWORD \
+		--output-format json > notary_log.json
 sign-app:
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
-	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
+	scripts/ci/sign_macos_app.sh \
+		$(DARWIN_RELEASE_BUILD) \
+		$(SIGN_ID) \
+		$(MACOS_ENTITLEMENTS) \
+		$(PACKET_ENTITLEMENTS)
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-release-ci
+macos-release-ci: macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps

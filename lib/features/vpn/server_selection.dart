@@ -103,7 +103,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   child: Text(
                     'smart_routing_mode_description'.i18n,
                     style: _textTheme?.bodyMedium!.copyWith(
-                      color: AppColors.gray8,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -126,7 +126,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               'smart_routing_mode_description'.i18n,
-              style: _textTheme?.bodyMedium!.copyWith(color: AppColors.gray8),
+              style: _textTheme?.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: size24),

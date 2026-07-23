@@ -10,6 +10,7 @@ on:
         options:
           - all
           - linux
+          - macos
           - windows
         default: all
       linux_arch:
@@ -26,6 +27,11 @@ on:
         required: false
         type: boolean
         default: true
+      macos_connect_smoke:
+        description: "Include macOS connect/disconnect smoke when platforms=all (requires self-hosted runner with approved system extension)"
+        required: false
+        type: boolean
+        default: false
       windows_split_tunnel_website_smoke:
         description: "Run Windows split-tunneling website smoke"
         required: false
@@ -104,6 +110,27 @@ jobs:
       enable_ip_check: ${{ inputs.enable_ip_check }}
       force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
       run_auth_smoke: ${{ inputs.auth_smoke }}
+
+  macos:
+    needs: prepare
+    if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
+    uses: ./.github/workflows/build-macos.yml
+    secrets:
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      APP_ENV: ${{ secrets.APP_ENV }}
+      MACOS_BNS_CERT: ${{ secrets.MACOS_BNS_CERT }}
+      MACOS_BNS_CERT_PASS: ${{ secrets.MACOS_BNS_CERT_PASS }}
+      MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
+      MACOS_PROVISION_TUNNEL_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      runner_label: lantern-macos-smoke
+      run_connect_smoke: true
+      enable_ip_check: ${{ inputs.enable_ip_check }}
+      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
 
   windows:
     needs: prepare

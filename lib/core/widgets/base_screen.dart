@@ -11,6 +11,7 @@ class BaseScreen extends StatelessWidget {
   final Widget? bottomSheet;
   final Color? backgroundColor;
   final bool extendBody;
+  final bool? resizeToAvoidBottomInset;
 
   const BaseScreen({
     super.key,
@@ -22,6 +23,7 @@ class BaseScreen extends StatelessWidget {
     this.backgroundColor,
     this.extendBody = false,
     this.bottomSheet,
+    this.resizeToAvoidBottomInset,
   });
 
   @override
@@ -41,6 +43,7 @@ class BaseScreen extends StatelessWidget {
       bottomSheet: bottomSheet,
       bottomNavigationBar: bottomNavigationBar,
       extendBody: extendBody,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
     );
   }
 }

@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: "linux"
+      use_self_hosted_macos:
+        description: "Build macOS on the persistent EC2 runner"
+        required: false
+        type: boolean
+        default: false
       sign_windows:
         description: "Sign Windows binaries (nightly skips signing by default)"
         required: false
@@ -374,6 +379,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      runner_label: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.use_self_hosted_macos == 'true' && 'lantern-macos-smoke' || 'macos-15' }}
 
   build-windows:
     needs: [set-metadata, release-create, release-approval]

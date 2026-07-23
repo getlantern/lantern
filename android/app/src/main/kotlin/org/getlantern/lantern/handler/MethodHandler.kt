@@ -23,6 +23,7 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
@@ -66,6 +67,7 @@ enum class Methods(val method: String) {
     //User data
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
+    WaitForRadiance("waitForRadiance"),
 
     //Login
     Login("login"),
@@ -83,6 +85,7 @@ enum class Methods(val method: String) {
     //Device
     RemoveDevice("removeDevice"),
     AttachReferralCode("attachReferralCode"),
+    AttachReferralCodeV2("attachReferralCodeV2"),
 
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
@@ -439,7 +442,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.stripeSubscription(
                             map["email"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
@@ -460,7 +464,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.acknowledgeGooglePurchase(
                             map["purchaseToken"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData.toByteArray(Charsets.UTF_8))
@@ -507,7 +512,8 @@ class MethodHandler : FlutterPlugin,
                             map["provider"] as String,
                             map["planId"] as String,
                             map["email"] as String,
-                            idempotencyKey
+                            idempotencyKey,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(url)
@@ -593,6 +599,13 @@ class MethodHandler : FlutterPlugin,
                             e
                         )
                     }
+                }
+            }
+
+            Methods.WaitForRadiance.method -> {
+                scope.handleValue<Any?>(result, "wait_for_radiance") {
+                    LanternVpnService.awaitRadianceReady()
+                    null
                 }
             }
 
@@ -824,6 +837,27 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "AttachReferralCode",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AttachReferralCodeV2.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        val distributionChannel =
+                            call.argument<String>("distributionChannel") ?: ""
+                        val response =
+                            Mobile.referralAttachmentV2(code, distributionChannel)
+                        withContext(Dispatchers.Main) {
+                            success(response)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCodeV2",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

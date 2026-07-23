@@ -493,8 +493,10 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	})
 }
 
-func StripeSubscription(email, planID string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
+func StripeSubscription(email, planID, couponCode string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.StripeSubscription(email, planID, couponCode)
+	})
 }
 
 func Plans(channel string) (string, error) {
@@ -504,9 +506,9 @@ func StripeBillingPortalUrl() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
-func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+func AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId)
+		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId, couponCode)
 		if err != nil {
 			return "", err
 		}
@@ -536,9 +538,9 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	})
 }
 
-func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+func AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+		data, err := c.AcknowledgeApplePurchase(receipt, planII, couponCode)
 		if err != nil {
 			return "", err
 		}
@@ -601,18 +603,18 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 	return data, nil
 }
 
-func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+func PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.PaymentRedirect(provider, planId, email, idempotencyKey)
+		return c.PaymentRedirect(provider, planId, email, idempotencyKey, couponCode)
 	})
 }
 
 // /This is specifically for stripe subscriptions that require a redirect to complete the payment
 // This is only used for macos
-func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey string) (string, error) {
+func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode string) (string, error) {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey)
+		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode)
 	})
 }
 
@@ -686,6 +688,15 @@ func ReferralAttachment(referralCode string) error {
 			return err
 		}
 		return nil
+	})
+}
+
+// ReferralAttachmentV2 attaches a referral code and returns the resulting
+// plans, providers, code, and discount as a JSON string.
+func ReferralAttachmentV2(referralCode, channel string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.ReferralAttachmentV2(referralCode, channel)
+		return string(b), err
 	})
 }
 

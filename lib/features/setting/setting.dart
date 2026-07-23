@@ -84,7 +84,7 @@ class _SettingState extends ConsumerState<Setting>
                     ? 'renew_pro_subscription'.i18n
                     : 'upgrade_to_pro'.i18n,
                 onPressed: () {
-                  appRouter.push(const Plans());
+                  appRouter.push(Plans());
                 },
               ),
             ),
@@ -199,12 +199,14 @@ class _SettingState extends ConsumerState<Setting>
                     );
                   },
                 ),
-                DividerSpace(),
-                AppTile(
-                  label: 'get_30_days_of_pro_free'.i18n,
-                  icon: AppImagePaths.star,
-                  onPressed: () => settingMenuTap(_SettingType.getPro),
-                ),
+                if (!isStoreVersion()) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'get_30_days_of_pro_free'.i18n,
+                    icon: AppImagePaths.star,
+                    onPressed: () => settingMenuTap(_SettingType.getPro),
+                  ),
+                ],
                 if (isStoreVersion() && !isUserPro) ...[
                   DividerSpace(),
                   AppTile(
