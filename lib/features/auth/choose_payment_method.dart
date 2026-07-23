@@ -529,9 +529,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      getReferralMessage(
-                        userPlan.id,
-                      ).replaceAll('free', '').toTitleCase(),
+                      getReferralMessage().replaceAll('free', '').toTitleCase(),
                       style: theme.bodyMedium,
                     ),
                     Text(
