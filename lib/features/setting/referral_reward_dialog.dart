@@ -117,8 +117,14 @@ List<TextSpan> _messageSpans(
   int newMonths,
   int totalMonths,
 ) {
-  final parts = 'referral_converted_message'.i18n.split('%s');
+  final template = 'referral_converted_message'.i18n;
+  final parts = template.split('%s');
   final values = [_monthsLabel(newMonths), _monthsLabel(totalMonths)];
+  // If a translation has the wrong number of placeholders, fall back to the
+  // plain filled template instead of dropping values or mangling the sentence.
+  if (parts.length - 1 != values.length) {
+    return [TextSpan(text: template.fill(values))];
+  }
   final boldStyle = AppTextStyles.bodyMediumBold.copyWith(
     color: context.textPrimary,
   );

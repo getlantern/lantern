@@ -337,6 +337,21 @@ class _GetLanternSheet extends HookWidget {
     final textTheme = Theme.of(context).textTheme;
     final template = 'remind_use_code'.i18n;
     final parts = template.split('%s');
+    // Bold the code only when the translation has exactly one placeholder;
+    // otherwise fall back to the plain filled template so the code is never
+    // duplicated or dropped.
+    final spans = parts.length == 2
+        ? [
+            TextSpan(text: parts.first),
+            TextSpan(
+              text: referralCode,
+              style: AppTextStyles.bodyMediumBold.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            TextSpan(text: parts[1]),
+          ]
+        : [TextSpan(text: template.fill([referralCode]))];
     return Container(
       padding: EdgeInsets.all(12.0),
       decoration: BoxDecoration(
@@ -353,16 +368,7 @@ class _GetLanternSheet extends HookWidget {
                 style: textTheme.bodyMedium!.copyWith(
                   color: context.textPrimary,
                 ),
-                children: [
-                  TextSpan(text: parts.first),
-                  TextSpan(
-                    text: referralCode,
-                    style: AppTextStyles.bodyMediumBold.copyWith(
-                      color: context.textPrimary,
-                    ),
-                  ),
-                  if (parts.length > 1) TextSpan(text: parts[1]),
-                ],
+                children: spans,
               ),
             ),
           ),
