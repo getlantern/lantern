@@ -32,7 +32,10 @@ Future<void> checkAndShowReferralReward(
   if (unseen.isEmpty) return;
 
   final newDays = unseen.fold<int>(0, (total, r) => total + r.bonusDaysEarned);
-  final newMonths = max(1, newDays ~/ 30);
+  // Floor by 30 days, matching referralBonusMonths. Conversions that haven't
+  // yet added a full month stay unseen and accumulate toward the next dialog.
+  final newMonths = newDays ~/ 30;
+  if (newMonths == 0) return;
   final totalMonths = max(newMonths, user.legacyUserData.referralBonusMonths);
 
   if (!context.mounted) return;
