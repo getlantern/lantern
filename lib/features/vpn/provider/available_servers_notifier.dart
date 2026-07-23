@@ -41,6 +41,12 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
   /// Updates UI accordingly.
   Future<void> forceFetchAvailableServers() async {
     final result = await fetchAvailableServers();
+    // The fetch is async and this notifier can be disposed while it is in
+    // flight (e.g. the app tears down during an integration test). Writing
+    // state on a disposed Ref throws, so bail out if we are no longer mounted.
+    if (!ref.mounted) {
+      return;
+    }
     result.fold(
       (failure) {
         appLogger.error('Error getting available servers: ${failure.error}');

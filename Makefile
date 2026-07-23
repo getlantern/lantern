@@ -906,6 +906,39 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) android-identity-profile
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(APP_VERSION_PUBSPEC) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 
+# Runs the Android integration test on a connected device (the FTL
+# instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
+ANDROID_INTEGRATION_TARGET ?= integration_test/android_all_e2e_test.dart
+ANDROID_INTEGRATION_DART_DEFINES ?=
+
+.PHONY: android-integration-test
+android-integration-test: $(ANDROID_LIB_BUILD)
+	@if [ -z "$$ANDROID_SERIAL" ]; then \
+	  n=$$(adb devices | grep -c 'device$$'); \
+	  if [ "$$n" != "1" ]; then \
+	    echo "ERROR: $$n adb devices attached. connectedDebugAndroidTest runs on ALL of"; \
+	    echo "them at once; if two are the SAME physical phone (USB + Wi-Fi, or duplicate"; \
+	    echo "wireless-debugging transports) the concurrent instrumentation runs collide and"; \
+	    echo "both report 'Process crashed'. Attach exactly one transport, or pin one with"; \
+	    echo "ANDROID_SERIAL=<serial> (see 'adb devices -l')."; \
+	    exit 1; \
+	  fi; \
+	fi
+	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && ./gradlew app:connectedDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+
+# Builds the two APKs Firebase Test Lab needs to run the integration test as an
+# instrumentation test — the app APK (with the Dart entrypoint baked in via
+# -Ptarget) and the androidTest APK — without a connected device. Same default
+# org.getlantern.lantern identity as android-integration-test (see above).
+# Outputs:
+#   build/app/outputs/apk/debug/app-debug.apk
+#   build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+.PHONY: android-integration-apks
+android-integration-apks: $(ANDROID_LIB_BUILD)
+	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && ./gradlew app:assembleDebug app:assembleDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the

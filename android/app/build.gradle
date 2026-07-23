@@ -369,6 +369,9 @@ android {
         applicationId = androidIdentity.applicationId
         minSdkVersion = 24
         targetSdk = 36
+        // Runs Flutter integration_test/ suites as instrumentation tests
+        // (locally and on Firebase Test Lab); see MainActivityTest.
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode = code
         versionName = flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
@@ -527,4 +530,70 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    // Instrumentation harness for Flutter integration tests (Firebase Test Lab).
+    // 1.2.0 matches what the integration_test Flutter plugin pins on the app
+    // runtime classpath (AGP consistent resolution rejects anything newer).
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+}
+
+// Local-dev convenience: pre-grant the VpnService consent appop on every
+// connected device/emulator so `flutter run` / `flutter test -d <device>`
+// never hit the system VPN dialog (which Flutter tests cannot dismiss).
+// Best-effort by design: no adb, no devices, or app-not-yet-installed are
+// all silently ignored (the grant then lands on the next debug build).
+// FTL/instrumentation runs don't rely on this — MainActivityTest self-grants.
+def grantVpnConsentTask = tasks.register("grantVpnConsentOnConnectedDevices") {
+    group = "verification"
+    description = "Pre-grants ACTIVATE_VPN appop on all connected adb devices (debug convenience)."
+    def appId = androidIdentity.applicationId.toString()
+    doLast {
+        def adbExe = android.adbExecutable
+        if (adbExe == null || !adbExe.exists()) {
+            logger.info("grantVpnConsent: adb not found, skipping")
+            return
+        }
+        def devicesOut = new ByteArrayOutputStream()
+        try {
+            exec {
+                commandLine adbExe.absolutePath, 'devices'
+                standardOutput = devicesOut
+                ignoreExitValue = true
+            }
+        } catch (Exception e) {
+            logger.info("grantVpnConsent: adb devices failed, skipping (${e.message})")
+            return
+        }
+        // `adb devices` lines are "<serial>\t<state>"; mDNS serials can contain
+        // spaces, so split on the tab only.
+        devicesOut.toString().readLines()
+                .collect { it.tokenize('\t') }
+                .findAll { it.size() == 2 && it[1].trim() == 'device' }
+                .collect { it[0].trim() }
+                .each { serial ->
+                    try {
+                        def result = exec {
+                            commandLine adbExe.absolutePath, '-s', serial, 'shell',
+                                    'appops', 'set', appId, 'ACTIVATE_VPN', 'allow'
+                            ignoreExitValue = true
+                        }
+                        if (result.exitValue == 0) {
+                            logger.lifecycle("grantVpnConsent: ACTIVATE_VPN allowed for ${appId} on ${serial}")
+                        } else {
+                            logger.info("grantVpnConsent: skipped ${serial} (exit ${result.exitValue})")
+                        }
+                    } catch (Exception e) {
+                        logger.info("grantVpnConsent: failed on ${serial} (${e.message})")
+                    }
+                }
+    }
+}
+
+tasks.configureEach { t ->
+    // assembleDebug covers the flutter tool path (it installs via adb itself);
+    // installDebug covers direct Gradle installs.
+    if (t.name == 'assembleDebug' || t.name == 'installDebug') {
+        t.finalizedBy(grantVpnConsentTask)
+    }
 }
