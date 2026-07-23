@@ -525,12 +525,20 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               ),
               DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               if (referral.isReferral) ...[
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    getReferralMessage().toTitleCase(),
-                    style: theme.bodyMedium,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      getReferralMessage().replaceAll('free', '').toTitleCase(),
+                      style: theme.bodyMedium,
+                    ),
+                    Text(
+                      'free'.i18n,
+                      style: theme.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
+                  ],
                 ),
                 DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               ],

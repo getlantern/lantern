@@ -38,7 +38,7 @@ Future<void> checkAndShowReferralReward(
   if (!context.mounted) return;
   _rewardDialogVisible = true;
   try {
-    await _showReferralRewardDialog(
+    _showReferralRewardDialog(
       context: context,
       newMonths: newMonths,
       totalMonths: totalMonths,
