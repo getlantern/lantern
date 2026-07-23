@@ -25,105 +25,121 @@ class InviteFriends extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'invite_friends'.i18n,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'invite_friends_description'.i18n,
-              style: textTheme.bodyMedium!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              '${'your_referral_code'.i18n}:',
-              style: textTheme.labelLarge!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          SizedBox(height: 4.0),
-          Card(
+      body: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: Column(
-              children: [
-                AppTile(
-                  icon: AppImagePaths.star,
-                  trailing: AnimatedCrossFade(
-                    duration: Duration(milliseconds: 400),
-                    firstCurve: Curves.bounceOut,
-                    crossFadeState: isCopied.value
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
-                    firstChild: AppImage(path: AppImagePaths.copy),
-                    secondChild: Icon(
-                      Icons.check_circle,
-                      color: context.statusSuccessBg,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'invite_friends_description'.i18n,
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: context.textSecondary,
                     ),
                   ),
-                  label: referralCode,
-                  tileTextStyle: AppTextStyles.bodyMediumBold.copyWith(
-                    color: context.textPrimary,
-                  ),
-                  onPressed: () => _onCopyTap(isCopied, referralCode),
                 ),
-                if (bonusMonths > 0) ...[
-                  DividerSpace(),
-                  AppTile(
-                    icon: Icon(
-                      Icons.emoji_events_outlined,
-                      color: context.textPromoIcon,
-                    ),
-                    label: bonusMonths == 1
-                        ? 'month_earned'.i18n.fill([bonusMonths])
-                        : 'months_earned'.i18n.fill([bonusMonths]),
-                    trailing: AppTextButton(
-                      label: 'view_account'.i18n,
-                      underLine: false,
-                      padding: EdgeInsets.zero,
-                      onPressed: () => _onViewAccount(context, ref),
+                SizedBox(height: defaultSize),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '${'your_referral_code'.i18n}:',
+                    style: textTheme.labelLarge!.copyWith(
+                      color: context.textSecondary,
                     ),
                   ),
-                ],
+                ),
+                SizedBox(height: 4.0),
+                Card(
+                  child: Column(
+                    children: [
+                      AppTile(
+                        icon: AppImagePaths.star,
+                        trailing: AnimatedCrossFade(
+                          duration: Duration(milliseconds: 400),
+                          firstCurve: Curves.bounceOut,
+                          crossFadeState: isCopied.value
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          firstChild: AppImage(path: AppImagePaths.copy),
+                          secondChild: Icon(
+                            Icons.check_circle,
+                            color: context.statusSuccessBg,
+                          ),
+                        ),
+                        label: referralCode,
+                        tileTextStyle: AppTextStyles.bodyMediumBold.copyWith(
+                          color: context.textPrimary,
+                        ),
+                        onPressed: () =>
+                            _onCopyTap(context, isCopied, referralCode),
+                      ),
+                      if (bonusMonths > 0) ...[
+                        DividerSpace(),
+                        AppTile(
+                          icon: Icon(
+                            Icons.emoji_events_outlined,
+                            color: context.textPromoIcon,
+                          ),
+                          label: bonusMonths == 1
+                              ? 'month_earned'.i18n.fill([bonusMonths])
+                              : 'months_earned'.i18n.fill([bonusMonths]),
+                          trailing: AppTextButton(
+                            label: 'view_account'.i18n,
+                            underLine: false,
+                            padding: EdgeInsets.zero,
+                            onPressed: () => _onViewAccount(context, ref),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Spacer(),
+                PrimaryButton(
+                  label: 'share_referral_code'.i18n,
+                  icon: AppImagePaths.share,
+                  isTaller: true,
+                  onPressed: () => _onShareTap(referralCode),
+                ),
+                SizedBox(height: defaultSize),
+                SecondaryButton(
+                  label: 'show_download_links'.i18n,
+                  icon: AppImagePaths.qrCodeScanner,
+                  useThemeColor: true,
+                  onPressed: () =>
+                      _showDownloadLinksSheet(context, referralCode),
+                ),
+                SizedBox(height: defaultSize),
               ],
             ),
           ),
-          Spacer(),
-          PrimaryButton(
-            label: 'share_referral_code'.i18n,
-            icon: AppImagePaths.share,
-            isTaller: true,
-            onPressed: () => _onShareTap(referralCode),
-          ),
-          SizedBox(height: defaultSize),
-          SecondaryButton(
-            label: 'show_download_links'.i18n,
-            icon: AppImagePaths.qrCodeScanner,
-            useThemeColor: true,
-            onPressed: () => _showDownloadLinksSheet(context, referralCode),
-          ),
-          SizedBox(height: defaultSize),
         ],
       ),
     );
   }
 
   Future<void> _onCopyTap(
+    BuildContext context,
     ValueNotifier<bool> isCopied,
     String referralCode,
   ) async {
     copyToClipboard(referralCode);
     isCopied.value = true;
     await Future.delayed(Duration(seconds: 1));
-    isCopied.value = false;
+    if (context.mounted) {
+      isCopied.value = false;
+    }
   }
 
   void _onShareTap(String referralCode) {
-    Share.share('share_message_referral_code'.i18n.fill([referralCode]));
+    SharePlus.instance.share(
+      ShareParams(
+        text: 'share_message_referral_code'.i18n.fill([referralCode]),
+      ),
+    );
   }
 
   Future<void> _onViewAccount(BuildContext context, WidgetRef ref) async {
@@ -194,17 +210,16 @@ class _GetLanternSheet extends HookWidget {
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       children: <Widget>[
         SizedBox(height: 10),
-        Row(
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
           children: _DownloadPlatform.values
               .map(
-                (platform) => Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: _platformTab(
-                    context,
-                    platform,
-                    platform == selectedPlatform.value,
-                    () => selectedPlatform.value = platform,
-                  ),
+                (platform) => _platformTab(
+                  context,
+                  platform,
+                  platform == selectedPlatform.value,
+                  () => selectedPlatform.value = platform,
                 ),
               )
               .toList(),
@@ -280,7 +295,7 @@ class _GetLanternSheet extends HookWidget {
     final textTheme = Theme.of(context).textTheme;
     return InkWell(
       borderRadius: BorderRadius.circular(8.0),
-      onTap: () => _onCopyTap(isCopied, downloadUrl),
+      onTap: () => _onCopyTap(context, isCopied, downloadUrl),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
         decoration: BoxDecoration(
@@ -357,12 +372,15 @@ class _GetLanternSheet extends HookWidget {
   }
 
   Future<void> _onCopyTap(
+    BuildContext context,
     ValueNotifier<bool> isCopied,
     String downloadUrl,
   ) async {
     copyToClipboard(downloadUrl);
     isCopied.value = true;
     await Future.delayed(Duration(seconds: 1));
-    isCopied.value = false;
+    if (context.mounted) {
+      isCopied.value = false;
+    }
   }
 }

@@ -30,30 +30,29 @@ Future<void> checkAndShowReferralReward(
   final seen = storage.getSeenConvertedReferrals().toSet();
   final unseen = converted.where((r) => !seen.contains(r.userId)).toList();
   if (unseen.isEmpty) return;
-  _rewardDialogVisible = true;
-
-  // Mark as seen before showing so the dialog can't repeat. Merge with the
-  // already-seen ids so referrals missing from this response stay seen.
-  await storage.saveSeenConvertedReferrals(
-    {...seen, ...converted.map((r) => r.userId)}.toList(),
-  );
 
   final newDays = unseen.fold<int>(0, (total, r) => total + r.bonusDaysEarned);
   final newMonths = max(1, newDays ~/ 30);
   final totalMonths = max(newMonths, user.legacyUserData.referralBonusMonths);
 
-  if (!context.mounted) {
+  if (!context.mounted) return;
+  _rewardDialogVisible = true;
+  try {
+    await _showReferralRewardDialog(
+      context: context,
+      newMonths: newMonths,
+      totalMonths: totalMonths,
+      referralCode: user.legacyUserData.referral.toUpperCase(),
+    );
+
+    // Persist only after the user dismisses the dialog. If the route cannot be
+    // shown or the app exits first, the notification is retried next time.
+    await storage.saveSeenConvertedReferrals(
+      {...seen, ...converted.map((r) => r.userId)}.toList(),
+    );
+  } finally {
     _rewardDialogVisible = false;
-    return;
   }
-  await _showReferralRewardDialog(
-    context: context,
-    newMonths: newMonths,
-    totalMonths: totalMonths,
-    referralCode: user.legacyUserData.referral.toUpperCase(),
-  );
-  // Reset once the dialog closes, however it was dismissed.
-  _rewardDialogVisible = false;
 }
 
 Future<void> _showReferralRewardDialog({
