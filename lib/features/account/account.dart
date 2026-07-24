@@ -139,6 +139,7 @@ class Account extends HookConsumerWidget {
               padding: EdgeInsets.zero,
               child: AppTile(
                 label: user!.legacyUserData.toDate(),
+                subtitle: _referralBonusSubtitle(user, buildContext, theme),
                 contentPadding: EdgeInsets.only(left: 16),
                 icon: AppImagePaths.autoRenew,
                 trailing: planTrailingWidget(user, buildContext, ref),
@@ -188,6 +189,21 @@ class Account extends HookConsumerWidget {
     );
   }
 
+  Widget? _referralBonusSubtitle(
+    UserResponseModel user,
+    BuildContext buildContext,
+    TextTheme theme,
+  ) {
+    final months = user.legacyUserData.referralBonusMonths;
+    if (months <= 0) return null;
+    return Text(
+      months == 1
+          ? 'includes_free_month_from_referrals'.i18n.fill([months])
+          : 'includes_free_months_from_referrals'.i18n.fill([months]),
+      style: theme.labelMedium!.copyWith(color: buildContext.textSecondary),
+    );
+  }
+
   Widget? planTrailingWidget(
     UserResponseModel user,
     BuildContext buildContext,
@@ -207,7 +223,6 @@ class Account extends HookConsumerWidget {
     if (isUserPro && !autoRenew) {
       return AppTextButton(label: 'renew'.i18n, onPressed: onRenewTap);
     }
-
     return null;
   }
 

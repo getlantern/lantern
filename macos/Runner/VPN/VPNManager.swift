@@ -159,7 +159,7 @@ class VPNManager: VPNBase {
   }
 
   func connectToServer(
-    serverName: String,
+    serverName: String
   ) async throws {
     await self.setupVPN()
     let options: [String: NSObject] = [

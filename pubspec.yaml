@@ -85,6 +85,8 @@ dependencies:
   url_launcher: ^6.3.2
   # share
   share_plus: ^13.2.0
+  # QR code rendering
+  qr_flutter: ^4.1.0
   # Deeplink handling
   app_links: ^7.0.0
   # Desktop

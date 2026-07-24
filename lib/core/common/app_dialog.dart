@@ -177,13 +177,13 @@ class AppDialog {
     );
   }
 
-  static void customDialog({
+  static Future<void> customDialog({
     required BuildContext context,
     required Widget content,
     required List<Widget> action,
     EdgeInsetsGeometry? actionPadding,
   }) {
-    showDialog(
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) {

@@ -13,6 +13,15 @@ class AppUrls {
   static String lanternGithub = 'https://github.com/getlantern/lantern';
   static String telegramBot = 'https://t.me/lantern_official_bot';
   static String unbounded = 'https://unbounded.lantern.io';
+  // Direct installer links published by the release workflow
+  // (scripts/ci/publish-to-s3.sh uploads to releases/{build_type}/latest/).
+  static const _s3ReleasesLatest =
+      'https://s3.amazonaws.com/lantern.io/releases/production/latest';
+  static const directDownloadAndroid =
+      '$_s3ReleasesLatest/lantern-installer.apk';
+  static const directDownloadWindows =
+      '$_s3ReleasesLatest/lantern-installer.exe';
+  static const directDownloadMac = '$_s3ReleasesLatest/lantern-installer.dmg';
   static const appcastProd =
       'https://s3.amazonaws.com/lantern.io/releases/production/latest/appcast.xml';
   static const appcastBeta =
