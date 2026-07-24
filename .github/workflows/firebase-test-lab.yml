@@ -53,6 +53,14 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      # android/gradlew is gitignored, so install a matching Gradle on the
+      # runner instead (keep the version in sync with
+      # android/gradle/wrapper/gradle-wrapper.properties).
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
       - name: Install Android SDK components
         shell: bash
         run: |
@@ -100,7 +108,7 @@ jobs:
         run: make android
 
       - name: Build integration test APKs (app + androidTest)
-        run: make android-integration-apks
+        run: make android-integration-apks ANDROID_GRADLE=gradle
 
       - name: Authenticate to Google Cloud
         id: gcp-auth

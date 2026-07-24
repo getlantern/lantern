@@ -910,6 +910,9 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 # instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
 ANDROID_INTEGRATION_TARGET ?= integration_test/android_all_e2e_test.dart
 ANDROID_INTEGRATION_DART_DEFINES ?=
+# android/gradlew is gitignored, so CI overrides this with a runner-installed
+# gradle (see .github/workflows/firebase-test-lab.yml).
+ANDROID_GRADLE ?= ./gradlew
 
 .PHONY: android-integration-test
 android-integration-test: $(ANDROID_LIB_BUILD)
@@ -925,7 +928,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 	  fi; \
 	fi
 	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && ./gradlew app:connectedDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # Builds the two APKs Firebase Test Lab needs to run the integration test as an
 # instrumentation test — the app APK (with the Dart entrypoint baked in via
@@ -937,7 +940,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 .PHONY: android-integration-apks
 android-integration-apks: $(ANDROID_LIB_BUILD)
 	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && ./gradlew app:assembleDebug app:assembleDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
