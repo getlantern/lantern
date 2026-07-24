@@ -13,6 +13,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -37,6 +38,18 @@ class _HomeState extends ConsumerState<Home> {
   @override
   void initState() {
     super.initState();
+
+    // Congratulate the user once per converted referral, whenever fresh
+    // user data lands (first load or later refreshes).
+    ref.listenManual(homeProvider, fireImmediately: true, (previous, next) {
+      final user = next.value;
+      if (user == null) return;
+      if (!ref.read(appSettingProvider).onboardingCompleted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        checkAndShowReferralReward(context, user);
+      });
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       /// Kick off the server fetch as soon as Home mounts so the Smart
