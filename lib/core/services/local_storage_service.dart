@@ -20,6 +20,7 @@ class LocalStorageService {
   static const _plansKey = 'plans_json';
   static const _developerModeKey = 'developer_mode_json';
   static const _serverLocationKey = 'server_location_json';
+  static const _seenReferralsKey = 'seen_converted_referrals';
 
   Future<void> init() async {
     _prefs = await SharedPreferencesWithCache.create(
@@ -101,6 +102,15 @@ class LocalStorageService {
   Future<void> saveDeveloperMode(DeveloperMode dev) async {
     await setString(_developerModeKey, jsonEncode(dev.toJson()));
   }
+
+  // ── Referrals ─────────────────────────────────────────────────────────────
+
+  /// User IDs of converted referrals the reward dialog was already shown for.
+  List<String> getSeenConvertedReferrals() =>
+      getStringList(_seenReferralsKey) ?? const [];
+
+  Future<void> saveSeenConvertedReferrals(List<String> userIds) =>
+      setStringList(_seenReferralsKey, userIds);
 
   // Helper methods for basic types
 
