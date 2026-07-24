@@ -6,38 +6,13 @@ name: Firebase Test Lab (Android)
 # (android/app/src/androidTest), so VPN connect smokes run unattended.
 #
 # Required repository secrets:
-#   FTL_GCP_SA_KEY  - JSON key of a service account in the Firebase project
-#                     with the "Firebase Test Lab Admin" role
-#   FTL_GCP_PROJECT - the Firebase/GCP project id
-#   APP_ENV         - same app.env used by build-android.yml
+#   FIREBASE_SERVICE_ACCOUNT - JSON key of a service account in the Firebase
+#                              project with the "Firebase Test Lab Admin" role
+#                              (project id is read from the key itself)
+#   APP_ENV                  - same app.env used by build-android.yml
 
 on:
   workflow_dispatch:
-    inputs:
-      test_target:
-        description: "Integration test entrypoint to run"
-        required: true
-        type: choice
-        options:
-          - integration_test/android_all_e2e_test.dart
-          - integration_test/vpn/android_vpn_smoke_test.dart
-          - integration_test/auth/auth_smoke_test.dart
-        default: integration_test/android_all_e2e_test.dart
-      device_model:
-        description: "FTL device model id (gcloud firebase test android models list)"
-        required: false
-        type: string
-        default: shiba
-      device_version:
-        description: "Android API level of the FTL device"
-        required: false
-        type: string
-        default: "34"
-      enable_ip_check:
-        description: "Validate public IP change during VPN connect smoke"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -120,21 +95,13 @@ jobs:
         run: make android
 
       - name: Build integration test APKs (app + androidTest)
-        shell: bash
-        run: |
-          set -euxo pipefail
-          DART_DEFINES=""
-          if [[ "${{ inputs.enable_ip_check }}" == "true" ]]; then
-            DART_DEFINES="-Pdart-defines=$(echo -n 'ENABLE_IP_CHECK=true' | base64 -w0)"
-          fi
-          make android-integration-apks \
-            ANDROID_INTEGRATION_TARGET="${{ inputs.test_target }}" \
-            ANDROID_INTEGRATION_DART_DEFINES="$DART_DEFINES"
+        run: make android-integration-apks
 
       - name: Authenticate to Google Cloud
+        id: gcp-auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FTL_GCP_SA_KEY }}
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
@@ -144,10 +111,12 @@ jobs:
         run: |
           set -euxo pipefail
           gcloud firebase test android run \
-            --project "${{ secrets.FTL_GCP_PROJECT }}" \
+            --project "${{ steps.gcp-auth.outputs.project_id }}" \
             --type instrumentation \
             --app build/app/outputs/apk/debug/app-debug.apk \
             --test build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk \
-            --device "model=${{ inputs.device_model }},version=${{ inputs.device_version }},locale=en,orientation=portrait" \
+            --device "model=shiba,version=34,locale=en,orientation=portrait" \
+            --device "model=lynx,version=33,locale=en_US,orientation=portrait" \
+            --num-flaky-test-attempts=2 \
             --timeout 20m \
             --results-history-name "lantern-android-integration"
