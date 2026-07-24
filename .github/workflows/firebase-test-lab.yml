@@ -1,16 +1,5 @@
 name: Firebase Test Lab (Android)
 
-# Runs Flutter integration tests (integration_test/) on real devices in
-# Firebase Test Lab as Android instrumentation tests. The VpnService consent
-# dialog is pre-granted by the instrumentation wrapper
-# (android/app/src/androidTest), so VPN connect smokes run unattended.
-#
-# Required repository secrets:
-#   FIREBASE_SERVICE_ACCOUNT - JSON key of a service account in the Firebase
-#                              project with the "Firebase Test Lab Admin" role
-#                              (project id is read from the key itself)
-#   APP_ENV                  - same app.env used by build-android.yml
-
 on:
   workflow_dispatch:
   # TODO: remove after merge to main — workflow_dispatch is unavailable in the
