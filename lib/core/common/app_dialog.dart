@@ -16,53 +16,53 @@ class AppDialog {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return Semantics(
-          container: true,
-          explicitChildNodes: true,
-          label: 'payment-conversion-success',
-          child: AlertDialog(
-            // backgroundColor and shape come from dialogTheme in app_theme.dart
-            contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-            actionsPadding: EdgeInsets.all(24),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                SizedBox(height: 24),
-                LanternRoundedLogo(height: 45),
-                SizedBox(height: 24),
-                Center(
-                  child: SizedBox(
-                    width: size.width * 0.7,
-                    height: 40,
-                    child: AutoSizeText(
-                      'welcome_to_lantern_pro'.i18n,
-                      style: textTheme.headlineMedium,
-                      maxLines: 1,
-                      minFontSize: 20,
-                      maxFontSize: 24,
-                      textAlign: TextAlign.center,
-                    ),
+        return AlertDialog(
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(height: 24),
+              Semantics(
+                container: true,
+                excludeSemantics: true,
+                label: 'payment-conversion-success',
+                child: LanternRoundedLogo(height: 45),
+              ),
+              SizedBox(height: 24),
+              Center(
+                child: SizedBox(
+                  width: size.width * 0.7,
+                  height: 40,
+                  child: AutoSizeText(
+                    'welcome_to_lantern_pro'.i18n,
+                    style: textTheme.headlineMedium,
+                    maxLines: 1,
+                    minFontSize: 20,
+                    maxFontSize: 24,
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(height: defaultSize),
-                Text(
-                  'lantern_pro_description'.i18n,
-                  style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
-                ),
-              ],
-            ),
-            actions: [
-              AppTextButton(
-                label: label ?? 'continue'.i18n,
-                onPressed: () {
-                  appRouter.maybePop();
-                  Future.delayed(const Duration(milliseconds: 400), () {
-                    onPressed?.call();
-                  });
-                },
+              ),
+              SizedBox(height: defaultSize),
+              Text(
+                'lantern_pro_description'.i18n,
+                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
               ),
             ],
           ),
+          actions: [
+            AppTextButton(
+              label: label ?? 'continue'.i18n,
+              onPressed: () {
+                appRouter.maybePop();
+                Future.delayed(const Duration(milliseconds: 400), () {
+                  onPressed?.call();
+                });
+              },
+            ),
+          ],
         );
       },
     );

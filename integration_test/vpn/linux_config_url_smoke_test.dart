@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Linux config URL connect/disconnect smoke', (tester) async {
-    await app.main(const []);
+    await app.main();
     await runConfigUrlConnectSmokeHarness(
       tester,
       configUrl: requiredSingleConfigUrl(),

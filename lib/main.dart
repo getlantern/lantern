@@ -19,7 +19,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-Future<void> main(List<String> arguments) async {
+Future<void> main([List<String> arguments = const []]) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Timezone is only needed for notification scheduling (data-cap alerts),
@@ -93,6 +93,7 @@ Future<void> main(List<String> arguments) async {
       error,
       stackTrace,
     );
+    rethrow;
   }
 
   runApp(

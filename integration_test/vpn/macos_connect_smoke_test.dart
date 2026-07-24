@@ -26,7 +26,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('macOS VPN connect/disconnect smoke', (tester) async {
-    await app.main(const []);
+    await app.main();
     await _requireSystemExtensionReady(tester);
     await runConnectSmokeHarness(
       tester,

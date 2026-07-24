@@ -82,6 +82,17 @@ void main() {
         ),
         throwsFormatException,
       );
+      expect(
+        () => PaymentCheckoutSmokeConfig.parse(
+          const [
+            '--payment-checkout-smoke=',
+            '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
+          ],
+          isWindows: true,
+          buildType: 'nightly',
+        ),
+        throwsFormatException,
+      );
     });
   });
 }

@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Windows config URL connect/disconnect smoke', (tester) async {
-    await app.main(const []);
+    await app.main();
     await runConfigUrlConnectSmokeHarness(
       tester,
       configUrl: requiredSingleConfigUrl(),
