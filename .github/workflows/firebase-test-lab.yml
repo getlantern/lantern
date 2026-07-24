@@ -13,6 +13,11 @@ name: Firebase Test Lab (Android)
 
 on:
   workflow_dispatch:
+  # TODO: remove after merge to main — workflow_dispatch is unavailable in the
+  # Actions UI until this file lands on the default branch.
+  push:
+    branches:
+      - jigar/android-test-ci
 
 permissions:
   contents: read
