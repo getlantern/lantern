@@ -11,6 +11,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $resolvedArtifacts = [System.IO.Path]::GetFullPath($ArtifactDirectory)
+$serviceDataDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-data"
+$serviceLogDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-logs"
 New-Item -ItemType Directory -Path $resolvedArtifacts -Force | Out-Null
 
 Add-Type -AssemblyName UIAutomationClient
@@ -111,12 +113,12 @@ function Use-StagingService {
     throw "Installed daemon not found: $InstalledDaemonPath"
   }
   Write-Step "Reinstalling the installed service for staging"
-  $serviceDataPath = Join-Path $env:ProgramData "Lantern\payment-smoke-data"
-  $serviceLogPath = Join-Path $env:ProgramData "Lantern\payment-smoke-logs"
-  Remove-Item $serviceDataPath -Recurse -Force -ErrorAction SilentlyContinue
-  Remove-Item $serviceLogPath -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $serviceDataDirectory -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $serviceLogDirectory -Recurse -Force -ErrorAction SilentlyContinue
   & $InstalledDaemonPath install --environment staging `
-    --data-path $serviceDataPath --log-path $serviceLogPath --log-level debug
+    --data-path $serviceDataDirectory `
+    --log-path $serviceLogDirectory `
+    --log-level debug
   if ($LASTEXITCODE -ne 0) {
     throw "lanternd staging install failed with exit code $LASTEXITCODE"
   }
@@ -127,7 +129,7 @@ function Use-StagingService {
   if ($service.PathName -notmatch '(?i)--environment\s+staging') {
     throw "Installed service command does not persist --environment staging: $($service.PathName)"
   }
-  if ($service.PathName -notmatch [regex]::Escape($serviceDataPath)) {
+  if ($service.PathName -notmatch [regex]::Escape($serviceDataDirectory)) {
     throw "Installed staging service is not using disposable data: $($service.PathName)"
   }
   $service | Select-Object Name, State, StartMode, PathName |
@@ -252,9 +254,8 @@ function Copy-CaseLogs {
   if (Test-Path $appLogDirectory) {
     Copy-Item $appLogDirectory (Join-Path $Destination "app-logs") -Recurse -Force
   }
-  $daemonLogDirectory = Join-Path $env:ProgramData "Lantern"
-  if (Test-Path $daemonLogDirectory) {
-    Copy-Item $daemonLogDirectory (Join-Path $Destination "daemon-logs") -Recurse -Force
+  if (Test-Path $serviceLogDirectory) {
+    Copy-Item $serviceLogDirectory (Join-Path $Destination "daemon-logs") -Recurse -Force
   }
 }
 
@@ -268,12 +269,15 @@ function Wait-CheckoutDocument {
   $linePattern = 'PAYMENT_WEBVIEW_SMOKE event=load_stop host=(\S+) url=(\S+) document_length=(\d+)'
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $LogPath) {
-      $logText = Get-Content $LogPath -Raw -ErrorAction SilentlyContinue
+      $logText = [string](Get-Content $LogPath -Raw -ErrorAction SilentlyContinue)
       if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
         throw "The checkout WebView reported a main-frame navigation error"
       }
       if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=document_error') {
         throw "The checkout WebView could not inspect the loaded document"
+      }
+      if ($logText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
+        throw "Lantern could not prepare the requested checkout smoke"
       }
       foreach ($match in [regex]::Matches($logText, $linePattern)) {
         $hostName = $match.Groups[1].Value
@@ -332,10 +336,10 @@ function Wait-PaymentConversion {
 
 function Remove-SmokeAccount {
   param([string]$Username, [string]$SID)
-  Get-Process Lantern -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
   if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
     Remove-LocalUser -Name $Username
   }
+  if ([string]::IsNullOrWhiteSpace($SID)) { return }
   for ($i = 0; $i -lt 15; $i++) {
     $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" -ErrorAction SilentlyContinue
     if (-not $profile) { return }
@@ -373,27 +377,34 @@ function Invoke-CheckoutCase {
     remoteCleanup = $remoteCleanup
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "automation.log"
-  Start-Transcript -Path $transcript -Force | Out-Null
-
   $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
-  $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
-  $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
-  $credential = [System.Management.Automation.PSCredential]::new(
-    ".\$username",
-    $securePassword
-  )
-  $user = New-LocalUser -Name $username -Password $securePassword `
-    -AccountNeverExpires -PasswordNeverExpires
-  $sid = $user.SID.Value
+  $sid = $null
+  $credential = $null
   $launcherProcess = $null
   $appProcess = $null
   $root = $null
+  $sharedAppDirectory = $null
+  $diagnosticsPath = $null
+  $udfCheckPath = $null
+  $transcriptStarted = $false
   $priorUDF = [Environment]::GetEnvironmentVariable(
     "WEBVIEW2_USER_DATA_FOLDER",
     [EnvironmentVariableTarget]::Process
   )
 
   try {
+    Start-Transcript -Path $transcript -Force | Out-Null
+    $transcriptStarted = $true
+    $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
+    $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
+    $credential = [System.Management.Automation.PSCredential]::new(
+      ".\$username",
+      $securePassword
+    )
+    $user = New-LocalUser -Name $username -Password $securePassword `
+      -AccountNeverExpires -PasswordNeverExpires
+    $sid = $user.SID.Value
+
     Write-Step "Starting $Provider checkout as disposable standard user $username"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
@@ -607,7 +618,7 @@ $app.WaitForExit()
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
     }
-    if ($sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
+    if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
       & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
     }
     [Environment]::SetEnvironmentVariable(
@@ -615,14 +626,18 @@ $app.WaitForExit()
       $priorUDF,
       [EnvironmentVariableTarget]::Process
     )
-    try {
-      Remove-SmokeAccount -Username $username -SID $sid
-    } catch {
-      Write-Warning "Could not fully remove disposable smoke account: $_"
+    if ($sid -or (Get-LocalUser -Name $username -ErrorAction SilentlyContinue)) {
+      try {
+        Remove-SmokeAccount -Username $username -SID $sid
+      } catch {
+        Write-Warning "Could not fully remove disposable smoke account: $_"
+      }
     }
-    try {
-      Stop-Transcript | Out-Null
-    } catch {
+    if ($transcriptStarted) {
+      try {
+        Stop-Transcript | Out-Null
+      } catch {
+      }
     }
   }
 }

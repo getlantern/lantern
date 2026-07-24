@@ -1,3 +1,4 @@
+/// Settings for the narrow checkout path exercised by Windows app smokes.
 class PaymentCheckoutSmokeConfig {
   static const _providerPrefix = '--payment-checkout-smoke=';
   static const _runIDPrefix = '--payment-checkout-run-id=';
@@ -60,6 +61,9 @@ class PaymentCheckoutSmokeConfig {
       return null;
     }
     final value = matches.single.substring(prefix.length).trim();
-    return value.isEmpty ? null : value;
+    if (value.isEmpty) {
+      throw FormatException('Argument requires a value: $prefix');
+    }
+    return value;
   }
 }
