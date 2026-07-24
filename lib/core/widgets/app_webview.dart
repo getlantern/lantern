@@ -163,7 +163,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
               ? 'navigation_error'
               : 'resource_error',
           uri,
-          detail: 'error=${_singleLine(error.toString())}',
+          detail: 'error_type=${error.type}',
         );
         ref.read(webViewLoadingProvider.notifier).stop();
         await _handleCompletionUrl(uri);
@@ -180,17 +180,17 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   }
 
   void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
+    // Checkout paths and query strings can contain session tokens. The origin
+    // is enough to prove which provider loaded without putting them in CI logs.
     final safeUri = uri == null
         ? '<none>'
-        : uri.replace(query: '', fragment: '').toString();
+        : uri.replace(path: '', query: '', fragment: '').toString();
     final suffix = detail.isEmpty ? '' : ' $detail';
     appLogger.info(
       'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '
       'url=$safeUri$suffix',
     );
   }
-
-  String _singleLine(String value) => value.replaceAll(RegExp(r'[\r\n]+'), ' ');
 
   bool isLanternHost(String host) =>
       host == 'lantern.io' || host == 'www.lantern.io';

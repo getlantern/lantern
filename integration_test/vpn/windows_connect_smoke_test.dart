@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Windows VPN connect/disconnect smoke', (tester) async {
-    await app.main(const []);
+    await app.main();
     await runConnectSmokeHarness(tester, enableIpCheck: _enableIpCheck);
   });
 }
