@@ -72,7 +72,12 @@ APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
 ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
 $(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
 endif
-EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)'
+## Stamp build time + commit (radiance logs them at startup in every build, so a
+## shipped binary is self-describing). `:=` so one make invocation stamps one
+## consistent value across all artifacts it builds.
+BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+GIT_REVISION := $(shell git rev-parse --short HEAD)
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
