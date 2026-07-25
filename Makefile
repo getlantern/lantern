@@ -80,7 +80,10 @@ BUILD_TIME := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "[D
 else
 BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 endif
-GIT_REVISION := $(shell git rev-parse --short=7 HEAD)
+## Fall back to a sentinel so common.Commit is never empty (e.g. a build from a
+## source tree with no .git); an empty -X value would drop the build-identity
+## signal from logs.
+GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
