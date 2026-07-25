@@ -75,8 +75,12 @@ endif
 ## Stamp build time + commit (radiance logs them at startup in every build, so a
 ## shipped binary is self-describing). `:=` so one make invocation stamps one
 ## consistent value across all artifacts it builds.
+ifeq ($(OS),Windows_NT)
+BUILD_TIME := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')")
+else
 BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-GIT_REVISION := $(shell git rev-parse --short HEAD)
+endif
+GIT_REVISION := $(shell git rev-parse --short=7 HEAD)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
