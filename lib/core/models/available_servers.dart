@@ -268,7 +268,7 @@ class SelectionHistory {
       );
 
   /// Timestamp of one `user_failures` entry, or null if it has none we can
-  /// read. lantern-box v0.0.104 changed each entry from a bare RFC3339 string
+  /// read. lantern-box v0.0.101 changed each entry from a bare RFC3339 string
   /// to a `{"at": ..., "kind": ...}` object; both are accepted so this parses
   /// against either version, matching Go's `UserFailure.UnmarshalJSON`.
   /// Unreadable entries are dropped rather than thrown on: one entry in the
@@ -285,7 +285,7 @@ class SelectionHistory {
     if (lastOutcomeAt != null)
       "last_outcome_at": lastOutcomeAt!.toIso8601String(),
     "consecutive_failures": consecutiveFailures,
-    // Bare timestamps, i.e. the pre-v0.0.104 shape, which Go still accepts.
+    // Bare timestamps, i.e. the pre-v0.0.101 shape, which Go still accepts.
     // Nothing sends this back to Go today; emitting the object form would mean
     // inventing a `kind` we never parsed.
     if (userFailures.isNotEmpty)

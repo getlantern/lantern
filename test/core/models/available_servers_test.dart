@@ -263,10 +263,10 @@ void main() {
   });
 
   group('user_failures deserialization', () {
-    // lantern-box v0.0.104 changed each entry from a bare RFC3339 timestamp to
+    // lantern-box v0.0.101 changed each entry from a bare RFC3339 timestamp to
     // a {"at": ..., "kind": ...} object. Both have to parse: the object form is
     // what current lantern-box sends, the string form is what a client paired
-    // with a pre-v0.0.104 one would see.
+    // with a pre-v0.0.101 one would see.
     test('parses the object form', () {
       final history = SelectionHistory.fromJson({
         'last_success_delay_ms': 2556,
