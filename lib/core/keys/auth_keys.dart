@@ -23,6 +23,12 @@ class AuthKeys {
   static const signUpContinueWithoutEmailButton = ValueKey<String>(
     'auth.sign_up.email.continue_without_email_button',
   );
+  static const signUpUseDifferentAccountButton = ValueKey<String>(
+    'auth.sign_up.email.use_different_account_button',
+  );
+  static const signUpAccountRefreshRetryButton = ValueKey<String>(
+    'auth.sign_up.email.account_refresh_retry_button',
+  );
 
   static const confirmEmailCodeField = ValueKey<String>(
     'auth.confirm_email.code.field',

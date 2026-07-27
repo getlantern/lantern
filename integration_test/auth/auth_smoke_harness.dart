@@ -86,6 +86,11 @@ class _AuthSmokeFakeLanternService implements LanternService {
   bool forceLoginFailure = false;
   int deleteAccountCalls = 0;
 
+  @override
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
+    return right(_emptyUser(success: true));
+  }
+
   void seedUser({
     required String email,
     required String password,

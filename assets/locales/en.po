@@ -718,6 +718,9 @@ msgstr "Error"
 msgid "signup_error_user_exists"
 msgstr "It looks like something went wrong with the sign-up. Please try again or sign in if you already have an account"
 
+msgid "use_a_different_account"
+msgstr "Use a different account"
+
 msgid "user_not_found"
 msgstr "User not recognized. Please check your credentials and try again. If you continue to experience issues, please reach out to our support team for assistance."
 
@@ -1718,4 +1721,3 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
-

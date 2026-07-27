@@ -22,9 +22,7 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await service.getUserData();
     return result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting user data: ${failure.error}',
-        );
+        appLogger.error('Error getting user data: ${failure.error}');
         throw Exception('Failed to get user data');
       },
       (userData) {
@@ -36,19 +34,18 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   /// Fetches the latest user data from the server
-  Future<void> fetchUserData() async {
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
     final result = await ref.read(lanternServiceProvider).fetchUserData();
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error fetching user data: ${failure.error}',
-        );
+        appLogger.error('Error fetching user data: ${failure.error}');
       },
       (userData) {
         appLogger.debug('Fetched user data form server: $userData');
         _applyUserData(userData);
       },
     );
+    return result;
   }
 
   /// Force refresh from Go
@@ -58,9 +55,7 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await ref.read(lanternServiceProvider).getUserData();
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error refreshing user data: ${failure.error}',
-        );
+        appLogger.error('Error refreshing user data: ${failure.error}');
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
@@ -103,13 +98,6 @@ class HomeNotifier extends _$HomeNotifier {
           .read(serverLocationProvider.notifier)
           .updateServerLocation(initialServerLocation());
     }
-  }
-
-  /// Fetches the latest user data from the server if not cached locally.
-  Future<void> fetchUserDataIfNeeded() async {
-    appLogger.info("Checking if user data fetch is needed...");
-    appLogger.info("Fetching from Go (source-of-truth)...");
-    await refreshUser();
   }
 
   /// Checks if the user is a Pro user and if the current device is added
