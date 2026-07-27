@@ -80,6 +80,7 @@ class _SettingState extends ConsumerState<Setting>
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
+                key: const Key('setting.upgrade_pro_button'),
                 label: isExpired
                     ? 'renew_pro_subscription'.i18n
                     : 'upgrade_to_pro'.i18n,

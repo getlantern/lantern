@@ -471,6 +471,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
     final showDiscountDeduction =
         referral.isAffiliate && discountAmount.isNotEmpty;
     return ListView.builder(
+      key: const Key('choose_payment.list'),
       shrinkWrap: true,
       itemCount: providers.length,
       padding: EdgeInsets.zero,

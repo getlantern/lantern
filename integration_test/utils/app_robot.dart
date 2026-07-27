@@ -96,6 +96,25 @@ class AppRobot {
     );
   }
 
+  /// Opens Plans through the UI: Settings -> Upgrade to Pro. Returns false
+  /// when the account is already Pro (no upgrade button), so callers can
+  /// soft-skip. Waits past the loading state until real plan data renders.
+  Future<bool> openPlansIfFree() async {
+    await openSettings();
+    final upgrade = find.byKey(const Key('setting.upgrade_pro_button'));
+    if (upgrade.evaluate().isEmpty) {
+      return false;
+    }
+    await _tap(upgrade, name: 'Upgrade to Pro button');
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      find.byKey(const Key('plans.list')),
+      timeout: const Duration(seconds: 45),
+      reason: 'Plans did not load (still loading, or fetch error state)',
+    );
+    return true;
+  }
+
   /// Opens ReportIssue through the UI:
   /// home menu -> Settings -> Support -> Report an issue.
   Future<void> openReportIssue() async {

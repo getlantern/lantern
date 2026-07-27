@@ -1,5 +1,6 @@
 import 'package:integration_test/integration_test.dart';
 
+import 'plans/plans_smoke_test.dart';
 import 'report_issue/report_issue_smoke_test.dart';
 import 'setting/setting_smoke_test.dart';
 import 'vpn/android_vpn_smoke_test.dart';
@@ -20,4 +21,5 @@ void main() {
   registerVpnSmokeTests();
   registerReportIssueSmokeTests();
   registerSettingSmokeTests();
+  registerPlansSmokeTests();
 }
