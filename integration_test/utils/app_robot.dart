@@ -7,10 +7,8 @@ import 'widget_wait_utils.dart';
 
 bool _appLaunched = false;
 
-/// Launches the real app exactly once per test process. All scenarios in a
-/// suite (and across suites in an aggregator run) share one app process, so
-/// calling `app.main()` per test would re-register GetIt singletons and throw
-/// ("Type X is already registered inside GetIt"). Later calls are no-ops.
+/// Launches the app once per test process; later calls are no-ops.
+/// Re-running `app.main()` would re-register GetIt singletons and throw.
 Future<void> ensureAppLaunched() async {
   if (_appLaunched) {
     return;
@@ -46,12 +44,9 @@ class AppRobot {
     return keys.toList()..sort();
   }
 
-  /// Waits until the app is idle on the home screen and actually usable.
-  /// Home renders first and onboarding is pushed on top a moment later, so
-  /// checking for onboarding right after home appears misses it; instead this
-  /// leans on [waitForControlReady], which waits out that window and clears
-  /// onboarding before trusting the screen. Gates on the home menu button —
-  /// it sits on the home app bar and is the first thing navigation taps.
+  /// Waits until home is usable. Onboarding is pushed on top shortly after
+  /// home renders, so gate on the menu button via [waitForControlReady],
+  /// which waits out that window and clears onboarding.
   Future<void> waitForHomeReady() async {
     await launchToHome();
     await waitForControlReady(
@@ -60,9 +55,8 @@ class AppRobot {
     );
   }
 
-  /// Navigates to the ReportIssue screen the way a user does: home app bar
-  /// menu -> Settings -> Support -> Report an issue. Navigation only —
-  /// on-screen interactions belong to the test (or a future feature robot).
+  /// Opens ReportIssue through the UI:
+  /// home menu -> Settings -> Support -> Report an issue.
   Future<void> openReportIssue() async {
     await waitForHomeReady();
 
@@ -93,8 +87,7 @@ class AppRobot {
     await tester.pumpAndSettle();
   }
 
-  /// Waits for [target] to be visible, then taps it and lets the resulting
-  /// navigation settle.
+  /// Waits for [target], taps it, and lets the navigation settle.
   Future<void> _tap(Finder target, {required String name}) async {
     await WidgetWaitUtils.waitForFinder(
       tester,

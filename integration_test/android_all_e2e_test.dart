@@ -1,5 +1,6 @@
 import 'package:integration_test/integration_test.dart';
 
+import 'report_issue/report_issue_smoke_test.dart';
 import 'vpn/android_vpn_smoke_test.dart';
 
 /// Aggregator entrypoint for all Android end-to-end tests. This is the single
@@ -16,4 +17,5 @@ import 'vpn/android_vpn_smoke_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   registerVpnSmokeTests();
+  registerReportIssueSmokeTests();
 }
