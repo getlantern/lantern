@@ -27,12 +27,15 @@ class _RecordingStorage implements LocalStorageService {
 void main() {
   late _RecordingStorage storage;
 
-  setUp(() {
+  setUp(() async {
+    await sl.reset();
     storage = _RecordingStorage();
     sl.registerSingleton<LocalStorageService>(storage);
   });
 
-  tearDown(() => sl.reset());
+  tearDown(() async {
+    await sl.reset();
+  });
 
   final user = UserResponseModel.fromJson({
     'legacyID': 1,
