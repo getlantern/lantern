@@ -55,15 +55,51 @@ class AppRobot {
     );
   }
 
-  /// Opens ReportIssue through the UI:
-  /// home menu -> Settings -> Support -> Report an issue.
-  Future<void> openReportIssue() async {
+  /// Opens Settings through the UI: home menu button.
+  Future<void> openSettings() async {
     await waitForHomeReady();
-
     await _tap(
       find.byKey(const Key('home.menu_button')),
       name: 'Home menu button',
     );
+  }
+
+  /// Opens the Language screen through the UI: Settings -> Language.
+  Future<void> openLanguage() async {
+    await openSettings();
+    await _tap(
+      find.byKey(const Key('setting.language_tile')),
+      name: 'Settings language tile',
+    );
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      find.byKey(const Key('language.list')),
+      timeout: const Duration(seconds: 15),
+      reason: 'Language screen did not open',
+    );
+  }
+
+  /// Opens Appearance through the UI: Settings -> Appearance. Shows as a
+  /// bottom sheet on mobile and a pushed screen on desktop; both render the
+  /// same list.
+  Future<void> openAppearance() async {
+    await openSettings();
+    await _tap(
+      find.byKey(const Key('setting.appearance_tile')),
+      name: 'Settings appearance tile',
+    );
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      find.byKey(const Key('appearance.list')),
+      timeout: const Duration(seconds: 15),
+      reason: 'Appearance options did not open',
+    );
+  }
+
+  /// Opens ReportIssue through the UI:
+  /// home menu -> Settings -> Support -> Report an issue.
+  Future<void> openReportIssue() async {
+    await openSettings();
     await _tap(
       find.byKey(const Key('setting.support_tile')),
       name: 'Settings support tile',

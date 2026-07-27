@@ -37,6 +37,7 @@ class VPNSetting extends HookConsumerWidget {
     );
 
     return ListView(
+      key: const Key('vpn_setting.list'),
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
       children: <Widget>[
