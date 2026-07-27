@@ -23,6 +23,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Authenticate to Google Cloud
+        id: gcp-auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Fail fast on auth/permission problems before spending ~30 minutes
+      # building the APKs.
+      - name: Verify Firebase Test Lab access
+        shell: bash
+        run: |
+          gcloud firebase test android models list \
+            --project "${{ steps.gcp-auth.outputs.project_id }}" \
+            --filter "id=shiba" >/dev/null
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -99,15 +117,6 @@ jobs:
       - name: Build integration test APKs (app + androidTest)
         run: make android-integration-apks ANDROID_GRADLE=gradle
 
-      - name: Authenticate to Google Cloud
-        id: gcp-auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
       - name: Run tests on Firebase Test Lab
         shell: bash
         run: |
@@ -121,4 +130,5 @@ jobs:
             --device "model=lynx,version=33,locale=en_US,orientation=portrait" \
             --num-flaky-test-attempts=2 \
             --timeout 20m \
+            --results-bucket "lantern-android-ftl-results" \
             --results-history-name "lantern-android-integration"
