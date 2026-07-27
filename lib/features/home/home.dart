@@ -122,6 +122,7 @@ class _HomeState extends ConsumerState<Home> {
         ),
         elevation: 5,
         leading: IconButton(
+          key: const Key('home.menu_button'),
           onPressed: () {
             appRouter.push(Setting());
           },

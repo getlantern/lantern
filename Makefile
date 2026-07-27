@@ -942,6 +942,13 @@ android-integration-apks: $(ANDROID_LIB_BUILD)
 	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
 	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
 
+# Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
+# gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
+# overridable via FTL_* env vars — see scripts/android/ftl-run.sh.
+.PHONY: android-ftl-test
+android-ftl-test: android-integration-apks
+	scripts/android/ftl-run.sh
+
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the

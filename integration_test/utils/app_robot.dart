@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/main.dart' as app;
 
 import 'widget_wait_utils.dart';
+
+bool _appLaunched = false;
+
+/// Launches the real app exactly once per test process. All scenarios in a
+/// suite (and across suites in an aggregator run) share one app process, so
+/// calling `app.main()` per test would re-register GetIt singletons and throw
+/// ("Type X is already registered inside GetIt"). Later calls are no-ops.
+Future<void> ensureAppLaunched() async {
+  if (_appLaunched) {
+    return;
+  }
+  _appLaunched = true;
+  await app.main();
+}
 
 /// Drives the app shell during integration tests, independent of any feature.
 /// Android-only for now; other platforms still use `vpn/vpn_smoke_helpers.dart`.
@@ -28,6 +44,67 @@ class AppRobot {
       }
     }
     return keys.toList()..sort();
+  }
+
+  /// Waits until the app is idle on the home screen and actually usable.
+  /// Home renders first and onboarding is pushed on top a moment later, so
+  /// checking for onboarding right after home appears misses it; instead this
+  /// leans on [waitForControlReady], which waits out that window and clears
+  /// onboarding before trusting the screen. Gates on the home menu button —
+  /// it sits on the home app bar and is the first thing navigation taps.
+  Future<void> waitForHomeReady() async {
+    await launchToHome();
+    await waitForControlReady(
+      find.byKey(const Key('home.menu_button')),
+      controlName: 'Home menu button',
+    );
+  }
+
+  /// Navigates to the ReportIssue screen the way a user does: home app bar
+  /// menu -> Settings -> Support -> Report an issue. Navigation only —
+  /// on-screen interactions belong to the test (or a future feature robot).
+  Future<void> openReportIssue() async {
+    await waitForHomeReady();
+
+    await _tap(
+      find.byKey(const Key('home.menu_button')),
+      name: 'Home menu button',
+    );
+    await _tap(
+      find.byKey(const Key('setting.support_tile')),
+      name: 'Settings support tile',
+    );
+    await _tap(
+      find.byKey(const Key('support.report_issue_tile')),
+      name: 'Support report-issue tile',
+    );
+
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      find.byKey(const Key('report_issue.description')),
+      timeout: const Duration(seconds: 15),
+      reason: 'Report issue screen did not open',
+    );
+  }
+
+  /// Navigates one screen back, as the app bar back button would.
+  Future<void> goBack() async {
+    await appRouter.maybePop();
+    await tester.pumpAndSettle();
+  }
+
+  /// Waits for [target] to be visible, then taps it and lets the resulting
+  /// navigation settle.
+  Future<void> _tap(Finder target, {required String name}) async {
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      target,
+      timeout: const Duration(seconds: 15),
+      reason: '$name not visible',
+    );
+    await tester.ensureVisible(target);
+    await tester.tap(target);
+    await tester.pumpAndSettle();
   }
 
   /// Waits for the home screen after launch. Does not touch onboarding.

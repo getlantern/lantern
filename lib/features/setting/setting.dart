@@ -172,6 +172,7 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('setting.support_tile'),
                   label: 'support'.i18n,
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),

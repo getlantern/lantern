@@ -2,6 +2,10 @@ name: Firebase Test Lab (Android)
 
 on:
   workflow_dispatch:
+  schedule:
+    # Nightly at 03:00 UTC so device regressions surface within a day even
+    # when nobody triggers the workflow manually.
+    - cron: "0 3 * * *"
   # TODO: remove after merge to main — workflow_dispatch is unavailable in the
   # Actions UI until this file lands on the default branch.
   push:
@@ -19,6 +23,9 @@ jobs:
   ftl-android:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      FTL_RESULTS_BUCKET: lantern-android-ftl-results
+      FTL_RESULTS_DIR: ftl-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,8 +45,7 @@ jobs:
         shell: bash
         run: |
           gcloud firebase test android models list \
-            --project "${{ steps.gcp-auth.outputs.project_id }}" \
-            --filter "id=shiba" >/dev/null
+            --project "${{ steps.gcp-auth.outputs.project_id }}" >/dev/null
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -118,17 +124,67 @@ jobs:
         run: make android-integration-apks ANDROID_GRADLE=gradle
 
       - name: Run tests on Firebase Test Lab
+        id: ftl
+        shell: bash
+        env:
+          FTL_PROJECT: ${{ steps.gcp-auth.outputs.project_id }}
+        run: scripts/android/ftl-run.sh
+
+      # Runs on success and on test failure, but not when an earlier step
+      # (build, auth) died before any tests ran.
+      - name: Write test summary
+        if: always() && steps.ftl.outcome != 'skipped'
         shell: bash
         run: |
-          set -euxo pipefail
-          gcloud firebase test android run \
-            --project "${{ steps.gcp-auth.outputs.project_id }}" \
-            --type instrumentation \
-            --app build/app/outputs/apk/debug/app-debug.apk \
-            --test build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk \
-            --device "model=shiba,version=34,locale=en,orientation=portrait" \
-            --device "model=lynx,version=33,locale=en_US,orientation=portrait" \
-            --num-flaky-test-attempts=2 \
-            --timeout 20m \
-            --results-bucket "lantern-android-ftl-results" \
-            --results-history-name "lantern-android-integration"
+          set -uo pipefail
+          {
+            echo "## Firebase Test Lab results"
+            echo
+            # Link to the run in the Firebase console, as printed by gcloud.
+            url=$(grep -o 'https://console.firebase.google.com[^ ]*' ftl-output.log | head -1 || true)
+            [ -n "$url" ] && echo "[View full results in the Firebase console]($url)" && echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          mkdir -p ftl-results
+          gcloud storage cp --recursive \
+            "gs://$FTL_RESULTS_BUCKET/$FTL_RESULTS_DIR/*" ftl-results/ 2>/dev/null || true
+
+          python3 - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import glob, os, xml.etree.ElementTree as ET
+
+          rows = []
+          for path in sorted(glob.glob("ftl-results/**/test_result_*.xml", recursive=True)):
+              device = os.path.relpath(path, "ftl-results").split(os.sep)[0]
+              suite = ET.parse(path).getroot()
+              if suite.tag == "testsuites":
+                  suite = suite.find("testsuite")
+              total = int(suite.get("tests", 0))
+              failures = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
+              skipped = int(suite.get("skipped", 0))
+              passed = total - failures - skipped
+              status = "✅" if failures == 0 else "❌"
+              rows.append((device, status, total, passed, failures, skipped,
+                           suite.get("time", "?")))
+
+          if rows:
+              print("| Device | Status | Tests | Passed | Failed | Skipped | Time (s) |")
+              print("|---|---|---|---|---|---|---|")
+              for r in rows:
+                  print("| {} | {} | {} | {} | {} | {} | {} |".format(*r))
+          else:
+              print("_No JUnit test results found in the results bucket._")
+          EOF
+
+      # Test Lab writes logcat, screen video, and JUnit XML per device; attach
+      # them to the run so failures can be debugged without GCS access. The
+      # summary step above is what downloads ftl-results/.
+      - name: Upload Test Lab artifacts
+        if: always() && steps.ftl.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftl-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ftl-results/
+            ftl-output.log
+          if-no-files-found: warn
+          retention-days: 14

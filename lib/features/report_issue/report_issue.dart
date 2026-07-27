@@ -29,9 +29,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   late final TextEditingController _emailController;
   late final TextEditingController _descriptionController;
-
   String? _selectedIssue;
-
   List<String> get issueOptions => <String>[
     'cannot_complete_purchase'.i18n,
     'cannot_sign_in'.i18n,
