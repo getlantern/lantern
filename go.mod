@@ -10,7 +10,7 @@ go 1.26.2
 
 replace github.com/sagernet/sing => github.com/getlantern/sing v0.7.18-lantern
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.12.22-lantern.0.20260717223538-d0cc8eb0fb17
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.12.22-lantern.0.20260727203219-1739626c9ad2
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
@@ -25,7 +25,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260725142156-584a0568abac
+	github.com/getlantern/radiance v0.0.0-20260727212115-149f0d726208
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
@@ -170,7 +170,7 @@ require (
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
 	github.com/getlantern/domainfront v0.0.0-20260722204513-8c1f8acfa715 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
-	github.com/getlantern/kindling v0.0.0-20260722205227-8563bcdd9b04 // indirect
+	github.com/getlantern/kindling v0.0.0-20260727211028-573c1ef64464 // indirect
 	github.com/getlantern/lantern-box v0.0.106 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
