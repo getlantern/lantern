@@ -24,12 +24,13 @@ FTL_RESULTS_HISTORY="${FTL_RESULTS_HISTORY:-lantern-android-integration}"
 FTL_TIMEOUT="${FTL_TIMEOUT:-20m}"
 FTL_FLAKY_ATTEMPTS="${FTL_FLAKY_ATTEMPTS:-0}"
 FTL_OUTPUT_LOG="${FTL_OUTPUT_LOG:-ftl-output.log}"
-# Semicolon-separated device specs. Default: one Arm virtual device — starts
-# fast, no queue, ~5x cheaper than physical, and must be Arm (.arm models)
-# since the APK ships Arm-only native libs. For broader nightly coverage add
-# a physical device, e.g.:
-#   FTL_DEVICES="model=shiba,version=34;model=MediumPhone.arm,version=33"
-FTL_DEVICES="${FTL_DEVICES:-model=MediumPhone.arm,version=33,locale=en,orientation=portrait}"
+# Semicolon-separated device specs. Default: a physical Pixel 8 (shiba) plus
+# an Arm virtual device — FTL runs all devices in a matrix in parallel, so a
+# second device barely affects wall-clock time. Virtual models must be Arm
+# (.arm) since the APK ships Arm-only native libs. For fast iteration on a
+# single virtual device:
+#   FTL_DEVICES="model=MediumPhone.arm,version=33,locale=en,orientation=portrait"
+FTL_DEVICES="${FTL_DEVICES:-model=shiba,version=34,locale=en,orientation=portrait;model=MediumPhone.arm,version=33,locale=en,orientation=portrait}"
 
 command -v gcloud >/dev/null || {
   echo "error: gcloud CLI not found — install the Google Cloud SDK" >&2
