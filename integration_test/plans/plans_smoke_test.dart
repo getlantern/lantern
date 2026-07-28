@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:lantern/core/common/common.dart' show appRouter, isStoreVersion;
+import 'package:lantern/core/common/common.dart' show isStoreVersion;
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/localization/i18n.dart';
@@ -36,6 +36,10 @@ void registerPlansSmokeTests() {
         final items = tester
             .widgetList<PlanItem>(find.byType(PlanItem))
             .toList();
+        e2eLog(
+          'Plans rendered: ${items.map((i) => '${i.plan.id}='
+              '${i.plan.formattedYearlyPrice}').join(', ')}',
+        );
         expect(items, isNotEmpty, reason: 'No plan cards rendered');
         for (final item in items) {
           expect(
@@ -44,8 +48,6 @@ void registerPlansSmokeTests() {
             reason: 'Plan ${item.plan.id} has no formatted price',
           );
         }
-        // PlansListView does firstWhere(bestValue) — zero would crash the
-        // screen, more than one makes the badge ambiguous.
         expect(
           items.where((item) => item.plan.bestValue).length,
           1,
@@ -64,7 +66,7 @@ void registerPlansSmokeTests() {
 
         expect(_plansCta, findsOneWidget);
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
@@ -80,7 +82,7 @@ void registerPlansSmokeTests() {
             .widgetList<PlanItem>(find.byType(PlanItem))
             .toList();
         if (items.length < 2) {
-          debugPrint('SKIP: only ${items.length} plan(s), nothing to switch');
+          e2eLog('SKIP: only ${items.length} plan(s), nothing to switch');
           return;
         }
         final unselected = items.firstWhere((item) => !item.planSelected).plan;
@@ -98,7 +100,7 @@ void registerPlansSmokeTests() {
           reason: 'Tapped plan ${unselected.id} did not become selected',
         );
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
@@ -110,6 +112,7 @@ void registerPlansSmokeTests() {
         return _skipProAccount(tester);
       }
       try {
+        e2eLog('isStoreVersion=${isStoreVersion()}');
         // The restore-purchase link is the store-mode marker: present on
         // store builds (StoreKit/Play), absent on sideload/desktop.
         expect(
@@ -120,11 +123,11 @@ void registerPlansSmokeTests() {
               'isStoreVersion()=${isStoreVersion()}',
         );
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
-    testWidgets('CTA leads to checkout without billing (non-store)', (
+    testWidgets('Plan click leads to checkout without billing (non-store)', (
       tester,
     ) async {
       await app.main();
@@ -133,53 +136,31 @@ void registerPlansSmokeTests() {
       if (isStoreVersion()) {
         // On store builds the CTA opens real StoreKit/Play Billing UI —
         // never tap it here; the previous test already asserted it exists.
-        debugPrint('SKIP: store build, not tapping the purchase CTA');
+        e2eLog('SKIP: store build, not tapping the purchase CTA');
         return;
       }
       if (!await appRobot.openPlansIfFree()) {
         return _skipProAccount(tester);
       }
       try {
+        e2eLog('Tapping purchase CTA (non-store build)');
         await tester.ensureVisible(_plansCta);
         await tester.tap(_plansCta);
         await tester.pump();
 
         // Non-store: signed-out users land on sign-up, signed-in ones on
         // ChoosePaymentMethod. Both stop short of any payment SDK.
-        await _waitForAny(tester, {
+        await appRobot.waitForAny({
           'sign-up email screen': find.byKey(AuthKeys.signUpEmailField),
           'payment methods list': find.byKey(const Key('choose_payment.list')),
         });
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
   });
 }
 
 void _skipProAccount(WidgetTester tester) {
-  debugPrint('SKIP: account is Pro, no upgrade entry point');
-}
-
-/// Waits until any of [finders] appears; fails naming what never showed up.
-Future<void> _waitForAny(
-  WidgetTester tester,
-  Map<String, Finder> finders, {
-  Duration timeout = const Duration(seconds: 20),
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    for (final finder in finders.values) {
-      if (finder.evaluate().isNotEmpty) {
-        return;
-      }
-    }
-    await tester.pump(const Duration(milliseconds: 250));
-  }
-  fail('None of ${finders.keys.join(', ')} appeared within $timeout');
-}
-
-Future<void> _resetToRoot(WidgetTester tester) async {
-  appRouter.popUntilRoot();
-  await tester.pumpAndSettle();
+  e2eLog('SKIP: account is Pro, no upgrade entry point');
 }

@@ -1,21 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart' show appRouter;
-import 'package:lantern/main.dart' as app;
 
 import 'widget_wait_utils.dart';
 
-bool _appLaunched = false;
-
-/// Launches the app once per test process; later calls are no-ops.
-/// Re-running `app.main()` would re-register GetIt singletons and throw.
-Future<void> ensureAppLaunched() async {
-  if (_appLaunched) {
-    return;
-  }
-  _appLaunched = true;
-  await app.main();
-}
+/// Test log line, prefixed so it's easy to grep out of the device logcat
+/// that Firebase Test Lab captures (adb logcat | grep E2E).
+void e2eLog(String message) => debugPrint('[E2E] $message');
 
 /// Drives the app shell during integration tests, independent of any feature.
 /// Android-only for now; other platforms still use `vpn/vpn_smoke_helpers.dart`.
@@ -48,11 +40,13 @@ class AppRobot {
   /// home renders, so gate on the menu button via [waitForControlReady],
   /// which waits out that window and clears onboarding.
   Future<void> waitForHomeReady() async {
+    e2eLog('Waiting for home to be ready');
     await launchToHome();
     await waitForControlReady(
       find.byKey(const Key('home.menu_button')),
       controlName: 'Home menu button',
     );
+    e2eLog('Home ready');
   }
 
   /// Opens Settings through the UI: home menu button.
@@ -103,6 +97,7 @@ class AppRobot {
     await openSettings();
     final upgrade = find.byKey(const Key('setting.upgrade_pro_button'));
     if (upgrade.evaluate().isEmpty) {
+      e2eLog('No upgrade button on Settings — account is Pro');
       return false;
     }
     await _tap(upgrade, name: 'Upgrade to Pro button');
@@ -112,6 +107,7 @@ class AppRobot {
       timeout: const Duration(seconds: 45),
       reason: 'Plans did not load (still loading, or fetch error state)',
     );
+    e2eLog('Plans loaded');
     return true;
   }
 
@@ -142,8 +138,51 @@ class AppRobot {
     await tester.pumpAndSettle();
   }
 
+  /// Dismisses the soft keyboard if open. Navigating with the keyboard up
+  /// shrinks the viewport and overflows tight layouts on small devices
+  /// (e.g. home's Column, home.dart:165), which the framework treats as a
+  /// test failure.
+  /// The IME hide animation is platform-driven, so pumpAndSettle alone can
+  /// return while the keyboard is still animating away (seen on API 33);
+  /// poll the window inset until it actually reaches zero.
+  Future<void> hideKeyboard() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await SystemChannels.textInput.invokeMethod('TextInput.hide');
+    await tester.pumpAndSettle();
+
+    final end = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(end)) {
+      if (tester.view.viewInsets.bottom == 0) {
+        return;
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    e2eLog('Keyboard inset still ${tester.view.viewInsets.bottom} after 5s');
+  }
+
+  /// Pops every route back to the root (home). Hides the keyboard first —
+  /// see [hideKeyboard]. The standard cleanup at the end of a test.
+  Future<void> resetToRoot() async {
+    e2eLog('Resetting navigation to root');
+    await hideKeyboard();
+    appRouter.popUntilRoot();
+    await tester.pumpAndSettle();
+  }
+
+  /// Waits until any of [finders] appears; fails naming what never showed up.
+  Future<void> waitForAny(
+    Map<String, Finder> finders, {
+    Duration timeout = const Duration(seconds: 20),
+  }) => WidgetWaitUtils.waitForAnyFinder(
+    tester,
+    finders.values.toList(),
+    timeout: timeout,
+    reason: 'None of ${finders.keys.join(', ')} appeared within $timeout',
+  );
+
   /// Waits for [target], taps it, and lets the navigation settle.
   Future<void> _tap(Finder target, {required String name}) async {
+    e2eLog('Tapping $name');
     await WidgetWaitUtils.waitForFinder(
       tester,
       target,
@@ -173,6 +212,7 @@ class AppRobot {
     if (onboardingScreen.evaluate().isEmpty) {
       return false;
     }
+    e2eLog('Onboarding shown — dismissing');
 
     final skip = onboardingSkip.hitTestable();
     final primary = onboardingPrimary.hitTestable();
@@ -200,6 +240,7 @@ class AppRobot {
       timeout: const Duration(seconds: 10),
       reason: 'Onboarding did not close after dismiss',
     );
+    e2eLog('Onboarding dismissed');
     return true;
   }
 
@@ -210,7 +251,7 @@ class AppRobot {
   Future<void> waitForControlReady(
     Finder control, {
     required String controlName,
-    Duration onboardingGrace = const Duration(seconds: 8),
+    Duration onboardingGrace = const Duration(seconds: 4),
   }) async {
     final graceEnd = DateTime.now().add(onboardingGrace);
     while (DateTime.now().isBefore(graceEnd)) {
@@ -234,6 +275,7 @@ class AppRobot {
 
       await tester.pump(const Duration(milliseconds: 300));
     }
-    fail('$controlName not visible');
+    // Dump what IS on screen so a remote-run failure is diagnosable.
+    fail('$controlName not visible. Visible keys: ${visibleKeys().join(', ')}');
   }
 }

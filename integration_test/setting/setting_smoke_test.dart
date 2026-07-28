@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart'
-    show AppRadioButton, AppTile, appRouter;
+    show AppRadioButton, AppTile;
 import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/main.dart' as app;
 import 'package:lantern/core/localization/localization_constants.dart'
     show displayLanguage;
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel;
-import 'package:lantern/main.dart' as app;
 
 import '../utils/app_robot.dart';
 import '../utils/widget_wait_utils.dart';
@@ -50,7 +50,7 @@ void registerSettingSmokeTests() {
         if (_radio('en_US').evaluate().isNotEmpty) {
           await _selectRadio(tester, 'en_US');
         }
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
@@ -62,13 +62,14 @@ void registerSettingSmokeTests() {
 
       final original = _appThemeMode(tester);
       final target = original == ThemeMode.dark ? 'light' : 'dark';
+      e2eLog('Theme mode: $original -> $target');
       final targetMode = target == 'dark' ? ThemeMode.dark : ThemeMode.light;
       try {
         await _selectRadio(tester, target);
         expect(_appThemeMode(tester), targetMode);
 
         // The Settings appearance tile must reflect the new mode.
-        await _ensureOnSettings(tester);
+        await _ensureOnSettings(appRobot);
         expect(
           _settingTileTrailing(
             'setting.appearance_tile',
@@ -89,7 +90,7 @@ void registerSettingSmokeTests() {
           ThemeMode.system => 'system',
         };
         await _selectRadio(tester, origValue);
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
@@ -109,7 +110,7 @@ void registerSettingSmokeTests() {
           reason: 'VPN settings screen did not open',
         );
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
 
@@ -129,7 +130,7 @@ void registerSettingSmokeTests() {
               '(signIn=$signIn, account=$account)',
         );
       } finally {
-        await _resetToRoot(tester);
+        await appRobot.resetToRoot();
       }
     });
   });
@@ -168,10 +169,9 @@ bool _tileWithLabel(String label) => find
 
 /// Appearance shows as a bottom sheet on mobile (closes on select) and a
 /// pushed screen on desktop (stays open); normalize back to Settings.
-Future<void> _ensureOnSettings(WidgetTester tester) async {
+Future<void> _ensureOnSettings(AppRobot appRobot) async {
   if (_appearanceList.evaluate().isNotEmpty) {
-    await appRouter.maybePop();
-    await tester.pumpAndSettle();
+    await appRobot.goBack();
   }
 }
 
@@ -189,7 +189,3 @@ Future<void> _ensureAppearanceOpen(WidgetTester tester) async {
   );
 }
 
-Future<void> _resetToRoot(WidgetTester tester) async {
-  appRouter.popUntilRoot();
-  await tester.pumpAndSettle();
-}

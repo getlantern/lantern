@@ -39,8 +39,10 @@ class VpnRobot {
     if (elements.isEmpty) {
       fail('Cannot read VPN status: home screen is not mounted');
     }
-    return _cachedContainer =
-        ProviderScope.containerOf(elements.first, listen: false);
+    return _cachedContainer = ProviderScope.containerOf(
+      elements.first,
+      listen: false,
+    );
   }
 
   VPNStatus get status => _container.read(vpnProvider);
@@ -82,15 +84,11 @@ class VpnRobot {
     required String reason,
   }) async {
     VPNStatus? matched;
-    final subscription = _container.listen<VPNStatus>(
-      vpnProvider,
-      (_, next) {
-        if (matched == null && expected.contains(next)) {
-          matched = next;
-        }
-      },
-      fireImmediately: true,
-    );
+    final subscription = _container.listen<VPNStatus>(vpnProvider, (_, next) {
+      if (matched == null && expected.contains(next)) {
+        matched = next;
+      }
+    }, fireImmediately: true);
     try {
       final end = DateTime.now().add(timeout);
       while (matched == null && DateTime.now().isBefore(end)) {
@@ -114,8 +112,9 @@ class VpnRobot {
   /// Sets the routing mode via [radianceSettingsProvider] and waits for it to
   /// settle. Fails if the change is rejected or does not take effect.
   Future<void> setRoutingMode(RoutingMode mode) async {
-    final result =
-        await _container.read(radianceSettingsProvider.notifier).setRoutingMode(mode);
+    final result = await _container
+        .read(radianceSettingsProvider.notifier)
+        .setRoutingMode(mode);
     result.fold(
       (failure) => fail('Failed to set routing mode to ${mode.name}: $failure'),
       (_) {},
@@ -160,7 +159,9 @@ class VpnRobot {
     }
 
     if (state != VPNStatus.disconnected) {
-      fail('Expected disconnected state before connect smoke, got ${state.name}');
+      fail(
+        'Expected disconnected state before connect smoke, got ${state.name}',
+      );
     }
   }
 

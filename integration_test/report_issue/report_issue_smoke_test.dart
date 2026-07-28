@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:lantern/core/common/common.dart' show AppTextField, appRouter;
+import 'package:lantern/core/common/common.dart' show AppTextField;
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/main.dart' as app;
 
@@ -34,6 +34,7 @@ void registerReportIssueSmokeTests() {
       await appRobot.openReportIssue();
       try {
         await _enterIssueDescription(tester, _testDescription);
+        await appRobot.hideKeyboard();
         await _submitIssueReport(tester);
 
         await WidgetWaitUtils.waitForFinder(
@@ -43,7 +44,7 @@ void registerReportIssueSmokeTests() {
           reason: 'Missing issue-type validation error did not appear',
         );
       } finally {
-        await _resetScreen(tester);
+        await _resetScreen(appRobot);
       }
     });
 
@@ -57,6 +58,7 @@ void registerReportIssueSmokeTests() {
         await tester.pumpAndSettle();
         await _selectIssueType(tester, 'other'.i18n);
         await _enterIssueDescription(tester, _testDescription);
+        await appRobot.hideKeyboard();
         await _submitIssueReport(tester);
 
         await WidgetWaitUtils.waitForFinder(
@@ -66,7 +68,7 @@ void registerReportIssueSmokeTests() {
           reason: 'Invalid-email validation error did not appear',
         );
       } finally {
-        await _resetScreen(tester);
+        await _resetScreen(appRobot);
       }
     });
 
@@ -80,6 +82,7 @@ void registerReportIssueSmokeTests() {
         await _enterIssueDescription(tester, _testDescription);
 
         // Back to home: ReportIssue -> Support -> Settings -> Home.
+        await appRobot.hideKeyboard();
         await appRobot.goBack();
         await appRobot.goBack();
         await appRobot.goBack();
@@ -95,7 +98,7 @@ void registerReportIssueSmokeTests() {
           findsOneWidget,
         );
       } finally {
-        await _resetScreen(tester);
+        await _resetScreen(appRobot);
       }
     });
 
@@ -109,9 +112,11 @@ void registerReportIssueSmokeTests() {
         await tester.pumpAndSettle();
         await _selectIssueType(tester, 'other'.i18n);
         await _enterIssueDescription(tester, _testDescription);
+        await appRobot.hideKeyboard();
         await _submitIssueReport(tester);
 
         // Real network submission; give it time.
+        e2eLog('Report submitted — waiting for server response');
         await WidgetWaitUtils.waitForFinder(
           tester,
           find.text('thanks_for_feedback'.i18n),
@@ -121,7 +126,7 @@ void registerReportIssueSmokeTests() {
 
         expect(_descriptionText(tester), isEmpty);
       } finally {
-        await _resetScreen(tester);
+        await _resetScreen(appRobot);
       }
     });
   });
@@ -178,8 +183,10 @@ String _descriptionText(WidgetTester tester) => tester
     .controller
     .text;
 
+
 /// Clears the shared draft and returns to the root route.
-Future<void> _resetScreen(WidgetTester tester) async {
+Future<void> _resetScreen(AppRobot appRobot) async {
+  final tester = appRobot.tester;
   if (_descriptionField.evaluate().isNotEmpty) {
     await tester.enterText(_descriptionField, '');
     await tester.pump();
@@ -188,6 +195,5 @@ Future<void> _resetScreen(WidgetTester tester) async {
     await tester.enterText(_emailField(), '');
     await tester.pump();
   }
-  appRouter.popUntilRoot();
-  await tester.pumpAndSettle();
+  await appRobot.resetToRoot();
 }

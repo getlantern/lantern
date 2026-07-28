@@ -42,15 +42,20 @@ Future<void> _expectTrafficFlows(String label) async {
 
 /// Asserts the public IP returns to [baselineIp] after disconnect, proving the
 /// tunnel actually tore down (not just that the UI says disconnected).
+/// Teardown propagation is slow on emulators (route table restore plus the
+/// IP-check service catching up), so this window is deliberately generous —
+/// longer than the 60s the connect direction gets.
 Future<void> _expectIpRestored(String baselineIp, String label) async {
-  final end = DateTime.now().add(const Duration(seconds: 30));
+  final end = DateTime.now().add(const Duration(seconds: 90));
   while (DateTime.now().isBefore(end)) {
     if (await _fetchPublicIpOnce() == baselineIp) {
       return;
     }
     await Future<void>.delayed(const Duration(seconds: 2));
   }
-  fail('$label — public IP did not revert to baseline ($baselineIp) after disconnect');
+  fail(
+    '$label — public IP did not revert to baseline ($baselineIp) after disconnect',
+  );
 }
 
 /// Connects, asserts the public IP changed, then disconnects. [label] tags the
