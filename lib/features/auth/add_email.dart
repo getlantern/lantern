@@ -10,6 +10,7 @@ import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -32,6 +33,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   late final TextEditingController _emailController;
   bool _accountRefreshInProgress = true;
   Failure? _accountRefreshFailure;
+  VoidCallback? _hideActiveLoadingOverlay;
   TextTheme? textTheme;
 
   @override
@@ -43,10 +45,23 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
   @override
   void dispose() {
+    _hideLoadingDialog();
     _emailController
       ..removeListener(_onEmailChanged)
       ..dispose();
     super.dispose();
+  }
+
+  void _showLoadingDialog() {
+    final overlay = context.loaderOverlay;
+    overlay.show();
+    _hideActiveLoadingOverlay = overlay.hide;
+  }
+
+  void _hideLoadingDialog() {
+    final hide = _hideActiveLoadingOverlay;
+    _hideActiveLoadingOverlay = null;
+    hide?.call();
   }
 
   void _onEmailChanged() {
@@ -358,18 +373,18 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      context.showLoadingDialog();
+      _showLoadingDialog();
       final refreshResult = await _refreshAccountState();
       if (!mounted) return;
 
       UserResponseModel? authoritativeUser;
       refreshResult.fold((_) {}, (user) => authoritativeUser = user);
       if (authoritativeUser == null) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         return;
       }
       final userData = authoritativeUser!.legacyUserData;
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
 
       if (widget.authFlow == AuthFlow.changeEmail) {
         appLogger.debug('Starting change email flow');
@@ -394,7 +409,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       appLogger.debug('Starting signup flow');
       await signupFlow(email);
     } catch (e) {
-      if (mounted) context.hideLoadingDialog();
+      _hideLoadingDialog();
       appLogger.error('Error in _handleContinue: $e');
       if (mounted) context.showSnackBar('an_error_occurred'.i18n);
     }
@@ -421,7 +436,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   Future<void> signupFlow(String email) async {
-    context.showLoadingDialog();
+    _showLoadingDialog();
     final tempPassword = generatePassword();
     final result = await ref
         .read(authProvider.notifier)
@@ -431,7 +446,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     Failure? signupFailure;
     result.fold((failure) => signupFailure = failure, (_) {});
     if (signupFailure == null) {
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
       await startForgotPasswordFlow(email, tempPassword);
       return;
     }
@@ -444,7 +459,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       UserResponseModel? authoritativeUser;
       refreshResult.fold((_) {}, (user) => authoritativeUser = user);
       if (authoritativeUser == null) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         return;
       }
 
@@ -452,7 +467,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (userData.unpassRegistered && userData.email.trim().isNotEmpty) {
         final backendEmail = userData.email.trim();
         _setEmail(backendEmail);
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         appLogger.info(
           'Signup conflicted after account registration; rerouting to password recovery',
         );
@@ -460,12 +475,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
 
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
       _showSignupConflictDialog(failure);
       return;
     }
 
-    context.hideLoadingDialog();
+    _hideLoadingDialog();
     AppDialog.errorDialog(
       context: context,
       title: 'error'.i18n,
@@ -514,26 +529,26 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   Future<void> _useDifferentAccount() async {
-    context.showLoadingDialog();
+    _showLoadingDialog();
     final refreshResult = await _refreshAccountState();
     if (!mounted) return;
 
     UserResponseModel? authoritativeUser;
     refreshResult.fold((_) {}, (user) => authoritativeUser = user);
     if (authoritativeUser == null) {
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
       return;
     }
 
     final userData = authoritativeUser!.legacyUserData;
     if (!userData.unpassRegistered) {
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
       _emailController.clear();
       return;
     }
     final backendEmail = userData.email.trim();
     if (backendEmail.isEmpty) {
-      context.hideLoadingDialog();
+      _hideLoadingDialog();
       _showInvalidRegisteredAccount();
       return;
     }
@@ -542,7 +557,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (!mounted) return;
     result.fold(
       (failure) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         appLogger.error('Different-account rollover failed: ${failure.error}');
         context.showSnackBar(failure.localizedErrorMessage);
       },
@@ -550,7 +565,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(newUser);
         _emailController.clear();
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         appLogger.info('Switched to a fresh anonymous account');
       },
     );
@@ -567,17 +582,17 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     String email, [
     String? tempPassword,
   ]) async {
-    context.showLoadingDialog();
+    _showLoadingDialog();
     final result = await ref
         .read(authProvider.notifier)
         .startRecoveryByEmail(email);
     result.fold(
       (failure) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (_) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         navigateRoute(SignUpMethodType.email, email, tempPassword);
       },
     );
@@ -589,17 +604,17 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   ) async {
     final token = result['token'];
     if (token != null) {
-      context.showLoadingDialog();
+      _showLoadingDialog();
       final result = await ref
           .read(authProvider.notifier)
           .oAuthLoginCallback(token);
       result.fold(
         (failure) {
-          context.hideLoadingDialog();
+          _hideLoadingDialog();
           context.showSnackBar(failure.localizedErrorMessage);
         },
         (response) {
-          context.hideLoadingDialog();
+          _hideLoadingDialog();
           ref.read(homeProvider.notifier).updateUserData(response);
           appLogger.debug(
             'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}',
@@ -616,14 +631,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
   //Change Email flow
   Future<void> startChangeEmailFlow(String email) async {
-    context.showLoadingDialog();
+    _showLoadingDialog();
     final result = await ref
         .read(authProvider.notifier)
         .startChangeEmail(email, widget.password!);
 
     result.fold(
       (failure) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         AppDialog.errorDialog(
           context: context,
           title: 'error'.i18n,
@@ -631,7 +646,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         );
       },
       (newEmail) {
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         appLogger.debug('Change email started successfully: $newEmail');
         navigateRoute(SignUpMethodType.email, email);
       },
@@ -682,10 +697,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   void continueWithoutEmail() {
     showEmailDialog(() async {
       try {
-        context.showLoadingDialog();
+        _showLoadingDialog();
         await checkUserAccountStatus(ref, context);
         if (!mounted) return;
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         AppDialog.showLanternProDialog(
           context: context,
           onPressed: () {
@@ -694,7 +709,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         );
       } catch (e) {
         if (!mounted) return;
-        context.hideLoadingDialog();
+        _hideLoadingDialog();
         appLogger.error('Error while continuing without email: $e');
         context.showSnackBar('error_occurred'.i18n);
       }

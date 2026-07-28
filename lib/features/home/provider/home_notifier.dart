@@ -41,7 +41,7 @@ class HomeNotifier extends _$HomeNotifier {
         appLogger.error('Error fetching user data: ${failure.error}');
       },
       (userData) {
-        appLogger.debug('Fetched user data form server: $userData');
+        appLogger.debug('Fetched user data from server: $userData');
         _applyUserData(userData);
       },
     );

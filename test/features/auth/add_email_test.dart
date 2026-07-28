@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +73,7 @@ class _FakeLanternService implements LanternService {
   int logoutCalls = 0;
   String? recoveryEmail;
   String? logoutEmail;
+  Completer<Either<Failure, UserResponseModel>>? nextFetch;
 
   @override
   Future<void> waitForRadiance() async {}
@@ -83,6 +86,11 @@ class _FakeLanternService implements LanternService {
   @override
   Future<Either<Failure, UserResponseModel>> fetchUserData() async {
     fetchCalls += 1;
+    final pendingFetch = nextFetch;
+    if (pendingFetch != null) {
+      nextFetch = null;
+      return pendingFetch.future;
+    }
     if (_fetchResults.isEmpty) {
       return right(cachedUser);
     }
@@ -205,6 +213,37 @@ void main() {
       find.byKey(AuthKeys.signUpAccountRefreshRetryButton),
       findsOneWidget,
     );
+  });
+
+  testWidgets('hides the loading overlay when disposed during refresh', (
+    tester,
+  ) async {
+    final service = _FakeLanternService(
+      cachedUser: _anonymousUser,
+      fetchResults: [right(_anonymousUser)],
+    );
+    final container = await _pumpAddEmail(tester, service);
+    addTearDown(container.dispose);
+
+    final pendingFetch = Completer<Either<Failure, UserResponseModel>>();
+    service.nextFetch = pendingFetch;
+    final overlay = tester.element(find.byType(AddEmail)).loaderOverlay;
+
+    await tester.enterText(
+      find.byKey(AuthKeys.signUpEmailField),
+      'new@example.com',
+    );
+    await tester.pump();
+    await tester.tap(_continueButton());
+    await tester.pump();
+    expect(service.fetchCalls, 2);
+    expect(overlay.visible, isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    expect(overlay.visible, isFalse);
+
+    pendingFetch.complete(right(_anonymousUser));
+    await tester.pump();
   });
 
   testWidgets('explicit different-account action performs logout rollover', (
