@@ -6,11 +6,9 @@ on:
     # Nightly at 03:00 UTC so device regressions surface within a day even
     # when nobody triggers the workflow manually.
     - cron: "0 3 * * *"
-  # TODO: remove after merge to main — workflow_dispatch is unavailable in the
-  # Actions UI until this file lands on the default branch.
   push:
     branches:
-      - jigar/android-test-ci
+      - main
 
 permissions:
   contents: read
