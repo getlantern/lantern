@@ -2,13 +2,35 @@ name: Firebase Test Lab (Android)
 
 on:
   workflow_dispatch:
-  schedule:
-    # Nightly at 03:00 UTC so device regressions surface within a day even
-    # when nobody triggers the workflow manually.
-    - cron: "0 3 * * *"
+  # The nightly schedule lives in app-smoke-tests.yml, which calls this
+  # workflow alongside the desktop platforms.
   push:
     branches:
       - main
+  # Callable from umbrella workflows (app-smoke-tests.yml). Empty inputs fall
+  # through to the defaults in scripts/android/ftl-run.sh and the Makefile.
+  workflow_call:
+    inputs:
+      devices:
+        description: "Semicolon-separated FTL device specs"
+        required: false
+        type: string
+        default: ""
+      flaky_attempts:
+        description: "Reruns allowed per failing device"
+        required: false
+        type: string
+        default: ""
+      test_target:
+        description: "Flutter integration-test entrypoint to build"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT:
+        required: true
+      APP_ENV:
+        required: true
 
 permissions:
   contents: read
@@ -124,13 +146,19 @@ jobs:
         run: make android
 
       - name: Build integration test APKs (app + androidTest)
-        run: make android-integration-apks ANDROID_GRADLE=gradle
+        run: >-
+          make android-integration-apks ANDROID_GRADLE=gradle
+          ANDROID_INTEGRATION_TARGET=${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
 
       - name: Run tests on Firebase Test Lab
         id: ftl
         shell: bash
         env:
           FTL_PROJECT: ${{ steps.gcp-auth.outputs.project_id }}
+          # Empty on non-workflow_call triggers; the script's :- defaults
+          # treat empty and unset alike.
+          FTL_DEVICES: ${{ inputs.devices }}
+          FTL_FLAKY_ATTEMPTS: ${{ inputs.flaky_attempts }}
         run: scripts/android/ftl-run.sh
 
       # Runs on success and on test failure, but not when an earlier step
