@@ -27,6 +27,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # No git operations after checkout need the token.
+          persist-credentials: false
 
       - name: Authenticate to Google Cloud
         id: gcp-auth
@@ -41,9 +44,11 @@ jobs:
       # building the APKs.
       - name: Verify Firebase Test Lab access
         shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ steps.gcp-auth.outputs.project_id }}
         run: |
           gcloud firebase test android models list \
-            --project "${{ steps.gcp-auth.outputs.project_id }}" >/dev/null
+            --project "$GCP_PROJECT_ID" >/dev/null
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -151,11 +156,19 @@ jobs:
           import glob, os, xml.etree.ElementTree as ET
 
           rows = []
+          skipped_files = []
           for path in sorted(glob.glob("ftl-results/**/test_result_*.xml", recursive=True)):
               device = os.path.relpath(path, "ftl-results").split(os.sep)[0]
-              suite = ET.parse(path).getroot()
-              if suite.tag == "testsuites":
-                  suite = suite.find("testsuite")
+              # A malformed XML from Test Lab must not fail the summary (and
+              # with it the whole job) when the tests themselves passed.
+              try:
+                  suite = ET.parse(path).getroot()
+                  if suite.tag == "testsuites":
+                      suite = suite.find("testsuite")
+                  assert suite is not None
+              except Exception:
+                  skipped_files.append(path)
+                  continue
               total = int(suite.get("tests", 0))
               failures = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
               skipped = int(suite.get("skipped", 0))
@@ -171,6 +184,8 @@ jobs:
                   print("| {} | {} | {} | {} | {} | {} | {} |".format(*r))
           else:
               print("_No JUnit test results found in the results bucket._")
+          for path in skipped_files:
+              print(f"\n_Could not parse `{path}`; see the Firebase console for that device._")
           EOF
 
       # Test Lab writes logcat, screen video, and JUnit XML per device; attach

@@ -46,10 +46,14 @@ void registerSettingSmokeTests() {
         await appRobot.openLanguage();
         expect(_isRadioSelected(tester, 'es_ES'), isTrue);
       } finally {
-        // Revert to English so later scenarios see the default locale.
-        if (_radio('en_US').evaluate().isNotEmpty) {
-          await _selectRadio(tester, 'en_US');
+        // Revert to English so later scenarios see the default locale. A
+        // failed assertion can leave us off the Language screen (selecting a
+        // radio auto-pops to Settings), so reopen it before reverting.
+        if (_radio('en_US').evaluate().isEmpty) {
+          await appRobot.resetToRoot();
+          await appRobot.openLanguage();
         }
+        await _selectRadio(tester, 'en_US');
         await appRobot.resetToRoot();
       }
     });

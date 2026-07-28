@@ -7,7 +7,7 @@
 #   make android-ftl-test          # builds the APKs, then runs this script
 #   scripts/android/ftl-run.sh    # runs against already-built APKs
 #
-# Requires the gcloud CLI authenticated against a account with access to the
+# Requires the gcloud CLI authenticated against an account with access to the
 # FTL_PROJECT project (`gcloud auth login`). Every setting can be overridden
 # via environment variables, e.g.:
 #
