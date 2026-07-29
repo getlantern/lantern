@@ -1,0 +1,98 @@
+name: Verify Update Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to verify, with or without leading v"
+        required: true
+        type: string
+      channel:
+        description: "Release channel to verify"
+        required: false
+        type: choice
+        options:
+          - beta
+        default: beta
+      platform:
+        description: "Release platform to verify ('all' or comma-separated platforms)"
+        required: false
+        type: string
+        default: all
+      update_url:
+        description: "Lantern update endpoint"
+        required: false
+        type: string
+        default: "https://update.getlantern.org/update/lantern"
+      timeout_seconds:
+        description: "How long to poll the update service"
+        required: false
+        type: number
+        default: 2700
+      interval_seconds:
+        description: "Delay between polling attempts"
+        required: false
+        type: number
+        default: 60
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      channel:
+        required: false
+        type: string
+        default: beta
+      platform:
+        required: false
+        type: string
+        default: all
+      update_url:
+        required: false
+        type: string
+        default: "https://update.getlantern.org/update/lantern"
+      timeout_seconds:
+        required: false
+        type: number
+        default: 2700
+      interval_seconds:
+        required: false
+        type: number
+        default: 60
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-update-service-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
+      - name: Test update service verifier
+        run: python3 -m unittest scripts/ci/verify_update_service_test.py
+
+      - name: Run update service verifier
+        env:
+          UPDATE_URL: ${{ inputs.update_url }}
+          CHANNEL: ${{ inputs.channel }}
+          PLATFORM: ${{ inputs.platform }}
+          VERSION: ${{ inputs.version }}
+          TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          INTERVAL_SECONDS: ${{ inputs.interval_seconds }}
+        run: |
+          python3 scripts/ci/verify_update_service.py \
+            --update-url "$UPDATE_URL" \
+            --channel "$CHANNEL" \
+            --platform "$PLATFORM" \
+            --version "$VERSION" \
+            --timeout-seconds "$TIMEOUT_SECONDS" \
+            --interval-seconds "$INTERVAL_SECONDS"
