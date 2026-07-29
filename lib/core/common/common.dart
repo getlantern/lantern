@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
@@ -49,6 +50,7 @@ export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
+export 'package:lantern/core/extensions/user_data.dart';
 export 'package:lantern/core/localization/i18n.dart';
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
@@ -155,7 +157,7 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
         return false;
       },
       (newUser) {
-        final isPro = newUser.legacyUserData.userLevel == 'pro';
+        final isPro = newUser.legacyUserData.isPro;
         if (isPro) {
           // User has bought a plan
           // update user data
