@@ -224,6 +224,14 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         with self.assertRaises(verify_update_service.VerificationError):
             verify_update_service.normalize_platforms("android,beos")
 
+    def test_normalize_version_accepts_optional_case_insensitive_prefix(self) -> None:
+        for version in ("9.2.0-beta", "v9.2.0-beta", "V9.2.0-beta"):
+            with self.subTest(version=version):
+                self.assertEqual(
+                    verify_update_service.normalize_version(version),
+                    "9.2.0-beta",
+                )
+
     def test_parse_appcast_preserves_empty_signature(self) -> None:
         xml_text = UpdateServiceHandler.appcast_xml(
             "9.2.0-beta",

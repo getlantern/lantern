@@ -45,7 +45,7 @@ class VerificationError(Exception):
 
 
 def normalize_version(version: str) -> str:
-    return version.removeprefix("v")
+    return version[1:] if version[:1].lower() == "v" else version
 
 
 def normalize_platforms(platform: str) -> frozenset[str]:
