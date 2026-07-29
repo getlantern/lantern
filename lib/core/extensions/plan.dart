@@ -50,7 +50,7 @@ extension PlanExtension on Plan {
 extension IsoDateFormatter on UserDataModel {
   String toDate() {
     try {
-      if (userLevel == 'expired') {
+      if (isExpired) {
         if (lastExpiredOn <= 0) {
           return "N/A";
         }
