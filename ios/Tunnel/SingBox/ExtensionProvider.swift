@@ -109,7 +109,10 @@ class ExtensionProvider: NEPacketTunnelProvider {
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
-    opts.deviceid = DeviceIdentifier.getUDID()
+    // Intentionally left empty. Keychain items aren't shared across processes,
+    // so a per-process ID here would diverge from the main app's. Radiance
+    // resolves the device ID from the shared app-group settings the app persists.
+    opts.deviceid = ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     return opts
