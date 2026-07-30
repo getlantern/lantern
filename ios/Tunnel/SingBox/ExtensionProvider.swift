@@ -110,8 +110,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     // Intentionally left empty. The app and extension don't share a keychain access
-    // group so `DeviceIdentifier.getUDID` would diverge. Radiance resolves the device 
-    // ID from the shared app-group settings the app persists.
+    // Radiance resolves the device ID from the main app process. 
     opts.deviceid = ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
