@@ -1,17 +1,37 @@
 param(
+  [ValidateSet("orchestrator", "launcher")]
+  [string]$Mode = "orchestrator",
   [string]$ServiceName = "LanternSvc",
   [string]$InstalledAppPath = "C:\Program Files\Lantern\Lantern.exe",
   [string]$InstalledDaemonPath = "C:\Program Files\Lantern\lanternd.exe",
   [string]$ArtifactDirectory = "build/windows-payment-checkout-smoke",
   [int]$WaitSeconds = 180,
-  [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$'
+  [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
+  [string]$Provider,
+  [string]$RunID,
+  [string]$DiagnosticsPath,
+  [string]$UDFCheckPath,
+  [string]$ProfilePath,
+  [string]$AutomationResultPath,
+  [string]$FlutterLogPath,
+  [string]$HostPattern,
+  [string]$WebViewResultPath,
+  [string]$CheckoutScreenshotPath,
+  [string]$FinalScreenshotPath,
+  [string]$LauncherLogPath
 )
 
 $ErrorActionPreference = "Stop"
-$resolvedArtifacts = [System.IO.Path]::GetFullPath($ArtifactDirectory)
+$resolvedArtifacts = if ($Mode -eq "orchestrator") {
+  [System.IO.Path]::GetFullPath($ArtifactDirectory)
+} else {
+  $null
+}
 $serviceDataDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-data"
 $serviceLogDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-logs"
-New-Item -ItemType Directory -Path $resolvedArtifacts -Force | Out-Null
+if ($resolvedArtifacts) {
+  New-Item -ItemType Directory -Path $resolvedArtifacts -Force | Out-Null
+}
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -310,6 +330,195 @@ function Wait-CheckoutDocument {
   throw "No non-empty checkout document loaded from expected host pattern $HostPattern"
 }
 
+function Wait-LauncherResult {
+  param(
+    [string]$Path,
+    [System.Diagnostics.Process]$Process,
+    [int]$TimeoutSeconds
+  )
+  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
+    if (Test-Path $Path) { return }
+    $Process.Refresh()
+    if ($Process.HasExited) {
+      Start-Sleep -Seconds 1
+      if (Test-Path $Path) { return }
+      throw "Smoke-user launcher exited with code $($Process.ExitCode)"
+    }
+    Start-Sleep -Seconds 1
+  }
+  throw "Timed out waiting for the smoke-user launcher"
+}
+
+function Invoke-SmokeUserCheckout {
+  param(
+    [string]$AppPath,
+    [string]$CheckoutProvider,
+    [string]$CheckoutRunID,
+    [string]$ProcessDiagnosticsPath,
+    [string]$WebViewUDFPath,
+    [string]$UserProfilePath,
+    [string]$ResultPath,
+    [string]$AppLogPath,
+    [string]$ExpectedHostPattern,
+    [string]$WebViewPath,
+    [string]$CheckoutImagePath,
+    [string]$FinalImagePath,
+    [string]$TranscriptPath,
+    [int]$TimeoutSeconds
+  )
+
+  $app = $null
+  $root = $null
+  $transcriptStarted = $false
+  try {
+    Start-Transcript -Path $TranscriptPath -Force | Out-Null
+    $transcriptStarted = $true
+    $env:USERPROFILE = $UserProfilePath
+    $env:LOCALAPPDATA = Join-Path $UserProfilePath "AppData\Local"
+    $env:APPDATA = Join-Path $UserProfilePath "AppData\Roaming"
+    $env:HOMEDRIVE = Split-Path -Qualifier $UserProfilePath
+    $env:HOMEPATH = $UserProfilePath.Substring($env:HOMEDRIVE.Length)
+    [Environment]::SetEnvironmentVariable(
+      "WEBVIEW2_USER_DATA_FOLDER",
+      $null,
+      [EnvironmentVariableTarget]::Process
+    )
+
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+    $isAdmin = $principal.IsInRole(
+      [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+    $installWritePath = Join-Path (Split-Path $AppPath -Parent) (
+      "smoke-write-" + [Guid]::NewGuid().ToString("N")
+    )
+    $canWriteInstallDirectory = $false
+    try {
+      New-Item -ItemType File -Path $installWritePath -Force `
+        -ErrorAction Stop | Out-Null
+      $canWriteInstallDirectory = $true
+    } catch {
+    } finally {
+      Remove-Item $installWritePath -Force -ErrorAction SilentlyContinue
+    }
+
+    $localAppData = $env:LOCALAPPDATA
+    $externalUDF = [Environment]::GetEnvironmentVariable(
+      "WEBVIEW2_USER_DATA_FOLDER",
+      "Process"
+    )
+    $app = Start-Process -FilePath $AppPath -ArgumentList @(
+      "--payment-checkout-smoke=$CheckoutProvider",
+      "--payment-checkout-run-id=$CheckoutRunID"
+    ) -PassThru
+    @{
+      processId = $app.Id
+      username = $identity.Name
+      isAdmin = $isAdmin
+      canWriteInstallDirectory = $canWriteInstallDirectory
+      externalWebView2UserDataFolder = $externalUDF
+      localAppData = $localAppData
+      profilePath = $UserProfilePath
+    } | ConvertTo-Json | Set-Content $ProcessDiagnosticsPath
+
+    $app = Wait-ProcessMainWindow -ProcessID $app.Id -TimeoutSeconds 90
+    $processIsElevated = [WindowsPaymentSmoke.NativeToken]::IsElevated($app.Id)
+    $diagnostics = Get-Content $ProcessDiagnosticsPath -Raw | ConvertFrom-Json
+    $diagnostics | Add-Member -NotePropertyName processIsElevated `
+      -NotePropertyValue $processIsElevated
+    $diagnostics | ConvertTo-Json | Set-Content $ProcessDiagnosticsPath
+    if ($isAdmin -or $processIsElevated) {
+      throw "The installed Lantern process has an elevated access token"
+    }
+    if ($canWriteInstallDirectory) {
+      throw "The smoke user can write beside the installed executable"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($externalUDF)) {
+      throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$externalUDF"
+    }
+
+    $root = [System.Windows.Automation.AutomationElement]::FromHandle(
+      $app.MainWindowHandle
+    )
+    $providerElement = Find-AutomationElement -Root $root `
+      -AutomationID "payment-provider-$CheckoutProvider" -TimeoutSeconds 90 `
+      -FailureLogPath $AppLogPath
+    $checkoutElement = Find-AutomationElement -Root $root `
+      -AutomationID "payment-checkout-$CheckoutProvider" `
+      -TimeoutSeconds 2 -Optional
+    if (-not $checkoutElement) {
+      Invoke-AutomationElement -Element $providerElement
+      $checkoutElement = Find-AutomationElement -Root $root `
+        -AutomationID "payment-checkout-$CheckoutProvider" `
+        -TimeoutSeconds 20 -FailureLogPath $AppLogPath
+    }
+    Invoke-AutomationElement -Element $checkoutElement
+
+    Wait-CheckoutDocument -LogPath $AppLogPath `
+      -HostPattern $ExpectedHostPattern -TimeoutSeconds $TimeoutSeconds `
+      -ResultPath $WebViewPath
+
+    $udfPath = Join-Path $localAppData "Lantern\WebView2"
+    for ($i = 0; $i -lt 30; $i++) {
+      if (Test-Path $udfPath) { break }
+      if ($app.HasExited) { break }
+      Start-Sleep -Seconds 1
+      $app.Refresh()
+    }
+    $udfWritable = $false
+    $udfProbe = Join-Path $udfPath (
+      "write-probe-" + [Guid]::NewGuid().ToString("N")
+    )
+    try {
+      New-Item -ItemType File -Path $udfProbe -Force `
+        -ErrorAction Stop | Out-Null
+      $udfWritable = $true
+    } catch {
+    } finally {
+      Remove-Item $udfProbe -Force -ErrorAction SilentlyContinue
+    }
+    @{
+      path = $udfPath
+      exists = (Test-Path $udfPath)
+      writable = $udfWritable
+    } | ConvertTo-Json | Set-Content $WebViewUDFPath
+
+    Save-WindowScreenshot -Root $root -Path $CheckoutImagePath
+    Save-WindowScreenshot -Root $root -Path $FinalImagePath
+    @{
+      success = $true
+      processId = $app.Id
+      provider = $CheckoutProvider
+    } | ConvertTo-Json | Set-Content $ResultPath
+
+    $app.WaitForExit()
+  } catch {
+    $failure = $_
+    try {
+      if ($root) {
+        Save-WindowScreenshot -Root $root -Path $FinalImagePath
+      } else {
+        Save-DesktopScreenshot -Path $FinalImagePath
+      }
+    } catch {
+      Write-Warning "Could not capture smoke-user screenshot: $_"
+    }
+    @{
+      success = $false
+      error = $failure.Exception.Message
+      provider = $CheckoutProvider
+    } | ConvertTo-Json | Set-Content $ResultPath
+    throw $failure
+  } finally {
+    if ($transcriptStarted) {
+      try {
+        Stop-Transcript | Out-Null
+      } catch {
+      }
+    }
+  }
+}
+
 function Remove-SmokeAccount {
   param([string]$Username, [string]$SID)
   if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
@@ -339,16 +548,20 @@ function Invoke-CheckoutCase {
     githubRunId = $env:GITHUB_RUN_ID
     githubRunAttempt = $env:GITHUB_RUN_ATTEMPT
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
-  $transcript = Join-Path $caseDirectory "automation.log"
+  $transcript = Join-Path $caseDirectory "orchestration.log"
   $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
   $sid = $null
   $credential = $null
   $launcherProcess = $null
   $appProcess = $null
-  $root = $null
   $sharedAppDirectory = $null
   $diagnosticsPath = $null
   $udfCheckPath = $null
+  $automationResultPath = $null
+  $childWebViewPath = $null
+  $childCheckoutImagePath = $null
+  $childFinalImagePath = $null
+  $launcherLogPath = $null
   $profilePath = $null
   $transcriptStarted = $false
   $priorUDF = [Environment]::GetEnvironmentVariable(
@@ -421,97 +634,50 @@ function Invoke-CheckoutCase {
 
     $diagnosticsPath = Join-Path $exchangeDirectory "process.json"
     $udfCheckPath = Join-Path $exchangeDirectory "udf.json"
+    $automationResultPath = Join-Path $exchangeDirectory "automation-result.json"
+    $childWebViewPath = Join-Path $exchangeDirectory "webview.json"
+    $childCheckoutImagePath = Join-Path $exchangeDirectory "checkout.png"
+    $childFinalImagePath = Join-Path $exchangeDirectory "final.png"
+    $launcherLogPath = Join-Path $exchangeDirectory "automation.log"
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
-    $launcher = @'
-param(
-  [string]$AppPath,
-  [string]$Provider,
-  [string]$RunID,
-  [string]$DiagnosticsPath,
-  [string]$UDFCheckPath,
-  [string]$ProfilePath
-)
-$ErrorActionPreference = "Stop"
-$env:USERPROFILE = $ProfilePath
-$env:LOCALAPPDATA = Join-Path $ProfilePath "AppData\Local"
-$env:APPDATA = Join-Path $ProfilePath "AppData\Roaming"
-$env:HOMEDRIVE = Split-Path -Qualifier $ProfilePath
-$env:HOMEPATH = $ProfilePath.Substring($env:HOMEDRIVE.Length)
-[Environment]::SetEnvironmentVariable(
-  "WEBVIEW2_USER_DATA_FOLDER",
-  $null,
-  [EnvironmentVariableTarget]::Process
-)
-$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = [Security.Principal.WindowsPrincipal]::new($identity)
-$isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$installWritePath = Join-Path (Split-Path $AppPath -Parent) ("smoke-write-" + [Guid]::NewGuid().ToString("N"))
-$canWriteInstallDirectory = $false
-try {
-  New-Item -ItemType File -Path $installWritePath -Force -ErrorAction Stop | Out-Null
-  $canWriteInstallDirectory = $true
-} catch {
-} finally {
-  Remove-Item $installWritePath -Force -ErrorAction SilentlyContinue
-}
-$localAppData = $env:LOCALAPPDATA
-$externalUDF = [Environment]::GetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", "Process")
-$app = Start-Process -FilePath $AppPath -ArgumentList @(
-  "--payment-checkout-smoke=$Provider",
-  "--payment-checkout-run-id=$RunID"
-) -PassThru
-@{
-  processId = $app.Id
-  username = $identity.Name
-  isAdmin = $isAdmin
-  canWriteInstallDirectory = $canWriteInstallDirectory
-  externalWebView2UserDataFolder = $externalUDF
-  localAppData = $localAppData
-  profilePath = $ProfilePath
-} | ConvertTo-Json | Set-Content $DiagnosticsPath
-
-$udfPath = Join-Path $localAppData "Lantern\WebView2"
-for ($i = 0; $i -lt 180; $i++) {
-  if (Test-Path $udfPath) { break }
-  if ($app.HasExited) { break }
-  Start-Sleep -Seconds 1
-  $app.Refresh()
-}
-$udfWritable = $false
-$udfProbe = Join-Path $udfPath ("write-probe-" + [Guid]::NewGuid().ToString("N"))
-try {
-  New-Item -ItemType File -Path $udfProbe -Force -ErrorAction Stop | Out-Null
-  $udfWritable = $true
-} catch {
-} finally {
-  Remove-Item $udfProbe -Force -ErrorAction SilentlyContinue
-}
-@{
-  path = $udfPath
-  exists = (Test-Path $udfPath)
-  writable = $udfWritable
-} | ConvertTo-Json | Set-Content $UDFCheckPath
-$app.WaitForExit()
-'@
-    Set-Content -Path $launcherPath -Value $launcher
+    $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
+    # Run UI Automation in the same logon session as Flutter. Cross-user
+    # automation can see the native host window but not Flutter's semantics.
+    Copy-Item $PSCommandPath $launcherPath -Force
 
     $launcherArguments = @(
       "-NoLogo",
       "-NoProfile",
       "-ExecutionPolicy", "Bypass",
       "-File", "`"$launcherPath`"",
-      "-AppPath", "`"$InstalledAppPath`"",
+      "-Mode", "launcher",
+      "-InstalledAppPath", "`"$InstalledAppPath`"",
       "-Provider", $Provider,
       "-RunID", $RunID,
       "-DiagnosticsPath", "`"$diagnosticsPath`"",
       "-UDFCheckPath", "`"$udfCheckPath`"",
-      "-ProfilePath", "`"$profilePath`""
+      "-ProfilePath", "`"$profilePath`"",
+      "-AutomationResultPath", "`"$automationResultPath`"",
+      "-FlutterLogPath", "`"$flutterLog`"",
+      "-HostPattern", "`"$HostPattern`"",
+      "-WebViewResultPath", "`"$childWebViewPath`"",
+      "-CheckoutScreenshotPath", "`"$childCheckoutImagePath`"",
+      "-FinalScreenshotPath", "`"$childFinalImagePath`"",
+      "-LauncherLogPath", "`"$launcherLogPath`"",
+      "-WaitSeconds", $WaitSeconds
     )
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
       -ArgumentList $launcherArguments -PassThru
 
-    Wait-File -Path $diagnosticsPath -TimeoutSeconds 45
+    Wait-LauncherResult -Path $automationResultPath -Process $launcherProcess `
+      -TimeoutSeconds ($WaitSeconds + 150)
+    $automationResult = Get-Content $automationResultPath -Raw |
+      ConvertFrom-Json
+    if (-not $automationResult.success) {
+      throw "Smoke-user checkout failed: $($automationResult.error)"
+    }
+
     $diagnostics = Get-Content $diagnosticsPath -Raw | ConvertFrom-Json
     if ($diagnostics.isAdmin) {
       throw "The installed app was launched with an administrator token"
@@ -526,34 +692,11 @@ $app.WaitForExit()
     if ($diagnostics.localAppData -ne $expectedLocalAppData) {
       throw "Lantern inherited the wrong LOCALAPPDATA: $($diagnostics.localAppData)"
     }
-
-    $appProcess = Wait-ProcessMainWindow -ProcessID $diagnostics.processId -TimeoutSeconds 90
-    $processIsElevated = [WindowsPaymentSmoke.NativeToken]::IsElevated($appProcess.Id)
-    $diagnostics | Add-Member -NotePropertyName processIsElevated `
-      -NotePropertyValue $processIsElevated
     $diagnostics | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "process.json")
-    if ($processIsElevated) {
+    if ($diagnostics.processIsElevated) {
       throw "The installed Lantern process has an elevated access token"
     }
-    $root = [System.Windows.Automation.AutomationElement]::FromHandle(
-      $appProcess.MainWindowHandle
-    )
-    $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
-    $providerElement = Find-AutomationElement -Root $root `
-      -AutomationID "payment-provider-$Provider" -TimeoutSeconds 90 `
-      -FailureLogPath $flutterLog
-    $checkoutElement = Find-AutomationElement -Root $root `
-      -AutomationID "payment-checkout-$Provider" -TimeoutSeconds 2 -Optional
-    if (-not $checkoutElement) {
-      Invoke-AutomationElement -Element $providerElement
-      $checkoutElement = Find-AutomationElement -Root $root `
-        -AutomationID "payment-checkout-$Provider" -TimeoutSeconds 20 `
-        -FailureLogPath $flutterLog
-    }
-    Invoke-AutomationElement -Element $checkoutElement
-
-    Wait-CheckoutDocument -LogPath $flutterLog -HostPattern $HostPattern `
-      -TimeoutSeconds $WaitSeconds -ResultPath (Join-Path $caseDirectory "webview.json")
+    $appProcess = Get-Process -Id $diagnostics.processId -ErrorAction Stop
 
     Wait-File -Path $udfCheckPath -TimeoutSeconds 30
     $udf = Get-Content $udfCheckPath -Raw | ConvertFrom-Json
@@ -568,18 +711,8 @@ $app.WaitForExit()
       throw "Flutter did not record the actual per-user WebView2 folder $expectedUDF"
     }
 
-    Save-WindowScreenshot -Root $root -Path (Join-Path $caseDirectory "checkout.png")
     Write-Step "$Provider checkout rendered successfully"
   } finally {
-    try {
-      if ($root) {
-        Save-WindowScreenshot -Root $root -Path (Join-Path $caseDirectory "final.png")
-      } else {
-        Save-DesktopScreenshot -Path (Join-Path $caseDirectory "final.png")
-      }
-    } catch {
-      Write-Warning "Could not capture final screenshot: $_"
-    }
     if ($appProcess) {
       Stop-Process -Id $appProcess.Id -Force -ErrorAction SilentlyContinue
     } elseif ($diagnosticsPath -and (Test-Path $diagnosticsPath)) {
@@ -590,9 +723,47 @@ $app.WaitForExit()
       }
     }
     if ($launcherProcess) {
-      Stop-Process -Id $launcherProcess.Id -Force -ErrorAction SilentlyContinue
+      $launcherProcess.Refresh()
+      if (-not $launcherProcess.HasExited -and
+          -not $launcherProcess.WaitForExit(5000)) {
+        Stop-Process -Id $launcherProcess.Id -Force -ErrorAction SilentlyContinue
+      }
     }
     Start-Sleep -Seconds 1
+    $childArtifacts = @(
+      [pscustomobject]@{
+        Source = $launcherLogPath
+        Destination = Join-Path $caseDirectory "automation.log"
+      },
+      [pscustomobject]@{
+        Source = $childWebViewPath
+        Destination = Join-Path $caseDirectory "webview.json"
+      },
+      [pscustomobject]@{
+        Source = $childCheckoutImagePath
+        Destination = Join-Path $caseDirectory "checkout.png"
+      },
+      [pscustomobject]@{
+        Source = $childFinalImagePath
+        Destination = Join-Path $caseDirectory "final.png"
+      }
+    )
+    foreach ($artifact in $childArtifacts) {
+      if ($artifact.Source -and (Test-Path $artifact.Source)) {
+        try {
+          Copy-Item $artifact.Source $artifact.Destination -Force
+        } catch {
+          Write-Warning "Could not collect $($artifact.Source): $_"
+        }
+      }
+    }
+    try {
+      if (-not (Test-Path (Join-Path $caseDirectory "final.png"))) {
+        Save-DesktopScreenshot -Path (Join-Path $caseDirectory "final.png")
+      }
+    } catch {
+      Write-Warning "Could not capture final screenshot: $_"
+    }
     if ($udfCheckPath -and (Test-Path $udfCheckPath)) {
       Copy-Item $udfCheckPath (Join-Path $caseDirectory "webview2-udf.json") -Force
     }
@@ -634,6 +805,25 @@ $app.WaitForExit()
       }
     }
   }
+}
+
+if ($Mode -eq "launcher") {
+  Invoke-SmokeUserCheckout `
+    -AppPath $InstalledAppPath `
+    -CheckoutProvider $Provider `
+    -CheckoutRunID $RunID `
+    -ProcessDiagnosticsPath $DiagnosticsPath `
+    -WebViewUDFPath $UDFCheckPath `
+    -UserProfilePath $ProfilePath `
+    -ResultPath $AutomationResultPath `
+    -AppLogPath $FlutterLogPath `
+    -ExpectedHostPattern $HostPattern `
+    -WebViewPath $WebViewResultPath `
+    -CheckoutImagePath $CheckoutScreenshotPath `
+    -FinalImagePath $FinalScreenshotPath `
+    -TranscriptPath $LauncherLogPath `
+    -TimeoutSeconds $WaitSeconds
+  return
 }
 
 if (-not (Test-Path $InstalledAppPath)) {
