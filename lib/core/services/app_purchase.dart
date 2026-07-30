@@ -737,11 +737,14 @@ class AppPurchase {
     return _userHasActivePurchase(user);
   }
 
+  /// Deliberately wider than [UserDataProX.isPro]: a subscription can read as
+  /// active before the account level flips, and wrongly telling someone their
+  /// payment failed is worse than being early. Entitlement decisions must still
+  /// use isPro — this only gates post-purchase messaging.
   bool _userHasActivePurchase(UserResponseModel user) {
-    final userLevel = user.legacyUserData.userLevel.toLowerCase();
-    final subscriptionStatus = user.legacyUserData.subscriptionData.status
-        .toLowerCase();
-    return userLevel == 'pro' || subscriptionStatus == 'active';
+    if (user.legacyUserData.isPro) return true;
+    return user.legacyUserData.subscriptionData.status.toLowerCase() ==
+        'active';
   }
 
   /// Determines the plan id to send to the backend for acknowledgment.

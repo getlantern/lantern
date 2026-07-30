@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/info_row.dart';
@@ -210,7 +209,7 @@ class Account extends HookConsumerWidget {
     WidgetRef ref,
   ) {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
-    final isUserExpired = user.legacyUserData.userLevel == 'expired';
+    final isUserExpired = user.legacyUserData.isExpired;
     final isUserPro = user.legacyUserData.isPro;
 
     ///User has an active subscription with auto-renew enabled
@@ -353,7 +352,7 @@ class Account extends HookConsumerWidget {
         (newUser) {
           final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
           final newPlanId = newUser.legacyUserData.subscriptionData.planID;
-          final isPro = newUser.legacyUserData.userLevel == 'pro';
+          final isPro = newUser.legacyUserData.isPro;
           final isPlanChanged = isPro && oldPlanId != newPlanId;
           final isCancelled =
               !isPro ||

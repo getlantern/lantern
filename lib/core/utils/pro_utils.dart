@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/user.dart';
 
 bool hasRegisteredProAccount(UserResponseModel? user) {
