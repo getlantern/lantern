@@ -368,10 +368,15 @@ function Invoke-CheckoutCase {
     $user = New-LocalUser -Name $username -Password $securePassword `
       -AccountNeverExpires -PasswordNeverExpires
     $sid = $user.SID.Value
-    # lanternd accepts administrator-group members, while UAC still gives this
-    # launch a filtered token that cannot write under Program Files.
+    # The daemon accepts members of Administrators. UAC still gives the app a
+    # filtered, non-elevated token, which the checks below verify.
     $administrators = Get-LocalGroup -SID "S-1-5-32-544"
     Add-LocalGroupMember -Group $administrators -Member $user
+    $administratorsMember = Get-LocalGroupMember -Group $administrators |
+      Where-Object { $_.SID.Value -eq $sid }
+    if (-not $administratorsMember) {
+      throw "Could not grant the smoke user access to the installed Lantern service"
+    }
 
     # Create the profile before the real launch so the child process does not
     # inherit the runner account's AppData paths.
@@ -440,10 +445,6 @@ $env:HOMEPATH = $ProfilePath.Substring($env:HOMEDRIVE.Length)
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = [Security.Principal.WindowsPrincipal]::new($identity)
 $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$administratorsSID = "S-1-5-32-544"
-$isAdministratorsMember = [bool](
-  $identity.Groups | Where-Object { $_.Value -eq $administratorsSID }
-)
 $installWritePath = Join-Path (Split-Path $AppPath -Parent) ("smoke-write-" + [Guid]::NewGuid().ToString("N"))
 $canWriteInstallDirectory = $false
 try {
@@ -463,7 +464,6 @@ $app = Start-Process -FilePath $AppPath -ArgumentList @(
   processId = $app.Id
   username = $identity.Name
   isAdmin = $isAdmin
-  isAdministratorsMember = $isAdministratorsMember
   canWriteInstallDirectory = $canWriteInstallDirectory
   externalWebView2UserDataFolder = $externalUDF
   localAppData = $localAppData
@@ -515,9 +515,6 @@ $app.WaitForExit()
     $diagnostics = Get-Content $diagnosticsPath -Raw | ConvertFrom-Json
     if ($diagnostics.isAdmin) {
       throw "The installed app was launched with an administrator token"
-    }
-    if (-not $diagnostics.isAdministratorsMember) {
-      throw "The smoke user's token cannot access the installed Lantern service"
     }
     if ($diagnostics.canWriteInstallDirectory) {
       throw "The smoke user can write beside the installed executable"
