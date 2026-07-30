@@ -1,9 +1,35 @@
-@testable import Lantern
 import Foundation
+import NetworkExtension
 import SystemExtensions
 import XCTest
 
+@testable import Lantern
+
 final class RunnerTests: XCTestCase {
+
+  func testVPNConnectionActions() throws {
+    XCTAssertEqual(try vpnConnectionAction(for: .disconnected), .startTunnel)
+    XCTAssertEqual(try vpnConnectionAction(for: .connected), .sendCommandToExtension)
+
+    for status in [NEVPNStatus.connecting, .disconnecting, .reasserting] {
+      XCTAssertThrowsError(try vpnConnectionAction(for: status)) { error in
+        guard let vpnError = error as? VPNManagerError,
+          case .operationInProgress = vpnError
+        else {
+          return XCTFail("Expected operationInProgress for \(status), got \(error)")
+        }
+      }
+    }
+  }
+
+  func testVPNStopActions() throws {
+    for status in [NEVPNStatus.connected, .connecting, .reasserting] {
+      XCTAssertEqual(try vpnStopAction(for: status), .stopTunnel)
+    }
+    for status in [NEVPNStatus.disconnected, .disconnecting] {
+      XCTAssertEqual(try vpnStopAction(for: status), .alreadyStopped)
+    }
+  }
 
   func testHashBundleIsStableForIdenticalContents() throws {
     let firstURL = try createExtensionBundle(

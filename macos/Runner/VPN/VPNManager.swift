@@ -140,17 +140,13 @@ class VPNManager: VPNBase {
     let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
+    switch try vpnConnectionAction(for: manager.connection.status) {
+    case .sendCommandToExtension:
       appLogger.info("VPN is already connected, sending command to extension")
-      do {
-        let result = try await triggerExtensionMethod(
-          methodName: "Lantern"
-        )
-        return
-      } catch {
-        // Rethrow so caller can handle it
-        throw error
-      }
+      _ = try await triggerExtensionMethod(methodName: "Lantern")
+      return
+    case .startTunnel:
+      break
     }
 
     try self.manager.connection.startVPNTunnel(options: options)
@@ -168,18 +164,16 @@ class VPNManager: VPNBase {
       "netEx.ServerName": serverName as NSString,
     ]
 
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
+    switch try vpnConnectionAction(for: manager.connection.status) {
+    case .sendCommandToExtension:
       appLogger.info("VPN is already connected, sending command to extension")
-      do {
-        let result = try await triggerExtensionMethod(
-          methodName: "PrivateServer",
-          params: ["server": serverName]
-        )
-        return
-      } catch {
-        // Rethrow so caller can handle it
-        throw error
-      }
+      _ = try await triggerExtensionMethod(
+        methodName: "PrivateServer",
+        params: ["server": serverName]
+      )
+      return
+    case .startTunnel:
+      break
     }
 
     try self.manager.connection.startVPNTunnel(options: options)
@@ -195,9 +189,13 @@ class VPNManager: VPNBase {
   func stopTunnel() async throws {
     appLogger.log("Stopping tunnel..")
     await syncStatus()
-    guard connectionStatus == .connected else {
-      appLogger.log("In unexpected state: \(connectionStatus)")
+    let status = manager.connection.status
+    switch try vpnStopAction(for: status) {
+    case .alreadyStopped:
+      appLogger.log("VPN is already stopped or stopping: \(status)")
       return
+    case .stopTunnel:
+      break
     }
 
     if manager.isOnDemandEnabled {

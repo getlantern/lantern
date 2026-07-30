@@ -30,7 +30,7 @@ var (
 	errLanternNotReady = errors.New("radiance not initialized")
 
 	ipcServer  *ipc.Server
-	ipcClient  *ipc.Client // loopback client for extension process
+	ipcClient  atomic.Pointer[ipc.Client] // loopback client for extension process
 	ipcBackend *backend.LocalBackend
 	ipcMu      sync.Mutex
 	ipcOnce    sync.Once
@@ -76,9 +76,7 @@ func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 // StartIPCServer (extension process), falling back to lanternCore's client
 // (main app process).
 func getClient() (*ipc.Client, error) {
-	ipcMu.Lock()
-	c := ipcClient
-	ipcMu.Unlock()
+	c := ipcClient.Load()
 	if c != nil {
 		return c, nil
 	}
@@ -302,12 +300,14 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
 		}
 		be.Start()
-		ipcBackend = be
-		ipcServer = ipc.NewServer(be, !common.IsMobile())
-		ipcClient = newLoopbackClient(be)
-		if err := ipcServer.Start(); err != nil {
+		server := ipc.NewServer(be, !common.IsMobile())
+		if err := server.Start(); err != nil {
+			be.Close()
 			return struct{}{}, err
 		}
+		ipcBackend = be
+		ipcServer = server
+		ipcClient.Store(newLoopbackClient(be))
 		return struct{}{}, nil
 	})
 	return err
@@ -317,6 +317,7 @@ func CloseIPCServer() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
 		defer ipcMu.Unlock()
+		ipcClient.Store(nil)
 		if ipcBackend != nil {
 			ipcBackend.Close()
 			ipcBackend = nil
@@ -325,7 +326,6 @@ func CloseIPCServer() error {
 			ipcServer.Close()
 			ipcServer = nil
 		}
-		ipcClient = nil
 		return struct{}{}, nil
 	})
 	return err
