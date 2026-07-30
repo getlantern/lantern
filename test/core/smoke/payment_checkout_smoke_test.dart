@@ -42,7 +42,7 @@ void main() {
       );
 
       expect(config?.provider, 'e2e');
-      expect(config?.completesPurchase, isTrue);
+      expect(config?.usesE2EProvider, isTrue);
     });
 
     test('rejects the hook outside a Windows nightly build', () {
