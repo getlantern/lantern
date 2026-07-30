@@ -7,18 +7,7 @@ param(
   [string]$ArtifactDirectory = "build/windows-payment-checkout-smoke",
   [int]$WaitSeconds = 180,
   [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
-  [string]$Provider,
-  [string]$RunID,
-  [string]$DiagnosticsPath,
-  [string]$UDFCheckPath,
-  [string]$ProfilePath,
-  [string]$AutomationResultPath,
-  [string]$FlutterLogPath,
-  [string]$HostPattern,
-  [string]$WebViewResultPath,
-  [string]$CheckoutScreenshotPath,
-  [string]$FinalScreenshotPath,
-  [string]$LauncherLogPath
+  [string]$LauncherConfigPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -562,6 +551,7 @@ function Invoke-CheckoutCase {
   $childCheckoutImagePath = $null
   $childFinalImagePath = $null
   $launcherLogPath = $null
+  $launcherConfigPath = $null
   $profilePath = $null
   $transcriptStarted = $false
   $priorUDF = [Environment]::GetEnvironmentVariable(
@@ -640,10 +630,27 @@ function Invoke-CheckoutCase {
     $childFinalImagePath = Join-Path $exchangeDirectory "final.png"
     $launcherLogPath = Join-Path $exchangeDirectory "automation.log"
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
+    $launcherConfigPath = Join-Path $exchangeDirectory "launcher.json"
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     # Run UI Automation in the same logon session as Flutter. Cross-user
     # automation can see the native host window but not Flutter's semantics.
     Copy-Item $PSCommandPath $launcherPath -Force
+    @{
+      appPath = $InstalledAppPath
+      provider = $Provider
+      runId = $RunID
+      diagnosticsPath = $diagnosticsPath
+      udfCheckPath = $udfCheckPath
+      profilePath = $profilePath
+      automationResultPath = $automationResultPath
+      flutterLogPath = $flutterLog
+      hostPattern = $HostPattern
+      webViewResultPath = $childWebViewPath
+      checkoutScreenshotPath = $childCheckoutImagePath
+      finalScreenshotPath = $childFinalImagePath
+      launcherLogPath = $launcherLogPath
+      waitSeconds = $WaitSeconds
+    } | ConvertTo-Json | Set-Content $launcherConfigPath
 
     $launcherArguments = @(
       "-NoLogo",
@@ -651,21 +658,12 @@ function Invoke-CheckoutCase {
       "-ExecutionPolicy", "Bypass",
       "-File", "`"$launcherPath`"",
       "-Mode", "launcher",
-      "-InstalledAppPath", "`"$InstalledAppPath`"",
-      "-Provider", $Provider,
-      "-RunID", $RunID,
-      "-DiagnosticsPath", "`"$diagnosticsPath`"",
-      "-UDFCheckPath", "`"$udfCheckPath`"",
-      "-ProfilePath", "`"$profilePath`"",
-      "-AutomationResultPath", "`"$automationResultPath`"",
-      "-FlutterLogPath", "`"$flutterLog`"",
-      "-HostPattern", "`"$HostPattern`"",
-      "-WebViewResultPath", "`"$childWebViewPath`"",
-      "-CheckoutScreenshotPath", "`"$childCheckoutImagePath`"",
-      "-FinalScreenshotPath", "`"$childFinalImagePath`"",
-      "-LauncherLogPath", "`"$launcherLogPath`"",
-      "-WaitSeconds", $WaitSeconds
+      "-LauncherConfigPath", "`"$launcherConfigPath`""
     )
+    $launcherCommandLine = $launcherArguments -join " "
+    if ($launcherCommandLine.Length -gt 900) {
+      throw "Smoke-user launcher command line is too long"
+    }
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
       -ArgumentList $launcherArguments -PassThru
@@ -808,21 +806,25 @@ function Invoke-CheckoutCase {
 }
 
 if ($Mode -eq "launcher") {
+  if (-not $LauncherConfigPath -or -not (Test-Path $LauncherConfigPath)) {
+    throw "Smoke-user launcher config not found: $LauncherConfigPath"
+  }
+  $launcherConfig = Get-Content $LauncherConfigPath -Raw | ConvertFrom-Json
   Invoke-SmokeUserCheckout `
-    -AppPath $InstalledAppPath `
-    -CheckoutProvider $Provider `
-    -CheckoutRunID $RunID `
-    -ProcessDiagnosticsPath $DiagnosticsPath `
-    -WebViewUDFPath $UDFCheckPath `
-    -UserProfilePath $ProfilePath `
-    -ResultPath $AutomationResultPath `
-    -AppLogPath $FlutterLogPath `
-    -ExpectedHostPattern $HostPattern `
-    -WebViewPath $WebViewResultPath `
-    -CheckoutImagePath $CheckoutScreenshotPath `
-    -FinalImagePath $FinalScreenshotPath `
-    -TranscriptPath $LauncherLogPath `
-    -TimeoutSeconds $WaitSeconds
+    -AppPath $launcherConfig.appPath `
+    -CheckoutProvider $launcherConfig.provider `
+    -CheckoutRunID $launcherConfig.runId `
+    -ProcessDiagnosticsPath $launcherConfig.diagnosticsPath `
+    -WebViewUDFPath $launcherConfig.udfCheckPath `
+    -UserProfilePath $launcherConfig.profilePath `
+    -ResultPath $launcherConfig.automationResultPath `
+    -AppLogPath $launcherConfig.flutterLogPath `
+    -ExpectedHostPattern $launcherConfig.hostPattern `
+    -WebViewPath $launcherConfig.webViewResultPath `
+    -CheckoutImagePath $launcherConfig.checkoutScreenshotPath `
+    -FinalImagePath $launcherConfig.finalScreenshotPath `
+    -TranscriptPath $launcherConfig.launcherLogPath `
+    -TimeoutSeconds $launcherConfig.waitSeconds
   return
 }
 
