@@ -164,6 +164,7 @@ function Find-AutomationElement {
     [System.Windows.Automation.AutomationElement]$Root,
     [string]$Name,
     [int]$TimeoutSeconds,
+    [string]$FailureLogPath,
     [switch]$Optional
   )
   $condition = [System.Windows.Automation.PropertyCondition]::new(
@@ -176,6 +177,14 @@ function Find-AutomationElement {
       $condition
     )
     if ($element) { return $element }
+    if ($FailureLogPath -and (Test-Path $FailureLogPath)) {
+      $failure = Select-String -Path $FailureLogPath `
+        -Pattern 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)' |
+        Select-Object -Last 1
+      if ($failure) {
+        throw "Lantern checkout bootstrap failed: $($failure.Line.Trim())"
+      }
+    }
     Start-Sleep -Seconds 1
   }
   if ($Optional) { return $null }
@@ -337,6 +346,7 @@ function Invoke-CheckoutCase {
   $sharedAppDirectory = $null
   $diagnosticsPath = $null
   $udfCheckPath = $null
+  $profilePath = $null
   $transcriptStarted = $false
   $priorUDF = [Environment]::GetEnvironmentVariable(
     "WEBVIEW2_USER_DATA_FOLDER",
@@ -355,8 +365,34 @@ function Invoke-CheckoutCase {
     $user = New-LocalUser -Name $username -Password $securePassword `
       -AccountNeverExpires -PasswordNeverExpires
     $sid = $user.SID.Value
+    # lanternd accepts administrator-group members, while UAC still gives this
+    # launch a filtered token that cannot write under Program Files.
+    $administrators = Get-LocalGroup -SID "S-1-5-32-544"
+    Add-LocalGroupMember -Group $administrators -Member $user
 
-    Write-Step "Starting $Provider checkout as disposable standard user $username"
+    # Create the profile before the real launch so the child process does not
+    # inherit the runner account's AppData paths.
+    $profileBootstrap = Start-Process -FilePath "powershell.exe" `
+      -Credential $credential -LoadUserProfile -Wait -PassThru `
+      -ArgumentList @("-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "exit 0")
+    if ($profileBootstrap.ExitCode -ne 0) {
+      throw "Could not initialize the disposable user profile"
+    }
+    $profile = $null
+    for ($i = 0; $i -lt 15; $i++) {
+      $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$sid'" `
+        -ErrorAction SilentlyContinue
+      if ($profile -and -not [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
+        break
+      }
+      Start-Sleep -Seconds 1
+    }
+    if (-not $profile -or [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
+      throw "Windows did not create a profile for disposable user $username"
+    }
+    $profilePath = [Environment]::ExpandEnvironmentVariables($profile.LocalPath)
+
+    Write-Step "Starting $Provider checkout as disposable non-elevated user $username"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -384,12 +420,27 @@ param(
   [string]$Provider,
   [string]$RunID,
   [string]$DiagnosticsPath,
-  [string]$UDFCheckPath
+  [string]$UDFCheckPath,
+  [string]$ProfilePath
 )
 $ErrorActionPreference = "Stop"
+$env:USERPROFILE = $ProfilePath
+$env:LOCALAPPDATA = Join-Path $ProfilePath "AppData\Local"
+$env:APPDATA = Join-Path $ProfilePath "AppData\Roaming"
+$env:HOMEDRIVE = Split-Path -Qualifier $ProfilePath
+$env:HOMEPATH = $ProfilePath.Substring($env:HOMEDRIVE.Length)
+[Environment]::SetEnvironmentVariable(
+  "WEBVIEW2_USER_DATA_FOLDER",
+  $null,
+  [EnvironmentVariableTarget]::Process
+)
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = [Security.Principal.WindowsPrincipal]::new($identity)
 $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$administratorsSID = "S-1-5-32-544"
+$isAdministratorsMember = [bool](
+  $identity.Groups | Where-Object { $_.Value -eq $administratorsSID }
+)
 $installWritePath = Join-Path (Split-Path $AppPath -Parent) ("smoke-write-" + [Guid]::NewGuid().ToString("N"))
 $canWriteInstallDirectory = $false
 try {
@@ -399,7 +450,7 @@ try {
 } finally {
   Remove-Item $installWritePath -Force -ErrorAction SilentlyContinue
 }
-$localAppData = [Environment]::GetFolderPath("LocalApplicationData")
+$localAppData = $env:LOCALAPPDATA
 $externalUDF = [Environment]::GetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", "Process")
 $app = Start-Process -FilePath $AppPath -ArgumentList @(
   "--payment-checkout-smoke=$Provider",
@@ -409,9 +460,11 @@ $app = Start-Process -FilePath $AppPath -ArgumentList @(
   processId = $app.Id
   username = $identity.Name
   isAdmin = $isAdmin
+  isAdministratorsMember = $isAdministratorsMember
   canWriteInstallDirectory = $canWriteInstallDirectory
   externalWebView2UserDataFolder = $externalUDF
   localAppData = $localAppData
+  profilePath = $ProfilePath
 } | ConvertTo-Json | Set-Content $DiagnosticsPath
 
 $udfPath = Join-Path $localAppData "Lantern\WebView2"
@@ -448,7 +501,8 @@ $app.WaitForExit()
       "-Provider", $Provider,
       "-RunID", $RunID,
       "-DiagnosticsPath", "`"$diagnosticsPath`"",
-      "-UDFCheckPath", "`"$udfCheckPath`""
+      "-UDFCheckPath", "`"$udfCheckPath`"",
+      "-ProfilePath", "`"$profilePath`""
     )
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
@@ -457,13 +511,20 @@ $app.WaitForExit()
     Wait-File -Path $diagnosticsPath -TimeoutSeconds 45
     $diagnostics = Get-Content $diagnosticsPath -Raw | ConvertFrom-Json
     if ($diagnostics.isAdmin) {
-      throw "The installed app was launched from an administrator account"
+      throw "The installed app was launched with an administrator token"
+    }
+    if (-not $diagnostics.isAdministratorsMember) {
+      throw "The smoke user's token cannot access the installed Lantern service"
     }
     if ($diagnostics.canWriteInstallDirectory) {
       throw "The smoke user can write beside the installed executable"
     }
     if (-not [string]::IsNullOrWhiteSpace($diagnostics.externalWebView2UserDataFolder)) {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$($diagnostics.externalWebView2UserDataFolder)"
+    }
+    $expectedLocalAppData = Join-Path $profilePath "AppData\Local"
+    if ($diagnostics.localAppData -ne $expectedLocalAppData) {
+      throw "Lantern inherited the wrong LOCALAPPDATA: $($diagnostics.localAppData)"
     }
 
     $appProcess = Wait-ProcessMainWindow -ProcessID $diagnostics.processId -TimeoutSeconds 90
@@ -477,18 +538,20 @@ $app.WaitForExit()
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
       $appProcess.MainWindowHandle
     )
+    $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     $providerElement = Find-AutomationElement -Root $root `
-      -Name "payment-provider-$Provider" -TimeoutSeconds 90
+      -Name "payment-provider-$Provider" -TimeoutSeconds 90 `
+      -FailureLogPath $flutterLog
     $checkoutElement = Find-AutomationElement -Root $root `
       -Name "payment-checkout-$Provider" -TimeoutSeconds 2 -Optional
     if (-not $checkoutElement) {
       Invoke-AutomationElement -Element $providerElement
       $checkoutElement = Find-AutomationElement -Root $root `
-        -Name "payment-checkout-$Provider" -TimeoutSeconds 20
+        -Name "payment-checkout-$Provider" -TimeoutSeconds 20 `
+        -FailureLogPath $flutterLog
     }
     Invoke-AutomationElement -Element $checkoutElement
 
-    $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     Wait-CheckoutDocument -LogPath $flutterLog -HostPattern $HostPattern `
       -TimeoutSeconds $WaitSeconds -ResultPath (Join-Path $caseDirectory "webview.json")
 

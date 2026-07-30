@@ -58,6 +58,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
   Future<void> _openPaymentCheckoutSmoke(
     PaymentCheckoutSmokeConfig smoke,
   ) async {
+    // Plans retries can outlive an unobserved auto-dispose provider. Keep this
+    // subscription until the payment screen takes over watching the provider.
+    final plansSubscription = ref.listenManual(plansProvider, (_, _) {});
     try {
       final planData = await ref.read(plansProvider.future);
       final matchingProviders = planData.providers.desktop.where(
@@ -102,6 +105,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
         error,
         stackTrace,
       );
+    } finally {
+      plansSubscription.close();
     }
   }
 
