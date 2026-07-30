@@ -1,6 +1,8 @@
+/// Settings for the narrow checkout path exercised by Windows app smokes.
 class PaymentCheckoutSmokeConfig {
   static const _providerPrefix = '--payment-checkout-smoke=';
   static const _runIDPrefix = '--payment-checkout-run-id=';
+  static const _supportedProviders = {'stripe', 'shepherd', 'e2e'};
   static final _runIDPattern = RegExp(
     r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-'
     r'[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
@@ -41,7 +43,7 @@ class PaymentCheckoutSmokeConfig {
     }
 
     final provider = providerArgument.toLowerCase();
-    if (provider != 'stripe' && provider != 'shepherd' && provider != 'e2e') {
+    if (!_supportedProviders.contains(provider)) {
       throw FormatException('Unsupported payment checkout provider: $provider');
     }
     if (!_runIDPattern.hasMatch(runIDArgument)) {
@@ -60,6 +62,9 @@ class PaymentCheckoutSmokeConfig {
       return null;
     }
     final value = matches.single.substring(prefix.length).trim();
-    return value.isEmpty ? null : value;
+    if (value.isEmpty) {
+      throw FormatException('Argument requires a value: $prefix');
+    }
+    return value;
   }
 }

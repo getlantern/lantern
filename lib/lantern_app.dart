@@ -65,9 +65,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
           !planData.providers.desktop.any(
             (provider) => provider.providers.name == smoke.provider,
           )) {
-        // The deployed staging API deliberately does not advertise the E2E
-        // provider. Expose it only through this Windows-nightly, UUID-gated
-        // smoke entry point; the server independently enforces the same tag.
+        // Staging keeps this provider out of normal plan responses. Add it only
+        // for the Windows-nightly smoke entry point; the server also requires
+        // the run-scoped E2E email before it will issue a checkout.
         planData.providers.desktop.insert(
           0,
           plan_models.Android(

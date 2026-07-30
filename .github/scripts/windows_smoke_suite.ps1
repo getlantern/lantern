@@ -396,7 +396,7 @@ try {
       -ServiceName $ServiceName `
       -ArtifactDirectory $PaymentConversionArtifactDirectory `
       -RunCheckoutCases:$false `
-      -RunPaymentConversion:$true
+      -RunPaymentConversion
     if ($LASTEXITCODE -ne 0) {
       throw "Windows payment conversion smoke failed with exit code $LASTEXITCODE"
     }

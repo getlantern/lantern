@@ -5,6 +5,7 @@ param(
   [string]$ArtifactDirectory = "build/windows-payment-checkout-smoke",
   [int]$WaitSeconds = 180,
   [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
+  [string]$E2ECleanupURL = "https://api.staging.iantem.io/pro-server/e2e-payment-cleanup",
   [bool]$RunCheckoutCases = $true,
   [bool]$RunPaymentConversion = $false,
   [bool]$RunStripeProviderE2E = $false,
@@ -13,6 +14,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $resolvedArtifacts = [System.IO.Path]::GetFullPath($ArtifactDirectory)
+$serviceDataDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-data"
+$serviceLogDirectory = Join-Path $env:ProgramData "Lantern\payment-smoke-logs"
 New-Item -ItemType Directory -Path $resolvedArtifacts -Force | Out-Null
 if ([string]::IsNullOrWhiteSpace($StripeHelperDirectory)) {
   $StripeHelperDirectory = Join-Path $PSScriptRoot "stripe_provider_e2e"
@@ -125,56 +128,17 @@ function Get-FreeTcpPort {
   }
 }
 
-function Invoke-RemoteE2EPaymentCleanup {
-  param(
-    [string]$RunID,
-    [string]$ResultPath
-  )
-  $cleanupURI = "https://api.staging.iantem.io/pro-server/e2e-payment-cleanup"
-  $requestBody = @{ runId = $RunID } | ConvertTo-Json -Compress
-  $lastError = $null
-  for ($attempt = 1; $attempt -le 3; $attempt++) {
-    try {
-      Write-Step "Requesting immediate staging cleanup for E2E run $RunID (attempt $attempt)"
-      $response = Invoke-RestMethod -Method Post -Uri $cleanupURI `
-        -ContentType "application/json" -Body $requestBody -TimeoutSec 30
-      if ($response.status -ne "ok" -or
-          $response.cleanup -notin @("completed", "already_completed")) {
-        throw "Unexpected cleanup status: $($response.cleanup)"
-      }
-      @{
-        success = $true
-        runId = $RunID
-        cleanup = $response.cleanup
-        attempt = $attempt
-      } | ConvertTo-Json | Set-Content $ResultPath
-      return
-    } catch {
-      $lastError = $_.Exception.Message
-      if ($attempt -lt 3) {
-        Start-Sleep -Seconds (2 * $attempt)
-      }
-    }
-  }
-  @{
-    success = $false
-    runId = $RunID
-    error = $lastError
-  } | ConvertTo-Json | Set-Content $ResultPath
-  throw "Immediate staging E2E cleanup failed after 3 attempts: $lastError"
-}
-
 function Use-StagingService {
   if (-not (Test-Path $InstalledDaemonPath)) {
     throw "Installed daemon not found: $InstalledDaemonPath"
   }
   Write-Step "Reinstalling the installed service for staging"
-  $serviceDataPath = Join-Path $env:ProgramData "Lantern\payment-smoke-data"
-  $serviceLogPath = Join-Path $env:ProgramData "Lantern\payment-smoke-logs"
-  Remove-Item $serviceDataPath -Recurse -Force -ErrorAction SilentlyContinue
-  Remove-Item $serviceLogPath -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $serviceDataDirectory -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $serviceLogDirectory -Recurse -Force -ErrorAction SilentlyContinue
   & $InstalledDaemonPath install --environment staging `
-    --data-path $serviceDataPath --log-path $serviceLogPath --log-level debug
+    --data-path $serviceDataDirectory `
+    --log-path $serviceLogDirectory `
+    --log-level debug
   if ($LASTEXITCODE -ne 0) {
     throw "lanternd staging install failed with exit code $LASTEXITCODE"
   }
@@ -185,7 +149,7 @@ function Use-StagingService {
   if ($service.PathName -notmatch '(?i)--environment\s+staging') {
     throw "Installed service command does not persist --environment staging: $($service.PathName)"
   }
-  if ($service.PathName -notmatch [regex]::Escape($serviceDataPath)) {
+  if ($service.PathName -notmatch [regex]::Escape($serviceDataDirectory)) {
     throw "Installed staging service is not using disposable data: $($service.PathName)"
   }
   $service | Select-Object Name, State, StartMode, PathName |
@@ -310,9 +274,8 @@ function Copy-CaseLogs {
   if (Test-Path $appLogDirectory) {
     Copy-Item $appLogDirectory (Join-Path $Destination "app-logs") -Recurse -Force
   }
-  $daemonLogDirectory = Join-Path $env:ProgramData "Lantern"
-  if (Test-Path $daemonLogDirectory) {
-    Copy-Item $daemonLogDirectory (Join-Path $Destination "daemon-logs") -Recurse -Force
+  if (Test-Path $serviceLogDirectory) {
+    Copy-Item $serviceLogDirectory (Join-Path $Destination "daemon-logs") -Recurse -Force
   }
 }
 
@@ -326,12 +289,15 @@ function Wait-CheckoutDocument {
   $linePattern = 'PAYMENT_WEBVIEW_SMOKE event=load_stop host=(\S+) url=(\S+) document_length=(\d+)'
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $LogPath) {
-      $logText = Get-Content $LogPath -Raw -ErrorAction SilentlyContinue
+      $logText = [string](Get-Content $LogPath -Raw -ErrorAction SilentlyContinue)
       if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
         throw "The checkout WebView reported a main-frame navigation error"
       }
       if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=document_error') {
         throw "The checkout WebView could not inspect the loaded document"
+      }
+      if ($logText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
+        throw "Lantern could not prepare the requested checkout smoke"
       }
       foreach ($match in [regex]::Matches($logText, $linePattern)) {
         $hostName = $match.Groups[1].Value
@@ -362,14 +328,14 @@ function Wait-PaymentConversion {
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $LogPath) {
-      $logText = Get-Content $LogPath -Raw -ErrorAction SilentlyContinue
+      $logText = [string](Get-Content $LogPath -Raw -ErrorAction SilentlyContinue)
       if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
         throw "The conversion WebView reported a main-frame navigation error"
       }
       $callback = $logText -match 'PAYMENT_WEBVIEW_SMOKE event=purchase_result .* result=true'
-      $serverPro = $logText -match 'PAYMENT_CONVERSION_SMOKE event=server_user attempt=\d+ userLevel=pro'
-      $localPro = $logText -match 'PAYMENT_CONVERSION_SMOKE event=local_user userLevel=pro'
-      $successUI = $logText -match 'PAYMENT_CONVERSION_SMOKE event=success_ui userLevel=pro'
+      $serverPro = $logText -match 'ACCOUNT_STATUS event=server_user attempt=\d+ userLevel=pro'
+      $localPro = $logText -match 'ACCOUNT_STATUS event=local_user userLevel=pro'
+      $successUI = $logText -match 'PAYMENT_FLOW event=success_ui userLevel=pro'
       if ($callback -and $serverPro -and $localPro -and $successUI) {
         @{
           purchaseResult = $true
@@ -379,7 +345,7 @@ function Wait-PaymentConversion {
         } | ConvertTo-Json | Set-Content $ResultPath
         return
       }
-      if ($logText -match 'PAYMENT_CONVERSION_SMOKE event=account_timeout') {
+      if ($logText -match 'ACCOUNT_STATUS event=timeout') {
         throw "The app timed out waiting for the staging account to become Pro"
       }
     }
@@ -388,12 +354,49 @@ function Wait-PaymentConversion {
   throw "The installed app did not complete the payment-to-Pro flow"
 }
 
+function Invoke-E2EPaymentCleanup {
+  param([string]$RunID, [string]$ResultPath)
+
+  $lastError = $null
+  for ($attempt = 1; $attempt -le 3; $attempt++) {
+    try {
+      $response = Invoke-RestMethod -Method Post -Uri $E2ECleanupURL `
+        -ContentType "application/json" `
+        -Body (@{ runId = $RunID } | ConvertTo-Json -Compress) `
+        -TimeoutSec 30
+      $cleanup = [string]$response.cleanup
+      if ($response.status -ne "ok" -or
+          $cleanup -notin @("completed", "already_completed")) {
+        throw "Unexpected cleanup response: $($response | ConvertTo-Json -Compress)"
+      }
+      @{
+        status = $response.status
+        cleanup = $cleanup
+        attempts = $attempt
+      } | ConvertTo-Json | Set-Content $ResultPath
+      return
+    } catch {
+      $lastError = $_.Exception.Message
+      if ($attempt -lt 3) {
+        Start-Sleep -Seconds 2
+      }
+    }
+  }
+
+  @{
+    status = "error"
+    error = $lastError
+    attempts = 3
+  } | ConvertTo-Json | Set-Content $ResultPath
+  throw "Could not clean up E2E payment run $RunID after 3 attempts: $lastError"
+}
+
 function Remove-SmokeAccount {
   param([string]$Username, [string]$SID)
-  Get-Process Lantern -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
   if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
     Remove-LocalUser -Name $Username
   }
+  if ([string]::IsNullOrWhiteSpace($SID)) { return }
   for ($i = 0; $i -lt 15; $i++) {
     $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" -ErrorAction SilentlyContinue
     if (-not $profile) { return }
@@ -446,28 +449,36 @@ function Invoke-CheckoutCase {
     remoteDebuggingPort = $remoteDebuggingPort
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "automation.log"
-  Start-Transcript -Path $transcript -Force | Out-Null
-
   $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
-  $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
-  $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
-  $credential = [System.Management.Automation.PSCredential]::new(
-    ".\$username",
-    $securePassword
-  )
-  $user = New-LocalUser -Name $username -Password $securePassword `
-    -AccountNeverExpires -PasswordNeverExpires
-  $sid = $user.SID.Value
+  $sid = $null
+  $credential = $null
   $launcherProcess = $null
   $appProcess = $null
   $root = $null
-  $remoteCleanupError = $null
+  $sharedAppDirectory = $null
+  $diagnosticsPath = $null
+  $udfCheckPath = $null
+  $transcriptStarted = $false
+  $caseSucceeded = $false
+  $cleanupError = $null
   $priorUDF = [Environment]::GetEnvironmentVariable(
     "WEBVIEW2_USER_DATA_FOLDER",
     [EnvironmentVariableTarget]::Process
   )
 
   try {
+    Start-Transcript -Path $transcript -Force | Out-Null
+    $transcriptStarted = $true
+    $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
+    $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
+    $credential = [System.Management.Automation.PSCredential]::new(
+      ".\$username",
+      $securePassword
+    )
+    $user = New-LocalUser -Name $username -Password $securePassword `
+      -AccountNeverExpires -PasswordNeverExpires
+    $sid = $user.SID.Value
+
     Write-Step "Starting $Provider checkout as disposable standard user $username"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
@@ -630,8 +641,8 @@ $app.WaitForExit()
       Wait-PaymentConversion -LogPath $flutterLog `
         -TimeoutSeconds $WaitSeconds `
         -ResultPath (Join-Path $caseDirectory "conversion.json")
-      $successElement = Find-AutomationElement -Root $root `
-        -Name "payment-conversion-success" -TimeoutSeconds 30
+      Find-AutomationElement -Root $root `
+        -Name "payment-conversion-success" -TimeoutSeconds 30 | Out-Null
       Save-WindowScreenshot -Root $root `
         -Path (Join-Path $caseDirectory "pro-success.png")
     } elseif ($CompleteStripePayment) {
@@ -694,6 +705,7 @@ $app.WaitForExit()
         -Path (Join-Path $caseDirectory "checkout.png")
       Write-Step "$Provider checkout rendered successfully"
     }
+    $caseSucceeded = $true
   } finally {
     try {
       if ($root) {
@@ -716,15 +728,6 @@ $app.WaitForExit()
     if ($launcherProcess) {
       Stop-Process -Id $launcherProcess.Id -Force -ErrorAction SilentlyContinue
     }
-    if ($completesConversion) {
-      try {
-        Invoke-RemoteE2EPaymentCleanup -RunID $RunID `
-          -ResultPath (Join-Path $caseDirectory "remote-cleanup.json")
-      } catch {
-        $remoteCleanupError = $_.Exception.Message
-        Write-Warning $remoteCleanupError
-      }
-    }
     Start-Sleep -Seconds 1
     if ($udfCheckPath -and (Test-Path $udfCheckPath)) {
       Copy-Item $udfCheckPath (Join-Path $caseDirectory "webview2-udf.json") -Force
@@ -736,7 +739,7 @@ $app.WaitForExit()
     $finalFlutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     if (Test-Path $finalFlutterLog) {
       Select-String -Path $finalFlutterLog `
-        -Pattern 'PAYMENT_WEBVIEW_SMOKE|WEBVIEW2_DIAGNOSTIC|PAYMENT_CHECKOUT_SMOKE|PAYMENT_CONVERSION_SMOKE' |
+        -Pattern 'PAYMENT_WEBVIEW_SMOKE|WEBVIEW2_DIAGNOSTIC|PAYMENT_CHECKOUT_SMOKE|PAYMENT_CONVERSION_SMOKE|PAYMENT_FLOW|ACCOUNT_STATUS' |
         ForEach-Object { $_.Line } |
         Set-Content (Join-Path $caseDirectory "webview-events.log")
     }
@@ -745,7 +748,18 @@ $app.WaitForExit()
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
     }
-    if ($sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
+    if ($completesConversion) {
+      try {
+        Invoke-E2EPaymentCleanup -RunID $RunID `
+          -ResultPath (Join-Path $caseDirectory "remote-cleanup.json")
+      } catch {
+        # Staging also queues a delayed cleanup, but keep the immediate failure
+        # visible in the artifacts so the runner does not hide leaked test data.
+        $cleanupError = $_.Exception.Message
+        Write-Warning $cleanupError
+      }
+    }
+    if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
       & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
     }
     [Environment]::SetEnvironmentVariable(
@@ -753,17 +767,21 @@ $app.WaitForExit()
       $priorUDF,
       [EnvironmentVariableTarget]::Process
     )
-    try {
-      Remove-SmokeAccount -Username $username -SID $sid
-    } catch {
-      Write-Warning "Could not fully remove disposable smoke account: $_"
+    if ($sid -or (Get-LocalUser -Name $username -ErrorAction SilentlyContinue)) {
+      try {
+        Remove-SmokeAccount -Username $username -SID $sid
+      } catch {
+        Write-Warning "Could not fully remove disposable smoke account: $_"
+      }
     }
-    try {
-      Stop-Transcript | Out-Null
-    } catch {
+    if ($transcriptStarted) {
+      try {
+        Stop-Transcript | Out-Null
+      } catch {
+      }
     }
-    if ($remoteCleanupError) {
-      throw $remoteCleanupError
+    if ($caseSucceeded -and $cleanupError) {
+      throw $cleanupError
     }
   }
 }

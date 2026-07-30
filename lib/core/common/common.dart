@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
@@ -51,6 +52,7 @@ export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
+export 'package:lantern/core/extensions/user_data.dart';
 export 'package:lantern/core/localization/i18n.dart';
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
@@ -139,7 +141,7 @@ Future<String> pasteFromClipboard() async {
   }
 }
 
-/// Check user account status and updates user data if the user has a pro plan
+/// Polls the account service until it reports Pro, then updates local user data.
 Future<bool> checkUserAccountStatus(
   WidgetRef ref,
   BuildContext context, {
@@ -150,14 +152,12 @@ Future<bool> checkUserAccountStatus(
     initialDelay: const Duration(seconds: 1),
     interval: const Duration(seconds: 2),
     fetch: (attempt) async {
-      appLogger.info(
-        'PAYMENT_CONVERSION_SMOKE event=account_fetch attempt=$attempt',
-      );
+      appLogger.info('ACCOUNT_STATUS event=fetch attempt=$attempt');
       final result = await ref.read(lanternServiceProvider).fetchUserData();
       return result.fold(
         (failure) {
           appLogger.error(
-            'PAYMENT_CONVERSION_SMOKE event=account_fetch_error '
+            'ACCOUNT_STATUS event=fetch_error '
             'attempt=$attempt error=$failure',
           );
           return null;
@@ -165,7 +165,7 @@ Future<bool> checkUserAccountStatus(
         (newUser) {
           final userLevel = newUser.legacyUserData.userLevel;
           appLogger.info(
-            'PAYMENT_CONVERSION_SMOKE event=server_user attempt=$attempt '
+            'ACCOUNT_STATUS event=server_user attempt=$attempt '
             'userLevel=$userLevel',
           );
           return userLevel == 'pro' ? newUser : null;
@@ -176,14 +176,14 @@ Future<bool> checkUserAccountStatus(
 
   if (proUser == null) {
     appLogger.warning(
-      'PAYMENT_CONVERSION_SMOKE event=account_timeout '
+      'ACCOUNT_STATUS event=timeout '
       'timeout_seconds=${timeout.inSeconds}',
     );
     return false;
   }
 
   ref.read(homeProvider.notifier).updateUserData(proUser);
-  appLogger.info('PAYMENT_CONVERSION_SMOKE event=local_user userLevel=pro');
+  appLogger.info('ACCOUNT_STATUS event=local_user userLevel=pro');
   return true;
 }
 
