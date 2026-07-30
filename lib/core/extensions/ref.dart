@@ -1,19 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
 final isUserProProvider = Provider<bool>((ref) {
   return ref.watch(
-    homeProvider.select(
-      (value) => value.value?.legacyUserData.userLevel == 'pro',
-    ),
+    homeProvider.select((value) => value.value?.legacyUserData.isPro ?? false),
   );
 });
 
 final isUserExpiredProvider = Provider<bool>((ref) {
   return ref.watch(
     homeProvider.select(
-      (value) => value.value?.legacyUserData.userLevel == 'expired',
+      (value) => value.value?.legacyUserData.isExpired ?? false,
     ),
   );
 });
