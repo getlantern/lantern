@@ -41,9 +41,9 @@ Future<void> main([List<String> arguments = const []]) async {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
-    if (PlatformUtils.isWindows) {
-      // The Windows runner sets this to the effective WebView2 folder before
-      // Dart starts. An unset value means that native setup did not succeed.
+    if (PlatformUtils.isWindows && AppBuildInfo.buildType == 'nightly') {
+      // The Windows runner sets this before Dart starts. If it is unset,
+      // WebView2 did not get its per-user folder.
       appLogger.info(
         'WEBVIEW2_DIAGNOSTIC user_data_folder='
         '${Platform.environment['WEBVIEW2_USER_DATA_FOLDER'] ?? '<unset>'} '

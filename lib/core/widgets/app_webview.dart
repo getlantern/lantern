@@ -100,7 +100,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {
+      onWebViewCreated: (_) {
         final uri = Uri.tryParse(widget.url);
         _logSmokeEvent('created', uri);
       },
@@ -166,9 +166,12 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         await _handleCompletionUrl(uri);
       },
       onReceivedError: (_, webResourceRequest, error) async {
-        appLogger.error("Received error: $error");
         final uri = Uri.tryParse(webResourceRequest.url.toString());
         final isMainFrame = webResourceRequest.isForMainFrame == true;
+        appLogger.error(
+          'WebView request failed: type=${error.type} '
+          'main_frame=$isMainFrame host=${uri?.host ?? '<none>'}',
+        );
         _logSmokeEvent(
           isMainFrame ? 'navigation_error' : 'resource_error',
           uri,

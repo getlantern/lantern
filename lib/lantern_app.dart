@@ -58,8 +58,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
   Future<void> _openPaymentCheckoutSmoke(
     PaymentCheckoutSmokeConfig smoke,
   ) async {
-    // Plans retries can outlive an unobserved auto-dispose provider. Keep this
-    // subscription until the payment screen takes over watching the provider.
+    // Keep plans alive during startup retries. The payment screen starts
+    // watching them after navigation.
     final plansSubscription = ref.listenManual(plansProvider, (_, _) {});
     try {
       final planData = await ref.read(plansProvider.future);

@@ -1,4 +1,4 @@
-/// Settings for the narrow checkout path exercised by Windows app smokes.
+/// Command-line settings for the Windows checkout smoke.
 class PaymentCheckoutSmokeConfig {
   static const _providerPrefix = '--payment-checkout-smoke=';
   static const _runIDPrefix = '--payment-checkout-run-id=';
