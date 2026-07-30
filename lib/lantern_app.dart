@@ -61,15 +61,14 @@ class _LanternAppState extends ConsumerState<LanternApp>
   ) async {
     try {
       final planData = await ref.read(plansProvider.future);
-      if (smoke.completesPurchase &&
-          !planData.providers.desktop.any(
-            (provider) => provider.providers.name == smoke.provider,
-          )) {
-        // The deployed staging API deliberately does not advertise the E2E
-        // provider. Expose it only through this Windows-nightly, UUID-gated
-        // smoke entry point; the server independently enforces the same tag.
-        planData.providers.desktop.insert(
-          0,
+      final matchingProviders = planData.providers.desktop
+          .where((provider) => provider.providers.name == smoke.provider)
+          .toList();
+      if (smoke.usesE2EProvider && matchingProviders.isEmpty) {
+        // Staging omits the E2E provider from normal plan responses. Expose it
+        // only to this smoke session; the server still requires its run-scoped
+        // email before issuing a checkout.
+        matchingProviders.add(
           plan_models.Android(
             method: 'E2E Checkout',
             providers: plan_models.Provider(
@@ -84,9 +83,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
           'provider=${smoke.provider} run_id=${smoke.runID}',
         );
       }
-      final matchingProviders = planData.providers.desktop.where(
-        (provider) => provider.providers.name == smoke.provider,
-      );
       if (matchingProviders.isEmpty) {
         throw StateError(
           'Provider ${smoke.provider} is absent from staging desktop plans',

@@ -17,7 +17,7 @@ class PaymentCheckoutSmokeConfig {
 
   String get email => 'e2e+$runID@getlantern.org';
 
-  bool get completesPurchase => provider == 'e2e';
+  bool get usesE2EProvider => provider == 'e2e';
 
   static PaymentCheckoutSmokeConfig? parse(
     List<String> arguments, {
