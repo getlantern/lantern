@@ -109,7 +109,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
-    opts.deviceid = DeviceIdentifier.getUDID()
+    // Intentionally left empty. The app and extension don't share a keychain access
+    // Radiance resolves the device ID from the main app process.
+    opts.deviceid = ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     return opts
@@ -125,7 +127,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     postServiceClose()
   }
 
-  func restartService() {
+  func restartService() throws {
     appLogger.log("(lantern-tunnel) restarting service")
     reasserting = true
     defer {
@@ -133,12 +135,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
     }
     stopService()
 
-    // Don't cancelTunnelWithError on failure; this extension hosts the IPC server.
     var error: NSError?
     MobileStartVPN(&error)
     if let error {
-      appLogger.log("(lantern-tunnel) restart failed: \(error.localizedDescription)")
-      return
+      appLogger.error("(lantern-tunnel) restart failed: \(error.localizedDescription)")
+      // A failed (re)start must tear the tunnel down so on-demand/the app can recover
+      // rather than leaving a dead-but-"connected" tunnel; the throw propagates the
+      // failure to radiance's Restart so it reports ErrorStatus instead of success.
+      cancelTunnelWithError(error)
+      throw error
     }
     appLogger.log("(lantern-tunnel) tunnel restarted successfully")
   }

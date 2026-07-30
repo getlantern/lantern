@@ -139,13 +139,23 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
             source:
                 "(document.documentElement && document.documentElement.outerHTML || '').length",
           );
-          documentLength = rawLength is num
+          final parsedLength = rawLength is num
               ? rawLength.toInt()
-              : int.tryParse(rawLength.toString()) ?? -1;
-        } catch (error) {
-          appLogger.error(
-            'PAYMENT_WEBVIEW_SMOKE event=document_error '
-            'host=${uri?.host ?? '<none>'} error=$error',
+              : int.tryParse(rawLength.toString());
+          if (parsedLength == null) {
+            _logSmokeEvent(
+              'document_error',
+              uri,
+              detail: 'reason=invalid_document_length',
+            );
+          } else {
+            documentLength = parsedLength;
+          }
+        } catch (_) {
+          _logSmokeEvent(
+            'document_error',
+            uri,
+            detail: 'reason=evaluate_javascript_failed',
           );
         }
         _logSmokeEvent(
@@ -158,15 +168,16 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       onReceivedError: (_, webResourceRequest, error) async {
         appLogger.error("Received error: $error");
         final uri = Uri.tryParse(webResourceRequest.url.toString());
+        final isMainFrame = webResourceRequest.isForMainFrame == true;
         _logSmokeEvent(
-          webResourceRequest.isForMainFrame == true
-              ? 'navigation_error'
-              : 'resource_error',
+          isMainFrame ? 'navigation_error' : 'resource_error',
           uri,
           detail: 'error_type=${error.type}',
         );
-        ref.read(webViewLoadingProvider.notifier).stop();
-        await _handleCompletionUrl(uri);
+        if (isMainFrame) {
+          ref.read(webViewLoadingProvider.notifier).stop();
+          await _handleCompletionUrl(uri);
+        }
       },
       onReceivedHttpError: (_, webResourceRequest, errorResponse) async {
         if (webResourceRequest.isForMainFrame != true) return;
@@ -180,6 +191,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   }
 
   void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
+    if (!PlatformUtils.isWindows || AppBuildInfo.buildType != 'nightly') {
+      return;
+    }
     // Checkout paths and query strings can contain session tokens. The origin
     // is enough to prove which provider loaded without putting them in CI logs.
     final safeUri = uri == null

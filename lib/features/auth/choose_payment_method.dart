@@ -499,9 +499,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               vertical: defaultSize,
             ),
             title: Semantics(
-              container: true,
-              excludeSemantics: true,
-              label: 'payment-provider-${method.providers.name}',
+              identifier: 'payment-provider-${method.providers.name}',
               child: Row(
                 children: [
                   Text(
@@ -597,12 +595,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               Semantics(
-                container: true,
-                excludeSemantics: true,
-                label: 'payment-checkout-${method.providers.name}',
-                button: true,
-                enabled: !isSubmitting,
-                onTap: isSubmitting ? null : () => onSubscribe.call(method),
+                identifier: 'payment-checkout-${method.providers.name}',
                 child: PrimaryButton(
                   label: method.providers.supportSubscription
                       ? 'subscribe'.i18n

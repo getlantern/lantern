@@ -162,14 +162,14 @@ function Wait-ProcessMainWindow {
 function Find-AutomationElement {
   param(
     [System.Windows.Automation.AutomationElement]$Root,
-    [string]$Name,
+    [string]$AutomationID,
     [int]$TimeoutSeconds,
     [string]$FailureLogPath,
     [switch]$Optional
   )
   $condition = [System.Windows.Automation.PropertyCondition]::new(
-    [System.Windows.Automation.AutomationElement]::NameProperty,
-    $Name
+    [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+    $AutomationID
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     $element = $Root.FindFirst(
@@ -188,7 +188,7 @@ function Find-AutomationElement {
     Start-Sleep -Seconds 1
   }
   if ($Optional) { return $null }
-  throw "Timed out waiting for UI Automation element '$Name'"
+  throw "Timed out waiting for UI Automation element '$AutomationID'"
 }
 
 function Invoke-AutomationElement {
@@ -274,23 +274,20 @@ function Wait-CheckoutDocument {
     [string]$ResultPath
   )
   $linePattern = 'PAYMENT_WEBVIEW_SMOKE event=load_stop host=(\S+) url=(\S+) document_length=(\d+)'
+  $lastLogText = ""
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $LogPath) {
-      $logText = [string](Get-Content $LogPath -Raw -ErrorAction SilentlyContinue)
-      if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
-        throw "The checkout WebView reported a main-frame navigation error"
-      }
-      if ($logText -match 'PAYMENT_WEBVIEW_SMOKE event=document_error') {
-        throw "The checkout WebView could not inspect the loaded document"
-      }
-      if ($logText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
+      $lastLogText = [string](
+        Get-Content $LogPath -Raw -ErrorAction SilentlyContinue
+      )
+      if ($lastLogText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
         throw "Lantern could not prepare the requested checkout smoke"
       }
-      foreach ($match in [regex]::Matches($logText, $linePattern)) {
+      foreach ($match in [regex]::Matches($lastLogText, $linePattern)) {
         $hostName = $match.Groups[1].Value
         $documentLength = [int]$match.Groups[3].Value
         if ($hostName -match $HostPattern -and $documentLength -gt 0) {
-          if ($logText -notmatch 'PAYMENT_WEBVIEW_SMOKE event=created') {
+          if ($lastLogText -notmatch 'PAYMENT_WEBVIEW_SMOKE event=created') {
             throw "The checkout page loaded without a WebView creation marker"
           }
           @{
@@ -303,6 +300,12 @@ function Wait-CheckoutDocument {
       }
     }
     Start-Sleep -Seconds 1
+  }
+  if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
+    throw "The checkout WebView reported a main-frame navigation error"
+  }
+  if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=document_error') {
+    throw "The checkout WebView could not inspect the loaded document"
   }
   throw "No non-empty checkout document loaded from expected host pattern $HostPattern"
 }
@@ -540,14 +543,14 @@ $app.WaitForExit()
     )
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
     $providerElement = Find-AutomationElement -Root $root `
-      -Name "payment-provider-$Provider" -TimeoutSeconds 90 `
+      -AutomationID "payment-provider-$Provider" -TimeoutSeconds 90 `
       -FailureLogPath $flutterLog
     $checkoutElement = Find-AutomationElement -Root $root `
-      -Name "payment-checkout-$Provider" -TimeoutSeconds 2 -Optional
+      -AutomationID "payment-checkout-$Provider" -TimeoutSeconds 2 -Optional
     if (-not $checkoutElement) {
       Invoke-AutomationElement -Element $providerElement
       $checkoutElement = Find-AutomationElement -Root $root `
-        -Name "payment-checkout-$Provider" -TimeoutSeconds 20 `
+        -AutomationID "payment-checkout-$Provider" -TimeoutSeconds 20 `
         -FailureLogPath $flutterLog
     }
     Invoke-AutomationElement -Element $checkoutElement
