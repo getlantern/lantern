@@ -677,8 +677,8 @@ $app.WaitForExit()
       Wait-PaymentConversion -LogPath $flutterLog `
         -TimeoutSeconds $WaitSeconds `
         -ResultPath (Join-Path $caseDirectory "conversion.json")
-      $successElement = Find-AutomationElement -Root $root `
-        -Name "payment-conversion-success" -TimeoutSeconds 30
+      Find-AutomationElement -Root $root `
+        -Name "payment-conversion-success" -TimeoutSeconds 30 | Out-Null
       Save-WindowScreenshot -Root $root `
         -Path (Join-Path $caseDirectory "pro-success.png")
     }

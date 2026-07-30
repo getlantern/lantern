@@ -27,6 +27,11 @@ export function sanitizedOrigin(rawURL) {
   }
 }
 
+function parseDecimalInteger(value, fallback = '') {
+  const rawValue = value ?? fallback;
+  return /^\d+$/.test(rawValue) ? Number(rawValue) : Number.NaN;
+}
+
 export function parseArguments(argv) {
   const allowed = new Set([
     '--port',
@@ -48,10 +53,10 @@ export function parseArguments(argv) {
     values.set(key, value);
   }
 
-  const port = Number.parseInt(values.get('--port') ?? '', 10);
-  const timeoutSeconds = Number.parseInt(
-    values.get('--timeout-seconds') ?? '180',
-    10,
+  const port = parseDecimalInteger(values.get('--port'));
+  const timeoutSeconds = parseDecimalInteger(
+    values.get('--timeout-seconds'),
+    '180',
   );
   const runID = values.get('--run-id') ?? '';
   const email = values.get('--email') ?? '';
@@ -174,7 +179,7 @@ async function assertStripeTestMode(page, deadline, diagnostics) {
         return;
       }
     } catch {
-      // Wait for the hosted Checkout URL to settle.
+      // The Checkout URL can change while the page is loading.
     }
     for (const frame of page.frames()) {
       try {
@@ -184,7 +189,7 @@ async function assertStripeTestMode(page, deadline, diagnostics) {
           return;
         }
       } catch {
-        // Stripe replaces frames during initialization.
+        // Checkout can replace the frame while we inspect it.
       }
     }
     await sleep(250);
@@ -201,7 +206,7 @@ async function visibleLocator(page, selectors) {
           return locator;
         }
       } catch {
-        // Stripe replaces Payment Element frames while Checkout initializes.
+        // Checkout can replace the frame while we inspect it.
       }
     }
   }
@@ -290,7 +295,7 @@ async function findSubmitButton(page) {
           return button;
         }
       } catch {
-        // Continue across transient Stripe frames.
+        // Checkout can replace the frame while we inspect it.
       }
     }
   }

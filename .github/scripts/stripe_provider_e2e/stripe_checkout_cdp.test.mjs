@@ -52,4 +52,18 @@ test('parseArguments accepts only the tagged E2E identity', () => {
       ]),
     /invalid_arguments/,
   );
+  assert.throws(
+    () =>
+      parseArguments([
+        '--port',
+        '9222junk',
+        '--run-id',
+        runID,
+        '--email',
+        `e2e+${runID}@getlantern.org`,
+        '--output',
+        'result.json',
+      ]),
+    /invalid_arguments/,
+  );
 });
