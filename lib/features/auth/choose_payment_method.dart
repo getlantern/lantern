@@ -476,6 +476,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
         final method = providers[index];
+        final providerName = method.providers.name.toTitleCase();
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
@@ -500,6 +501,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
             ),
             title: Semantics(
               identifier: 'payment-provider-${method.providers.name}',
+              label: '$providerName payment method',
+              excludeSemantics: true,
               child: Row(
                 children: [
                   Text(
@@ -596,6 +599,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               SizedBox(height: defaultSize),
               Semantics(
                 identifier: 'payment-checkout-${method.providers.name}',
+                label: 'Continue with $providerName',
+                excludeSemantics: true,
                 child: PrimaryButton(
                   label: method.providers.supportSubscription
                       ? 'subscribe'.i18n

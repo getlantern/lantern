@@ -128,6 +128,15 @@ namespace WindowsPaymentSmoke {
       System.Text.StringBuilder className,
       int maximumCount);
 
+    [System.Runtime.InteropServices.DllImport("oleacc.dll")]
+    private static extern int AccessibleObjectFromWindow(
+      System.IntPtr window,
+      uint objectId,
+      ref System.Guid interfaceId,
+      [System.Runtime.InteropServices.MarshalAs(
+        System.Runtime.InteropServices.UnmanagedType.Interface)]
+      out object accessible);
+
     [System.Runtime.InteropServices.DllImport(
       "user32.dll",
       CharSet = System.Runtime.InteropServices.CharSet.Unicode,
@@ -137,6 +146,15 @@ namespace WindowsPaymentSmoke {
       System.IntPtr childAfter,
       string className,
       string windowName);
+
+    public static bool EnableMsaa(System.IntPtr window) {
+      System.Guid accessibleId = new System.Guid(
+        "618736E0-3C3D-11CF-810C-00AA00389B71");
+      object accessible;
+      int result = AccessibleObjectFromWindow(
+        window, unchecked((uint)-4), ref accessibleId, out accessible);
+      return result >= 0 && accessible != null;
+    }
 
     public static System.IntPtr FindByProcessAndClass(
         int processId, string targetClass) {
@@ -313,18 +331,33 @@ function Wait-FlutterViewHandle {
 
 function Find-AutomationElement {
   param(
-    [System.Windows.Automation.AutomationElement]$Root,
+    [IntPtr]$ViewHandle,
     [string]$AutomationID,
+    [string]$AccessibleName,
     [int]$TimeoutSeconds,
     [string]$FailureLogPath,
     [switch]$Optional
   )
-  $condition = [System.Windows.Automation.PropertyCondition]::new(
+  $idCondition = [System.Windows.Automation.PropertyCondition]::new(
     [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
     $AutomationID
   )
+  $nameCondition = [System.Windows.Automation.PropertyCondition]::new(
+    [System.Windows.Automation.AutomationElement]::NameProperty,
+    $AccessibleName
+  )
+  $condition = [System.Windows.Automation.OrCondition]::new(
+    [System.Windows.Automation.Condition[]]@($idCondition, $nameCondition)
+  )
+  $msaaEnabled = $false
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    $element = $Root.FindFirst(
+    if ([WindowsPaymentSmoke.NativeWindow]::EnableMsaa($ViewHandle)) {
+      $msaaEnabled = $true
+    }
+    $root = [System.Windows.Automation.AutomationElement]::FromHandle(
+      $ViewHandle
+    )
+    $element = $root.FindFirst(
       [System.Windows.Automation.TreeScope]::Descendants,
       $condition
     )
@@ -340,7 +373,7 @@ function Find-AutomationElement {
     Start-Sleep -Seconds 1
   }
   if ($Optional) { return $null }
-  throw "Timed out waiting for UI Automation element '$AutomationID'"
+  throw "Timed out waiting for UI Automation element '$AutomationID' (MSAA enabled: $msaaEnabled)"
 }
 
 function Invoke-AutomationElement {
@@ -592,16 +625,20 @@ function Invoke-SmokeUserCheckout {
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
       $flutterViewHandle
     )
-    $providerElement = Find-AutomationElement -Root $root `
-      -AutomationID "payment-provider-$CheckoutProvider" -TimeoutSeconds 90 `
+    $providerTitle = (Get-Culture).TextInfo.ToTitleCase($CheckoutProvider)
+    $providerElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
+      -AutomationID "payment-provider-$CheckoutProvider" `
+      -AccessibleName "$providerTitle payment method" -TimeoutSeconds 90 `
       -FailureLogPath $AppLogPath
-    $checkoutElement = Find-AutomationElement -Root $root `
+    $checkoutElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
       -AutomationID "payment-checkout-$CheckoutProvider" `
+      -AccessibleName "Continue with $providerTitle" `
       -TimeoutSeconds 2 -Optional
     if (-not $checkoutElement) {
       Invoke-AutomationElement -Element $providerElement
-      $checkoutElement = Find-AutomationElement -Root $root `
+      $checkoutElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
         -AutomationID "payment-checkout-$CheckoutProvider" `
+        -AccessibleName "Continue with $providerTitle" `
         -TimeoutSeconds 20 -FailureLogPath $AppLogPath
     }
     Invoke-AutomationElement -Element $checkoutElement
