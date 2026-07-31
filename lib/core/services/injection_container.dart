@@ -76,8 +76,9 @@ Future<void> injectServices() async {
   });
 
   if (PlatformUtils.isAndroid) {
-    // The publishable key arrives with the plans response
-    // (PlansNotifier._syncStripeKey), so no upfront initialization.
+    // The publishable key arrives with the plans response (synced by the
+    // listenSelf listener in PlansNotifier.build), so no upfront
+    // initialization.
     sl.registerSingleton<StripeService>(StripeService());
     appLogger.debug('StripeService registered');
   }

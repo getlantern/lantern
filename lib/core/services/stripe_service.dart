@@ -161,7 +161,15 @@ class StripeService {
 }
 
 extension StripeErrorMessage on StripeException {
-  static const _hiddenErrorTypes = {'invalid_request_error'};
+  /// API/integration error types hidden from the user: their messages carry
+  /// developer text (e.g. "Expired API Key provided: pk_live_…", which is
+  /// type api_error) rather than anything the user can act on. Everything
+  /// else (card declines, bad CVC, ...) shows Stripe's own localized message.
+  static const _hiddenErrorTypes = {
+    'api_error',
+    'authentication_error',
+    'invalid_request_error',
+  };
 
   /// A message safe to show the user for this Stripe failure.
   String get userFacingMessage {

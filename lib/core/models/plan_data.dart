@@ -6,9 +6,11 @@ class PlansData {
 
   PlansData({required this.providers, required this.plans});
 
-  /// The payment methods offered on the current platform.
+  /// The payment methods offered on the current platform. Matches the
+  /// selection in ChoosePaymentMethod: only Android uses the android list;
+  /// iOS pays via IAP and falls back to the desktop list like everyone else.
   List<Android> get platformProviders =>
-      PlatformUtils.isMobile ? providers.android : providers.desktop;
+      PlatformUtils.isAndroid ? providers.android : providers.desktop;
 
   /// Sorts plans (best-value first, then by descending price) and orders the
   /// platform's payment providers so subscription-capable ones come first.

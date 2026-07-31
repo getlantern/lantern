@@ -227,10 +227,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         );
       },
       onSuccess: () {
+        // These callbacks fire after async SDK work; the screen may have
+        // been disposed while the sheet was open.
+        if (!context.mounted) return;
         finishPaymentRedirect(paymentRedirectInFlight);
         onPurchaseResult(true, context, ref);
       },
       onError: (error) {
+        if (!context.mounted) return;
         finishPaymentRedirect(paymentRedirectInFlight);
         if (error is StripeException) {
           // Dismissing the sheet is not an error — no snackbar.
