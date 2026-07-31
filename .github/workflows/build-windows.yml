@@ -388,7 +388,7 @@ jobs:
           }
 
       - name: Windows installed payment checkout smoke
-        shell: pwsh
+        shell: powershell
         timeout-minutes: 15
         run: |
           ./.github/scripts/windows_smoke_suite.ps1 `
