@@ -711,26 +711,10 @@ function Wait-CheckoutDocument {
 function Wait-LauncherResult {
   param(
     [string]$Path,
-    [System.Diagnostics.Process]$Process,
-    [int]$TimeoutSeconds,
-    [string]$ErrorPath
+    [int]$TimeoutSeconds
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $Path) { return }
-    $Process.Refresh()
-    if ($Process.HasExited) {
-      Start-Sleep -Seconds 1
-      if (Test-Path $Path) { return }
-      $errorDetails = if ($ErrorPath -and (Test-Path $ErrorPath)) {
-        (Get-Content $ErrorPath -Raw -ErrorAction SilentlyContinue).Trim()
-      } else {
-        ""
-      }
-      if ($errorDetails) {
-        throw "Smoke-user launcher exited with code $($Process.ExitCode): $errorDetails"
-      }
-      throw "Smoke-user launcher exited with code $($Process.ExitCode) without writing a result"
-    }
     Start-Sleep -Seconds 1
   }
   throw "Timed out waiting for the smoke-user launcher"
@@ -804,6 +788,7 @@ function Invoke-SmokeUserCheckout {
     ) -PassThru
     @{
       processId = $app.Id
+      launcherProcessId = $PID
       username = $identity.Name
       isAdmin = $isAdmin
       canWriteInstallDirectory = $canWriteInstallDirectory
@@ -922,24 +907,6 @@ function Invoke-SmokeUserCheckout {
   }
 }
 
-function Remove-SmokeAccount {
-  param([string]$Username, [string]$SID)
-  if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
-    Remove-LocalUser -Name $Username
-  }
-  if ([string]::IsNullOrWhiteSpace($SID)) { return }
-  for ($i = 0; $i -lt 15; $i++) {
-    $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" -ErrorAction SilentlyContinue
-    if (-not $profile) { return }
-    if (-not $profile.Loaded) {
-      Remove-CimInstance $profile
-      return
-    }
-    Start-Sleep -Seconds 1
-  }
-  Write-Warning "Disposable profile $SID remained loaded and could not be removed"
-}
-
 function Invoke-CheckoutCase {
   param([string]$Provider, [string]$HostPattern, [string]$RunID)
 
@@ -952,9 +919,6 @@ function Invoke-CheckoutCase {
     githubRunAttempt = $env:GITHUB_RUN_ATTEMPT
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "orchestration.log"
-  $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
-  $sid = $null
-  $credential = $null
   $launcherProcess = $null
   $appProcess = $null
   $sharedAppDirectory = $null
@@ -965,8 +929,6 @@ function Invoke-CheckoutCase {
   $childCheckoutImagePath = $null
   $childFinalImagePath = $null
   $launcherLogPath = $null
-  $launcherStdoutPath = $null
-  $launcherStderrPath = $null
   $launcherConfigPath = $null
   $profilePath = $null
   $transcriptStarted = $false
@@ -978,48 +940,19 @@ function Invoke-CheckoutCase {
   try {
     Start-Transcript -Path $transcript -Force | Out-Null
     $transcriptStarted = $true
-    $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
-    $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
-    $credential = [System.Management.Automation.PSCredential]::new(
-      ".\$username",
-      $securePassword
-    )
-    $user = New-LocalUser -Name $username -Password $securePassword `
-      -AccountNeverExpires -PasswordNeverExpires
-    $sid = $user.SID.Value
-    # The daemon accepts members of Administrators. UAC still gives the app a
-    # filtered, non-elevated token, which the checks below verify.
-    $administrators = Get-LocalGroup -SID "S-1-5-32-544"
-    Add-LocalGroupMember -Group $administrators -Member $user
-    $administratorsMember = Get-LocalGroupMember -Group $administrators |
-      Where-Object { $_.SID.Value -eq $sid }
-    if (-not $administratorsMember) {
-      throw "Could not grant the smoke user access to the installed Lantern service"
+    $sessionID = (Get-Process -Id $PID).SessionId
+    $interactiveShell = Get-Process explorer -ErrorAction SilentlyContinue |
+      Where-Object { $_.SessionId -eq $sessionID } |
+      Select-Object -First 1
+    if (-not $interactiveShell) {
+      throw "The runner has no interactive Windows shell in session $sessionID"
+    }
+    $null = Initialize-NativeSmokeHelpers
+    if ([WindowsPaymentSmoke.NativeToken]::IsElevated($interactiveShell.Id)) {
+      throw "The interactive Windows shell is elevated"
     }
 
-    # Create the profile before the real launch so the child process does not
-    # inherit the runner account's AppData paths.
-    $profileBootstrap = Start-Process -FilePath "powershell.exe" `
-      -Credential $credential -LoadUserProfile -Wait -PassThru `
-      -ArgumentList @("-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "exit 0")
-    if ($profileBootstrap.ExitCode -ne 0) {
-      throw "Could not initialize the disposable user profile"
-    }
-    $profile = $null
-    for ($i = 0; $i -lt 15; $i++) {
-      $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$sid'" `
-        -ErrorAction SilentlyContinue
-      if ($profile -and -not [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
-        break
-      }
-      Start-Sleep -Seconds 1
-    }
-    if (-not $profile -or [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
-      throw "Windows did not create a profile for disposable user $username"
-    }
-    $profilePath = [Environment]::ExpandEnvironmentVariables($profile.LocalPath)
-
-    Write-Step "Starting $Provider checkout as disposable non-elevated user $username"
+    Write-Step "Starting $Provider checkout through the non-elevated Windows shell"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -1028,13 +961,15 @@ function Invoke-CheckoutCase {
 
     $sharedAppDirectory = Join-Path $env:PUBLIC "Lantern"
     New-Item -ItemType Directory -Path $sharedAppDirectory -Force | Out-Null
-    & icacls.exe $sharedAppDirectory /grant "*$sid`:(OI)(CI)M" /T /C | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-      throw "Could not grant the smoke user access to $sharedAppDirectory"
-    }
-
     $exchangeDirectory = Join-Path $sharedAppDirectory "payment-smoke\$RunID-$Provider"
     New-Item -ItemType Directory -Path $exchangeDirectory -Force | Out-Null
+    $profilePath = Join-Path $sharedAppDirectory "profiles\$RunID-$Provider"
+    New-Item -ItemType Directory `
+      -Path (Join-Path $profilePath "AppData\Local\Temp") -Force |
+      Out-Null
+    New-Item -ItemType Directory `
+      -Path (Join-Path $profilePath "AppData\Roaming") -Force |
+      Out-Null
     Remove-Item (Join-Path $sharedAppDirectory "data") -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item (Join-Path $sharedAppDirectory "logs") -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -1045,13 +980,12 @@ function Invoke-CheckoutCase {
     $childCheckoutImagePath = Join-Path $exchangeDirectory "checkout.png"
     $childFinalImagePath = Join-Path $exchangeDirectory "final.png"
     $launcherLogPath = Join-Path $exchangeDirectory "automation.log"
-    $launcherStdoutPath = Join-Path $exchangeDirectory "launcher-stdout.log"
-    $launcherStderrPath = Join-Path $exchangeDirectory "launcher-stderr.log"
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
     $launcherConfigPath = Join-Path $exchangeDirectory "launcher.json"
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
-    # Run UI Automation in the same logon session as Flutter. Cross-user
-    # automation can see the native host window but not Flutter's semantics.
+    # Keep automation and Flutter on the logged-in desktop. Starting Flutter
+    # under a second logon produces a native window but no composited frames on
+    # GitHub's Windows runner.
     Copy-Item $PSCommandPath $launcherPath -Force
     @{
       appPath = $InstalledAppPath
@@ -1073,6 +1007,7 @@ function Invoke-CheckoutCase {
     $launcherArguments = @(
       "-NoLogo",
       "-NoProfile",
+      "-WindowStyle", "Hidden",
       "-ExecutionPolicy", "Bypass",
       "-File", "`"$launcherPath`"",
       "-Mode", "launcher",
@@ -1082,14 +1017,23 @@ function Invoke-CheckoutCase {
     if ($launcherCommandLine.Length -gt 900) {
       throw "Smoke-user launcher command line is too long"
     }
-    $launcherProcess = Start-Process -FilePath "powershell.exe" `
-      -Credential $credential -LoadUserProfile `
-      -ArgumentList $launcherArguments `
-      -RedirectStandardOutput $launcherStdoutPath `
-      -RedirectStandardError $launcherStderrPath -PassThru
+    $shell = New-Object -ComObject Shell.Application
+    try {
+      $windowsPowerShell = Join-Path $env:SystemRoot `
+        "System32\WindowsPowerShell\v1.0\powershell.exe"
+      $shell.ShellExecute(
+        $windowsPowerShell,
+        $launcherCommandLine,
+        $exchangeDirectory,
+        "open",
+        1
+      )
+    } finally {
+      [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    }
 
-    Wait-LauncherResult -Path $automationResultPath -Process $launcherProcess `
-      -TimeoutSeconds ($WaitSeconds + 150) -ErrorPath $launcherStderrPath
+    Wait-LauncherResult -Path $automationResultPath `
+      -TimeoutSeconds ($WaitSeconds + 150)
     $automationResult = Get-Content $automationResultPath -Raw |
       ConvertFrom-Json
     if (-not $automationResult.success) {
@@ -1115,6 +1059,8 @@ function Invoke-CheckoutCase {
       throw "The installed Lantern process has an elevated access token"
     }
     $appProcess = Get-Process -Id $diagnostics.processId -ErrorAction Stop
+    $launcherProcess = Get-Process -Id $diagnostics.launcherProcessId `
+      -ErrorAction SilentlyContinue
 
     Wait-File -Path $udfCheckPath -TimeoutSeconds 30
     $udf = Get-Content $udfCheckPath -Raw | ConvertFrom-Json
@@ -1152,14 +1098,6 @@ function Invoke-CheckoutCase {
       [pscustomobject]@{
         Source = $launcherLogPath
         Destination = Join-Path $caseDirectory "automation.log"
-      },
-      [pscustomobject]@{
-        Source = $launcherStdoutPath
-        Destination = Join-Path $caseDirectory "launcher-stdout.log"
-      },
-      [pscustomobject]@{
-        Source = $launcherStderrPath
-        Destination = Join-Path $caseDirectory "launcher-stderr.log"
       },
       [pscustomobject]@{
         Source = $childWebViewPath
@@ -1209,20 +1147,13 @@ function Invoke-CheckoutCase {
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
     }
-    if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
-      & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
-    }
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $priorUDF,
       [EnvironmentVariableTarget]::Process
     )
-    if ($sid -or (Get-LocalUser -Name $username -ErrorAction SilentlyContinue)) {
-      try {
-        Remove-SmokeAccount -Username $username -SID $sid
-      } catch {
-        Write-Warning "Could not fully remove disposable smoke account: $_"
-      }
+    if ($profilePath -and (Test-Path $profilePath)) {
+      Remove-Item $profilePath -Recurse -Force -ErrorAction SilentlyContinue
     }
     if ($transcriptStarted) {
       try {
