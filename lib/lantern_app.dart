@@ -103,6 +103,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
           authFlow: AuthFlow.renewSubscription,
         ),
       ]);
+      // Keep the selected plan alive until the payment route has mounted.
+      // Otherwise Riverpod can recreate the notifier without its selection.
+      await WidgetsBinding.instance.endOfFrame;
+      appLogger.info(
+        'PAYMENT_CHECKOUT_SMOKE event=screen_ready '
+        'provider=${smoke.provider} run_id=${smoke.runID}',
+      );
     } catch (error, stackTrace) {
       appLogger.error(
         'PAYMENT_CHECKOUT_SMOKE event=bootstrap_error '
