@@ -983,7 +983,9 @@ function Invoke-SmokeUserCheckout {
       "WEBVIEW2_USER_DATA_FOLDER",
       "Process"
     )
-    $app = Start-Process -FilePath $AppPath -ArgumentList @(
+    $appDirectory = Split-Path $AppPath -Parent
+    $app = Start-Process -FilePath $AppPath `
+      -WorkingDirectory $appDirectory -ArgumentList @(
       "--payment-checkout-smoke=$CheckoutProvider",
       "--payment-checkout-run-id=$CheckoutRunID"
     ) -PassThru
