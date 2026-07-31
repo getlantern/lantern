@@ -103,6 +103,31 @@ namespace WindowsPaymentSmoke {
   }
 
   public static class NativeWindow {
+    private delegate bool EnumWindowsProc(
+      System.IntPtr window, System.IntPtr parameter);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumWindows(
+      EnumWindowsProc callback, System.IntPtr parameter);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(
+      System.IntPtr parent,
+      EnumWindowsProc callback,
+      System.IntPtr parameter);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(
+      System.IntPtr window, out uint processId);
+
+    [System.Runtime.InteropServices.DllImport(
+      "user32.dll",
+      CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int GetClassName(
+      System.IntPtr window,
+      System.Text.StringBuilder className,
+      int maximumCount);
+
     [System.Runtime.InteropServices.DllImport(
       "user32.dll",
       CharSet = System.Runtime.InteropServices.CharSet.Unicode,
@@ -112,6 +137,80 @@ namespace WindowsPaymentSmoke {
       System.IntPtr childAfter,
       string className,
       string windowName);
+
+    public static System.IntPtr FindByProcessAndClass(
+        int processId, string targetClass) {
+      System.IntPtr result = System.IntPtr.Zero;
+      EnumWindows(delegate(System.IntPtr topLevel, System.IntPtr parameter) {
+        uint owner;
+        GetWindowThreadProcessId(topLevel, out owner);
+        if (owner != processId) {
+          return true;
+        }
+        if (ClassName(topLevel) == targetClass) {
+          result = topLevel;
+          return false;
+        }
+        EnumChildWindows(
+          topLevel,
+          delegate(System.IntPtr child, System.IntPtr childParameter) {
+            if (ClassName(child) == targetClass) {
+              result = child;
+              return false;
+            }
+            return true;
+          },
+          System.IntPtr.Zero);
+        return result == System.IntPtr.Zero;
+      }, System.IntPtr.Zero);
+      return result;
+    }
+
+    public static System.IntPtr FindMessageOnlyByProcessAndClass(
+        int processId, string targetClass) {
+      System.IntPtr messageWindow = new System.IntPtr(-3);
+      System.IntPtr child = System.IntPtr.Zero;
+      while (true) {
+        child = FindWindowEx(messageWindow, child, targetClass, null);
+        if (child == System.IntPtr.Zero) {
+          return System.IntPtr.Zero;
+        }
+        uint owner;
+        GetWindowThreadProcessId(child, out owner);
+        if (owner == processId) {
+          return child;
+        }
+      }
+    }
+
+    public static string DescribeProcessWindows(int processId) {
+      System.Collections.Generic.List<string> windows =
+        new System.Collections.Generic.List<string>();
+      EnumWindows(delegate(System.IntPtr topLevel, System.IntPtr parameter) {
+        uint owner;
+        GetWindowThreadProcessId(topLevel, out owner);
+        if (owner != processId) {
+          return true;
+        }
+        windows.Add(ClassName(topLevel));
+        EnumChildWindows(
+          topLevel,
+          delegate(System.IntPtr child, System.IntPtr childParameter) {
+            windows.Add(ClassName(child));
+            return true;
+          },
+          System.IntPtr.Zero);
+        return true;
+      }, System.IntPtr.Zero);
+      return string.Join(",", windows.ToArray());
+    }
+
+    private static string ClassName(System.IntPtr window) {
+      System.Text.StringBuilder className =
+        new System.Text.StringBuilder(256);
+      GetClassName(window, className, className.Capacity);
+      return className.ToString();
+    }
   }
 }
 '@
@@ -188,20 +287,28 @@ function Wait-ProcessMainWindow {
 }
 
 function Wait-FlutterViewHandle {
-  param([IntPtr]$ParentHandle, [int]$TimeoutSeconds)
+  param([int]$ProcessID, [int]$TimeoutSeconds)
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    $handle = [WindowsPaymentSmoke.NativeWindow]::FindWindowEx(
-      $ParentHandle,
-      [IntPtr]::Zero,
-      "FLUTTERVIEW",
-      $null
+    $handle = [WindowsPaymentSmoke.NativeWindow]::FindByProcessAndClass(
+      $ProcessID,
+      "FLUTTERVIEW"
     )
     if ($handle -ne [IntPtr]::Zero) {
       return $handle
     }
     Start-Sleep -Seconds 1
   }
-  throw "Timed out waiting for Lantern's FLUTTERVIEW child window"
+  $messageOnly = [WindowsPaymentSmoke.NativeWindow]::FindMessageOnlyByProcessAndClass(
+    $ProcessID,
+    "FLUTTERVIEW"
+  )
+  $windows = [WindowsPaymentSmoke.NativeWindow]::DescribeProcessWindows(
+    $ProcessID
+  )
+  if ($messageOnly -ne [IntPtr]::Zero) {
+    throw "Lantern's FLUTTERVIEW remained message-only; windows=$windows"
+  }
+  throw "Lantern did not create a FLUTTERVIEW window; windows=$windows"
 }
 
 function Find-AutomationElement {
@@ -461,7 +568,7 @@ function Invoke-SmokeUserCheckout {
 
     $app = Wait-ProcessMainWindow -ProcessID $app.Id -TimeoutSeconds 90
     $flutterViewHandle = Wait-FlutterViewHandle `
-      -ParentHandle $app.MainWindowHandle -TimeoutSeconds 30
+      -ProcessID $app.Id -TimeoutSeconds 30
     $processIsElevated = [WindowsPaymentSmoke.NativeToken]::IsElevated($app.Id)
     $diagnostics = Get-Content $ProcessDiagnosticsPath -Raw | ConvertFrom-Json
     $diagnostics | Add-Member -NotePropertyName processIsElevated `
