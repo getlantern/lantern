@@ -26,7 +26,13 @@ Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
-Add-Type -TypeDefinition @'
+
+function Initialize-NativeSmokeHelpers {
+  if ("WindowsPaymentSmoke.NativeToken" -as [type]) {
+    return
+  }
+
+  Add-Type -TypeDefinition @'
 namespace WindowsPaymentSmoke {
   public static class NativeMouse {
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -97,6 +103,7 @@ namespace WindowsPaymentSmoke {
   }
 }
 '@
+}
 
 function Write-Step {
   param([string]$Message)
@@ -323,7 +330,8 @@ function Wait-LauncherResult {
   param(
     [string]$Path,
     [System.Diagnostics.Process]$Process,
-    [int]$TimeoutSeconds
+    [int]$TimeoutSeconds,
+    [string]$ErrorPath
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $Path) { return }
@@ -331,7 +339,15 @@ function Wait-LauncherResult {
     if ($Process.HasExited) {
       Start-Sleep -Seconds 1
       if (Test-Path $Path) { return }
-      throw "Smoke-user launcher exited with code $($Process.ExitCode)"
+      $errorDetails = if ($ErrorPath -and (Test-Path $ErrorPath)) {
+        (Get-Content $ErrorPath -Raw -ErrorAction SilentlyContinue).Trim()
+      } else {
+        ""
+      }
+      if ($errorDetails) {
+        throw "Smoke-user launcher exited with code $($Process.ExitCode): $errorDetails"
+      }
+      throw "Smoke-user launcher exited with code $($Process.ExitCode) without writing a result"
     }
     Start-Sleep -Seconds 1
   }
@@ -360,13 +376,17 @@ function Invoke-SmokeUserCheckout {
   $root = $null
   $transcriptStarted = $false
   try {
-    Start-Transcript -Path $TranscriptPath -Force | Out-Null
-    $transcriptStarted = $true
     $env:USERPROFILE = $UserProfilePath
     $env:LOCALAPPDATA = Join-Path $UserProfilePath "AppData\Local"
     $env:APPDATA = Join-Path $UserProfilePath "AppData\Roaming"
     $env:HOMEDRIVE = Split-Path -Qualifier $UserProfilePath
     $env:HOMEPATH = $UserProfilePath.Substring($env:HOMEDRIVE.Length)
+    $env:TEMP = Join-Path $env:LOCALAPPDATA "Temp"
+    $env:TMP = $env:TEMP
+    New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
+    Start-Transcript -Path $TranscriptPath -Force | Out-Null
+    $transcriptStarted = $true
+    Initialize-NativeSmokeHelpers
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -551,6 +571,8 @@ function Invoke-CheckoutCase {
   $childCheckoutImagePath = $null
   $childFinalImagePath = $null
   $launcherLogPath = $null
+  $launcherStdoutPath = $null
+  $launcherStderrPath = $null
   $launcherConfigPath = $null
   $profilePath = $null
   $transcriptStarted = $false
@@ -629,6 +651,8 @@ function Invoke-CheckoutCase {
     $childCheckoutImagePath = Join-Path $exchangeDirectory "checkout.png"
     $childFinalImagePath = Join-Path $exchangeDirectory "final.png"
     $launcherLogPath = Join-Path $exchangeDirectory "automation.log"
+    $launcherStdoutPath = Join-Path $exchangeDirectory "launcher-stdout.log"
+    $launcherStderrPath = Join-Path $exchangeDirectory "launcher-stderr.log"
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
     $launcherConfigPath = Join-Path $exchangeDirectory "launcher.json"
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
@@ -666,10 +690,12 @@ function Invoke-CheckoutCase {
     }
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
-      -ArgumentList $launcherArguments -PassThru
+      -ArgumentList $launcherArguments `
+      -RedirectStandardOutput $launcherStdoutPath `
+      -RedirectStandardError $launcherStderrPath -PassThru
 
     Wait-LauncherResult -Path $automationResultPath -Process $launcherProcess `
-      -TimeoutSeconds ($WaitSeconds + 150)
+      -TimeoutSeconds ($WaitSeconds + 150) -ErrorPath $launcherStderrPath
     $automationResult = Get-Content $automationResultPath -Raw |
       ConvertFrom-Json
     if (-not $automationResult.success) {
@@ -732,6 +758,14 @@ function Invoke-CheckoutCase {
       [pscustomobject]@{
         Source = $launcherLogPath
         Destination = Join-Path $caseDirectory "automation.log"
+      },
+      [pscustomobject]@{
+        Source = $launcherStdoutPath
+        Destination = Join-Path $caseDirectory "launcher-stdout.log"
+      },
+      [pscustomobject]@{
+        Source = $launcherStderrPath
+        Destination = Join-Path $caseDirectory "launcher-stderr.log"
       },
       [pscustomobject]@{
         Source = $childWebViewPath
