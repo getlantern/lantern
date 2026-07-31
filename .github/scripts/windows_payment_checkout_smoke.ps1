@@ -214,9 +214,20 @@ namespace WindowsPaymentSmoke {
         new System.Collections.Generic.List<string>();
       int visited = 0;
       CollectNames(root, names, 0, ref visited);
-      return names.Count == 0
+      int rootChildren;
+      try {
+        rootChildren = root.accChildCount;
+      } catch (System.Runtime.InteropServices.COMException) {
+        rootChildren = -1;
+      }
+      string description = names.Count == 0
         ? "(no named MSAA elements)"
         : string.Join(", ", names.ToArray());
+      return string.Format(
+        "rootChildren={0}; visited={1}; names={2}",
+        rootChildren,
+        visited,
+        description);
     }
 
     private static Accessibility.IAccessible Root(System.IntPtr window) {
@@ -830,7 +841,7 @@ function Invoke-SmokeUserCheckout {
     $providerTitle = (Get-Culture).TextInfo.ToTitleCase($CheckoutProvider)
     $providerName = "$providerTitle payment method"
     $checkoutName = "Continue with $providerTitle"
-    Wait-AccessibleElement -ViewHandle $flutterViewHandle `
+    $null = Wait-AccessibleElement -ViewHandle $flutterViewHandle `
       -AccessibleName $providerName -TimeoutSeconds 90 `
       -FailureLogPath $AppLogPath
     $checkoutVisible = Wait-AccessibleElement -ViewHandle $flutterViewHandle `
@@ -839,7 +850,7 @@ function Invoke-SmokeUserCheckout {
     if (-not $checkoutVisible) {
       Invoke-AccessibleElement -ViewHandle $flutterViewHandle `
         -AccessibleName $providerName
-      Wait-AccessibleElement -ViewHandle $flutterViewHandle `
+      $null = Wait-AccessibleElement -ViewHandle $flutterViewHandle `
         -AccessibleName $checkoutName `
         -TimeoutSeconds 20 -FailureLogPath $AppLogPath
     }
