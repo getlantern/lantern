@@ -196,49 +196,52 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
-    final payments = ref.read(paymentProvider.notifier);
-    context.showLoadingDialog();
-
-    ///get stripe details
-    final result = await payments.stripeSubscription(
-      userPlan.id,
-      email,
-      couponCode: _affiliateCoupon(ref),
+    appLogger.info(
+      'Stripe subscription flow started (plan: ${userPlan.id}, '
+      'amount: ${userPlan.monthlyUsdCents} cents/month)',
     );
-    result.fold(
-      (error) {
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-        finishPaymentRedirect(paymentRedirectInFlight);
-      },
-      (stripeData) async {
-        // Handle success
-        context.hideLoadingDialog();
 
-        /// Start stripe SDK. The flag is cleared inside the SDK callbacks
-        /// since startStripeSDK returns before the user finishes the flow.
-        sl<StripeService>().startStripeSDK(
-          context: context,
-          options: StripeOptions.fromJson(stripeData),
-          onSuccess: () {
-            finishPaymentRedirect(paymentRedirectInFlight);
-            onPurchaseResult(true, context, ref);
-          },
-          onError: (error) {
-            finishPaymentRedirect(paymentRedirectInFlight);
-
-            ///error while subscribing
-            appLogger.error('Error subscribing to plan: $error');
-            if (error is StripeException) {
-              context.showSnackBar(
-                error.error.localizedMessage ?? error.localizedDescription,
-              );
-              return;
-            }
-            context.showSnackBar(error.toString());
-          },
+    /// Deferred-intent flow: the sheet opens right away and the backend
+    /// subscription is only created once the user taps Pay (inside
+    /// onCreateSubscription), so dismissing the sheet leaves no abandoned
+    /// subscription behind. The flag is cleared inside the SDK callbacks
+    /// since startStripeSDK returns before the user finishes the flow.
+    sl<StripeService>().startStripeSDK(
+      context: context,
+      amount: userPlan.monthlyUsdCents,
+      email: email,
+      onCreateSubscription: () async {
+        // paymentProvider is autoDispose, so it must be read here at Pay-tap
+        // time — a notifier captured when the sheet opened is disposed by the
+        // time this callback runs, and using it throws.
+        appLogger.info('Stripe onCreateSubscription callback invoked');
+        final payments = ref.read(paymentProvider.notifier);
+        final result = await payments.stripeSubscription(
+          userPlan.id,
+          email,
+          couponCode: _affiliateCoupon(ref),
         );
+        return result.fold(
+          (error) => throw Exception(error.localizedErrorMessage),
+          (stripeData) => StripeOptions.fromJson(stripeData),
+        );
+      },
+      onSuccess: () {
+        finishPaymentRedirect(paymentRedirectInFlight);
+        onPurchaseResult(true, context, ref);
+      },
+      onError: (error) {
+        finishPaymentRedirect(paymentRedirectInFlight);
+
+        ///error while subscribing
+        appLogger.error('Error subscribing to plan: $error');
+        if (error is StripeException) {
+          context.showSnackBar(
+            error.error.localizedMessage ?? error.localizedDescription,
+          );
+          return;
+        }
+        context.showSnackBar(error.toString());
       },
     );
   }

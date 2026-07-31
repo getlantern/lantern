@@ -12,6 +12,12 @@ extension PlanExtension on Plan {
 
   String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
 
+  /// The expected monthly price in cents — the amount quoted to Stripe.
+  /// The backend always sends USD as the expectedMonthlyPrice currency.
+  int get monthlyUsdCents => expectedMonthlyPrice.isEmpty
+      ? 0
+      : _amountOf(expectedMonthlyPrice).round();
+
   /// The original (pre-discount) yearly price, taken directly from the
   /// backend's `originalPrice` (no calculation). Shown as the strikethrough
   /// price next to the discounted price when an affiliate code is applied.

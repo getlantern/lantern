@@ -6,6 +6,10 @@ class PlansData {
 
   PlansData({required this.providers, required this.plans});
 
+  /// The payment methods offered on the current platform.
+  List<Android> get platformProviders =>
+      PlatformUtils.isMobile ? providers.android : providers.desktop;
+
   /// Sorts plans (best-value first, then by descending price) and orders the
   /// platform's payment providers so subscription-capable ones come first.
   /// Applied after fetching/attaching plans (including referral V2).
@@ -18,14 +22,22 @@ class PlansData {
       return b.usdPrice.compareTo(a.usdPrice);
     });
 
-    int bySubscription(Android a, Android b) =>
-        (b.providers.supportSubscription ? 1 : 0) -
-        (a.providers.supportSubscription ? 1 : 0);
-    if (PlatformUtils.isMobile) {
-      providers.android.sort(bySubscription);
-    } else {
-      providers.desktop.sort(bySubscription);
+    platformProviders.sort(
+      (a, b) =>
+          (b.providers.supportSubscription ? 1 : 0) -
+          (a.providers.supportSubscription ? 1 : 0),
+    );
+  }
+
+  /// Publishable key advertised by the Stripe provider for this platform,
+  /// or null when Stripe isn't offered or no key was sent.
+  String? get stripePubKey {
+    for (final method in platformProviders) {
+      if (method.providers.name == 'stripe') {
+        return method.providers.data.pubKey;
+      }
     }
+    return null;
   }
 
   factory PlansData.fromJson(Map<String, dynamic> json) => PlansData(
@@ -153,7 +165,7 @@ class Android {
 
 class Provider {
   String name;
-  Map<String, dynamic>? data;
+  ProviderData data;
   List<String> icons;
   bool supportSubscription;
 
@@ -161,24 +173,41 @@ class Provider {
     required this.name,
     required this.icons,
     required this.supportSubscription,
-    this.data,
-  });
+    ProviderData? data,
+  }) : data = data ?? ProviderData();
 
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
     name: json["name"],
-    data: json["data"] == null
-        ? {}
-        : (json["data"] as Map<String, dynamic>).map(
-            (key, value) => MapEntry(key, value),
-          ),
+    data: ProviderData.fromJson(json["data"]),
     icons: List<String>.from(json["icons"].map((x) => x)),
     supportSubscription: json["supportsSubscription"] ?? false,
   );
 
   Map<String, dynamic> toJson() => {
     "name": name,
-    "data": data,
+    "data": data.toJson(),
     "icons": List<dynamic>.from(icons.map((x) => x)),
     "supportsSubscription": supportSubscription,
   };
+}
+
+/// Provider-specific payload. Its keys vary by provider (Stripe sends
+/// `pubKey`, shepherd sends nothing), so the raw map is kept alongside the
+/// typed accessors for keys the app understands.
+class ProviderData {
+  final Map<String, dynamic> raw;
+
+  ProviderData({this.raw = const {}});
+
+  /// Stripe publishable key for this provider, or null if absent/empty.
+  String? get pubKey {
+    final value = raw['pubKey'];
+    return value is String && value.isNotEmpty ? value : null;
+  }
+
+  factory ProviderData.fromJson(dynamic json) => ProviderData(
+    raw: json is Map ? Map<String, dynamic>.from(json) : const {},
+  );
+
+  Map<String, dynamic> toJson() => raw;
 }
