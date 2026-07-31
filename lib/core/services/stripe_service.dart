@@ -139,9 +139,12 @@ class StripeService {
       appLogger.info('Stripe: client secret handed to SDK for confirmation');
     } catch (e) {
       appLogger.error('Error creating subscription during confirm', e);
+      // Backend failures arrive as Exception(<already-localized message>);
+      // strip the "Exception: " prefix. Stripe failures go through the same
+      // developer-text filter as the snackbar path.
       final message = e is StripeException
-          ? (e.error.localizedMessage ?? e.error.message)
-          : e.toString();
+          ? e.userFacingMessage
+          : e.toString().replaceFirst('Exception: ', '');
       await Stripe.instance.intentCreationCallback(
         IntentCreationCallbackParams(
           error: StripeException(
@@ -154,6 +157,18 @@ class StripeService {
         ),
       );
     }
+  }
+}
+
+extension StripeErrorMessage on StripeException {
+  static const _hiddenErrorTypes = {'invalid_request_error'};
+
+  /// A message safe to show the user for this Stripe failure.
+  String get userFacingMessage {
+    if (_hiddenErrorTypes.contains(error.type)) {
+      return 'an_error_occurred'.i18n;
+    }
+    return error.localizedMessage ?? error.message ?? 'an_error_occurred'.i18n;
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:lantern/core/common/common.dart';
 
 extension ErrorExetension on Object {
@@ -153,6 +154,23 @@ String _stripIpcPrefix(String message) {
     return message.substring(match.end);
   }
   return message;
+}
+
+extension StripeErrorExtension on StripeException {
+  /// Stripe error types whose localizedMessage is written for the end user
+  /// (declined card, bad CVC, ...). Every other type — api_error,
+  /// authentication_error, invalid_request_error — carries developer text
+  /// (e.g. "Expired API Key provided: pk_live_…") that must never be shown.
+  static const _userFacingTypes = {'card_error', 'validation_error'};
+
+  String get localizedDescription {
+    if (_userFacingTypes.contains(error.type) || error.declineCode != null) {
+      return error.localizedMessage ??
+          error.message ??
+          'an_error_occurred'.i18n;
+    }
+    return 'an_error_occurred'.i18n;
+  }
 }
 
 extension PurchaseErrorExtension on String {

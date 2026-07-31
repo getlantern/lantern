@@ -232,16 +232,17 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       },
       onError: (error) {
         finishPaymentRedirect(paymentRedirectInFlight);
-
-        ///error while subscribing
-        appLogger.error('Error subscribing to plan: $error');
         if (error is StripeException) {
-          context.showSnackBar(
-            error.error.localizedMessage ?? error.localizedDescription,
-          );
+          // Dismissing the sheet is not an error — no snackbar.
+          if (error.error.code == FailureCode.Canceled) return;
+          appLogger.error('Error subscribing to plan: $error');
+          // userFacingMessage filters out developer text (expired/invalid
+          // API key, bad request, ...) that Stripe puts in localizedMessage.
+          context.showSnackBar(error.userFacingMessage);
           return;
         }
-        context.showSnackBar(error.toString());
+        appLogger.error('Error subscribing to plan: $error');
+        context.showSnackBar((error as Object).localizedDescription);
       },
     );
   }
