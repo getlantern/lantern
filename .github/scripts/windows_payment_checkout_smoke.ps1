@@ -33,15 +33,8 @@ function Initialize-NativeSmokeHelpers {
     return
   }
 
-  $references = @(
-    [Accessibility.IAccessible].Assembly.Location
-    [System.Object].Assembly.Location
-  )
-  $trustedAssemblies = [System.AppContext]::GetData("TRUSTED_PLATFORM_ASSEMBLIES")
-  if ($trustedAssemblies) {
-    $references += $trustedAssemblies.Split([System.IO.Path]::PathSeparator)
-  }
-  Add-Type -ReferencedAssemblies ($references | Select-Object -Unique) -TypeDefinition @'
+  $accessibilityAssembly = [Accessibility.IAccessible].Assembly.Location
+  Add-Type -ReferencedAssemblies $accessibilityAssembly -TypeDefinition @'
 namespace WindowsPaymentSmoke {
   public static class NativeMouse {
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -217,19 +210,20 @@ namespace WindowsPaymentSmoke {
       if (root == null) {
         return "(MSAA root unavailable)";
       }
-      System.Collections.Generic.List<string> names =
-        new System.Collections.Generic.List<string>();
+      System.Text.StringBuilder names =
+        new System.Text.StringBuilder();
+      int nameCount = 0;
       int visited = 0;
-      CollectNames(root, names, 0, ref visited);
+      CollectNames(root, names, ref nameCount, 0, ref visited);
       int rootChildren;
       try {
         rootChildren = root.accChildCount;
       } catch (System.Runtime.InteropServices.COMException) {
         rootChildren = -1;
       }
-      string description = names.Count == 0
+      string description = nameCount == 0
         ? "(no named MSAA elements)"
-        : string.Join(", ", names.ToArray());
+        : names.ToString();
       return string.Format(
         "rootChildren={0}; visited={1}; names={2}",
         rootChildren,
@@ -286,22 +280,28 @@ namespace WindowsPaymentSmoke {
 
     private static void CollectNames(
         Accessibility.IAccessible container,
-        System.Collections.Generic.List<string> names,
+        System.Text.StringBuilder names,
+        ref int nameCount,
         int depth,
         ref int visited) {
       if (container == null || depth > 64 ||
-          visited >= 5000 || names.Count >= 100) {
+          visited >= 5000 || nameCount >= 100) {
         return;
       }
       visited++;
-      AddName(container, CHILDID_SELF, names);
+      AddName(container, CHILDID_SELF, names, ref nameCount);
       foreach (object child in Children(container)) {
         Accessibility.IAccessible childAccessible =
           child as Accessibility.IAccessible;
         if (childAccessible != null) {
-          CollectNames(childAccessible, names, depth + 1, ref visited);
+          CollectNames(
+            childAccessible,
+            names,
+            ref nameCount,
+            depth + 1,
+            ref visited);
         } else if (child != null) {
-          AddName(container, child, names);
+          AddName(container, child, names, ref nameCount);
         }
       }
     }
@@ -345,10 +345,15 @@ namespace WindowsPaymentSmoke {
     private static void AddName(
         Accessibility.IAccessible container,
         object childId,
-        System.Collections.Generic.List<string> names) {
+        System.Text.StringBuilder names,
+        ref int nameCount) {
       string name = Name(container, childId);
       if (!string.IsNullOrWhiteSpace(name)) {
-        names.Add(name);
+        if (nameCount > 0) {
+          names.Append(", ");
+        }
+        names.Append(name);
+        nameCount++;
       }
     }
 
@@ -444,25 +449,33 @@ namespace WindowsPaymentSmoke {
     }
 
     public static string DescribeProcessWindows(int processId) {
-      System.Collections.Generic.List<string> windows =
-        new System.Collections.Generic.List<string>();
+      System.Text.StringBuilder windows =
+        new System.Text.StringBuilder();
       EnumWindows(delegate(System.IntPtr topLevel, System.IntPtr parameter) {
         uint owner;
         GetWindowThreadProcessId(topLevel, out owner);
         if (owner != processId) {
           return true;
         }
-        windows.Add(ClassName(topLevel));
+        AppendClassName(windows, ClassName(topLevel));
         EnumChildWindows(
           topLevel,
           delegate(System.IntPtr child, System.IntPtr childParameter) {
-            windows.Add(ClassName(child));
+            AppendClassName(windows, ClassName(child));
             return true;
           },
           System.IntPtr.Zero);
         return true;
       }, System.IntPtr.Zero);
-      return string.Join(",", windows.ToArray());
+      return windows.ToString();
+    }
+
+    private static void AppendClassName(
+        System.Text.StringBuilder windows, string className) {
+      if (windows.Length > 0) {
+        windows.Append(",");
+      }
+      windows.Append(className);
     }
 
     private static string ClassName(System.IntPtr window) {
