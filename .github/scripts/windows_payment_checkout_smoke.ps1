@@ -33,7 +33,10 @@ function Initialize-NativeSmokeHelpers {
     return
   }
 
-  $references = @([Accessibility.IAccessible].Assembly.Location)
+  $references = @(
+    [Accessibility.IAccessible].Assembly.Location
+    [System.Object].Assembly.Location
+  )
   $trustedAssemblies = [System.AppContext]::GetData("TRUSTED_PLATFORM_ASSEMBLIES")
   if ($trustedAssemblies) {
     $references += $trustedAssemblies.Split([System.IO.Path]::PathSeparator)
