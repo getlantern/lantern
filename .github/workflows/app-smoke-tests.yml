@@ -79,6 +79,7 @@ jobs:
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
     steps:
       - name: Checkout repo
+        if: ${{ inputs.windows_payment_smoke_installer_run_id == '' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -87,8 +88,20 @@ jobs:
 
       - id: meta
         shell: bash
+        env:
+          PAYMENT_SMOKE_INSTALLER_RUN_ID: ${{ inputs.windows_payment_smoke_installer_run_id }}
         run: |
           set -euo pipefail
+          if [[ -n "$PAYMENT_SMOKE_INSTALLER_RUN_ID" ]]; then
+            if [[ ! "$PAYMENT_SMOKE_INSTALLER_RUN_ID" =~ ^[0-9]+$ ]]; then
+              echo "Installer run ID must be numeric" >&2
+              exit 1
+            fi
+            echo "version=payment-smoke-reuse-$PAYMENT_SMOKE_INSTALLER_RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "installer_base_name=lantern-smoke-test" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           VERSION="$(./scripts/ci/version.sh generate nightly)"
           BASE_VERSION="$(./scripts/ci/version.sh extract "$VERSION")"
           FULL_VERSION="${BASE_VERSION}+${GITHUB_RUN_NUMBER}"
@@ -101,6 +114,7 @@ jobs:
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload pubspec.yaml
+        if: ${{ inputs.windows_payment_smoke_installer_run_id == '' }}
         uses: actions/upload-artifact@v4
         with:
           name: pubspec
