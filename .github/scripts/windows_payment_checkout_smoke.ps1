@@ -24,6 +24,7 @@ if ($resolvedArtifacts) {
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -AssemblyName Accessibility
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -32,7 +33,8 @@ function Initialize-NativeSmokeHelpers {
     return
   }
 
-  Add-Type -TypeDefinition @'
+  $accessibilityAssembly = [Accessibility.IAccessible].Assembly.Location
+  Add-Type -ReferencedAssemblies $accessibilityAssembly -TypeDefinition @'
 namespace WindowsPaymentSmoke {
   public static class NativeMouse {
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -102,6 +104,246 @@ namespace WindowsPaymentSmoke {
     }
   }
 
+  public static class NativeAccessibility {
+    private const uint OBJID_CLIENT = unchecked((uint)-4);
+    private const int CHILDID_SELF = 0;
+    private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+    private const uint MOUSEEVENTF_LEFTUP = 0x0004;
+
+    private sealed class Match {
+      public Accessibility.IAccessible Container;
+      public object ChildId;
+    }
+
+    [System.Runtime.InteropServices.DllImport("oleacc.dll")]
+    private static extern int AccessibleObjectFromWindow(
+      System.IntPtr window,
+      uint objectId,
+      ref System.Guid interfaceId,
+      out Accessibility.IAccessible accessible);
+
+    [System.Runtime.InteropServices.DllImport("oleacc.dll")]
+    private static extern int AccessibleChildren(
+      Accessibility.IAccessible container,
+      int childStart,
+      int childCount,
+      [System.Runtime.InteropServices.In,
+       System.Runtime.InteropServices.Out,
+       System.Runtime.InteropServices.MarshalAs(
+         System.Runtime.InteropServices.UnmanagedType.LPArray,
+         SizeParamIndex = 2)]
+      object[] children,
+      out int obtained);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetCursorPos(int x, int y);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern System.IntPtr GetAncestor(
+      System.IntPtr window, uint flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(System.IntPtr window);
+
+    public static bool ContainsName(
+        System.IntPtr window, string targetName) {
+      Accessibility.IAccessible root = Root(window);
+      if (root == null) {
+        return false;
+      }
+      int visited = 0;
+      return Find(root, targetName, 0, ref visited) != null;
+    }
+
+    public static bool ClickByName(
+        System.IntPtr window, string targetName) {
+      Accessibility.IAccessible root = Root(window);
+      if (root == null) {
+        return false;
+      }
+      int visited = 0;
+      Match match = Find(root, targetName, 0, ref visited);
+      if (match == null) {
+        return false;
+      }
+
+      try {
+        string action =
+          match.Container.get_accDefaultAction(match.ChildId);
+        if (!string.IsNullOrWhiteSpace(action)) {
+          match.Container.accDoDefaultAction(match.ChildId);
+          return true;
+        }
+      } catch (System.Runtime.InteropServices.COMException) {
+      }
+
+      int left;
+      int top;
+      int width;
+      int height;
+      try {
+        match.Container.accLocation(
+          out left, out top, out width, out height, match.ChildId);
+        if (width > 0 && height > 0) {
+          System.IntPtr topLevel = GetAncestor(window, 2);
+          if (topLevel != System.IntPtr.Zero) {
+            SetForegroundWindow(topLevel);
+          }
+          if (!SetCursorPos(
+              left + (width / 2), top + (height / 2))) {
+            return false;
+          }
+          NativeMouse.mouse_event(
+            MOUSEEVENTF_LEFTDOWN, 0, 0, 0, System.UIntPtr.Zero);
+          NativeMouse.mouse_event(
+            MOUSEEVENTF_LEFTUP, 0, 0, 0, System.UIntPtr.Zero);
+          return true;
+        }
+      } catch (System.Runtime.InteropServices.COMException) {
+        return false;
+      }
+      return false;
+    }
+
+    public static string DescribeNames(System.IntPtr window) {
+      Accessibility.IAccessible root = Root(window);
+      if (root == null) {
+        return "(MSAA root unavailable)";
+      }
+      System.Collections.Generic.List<string> names =
+        new System.Collections.Generic.List<string>();
+      int visited = 0;
+      CollectNames(root, names, 0, ref visited);
+      return names.Count == 0
+        ? "(no named MSAA elements)"
+        : string.Join(", ", names.ToArray());
+    }
+
+    private static Accessibility.IAccessible Root(System.IntPtr window) {
+      System.Guid accessibleId = new System.Guid(
+        "618736E0-3C3D-11CF-810C-00AA00389B71");
+      Accessibility.IAccessible accessible;
+      int result = AccessibleObjectFromWindow(
+        window, OBJID_CLIENT, ref accessibleId, out accessible);
+      return result >= 0 ? accessible : null;
+    }
+
+    private static Match Find(
+        Accessibility.IAccessible container,
+        string targetName,
+        int depth,
+        ref int visited) {
+      if (container == null || depth > 64 || visited >= 5000) {
+        return null;
+      }
+      visited++;
+      if (NameEquals(container, CHILDID_SELF, targetName)) {
+        return new Match {
+          Container = container,
+          ChildId = CHILDID_SELF,
+        };
+      }
+
+      object[] children = Children(container);
+      foreach (object child in children) {
+        Accessibility.IAccessible childAccessible =
+          child as Accessibility.IAccessible;
+        if (childAccessible != null) {
+          Match match = Find(
+            childAccessible, targetName, depth + 1, ref visited);
+          if (match != null) {
+            return match;
+          }
+          continue;
+        }
+        if (child != null && NameEquals(container, child, targetName)) {
+          return new Match {
+            Container = container,
+            ChildId = child,
+          };
+        }
+      }
+      return null;
+    }
+
+    private static void CollectNames(
+        Accessibility.IAccessible container,
+        System.Collections.Generic.List<string> names,
+        int depth,
+        ref int visited) {
+      if (container == null || depth > 64 ||
+          visited >= 5000 || names.Count >= 100) {
+        return;
+      }
+      visited++;
+      AddName(container, CHILDID_SELF, names);
+      foreach (object child in Children(container)) {
+        Accessibility.IAccessible childAccessible =
+          child as Accessibility.IAccessible;
+        if (childAccessible != null) {
+          CollectNames(childAccessible, names, depth + 1, ref visited);
+        } else if (child != null) {
+          AddName(container, child, names);
+        }
+      }
+    }
+
+    private static object[] Children(
+        Accessibility.IAccessible container) {
+      int childCount;
+      try {
+        childCount = container.accChildCount;
+      } catch (System.Runtime.InteropServices.COMException) {
+        return new object[0];
+      }
+      if (childCount <= 0) {
+        return new object[0];
+      }
+
+      object[] children = new object[childCount];
+      int obtained;
+      int result = AccessibleChildren(
+        container, 0, childCount, children, out obtained);
+      if (result < 0 || obtained <= 0) {
+        return new object[0];
+      }
+      if (obtained == childCount) {
+        return children;
+      }
+      object[] trimmed = new object[obtained];
+      System.Array.Copy(children, trimmed, obtained);
+      return trimmed;
+    }
+
+    private static bool NameEquals(
+        Accessibility.IAccessible container,
+        object childId,
+        string targetName) {
+      string name = Name(container, childId);
+      return string.Equals(
+        name, targetName, System.StringComparison.Ordinal);
+    }
+
+    private static void AddName(
+        Accessibility.IAccessible container,
+        object childId,
+        System.Collections.Generic.List<string> names) {
+      string name = Name(container, childId);
+      if (!string.IsNullOrWhiteSpace(name)) {
+        names.Add(name);
+      }
+    }
+
+    private static string Name(
+        Accessibility.IAccessible container, object childId) {
+      try {
+        return container.get_accName(childId);
+      } catch (System.Runtime.InteropServices.COMException) {
+        return null;
+      }
+    }
+  }
+
   public static class NativeWindow {
     private delegate bool EnumWindowsProc(
       System.IntPtr window, System.IntPtr parameter);
@@ -128,15 +370,6 @@ namespace WindowsPaymentSmoke {
       System.Text.StringBuilder className,
       int maximumCount);
 
-    [System.Runtime.InteropServices.DllImport("oleacc.dll")]
-    private static extern int AccessibleObjectFromWindow(
-      System.IntPtr window,
-      uint objectId,
-      ref System.Guid interfaceId,
-      [System.Runtime.InteropServices.MarshalAs(
-        System.Runtime.InteropServices.UnmanagedType.Interface)]
-      out object accessible);
-
     [System.Runtime.InteropServices.DllImport(
       "user32.dll",
       CharSet = System.Runtime.InteropServices.CharSet.Unicode,
@@ -146,15 +379,6 @@ namespace WindowsPaymentSmoke {
       System.IntPtr childAfter,
       string className,
       string windowName);
-
-    public static bool EnableMsaa(System.IntPtr window) {
-      System.Guid accessibleId = new System.Guid(
-        "618736E0-3C3D-11CF-810C-00AA00389B71");
-      object accessible;
-      int result = AccessibleObjectFromWindow(
-        window, unchecked((uint)-4), ref accessibleId, out accessible);
-      return result >= 0 && accessible != null;
-    }
 
     public static System.IntPtr FindByProcessAndClass(
         int processId, string targetClass) {
@@ -329,39 +553,21 @@ function Wait-FlutterViewHandle {
   throw "Lantern did not create a FLUTTERVIEW window; windows=$windows"
 }
 
-function Find-AutomationElement {
+function Wait-AccessibleElement {
   param(
     [IntPtr]$ViewHandle,
-    [string]$AutomationID,
     [string]$AccessibleName,
     [int]$TimeoutSeconds,
     [string]$FailureLogPath,
     [switch]$Optional
   )
-  $idCondition = [System.Windows.Automation.PropertyCondition]::new(
-    [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
-    $AutomationID
-  )
-  $nameCondition = [System.Windows.Automation.PropertyCondition]::new(
-    [System.Windows.Automation.AutomationElement]::NameProperty,
-    $AccessibleName
-  )
-  $condition = [System.Windows.Automation.OrCondition]::new(
-    [System.Windows.Automation.Condition[]]@($idCondition, $nameCondition)
-  )
-  $msaaEnabled = $false
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-    if ([WindowsPaymentSmoke.NativeWindow]::EnableMsaa($ViewHandle)) {
-      $msaaEnabled = $true
+    if ([WindowsPaymentSmoke.NativeAccessibility]::ContainsName(
+        $ViewHandle,
+        $AccessibleName
+      )) {
+      return $true
     }
-    $root = [System.Windows.Automation.AutomationElement]::FromHandle(
-      $ViewHandle
-    )
-    $element = $root.FindFirst(
-      [System.Windows.Automation.TreeScope]::Descendants,
-      $condition
-    )
-    if ($element) { return $element }
     if ($FailureLogPath -and (Test-Path $FailureLogPath)) {
       $failure = Select-String -Path $FailureLogPath `
         -Pattern 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)' |
@@ -372,28 +578,24 @@ function Find-AutomationElement {
     }
     Start-Sleep -Seconds 1
   }
-  if ($Optional) { return $null }
-  throw "Timed out waiting for UI Automation element '$AutomationID' (MSAA enabled: $msaaEnabled)"
+  if ($Optional) { return $false }
+  $names = [WindowsPaymentSmoke.NativeAccessibility]::DescribeNames(
+    $ViewHandle
+  )
+  throw "Timed out waiting for accessible element '$AccessibleName'; names=$names"
 }
 
-function Invoke-AutomationElement {
-  param([System.Windows.Automation.AutomationElement]$Element)
-  $pattern = $null
-  if ($Element.TryGetCurrentPattern(
-      [System.Windows.Automation.InvokePattern]::Pattern,
-      [ref]$pattern
-    )) {
-    ([System.Windows.Automation.InvokePattern]$pattern).Invoke()
-    return
-  }
-
-  $point = $Element.GetClickablePoint()
-  [System.Windows.Forms.Cursor]::Position = [System.Drawing.Point]::new(
-    [int]$point.X,
-    [int]$point.Y
+function Invoke-AccessibleElement {
+  param(
+    [IntPtr]$ViewHandle,
+    [string]$AccessibleName
   )
-  [WindowsPaymentSmoke.NativeMouse]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
-  [WindowsPaymentSmoke.NativeMouse]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+  if (-not [WindowsPaymentSmoke.NativeAccessibility]::ClickByName(
+      $ViewHandle,
+      $AccessibleName
+    )) {
+    throw "Could not invoke accessible element '$AccessibleName'"
+  }
 }
 
 function Save-WindowScreenshot {
@@ -621,27 +823,28 @@ function Invoke-SmokeUserCheckout {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$externalUDF"
     }
 
-    Write-Step "Attached UI Automation to Lantern's FLUTTERVIEW child window"
+    Write-Step "Attached accessibility automation to Lantern's FLUTTERVIEW child window"
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
       $flutterViewHandle
     )
     $providerTitle = (Get-Culture).TextInfo.ToTitleCase($CheckoutProvider)
-    $providerElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
-      -AutomationID "payment-provider-$CheckoutProvider" `
-      -AccessibleName "$providerTitle payment method" -TimeoutSeconds 90 `
+    $providerName = "$providerTitle payment method"
+    $checkoutName = "Continue with $providerTitle"
+    Wait-AccessibleElement -ViewHandle $flutterViewHandle `
+      -AccessibleName $providerName -TimeoutSeconds 90 `
       -FailureLogPath $AppLogPath
-    $checkoutElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
-      -AutomationID "payment-checkout-$CheckoutProvider" `
-      -AccessibleName "Continue with $providerTitle" `
+    $checkoutVisible = Wait-AccessibleElement -ViewHandle $flutterViewHandle `
+      -AccessibleName $checkoutName `
       -TimeoutSeconds 2 -Optional
-    if (-not $checkoutElement) {
-      Invoke-AutomationElement -Element $providerElement
-      $checkoutElement = Find-AutomationElement -ViewHandle $flutterViewHandle `
-        -AutomationID "payment-checkout-$CheckoutProvider" `
-        -AccessibleName "Continue with $providerTitle" `
+    if (-not $checkoutVisible) {
+      Invoke-AccessibleElement -ViewHandle $flutterViewHandle `
+        -AccessibleName $providerName
+      Wait-AccessibleElement -ViewHandle $flutterViewHandle `
+        -AccessibleName $checkoutName `
         -TimeoutSeconds 20 -FailureLogPath $AppLogPath
     }
-    Invoke-AutomationElement -Element $checkoutElement
+    Invoke-AccessibleElement -ViewHandle $flutterViewHandle `
+      -AccessibleName $checkoutName
 
     Wait-CheckoutDocument -LogPath $AppLogPath `
       -HostPattern $ExpectedHostPattern -TimeoutSeconds $TimeoutSeconds `
