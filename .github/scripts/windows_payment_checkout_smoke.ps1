@@ -102,173 +102,16 @@ namespace WindowsPaymentSmoke {
     }
   }
 
-  public static class InteractiveDesktopAccess {
-    private const int DaclSecurityInformation = 0x00000004;
-    private const int ReadControl = 0x00020000;
-    private const int WriteDac = 0x00040000;
-    private const int WinStaAll = 0x000F037F;
-    private const int DesktopReadObjects = 0x00000001;
-    private const int DesktopWriteObjects = 0x00000080;
-    private const int DesktopAll = 0x000F01FF;
-
+  public static class NativeWindow {
     [System.Runtime.InteropServices.DllImport(
       "user32.dll",
       CharSet = System.Runtime.InteropServices.CharSet.Unicode,
       SetLastError = true)]
-    private static extern System.IntPtr OpenWindowStation(
-      string name, bool inherit, int desiredAccess);
-
-    [System.Runtime.InteropServices.DllImport(
-      "user32.dll",
-      CharSet = System.Runtime.InteropServices.CharSet.Unicode,
-      SetLastError = true)]
-    private static extern System.IntPtr OpenDesktop(
-      string name, int flags, bool inherit, int desiredAccess);
-
-    [System.Runtime.InteropServices.DllImport(
-      "user32.dll", SetLastError = true)]
-    private static extern bool CloseWindowStation(System.IntPtr handle);
-
-    [System.Runtime.InteropServices.DllImport(
-      "user32.dll", SetLastError = true)]
-    private static extern bool CloseDesktop(System.IntPtr handle);
-
-    [System.Runtime.InteropServices.DllImport(
-      "user32.dll", SetLastError = true)]
-    private static extern bool GetUserObjectSecurity(
-      System.IntPtr handle,
-      ref int securityInformation,
-      byte[] securityDescriptor,
-      uint descriptorLength,
-      out uint requiredLength);
-
-    [System.Runtime.InteropServices.DllImport(
-      "user32.dll", SetLastError = true)]
-    private static extern bool SetUserObjectSecurity(
-      System.IntPtr handle,
-      ref int securityInformation,
-      byte[] securityDescriptor);
-
-    public static void Grant(string sidValue) {
-      UpdateInteractiveObjects(
-        new System.Security.Principal.SecurityIdentifier(sidValue), true);
-    }
-
-    public static void Revoke(string sidValue) {
-      UpdateInteractiveObjects(
-        new System.Security.Principal.SecurityIdentifier(sidValue), false);
-    }
-
-    private static void UpdateInteractiveObjects(
-        System.Security.Principal.SecurityIdentifier sid, bool grant) {
-      System.IntPtr windowStation = OpenWindowStation(
-        "winsta0", false, ReadControl | WriteDac);
-      if (windowStation == System.IntPtr.Zero) {
-        throw new System.ComponentModel.Win32Exception(
-          System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
-          "Could not open the interactive window station");
-      }
-      try {
-        System.IntPtr desktop = OpenDesktop(
-          "default",
-          0,
-          false,
-          ReadControl | WriteDac | DesktopReadObjects | DesktopWriteObjects);
-        if (desktop == System.IntPtr.Zero) {
-          throw new System.ComponentModel.Win32Exception(
-            System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
-            "Could not open the interactive desktop");
-        }
-        try {
-          bool windowStationUpdated = false;
-          try {
-            UpdateAcl(windowStation, sid, WinStaAll, grant);
-            windowStationUpdated = true;
-            UpdateAcl(desktop, sid, DesktopAll, grant);
-          } catch {
-            if (grant && windowStationUpdated) {
-              try {
-                UpdateAcl(windowStation, sid, WinStaAll, false);
-              } catch {
-              }
-            }
-            throw;
-          }
-        } finally {
-          CloseDesktop(desktop);
-        }
-      } finally {
-        CloseWindowStation(windowStation);
-      }
-    }
-
-    private static void UpdateAcl(
-        System.IntPtr handle,
-        System.Security.Principal.SecurityIdentifier sid,
-        int accessMask,
-        bool grant) {
-      int securityInformation = DaclSecurityInformation;
-      uint requiredLength;
-      GetUserObjectSecurity(
-        handle, ref securityInformation, null, 0, out requiredLength);
-      if (requiredLength == 0) {
-        throw new System.ComponentModel.Win32Exception(
-          System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
-          "Could not read interactive object security");
-      }
-
-      byte[] currentDescriptor = new byte[requiredLength];
-      if (!GetUserObjectSecurity(
-          handle,
-          ref securityInformation,
-          currentDescriptor,
-          requiredLength,
-          out requiredLength)) {
-        throw new System.ComponentModel.Win32Exception(
-          System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
-          "Could not read interactive object security");
-      }
-
-      System.Security.AccessControl.RawSecurityDescriptor descriptor =
-        new System.Security.AccessControl.RawSecurityDescriptor(
-          currentDescriptor, 0);
-      System.Security.AccessControl.RawAcl dacl =
-        descriptor.DiscretionaryAcl;
-      if (dacl == null) {
-        return;
-      }
-
-      if (grant) {
-        dacl.InsertAce(
-          dacl.Count,
-          new System.Security.AccessControl.CommonAce(
-            System.Security.AccessControl.AceFlags.None,
-            System.Security.AccessControl.AceQualifier.AccessAllowed,
-            accessMask,
-            sid,
-            false,
-            null));
-      } else {
-        for (int i = dacl.Count - 1; i >= 0; i--) {
-          System.Security.AccessControl.KnownAce ace =
-            dacl[i] as System.Security.AccessControl.KnownAce;
-          if (ace != null &&
-              ace.AccessMask == accessMask &&
-              sid.Equals(ace.SecurityIdentifier)) {
-            dacl.RemoveAce(i);
-          }
-        }
-      }
-
-      byte[] updatedDescriptor = new byte[descriptor.BinaryLength];
-      descriptor.GetBinaryForm(updatedDescriptor, 0);
-      if (!SetUserObjectSecurity(
-          handle, ref securityInformation, updatedDescriptor)) {
-        throw new System.ComponentModel.Win32Exception(
-          System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
-          "Could not update interactive object security");
-      }
-    }
+    public static extern System.IntPtr FindWindowEx(
+      System.IntPtr parent,
+      System.IntPtr childAfter,
+      string className,
+      string windowName);
   }
 }
 '@
@@ -342,6 +185,23 @@ function Wait-ProcessMainWindow {
     Start-Sleep -Seconds 1
   }
   throw "Timed out waiting for Lantern main window"
+}
+
+function Wait-FlutterViewHandle {
+  param([IntPtr]$ParentHandle, [int]$TimeoutSeconds)
+  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
+    $handle = [WindowsPaymentSmoke.NativeWindow]::FindWindowEx(
+      $ParentHandle,
+      [IntPtr]::Zero,
+      "FLUTTERVIEW",
+      $null
+    )
+    if ($handle -ne [IntPtr]::Zero) {
+      return $handle
+    }
+    Start-Sleep -Seconds 1
+  }
+  throw "Timed out waiting for Lantern's FLUTTERVIEW child window"
 }
 
 function Find-AutomationElement {
@@ -600,10 +460,16 @@ function Invoke-SmokeUserCheckout {
     } | ConvertTo-Json | Set-Content $ProcessDiagnosticsPath
 
     $app = Wait-ProcessMainWindow -ProcessID $app.Id -TimeoutSeconds 90
+    $flutterViewHandle = Wait-FlutterViewHandle `
+      -ParentHandle $app.MainWindowHandle -TimeoutSeconds 30
     $processIsElevated = [WindowsPaymentSmoke.NativeToken]::IsElevated($app.Id)
     $diagnostics = Get-Content $ProcessDiagnosticsPath -Raw | ConvertFrom-Json
     $diagnostics | Add-Member -NotePropertyName processIsElevated `
       -NotePropertyValue $processIsElevated
+    $diagnostics | Add-Member -NotePropertyName mainWindowHandle `
+      -NotePropertyValue ([IntPtr]$app.MainWindowHandle).ToInt64()
+    $diagnostics | Add-Member -NotePropertyName flutterViewHandle `
+      -NotePropertyValue $flutterViewHandle.ToInt64()
     $diagnostics | ConvertTo-Json | Set-Content $ProcessDiagnosticsPath
     if ($isAdmin -or $processIsElevated) {
       throw "The installed Lantern process has an elevated access token"
@@ -615,8 +481,9 @@ function Invoke-SmokeUserCheckout {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$externalUDF"
     }
 
+    Write-Step "Attached UI Automation to Lantern's FLUTTERVIEW child window"
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
-      $app.MainWindowHandle
+      $flutterViewHandle
     )
     $providerElement = Find-AutomationElement -Root $root `
       -AutomationID "payment-provider-$CheckoutProvider" -TimeoutSeconds 90 `
@@ -744,7 +611,6 @@ function Invoke-CheckoutCase {
   $launcherStderrPath = $null
   $launcherConfigPath = $null
   $profilePath = $null
-  $interactiveDesktopAccessGranted = $false
   $transcriptStarted = $false
   $priorUDF = [Environment]::GetEnvironmentVariable(
     "WEBVIEW2_USER_DATA_FOLDER",
@@ -794,12 +660,6 @@ function Invoke-CheckoutCase {
       throw "Windows did not create a profile for disposable user $username"
     }
     $profilePath = [Environment]::ExpandEnvironmentVariables($profile.LocalPath)
-
-    # Alternate credentials do not automatically receive access to the
-    # runner's interactive desktop, which leaves Flutter without a compositor.
-    $null = Initialize-NativeSmokeHelpers
-    [WindowsPaymentSmoke.InteractiveDesktopAccess]::Grant($sid)
-    $interactiveDesktopAccessGranted = $true
 
     Write-Step "Starting $Provider checkout as disposable non-elevated user $username"
     [Environment]::SetEnvironmentVariable(
@@ -993,13 +853,6 @@ function Invoke-CheckoutCase {
     }
     if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
       & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
-    }
-    if ($interactiveDesktopAccessGranted) {
-      try {
-        [WindowsPaymentSmoke.InteractiveDesktopAccess]::Revoke($sid)
-      } catch {
-        Write-Warning "Could not remove interactive desktop access for $sid`: $_"
-      }
     }
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
