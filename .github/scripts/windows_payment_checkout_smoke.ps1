@@ -76,12 +76,12 @@ namespace WindowsPaymentSmoke {
       System.IntPtr process = OpenProcess(
         PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
       if (process == System.IntPtr.Zero) {
-        throw new System.ComponentModel.Win32Exception();
+        throw LastError("OpenProcess");
       }
       try {
         System.IntPtr token;
         if (!OpenProcessToken(process, TOKEN_QUERY, out token)) {
-          throw new System.ComponentModel.Win32Exception();
+          throw LastError("OpenProcessToken");
         }
         try {
           TOKEN_ELEVATION elevation;
@@ -92,7 +92,7 @@ namespace WindowsPaymentSmoke {
               out elevation,
               System.Runtime.InteropServices.Marshal.SizeOf<TOKEN_ELEVATION>(),
               out returned)) {
-            throw new System.ComponentModel.Win32Exception();
+            throw LastError("GetTokenInformation");
           }
           return elevation.TokenIsElevated != 0;
         } finally {
@@ -101,6 +101,12 @@ namespace WindowsPaymentSmoke {
       } finally {
         CloseHandle(process);
       }
+    }
+
+    private static System.Exception LastError(string operation) {
+      int error = System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+      return new System.Exception(
+        string.Format("{0} failed with Windows error {1}", operation, error));
     }
   }
 
