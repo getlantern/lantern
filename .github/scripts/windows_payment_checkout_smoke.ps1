@@ -974,11 +974,8 @@ function Invoke-CheckoutCase {
       throw "The runner has no interactive Windows shell in session $sessionID"
     }
     $null = Initialize-NativeSmokeHelpers
-    if ([WindowsPaymentSmoke.NativeToken]::IsElevated($interactiveShell.Id)) {
-      throw "The interactive Windows shell is elevated"
-    }
 
-    Write-Step "Starting $Provider checkout through the non-elevated Windows shell"
+    Write-Step "Starting $Provider checkout with a restricted token"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -1043,19 +1040,18 @@ function Invoke-CheckoutCase {
     if ($launcherCommandLine.Length -gt 900) {
       throw "Smoke-user launcher command line is too long"
     }
-    $shell = New-Object -ComObject Shell.Application
-    try {
-      $windowsPowerShell = Join-Path $env:SystemRoot `
-        "System32\WindowsPowerShell\v1.0\powershell.exe"
-      $shell.ShellExecute(
-        $windowsPowerShell,
-        $launcherCommandLine,
-        $exchangeDirectory,
-        "open",
-        1
-      )
-    } finally {
-      [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    $windowsPowerShell = Join-Path $env:SystemRoot `
+      "System32\WindowsPowerShell\v1.0\powershell.exe"
+    $runAs = Join-Path $env:SystemRoot "System32\runas.exe"
+    $restrictedCommand = "`"$windowsPowerShell`" $launcherCommandLine"
+    $launcherProcess = Start-Process -FilePath $runAs -ArgumentList @(
+      "/noprofile",
+      "/trustlevel:0x20000",
+      "`"$restrictedCommand`""
+    ) -WorkingDirectory $exchangeDirectory -WindowStyle Hidden -PassThru
+    if ($launcherProcess.WaitForExit(5000) -and
+        $launcherProcess.ExitCode -ne 0) {
+      throw "Restricted launcher exited with code $($launcherProcess.ExitCode)"
     }
 
     Wait-LauncherResult -Path $automationResultPath `
