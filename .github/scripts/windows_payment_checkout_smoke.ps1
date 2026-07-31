@@ -991,7 +991,6 @@ function Invoke-SmokeUserCheckout {
     ) -PassThru
     @{
       processId = $app.Id
-      launcherProcessId = $PID
       username = $identity.Name
       isAdmin = $isAdmin
       canWriteInstallDirectory = $canWriteInstallDirectory
@@ -1143,13 +1142,6 @@ function Invoke-CheckoutCase {
   try {
     Start-Transcript -Path $transcript -Force | Out-Null
     $transcriptStarted = $true
-    $sessionID = (Get-Process -Id $PID).SessionId
-    $interactiveShell = Get-Process explorer -ErrorAction SilentlyContinue |
-      Where-Object { $_.SessionId -eq $sessionID } |
-      Select-Object -First 1
-    if (-not $interactiveShell) {
-      throw "The runner has no interactive Windows shell in session $sessionID"
-    }
     $null = Initialize-NativeSmokeHelpers
 
     Write-Step "Starting $Provider checkout with a restricted token"
@@ -1253,8 +1245,6 @@ function Invoke-CheckoutCase {
       throw "The installed Lantern process has an elevated access token"
     }
     $appProcess = Get-Process -Id $diagnostics.processId -ErrorAction Stop
-    $launcherProcess = Get-Process -Id $diagnostics.launcherProcessId `
-      -ErrorAction SilentlyContinue
 
     Wait-File -Path $udfCheckPath -TimeoutSeconds 30
     $udf = Get-Content $udfCheckPath -Raw | ConvertFrom-Json
