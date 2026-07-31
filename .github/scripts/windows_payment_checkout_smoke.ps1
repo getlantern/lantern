@@ -33,8 +33,12 @@ function Initialize-NativeSmokeHelpers {
     return
   }
 
-  $accessibilityAssembly = [Accessibility.IAccessible].Assembly.Location
-  Add-Type -ReferencedAssemblies $accessibilityAssembly -TypeDefinition @'
+  $references = @([Accessibility.IAccessible].Assembly.Location)
+  $trustedAssemblies = [System.AppContext]::GetData("TRUSTED_PLATFORM_ASSEMBLIES")
+  if ($trustedAssemblies) {
+    $references += $trustedAssemblies.Split([System.IO.Path]::PathSeparator)
+  }
+  Add-Type -ReferencedAssemblies ($references | Select-Object -Unique) -TypeDefinition @'
 namespace WindowsPaymentSmoke {
   public static class NativeMouse {
     [System.Runtime.InteropServices.DllImport("user32.dll")]

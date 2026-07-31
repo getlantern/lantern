@@ -59,9 +59,15 @@ on:
         required: false
         type: boolean
         default: false
+      payment_smoke_installer_run_id:
+        description: "Reuse the payment smoke installer from this workflow run"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build-windows:
+    if: ${{ inputs.payment_smoke_installer_run_id == '' }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
@@ -334,7 +340,10 @@ jobs:
 
   payment-checkout-smoke:
     needs: build-windows
-    if: ${{ inputs.run_payment_checkout_smoke }}
+    if: >-
+      ${{ always() && inputs.run_payment_checkout_smoke &&
+          (needs.build-windows.result == 'success' ||
+           inputs.payment_smoke_installer_run_id != '') }}
     permissions:
       contents: "read"
     runs-on: windows-latest
@@ -345,9 +354,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Windows payment smoke installer
+        if: ${{ inputs.payment_smoke_installer_run_id == '' }}
         uses: actions/download-artifact@v4
         with:
           name: windows-payment-smoke-installer
+
+      - name: Download reused Windows payment smoke installer
+        if: ${{ inputs.payment_smoke_installer_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-payment-smoke-installer
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.payment_smoke_installer_run_id }}
+          github-token: ${{ github.token }}
 
       - name: Ensure WebView2 Runtime
         shell: pwsh
