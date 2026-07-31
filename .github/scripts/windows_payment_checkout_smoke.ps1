@@ -336,6 +336,11 @@ namespace WindowsPaymentSmoke {
       return Find(root, targetName, 0, ref visited) != null;
     }
 
+    // Flutter enables semantics when Windows asks for its client object.
+    public static bool RequestRoot(System.IntPtr window) {
+      return Root(window) != null;
+    }
+
     public static bool ClickByName(
         System.IntPtr window, string targetName) {
       Accessibility.IAccessible root = Root(window);
@@ -1021,6 +1026,11 @@ function Invoke-SmokeUserCheckout {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$externalUDF"
     }
 
+    if (-not [WindowsPaymentSmoke.NativeAccessibility]::RequestRoot(
+        $flutterViewHandle
+      )) {
+      throw "Lantern did not expose an MSAA root for its FLUTTERVIEW"
+    }
     Write-Step "Attached accessibility automation to Lantern's FLUTTERVIEW child window"
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
       $flutterViewHandle
