@@ -43,14 +43,53 @@ namespace WindowsPaymentSmoke {
   }
 
   public static class NativeToken {
+    private const uint TOKEN_ASSIGN_PRIMARY = 0x0001;
+    private const uint TOKEN_DUPLICATE = 0x0002;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
+    private const uint DISABLE_MAX_PRIVILEGE = 0x0001;
+    private const uint LUA_TOKEN = 0x0004;
+    private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
+    private const uint STARTF_USESHOWWINDOW = 0x00000001;
     private const int TokenElevation = 20;
 
     [System.Runtime.InteropServices.StructLayout(
       System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct TOKEN_ELEVATION {
       public int TokenIsElevated;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(
+      System.Runtime.InteropServices.LayoutKind.Sequential,
+      CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private struct STARTUPINFO {
+      public int cb;
+      public string lpReserved;
+      public string lpDesktop;
+      public string lpTitle;
+      public int dwX;
+      public int dwY;
+      public int dwXSize;
+      public int dwYSize;
+      public int dwXCountChars;
+      public int dwYCountChars;
+      public int dwFillAttribute;
+      public uint dwFlags;
+      public short wShowWindow;
+      public short cbReserved2;
+      public System.IntPtr lpReserved2;
+      public System.IntPtr hStdInput;
+      public System.IntPtr hStdOutput;
+      public System.IntPtr hStdError;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(
+      System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct PROCESS_INFORMATION {
+      public System.IntPtr hProcess;
+      public System.IntPtr hThread;
+      public int dwProcessId;
+      public int dwThreadId;
     }
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
@@ -71,6 +110,55 @@ namespace WindowsPaymentSmoke {
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool CloseHandle(System.IntPtr handle);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern System.IntPtr GetCurrentProcess();
+
+    [System.Runtime.InteropServices.DllImport(
+      "advapi32.dll", SetLastError = true)]
+    private static extern bool CreateRestrictedToken(
+      System.IntPtr existingToken,
+      uint flags,
+      uint disableSidCount,
+      System.IntPtr sidsToDisable,
+      uint deletePrivilegeCount,
+      System.IntPtr privilegesToDelete,
+      uint restrictedSidCount,
+      System.IntPtr sidsToRestrict,
+      out System.IntPtr restrictedToken);
+
+    [System.Runtime.InteropServices.DllImport(
+      "advapi32.dll",
+      CharSet = System.Runtime.InteropServices.CharSet.Unicode,
+      SetLastError = true)]
+    private static extern bool CreateProcessAsUser(
+      System.IntPtr token,
+      string applicationName,
+      System.Text.StringBuilder commandLine,
+      System.IntPtr processAttributes,
+      System.IntPtr threadAttributes,
+      bool inheritHandles,
+      uint creationFlags,
+      System.IntPtr environment,
+      string currentDirectory,
+      ref STARTUPINFO startupInfo,
+      out PROCESS_INFORMATION processInformation);
+
+    [System.Runtime.InteropServices.DllImport(
+      "advapi32.dll",
+      CharSet = System.Runtime.InteropServices.CharSet.Unicode,
+      ExactSpelling = true,
+      SetLastError = true)]
+    private static extern bool CreateProcessWithTokenW(
+      System.IntPtr token,
+      uint logonFlags,
+      string applicationName,
+      System.Text.StringBuilder commandLine,
+      uint creationFlags,
+      System.IntPtr environment,
+      string currentDirectory,
+      ref STARTUPINFO startupInfo,
+      out PROCESS_INFORMATION processInformation);
 
     public static bool IsElevated(int processId) {
       System.IntPtr process = OpenProcess(
@@ -101,6 +189,93 @@ namespace WindowsPaymentSmoke {
       } finally {
         CloseHandle(process);
       }
+    }
+
+    public static int StartRestricted(
+        string applicationPath, string arguments, string workingDirectory) {
+      System.IntPtr currentToken;
+      if (!OpenProcessToken(
+          GetCurrentProcess(),
+          TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY,
+          out currentToken)) {
+        throw LastError("OpenProcessToken");
+      }
+      try {
+        System.IntPtr restrictedToken;
+        if (!CreateRestrictedToken(
+            currentToken,
+            DISABLE_MAX_PRIVILEGE | LUA_TOKEN,
+            0,
+            System.IntPtr.Zero,
+            0,
+            System.IntPtr.Zero,
+            0,
+            System.IntPtr.Zero,
+            out restrictedToken)) {
+          throw LastError("CreateRestrictedToken");
+        }
+        try {
+          STARTUPINFO startup = new STARTUPINFO();
+          startup.cb = System.Runtime.InteropServices.Marshal.SizeOf(
+            typeof(STARTUPINFO));
+          startup.lpDesktop = "winsta0\\default";
+          startup.dwFlags = STARTF_USESHOWWINDOW;
+          startup.wShowWindow = 0;
+
+          PROCESS_INFORMATION process;
+          System.Text.StringBuilder command = CommandLine(
+            applicationPath, arguments);
+          if (!CreateProcessAsUser(
+              restrictedToken,
+              applicationPath,
+              command,
+              System.IntPtr.Zero,
+              System.IntPtr.Zero,
+              false,
+              CREATE_UNICODE_ENVIRONMENT,
+              System.IntPtr.Zero,
+              workingDirectory,
+              ref startup,
+              out process)) {
+            int createAsUserError =
+              System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+            command = CommandLine(applicationPath, arguments);
+            if (!CreateProcessWithTokenW(
+                restrictedToken,
+                0,
+                applicationPath,
+                command,
+                CREATE_UNICODE_ENVIRONMENT,
+                System.IntPtr.Zero,
+                workingDirectory,
+                ref startup,
+                out process)) {
+              int createWithTokenError =
+                System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+              throw new System.Exception(string.Format(
+                "Restricted process creation failed with Windows errors {0} and {1}",
+                createAsUserError,
+                createWithTokenError));
+            }
+          }
+          try {
+            return process.dwProcessId;
+          } finally {
+            CloseHandle(process.hThread);
+            CloseHandle(process.hProcess);
+          }
+        } finally {
+          CloseHandle(restrictedToken);
+        }
+      } finally {
+        CloseHandle(currentToken);
+      }
+    }
+
+    private static System.Text.StringBuilder CommandLine(
+        string applicationPath, string arguments) {
+      return new System.Text.StringBuilder(
+        string.Format("\"{0}\" {1}", applicationPath, arguments));
     }
 
     private static System.Exception LastError(string operation) {
@@ -1042,17 +1217,12 @@ function Invoke-CheckoutCase {
     }
     $windowsPowerShell = Join-Path $env:SystemRoot `
       "System32\WindowsPowerShell\v1.0\powershell.exe"
-    $runAs = Join-Path $env:SystemRoot "System32\runas.exe"
-    $restrictedCommand = "`"$windowsPowerShell`" $launcherCommandLine"
-    $launcherProcess = Start-Process -FilePath $runAs -ArgumentList @(
-      "/noprofile",
-      "/trustlevel:0x20000",
-      "`"$restrictedCommand`""
-    ) -WorkingDirectory $exchangeDirectory -WindowStyle Hidden -PassThru
-    if ($launcherProcess.WaitForExit(5000) -and
-        $launcherProcess.ExitCode -ne 0) {
-      throw "Restricted launcher exited with code $($launcherProcess.ExitCode)"
-    }
+    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartRestricted(
+      $windowsPowerShell,
+      $launcherCommandLine,
+      $exchangeDirectory
+    )
+    $launcherProcess = Get-Process -Id $launcherProcessID -ErrorAction Stop
 
     Wait-LauncherResult -Path $automationResultPath `
       -TimeoutSeconds ($WaitSeconds + 150)
