@@ -47,8 +47,6 @@ namespace WindowsPaymentSmoke {
     private const uint TOKEN_DUPLICATE = 0x0002;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
-    private const uint DISABLE_MAX_PRIVILEGE = 0x0001;
-    private const uint LUA_TOKEN = 0x0004;
     private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
     private const uint STARTF_USESHOWWINDOW = 0x00000001;
     private const int TokenElevation = 20;
@@ -110,22 +108,6 @@ namespace WindowsPaymentSmoke {
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool CloseHandle(System.IntPtr handle);
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern System.IntPtr GetCurrentProcess();
-
-    [System.Runtime.InteropServices.DllImport(
-      "advapi32.dll", SetLastError = true)]
-    private static extern bool CreateRestrictedToken(
-      System.IntPtr existingToken,
-      uint flags,
-      uint disableSidCount,
-      System.IntPtr sidsToDisable,
-      uint deletePrivilegeCount,
-      System.IntPtr privilegesToDelete,
-      uint restrictedSidCount,
-      System.IntPtr sidsToRestrict,
-      out System.IntPtr restrictedToken);
 
     [System.Runtime.InteropServices.DllImport(
       "advapi32.dll",
@@ -191,84 +173,88 @@ namespace WindowsPaymentSmoke {
       }
     }
 
-    public static int StartRestricted(
-        string applicationPath, string arguments, string workingDirectory) {
-      System.IntPtr currentToken;
-      if (!OpenProcessToken(
-          GetCurrentProcess(),
-          TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY,
-          out currentToken)) {
-        throw LastError("OpenProcessToken");
+    public static int StartWithProcessToken(
+        int sourceProcessId,
+        string applicationPath,
+        string arguments,
+        string workingDirectory) {
+      System.IntPtr sourceProcess = OpenProcess(
+        PROCESS_QUERY_LIMITED_INFORMATION, false, sourceProcessId);
+      if (sourceProcess == System.IntPtr.Zero) {
+        throw LastError("OpenProcess");
       }
       try {
-        System.IntPtr restrictedToken;
-        if (!CreateRestrictedToken(
-            currentToken,
-            DISABLE_MAX_PRIVILEGE | LUA_TOKEN,
-            0,
-            System.IntPtr.Zero,
-            0,
-            System.IntPtr.Zero,
-            0,
-            System.IntPtr.Zero,
-            out restrictedToken)) {
-          throw LastError("CreateRestrictedToken");
+        System.IntPtr sourceToken;
+        if (!OpenProcessToken(
+            sourceProcess,
+            TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY,
+            out sourceToken)) {
+          throw LastError("OpenProcessToken");
         }
         try {
-          STARTUPINFO startup = new STARTUPINFO();
-          startup.cb = System.Runtime.InteropServices.Marshal.SizeOf(
-            typeof(STARTUPINFO));
-          startup.lpDesktop = "winsta0\\default";
-          startup.dwFlags = STARTF_USESHOWWINDOW;
-          startup.wShowWindow = 0;
-
-          PROCESS_INFORMATION process;
-          System.Text.StringBuilder command = CommandLine(
-            applicationPath, arguments);
-          if (!CreateProcessAsUser(
-              restrictedToken,
-              applicationPath,
-              command,
-              System.IntPtr.Zero,
-              System.IntPtr.Zero,
-              false,
-              CREATE_UNICODE_ENVIRONMENT,
-              System.IntPtr.Zero,
-              workingDirectory,
-              ref startup,
-              out process)) {
-            int createAsUserError =
-              System.Runtime.InteropServices.Marshal.GetLastWin32Error();
-            command = CommandLine(applicationPath, arguments);
-            if (!CreateProcessWithTokenW(
-                restrictedToken,
-                0,
-                applicationPath,
-                command,
-                CREATE_UNICODE_ENVIRONMENT,
-                System.IntPtr.Zero,
-                workingDirectory,
-                ref startup,
-                out process)) {
-              int createWithTokenError =
-                System.Runtime.InteropServices.Marshal.GetLastWin32Error();
-              throw new System.Exception(string.Format(
-                "Restricted process creation failed with Windows errors {0} and {1}",
-                createAsUserError,
-                createWithTokenError));
-            }
-          }
-          try {
-            return process.dwProcessId;
-          } finally {
-            CloseHandle(process.hThread);
-            CloseHandle(process.hProcess);
-          }
+          return StartWithToken(
+            sourceToken, applicationPath, arguments, workingDirectory);
         } finally {
-          CloseHandle(restrictedToken);
+          CloseHandle(sourceToken);
         }
       } finally {
-        CloseHandle(currentToken);
+        CloseHandle(sourceProcess);
+      }
+    }
+
+    private static int StartWithToken(
+        System.IntPtr token,
+        string applicationPath,
+        string arguments,
+        string workingDirectory) {
+      STARTUPINFO startup = new STARTUPINFO();
+      startup.cb = System.Runtime.InteropServices.Marshal.SizeOf(
+        typeof(STARTUPINFO));
+      startup.lpDesktop = "winsta0\\default";
+      startup.dwFlags = STARTF_USESHOWWINDOW;
+      startup.wShowWindow = 0;
+
+      PROCESS_INFORMATION process;
+      System.Text.StringBuilder command = CommandLine(
+        applicationPath, arguments);
+      if (!CreateProcessAsUser(
+          token,
+          applicationPath,
+          command,
+          System.IntPtr.Zero,
+          System.IntPtr.Zero,
+          false,
+          CREATE_UNICODE_ENVIRONMENT,
+          System.IntPtr.Zero,
+          workingDirectory,
+          ref startup,
+          out process)) {
+        int createAsUserError =
+          System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+        command = CommandLine(applicationPath, arguments);
+        if (!CreateProcessWithTokenW(
+            token,
+            0,
+            applicationPath,
+            command,
+            CREATE_UNICODE_ENVIRONMENT,
+            System.IntPtr.Zero,
+            workingDirectory,
+            ref startup,
+            out process)) {
+          int createWithTokenError =
+            System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+          throw new System.Exception(string.Format(
+            "Process creation failed with Windows errors {0} and {1}",
+            createAsUserError,
+            createWithTokenError));
+        }
+      }
+      try {
+        return process.dwProcessId;
+      } finally {
+        CloseHandle(process.hThread);
+        CloseHandle(process.hProcess);
       }
     }
 
@@ -1159,7 +1145,18 @@ function Invoke-CheckoutCase {
     $transcriptStarted = $true
     $null = Initialize-NativeSmokeHelpers
 
-    Write-Step "Starting $Provider checkout with a restricted token"
+    $sessionID = (Get-Process -Id $PID).SessionId
+    $interactiveShell = Get-Process explorer -ErrorAction SilentlyContinue |
+      Where-Object { $_.SessionId -eq $sessionID } |
+      Select-Object -First 1
+    if (-not $interactiveShell) {
+      throw "The runner has no interactive Windows shell in session $sessionID"
+    }
+    if ([WindowsPaymentSmoke.NativeToken]::IsElevated($interactiveShell.Id)) {
+      throw "The interactive Windows shell is elevated"
+    }
+
+    Write-Step "Starting $Provider checkout with the non-elevated shell token"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -1226,7 +1223,8 @@ function Invoke-CheckoutCase {
     }
     $windowsPowerShell = Join-Path $env:SystemRoot `
       "System32\WindowsPowerShell\v1.0\powershell.exe"
-    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartRestricted(
+    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartWithProcessToken(
+      $interactiveShell.Id,
       $windowsPowerShell,
       $launcherCommandLine,
       $exchangeDirectory
