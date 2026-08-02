@@ -1,9 +1,36 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:path/path.dart' as p;
+
+Future<WebViewEnvironment>? _windowsWebViewEnvironment;
+
+Future<WebViewEnvironment> _getWindowsWebViewEnvironment() {
+  return _windowsWebViewEnvironment ??= WebViewEnvironment.create(
+    settings: WebViewEnvironmentSettings(
+      userDataFolder: _windowsWebViewUserDataFolder(Platform.environment),
+    ),
+  );
+}
+
+String _windowsWebViewUserDataFolder(Map<String, String> environment) {
+  final configured = environment['WEBVIEW2_USER_DATA_FOLDER']?.trim();
+  if (configured != null && configured.isNotEmpty) {
+    return configured;
+  }
+
+  final localAppData = environment['LOCALAPPDATA']?.trim();
+  if (localAppData == null || localAppData.isEmpty) {
+    throw StateError('LOCALAPPDATA is unavailable');
+  }
+  return p.windows.join(localAppData, 'Lantern', 'WebView2');
+}
 
 final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
   WebViewLoading.new,
@@ -85,18 +112,39 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         : UserPreferredContentMode.DESKTOP,
   );
   late final URLRequest _initialRequest;
+  WebViewEnvironment? _webViewEnvironment;
+  Object? _webViewInitializationError;
 
   @override
   void initState() {
     super.initState();
     _initialRequest = URLRequest(url: WebUri(widget.url));
+    if (PlatformUtils.isWindows) {
+      unawaited(_initializeWindowsWebView());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    appLogger.debug("Building _InnerWebView with URL: ${widget.url}");
+    if (PlatformUtils.isWindows && _webViewEnvironment == null) {
+      if (_webViewInitializationError != null) {
+        return Center(
+          child: Text(
+            'Unable to open this page.',
+            style: TextStyle(color: context.textPrimary),
+          ),
+        );
+      }
+      return const Center(child: LoadingIndicator());
+    }
+
+    final initialUri = Uri.tryParse(widget.url);
+    appLogger.debug(
+      'Building _InnerWebView for host: ${initialUri?.host ?? '<none>'}',
+    );
     return InAppWebView(
       key: const ValueKey('app-webview'),
+      webViewEnvironment: _webViewEnvironment,
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
@@ -191,6 +239,27 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         );
       },
     );
+  }
+
+  Future<void> _initializeWindowsWebView() async {
+    try {
+      final environment = await _getWindowsWebViewEnvironment();
+      if (!mounted) return;
+      setState(() => _webViewEnvironment = environment);
+    } catch (error, stackTrace) {
+      appLogger.error(
+        'Unable to initialize the Windows WebView',
+        error,
+        stackTrace,
+      );
+      _logSmokeEvent(
+        'creation_error',
+        Uri.tryParse(widget.url),
+        detail: 'stage=environment',
+      );
+      if (!mounted) return;
+      setState(() => _webViewInitializationError = error);
+    }
   }
 
   void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {

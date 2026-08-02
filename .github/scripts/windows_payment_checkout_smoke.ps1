@@ -889,6 +889,9 @@ function Wait-CheckoutDocument {
       if ($lastLogText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
         throw "Lantern could not prepare the requested checkout smoke"
       }
+      if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=creation_error') {
+        throw "Lantern could not create the checkout WebView"
+      }
       foreach ($match in [regex]::Matches($lastLogText, $linePattern)) {
         $hostName = $match.Groups[1].Value
         $documentLength = [int]$match.Groups[3].Value
