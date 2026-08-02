@@ -525,7 +525,9 @@ namespace WindowsPaymentSmoke {
         string targetName) {
       string name = Name(container, childId);
       return string.Equals(
-        name, targetName, System.StringComparison.Ordinal);
+        name == null ? null : name.Trim(),
+        targetName == null ? null : targetName.Trim(),
+        System.StringComparison.Ordinal);
     }
 
     private static void AddName(
