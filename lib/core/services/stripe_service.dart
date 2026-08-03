@@ -125,9 +125,8 @@ class StripeService {
       // Normal path returns a PaymentIntent secret; the trial path (user
       // still has an unexpired one-time purchase) returns a SetupIntent
       // secret instead.
-      final secret = options.clientSecret.isNotEmpty
-          ? options.clientSecret
-          : options.setupIntentClientSecret;
+      final secret = options.clientSecret;
+
       if (secret.isEmpty) {
         throw Exception(
           'Please try again after some time. If the issue persists, contact support.',
