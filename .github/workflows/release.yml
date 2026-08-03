@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: "linux"
+      use_self_hosted_macos:
+        description: "Build macOS on the persistent EC2 runner"
+        required: false
+        type: boolean
+        default: false
       sign_windows:
         description: "Sign Windows binaries (nightly skips signing by default)"
         required: false
@@ -374,6 +379,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      runner_label: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.use_self_hosted_macos == 'true' && 'lantern-macos-smoke' || 'macos-15' }}
 
   build-windows:
     needs: [set-metadata, release-create, release-approval]
@@ -859,16 +865,24 @@ jobs:
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
-  update-appcast:
-    needs: [set-metadata, release-finalize]
+  publish-update-metadata:
+    needs:
+      [
+        set-metadata,
+        upload-s3,
+        upload-release-artifacts,
+        upload-google-play,
+        upload-testflight,
+      ]
     if: |
+      always() &&
       !cancelled() &&
-      needs.release-finalize.result == 'success' &&
-      (needs.set-metadata.outputs.platform == 'all' ||
-       contains(needs.set-metadata.outputs.platform, 'macos') ||
-       contains(needs.set-metadata.outputs.platform, 'windows') ||
-       contains(needs.set-metadata.outputs.platform, 'linux')) &&
-      needs.set-metadata.outputs.build_type != 'nightly'
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      needs.set-metadata.outputs.build_type != 'nightly' &&
+      needs.upload-s3.result == 'success' &&
+      needs.upload-release-artifacts.result == 'success' &&
+      (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+      (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -885,11 +899,67 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
 
-      - name: Update appcast.xml
+      - name: Test update metadata generator
+        run: python3 -m unittest scripts/ci/generate_update_metadata_test.py
+
+      - name: Publish update metadata sidecars
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+        run: |
+          # Strip 'v' prefix for S3 paths
+          VERSION="${RELEASE_TAG#v}"
+
+          rm -rf release-assets update-metadata
+          mkdir -p release-assets update-metadata
+
+          gh release download "$RELEASE_TAG" --pattern 'lantern-installer*' --dir release-assets
+
+          mapfile -t artifacts < <(
+            find release-assets -type f \( \
+              -name 'lantern-installer*.dmg' -o \
+              -name 'lantern-installer*.exe' -o \
+              -name 'lantern-installer*.apk' -o \
+              -name 'lantern-installer*.deb' \
+            \) | sort
+          )
+          if [[ "${#artifacts[@]}" -eq 0 ]]; then
+            echo "No updater-backed release artifacts found; skipping update metadata"
+            exit 0
+          fi
+
+          python3 scripts/ci/generate_update_metadata.py \
+            --build-type "$BUILD_TYPE" \
+            --version "$VERSION" \
+            --bucket "$BUCKET" \
+            --output-dir update-metadata \
+            "${artifacts[@]}"
+
+          for metadata in update-metadata/*.update.json; do
+            name="$(basename "$metadata")"
+            aws s3 cp "$metadata" "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/${name}" --acl public-read
+            aws s3 cp "$metadata" "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/${name}" --acl public-read
+            gh release upload "$RELEASE_TAG" "$metadata" --clobber
+          done
+
+      - name: Publish legacy appcast.xml
+        if: |
+          needs.set-metadata.outputs.build_type != 'nightly' &&
+          (
+            needs.set-metadata.outputs.platform == 'all' ||
+            contains(needs.set-metadata.outputs.platform, 'macos') ||
+            contains(needs.set-metadata.outputs.platform, 'windows') ||
+            contains(needs.set-metadata.outputs.platform, 'linux')
+          )
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
@@ -899,7 +969,8 @@ jobs:
 
           python3 scripts/generate_appcast.py
 
-          # appcast, like installers, always upload a versioned copy alongside "latest"
+          # Keep this legacy feed for released clients that still point at S3.
+          # New clients use lantern-cloud's channel-aware appcast endpoint.
           aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/appcast.xml" --acl public-read
           aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/appcast.xml" --acl public-read
           if [[ "$BUILD_TYPE" == "production" ]]; then
@@ -910,6 +981,22 @@ jobs:
           # not git because we may be in detached HEAD
           gh release upload "$RELEASE_TAG" appcast.xml --clobber
 
+  verify-update-service:
+    needs: [set-metadata, publish-update-metadata, release-finalize]
+    if: |
+      !cancelled() &&
+      needs.set-metadata.outputs.build_type == 'beta' &&
+      needs.publish-update-metadata.result == 'success' &&
+      needs.release-finalize.result == 'success'
+    uses: ./.github/workflows/verify-update-service.yml
+    with:
+      version: ${{ needs.set-metadata.outputs.version }}
+      channel: beta
+      platform: ${{ needs.set-metadata.outputs.platform }}
+      update_url: "https://update.getlantern.org/update/lantern"
+      timeout_seconds: 2700
+      interval_seconds: 60
+
   release-finalize:
     needs:
       [
@@ -918,6 +1005,7 @@ jobs:
         upload-release-artifacts,
         upload-google-play,
         upload-testflight,
+        publish-update-metadata,
       ]
     if: always()
     runs-on: ubuntu-latest
@@ -938,6 +1026,7 @@ jobs:
           env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
+          needs.publish-update-metadata.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
           (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')
         env:
@@ -953,6 +1042,7 @@ jobs:
           (env.CLEANUP_ON_FAILURE == 'true' &&
            !(needs.upload-s3.result == 'success' &&
              needs.upload-release-artifacts.result == 'success' &&
+             needs.publish-update-metadata.result == 'success' &&
              (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
              (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
         env:
@@ -995,6 +1085,7 @@ jobs:
           env.CLEANUP_ON_FAILURE != 'true' &&
           !(needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&
+            needs.publish-update-metadata.result == 'success' &&
             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         run: |
