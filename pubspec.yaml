@@ -24,7 +24,8 @@ environment:
 
 dependency_overrides:
   in_app_purchase_storekit: 0.4.8+1
-  in_app_purchase_android: 0.4.0+8
+  # 0.5.0 = Play Billing Library 8.0.0; later 0.5.x need Flutter >=3.44.
+  in_app_purchase_android: 0.5.0
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -108,7 +109,7 @@ dependencies:
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
-  in_app_purchase: ^3.2.3
+  in_app_purchase: ^3.3.0
   flutter_stripe: ^12.4.0
   # protobuf
   protobuf: ^6.0.0
