@@ -48,15 +48,50 @@ final class RunnerTests: XCTestCase {
     }
   }
 
-  func testVPNOperationGateRejectsOverlap() throws {
-    let gate = VPNOperationGate()
-    try gate.begin()
-    assertVPNManagerError(.operationInProgress) {
-      try gate.begin()
+  func testVPNLifecycleCoordinatorRejectsOverlappingConnections() async throws {
+    let coordinator = VPNLifecycleCoordinator()
+    let operationID = try await coordinator.beginConnectionOperation()
+
+    do {
+      _ = try await coordinator.beginConnectionOperation()
+      XCTFail("Expected operationInProgress")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
     }
-    gate.end()
-    XCTAssertNoThrow(try gate.begin())
-    gate.end()
+
+    await coordinator.endConnectionOperation(operationID)
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
+  }
+
+  func testVPNStopCancelsStartupAndWaitsForHandoff() async throws {
+    let coordinator = VPNLifecycleCoordinator()
+    let operationID = try await coordinator.beginConnectionOperation()
+    let stopStarted = expectation(description: "Stop requested")
+
+    let stopTask = Task {
+      stopStarted.fulfill()
+      return try await coordinator.beginStopOperation()
+    }
+    await fulfillment(of: [stopStarted])
+
+    while await coordinator.canContinueConnectionOperation(operationID) {
+      await Task.yield()
+    }
+    await coordinator.endConnectionOperation(operationID)
+    let canceledConnectionOperation = try await stopTask.value
+    XCTAssertTrue(canceledConnectionOperation)
+
+    do {
+      _ = try await coordinator.beginConnectionOperation()
+      XCTFail("Expected operationInProgress while stop owns the manager")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
+    }
+
+    await coordinator.endStopOperation()
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
   }
 
   func testHashBundleIsStableForIdenticalContents() throws {

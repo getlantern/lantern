@@ -9,7 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private let operationGate = VPNOperationGate()
+  private let lifecycleCoordinator = VPNLifecycleCoordinator()
   //Do not switch to NEVPNManager.shared() that is only for class app extension
   private var manager: NEVPNManager = NETunnelProviderManager()
   static let shared: VPNManager = VPNManager()
@@ -136,11 +136,23 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    try operationGate.begin()
-    defer { operationGate.end() }
+    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
+    do {
+      try await startTunnel(operationID: operationID)
+    } catch {
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      throw error
+    }
+    await lifecycleCoordinator.endConnectionOperation(operationID)
+  }
+
+  private func startTunnel(operationID: UInt) async throws {
 
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw CancellationError()
+    }
     let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
@@ -150,18 +162,33 @@ class VPNManager: VPNBase {
       return
     }
 
-    try self.manager.connection.startVPNTunnel(options: options)
     self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw CancellationError()
+    }
+    try self.manager.connection.startVPNTunnel(options: options)
   }
 
   func connectToServer(
     serverName: String
   ) async throws {
-    try operationGate.begin()
-    defer { operationGate.end() }
+    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
+    do {
+      try await connectToServer(serverName: serverName, operationID: operationID)
+    } catch {
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      throw error
+    }
+    await lifecycleCoordinator.endConnectionOperation(operationID)
+  }
+
+  private func connectToServer(serverName: String, operationID: UInt) async throws {
 
     await self.setupVPN()
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw CancellationError()
+    }
     let options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
@@ -188,13 +215,29 @@ class VPNManager: VPNBase {
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
-    try operationGate.begin()
-    defer { operationGate.end() }
+    let canceledConnectionOperation = try await lifecycleCoordinator.beginStopOperation()
+    do {
+      try await stopTunnelAfterHandoff(
+        canceledConnectionOperation: canceledConnectionOperation)
+    } catch {
+      await lifecycleCoordinator.endStopOperation()
+      throw error
+    }
+    await lifecycleCoordinator.endStopOperation()
+  }
+
+  private func stopTunnelAfterHandoff(canceledConnectionOperation: Bool) async throws {
 
     appLogger.log("Stopping tunnel..")
     await syncStatus()
     let status = manager.connection.status
-    if try !shouldStopTunnel(for: status) {
+    let shouldStop: Bool
+    if canceledConnectionOperation {
+      shouldStop = true
+    } else {
+      shouldStop = try shouldStopTunnel(for: status)
+    }
+    if !shouldStop {
       appLogger.log("VPN is already stopped or stopping: \(status)")
       return
     }

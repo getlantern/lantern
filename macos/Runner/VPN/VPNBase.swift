@@ -29,26 +29,55 @@ enum VPNManagerError: LocalizedError, Equatable {
   }
 }
 
-/// Prevents two VPN lifecycle operations from running at the same time.
-final class VPNOperationGate {
-  private let lock = NSLock()
-  private var active = false
+/// Coordinates connection changes while allowing stop to cancel a pending start.
+actor VPNLifecycleCoordinator {
+  private var nextConnectionID: UInt = 0
+  private var activeConnectionID: UInt?
+  private var stopPending = false
+  private var stopWaiters: [CheckedContinuation<Void, Never>] = []
 
-  /// Claims the gate or reports that another operation is still running.
-  func begin() throws {
-    lock.lock()
-    defer { lock.unlock() }
-    guard !active else {
+  /// Starts a connection operation unless another lifecycle change owns the manager.
+  func beginConnectionOperation() throws -> UInt {
+    guard activeConnectionID == nil, !stopPending else {
       throw VPNManagerError.operationInProgress
     }
-    active = true
+    nextConnectionID &+= 1
+    activeConnectionID = nextConnectionID
+    return nextConnectionID
   }
 
-  /// Releases the gate after the current operation finishes.
-  func end() {
-    lock.lock()
-    active = false
-    lock.unlock()
+  /// Returns false when a stop request has canceled this connection operation.
+  func canContinueConnectionOperation(_ id: UInt) -> Bool {
+    activeConnectionID == id && !stopPending
+  }
+
+  /// Hands the manager to a waiting stop request after startup work has finished.
+  func endConnectionOperation(_ id: UInt) {
+    guard activeConnectionID == id else { return }
+    activeConnectionID = nil
+    let waiters = stopWaiters
+    stopWaiters.removeAll()
+    waiters.forEach { $0.resume() }
+  }
+
+  /// Cancels any active connection operation and waits for its profile writes to finish.
+  /// The return value tells the caller to tear down even if the system status has not caught up.
+  func beginStopOperation() async throws -> Bool {
+    guard !stopPending else {
+      throw VPNManagerError.operationInProgress
+    }
+    stopPending = true
+    let canceledConnectionOperation = activeConnectionID != nil
+    guard canceledConnectionOperation else { return false }
+    await withCheckedContinuation { continuation in
+      stopWaiters.append(continuation)
+    }
+    return true
+  }
+
+  /// Allows connection changes again once the stop request has completed.
+  func endStopOperation() {
+    stopPending = false
   }
 }
 

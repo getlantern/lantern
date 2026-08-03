@@ -36,11 +36,18 @@ func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 
 func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
 	ipcMu.Lock()
+	previousServer := ipcServer
+	previousStarting := ipcStarting
+	previousClosing := ipcClosing
+	ipcServer = nil
 	ipcStarting = true
+	ipcClosing = false
 	ipcMu.Unlock()
 	t.Cleanup(func() {
 		ipcMu.Lock()
-		ipcStarting = false
+		ipcServer = previousServer
+		ipcStarting = previousStarting
+		ipcClosing = previousClosing
 		ipcMu.Unlock()
 	})
 
