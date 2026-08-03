@@ -10,10 +10,6 @@ final _mmddyyFormatter = DateFormat('MM/dd/yy');
 extension PlanExtension on Plan {
   String get formattedYearlyPrice => _formatPriceMap(price);
 
-  int get yearlyAmountInt => expectedMonthlyPrice.isEmpty
-      ? 0
-      : _amountOf(expectedMonthlyPrice).round();
-
   String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
 
   /// The original (pre-discount) yearly price, taken directly from the

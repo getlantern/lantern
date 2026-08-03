@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -7,11 +9,18 @@ class StripeService {
   /// Adopts the publishable key advertised by the plans response so the SDK
   /// always confirms intents against the same Stripe account/environment the
   /// backend creates them in (prod → live key, staging → test key). The SDK
-  /// no-ops on an unchanged key and pushes a new one to the platform lazily
-  /// on the next native call.
+  /// no-ops on an unchanged key; applySettings pushes a changed one to the
+  /// native SDK right away so it's already applied by the time the payment
+  /// sheet initializes.
   void updatePublishableKey(String? pubKey) {
     if (pubKey == null || pubKey.isEmpty) return;
     Stripe.publishableKey = pubKey;
+    unawaited(
+      Stripe.instance.applySettings().catchError((Object e) {
+        // Non-fatal: initPaymentSheet re-applies pending settings itself.
+        appLogger.error('Stripe applySettings failed', e);
+      }),
+    );
   }
 
   /// Presents the payment sheet using Stripe's deferred-intent flow: no
@@ -122,9 +131,11 @@ class StripeService {
         '(subscriptionId: ${options.subscriptionId}, '
         'secret type: ${options.clientSecret.isNotEmpty ? 'payment' : 'setup'})',
       );
-      // Normal path returns a PaymentIntent secret; the trial path (user
-      // still has an unexpired one-time purchase) returns a SetupIntent
-      // secret instead.
+      // The sheet was initialized with IntentMode.paymentMode, so it can only
+      // confirm a PaymentIntent secret. The trial path (user still has an
+      // unexpired one-time purchase) returns a SetupIntent secret instead,
+      // which this sheet can't confirm — fail with a retryable message rather
+      // than hand the SDK a mismatched intent type.
       final secret = options.clientSecret;
 
       if (secret.isEmpty) {

@@ -199,7 +199,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
     // usdPrice is the backend's plan price in USD cents — always USD,
     // unlike the currency-keyed `price` map (local currency on CNY plans).
-    final amount = userPlan.yearlyAmountInt;
+    final amount = userPlan.usdPrice;
     appLogger.info(
       'Stripe subscription flow started (plan: ${userPlan.id}, '
       'amount: $amount cents)',

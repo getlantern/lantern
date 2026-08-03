@@ -16,12 +16,18 @@ class PlansNotifier extends _$PlansNotifier {
 
   Plan? userSelectedPlan;
 
+  // build() reruns on the same notifier instance when the provider is
+  // invalidated, but listenSelf subscriptions survive rebuilds — without this
+  // guard every rebuild would stack another listener.
+  bool _stripeKeyListenerAttached = false;
+
   @override
   Future<PlansData> build() async {
     // Every plans arrival (cache, fetch, referral update) funnels through
     // state, so this one listener keeps the Stripe key in sync. StripeService
     // is only registered on Android, hence the guard.
-    if (sl.isRegistered<StripeService>()) {
+    if (!_stripeKeyListenerAttached && sl.isRegistered<StripeService>()) {
+      _stripeKeyListenerAttached = true;
       listenSelf(
         (_, next) => next.whenData(
           (plans) =>
