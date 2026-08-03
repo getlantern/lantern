@@ -60,6 +60,10 @@ github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
+github.com/alexflint/go-arg v1.6.1 h1:uZogJ6VDBjcuosydKgvYYRhh9sRCusjOvoOLZopBlnA=
+github.com/alexflint/go-arg v1.6.1/go.mod h1:nQ0LFYftLJ6njcaee0sU+G0iS2+2XJQfA8I062D0LGc=
+github.com/alexflint/go-scalar v1.2.0 h1:WR7JPKkeNpnYIOfHRa7ivM21aWAdHD0gEWHCx+WQBRw=
+github.com/alexflint/go-scalar v1.2.0/go.mod h1:LoFvNMqS1CPrMVltza4LvnGKhaSpc3oyLEBUZVhhS2o=
 github.com/alitto/pond v1.9.2 h1:9Qb75z/scEZVCoSU+osVmQ0I0JOeLfdTDafrbcJ8CLs=
 github.com/alitto/pond v1.9.2/go.mod h1:xQn3P/sHTYcU/1BR3i86IGIrilcrGC2LiS+E2+CJWsI=
 github.com/anacrolix/btree v0.0.0-20251201064447-d86c3fa41bd8 h1:c02PsmoaChabVqAFm7pqPI1UIkDdDAjUaWa6ZmfxybQ=
@@ -261,6 +265,8 @@ github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmI
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b/go.mod h1:NpfXdK4ldEKkjQ4P1R+DBF4ua5VFOlxmgHROTnYrApg=
 github.com/getlantern/radiance v0.0.0-20260805182705-0aebcab87c89 h1:ZgdE/qPjx7ptpv0msnu4NSReL9neFlXQzC7kDVYty6g=
 github.com/getlantern/radiance v0.0.0-20260805182705-0aebcab87c89/go.mod h1:ZfvjwdgV6HbffcH7ZAkLsmt5Vs3TTd4AbWJMajOeyww=
+github.com/getlantern/radiance v0.0.0-20260809065423-4a83abc7c33a h1:Trb3QueFk+fYxoJHqrnpkRAmH/NrVftQzJeWPABdLVQ=
+github.com/getlantern/radiance v0.0.0-20260809065423-4a83abc7c33a/go.mod h1:ZfvjwdgV6HbffcH7ZAkLsmt5Vs3TTd4AbWJMajOeyww=
 github.com/getlantern/samizdat v0.0.3-0.20260724223841-a5ee9ab56830 h1:RZd3CELOtQUEzIE5kPdEO9HYg+7JYbR3OTdC+3P/wng=
 github.com/getlantern/samizdat v0.0.3-0.20260724223841-a5ee9ab56830/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb h1:c5YM7b3a4r2J8Eh89KkI6M/iTFe6Bi+b8AJlfkKdFq4=
