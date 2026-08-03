@@ -6,12 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:lantern/main.dart' as app;
-import 'package:path/path.dart' as p;
 
 const _stripeHost = 'checkout.stripe.com';
 
@@ -19,16 +17,13 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'staging Stripe Checkout renders in the Windows WebView',
+    'staging Stripe Checkout renders in the desktop WebView',
     (tester) async {
-      expect(Platform.isWindows, isTrue, reason: 'This smoke runs on Windows');
-
-      final stagingMarker = await _enableStaging();
-      addTearDown(() async {
-        if (stagingMarker.createdByTest && await stagingMarker.file.exists()) {
-          await stagingMarker.file.delete();
-        }
-      });
+      expect(
+        Platform.isWindows || Platform.isMacOS,
+        isTrue,
+        reason: 'This smoke runs on Windows and macOS',
+      );
 
       await app.main();
       await _waitFor(
@@ -117,16 +112,6 @@ void main() {
   );
 }
 
-Future<_StagingMarker> _enableStaging() async {
-  final appDirectory = await AppStorageUtils.getAppDirectory();
-  final file = File(p.join(appDirectory.path, '.radiance_env'));
-  final existed = await file.exists();
-  if (!existed) {
-    await file.create(recursive: true);
-  }
-  return _StagingMarker(file, createdByTest: !existed);
-}
-
 Future<void> _waitFor(
   WidgetTester tester,
   bool Function() condition, {
@@ -152,13 +137,6 @@ String _newUuid() {
   return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
       '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
       '${hex.substring(20)}';
-}
-
-class _StagingMarker {
-  final File file;
-  final bool createdByTest;
-
-  const _StagingMarker(this.file, {required this.createdByTest});
 }
 
 class _StripeCheckoutObserver implements AppWebViewObserver {
