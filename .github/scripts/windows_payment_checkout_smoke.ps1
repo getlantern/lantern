@@ -43,53 +43,14 @@ namespace WindowsPaymentSmoke {
   }
 
   public static class NativeToken {
-    private const int DACL_SECURITY_INFORMATION = 0x00000004;
-    private const int DESKTOP_ALL_ACCESS = 0x000F01FF;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
-    private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
-    private const uint LOGON_WITH_PROFILE = 0x00000001;
-    private const uint STARTF_USESHOWWINDOW = 0x00000001;
-    private const int WINSTA_ALL_ACCESS = 0x000F037F;
     private const int TokenElevation = 20;
 
     [System.Runtime.InteropServices.StructLayout(
       System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct TOKEN_ELEVATION {
       public int TokenIsElevated;
-    }
-
-    [System.Runtime.InteropServices.StructLayout(
-      System.Runtime.InteropServices.LayoutKind.Sequential,
-      CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-    private struct STARTUPINFO {
-      public int cb;
-      public string lpReserved;
-      public string lpDesktop;
-      public string lpTitle;
-      public int dwX;
-      public int dwY;
-      public int dwXSize;
-      public int dwYSize;
-      public int dwXCountChars;
-      public int dwYCountChars;
-      public int dwFillAttribute;
-      public uint dwFlags;
-      public short wShowWindow;
-      public short cbReserved2;
-      public System.IntPtr lpReserved2;
-      public System.IntPtr hStdInput;
-      public System.IntPtr hStdOutput;
-      public System.IntPtr hStdError;
-    }
-
-    [System.Runtime.InteropServices.StructLayout(
-      System.Runtime.InteropServices.LayoutKind.Sequential)]
-    private struct PROCESS_INFORMATION {
-      public System.IntPtr hProcess;
-      public System.IntPtr hThread;
-      public int dwProcessId;
-      public int dwThreadId;
     }
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
@@ -110,46 +71,6 @@ namespace WindowsPaymentSmoke {
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool CloseHandle(System.IntPtr handle);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-    private static extern System.IntPtr GetProcessWindowStation();
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-    private static extern System.IntPtr GetThreadDesktop(uint threadId);
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern uint GetCurrentThreadId();
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-    private static extern bool GetUserObjectSecurity(
-      System.IntPtr handle,
-      ref int requestedInformation,
-      System.IntPtr securityDescriptor,
-      uint length,
-      out uint needed);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-    private static extern bool SetUserObjectSecurity(
-      System.IntPtr handle,
-      ref int requestedInformation,
-      System.IntPtr securityDescriptor);
-
-    [System.Runtime.InteropServices.DllImport(
-      "advapi32.dll",
-      CharSet = System.Runtime.InteropServices.CharSet.Unicode,
-      SetLastError = true)]
-    private static extern bool CreateProcessWithLogonW(
-      string username,
-      string domain,
-      string password,
-      uint logonFlags,
-      string applicationName,
-      System.Text.StringBuilder commandLine,
-      uint creationFlags,
-      System.IntPtr environment,
-      string currentDirectory,
-      ref STARTUPINFO startupInfo,
-      out PROCESS_INFORMATION processInformation);
 
     public static bool IsElevated(int processId) {
       System.IntPtr process = OpenProcess(
@@ -180,161 +101,6 @@ namespace WindowsPaymentSmoke {
       } finally {
         CloseHandle(process);
       }
-    }
-
-    public static int StartWithLogon(
-        string username,
-        string password,
-        string applicationPath,
-        string arguments,
-        string workingDirectory) {
-      STARTUPINFO startup = new STARTUPINFO();
-      startup.cb = System.Runtime.InteropServices.Marshal.SizeOf(
-        typeof(STARTUPINFO));
-      startup.lpDesktop = "winsta0\\default";
-      startup.dwFlags = STARTF_USESHOWWINDOW;
-      startup.wShowWindow = 0;
-
-      PROCESS_INFORMATION process;
-      System.Text.StringBuilder command = CommandLine(
-        applicationPath, arguments);
-      if (!CreateProcessWithLogonW(
-          username,
-          ".",
-          password,
-          LOGON_WITH_PROFILE,
-          applicationPath,
-          command,
-          CREATE_UNICODE_ENVIRONMENT,
-          System.IntPtr.Zero,
-          workingDirectory,
-          ref startup,
-          out process)) {
-        throw LastError("CreateProcessWithLogonW");
-      }
-      try {
-        return process.dwProcessId;
-      } finally {
-        CloseHandle(process.hThread);
-        CloseHandle(process.hProcess);
-      }
-    }
-
-    public static void GrantInteractiveDesktop(string sid) {
-      UpdateAccess(
-        GetProcessWindowStation(),
-        new System.Security.Principal.SecurityIdentifier(sid),
-        WINSTA_ALL_ACCESS,
-        true);
-      UpdateAccess(
-        GetThreadDesktop(GetCurrentThreadId()),
-        new System.Security.Principal.SecurityIdentifier(sid),
-        DESKTOP_ALL_ACCESS,
-        true);
-    }
-
-    public static void RevokeInteractiveDesktop(string sid) {
-      System.Security.Principal.SecurityIdentifier identifier =
-        new System.Security.Principal.SecurityIdentifier(sid);
-      UpdateAccess(
-        GetThreadDesktop(GetCurrentThreadId()),
-        identifier,
-        DESKTOP_ALL_ACCESS,
-        false);
-      UpdateAccess(
-        GetProcessWindowStation(),
-        identifier,
-        WINSTA_ALL_ACCESS,
-        false);
-    }
-
-    private static void UpdateAccess(
-        System.IntPtr handle,
-        System.Security.Principal.SecurityIdentifier sid,
-        int accessMask,
-        bool grant) {
-      if (handle == System.IntPtr.Zero) {
-        throw LastError("Get interactive desktop handle");
-      }
-
-      int requestedInformation = DACL_SECURITY_INFORMATION;
-      uint needed;
-      GetUserObjectSecurity(
-        handle,
-        ref requestedInformation,
-        System.IntPtr.Zero,
-        0,
-        out needed);
-      if (needed == 0) {
-        throw LastError("GetUserObjectSecurity size");
-      }
-
-      System.IntPtr current =
-        System.Runtime.InteropServices.Marshal.AllocHGlobal((int)needed);
-      try {
-        if (!GetUserObjectSecurity(
-            handle,
-            ref requestedInformation,
-            current,
-            needed,
-            out needed)) {
-          throw LastError("GetUserObjectSecurity");
-        }
-        byte[] currentBytes = new byte[needed];
-        System.Runtime.InteropServices.Marshal.Copy(
-          current, currentBytes, 0, currentBytes.Length);
-        System.Security.AccessControl.RawSecurityDescriptor descriptor =
-          new System.Security.AccessControl.RawSecurityDescriptor(
-            currentBytes, 0);
-        System.Security.AccessControl.RawAcl acl =
-          descriptor.DiscretionaryAcl ??
-          new System.Security.AccessControl.RawAcl(
-            System.Security.AccessControl.GenericAcl.AclRevision, 1);
-
-        for (int i = acl.Count - 1; i >= 0; i--) {
-          System.Security.AccessControl.QualifiedAce ace =
-            acl[i] as System.Security.AccessControl.QualifiedAce;
-          if (ace != null && ace.SecurityIdentifier.Equals(sid)) {
-            acl.RemoveAce(i);
-          }
-        }
-        if (grant) {
-          acl.InsertAce(
-            acl.Count,
-            new System.Security.AccessControl.CommonAce(
-              System.Security.AccessControl.AceFlags.None,
-              System.Security.AccessControl.AceQualifier.AccessAllowed,
-              accessMask,
-              sid,
-              false,
-              null));
-        }
-        descriptor.DiscretionaryAcl = acl;
-
-        byte[] updatedBytes = new byte[descriptor.BinaryLength];
-        descriptor.GetBinaryForm(updatedBytes, 0);
-        System.IntPtr updated =
-          System.Runtime.InteropServices.Marshal.AllocHGlobal(
-            updatedBytes.Length);
-        try {
-          System.Runtime.InteropServices.Marshal.Copy(
-            updatedBytes, 0, updated, updatedBytes.Length);
-          if (!SetUserObjectSecurity(
-              handle, ref requestedInformation, updated)) {
-            throw LastError("SetUserObjectSecurity");
-          }
-        } finally {
-          System.Runtime.InteropServices.Marshal.FreeHGlobal(updated);
-        }
-      } finally {
-        System.Runtime.InteropServices.Marshal.FreeHGlobal(current);
-      }
-    }
-
-    private static System.Text.StringBuilder CommandLine(
-        string applicationPath, string arguments) {
-      return new System.Text.StringBuilder(
-        string.Format("\"{0}\" {1}", applicationPath, arguments));
     }
 
     private static System.Exception LastError(string operation) {
@@ -981,27 +747,25 @@ function Wait-CheckoutDocument {
 function Wait-LauncherResult {
   param(
     [string]$Path,
+    [System.Diagnostics.Process]$Process,
     [int]$TimeoutSeconds,
-    [System.Diagnostics.Process]$Process
+    [string]$ErrorPath
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $Path) { return }
-    if ($Process) {
-      $Process.Refresh()
-      if ($Process.HasExited) {
-        throw "Smoke-user launcher exited with code $($Process.ExitCode)"
+    $Process.Refresh()
+    if ($Process.HasExited) {
+      Start-Sleep -Seconds 1
+      if (Test-Path $Path) { return }
+      $errorDetails = if ($ErrorPath -and (Test-Path $ErrorPath)) {
+        (Get-Content $ErrorPath -Raw -ErrorAction SilentlyContinue).Trim()
+      } else {
+        ""
       }
-      if ($Process.MainWindowTitle -match '(?i)application error') {
-        throw "Smoke-user launcher could not initialize: $($Process.MainWindowTitle)"
+      if ($errorDetails) {
+        throw "Smoke-user launcher exited with code $($Process.ExitCode): $errorDetails"
       }
-      if (($i % 5) -eq 0) {
-        $applicationError = Get-Process -ErrorAction SilentlyContinue |
-          Where-Object { $_.MainWindowTitle -match '(?i)application error' } |
-          Select-Object -First 1
-        if ($applicationError) {
-          throw "Smoke-user launcher could not initialize: $($applicationError.MainWindowTitle)"
-        }
-      }
+      throw "Smoke-user launcher exited with code $($Process.ExitCode) without writing a result"
     }
     Start-Sleep -Seconds 1
   }
@@ -1236,7 +1000,7 @@ function Invoke-CheckoutCase {
   $transcript = Join-Path $caseDirectory "orchestration.log"
   $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
   $sid = $null
-  $passwordText = $null
+  $credential = $null
   $launcherProcess = $null
   $appProcess = $null
   $sharedAppDirectory = $null
@@ -1247,6 +1011,8 @@ function Invoke-CheckoutCase {
   $childCheckoutImagePath = $null
   $childFinalImagePath = $null
   $launcherLogPath = $null
+  $launcherStdoutPath = $null
+  $launcherStderrPath = $null
   $launcherConfigPath = $null
   $profilePath = $null
   $transcriptStarted = $false
@@ -1258,7 +1024,6 @@ function Invoke-CheckoutCase {
   try {
     Start-Transcript -Path $transcript -Force | Out-Null
     $transcriptStarted = $true
-    $null = Initialize-NativeSmokeHelpers
 
     $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
     $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
@@ -1273,7 +1038,14 @@ function Invoke-CheckoutCase {
     # membership. UAC still gives this interactive launch a filtered token.
     $administrators = Get-LocalGroup -SID "S-1-5-32-544"
     Add-LocalGroupMember -Group $administrators -Member $user
+    $administratorsMember = Get-LocalGroupMember -Group $administrators |
+      Where-Object { $_.SID.Value -eq $sid }
+    if (-not $administratorsMember) {
+      throw "Could not grant the smoke user access to the installed Lantern service"
+    }
 
+    # Create the profile before the real launch so the child process does not
+    # inherit the runner account's AppData paths.
     $profileBootstrap = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile -Wait -PassThru `
       -ArgumentList @(
@@ -1321,11 +1093,13 @@ function Invoke-CheckoutCase {
     $childCheckoutImagePath = Join-Path $exchangeDirectory "checkout.png"
     $childFinalImagePath = Join-Path $exchangeDirectory "final.png"
     $launcherLogPath = Join-Path $exchangeDirectory "automation.log"
+    $launcherStdoutPath = Join-Path $exchangeDirectory "launcher-stdout.log"
+    $launcherStderrPath = Join-Path $exchangeDirectory "launcher-stderr.log"
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
     $launcherConfigPath = Join-Path $exchangeDirectory "launcher.json"
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
-    # Keep automation and Flutter in the same logon and on the runner's visible
-    # desktop so WebView2 can create its browser processes normally.
+    # Run UI Automation in the same logon session as Flutter. Cross-user
+    # automation can see the native host window but not Flutter's semantics.
     Copy-Item $PSCommandPath $launcherPath -Force
     @{
       appPath = $InstalledAppPath
@@ -1347,31 +1121,19 @@ function Invoke-CheckoutCase {
     $launcherArguments = @(
       "-NoLogo",
       "-NoProfile",
-      "-WindowStyle", "Hidden",
       "-ExecutionPolicy", "Bypass",
       "-File", "`"$launcherPath`"",
       "-Mode", "launcher",
       "-LauncherConfigPath", "`"$launcherConfigPath`""
     )
-    $launcherCommandLine = $launcherArguments -join " "
-    if ($launcherCommandLine.Length -gt 900) {
-      throw "Smoke-user launcher command line is too long"
-    }
-    $windowsPowerShell = Join-Path $env:SystemRoot `
-      "System32\WindowsPowerShell\v1.0\powershell.exe"
-    [WindowsPaymentSmoke.NativeToken]::GrantInteractiveDesktop($sid)
-    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartWithLogon(
-      $username,
-      $passwordText,
-      $windowsPowerShell,
-      $launcherCommandLine,
-      $exchangeDirectory
-    )
-    $passwordText = $null
-    $launcherProcess = Get-Process -Id $launcherProcessID -ErrorAction Stop
+    $launcherProcess = Start-Process -FilePath "powershell.exe" `
+      -Credential $credential -LoadUserProfile `
+      -ArgumentList $launcherArguments `
+      -RedirectStandardOutput $launcherStdoutPath `
+      -RedirectStandardError $launcherStderrPath -PassThru
 
-    Wait-LauncherResult -Path $automationResultPath `
-      -TimeoutSeconds ($WaitSeconds + 150) -Process $launcherProcess
+    Wait-LauncherResult -Path $automationResultPath -Process $launcherProcess `
+      -TimeoutSeconds ($WaitSeconds + 150) -ErrorPath $launcherStderrPath
     $automationResult = Get-Content $automationResultPath -Raw |
       ConvertFrom-Json
     if (-not $automationResult.success) {
@@ -1436,6 +1198,14 @@ function Invoke-CheckoutCase {
         Destination = Join-Path $caseDirectory "automation.log"
       },
       [pscustomobject]@{
+        Source = $launcherStdoutPath
+        Destination = Join-Path $caseDirectory "launcher-stdout.log"
+      },
+      [pscustomobject]@{
+        Source = $launcherStderrPath
+        Destination = Join-Path $caseDirectory "launcher-stderr.log"
+      },
+      [pscustomobject]@{
         Source = $childWebViewPath
         Destination = Join-Path $caseDirectory "webview.json"
       },
@@ -1482,13 +1252,6 @@ function Invoke-CheckoutCase {
       Copy-CaseLogs -Destination $caseDirectory
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
-    }
-    if ($sid) {
-      try {
-        [WindowsPaymentSmoke.NativeToken]::RevokeInteractiveDesktop($sid)
-      } catch {
-        Write-Warning "Could not remove smoke-user desktop access: $_"
-      }
     }
     if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
       & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
