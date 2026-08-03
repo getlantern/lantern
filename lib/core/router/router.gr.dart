@@ -239,6 +239,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
     String? code,
     required _i46.AuthFlow authFlow,
     String? expandedProvider,
+    String? automaticCheckoutProvider,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          ChoosePaymentMethod.name,
@@ -248,6 +249,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
            code: code,
            authFlow: authFlow,
            expandedProvider: expandedProvider,
+           automaticCheckoutProvider: automaticCheckoutProvider,
          ),
          initialChildren: children,
        );
@@ -264,6 +266,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
         code: args.code,
         authFlow: args.authFlow,
         expandedProvider: args.expandedProvider,
+        automaticCheckoutProvider: args.automaticCheckoutProvider,
       );
     },
   );
@@ -276,6 +279,7 @@ class ChoosePaymentMethodArgs {
     this.code,
     required this.authFlow,
     this.expandedProvider,
+    this.automaticCheckoutProvider,
   });
 
   final _i45.Key? key;
@@ -288,9 +292,11 @@ class ChoosePaymentMethodArgs {
 
   final String? expandedProvider;
 
+  final String? automaticCheckoutProvider;
+
   @override
   String toString() {
-    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow, expandedProvider: $expandedProvider}';
+    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow, expandedProvider: $expandedProvider, automaticCheckoutProvider: $automaticCheckoutProvider}';
   }
 
   @override
@@ -301,7 +307,8 @@ class ChoosePaymentMethodArgs {
         email == other.email &&
         code == other.code &&
         authFlow == other.authFlow &&
-        expandedProvider == other.expandedProvider;
+        expandedProvider == other.expandedProvider &&
+        automaticCheckoutProvider == other.automaticCheckoutProvider;
   }
 
   @override
@@ -310,7 +317,8 @@ class ChoosePaymentMethodArgs {
       email.hashCode ^
       code.hashCode ^
       authFlow.hashCode ^
-      expandedProvider.hashCode;
+      expandedProvider.hashCode ^
+      automaticCheckoutProvider.hashCode;
 }
 
 /// generated route for

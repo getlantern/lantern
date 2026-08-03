@@ -21,6 +21,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   final String? code;
   final AuthFlow authFlow;
   final String? expandedProvider;
+  final String? automaticCheckoutProvider;
 
   const ChoosePaymentMethod({
     super.key,
@@ -28,6 +29,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     this.code,
     required this.authFlow,
     this.expandedProvider,
+    this.automaticCheckoutProvider,
   });
 
   @override
@@ -64,6 +66,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
                   userPlan: userPlan,
                   isSubmitting: paymentRedirectInFlight.value,
                   expandedProvider: expandedProvider,
+                  automaticCheckoutProvider: automaticCheckoutProvider,
                   onSubscribe: (provider) => onSubscribe(
                     provider,
                     ref,
@@ -452,6 +455,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   final Plan userPlan;
   final bool isSubmitting;
   final String? expandedProvider;
+  final String? automaticCheckoutProvider;
   final Function(Android provider) onSubscribe;
 
   const PaymentCheckoutMethods({
@@ -460,6 +464,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
     required this.userPlan,
     required this.isSubmitting,
     this.expandedProvider,
+    this.automaticCheckoutProvider,
     required this.onSubscribe,
   });
 
@@ -467,6 +472,21 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final referral = ref.watch(referralProvider);
     final theme = Theme.of(context).textTheme;
+    final automaticCheckoutStarted = useRef(false);
+    final matchingAutomaticProviders = providers.where(
+      (provider) => provider.providers.name == automaticCheckoutProvider,
+    );
+    if (!isSubmitting &&
+        !automaticCheckoutStarted.value &&
+        matchingAutomaticProviders.isNotEmpty) {
+      automaticCheckoutStarted.value = true;
+      final provider = matchingAutomaticProviders.first;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          onSubscribe(provider);
+        }
+      });
+    }
     // Affiliate: show the full (pre-discount) price on the plan line and the
     // deducted amount on the promo line; the discounted total stays in Order
     // Total. Computed once here (constant across the provider list).

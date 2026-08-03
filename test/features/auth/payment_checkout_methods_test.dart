@@ -62,4 +62,55 @@ void main() {
     expect(checkout.label, 'Continue with Stripe');
     expect(checkout.hasAction(SemanticsAction.tap), isTrue);
   });
+
+  testWidgets('automatically starts the selected checkout once', (
+    tester,
+  ) async {
+    final stripe = plans.Android(
+      method: 'credit-card',
+      providers: plans.Provider(
+        name: 'stripe',
+        icons: const [],
+        supportSubscription: true,
+      ),
+    );
+    final plan = plans.Plan(
+      id: '2y-usd-10',
+      description: 'Two Year Plan',
+      usdPrice: 8700,
+      price: const {'usd': 8700},
+      expectedMonthlyPrice: const {'usd': 363},
+      bestValue: true,
+    );
+    var starts = 0;
+    plans.Android? startedProvider;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: ScreenUtilInit(
+          designSize: const Size(390, 844),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: Scaffold(
+              body: PaymentCheckoutMethods(
+                providers: [stripe],
+                userPlan: plan,
+                isSubmitting: false,
+                automaticCheckoutProvider: 'stripe',
+                onSubscribe: (provider) {
+                  starts++;
+                  startedProvider = provider;
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(starts, 1);
+    expect(startedProvider, same(stripe));
+  });
 }

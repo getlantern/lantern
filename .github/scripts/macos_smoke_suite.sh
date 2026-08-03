@@ -385,43 +385,6 @@ wait_for_lantern_process() {
   return 1
 }
 
-press_accessibility_control() {
-  local identifier="$1"
-  local timeout_seconds="$2"
-  local deadline=$((SECONDS + timeout_seconds))
-
-  while ((SECONDS < deadline)); do
-    if osascript - "$LANTERN_PID" "$identifier" <<'APPLESCRIPT' >/dev/null 2>&1
-on run argv
-  set targetPID to item 1 of argv as integer
-  set targetIdentifier to item 2 of argv
-
-  tell application "System Events"
-    set targetProcess to first application process whose unix id is targetPID
-    set frontmost of targetProcess to true
-    repeat with candidate in entire contents of front window of targetProcess
-      try
-        if value of attribute "AXIdentifier" of candidate is targetIdentifier then
-          perform action "AXPress" of candidate
-          return
-        end if
-      end try
-    end repeat
-  end tell
-
-  error "Accessibility control not found: " & targetIdentifier
-end run
-APPLESCRIPT
-    then
-      return 0
-    fi
-    sleep 1
-  done
-
-  printf 'Unable to press macOS accessibility control %s.\n' "$identifier" >&2
-  return 1
-}
-
 wait_for_checkout_document() {
   local host_pattern="$1"
   local timeout_seconds="$2"
@@ -487,7 +450,6 @@ run_payment_checkout_case() {
     "PAYMENT_CHECKOUT_SMOKE event=screen_ready provider=$provider run_id=$run_id" 120
   screencapture -x "$case_dir/payment-method.png" 2>/dev/null || true
 
-  press_accessibility_control "payment-checkout-$provider" 30
   wait_for_checkout_document "$host_pattern" 180
   screencapture -x "$case_dir/checkout.png" 2>/dev/null || true
 
