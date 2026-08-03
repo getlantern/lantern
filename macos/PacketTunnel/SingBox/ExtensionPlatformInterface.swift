@@ -460,8 +460,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func restartService() throws {
-    runBlocking { [self] in
-      tunnel.restartService()
+    try runBlocking { [self] in
+      try tunnel.restartService()
     }
   }
 

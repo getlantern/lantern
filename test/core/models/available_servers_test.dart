@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/models/available_servers.dart';
 
@@ -259,7 +261,143 @@ void main() {
       expect(s.shouldWarnBeforeManualSelection, isFalse);
     });
   });
+
+  group('user_failures deserialization', () {
+    // lantern-box v0.0.101 changed each entry from a bare RFC3339 timestamp to
+    // a {"at": ..., "kind": ...} object. Both have to parse: the object form is
+    // what current lantern-box sends, the string form is what a client paired
+    // with a pre-v0.0.101 one would see.
+    test('parses the object form', () {
+      final history = SelectionHistory.fromJson({
+        'last_success_delay_ms': 2556,
+        'consecutive_failures': 2,
+        'user_failures': [
+          {'at': '2026-07-23T19:23:18.956396324+08:00', 'kind': 'unknown'},
+          {'at': '2026-07-23T19:24:11.696763492+08:00', 'kind': 'stall'},
+        ],
+        'updated_at': '2026-07-23T19:26:52.297493639+08:00',
+      });
+
+      expect(history.userFailures, [
+        DateTime.parse('2026-07-23T19:23:18.956396324+08:00'),
+        DateTime.parse('2026-07-23T19:24:11.696763492+08:00'),
+      ]);
+    });
+
+    test('parses an object form with no kind', () {
+      final history = SelectionHistory.fromJson({
+        'user_failures': [
+          {'at': '2026-07-06T12:00:00Z'},
+        ],
+      });
+
+      expect(history.userFailures, [DateTime.parse('2026-07-06T12:00:00Z')]);
+    });
+
+    test('parses the legacy bare-timestamp form', () {
+      final history = SelectionHistory.fromJson({
+        'user_failures': ['2026-07-06T12:00:00Z', '2026-07-06T12:01:00Z'],
+      });
+
+      expect(history.userFailures, [
+        DateTime.parse('2026-07-06T12:00:00Z'),
+        DateTime.parse('2026-07-06T12:01:00Z'),
+      ]);
+    });
+
+    test('parses a window holding both forms at once', () {
+      final history = SelectionHistory.fromJson({
+        'user_failures': [
+          '2026-07-06T12:00:00Z',
+          {'at': '2026-07-06T12:01:00Z', 'kind': 'reset'},
+        ],
+      });
+
+      expect(history.userFailures, [
+        DateTime.parse('2026-07-06T12:00:00Z'),
+        DateTime.parse('2026-07-06T12:01:00Z'),
+      ]);
+    });
+
+    test('an absent window parses as empty', () {
+      expect(SelectionHistory.fromJson({}).userFailures, isEmpty);
+    });
+
+    // A window this side can't read must cost us the entries, not the server.
+    test('drops entries with no readable timestamp', () {
+      final history = SelectionHistory.fromJson({
+        'user_failures': [
+          {'kind': 'stall'},
+          {'at': null},
+          {'at': 1752580800},
+          'the beginning of time',
+          42,
+          null,
+          {'at': '2026-07-06T12:00:00Z', 'kind': 'stall'},
+        ],
+      });
+
+      expect(history.userFailures, [DateTime.parse('2026-07-06T12:00:00Z')]);
+    });
+
+    // Freshdesk #180591: a single server carrying the object form threw during
+    // Server.fromJson, and because AvailableServers.fromJson maps over the
+    // whole list, that one entry took down all 55 servers — leaving the client
+    // with no server list at all.
+    test('parses a list where only one server carries user_failures', () {
+      final servers = AvailableServers.fromJson(
+        _payload([
+          _serverJson(tag: 'no-failures'),
+          _serverJson(
+            tag: 'has-failures',
+            userFailures: [
+              {'at': '2026-07-23T19:23:18.956396324+08:00', 'kind': 'unknown'},
+            ],
+          ),
+        ]),
+      );
+
+      expect(servers.servers.map((s) => s.tag), [
+        'no-failures',
+        'has-failures',
+      ]);
+      expect(
+        servers.serverByTag('has-failures')!.selectionHistory!.userFailures,
+        hasLength(1),
+      );
+    });
+  });
 }
+
+/// Round-trips through JSON so element types match what the platform channel
+/// hands us — `List<dynamic>` of `Map<String, dynamic>`, nested maps likewise —
+/// rather than the sharper literal types the analyzer infers here.
+List<dynamic> _payload(List<Map<String, dynamic>> servers) =>
+    jsonDecode(jsonEncode(servers)) as List<dynamic>;
+
+/// One server as it looks after `jsonDecode` of the payload radiance sends.
+Map<String, dynamic> _serverJson({
+  required String tag,
+  List<Map<String, dynamic>>? userFailures,
+}) => {
+  'tag': tag,
+  'type': 'samizdat',
+  'isLantern': true,
+  'outbound': {'type': 'samizdat', 'tag': tag, 'server': '203.0.113.7'},
+  'location': {
+    'country': 'U.S.A.',
+    'city': 'Chicago',
+    'country_code': 'US',
+    'latitude': 41.8781,
+    'longitude': -87.6298,
+  },
+  'selection_history': {
+    'last_success_delay_ms': 1264,
+    'last_outcome_at': '2026-07-23T19:26:51.648896087+08:00',
+    'user_failures': ?userFailures,
+    'updated_at': '2026-07-23T19:26:51.648896087+08:00',
+  },
+};
 
 Server _server({
   required String tag,

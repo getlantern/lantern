@@ -115,7 +115,7 @@ class AndroidSideloadUpdater {
     }
     if (!flags.getBool(
       FeatureFlag.androidSideloadAutoUpdateEnabled,
-      defaultValue: false,
+      defaultValue: AppBuildInfo.buildType == 'beta',
     )) {
       if (!logDisabled) {
         appLogger.info(

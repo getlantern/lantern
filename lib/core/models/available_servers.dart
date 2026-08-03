@@ -258,7 +258,8 @@ class SelectionHistory {
         consecutiveFailures: json["consecutive_failures"] ?? 0,
         userFailures:
             (json["user_failures"] as List<dynamic>?)
-                ?.map((e) => DateTime.parse(e as String))
+                ?.map(_userFailureAt)
+                .whereType<DateTime>()
                 .toList() ??
             const [],
         updatedAt: json["updated_at"] == null
@@ -266,11 +267,27 @@ class SelectionHistory {
             : DateTime.parse(json["updated_at"]),
       );
 
+  /// Timestamp of one `user_failures` entry, or null if it has none we can
+  /// read. lantern-box v0.0.101 changed each entry from a bare RFC3339 string
+  /// to a `{"at": ..., "kind": ...}` object; both are accepted so this parses
+  /// against either version, matching Go's `UserFailure.UnmarshalJSON`.
+  /// Unreadable entries are dropped rather than thrown on: one entry in the
+  /// shape this side didn't expect used to fail `Server.fromJson`, and since
+  /// `AvailableServers.fromJson` maps over the whole list, that cost the client
+  /// every server it had. `kind` is dropped too — nothing here reads it.
+  static DateTime? _userFailureAt(dynamic entry) {
+    final at = entry is Map ? entry["at"] : entry;
+    return at is String ? DateTime.tryParse(at) : null;
+  }
+
   Map<String, dynamic> toJson() => {
     "last_success_delay_ms": lastSuccessDelayMs,
     if (lastOutcomeAt != null)
       "last_outcome_at": lastOutcomeAt!.toIso8601String(),
     "consecutive_failures": consecutiveFailures,
+    // Bare timestamps, i.e. the pre-v0.0.101 shape, which Go still accepts.
+    // Nothing sends this back to Go today; emitting the object form would mean
+    // inventing a `kind` we never parsed.
     if (userFailures.isNotEmpty)
       "user_failures": userFailures.map((e) => e.toIso8601String()).toList(),
     if (updatedAt != null) "updated_at": updatedAt!.toIso8601String(),
