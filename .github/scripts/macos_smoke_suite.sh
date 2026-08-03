@@ -221,9 +221,15 @@ capture_diagnostics() {
 }
 
 quit_lantern() {
+  if ! pgrep -x Lantern >/dev/null 2>&1; then
+    return
+  fi
+
   log_step "Asking Lantern to quit"
-  osascript -e 'tell application id "org.getlantern.lantern" to quit' >/dev/null 2>&1 || true
-  osascript -e 'tell application "Lantern" to quit' >/dev/null 2>&1 || true
+  if ! osascript -e 'tell application id "org.getlantern.lantern" to quit' \
+    >/dev/null 2>&1; then
+    osascript -e 'tell application "Lantern" to quit' >/dev/null 2>&1 || true
+  fi
   sleep 2
 }
 
@@ -359,6 +365,26 @@ wait_for_log_pattern() {
   return 1
 }
 
+wait_for_lantern_process() {
+  local app_executable="$1"
+  local timeout_seconds="$2"
+  local deadline=$((SECONDS + timeout_seconds))
+
+  while ((SECONDS < deadline)); do
+    local pid
+    while read -r pid; do
+      if [[ "$(ps -p "$pid" -o command= 2>/dev/null)" == "$app_executable"* ]]; then
+        LANTERN_PID="$pid"
+        return 0
+      fi
+    done < <(pgrep -x Lantern 2>/dev/null || true)
+    sleep 1
+  done
+
+  printf 'Lantern did not start from %s.\n' "$app_executable" >&2
+  return 1
+}
+
 press_accessibility_control() {
   local identifier="$1"
   local timeout_seconds="$2"
@@ -433,9 +459,10 @@ wait_for_checkout_document() {
 }
 
 run_payment_checkout_case() {
-  local app_executable="$1"
+  local app_path="$1"
   local provider="$2"
   local host_pattern="$3"
+  local app_executable="$app_path/Contents/MacOS/Lantern"
   local case_dir="$ARTIFACT_DIR/payment-$provider"
   local run_id
   run_id="$(uuidgen | tr '[:upper:]' '[:lower:]')"
@@ -445,11 +472,14 @@ run_payment_checkout_case() {
   reset_lantern_data
   log_step "Opening $provider checkout in the macOS app"
 
-  "$app_executable" \
+  open -F -n \
+    -o "$case_dir/process.log" \
+    --stderr "$case_dir/process-error.log" \
+    "$app_path" \
+    --args \
     "--payment-checkout-smoke=$provider" \
-    "--payment-checkout-run-id=$run_id" \
-    >"$case_dir/process.log" 2>&1 &
-  LANTERN_PID=$!
+    "--payment-checkout-run-id=$run_id"
+  wait_for_lantern_process "$app_executable" 30
 
   wait_for_log_pattern \
     'Setting up Radiance opts=.*Env:stage' 60 "$case_dir/process.log"
@@ -466,12 +496,12 @@ run_payment_checkout_case() {
 }
 
 run_payment_checkout_smoke() {
-  local app_executable="$1"
+  local app_path="$1"
 
   run_payment_checkout_case \
-    "$app_executable" stripe '^checkout\.stripe\.com$'
+    "$app_path" stripe '^checkout\.stripe\.com$'
   run_payment_checkout_case \
-    "$app_executable" shepherd '(^|\.)m62mrsf\.com$'
+    "$app_path" shepherd '(^|\.)m62mrsf\.com$'
 }
 
 stop_payment_lantern() {
@@ -527,7 +557,7 @@ else
 fi
 
 if [[ "$RUN_PAYMENT_CHECKOUT_SMOKE" == "true" ]]; then
-  run_payment_checkout_smoke "$app_executable"
+  run_payment_checkout_smoke "$app_path"
 else
   log_step "Skipping macOS payment checkout smoke test."
 fi
