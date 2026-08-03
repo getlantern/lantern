@@ -9,6 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
+  private let operationGate = VPNOperationGate()
   //Do not switch to NEVPNManager.shared() that is only for class app extension
   private var manager: NEVPNManager = NETunnelProviderManager()
   static let shared: VPNManager = VPNManager()
@@ -135,6 +136,9 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
+    try operationGate.begin()
+    defer { operationGate.end() }
+
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("Lantern")]
@@ -154,6 +158,9 @@ class VPNManager: VPNBase {
   func connectToServer(
     serverName: String
   ) async throws {
+    try operationGate.begin()
+    defer { operationGate.end() }
+
     await self.setupVPN()
     let options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
@@ -181,6 +188,9 @@ class VPNManager: VPNBase {
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
+    try operationGate.begin()
+    defer { operationGate.end() }
+
     appLogger.log("Stopping tunnel..")
     await syncStatus()
     let status = manager.connection.status

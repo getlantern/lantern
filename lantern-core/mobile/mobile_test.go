@@ -1,6 +1,7 @@
 package mobile
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -30,5 +31,21 @@ func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("getClient blocked on the IPC lifecycle lock")
+	}
+}
+
+func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
+	ipcMu.Lock()
+	ipcStarting = true
+	ipcMu.Unlock()
+	t.Cleanup(func() {
+		ipcMu.Lock()
+		ipcStarting = false
+		ipcMu.Unlock()
+	})
+
+	err := StartIPCServer(nil, nil)
+	if !errors.Is(err, errIPCLifecycleBusy) {
+		t.Fatalf("StartIPCServer() error = %v, want %v", err, errIPCLifecycleBusy)
 	}
 }

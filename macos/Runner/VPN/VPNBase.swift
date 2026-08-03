@@ -3,9 +3,10 @@
 //  Lantern
 //
 
+import Foundation
 import NetworkExtension
 
-enum VPNManagerError: LocalizedError {
+enum VPNManagerError: LocalizedError, Equatable {
   case userDisallowedVPNConfigurations
   case loadingProviderFailed
   case savingProviderFailed
@@ -28,6 +29,30 @@ enum VPNManagerError: LocalizedError {
   }
 }
 
+/// Prevents two VPN lifecycle operations from running at the same time.
+final class VPNOperationGate {
+  private let lock = NSLock()
+  private var active = false
+
+  /// Claims the gate or reports that another operation is still running.
+  func begin() throws {
+    lock.lock()
+    defer { lock.unlock() }
+    guard !active else {
+      throw VPNManagerError.operationInProgress
+    }
+    active = true
+  }
+
+  /// Releases the gate after the current operation finishes.
+  func end() {
+    lock.lock()
+    active = false
+    lock.unlock()
+  }
+}
+
+/// Returns whether a new tunnel should start for the current system status.
 func shouldStartNewTunnel(for status: NEVPNStatus) throws -> Bool {
   switch status {
   case .connected:
@@ -43,6 +68,7 @@ func shouldStartNewTunnel(for status: NEVPNStatus) throws -> Bool {
   }
 }
 
+/// Returns whether the current tunnel should be stopped.
 func shouldStopTunnel(for status: NEVPNStatus) throws -> Bool {
   switch status {
   case .connected, .connecting, .reasserting:

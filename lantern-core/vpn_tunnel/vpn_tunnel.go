@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"sync"
 
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
@@ -16,7 +15,7 @@ const (
 	InternalTagAutoAll InternalTag = "auto-all"
 )
 
-var connectMu sync.Mutex
+var connectSem = make(chan struct{}, 1)
 
 type vpnClient interface {
 	VPNStatus(context.Context) (vpn.VPNStatus, error)
@@ -40,8 +39,12 @@ func ConnectToServer(ctx context.Context, client *ipc.Client, tag string) error 
 }
 
 func connectToServer(ctx context.Context, client vpnClient, tag string) error {
-	connectMu.Lock()
-	defer connectMu.Unlock()
+	select {
+	case connectSem <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	defer func() { <-connectSem }()
 
 	slog.Debug("Connecting to VPN server", "tag", tag)
 

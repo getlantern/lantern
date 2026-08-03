@@ -7,6 +7,15 @@ import XCTest
 
 final class RunnerTests: XCTestCase {
 
+  private func assertVPNManagerError(
+    _ expected: VPNManagerError,
+    _ operation: () throws -> Void
+  ) {
+    XCTAssertThrowsError(try operation()) { error in
+      XCTAssertEqual(error as? VPNManagerError, expected)
+    }
+  }
+
   func testVPNStartStates() throws {
     XCTAssertTrue(try shouldStartNewTunnel(for: .disconnected))
     XCTAssertFalse(try shouldStartNewTunnel(for: .connected))
@@ -20,6 +29,10 @@ final class RunnerTests: XCTestCase {
         }
       }
     }
+
+    assertVPNManagerError(.loadingProviderFailed) {
+      _ = try shouldStartNewTunnel(for: .invalid)
+    }
   }
 
   func testVPNStopStates() throws {
@@ -29,6 +42,21 @@ final class RunnerTests: XCTestCase {
     for status in [NEVPNStatus.disconnected, .disconnecting] {
       XCTAssertFalse(try shouldStopTunnel(for: status))
     }
+
+    assertVPNManagerError(.loadingProviderFailed) {
+      _ = try shouldStopTunnel(for: .invalid)
+    }
+  }
+
+  func testVPNOperationGateRejectsOverlap() throws {
+    let gate = VPNOperationGate()
+    try gate.begin()
+    assertVPNManagerError(.operationInProgress) {
+      try gate.begin()
+    }
+    gate.end()
+    XCTAssertNoThrow(try gate.begin())
+    gate.end()
   }
 
   func testHashBundleIsStableForIdenticalContents() throws {

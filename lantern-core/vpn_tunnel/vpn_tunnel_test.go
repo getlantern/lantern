@@ -2,6 +2,7 @@ package vpn_tunnel
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -58,8 +59,10 @@ func TestConnectToServerSerializesRequests(t *testing.T) {
 	waitForStatusCall(t, client.statusCalled)
 
 	secondDone := make(chan error, 1)
+	secondCtx, cancelSecond := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancelSecond()
 	go func() {
-		secondDone <- connectToServer(context.Background(), client, "second")
+		secondDone <- connectToServer(secondCtx, client, "second")
 	}()
 
 	select {
@@ -68,11 +71,16 @@ func TestConnectToServerSerializesRequests(t *testing.T) {
 	case <-time.After(100 * time.Millisecond):
 	}
 
+	if err := waitForError(t, secondDone); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("second request error = %v, want %v", err, context.DeadlineExceeded)
+	}
+
 	client.unblock()
 	waitForResult(t, firstDone)
-	waitForStatusCall(t, client.statusCalled)
-	waitForResult(t, secondDone)
 
+	if err := connectToServer(context.Background(), client, "third"); err != nil {
+		t.Fatal(err)
+	}
 	if got := client.connectCalls.Load(); got != 2 {
 		t.Fatalf("ConnectVPN called %d times, want 2", got)
 	}
@@ -89,12 +97,18 @@ func waitForStatusCall(t *testing.T, called <-chan struct{}) {
 
 func waitForResult(t *testing.T, result <-chan error) {
 	t.Helper()
+	if err := waitForError(t, result); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func waitForError(t *testing.T, result <-chan error) error {
+	t.Helper()
 	select {
 	case err := <-result:
-		if err != nil {
-			t.Fatal(err)
-		}
+		return err
 	case <-time.After(time.Second):
 		t.Fatal("timed out waiting for connect request")
+		return nil
 	}
 }

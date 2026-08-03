@@ -29,6 +29,7 @@ import (
 var (
 	lanternCore         atomic.Value
 	errLanternNotReady  = errors.New("radiance not initialized")
+	errIPCLifecycleBusy = errors.New("IPC server lifecycle operation in progress")
 	errIPCStartCanceled = errors.New("IPC server startup canceled")
 
 	ipcServer     *ipc.Server
@@ -292,7 +293,7 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		}
 		if ipcStarting || ipcClosing {
 			ipcMu.Unlock()
-			return struct{}{}, errLanternNotReady
+			return struct{}{}, errIPCLifecycleBusy
 		}
 		ipcStarting = true
 		generation := ipcGeneration
