@@ -22,7 +22,7 @@ class StripeService {
   /// leaves nothing behind — no abandoned `incomplete` subscriptions on
   /// Stripe or in our DB.
   ///
-  /// [amount] is the plan's expected monthly price in USD cents.
+  /// [amount] is the plan's price in USD cents (the sheet's display total).
   ///
   /// This is only used by android.
   Future<void> startStripeSDK({

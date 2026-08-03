@@ -196,9 +196,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
+
+    // usdPrice is the backend's plan price in USD cents — always USD,
+    // unlike the currency-keyed `price` map (local currency on CNY plans).
+    final amount = userPlan.yearlyAmountInt;
     appLogger.info(
       'Stripe subscription flow started (plan: ${userPlan.id}, '
-      'amount: ${userPlan.monthlyUsdCents} cents/month)',
+      'amount: $amount cents)',
     );
 
     /// Deferred-intent flow: the sheet opens right away and the backend
@@ -208,7 +212,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     /// since startStripeSDK returns before the user finishes the flow.
     sl<StripeService>().startStripeSDK(
       context: context,
-      amount: userPlan.monthlyUsdCents,
+      amount: amount,
       email: email,
       onCreateSubscription: () async {
         // paymentProvider is autoDispose, so it must be read here at Pay-tap

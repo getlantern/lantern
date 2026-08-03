@@ -10,13 +10,11 @@ final _mmddyyFormatter = DateFormat('MM/dd/yy');
 extension PlanExtension on Plan {
   String get formattedYearlyPrice => _formatPriceMap(price);
 
-  String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
-
-  /// The expected monthly price in cents — the amount quoted to Stripe.
-  /// The backend always sends USD as the expectedMonthlyPrice currency.
-  int get monthlyUsdCents => expectedMonthlyPrice.isEmpty
+  int get yearlyAmountInt => expectedMonthlyPrice.isEmpty
       ? 0
       : _amountOf(expectedMonthlyPrice).round();
+
+  String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
 
   /// The original (pre-discount) yearly price, taken directly from the
   /// backend's `originalPrice` (no calculation). Shown as the strikethrough
