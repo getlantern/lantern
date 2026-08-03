@@ -17,7 +17,7 @@ import 'logger_service.dart';
 
 final GetIt sl = GetIt.instance;
 
-Future<void> injectServices({bool useStaging = false}) async {
+Future<void> injectServices() async {
   appLogger.debug('Initializing storage services...');
   final storage = LocalStorageService();
   final storeUtils = StoreUtils();
@@ -56,7 +56,7 @@ Future<void> injectServices({bool useStaging = false}) async {
 
   sl.registerSingleton<LanternFFIService>(
     PlatformUtils.isFFISupported
-        ? LanternFFIService(useStaging: useStaging)
+        ? LanternFFIService()
         : MockLanternFFIService(),
   );
 

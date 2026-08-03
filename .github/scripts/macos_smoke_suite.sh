@@ -185,6 +185,7 @@ reset_lantern_data() {
   log_step "Resetting Lantern data at $LANTERN_DATA_DIR"
   rm -rf "$LANTERN_DATA_DIR"
   mkdir -p "$LANTERN_LOG_DIR"
+  touch "$LANTERN_DATA_DIR/.radiance_env"
 }
 
 capture_unified_logs() {
@@ -334,7 +335,8 @@ run_flutter_connect_smoke() {
 wait_for_log_pattern() {
   local pattern="$1"
   local timeout_seconds="$2"
-  local log_file="$LANTERN_LOG_DIR/flutter.log"
+  local log_file="${3:-$LANTERN_LOG_DIR/flutter.log}"
+  local flutter_log="$LANTERN_LOG_DIR/flutter.log"
   local deadline=$((SECONDS + timeout_seconds))
 
   while ((SECONDS < deadline)); do
@@ -345,15 +347,15 @@ wait_for_log_pattern() {
     if [[ -f "$log_file" ]] && grep -Eq "$pattern" "$log_file"; then
       return 0
     fi
-    if [[ -f "$log_file" ]] && grep -Eq \
-      'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)' "$log_file"; then
-      tail -n 80 "$log_file" >&2
+    if [[ -f "$flutter_log" ]] && grep -Eq \
+      'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)' "$flutter_log"; then
+      tail -n 80 "$flutter_log" >&2
       return 1
     fi
     sleep 1
   done
 
-  printf 'Timed out waiting for log pattern: %s\n' "$pattern" >&2
+  printf 'Timed out waiting for %s in %s.\n' "$pattern" "$log_file" >&2
   return 1
 }
 
@@ -450,7 +452,7 @@ run_payment_checkout_case() {
   LANTERN_PID=$!
 
   wait_for_log_pattern \
-    "Radiance configuration - env: stage" 60
+    'Setting up Radiance opts=.*Env:stage' 60 "$case_dir/process.log"
   wait_for_log_pattern \
     "PAYMENT_CHECKOUT_SMOKE event=screen_ready provider=$provider run_id=$run_id" 120
   screencapture -x "$case_dir/payment-method.png" 2>/dev/null || true

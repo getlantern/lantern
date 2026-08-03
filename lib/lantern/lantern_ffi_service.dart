@@ -46,10 +46,6 @@ const Set<String> _ffiOkResults = {'ok', 'true'};
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
 
-  final bool useStaging;
-
-  LanternFFIService({this.useStaging = false});
-
   Stream<LanternStatus> _status = _defaultStatusStream();
 
   Stream<PrivateServerStatus> _privateServerStatus =
@@ -167,10 +163,8 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  /// Selects staging when a desktop smoke explicitly requested it. Normal
-  /// release builds continue to use production.
+  /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
   Future<String> _radianceEnv() async {
-    if (useStaging) return "stage";
     if (kReleaseMode) {
       return "prod";
     } else {

@@ -20,11 +20,6 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main([List<String> arguments = const []]) async {
-  final paymentCheckoutSmoke = PaymentCheckoutSmokeConfig.parse(
-    arguments,
-    isDesktop: PlatformUtils.isDesktop,
-    buildType: AppBuildInfo.buildType,
-  );
   WidgetsFlutterBinding.ensureInitialized();
 
   // Timezone is only needed for notification scheduling (data-cap alerts),
@@ -58,7 +53,7 @@ Future<void> main([List<String> arguments = const []]) async {
     unawaited(_logDeviceInfo());
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
-    await injectServices(useStaging: paymentCheckoutSmoke != null);
+    await injectServices();
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
@@ -80,12 +75,27 @@ Future<void> main([List<String> arguments = const []]) async {
     appLogger.error('Failed to start Updater.init', e, st);
   }
 
-  if (paymentCheckoutSmoke != null) {
-    appLogger.info(
-      'PAYMENT_CHECKOUT_SMOKE event=enabled '
-      'provider=${paymentCheckoutSmoke.provider} '
-      'run_id=${paymentCheckoutSmoke.runID}',
+  PaymentCheckoutSmokeConfig? paymentCheckoutSmoke;
+  try {
+    paymentCheckoutSmoke = PaymentCheckoutSmokeConfig.parse(
+      arguments,
+      isDesktop: PlatformUtils.isDesktop,
+      buildType: AppBuildInfo.buildType,
     );
+    if (paymentCheckoutSmoke != null) {
+      appLogger.info(
+        'PAYMENT_CHECKOUT_SMOKE event=enabled '
+        'provider=${paymentCheckoutSmoke.provider} '
+        'run_id=${paymentCheckoutSmoke.runID}',
+      );
+    }
+  } on FormatException catch (error, stackTrace) {
+    appLogger.error(
+      'PAYMENT_CHECKOUT_SMOKE event=rejected error=$error',
+      error,
+      stackTrace,
+    );
+    rethrow;
   }
 
   runApp(
