@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,7 +39,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     with WidgetsBindingObserver {
   late final AppLifecycleListener _lifecycle;
   StreamSubscription<Uri>? _deepLinkSubscription;
-  SemanticsHandle? _paymentSmokeSemantics;
   Uri? _lastHandledUri;
   DateTime? _lastHandledTime;
 
@@ -51,9 +49,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     initDeepLinks();
     initLifecycleListener();
     if (widget.paymentCheckoutSmoke != null) {
-      // The Windows runner drives this screen through MSAA, so keep Flutter's
-      // semantic tree alive for the duration of the smoke.
-      _paymentSmokeSemantics = WidgetsBinding.instance.ensureSemantics();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(_openPaymentCheckoutSmoke(widget.paymentCheckoutSmoke!));
       });
@@ -103,6 +98,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
           authFlow: AuthFlow.renewSubscription,
         ),
       ]);
+      // Keep the selected plan alive until the payment route has mounted.
+      // Otherwise Riverpod can recreate the notifier without its selection.
+      await WidgetsBinding.instance.endOfFrame;
+      appLogger.info(
+        'PAYMENT_CHECKOUT_SMOKE event=screen_ready '
+        'provider=${smoke.provider} run_id=${smoke.runID}',
+      );
     } catch (error, stackTrace) {
       appLogger.error(
         'PAYMENT_CHECKOUT_SMOKE event=bootstrap_error '
@@ -133,7 +135,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     WidgetsBinding.instance.removeObserver(this);
     _lifecycle.dispose();
     _deepLinkSubscription?.cancel();
-    _paymentSmokeSemantics?.dispose();
     super.dispose();
   }
 

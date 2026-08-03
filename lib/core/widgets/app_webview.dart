@@ -74,11 +74,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     // We still detect completion URLs in load callbacks.
     useShouldOverrideUrlLoading: !PlatformUtils.isWindows,
     mediaPlaybackRequiresUserGesture: false,
-    useOnDownloadStart: true,
-    useOnLoadResource: true,
     applicationNameForUserAgent: 'Lantern',
     hardwareAcceleration: true,
-    // userAgent: _getUserAgent(),
     supportZoom: true,
     preferredContentMode: PlatformUtils.isMobile
         ? UserPreferredContentMode.MOBILE
@@ -94,7 +91,12 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
   @override
   Widget build(BuildContext context) {
-    appLogger.debug("Building _InnerWebView with URL: ${widget.url}");
+    final initialUri = Uri.tryParse(widget.url);
+    appLogger.debug(
+      'Building _InnerWebView for host: ${initialUri?.host ?? '<none>'}',
+    );
+    // The Windows runner configures WebView2 before Flutter starts. Using the
+    // plugin's default environment keeps every controller on that same profile.
     return InAppWebView(
       key: const ValueKey('app-webview'),
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
@@ -199,9 +201,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     }
     // Checkout paths and query strings can contain session tokens. The origin
     // is enough to prove which provider loaded without putting them in CI logs.
-    final safeUri = uri == null
-        ? '<none>'
-        : uri.replace(path: '', query: '', fragment: '').toString();
+    final port = uri?.hasPort == true ? ':${uri!.port}' : '';
+    final safeUri = uri == null ? '<none>' : '${uri.scheme}://${uri.host}$port';
     final suffix = detail.isEmpty ? '' : ' $detail';
     appLogger.info(
       'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '

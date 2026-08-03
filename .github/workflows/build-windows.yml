@@ -59,7 +59,6 @@ on:
         required: false
         type: boolean
         default: false
-
 jobs:
   build-windows:
     env:
@@ -85,23 +84,6 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install WebView2 Runtime
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
-          Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
-
       - name: Set up MinGW
         run: choco install mingw -y
 
@@ -110,6 +92,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
+          cache: true
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -121,14 +104,6 @@ jobs:
           fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
-
-      - name: Cache Dart pub global cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-dart-pub-cache-
 
       - name: Install Inno Setup 6
         shell: pwsh
@@ -292,7 +267,16 @@ jobs:
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
+      - name: Upload Windows payment smoke installer
+        if: ${{ inputs.run_payment_checkout_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-smoke-installer
+          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
+          retention-days: 2
+
       - name: Windows installer smoke suite
+        if: ${{ inputs.run_connect_smoke || inputs.run_split_tunnel_website_smoke || inputs.run_config_url_smoke }}
         shell: pwsh
         timeout-minutes: 30
         env:
@@ -307,26 +291,15 @@ jobs:
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
-          $runPaymentCheckoutSmoke = "${{ inputs.run_payment_checkout_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
-            -RunPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke
-
-      - name: Upload Windows payment checkout smoke artifacts
-        if: ${{ always() && inputs.run_payment_checkout_smoke }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-payment-checkout-smoke
-          path: build/windows-payment-checkout-smoke
-          if-no-files-found: warn
-          retention-days: 7
 
       # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
       - name: Windows UI auth smoke integration
@@ -357,3 +330,58 @@ jobs:
           name: lantern-installer-exe
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
           retention-days: 2
+
+  payment-checkout-smoke:
+    needs: build-windows
+    if: ${{ inputs.run_payment_checkout_smoke }}
+    permissions:
+      contents: "read"
+    runs-on: windows-latest
+    env:
+      FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows payment smoke installer
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-payment-smoke-installer
+
+      - name: Ensure WebView2 Runtime
+        shell: pwsh
+        run: |
+          $client = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+          $runtime = @(
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\$client",
+            "HKLM:\SOFTWARE\Microsoft\EdgeUpdate\Clients\$client"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if ($runtime) {
+            $version = (Get-ItemProperty $runtime).pv
+            Write-Host "Using installed WebView2 Runtime $version"
+          } else {
+            Invoke-WebRequest `
+              -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" `
+              -OutFile "MicrosoftEdgeWebView2Setup.exe"
+            Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" `
+              -ArgumentList "/silent", "/install" -Wait
+          }
+
+      - name: Windows installed payment checkout smoke
+        shell: powershell
+        timeout-minutes: 15
+        run: |
+          ./.github/scripts/windows_smoke_suite.ps1 `
+            -UseInstaller `
+            -InstallerPath "$env:FULL_INSTALLER_NAME.exe" `
+            -RunConnectSmoke:$false `
+            -RunPaymentCheckoutSmoke
+
+      - name: Upload Windows payment checkout smoke artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-checkout-smoke
+          path: build/windows-payment-checkout-smoke
+          if-no-files-found: warn
+          retention-days: 7

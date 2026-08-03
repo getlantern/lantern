@@ -5,7 +5,7 @@ param(
   [string]$InstalledAppPath = "C:\Program Files\Lantern\Lantern.exe",
   [string]$InstalledDaemonPath = "C:\Program Files\Lantern\lanternd.exe",
   [string]$ArtifactDirectory = "build/windows-payment-checkout-smoke",
-  [int]$WaitSeconds = 180,
+  [int]$WaitSeconds = 90,
   [string]$ShepherdHostPattern = '(^|\.)m62mrsf\.com$',
   [string]$LauncherConfigPath
 )
@@ -76,12 +76,12 @@ namespace WindowsPaymentSmoke {
       System.IntPtr process = OpenProcess(
         PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
       if (process == System.IntPtr.Zero) {
-        throw new System.ComponentModel.Win32Exception();
+        throw LastError("OpenProcess");
       }
       try {
         System.IntPtr token;
         if (!OpenProcessToken(process, TOKEN_QUERY, out token)) {
-          throw new System.ComponentModel.Win32Exception();
+          throw LastError("OpenProcessToken");
         }
         try {
           TOKEN_ELEVATION elevation;
@@ -92,7 +92,7 @@ namespace WindowsPaymentSmoke {
               out elevation,
               System.Runtime.InteropServices.Marshal.SizeOf<TOKEN_ELEVATION>(),
               out returned)) {
-            throw new System.ComponentModel.Win32Exception();
+            throw LastError("GetTokenInformation");
           }
           return elevation.TokenIsElevated != 0;
         } finally {
@@ -101,6 +101,12 @@ namespace WindowsPaymentSmoke {
       } finally {
         CloseHandle(process);
       }
+    }
+
+    private static System.Exception LastError(string operation) {
+      int error = System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+      return new System.Exception(
+        string.Format("{0} failed with Windows error {1}", operation, error));
     }
   }
 
@@ -153,6 +159,11 @@ namespace WindowsPaymentSmoke {
       }
       int visited = 0;
       return Find(root, targetName, 0, ref visited) != null;
+    }
+
+    // Flutter enables semantics when Windows asks for its client object.
+    public static bool RequestRoot(System.IntPtr window) {
+      return Root(window) != null;
     }
 
     public static bool ClickByName(
@@ -210,19 +221,20 @@ namespace WindowsPaymentSmoke {
       if (root == null) {
         return "(MSAA root unavailable)";
       }
-      System.Collections.Generic.List<string> names =
-        new System.Collections.Generic.List<string>();
+      System.Text.StringBuilder names =
+        new System.Text.StringBuilder();
+      int nameCount = 0;
       int visited = 0;
-      CollectNames(root, names, 0, ref visited);
+      CollectNames(root, names, ref nameCount, 0, ref visited);
       int rootChildren;
       try {
         rootChildren = root.accChildCount;
       } catch (System.Runtime.InteropServices.COMException) {
         rootChildren = -1;
       }
-      string description = names.Count == 0
+      string description = nameCount == 0
         ? "(no named MSAA elements)"
-        : string.Join(", ", names.ToArray());
+        : names.ToString();
       return string.Format(
         "rootChildren={0}; visited={1}; names={2}",
         rootChildren,
@@ -279,22 +291,28 @@ namespace WindowsPaymentSmoke {
 
     private static void CollectNames(
         Accessibility.IAccessible container,
-        System.Collections.Generic.List<string> names,
+        System.Text.StringBuilder names,
+        ref int nameCount,
         int depth,
         ref int visited) {
       if (container == null || depth > 64 ||
-          visited >= 5000 || names.Count >= 100) {
+          visited >= 5000 || nameCount >= 100) {
         return;
       }
       visited++;
-      AddName(container, CHILDID_SELF, names);
+      AddName(container, CHILDID_SELF, names, ref nameCount);
       foreach (object child in Children(container)) {
         Accessibility.IAccessible childAccessible =
           child as Accessibility.IAccessible;
         if (childAccessible != null) {
-          CollectNames(childAccessible, names, depth + 1, ref visited);
+          CollectNames(
+            childAccessible,
+            names,
+            ref nameCount,
+            depth + 1,
+            ref visited);
         } else if (child != null) {
-          AddName(container, child, names);
+          AddName(container, child, names, ref nameCount);
         }
       }
     }
@@ -332,16 +350,23 @@ namespace WindowsPaymentSmoke {
         string targetName) {
       string name = Name(container, childId);
       return string.Equals(
-        name, targetName, System.StringComparison.Ordinal);
+        name == null ? null : name.Trim(),
+        targetName == null ? null : targetName.Trim(),
+        System.StringComparison.Ordinal);
     }
 
     private static void AddName(
         Accessibility.IAccessible container,
         object childId,
-        System.Collections.Generic.List<string> names) {
+        System.Text.StringBuilder names,
+        ref int nameCount) {
       string name = Name(container, childId);
       if (!string.IsNullOrWhiteSpace(name)) {
-        names.Add(name);
+        if (nameCount > 0) {
+          names.Append(", ");
+        }
+        names.Append(name);
+        nameCount++;
       }
     }
 
@@ -437,25 +462,33 @@ namespace WindowsPaymentSmoke {
     }
 
     public static string DescribeProcessWindows(int processId) {
-      System.Collections.Generic.List<string> windows =
-        new System.Collections.Generic.List<string>();
+      System.Text.StringBuilder windows =
+        new System.Text.StringBuilder();
       EnumWindows(delegate(System.IntPtr topLevel, System.IntPtr parameter) {
         uint owner;
         GetWindowThreadProcessId(topLevel, out owner);
         if (owner != processId) {
           return true;
         }
-        windows.Add(ClassName(topLevel));
+        AppendClassName(windows, ClassName(topLevel));
         EnumChildWindows(
           topLevel,
           delegate(System.IntPtr child, System.IntPtr childParameter) {
-            windows.Add(ClassName(child));
+            AppendClassName(windows, ClassName(child));
             return true;
           },
           System.IntPtr.Zero);
         return true;
       }, System.IntPtr.Zero);
-      return string.Join(",", windows.ToArray());
+      return windows.ToString();
+    }
+
+    private static void AppendClassName(
+        System.Text.StringBuilder windows, string className) {
+      if (windows.Length > 0) {
+        windows.Append(",");
+      }
+      windows.Append(className);
     }
 
     private static string ClassName(System.IntPtr window) {
@@ -681,6 +714,12 @@ function Wait-CheckoutDocument {
       if ($lastLogText -match 'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)') {
         throw "Lantern could not prepare the requested checkout smoke"
       }
+      if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=creation_error') {
+        throw "Lantern could not create the checkout WebView"
+      }
+      if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
+        throw "The checkout WebView reported a main-frame navigation error"
+      }
       foreach ($match in [regex]::Matches($lastLogText, $linePattern)) {
         $hostName = $match.Groups[1].Value
         $documentLength = [int]$match.Groups[3].Value
@@ -697,10 +736,11 @@ function Wait-CheckoutDocument {
         }
       }
     }
+    if ($i -ge 29 -and
+        $lastLogText -notmatch 'PAYMENT_WEBVIEW_SMOKE event=created') {
+      throw "Lantern did not create the checkout WebView within 30 seconds"
+    }
     Start-Sleep -Seconds 1
-  }
-  if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
-    throw "The checkout WebView reported a main-frame navigation error"
   }
   if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=document_error') {
     throw "The checkout WebView could not inspect the loaded document"
@@ -798,7 +838,9 @@ function Invoke-SmokeUserCheckout {
       "WEBVIEW2_USER_DATA_FOLDER",
       "Process"
     )
-    $app = Start-Process -FilePath $AppPath -ArgumentList @(
+    $appDirectory = Split-Path $AppPath -Parent
+    $app = Start-Process -FilePath $AppPath `
+      -WorkingDirectory $appDirectory -ArgumentList @(
       "--payment-checkout-smoke=$CheckoutProvider",
       "--payment-checkout-run-id=$CheckoutRunID"
     ) -PassThru
@@ -834,6 +876,36 @@ function Invoke-SmokeUserCheckout {
       throw "Primary smoke inherited WEBVIEW2_USER_DATA_FOLDER=$externalUDF"
     }
 
+    $udfPath = Join-Path $localAppData "Lantern\WebView2"
+    for ($i = 0; $i -lt 30; $i++) {
+      if (Test-Path $udfPath) { break }
+      if ($app.HasExited) { break }
+      Start-Sleep -Seconds 1
+      $app.Refresh()
+    }
+    $udfWritable = $false
+    $udfProbe = Join-Path $udfPath (
+      "write-probe-" + [Guid]::NewGuid().ToString("N")
+    )
+    try {
+      New-Item -ItemType File -Path $udfProbe -Force `
+        -ErrorAction Stop | Out-Null
+      $udfWritable = $true
+    } catch {
+    } finally {
+      Remove-Item $udfProbe -Force -ErrorAction SilentlyContinue
+    }
+    @{
+      path = $udfPath
+      exists = (Test-Path $udfPath)
+      writable = $udfWritable
+    } | ConvertTo-Json | Set-Content $WebViewUDFPath
+
+    if (-not [WindowsPaymentSmoke.NativeAccessibility]::RequestRoot(
+        $flutterViewHandle
+      )) {
+      throw "Lantern did not expose an MSAA root for its FLUTTERVIEW"
+    }
     Write-Step "Attached accessibility automation to Lantern's FLUTTERVIEW child window"
     $root = [System.Windows.Automation.AutomationElement]::FromHandle(
       $flutterViewHandle
@@ -860,31 +932,6 @@ function Invoke-SmokeUserCheckout {
     Wait-CheckoutDocument -LogPath $AppLogPath `
       -HostPattern $ExpectedHostPattern -TimeoutSeconds $TimeoutSeconds `
       -ResultPath $WebViewPath
-
-    $udfPath = Join-Path $localAppData "Lantern\WebView2"
-    for ($i = 0; $i -lt 30; $i++) {
-      if (Test-Path $udfPath) { break }
-      if ($app.HasExited) { break }
-      Start-Sleep -Seconds 1
-      $app.Refresh()
-    }
-    $udfWritable = $false
-    $udfProbe = Join-Path $udfPath (
-      "write-probe-" + [Guid]::NewGuid().ToString("N")
-    )
-    try {
-      New-Item -ItemType File -Path $udfProbe -Force `
-        -ErrorAction Stop | Out-Null
-      $udfWritable = $true
-    } catch {
-    } finally {
-      Remove-Item $udfProbe -Force -ErrorAction SilentlyContinue
-    }
-    @{
-      path = $udfPath
-      exists = (Test-Path $udfPath)
-      writable = $udfWritable
-    } | ConvertTo-Json | Set-Content $WebViewUDFPath
 
     Save-WindowScreenshot -Root $root -Path $CheckoutImagePath
     Save-WindowScreenshot -Root $root -Path $FinalImagePath
@@ -924,12 +971,15 @@ function Invoke-SmokeUserCheckout {
 
 function Remove-SmokeAccount {
   param([string]$Username, [string]$SID)
+
   if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
     Remove-LocalUser -Name $Username
   }
   if ([string]::IsNullOrWhiteSpace($SID)) { return }
+
   for ($i = 0; $i -lt 15; $i++) {
-    $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" -ErrorAction SilentlyContinue
+    $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" `
+      -ErrorAction SilentlyContinue
     if (-not $profile) { return }
     if (-not $profile.Loaded) {
       Remove-CimInstance $profile
@@ -978,6 +1028,7 @@ function Invoke-CheckoutCase {
   try {
     Start-Transcript -Path $transcript -Force | Out-Null
     $transcriptStarted = $true
+
     $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
     $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
     $credential = [System.Management.Automation.PSCredential]::new(
@@ -987,8 +1038,8 @@ function Invoke-CheckoutCase {
     $user = New-LocalUser -Name $username -Password $securePassword `
       -AccountNeverExpires -PasswordNeverExpires
     $sid = $user.SID.Value
-    # The daemon accepts members of Administrators. UAC still gives the app a
-    # filtered, non-elevated token, which the checks below verify.
+    # Radiance currently authorizes desktop clients by Administrators group
+    # membership. UAC still gives this interactive launch a filtered token.
     $administrators = Get-LocalGroup -SID "S-1-5-32-544"
     Add-LocalGroupMember -Group $administrators -Member $user
     $administratorsMember = Get-LocalGroupMember -Group $administrators |
@@ -1001,7 +1052,9 @@ function Invoke-CheckoutCase {
     # inherit the runner account's AppData paths.
     $profileBootstrap = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile -Wait -PassThru `
-      -ArgumentList @("-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "exit 0")
+      -ArgumentList @(
+        "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "exit 0"
+      )
     if ($profileBootstrap.ExitCode -ne 0) {
       throw "Could not initialize the disposable user profile"
     }
@@ -1032,7 +1085,6 @@ function Invoke-CheckoutCase {
     if ($LASTEXITCODE -ne 0) {
       throw "Could not grant the smoke user access to $sharedAppDirectory"
     }
-
     $exchangeDirectory = Join-Path $sharedAppDirectory "payment-smoke\$RunID-$Provider"
     New-Item -ItemType Directory -Path $exchangeDirectory -Force | Out-Null
     Remove-Item (Join-Path $sharedAppDirectory "data") -Recurse -Force -ErrorAction SilentlyContinue
@@ -1078,10 +1130,6 @@ function Invoke-CheckoutCase {
       "-Mode", "launcher",
       "-LauncherConfigPath", "`"$launcherConfigPath`""
     )
-    $launcherCommandLine = $launcherArguments -join " "
-    if ($launcherCommandLine.Length -gt 900) {
-      throw "Smoke-user launcher command line is too long"
-    }
     $launcherProcess = Start-Process -FilePath "powershell.exe" `
       -Credential $credential -LoadUserProfile `
       -ArgumentList $launcherArguments `
