@@ -482,7 +482,7 @@ run_payment_checkout_case() {
   wait_for_lantern_process "$app_executable" 30
 
   wait_for_log_pattern \
-    'Setting up Radiance opts=.*Env:stage' 60 "$case_dir/process.log"
+    'Setting up Radiance opts=.*Env:stage' 60 "$case_dir/process-error.log"
   wait_for_log_pattern \
     "PAYMENT_CHECKOUT_SMOKE event=screen_ready provider=$provider run_id=$run_id" 120
   screencapture -x "$case_dir/payment-method.png" 2>/dev/null || true
@@ -527,10 +527,10 @@ stop_payment_lantern() {
 on_exit() {
   local status=$?
 
-  stop_payment_lantern
   if [[ "$status" -ne 0 ]]; then
     capture_diagnostics "failure"
   fi
+  stop_payment_lantern
   detach_dmg
 
   exit "$status"
