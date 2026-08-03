@@ -44,13 +44,13 @@ namespace WindowsPaymentSmoke {
 
   public static class NativeToken {
     private const int DACL_SECURITY_INFORMATION = 0x00000004;
-    private const int DESKTOP_ALL_ACCESS = 0x000001FF;
+    private const int DESKTOP_ALL_ACCESS = 0x000F01FF;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
     private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
     private const uint LOGON_WITH_PROFILE = 0x00000001;
     private const uint STARTF_USESHOWWINDOW = 0x00000001;
-    private const int WINSTA_ALL_ACCESS = 0x0000037F;
+    private const int WINSTA_ALL_ACCESS = 0x000F037F;
     private const int TokenElevation = 20;
 
     [System.Runtime.InteropServices.StructLayout(
@@ -993,6 +993,14 @@ function Wait-LauncherResult {
       }
       if ($Process.MainWindowTitle -match '(?i)application error') {
         throw "Smoke-user launcher could not initialize: $($Process.MainWindowTitle)"
+      }
+      if (($i % 5) -eq 0) {
+        $applicationError = Get-Process -ErrorAction SilentlyContinue |
+          Where-Object { $_.MainWindowTitle -match '(?i)application error' } |
+          Select-Object -First 1
+        if ($applicationError) {
+          throw "Smoke-user launcher could not initialize: $($applicationError.MainWindowTitle)"
+        }
       }
     }
     Start-Sleep -Seconds 1
