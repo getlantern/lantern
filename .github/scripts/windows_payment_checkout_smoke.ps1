@@ -43,11 +43,10 @@ namespace WindowsPaymentSmoke {
   }
 
   public static class NativeToken {
-    private const uint TOKEN_ASSIGN_PRIMARY = 0x0001;
-    private const uint TOKEN_DUPLICATE = 0x0002;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
     private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
+    private const uint LOGON_WITH_PROFILE = 0x00000001;
     private const uint STARTF_USESHOWWINDOW = 0x00000001;
     private const int TokenElevation = 20;
 
@@ -113,26 +112,10 @@ namespace WindowsPaymentSmoke {
       "advapi32.dll",
       CharSet = System.Runtime.InteropServices.CharSet.Unicode,
       SetLastError = true)]
-    private static extern bool CreateProcessAsUser(
-      System.IntPtr token,
-      string applicationName,
-      System.Text.StringBuilder commandLine,
-      System.IntPtr processAttributes,
-      System.IntPtr threadAttributes,
-      bool inheritHandles,
-      uint creationFlags,
-      System.IntPtr environment,
-      string currentDirectory,
-      ref STARTUPINFO startupInfo,
-      out PROCESS_INFORMATION processInformation);
-
-    [System.Runtime.InteropServices.DllImport(
-      "advapi32.dll",
-      CharSet = System.Runtime.InteropServices.CharSet.Unicode,
-      ExactSpelling = true,
-      SetLastError = true)]
-    private static extern bool CreateProcessWithTokenW(
-      System.IntPtr token,
+    private static extern bool CreateProcessWithLogonW(
+      string username,
+      string domain,
+      string password,
       uint logonFlags,
       string applicationName,
       System.Text.StringBuilder commandLine,
@@ -173,37 +156,9 @@ namespace WindowsPaymentSmoke {
       }
     }
 
-    public static int StartWithProcessToken(
-        int sourceProcessId,
-        string applicationPath,
-        string arguments,
-        string workingDirectory) {
-      System.IntPtr sourceProcess = OpenProcess(
-        PROCESS_QUERY_LIMITED_INFORMATION, false, sourceProcessId);
-      if (sourceProcess == System.IntPtr.Zero) {
-        throw LastError("OpenProcess");
-      }
-      try {
-        System.IntPtr sourceToken;
-        if (!OpenProcessToken(
-            sourceProcess,
-            TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY,
-            out sourceToken)) {
-          throw LastError("OpenProcessToken");
-        }
-        try {
-          return StartWithToken(
-            sourceToken, applicationPath, arguments, workingDirectory);
-        } finally {
-          CloseHandle(sourceToken);
-        }
-      } finally {
-        CloseHandle(sourceProcess);
-      }
-    }
-
-    private static int StartWithToken(
-        System.IntPtr token,
+    public static int StartWithLogon(
+        string username,
+        string password,
         string applicationPath,
         string arguments,
         string workingDirectory) {
@@ -217,38 +172,19 @@ namespace WindowsPaymentSmoke {
       PROCESS_INFORMATION process;
       System.Text.StringBuilder command = CommandLine(
         applicationPath, arguments);
-      if (!CreateProcessAsUser(
-          token,
+      if (!CreateProcessWithLogonW(
+          username,
+          ".",
+          password,
+          LOGON_WITH_PROFILE,
           applicationPath,
           command,
-          System.IntPtr.Zero,
-          System.IntPtr.Zero,
-          false,
           CREATE_UNICODE_ENVIRONMENT,
           System.IntPtr.Zero,
           workingDirectory,
           ref startup,
           out process)) {
-        int createAsUserError =
-          System.Runtime.InteropServices.Marshal.GetLastWin32Error();
-        command = CommandLine(applicationPath, arguments);
-        if (!CreateProcessWithTokenW(
-            token,
-            0,
-            applicationPath,
-            command,
-            CREATE_UNICODE_ENVIRONMENT,
-            System.IntPtr.Zero,
-            workingDirectory,
-            ref startup,
-            out process)) {
-          int createWithTokenError =
-            System.Runtime.InteropServices.Marshal.GetLastWin32Error();
-          throw new System.Exception(string.Format(
-            "Process creation failed with Windows errors {0} and {1}",
-            createAsUserError,
-            createWithTokenError));
-        }
+        throw LastError("CreateProcessWithLogonW");
       }
       try {
         return process.dwProcessId;
@@ -908,10 +844,17 @@ function Wait-CheckoutDocument {
 function Wait-LauncherResult {
   param(
     [string]$Path,
-    [int]$TimeoutSeconds
+    [int]$TimeoutSeconds,
+    [System.Diagnostics.Process]$Process
   )
   for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
     if (Test-Path $Path) { return }
+    if ($Process) {
+      $Process.Refresh()
+      if ($Process.HasExited) {
+        throw "Smoke-user launcher exited with code $($Process.ExitCode)"
+      }
+    }
     Start-Sleep -Seconds 1
   }
   throw "Timed out waiting for the smoke-user launcher"
@@ -1110,6 +1053,27 @@ function Invoke-SmokeUserCheckout {
   }
 }
 
+function Remove-SmokeAccount {
+  param([string]$Username, [string]$SID)
+
+  if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
+    Remove-LocalUser -Name $Username
+  }
+  if ([string]::IsNullOrWhiteSpace($SID)) { return }
+
+  for ($i = 0; $i -lt 15; $i++) {
+    $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$SID'" `
+      -ErrorAction SilentlyContinue
+    if (-not $profile) { return }
+    if (-not $profile.Loaded) {
+      Remove-CimInstance $profile
+      return
+    }
+    Start-Sleep -Seconds 1
+  }
+  Write-Warning "Disposable profile $SID remained loaded and could not be removed"
+}
+
 function Invoke-CheckoutCase {
   param([string]$Provider, [string]$HostPattern, [string]$RunID)
 
@@ -1122,6 +1086,9 @@ function Invoke-CheckoutCase {
     githubRunAttempt = $env:GITHUB_RUN_ATTEMPT
   } | ConvertTo-Json | Set-Content (Join-Path $caseDirectory "run.json")
   $transcript = Join-Path $caseDirectory "orchestration.log"
+  $username = "lntsmk" + ([Guid]::NewGuid().ToString("N").Substring(0, 10))
+  $sid = $null
+  $passwordText = $null
   $launcherProcess = $null
   $appProcess = $null
   $sharedAppDirectory = $null
@@ -1145,18 +1112,43 @@ function Invoke-CheckoutCase {
     $transcriptStarted = $true
     $null = Initialize-NativeSmokeHelpers
 
-    $sessionID = (Get-Process -Id $PID).SessionId
-    $interactiveShell = Get-Process explorer -ErrorAction SilentlyContinue |
-      Where-Object { $_.SessionId -eq $sessionID } |
-      Select-Object -First 1
-    if (-not $interactiveShell) {
-      throw "The runner has no interactive Windows shell in session $sessionID"
-    }
-    if ([WindowsPaymentSmoke.NativeToken]::IsElevated($interactiveShell.Id)) {
-      throw "The interactive Windows shell is elevated"
-    }
+    $passwordText = "L@ntern!" + ([Guid]::NewGuid().ToString("N"))
+    $securePassword = ConvertTo-SecureString $passwordText -AsPlainText -Force
+    $credential = [System.Management.Automation.PSCredential]::new(
+      ".\$username",
+      $securePassword
+    )
+    $user = New-LocalUser -Name $username -Password $securePassword `
+      -AccountNeverExpires -PasswordNeverExpires
+    $sid = $user.SID.Value
+    # Radiance currently authorizes desktop clients by Administrators group
+    # membership. UAC still gives this interactive launch a filtered token.
+    $administrators = Get-LocalGroup -SID "S-1-5-32-544"
+    Add-LocalGroupMember -Group $administrators -Member $user
 
-    Write-Step "Starting $Provider checkout with the non-elevated shell token"
+    $profileBootstrap = Start-Process -FilePath "powershell.exe" `
+      -Credential $credential -LoadUserProfile -Wait -PassThru `
+      -ArgumentList @(
+        "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "exit 0"
+      )
+    if ($profileBootstrap.ExitCode -ne 0) {
+      throw "Could not initialize the disposable user profile"
+    }
+    $profile = $null
+    for ($i = 0; $i -lt 15; $i++) {
+      $profile = Get-CimInstance Win32_UserProfile -Filter "SID='$sid'" `
+        -ErrorAction SilentlyContinue
+      if ($profile -and -not [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
+        break
+      }
+      Start-Sleep -Seconds 1
+    }
+    if (-not $profile -or [string]::IsNullOrWhiteSpace($profile.LocalPath)) {
+      throw "Windows did not create a profile for disposable user $username"
+    }
+    $profilePath = [Environment]::ExpandEnvironmentVariables($profile.LocalPath)
+
+    Write-Step "Starting $Provider checkout as disposable non-elevated user $username"
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $null,
@@ -1165,15 +1157,12 @@ function Invoke-CheckoutCase {
 
     $sharedAppDirectory = Join-Path $env:PUBLIC "Lantern"
     New-Item -ItemType Directory -Path $sharedAppDirectory -Force | Out-Null
+    & icacls.exe $sharedAppDirectory /grant "*$sid`:(OI)(CI)M" /T /C | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      throw "Could not grant the smoke user access to $sharedAppDirectory"
+    }
     $exchangeDirectory = Join-Path $sharedAppDirectory "payment-smoke\$RunID-$Provider"
     New-Item -ItemType Directory -Path $exchangeDirectory -Force | Out-Null
-    $profilePath = Join-Path $sharedAppDirectory "profiles\$RunID-$Provider"
-    New-Item -ItemType Directory `
-      -Path (Join-Path $profilePath "AppData\Local\Temp") -Force |
-      Out-Null
-    New-Item -ItemType Directory `
-      -Path (Join-Path $profilePath "AppData\Roaming") -Force |
-      Out-Null
     Remove-Item (Join-Path $sharedAppDirectory "data") -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item (Join-Path $sharedAppDirectory "logs") -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -1187,9 +1176,8 @@ function Invoke-CheckoutCase {
     $launcherPath = Join-Path $exchangeDirectory "launch.ps1"
     $launcherConfigPath = Join-Path $exchangeDirectory "launcher.json"
     $flutterLog = Join-Path $env:PUBLIC "Lantern\logs\flutter.log"
-    # Keep automation and Flutter on the logged-in desktop. Starting Flutter
-    # under a second logon produces a native window but no composited frames on
-    # GitHub's Windows runner.
+    # Keep automation and Flutter in the same logon and on the runner's visible
+    # desktop so WebView2 can create its browser processes normally.
     Copy-Item $PSCommandPath $launcherPath -Force
     @{
       appPath = $InstalledAppPath
@@ -1223,16 +1211,18 @@ function Invoke-CheckoutCase {
     }
     $windowsPowerShell = Join-Path $env:SystemRoot `
       "System32\WindowsPowerShell\v1.0\powershell.exe"
-    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartWithProcessToken(
-      $interactiveShell.Id,
+    $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartWithLogon(
+      $username,
+      $passwordText,
       $windowsPowerShell,
       $launcherCommandLine,
       $exchangeDirectory
     )
+    $passwordText = $null
     $launcherProcess = Get-Process -Id $launcherProcessID -ErrorAction Stop
 
     Wait-LauncherResult -Path $automationResultPath `
-      -TimeoutSeconds ($WaitSeconds + 150)
+      -TimeoutSeconds ($WaitSeconds + 150) -Process $launcherProcess
     $automationResult = Get-Content $automationResultPath -Raw |
       ConvertFrom-Json
     if (-not $automationResult.success) {
@@ -1344,13 +1334,20 @@ function Invoke-CheckoutCase {
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
     }
+    if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
+      & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
+    }
     [Environment]::SetEnvironmentVariable(
       "WEBVIEW2_USER_DATA_FOLDER",
       $priorUDF,
       [EnvironmentVariableTarget]::Process
     )
-    if ($profilePath -and (Test-Path $profilePath)) {
-      Remove-Item $profilePath -Recurse -Force -ErrorAction SilentlyContinue
+    if ($sid -or (Get-LocalUser -Name $username -ErrorAction SilentlyContinue)) {
+      try {
+        Remove-SmokeAccount -Username $username -SID $sid
+      } catch {
+        Write-Warning "Could not fully remove disposable smoke account: $_"
+      }
     }
     if ($transcriptStarted) {
       try {
