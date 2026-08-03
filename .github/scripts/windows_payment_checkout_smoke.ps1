@@ -720,6 +720,9 @@ function Wait-CheckoutDocument {
       if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=navigation_error') {
         throw "The checkout WebView reported a main-frame navigation error"
       }
+      if ($lastLogText -match 'PAYMENT_WEBVIEW_SMOKE event=process_error') {
+        throw "The checkout WebView2 process failed"
+      }
       foreach ($match in [regex]::Matches($lastLogText, $linePattern)) {
         $hostName = $match.Groups[1].Value
         $documentLength = [int]$match.Groups[3].Value

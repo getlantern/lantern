@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
+import 'package:lantern/core/services/app_webview_environment.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/smoke/payment_checkout_smoke.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -50,6 +51,7 @@ Future<void> main([List<String> arguments = const []]) async {
         'local_app_data=${Platform.environment['LOCALAPPDATA'] ?? '<unset>'}',
       );
     }
+    await AppWebViewEnvironment.initialize();
     unawaited(_logDeviceInfo());
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');

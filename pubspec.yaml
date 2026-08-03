@@ -104,7 +104,8 @@ dependencies:
   mobile_scanner: ^7.2.0
   device_info_plus: ^13.2.0
 
-  flutter_inappwebview: ^6.1.5
+  # Includes the newer Windows WebView2 lifecycle and environment fixes.
+  flutter_inappwebview: 6.2.0-beta.3
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
