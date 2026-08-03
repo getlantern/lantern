@@ -27,14 +27,17 @@ import (
 )
 
 var (
-	lanternCore        atomic.Value
-	errLanternNotReady = errors.New("radiance not initialized")
+	lanternCore         atomic.Value
+	errLanternNotReady  = errors.New("radiance not initialized")
+	errIPCStartCanceled = errors.New("IPC server startup canceled")
 
-	ipcServer  *ipc.Server
-	ipcClient  atomic.Pointer[ipc.Client] // loopback client for extension process
-	ipcBackend *backend.LocalBackend
-	ipcMu      sync.Mutex
-	ipcOnce    sync.Once
+	ipcServer     *ipc.Server
+	ipcClient     atomic.Pointer[ipc.Client] // loopback client for extension process
+	ipcBackend    *backend.LocalBackend
+	ipcMu         sync.Mutex
+	ipcStarting   bool
+	ipcClosing    bool
+	ipcGeneration uint64
 )
 
 func getCore() (lanterncore.Core, error) {
@@ -283,10 +286,23 @@ func StopVPN() error {
 func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
-		defer ipcMu.Unlock()
 		if ipcServer != nil {
+			ipcMu.Unlock()
 			return struct{}{}, nil
 		}
+		if ipcStarting || ipcClosing {
+			ipcMu.Unlock()
+			return struct{}{}, errLanternNotReady
+		}
+		ipcStarting = true
+		generation := ipcGeneration
+		ipcMu.Unlock()
+		defer func() {
+			ipcMu.Lock()
+			ipcStarting = false
+			ipcMu.Unlock()
+		}()
+
 		// The backend's config fetcher captures common.GetBaseURL() at
 		// construction, so the environment must be set before
 		// NewLocalBackend — SetupRadiance's SetStagingEnv runs too late on
@@ -313,9 +329,18 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 			be.Close()
 			return struct{}{}, err
 		}
+
+		ipcMu.Lock()
+		if generation != ipcGeneration {
+			ipcMu.Unlock()
+			_ = server.Close()
+			be.Close()
+			return struct{}{}, errIPCStartCanceled
+		}
 		ipcBackend = be
 		ipcServer = server
 		ipcClient.Store(newLoopbackClient(be))
+		ipcMu.Unlock()
 		return struct{}{}, nil
 	})
 	return err
@@ -324,15 +349,29 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 func CloseIPCServer() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		ipcMu.Lock()
-		defer ipcMu.Unlock()
-		ipcClient.Store(nil)
-		if ipcBackend != nil {
-			ipcBackend.Close()
-			ipcBackend = nil
+		if ipcClosing {
+			ipcMu.Unlock()
+			return struct{}{}, nil
 		}
-		if ipcServer != nil {
-			ipcServer.Close()
-			ipcServer = nil
+		ipcClosing = true
+		ipcGeneration++
+		ipcClient.Store(nil)
+		be := ipcBackend
+		server := ipcServer
+		ipcBackend = nil
+		ipcServer = nil
+		ipcMu.Unlock()
+		defer func() {
+			ipcMu.Lock()
+			ipcClosing = false
+			ipcMu.Unlock()
+		}()
+
+		if server != nil {
+			_ = server.Close()
+		}
+		if be != nil {
+			be.Close()
 		}
 		return struct{}{}, nil
 	})

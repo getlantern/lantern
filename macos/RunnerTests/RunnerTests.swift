@@ -7,12 +7,12 @@ import XCTest
 
 final class RunnerTests: XCTestCase {
 
-  func testVPNConnectionActions() throws {
-    XCTAssertEqual(try vpnConnectionAction(for: .disconnected), .startTunnel)
-    XCTAssertEqual(try vpnConnectionAction(for: .connected), .sendCommandToExtension)
+  func testVPNStartStates() throws {
+    XCTAssertTrue(try shouldStartNewTunnel(for: .disconnected))
+    XCTAssertFalse(try shouldStartNewTunnel(for: .connected))
 
     for status in [NEVPNStatus.connecting, .disconnecting, .reasserting] {
-      XCTAssertThrowsError(try vpnConnectionAction(for: status)) { error in
+      XCTAssertThrowsError(try shouldStartNewTunnel(for: status)) { error in
         guard let vpnError = error as? VPNManagerError,
           case .operationInProgress = vpnError
         else {
@@ -22,12 +22,12 @@ final class RunnerTests: XCTestCase {
     }
   }
 
-  func testVPNStopActions() throws {
+  func testVPNStopStates() throws {
     for status in [NEVPNStatus.connected, .connecting, .reasserting] {
-      XCTAssertEqual(try vpnStopAction(for: status), .stopTunnel)
+      XCTAssertTrue(try shouldStopTunnel(for: status))
     }
     for status in [NEVPNStatus.disconnected, .disconnecting] {
-      XCTAssertEqual(try vpnStopAction(for: status), .alreadyStopped)
+      XCTAssertFalse(try shouldStopTunnel(for: status))
     }
   }
 

@@ -28,17 +28,12 @@ enum VPNManagerError: LocalizedError {
   }
 }
 
-enum VPNConnectionAction: Equatable {
-  case startTunnel
-  case sendCommandToExtension
-}
-
-func vpnConnectionAction(for status: NEVPNStatus) throws -> VPNConnectionAction {
+func shouldStartNewTunnel(for status: NEVPNStatus) throws -> Bool {
   switch status {
   case .connected:
-    return .sendCommandToExtension
+    return false
   case .disconnected:
-    return .startTunnel
+    return true
   case .connecting, .disconnecting, .reasserting:
     throw VPNManagerError.operationInProgress
   case .invalid:
@@ -48,17 +43,12 @@ func vpnConnectionAction(for status: NEVPNStatus) throws -> VPNConnectionAction 
   }
 }
 
-enum VPNStopAction: Equatable {
-  case stopTunnel
-  case alreadyStopped
-}
-
-func vpnStopAction(for status: NEVPNStatus) throws -> VPNStopAction {
+func shouldStopTunnel(for status: NEVPNStatus) throws -> Bool {
   switch status {
   case .connected, .connecting, .reasserting:
-    return .stopTunnel
+    return true
   case .disconnected, .disconnecting:
-    return .alreadyStopped
+    return false
   case .invalid:
     throw VPNManagerError.loadingProviderFailed
   @unknown default:

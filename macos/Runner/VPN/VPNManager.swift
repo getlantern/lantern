@@ -140,13 +140,10 @@ class VPNManager: VPNBase {
     let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
-    switch try vpnConnectionAction(for: manager.connection.status) {
-    case .sendCommandToExtension:
+    if try !shouldStartNewTunnel(for: manager.connection.status) {
       appLogger.info("VPN is already connected, sending command to extension")
       _ = try await triggerExtensionMethod(methodName: "Lantern")
       return
-    case .startTunnel:
-      break
     }
 
     try self.manager.connection.startVPNTunnel(options: options)
@@ -164,16 +161,13 @@ class VPNManager: VPNBase {
       "netEx.ServerName": serverName as NSString,
     ]
 
-    switch try vpnConnectionAction(for: manager.connection.status) {
-    case .sendCommandToExtension:
+    if try !shouldStartNewTunnel(for: manager.connection.status) {
       appLogger.info("VPN is already connected, sending command to extension")
       _ = try await triggerExtensionMethod(
         methodName: "PrivateServer",
         params: ["server": serverName]
       )
       return
-    case .startTunnel:
-      break
     }
 
     try self.manager.connection.startVPNTunnel(options: options)
@@ -190,12 +184,9 @@ class VPNManager: VPNBase {
     appLogger.log("Stopping tunnel..")
     await syncStatus()
     let status = manager.connection.status
-    switch try vpnStopAction(for: status) {
-    case .alreadyStopped:
+    if try !shouldStopTunnel(for: status) {
       appLogger.log("VPN is already stopped or stopping: \(status)")
       return
-    case .stopTunnel:
-      break
     }
 
     if manager.isOnDemandEnabled {
