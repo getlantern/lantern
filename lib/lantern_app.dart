@@ -96,6 +96,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
         ChoosePaymentMethod(
           email: smoke.email,
           authFlow: AuthFlow.renewSubscription,
+          expandedProvider: smoke.provider,
         ),
       ]);
       // Keep the selected plan alive until the payment route has mounted.

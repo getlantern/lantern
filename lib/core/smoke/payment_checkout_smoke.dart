@@ -1,4 +1,4 @@
-/// Command-line settings for the Windows checkout smoke.
+/// Command-line settings for the desktop checkout smoke.
 class PaymentCheckoutSmokeConfig {
   static const _providerPrefix = '--payment-checkout-smoke=';
   static const _runIDPrefix = '--payment-checkout-run-id=';
@@ -19,7 +19,7 @@ class PaymentCheckoutSmokeConfig {
 
   static PaymentCheckoutSmokeConfig? parse(
     List<String> arguments, {
-    required bool isWindows,
+    required bool isDesktop,
     required String buildType,
   }) {
     final providerArgument = _singleArgument(arguments, _providerPrefix);
@@ -28,9 +28,9 @@ class PaymentCheckoutSmokeConfig {
     if (providerArgument == null && runIDArgument == null) {
       return null;
     }
-    if (!isWindows || buildType != 'nightly') {
+    if (!isDesktop || buildType != 'nightly') {
       throw const FormatException(
-        'Payment checkout smoke mode is available only in Windows nightly builds',
+        'Payment checkout smoke mode is available only in desktop nightly builds',
       );
     }
     if (providerArgument == null || runIDArgument == null) {

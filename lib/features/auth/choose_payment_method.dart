@@ -20,12 +20,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
   final String? code;
   final AuthFlow authFlow;
+  final String? expandedProvider;
 
   const ChoosePaymentMethod({
     super.key,
     required this.email,
     this.code,
     required this.authFlow,
+    this.expandedProvider,
   });
 
   @override
@@ -61,6 +63,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
                   providers: providers,
                   userPlan: userPlan,
                   isSubmitting: paymentRedirectInFlight.value,
+                  expandedProvider: expandedProvider,
                   onSubscribe: (provider) => onSubscribe(
                     provider,
                     ref,
@@ -448,6 +451,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   final List<Android> providers;
   final Plan userPlan;
   final bool isSubmitting;
+  final String? expandedProvider;
   final Function(Android provider) onSubscribe;
 
   const PaymentCheckoutMethods({
@@ -455,6 +459,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
     required this.providers,
     required this.userPlan,
     required this.isSubmitting,
+    this.expandedProvider,
     required this.onSubscribe,
   });
 
@@ -480,7 +485,9 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
-            initiallyExpanded: index == 0,
+            initiallyExpanded: expandedProvider == null
+                ? index == 0
+                : method.providers.name == expandedProvider,
             backgroundColor: context.bgElevated,
             collapsedBackgroundColor: context.bgElevated,
             collapsedShape: RoundedRectangleBorder(

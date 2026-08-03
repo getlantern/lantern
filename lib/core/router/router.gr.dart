@@ -238,6 +238,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
     required String email,
     String? code,
     required _i46.AuthFlow authFlow,
+    String? expandedProvider,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          ChoosePaymentMethod.name,
@@ -246,6 +247,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
            email: email,
            code: code,
            authFlow: authFlow,
+           expandedProvider: expandedProvider,
          ),
          initialChildren: children,
        );
@@ -261,6 +263,7 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
         email: args.email,
         code: args.code,
         authFlow: args.authFlow,
+        expandedProvider: args.expandedProvider,
       );
     },
   );
@@ -272,6 +275,7 @@ class ChoosePaymentMethodArgs {
     required this.email,
     this.code,
     required this.authFlow,
+    this.expandedProvider,
   });
 
   final _i45.Key? key;
@@ -282,9 +286,11 @@ class ChoosePaymentMethodArgs {
 
   final _i46.AuthFlow authFlow;
 
+  final String? expandedProvider;
+
   @override
   String toString() {
-    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow}';
+    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow, expandedProvider: $expandedProvider}';
   }
 
   @override
@@ -294,12 +300,17 @@ class ChoosePaymentMethodArgs {
     return key == other.key &&
         email == other.email &&
         code == other.code &&
-        authFlow == other.authFlow;
+        authFlow == other.authFlow &&
+        expandedProvider == other.expandedProvider;
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ email.hashCode ^ code.hashCode ^ authFlow.hashCode;
+      key.hashCode ^
+      email.hashCode ^
+      code.hashCode ^
+      authFlow.hashCode ^
+      expandedProvider.hashCode;
 }
 
 /// generated route for

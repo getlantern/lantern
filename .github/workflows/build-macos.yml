@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_payment_checkout_smoke:
+        description: "Render staging checkout pages after building"
+        required: false
+        type: boolean
+        default: false
       enable_ip_check:
         description: "Validate public IP change during the connect smoke"
         required: false
@@ -238,8 +243,8 @@ jobs:
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
           retention-days: 2
 
-      - name: Run macOS connect smoke
-        if: ${{ inputs.run_connect_smoke }}
+      - name: Run macOS app smoke
+        if: ${{ inputs.run_connect_smoke || inputs.run_payment_checkout_smoke }}
         timeout-minutes: 30
         shell: bash
         env:
@@ -248,11 +253,12 @@ jobs:
           ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
           FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           EXTENSION_TIMEOUT_SECONDS: ${{ inputs.extension_timeout_seconds }}
-          RUN_CONNECT_SMOKE: true
+          RUN_CONNECT_SMOKE: ${{ inputs.run_connect_smoke }}
+          RUN_PAYMENT_CHECKOUT_SMOKE: ${{ inputs.run_payment_checkout_smoke }}
         run: ./.github/scripts/macos_smoke_suite.sh
 
       - name: Upload macOS smoke diagnostics
-        if: ${{ always() && inputs.run_connect_smoke }}
+        if: ${{ always() && (inputs.run_connect_smoke || inputs.run_payment_checkout_smoke) }}
         uses: actions/upload-artifact@v4
         with:
           name: macos-smoke-diagnostics

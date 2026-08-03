@@ -6,7 +6,9 @@ import IOKit.ps
 class MainFlutterWindow: NSWindow {
 
   override func awakeFromNib() {
-    let flutterViewController = FlutterViewController()
+    let project = FlutterDartProject()
+    project.dartEntrypointArguments = Array(ProcessInfo.processInfo.arguments.dropFirst())
+    let flutterViewController = FlutterViewController(project: project)
 
     let size = NSSize(width: 390, height: 760)
 

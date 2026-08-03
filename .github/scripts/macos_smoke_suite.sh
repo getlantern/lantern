@@ -4,12 +4,15 @@ set -euo pipefail
 TEST_PATH="${TEST_PATH:-integration_test/vpn/macos_connect_smoke_test.dart}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
+RUN_PAYMENT_CHECKOUT_SMOKE="${RUN_PAYMENT_CHECKOUT_SMOKE:-false}"
 ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
 FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
-LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
+LANTERN_DATA_DIR="${LANTERN_DATA_DIR:-/Users/Shared/Lantern}"
+LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-$LANTERN_DATA_DIR/Logs}"
 DMG_MOUNT_DIR=""
+LANTERN_PID=""
 
 if ! [[ "$EXTENSION_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
   printf 'EXTENSION_TIMEOUT_SECONDS must be a positive integer, got %q.\n' \
@@ -178,6 +181,12 @@ reset_lantern_logs() {
   mkdir -p "$LANTERN_LOG_DIR"
 }
 
+reset_lantern_data() {
+  log_step "Resetting Lantern data at $LANTERN_DATA_DIR"
+  rm -rf "$LANTERN_DATA_DIR"
+  mkdir -p "$LANTERN_LOG_DIR"
+}
+
 capture_unified_logs() {
   log_step "Capturing unified logs"
   log show \
@@ -322,10 +331,171 @@ run_flutter_connect_smoke() {
   flutter "${args[@]}"
 }
 
+wait_for_log_pattern() {
+  local pattern="$1"
+  local timeout_seconds="$2"
+  local log_file="$LANTERN_LOG_DIR/flutter.log"
+  local deadline=$((SECONDS + timeout_seconds))
+
+  while ((SECONDS < deadline)); do
+    if [[ -n "$LANTERN_PID" ]] && ! kill -0 "$LANTERN_PID" 2>/dev/null; then
+      printf 'Lantern exited before its checkout screen was ready.\n' >&2
+      return 1
+    fi
+    if [[ -f "$log_file" ]] && grep -Eq "$pattern" "$log_file"; then
+      return 0
+    fi
+    if [[ -f "$log_file" ]] && grep -Eq \
+      'PAYMENT_CHECKOUT_SMOKE event=(rejected|bootstrap_error)' "$log_file"; then
+      tail -n 80 "$log_file" >&2
+      return 1
+    fi
+    sleep 1
+  done
+
+  printf 'Timed out waiting for log pattern: %s\n' "$pattern" >&2
+  return 1
+}
+
+press_accessibility_control() {
+  local identifier="$1"
+  local timeout_seconds="$2"
+  local deadline=$((SECONDS + timeout_seconds))
+
+  while ((SECONDS < deadline)); do
+    if osascript - "$LANTERN_PID" "$identifier" <<'APPLESCRIPT' >/dev/null 2>&1
+on run argv
+  set targetPID to item 1 of argv as integer
+  set targetIdentifier to item 2 of argv
+
+  tell application "System Events"
+    set targetProcess to first application process whose unix id is targetPID
+    set frontmost of targetProcess to true
+    repeat with candidate in entire contents of front window of targetProcess
+      try
+        if value of attribute "AXIdentifier" of candidate is targetIdentifier then
+          perform action "AXPress" of candidate
+          return
+        end if
+      end try
+    end repeat
+  end tell
+
+  error "Accessibility control not found: " & targetIdentifier
+end run
+APPLESCRIPT
+    then
+      return 0
+    fi
+    sleep 1
+  done
+
+  printf 'Unable to press macOS accessibility control %s.\n' "$identifier" >&2
+  return 1
+}
+
+wait_for_checkout_document() {
+  local host_pattern="$1"
+  local timeout_seconds="$2"
+  local log_file="$LANTERN_LOG_DIR/flutter.log"
+  local deadline=$((SECONDS + timeout_seconds))
+
+  while ((SECONDS < deadline)); do
+    if [[ -n "$LANTERN_PID" ]] && ! kill -0 "$LANTERN_PID" 2>/dev/null; then
+      printf 'Lantern exited while checkout was loading.\n' >&2
+      return 1
+    fi
+    if [[ -f "$log_file" ]] && grep -Eq \
+      'PAYMENT_WEBVIEW_SMOKE event=(navigation_error|process_error|document_error)' "$log_file"; then
+      tail -n 100 "$log_file" >&2
+      return 1
+    fi
+
+    local line
+    line="$(grep 'PAYMENT_WEBVIEW_SMOKE event=load_stop' "$log_file" 2>/dev/null | tail -n 1 || true)"
+    if [[ -n "$line" ]]; then
+      local host document_length
+      host="$(sed -E 's/.* host=([^ ]+).*/\1/' <<<"$line")"
+      document_length="$(sed -E 's/.* document_length=([-0-9]+).*/\1/' <<<"$line")"
+      if [[ "$host" =~ $host_pattern ]] &&
+        [[ "$document_length" =~ ^[0-9]+$ ]] &&
+        ((document_length > 0)); then
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+
+  printf 'No non-empty checkout document loaded from %s.\n' "$host_pattern" >&2
+  return 1
+}
+
+run_payment_checkout_case() {
+  local app_executable="$1"
+  local provider="$2"
+  local host_pattern="$3"
+  local case_dir="$ARTIFACT_DIR/payment-$provider"
+  local run_id
+  run_id="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+
+  mkdir -p "$case_dir"
+  quit_lantern
+  reset_lantern_data
+  log_step "Opening $provider checkout in the macOS app"
+
+  "$app_executable" \
+    "--payment-checkout-smoke=$provider" \
+    "--payment-checkout-run-id=$run_id" \
+    >"$case_dir/process.log" 2>&1 &
+  LANTERN_PID=$!
+
+  wait_for_log_pattern \
+    "Radiance configuration - env: stage" 60
+  wait_for_log_pattern \
+    "PAYMENT_CHECKOUT_SMOKE event=screen_ready provider=$provider run_id=$run_id" 120
+  screencapture -x "$case_dir/payment-method.png" 2>/dev/null || true
+
+  press_accessibility_control "payment-checkout-$provider" 30
+  wait_for_checkout_document "$host_pattern" 180
+  screencapture -x "$case_dir/checkout.png" 2>/dev/null || true
+
+  cp -R "$LANTERN_LOG_DIR/." "$case_dir/" 2>/dev/null || true
+  stop_payment_lantern
+}
+
+run_payment_checkout_smoke() {
+  local app_executable="$1"
+
+  run_payment_checkout_case \
+    "$app_executable" stripe '^checkout\.stripe\.com$'
+  run_payment_checkout_case \
+    "$app_executable" shepherd '(^|\.)m62mrsf\.com$'
+}
+
+stop_payment_lantern() {
+  quit_lantern
+  if [[ -z "$LANTERN_PID" ]]; then
+    return
+  fi
+
+  if kill -0 "$LANTERN_PID" 2>/dev/null; then
+    kill -TERM "$LANTERN_PID" 2>/dev/null || true
+    for _ in {1..5}; do
+      kill -0 "$LANTERN_PID" 2>/dev/null || break
+      sleep 1
+    done
+  fi
+  if kill -0 "$LANTERN_PID" 2>/dev/null; then
+    kill -KILL "$LANTERN_PID" 2>/dev/null || true
+  fi
+  wait "$LANTERN_PID" 2>/dev/null || true
+  LANTERN_PID=""
+}
+
 on_exit() {
   local status=$?
 
-  quit_lantern
+  stop_payment_lantern
   if [[ "$status" -ne 0 ]]; then
     capture_diagnostics "failure"
   fi
@@ -352,6 +522,12 @@ if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
   run_flutter_connect_smoke
 else
   log_step "Skipping macOS connect smoke test."
+fi
+
+if [[ "$RUN_PAYMENT_CHECKOUT_SMOKE" == "true" ]]; then
+  run_payment_checkout_smoke "$app_executable"
+else
+  log_step "Skipping macOS payment checkout smoke test."
 fi
 
 quit_lantern

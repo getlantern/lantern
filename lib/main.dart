@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
-import 'package:lantern/core/services/app_webview_environment.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/smoke/payment_checkout_smoke.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -21,6 +20,11 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main([List<String> arguments = const []]) async {
+  final paymentCheckoutSmoke = PaymentCheckoutSmokeConfig.parse(
+    arguments,
+    isDesktop: PlatformUtils.isDesktop,
+    buildType: AppBuildInfo.buildType,
+  );
   WidgetsFlutterBinding.ensureInitialized();
 
   // Timezone is only needed for notification scheduling (data-cap alerts),
@@ -51,11 +55,10 @@ Future<void> main([List<String> arguments = const []]) async {
         'local_app_data=${Platform.environment['LOCALAPPDATA'] ?? '<unset>'}',
       );
     }
-    await AppWebViewEnvironment.initialize();
     unawaited(_logDeviceInfo());
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
-    await injectServices();
+    await injectServices(useStaging: paymentCheckoutSmoke != null);
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
@@ -77,27 +80,12 @@ Future<void> main([List<String> arguments = const []]) async {
     appLogger.error('Failed to start Updater.init', e, st);
   }
 
-  PaymentCheckoutSmokeConfig? paymentCheckoutSmoke;
-  try {
-    paymentCheckoutSmoke = PaymentCheckoutSmokeConfig.parse(
-      arguments,
-      isWindows: PlatformUtils.isWindows,
-      buildType: AppBuildInfo.buildType,
+  if (paymentCheckoutSmoke != null) {
+    appLogger.info(
+      'PAYMENT_CHECKOUT_SMOKE event=enabled '
+      'provider=${paymentCheckoutSmoke.provider} '
+      'run_id=${paymentCheckoutSmoke.runID}',
     );
-    if (paymentCheckoutSmoke != null) {
-      appLogger.info(
-        'PAYMENT_CHECKOUT_SMOKE event=enabled '
-        'provider=${paymentCheckoutSmoke.provider} '
-        'run_id=${paymentCheckoutSmoke.runID}',
-      );
-    }
-  } on FormatException catch (error, stackTrace) {
-    appLogger.error(
-      'PAYMENT_CHECKOUT_SMOKE event=rejected error=$error',
-      error,
-      stackTrace,
-    );
-    rethrow;
   }
 
   runApp(

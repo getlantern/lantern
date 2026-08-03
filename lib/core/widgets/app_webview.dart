@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/app_webview_environment.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 
 final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
@@ -89,33 +88,16 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   void initState() {
     super.initState();
     _initialRequest = URLRequest(url: WebUri(widget.url));
-    if (PlatformUtils.isWindows && AppWebViewEnvironment.environment == null) {
-      _logSmokeEvent(
-        'creation_error',
-        Uri.tryParse(widget.url),
-        detail: 'stage=environment',
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (PlatformUtils.isWindows && AppWebViewEnvironment.environment == null) {
-      return Center(
-        child: Text(
-          'Unable to open this page.',
-          style: TextStyle(color: context.textPrimary),
-        ),
-      );
-    }
-
     final initialUri = Uri.tryParse(widget.url);
     appLogger.debug(
       'Building _InnerWebView for host: ${initialUri?.host ?? '<none>'}',
     );
     return InAppWebView(
       key: const ValueKey('app-webview'),
-      webViewEnvironment: AppWebViewEnvironment.environment,
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
@@ -209,21 +191,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
           detail: 'http_status=${errorResponse.statusCode}',
         );
       },
-      onProcessFailed: (_, detail) {
-        if (!PlatformUtils.isWindows) return;
-        ref.read(webViewLoadingProvider.notifier).stop();
-        appLogger.error('WebView2 process failed: ${detail.kind}');
-        _logSmokeEvent(
-          'process_error',
-          Uri.tryParse(widget.url),
-          detail: 'kind=${detail.kind}',
-        );
-      },
     );
   }
 
   void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
-    if (!PlatformUtils.isWindows || AppBuildInfo.buildType != 'nightly') {
+    if (!PlatformUtils.isDesktop || AppBuildInfo.buildType != 'nightly') {
       return;
     }
     // Checkout paths and query strings can contain session tokens. The origin

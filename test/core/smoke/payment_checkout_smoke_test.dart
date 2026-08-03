@@ -7,7 +7,7 @@ void main() {
       expect(
         PaymentCheckoutSmokeConfig.parse(
           const [],
-          isWindows: true,
+          isDesktop: true,
           buildType: 'nightly',
         ),
         isNull,
@@ -20,7 +20,7 @@ void main() {
           '--payment-checkout-smoke=stripe',
           '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
         ],
-        isWindows: true,
+        isDesktop: true,
         buildType: 'nightly',
       );
 
@@ -31,15 +31,26 @@ void main() {
       );
     });
 
-    test('rejects the hook outside a Windows nightly build', () {
+    test('rejects the hook outside a desktop nightly build', () {
       expect(
         () => PaymentCheckoutSmokeConfig.parse(
           const [
             '--payment-checkout-smoke=stripe',
             '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
           ],
-          isWindows: true,
+          isDesktop: true,
           buildType: 'production',
+        ),
+        throwsFormatException,
+      );
+      expect(
+        () => PaymentCheckoutSmokeConfig.parse(
+          const [
+            '--payment-checkout-smoke=stripe',
+            '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
+          ],
+          isDesktop: false,
+          buildType: 'nightly',
         ),
         throwsFormatException,
       );
@@ -52,7 +63,7 @@ void main() {
             '--payment-checkout-smoke=https://example.com',
             '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
           ],
-          isWindows: true,
+          isDesktop: true,
           buildType: 'nightly',
         ),
         throwsFormatException,
@@ -63,7 +74,7 @@ void main() {
             '--payment-checkout-smoke=shepherd',
             '--payment-checkout-run-id=../../unsafe',
           ],
-          isWindows: true,
+          isDesktop: true,
           buildType: 'nightly',
         ),
         throwsFormatException,
@@ -74,7 +85,7 @@ void main() {
             '--payment-checkout-smoke=',
             '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
           ],
-          isWindows: true,
+          isDesktop: true,
           buildType: 'nightly',
         ),
         throwsFormatException,
