@@ -3,6 +3,7 @@ param(
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
+  [string]$PaymentCheckoutTestPath = "integration_test/payment/windows_stripe_checkout_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
@@ -11,11 +12,14 @@ param(
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
+  [ValidateSet("prod", "staging")]
+  [string]$ServiceEnvironment = "prod",
   [bool]$RunConnectSmoke = $true,
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
+  [switch]$RunPaymentCheckoutSmoke,
   [switch]$UseInstaller
 )
 
@@ -307,7 +311,7 @@ try {
     Remove-ServiceIfPresent -Name $ServiceName
     Invoke-LanterndCommand `
       -FilePath $resolvedServiceExe `
-      -ArgumentList @("install") `
+      -ArgumentList @("install", "--environment", $ServiceEnvironment) `
       -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
@@ -320,6 +324,14 @@ try {
       -ForceFullTunnel:$ForceFullTunnel
   } else {
     Write-Step "Skipping Windows connect smoke test."
+  }
+
+  if ($RunPaymentCheckoutSmoke) {
+    Invoke-FlutterSmokeTest `
+      -Path $PaymentCheckoutTestPath `
+      -Description "Windows Stripe checkout smoke test"
+  } else {
+    Write-Step "Skipping Windows Stripe checkout smoke test."
   }
 
   if ($RunSplitTunnelWebsiteSmoke) {
