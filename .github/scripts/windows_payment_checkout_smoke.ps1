@@ -43,11 +43,14 @@ namespace WindowsPaymentSmoke {
   }
 
   public static class NativeToken {
+    private const int DACL_SECURITY_INFORMATION = 0x00000004;
+    private const int DESKTOP_ALL_ACCESS = 0x000001FF;
     private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     private const uint TOKEN_QUERY = 0x0008;
     private const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
     private const uint LOGON_WITH_PROFILE = 0x00000001;
     private const uint STARTF_USESHOWWINDOW = 0x00000001;
+    private const int WINSTA_ALL_ACCESS = 0x0000037F;
     private const int TokenElevation = 20;
 
     [System.Runtime.InteropServices.StructLayout(
@@ -107,6 +110,29 @@ namespace WindowsPaymentSmoke {
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool CloseHandle(System.IntPtr handle);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern System.IntPtr GetProcessWindowStation();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern System.IntPtr GetThreadDesktop(uint threadId);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern bool GetUserObjectSecurity(
+      System.IntPtr handle,
+      ref int requestedInformation,
+      System.IntPtr securityDescriptor,
+      uint length,
+      out uint needed);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetUserObjectSecurity(
+      System.IntPtr handle,
+      ref int requestedInformation,
+      System.IntPtr securityDescriptor);
 
     [System.Runtime.InteropServices.DllImport(
       "advapi32.dll",
@@ -191,6 +217,117 @@ namespace WindowsPaymentSmoke {
       } finally {
         CloseHandle(process.hThread);
         CloseHandle(process.hProcess);
+      }
+    }
+
+    public static void GrantInteractiveDesktop(string sid) {
+      UpdateAccess(
+        GetProcessWindowStation(),
+        new System.Security.Principal.SecurityIdentifier(sid),
+        WINSTA_ALL_ACCESS,
+        true);
+      UpdateAccess(
+        GetThreadDesktop(GetCurrentThreadId()),
+        new System.Security.Principal.SecurityIdentifier(sid),
+        DESKTOP_ALL_ACCESS,
+        true);
+    }
+
+    public static void RevokeInteractiveDesktop(string sid) {
+      System.Security.Principal.SecurityIdentifier identifier =
+        new System.Security.Principal.SecurityIdentifier(sid);
+      UpdateAccess(
+        GetThreadDesktop(GetCurrentThreadId()),
+        identifier,
+        DESKTOP_ALL_ACCESS,
+        false);
+      UpdateAccess(
+        GetProcessWindowStation(),
+        identifier,
+        WINSTA_ALL_ACCESS,
+        false);
+    }
+
+    private static void UpdateAccess(
+        System.IntPtr handle,
+        System.Security.Principal.SecurityIdentifier sid,
+        int accessMask,
+        bool grant) {
+      if (handle == System.IntPtr.Zero) {
+        throw LastError("Get interactive desktop handle");
+      }
+
+      int requestedInformation = DACL_SECURITY_INFORMATION;
+      uint needed;
+      GetUserObjectSecurity(
+        handle,
+        ref requestedInformation,
+        System.IntPtr.Zero,
+        0,
+        out needed);
+      if (needed == 0) {
+        throw LastError("GetUserObjectSecurity size");
+      }
+
+      System.IntPtr current =
+        System.Runtime.InteropServices.Marshal.AllocHGlobal((int)needed);
+      try {
+        if (!GetUserObjectSecurity(
+            handle,
+            ref requestedInformation,
+            current,
+            needed,
+            out needed)) {
+          throw LastError("GetUserObjectSecurity");
+        }
+        byte[] currentBytes = new byte[needed];
+        System.Runtime.InteropServices.Marshal.Copy(
+          current, currentBytes, 0, currentBytes.Length);
+        System.Security.AccessControl.RawSecurityDescriptor descriptor =
+          new System.Security.AccessControl.RawSecurityDescriptor(
+            currentBytes, 0);
+        System.Security.AccessControl.RawAcl acl =
+          descriptor.DiscretionaryAcl ??
+          new System.Security.AccessControl.RawAcl(
+            System.Security.AccessControl.GenericAcl.AclRevision, 1);
+
+        for (int i = acl.Count - 1; i >= 0; i--) {
+          System.Security.AccessControl.QualifiedAce ace =
+            acl[i] as System.Security.AccessControl.QualifiedAce;
+          if (ace != null && ace.SecurityIdentifier.Equals(sid)) {
+            acl.RemoveAce(i);
+          }
+        }
+        if (grant) {
+          acl.InsertAce(
+            acl.Count,
+            new System.Security.AccessControl.CommonAce(
+              System.Security.AccessControl.AceFlags.None,
+              System.Security.AccessControl.AceQualifier.AccessAllowed,
+              accessMask,
+              sid,
+              false,
+              null));
+        }
+        descriptor.DiscretionaryAcl = acl;
+
+        byte[] updatedBytes = new byte[descriptor.BinaryLength];
+        descriptor.GetBinaryForm(updatedBytes, 0);
+        System.IntPtr updated =
+          System.Runtime.InteropServices.Marshal.AllocHGlobal(
+            updatedBytes.Length);
+        try {
+          System.Runtime.InteropServices.Marshal.Copy(
+            updatedBytes, 0, updated, updatedBytes.Length);
+          if (!SetUserObjectSecurity(
+              handle, ref requestedInformation, updated)) {
+            throw LastError("SetUserObjectSecurity");
+          }
+        } finally {
+          System.Runtime.InteropServices.Marshal.FreeHGlobal(updated);
+        }
+      } finally {
+        System.Runtime.InteropServices.Marshal.FreeHGlobal(current);
       }
     }
 
@@ -854,6 +991,9 @@ function Wait-LauncherResult {
       if ($Process.HasExited) {
         throw "Smoke-user launcher exited with code $($Process.ExitCode)"
       }
+      if ($Process.MainWindowTitle -match '(?i)application error') {
+        throw "Smoke-user launcher could not initialize: $($Process.MainWindowTitle)"
+      }
     }
     Start-Sleep -Seconds 1
   }
@@ -1211,6 +1351,7 @@ function Invoke-CheckoutCase {
     }
     $windowsPowerShell = Join-Path $env:SystemRoot `
       "System32\WindowsPowerShell\v1.0\powershell.exe"
+    [WindowsPaymentSmoke.NativeToken]::GrantInteractiveDesktop($sid)
     $launcherProcessID = [WindowsPaymentSmoke.NativeToken]::StartWithLogon(
       $username,
       $passwordText,
@@ -1333,6 +1474,13 @@ function Invoke-CheckoutCase {
       Copy-CaseLogs -Destination $caseDirectory
     } catch {
       Write-Warning "Could not collect payment smoke logs: $_"
+    }
+    if ($sid) {
+      try {
+        [WindowsPaymentSmoke.NativeToken]::RevokeInteractiveDesktop($sid)
+      } catch {
+        Write-Warning "Could not remove smoke-user desktop access: $_"
+      }
     }
     if ($sid -and $sharedAppDirectory -and (Test-Path $sharedAppDirectory)) {
       & icacls.exe $sharedAppDirectory /remove "*$sid" /T /C | Out-Null
