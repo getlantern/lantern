@@ -146,9 +146,19 @@ jobs:
         run: make android
 
       - name: Build integration test APKs (app + androidTest)
-        run: >-
-          make android-integration-apks ANDROID_GRADLE=gradle
-          ANDROID_INTEGRATION_TARGET=${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+        shell: bash
+        env:
+          ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
+             [[ "$ANDROID_INTEGRATION_TARGET" == *".."* ]] ||
+             [[ ! -f "$ANDROID_INTEGRATION_TARGET" ]]; then
+            echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"
+            exit 1
+          fi
+          make android-integration-apks ANDROID_GRADLE=gradle \
+            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET"
 
       - name: Run tests on Firebase Test Lab
         id: ftl

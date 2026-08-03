@@ -928,7 +928,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 	  fi; \
 	fi
 	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # Builds the two APKs Firebase Test Lab needs to run the integration test as an
 # instrumentation test — the app APK (with the Dart entrypoint baked in via
@@ -940,7 +940,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 .PHONY: android-integration-apks
 android-integration-apks: $(ANDROID_LIB_BUILD)
 	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget=$(ANDROID_INTEGRATION_TARGET) $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
 # gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
