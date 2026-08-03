@@ -384,14 +384,18 @@ finally {
     if ($UseInstaller) {
       Uninstall-FromInstalledService -Name $ServiceName
     } else {
-      $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
-      if ($resolvedServiceExe) {
-        Invoke-LanterndCommand `
-          -FilePath $resolvedServiceExe `
-          -ArgumentList @("uninstall") `
-          -Description "Uninstalling lanternd service from $resolvedServiceExe"
+      if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+        $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
+        if ($resolvedServiceExe) {
+          Invoke-LanterndCommand `
+            -FilePath $resolvedServiceExe `
+            -ArgumentList @("uninstall") `
+            -Description "Uninstalling lanternd service from $resolvedServiceExe"
+        } else {
+          Remove-ServiceIfPresent -Name $ServiceName
+        }
       } else {
-        Remove-ServiceIfPresent -Name $ServiceName
+        Write-Step "Windows service $ServiceName was not installed; skipping uninstall."
       }
     }
     Write-Step "Cleanup finished"
