@@ -223,7 +223,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 	slog.Debug("Starting LanternCore initialization")
 
-	if opts.Env == "stage" || opts.Env == "staging" {
+	if opts.IsStaging() {
 		slog.Debug("Setting staging environment")
 		env.SetStagingEnv()
 	}

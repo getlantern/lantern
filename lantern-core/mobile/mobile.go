@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/ipc"
 
@@ -285,6 +286,13 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		defer ipcMu.Unlock()
 		if ipcServer != nil {
 			return struct{}{}, nil
+		}
+		// The backend's config fetcher captures common.GetBaseURL() at
+		// construction, so the environment must be set before
+		// NewLocalBackend — SetupRadiance's SetStagingEnv runs too late on
+		// Android, where StartIPCServer is called first.
+		if opts.IsStaging() {
+			env.SetStagingEnv()
 		}
 		bopts := backend.Options{
 			DataDir:           opts.DataDir,
