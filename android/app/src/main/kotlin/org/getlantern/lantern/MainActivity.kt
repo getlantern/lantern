@@ -333,8 +333,9 @@ class MainActivity : FlutterFragmentActivity() {
      * is the OS's record of what happened, and reading it on the next launch is
      * the only way that reason reaches an attached log bundle.
      *
-     * Runs after AppLogger.init() so the output lands in lantern.log rather than
-     * only logcat, which users cannot capture.
+     * Runs after AppLogger.init() so the output lands in
+     * .lantern/logs/lantern_android.log rather than only logcat, which users
+     * cannot capture.
      */
     private fun logPreviousExitReasons() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return

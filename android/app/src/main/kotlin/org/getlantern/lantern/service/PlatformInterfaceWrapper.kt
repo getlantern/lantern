@@ -189,8 +189,12 @@ interface PlatformInterfaceWrapper : PlatformInterface {
     // leaves a pending JNI exception the Go side cannot observe or clear, which
     // aborts the process (SIGABRT) instead of surfacing an error. WifiManager is a
     // realistic source of one: connectionInfo raises SecurityException without
-    // location permission on some vendor builds, and returns entries whose ssid or
-    // bssid is null. Null is already this method's "no WiFi state" answer.
+    // location permission on some vendor builds, and can report a null ssid.
+    //
+    // Null means "no WiFi state", and is returned when there is no connection
+    // info, no ssid, or anything throws. A missing bssid does not invalidate the
+    // answer, so it degrades to an empty string — the same shape the existing
+    // "<unknown ssid>" case returns.
     override fun readWIFIState(): WIFIState? {
         return try {
             @Suppress("DEPRECATION") val wifiInfo =
