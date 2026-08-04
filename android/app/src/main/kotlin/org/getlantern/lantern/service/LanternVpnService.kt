@@ -8,6 +8,7 @@ import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -135,8 +136,24 @@ class LanternVpnService :
     }
 
     // Create a CoroutineScope tied to the service's lifecycle.
-    // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
-    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    //
+    // SupervisorJob keeps one child's failure from cancelling its siblings, but it does
+    // not handle the exception: without a CoroutineExceptionHandler an uncaught throw in
+    // any launch{} below reaches the thread's default handler and takes the process down
+    // with no Kotlin log and no Go crash file, which reads as a silent death. The handler
+    // makes that case diagnosable and reports it to the UI like any other VPN error.
+    private val serviceScope =
+        CoroutineScope(
+            Dispatchers.IO + SupervisorJob() +
+                CoroutineExceptionHandler { _, e ->
+                    AppLogger.e(TAG, "Uncaught exception in service coroutine", e)
+                    VpnStatusManager.postVPNError(
+                        errorCode = "service_coroutine_uncaught",
+                        errorMessage = "Unexpected VPN service error",
+                        error = e,
+                    )
+                },
+        )
 
     override fun onStartCommand(
         intent: Intent?,
@@ -386,10 +403,15 @@ class LanternVpnService :
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
-        // Show foreground notification immediately — required by the OS as soon as
-        // VPN service starts, replaced by connected notification on success.
-        notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
         runCatching {
+            // Show foreground notification immediately — required by the OS as soon as
+            // VPN service starts, replaced by the connected notification on success.
+            // This is startForeground() underneath, which the OS can refuse over
+            // foreground-service type, permission, or vendor policy. Guarded so a
+            // refusal surfaces through onFailure like every other step here; outside
+            // the block it escapes into serviceScope, which has no handler, and kills
+            // the process with nothing logged.
+            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
             // service it may have been killed by the OS before setup completed.
             // Re-run setup here under the foreground notification so it is guaranteed
