@@ -184,17 +184,29 @@ interface PlatformInterfaceWrapper : PlatformInterface {
     override fun clearDNSCache() {
     }
 
+    // Returns null rather than throwing on any failure. Go calls this through
+    // gomobile and the interface method has no error return, so a Kotlin throw
+    // leaves a pending JNI exception the Go side cannot observe or clear, which
+    // aborts the process (SIGABRT) instead of surfacing an error. WifiManager is a
+    // realistic source of one: connectionInfo raises SecurityException without
+    // location permission on some vendor builds, and returns entries whose ssid or
+    // bssid is null. Null is already this method's "no WiFi state" answer.
     override fun readWIFIState(): WIFIState? {
-        @Suppress("DEPRECATION") val wifiInfo =
-            LanternApp.wifiManager.connectionInfo ?: return null
-        var ssid = wifiInfo.ssid
-        if (ssid == "<unknown ssid>") {
-            return WIFIState("", "")
+        return try {
+            @Suppress("DEPRECATION") val wifiInfo =
+                LanternApp.wifiManager.connectionInfo ?: return null
+            var ssid = wifiInfo.ssid ?: return null
+            if (ssid == "<unknown ssid>") {
+                return WIFIState("", "")
+            }
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                ssid = ssid.substring(1, ssid.length - 1)
+            }
+            WIFIState(ssid, wifiInfo.bssid ?: "")
+        } catch (e: Throwable) {
+            AppLogger.e("PlatformInterface", "readWIFIState() failed", e)
+            null
         }
-        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-            ssid = ssid.substring(1, ssid.length - 1)
-        }
-        return WIFIState(ssid, wifiInfo.bssid)
     }
 
     private class InterfaceArray(private val iterator: Iterator<lantern.io.libbox.NetworkInterface>) :
