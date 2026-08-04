@@ -258,28 +258,13 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   public func findConnectionOwner(
     _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
-    destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?
-  ) throws {
-    throw NSError(domain: "not implemented", code: 0)
-  }
-
-  public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
-    return ""
-  }
-
-  public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
+    destinationPort _: Int32
+  ) throws -> LibboxConnectionOwner {
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func useProcFS() -> Bool {
     return false
-  }
-
-  public func writeLog(_ message: String?) {
-    guard let message else {
-      return
-    }
-    appLogger.log("\(String(describing: message))")
   }
 
   private var nwMonitor: NWPathMonitor? = nil

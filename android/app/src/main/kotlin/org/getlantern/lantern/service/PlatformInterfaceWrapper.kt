@@ -1,7 +1,6 @@
 package org.getlantern.lantern.service
 
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.net.LinkAddress
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -9,6 +8,7 @@ import android.os.Process
 import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
+import lantern.io.libbox.ConnectionOwner
 import lantern.io.libbox.InterfaceUpdateListener
 import lantern.io.libbox.Libbox
 import lantern.io.libbox.LocalDNSTransport
@@ -45,7 +45,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
         sourcePort: Int,
         destinationAddress: String,
         destinationPort: Int
-    ): Int {
+    ): ConnectionOwner {
         try {
             val uid = LanternApp.connectivity.getConnectionOwnerUid(
                 ipProtocol,
@@ -53,34 +53,18 @@ interface PlatformInterfaceWrapper : PlatformInterface {
                 InetSocketAddress(destinationAddress, destinationPort)
             )
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
-            return uid
+            val packages = LanternApp.packageManager.getPackagesForUid(uid)
+            val owner = ConnectionOwner()
+            owner.userId = uid
+            owner.userName = packages?.firstOrNull() ?: ""
+            owner.setAndroidPackageNames(
+                StringArray(packages?.toList()?.iterator() ?: emptyList<String>().iterator())
+            )
+            return owner
         } catch (e: Exception) {
             AppLogger.e("PlatformInterface", "getConnectionOwnerUid", e)
             e.printStackTrace(System.err)
             throw e
-        }
-    }
-
-    override fun packageNameByUid(uid: Int): String {
-        val packages = LanternApp.packageManager.getPackagesForUid(uid)
-        if (packages.isNullOrEmpty()) error("android: package not found")
-        return packages[0]
-    }
-
-    @Suppress("DEPRECATION")
-    override fun uidByPackageName(packageName: String): Int {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                LanternApp.packageManager.getPackageUid(
-                    packageName, PackageManager.PackageInfoFlags.of(0)
-                )
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                LanternApp.packageManager.getPackageUid(packageName, 0)
-            } else {
-                LanternApp.packageManager.getApplicationInfo(packageName, 0).uid
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            error("android: package not found")
         }
     }
 
