@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern_app.dart';
@@ -103,6 +104,7 @@ void main() {
       expect(find.byKey(const ValueKey('app-webview')), findsOneWidget);
       expect(observer.uri?.host, _stripeHost);
       expect(observer.documentLength, greaterThan(0));
+      await _captureMacOSCheckoutScreenshot(tester);
       debugPrint(
         'Stripe Checkout rendered from $_stripeHost '
         '(${observer.documentLength} document characters)',
@@ -110,6 +112,21 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 5)),
   );
+}
+
+Future<void> _captureMacOSCheckoutScreenshot(WidgetTester tester) async {
+  if (!Platform.isMacOS) return;
+
+  final directory = await AppStorageUtils.getAppDirectory();
+  final ready = File('${directory.path}/.checkout-screenshot-ready');
+  final captured = File('${directory.path}/.checkout-screenshot-captured');
+  await ready.create(recursive: true);
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (DateTime.now().isBefore(deadline)) {
+    if (await captured.exists()) return;
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  debugPrint('Timed out waiting for the macOS checkout screenshot');
 }
 
 Future<void> _waitFor(
