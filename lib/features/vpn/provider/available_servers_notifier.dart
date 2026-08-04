@@ -40,6 +40,9 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
   /// Forces a fetch of the available servers and updates the state.
   /// Updates UI accordingly.
   Future<void> forceFetchAvailableServers() async {
+    if (!ref.mounted) {
+      return;
+    }
     final result = await fetchAvailableServers();
     // The fetch is async and this notifier can be disposed while it is in
     // flight (e.g. the app tears down during an integration test). Writing
@@ -63,6 +66,9 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final now = DateTime.now();
     final lastReload = _lastSettleReloadAt;
     await forceFetchAvailableServers();
+    if (!ref.mounted) {
+      return;
+    }
 
     if (_settleReload != null) {
       await _settleReload;
@@ -76,6 +82,9 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
 
     final settleReload = Future<void>(() async {
       await Future.delayed(_availableServersSettleReloadDelay);
+      if (!ref.mounted) {
+        return;
+      }
       await forceFetchAvailableServers();
     });
     _settleReload = settleReload;
