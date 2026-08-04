@@ -211,12 +211,22 @@ jobs:
 
       - name: Upload macOS payment smoke diagnostics
         if: ${{ always() && inputs.run_payment_checkout_smoke }}
+        id: payment_smoke_diagnostics
         uses: actions/upload-artifact@v4
         with:
           name: macos-payment-checkout-smoke
           path: ${{ runner.temp }}/macos-payment-checkout-smoke
           if-no-files-found: ignore
           retention-days: 2
+
+      - name: Log macOS payment smoke diagnostics URL
+        if: ${{ always() && steps.payment_smoke_diagnostics.outputs.artifact-url != '' }}
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.payment_smoke_diagnostics.outputs.artifact-url }}
+        run: |
+          echo "::notice title=macOS payment smoke diagnostics::$ARTIFACT_URL"
+          echo "[Download the macOS payment smoke screenshot and diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build macOS release
         run: make macos-release-ci
