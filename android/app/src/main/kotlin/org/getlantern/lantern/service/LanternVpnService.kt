@@ -407,10 +407,11 @@ class LanternVpnService :
             // Show foreground notification immediately — required by the OS as soon as
             // VPN service starts, replaced by the connected notification on success.
             // This is startForeground() underneath, which the OS can refuse over
-            // foreground-service type, permission, or vendor policy. Guarded so a
-            // refusal surfaces through onFailure like every other step here; outside
-            // the block it escapes into serviceScope, which has no handler, and kills
-            // the process with nothing logged.
+            // foreground-service type, permission, or vendor policy. Inside the block
+            // so a refusal takes this operation's own failure path — errorCode-tagged
+            // reporting, network-monitor teardown, and serviceCleanUp when the caller
+            // asked for it — rather than the service-wide handler, which only logs and
+            // posts a generic error.
             notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
             // service it may have been killed by the OS before setup completed.
