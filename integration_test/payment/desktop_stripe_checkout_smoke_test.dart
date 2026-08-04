@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -15,6 +16,10 @@ import 'package:lantern/main.dart' as app;
 
 const _stripeHost = 'checkout.stripe.com';
 const _screenshotPath = String.fromEnvironment('PAYMENT_SMOKE_SCREENSHOT_PATH');
+const _screenshotRenderTimeout = Duration(seconds: 30);
+const _screenshotPollInterval = Duration(milliseconds: 250);
+const _minimumScreenshotContrast = 64;
+const _darkPixelLuminance = 192;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -108,12 +113,9 @@ void main() {
       expect(observer.documentLength, greaterThan(0));
       if (Platform.isMacOS) {
         final screenshot = observer.screenshot;
-        expect(
-          screenshot,
-          isNotNull,
-          reason: 'The Stripe WebView did not return a screenshot',
-        );
-        await _verifyScreenshot(screenshot!);
+        if (screenshot == null) {
+          fail('The Stripe WebView did not return a screenshot');
+        }
         if (_screenshotPath.isNotEmpty) {
           final file = File(_screenshotPath);
           await file.parent.create(recursive: true);
@@ -130,14 +132,63 @@ void main() {
   );
 }
 
-Future<void> _verifyScreenshot(Uint8List screenshot) async {
-  expect(screenshot.lengthInBytes, greaterThan(1024));
+Future<Uint8List> _waitForRenderedScreenshot(
+  Future<Uint8List?> Function() captureScreenshot,
+) async {
+  final deadline = DateTime.now().add(_screenshotRenderTimeout);
+  Object? lastError;
+  while (DateTime.now().isBefore(deadline)) {
+    try {
+      final screenshot = await captureScreenshot().timeout(
+        const Duration(seconds: 5),
+      );
+      if (screenshot != null && await _hasVisibleContent(screenshot)) {
+        return screenshot;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+    await Future<void>.delayed(_screenshotPollInterval);
+  }
+  final detail = lastError == null ? '' : ': $lastError';
+  throw TimeoutException(
+    'Stripe Checkout did not become visually ready$detail',
+    _screenshotRenderTimeout,
+  );
+}
+
+Future<bool> _hasVisibleContent(Uint8List screenshot) async {
+  if (screenshot.lengthInBytes <= 1024) return false;
+
   final codec = await ui.instantiateImageCodec(screenshot);
   try {
     final frame = await codec.getNextFrame();
     try {
-      expect(frame.image.width, greaterThan(100));
-      expect(frame.image.height, greaterThan(100));
+      if (frame.image.width <= 100 || frame.image.height <= 100) return false;
+      final data = await frame.image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
+      if (data == null) return false;
+
+      var darkest = 255;
+      var lightest = 0;
+      var darkPixels = 0;
+      final pixelCount = data.lengthInBytes ~/ 4;
+      final minimumDarkPixels = max(64, pixelCount ~/ 1000);
+      for (var offset = 0; offset < data.lengthInBytes; offset += 4) {
+        final red = data.getUint8(offset);
+        final green = data.getUint8(offset + 1);
+        final blue = data.getUint8(offset + 2);
+        final luminance = (299 * red + 587 * green + 114 * blue) ~/ 1000;
+        if (luminance < darkest) darkest = luminance;
+        if (luminance > lightest) lightest = luminance;
+        if (luminance <= _darkPixelLuminance) darkPixels++;
+        if (lightest - darkest >= _minimumScreenshotContrast &&
+            darkPixels >= minimumDarkPixels) {
+          return true;
+        }
+      }
+      return false;
     } finally {
       frame.image.dispose();
     }
@@ -195,12 +246,7 @@ class _StripeCheckoutObserver implements AppWebViewObserver {
     if (uri.host != _stripeHost) return;
     if (Platform.isMacOS) {
       try {
-        screenshot = await captureScreenshot().timeout(
-          const Duration(seconds: 10),
-        );
-        if (screenshot == null || screenshot!.isEmpty) {
-          checkoutFailure = 'WebView screenshot was empty';
-        }
+        screenshot = await _waitForRenderedScreenshot(captureScreenshot);
       } catch (error) {
         checkoutFailure = 'Unable to capture WebView screenshot: $error';
       }
