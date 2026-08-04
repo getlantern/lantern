@@ -24,6 +24,10 @@ void main() {
         isTrue,
         reason: 'This smoke runs on Windows and macOS',
       );
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(milliseconds: 500));
+      });
 
       await app.main();
       await _waitFor(

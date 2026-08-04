@@ -99,11 +99,13 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         : UserPreferredContentMode.DESKTOP,
   );
   late final URLRequest _initialRequest;
+  late final WebViewLoading _loading;
 
   @override
   void initState() {
     super.initState();
     _initialRequest = URLRequest(url: WebUri(widget.url));
+    _loading = ref.read(webViewLoadingProvider.notifier);
   }
 
   @override
@@ -119,6 +121,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       initialSettings: setting,
       onWebViewCreated: (controller) {},
       onCreateWindow: (controller, createWindowAction) async {
+        if (!mounted) return false;
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {
           // On Windows, Stripe/Alipay flows may open popups with window.open.
@@ -131,25 +134,27 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
           if (uri != null && await _consumeExternalAppUrlIfNeeded(uri)) {
             return true;
           }
+          if (!mounted) return false;
           await controller.loadUrl(urlRequest: req);
           return true;
         }
         return false;
       },
       onLoadStart: (_, webUri) async {
-        // Handle load start
-        final loading = ref.read(webViewLoadingProvider.notifier);
-        loading.start();
+        if (!mounted) return;
+        _loading.start();
       },
       onLoadStop: (controller, webUri) async {
-        ref.read(webViewLoadingProvider.notifier).stop();
+        if (!mounted) return;
+        _loading.stop();
         final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
         await _reportPageLoaded(controller, uri);
         await _handleCompletionUrl(uri);
       },
       onReceivedError: (_, webResourceRequest, error) async {
+        if (!mounted) return;
         appLogger.error("Received error: $error");
-        ref.read(webViewLoadingProvider.notifier).stop();
+        _loading.stop();
         final uri = Uri.tryParse(webResourceRequest.url.toString());
         if (webResourceRequest.isForMainFrame == true) {
           widget.observer?.onPageLoadFailed(
@@ -160,8 +165,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         await _handleCompletionUrl(uri);
       },
       onReceivedHttpError: (_, request, response) {
-        if (request.isForMainFrame != true) return;
-        ref.read(webViewLoadingProvider.notifier).stop();
+        if (!mounted || request.isForMainFrame != true) return;
+        _loading.stop();
         final uri = Uri.tryParse(request.url.toString());
         widget.observer?.onPageLoadFailed(uri, 'HTTP ${response.statusCode}');
       },
@@ -182,8 +187,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       final documentLength = value is num
           ? value.toInt()
           : int.tryParse(value?.toString() ?? '') ?? 0;
+      if (!mounted) return;
       observer.onPageLoaded(uri, documentLength: documentLength);
     } catch (error, stackTrace) {
+      if (!mounted) return;
       appLogger.error('Unable to inspect WebView document', error, stackTrace);
       observer.onPageLoadFailed(uri, error.toString());
     }
@@ -218,15 +225,13 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   }
 
   Future<bool> _handleCompletionUrl(Uri? uri) async {
-    if (uri == null) {
+    if (uri == null || !mounted) {
       return false;
     }
 
-    final loading = ref.read(webViewLoadingProvider.notifier);
-
     // User has completed private server setup.
     if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
-      loading.stop();
+      _loading.stop();
       await appRouter.maybePop(true);
       return true;
     }
@@ -235,14 +240,14 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (uri.scheme == 'lantern' &&
         uri.host == 'auth' &&
         uri.queryParameters.containsKey('token')) {
-      loading.stop();
+      _loading.stop();
       await appRouter.maybePop(uri.queryParameters);
       return true;
     }
 
     final purchaseResult = _extractPurchaseResult(uri);
     if (purchaseResult != null && isLanternHost(uri.host)) {
-      loading.stop();
+      _loading.stop();
       await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
       return true;
     }
@@ -253,7 +258,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       appLogger.info(
         'Webview detected Alipay trade_status=TRADE_SUCCESS on ${uri.host}, closing',
       );
-      loading.stop();
+      _loading.stop();
       await appRouter.maybePop(true);
       return true;
     }
@@ -261,7 +266,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {
-      loading.stop();
+      _loading.stop();
       await appRouter.maybePop(uri.queryParameters);
       return true;
     }
@@ -273,6 +278,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     InAppWebViewController controller,
     NavigationAction navigationAction,
   ) async {
+    if (!mounted) return NavigationActionPolicy.ALLOW;
     final uri = navigationAction.request.url;
     if (uri == null) return NavigationActionPolicy.ALLOW;
 
@@ -309,8 +315,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     if (!UrlUtils.shouldOpenExternallyFromWebView(uri)) {
       return false;
     }
+    if (!mounted) return false;
 
-    ref.read(webViewLoadingProvider.notifier).stop();
+    _loading.stop();
     final launched = await UrlUtils.tryLaunchExternalAppUrl(context, uri);
     final host = uri.host.isEmpty ? '<none>' : uri.host;
     if (launched) {
