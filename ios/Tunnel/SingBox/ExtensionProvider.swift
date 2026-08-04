@@ -43,19 +43,17 @@ class ExtensionProvider: NEPacketTunnelProvider {
     case "Lantern":
       startVPN()
     case "PrivateServer":
-      let serverName = options?["netEx.ServerName"] as? String
+      guard let serverName = options?["netEx.ServerName"] as? String else {
+        let error = NSError(domain: "Missing netEx.ServerName", code: 0)
+        appLogger.error("\(error.localizedDescription)")
+        cancelTunnelWithError(error)
+        return
+      }
       connectToServer(serverName: serverName!)
     default:
       // Fallback or unknown type
       startVPN()
     }
-  }
-
-  public func writeFatalError(_ message: String) {
-    appLogger.error(message)
-    var error: NSError?
-    LibboxWriteServiceError(message, &error)
-    cancelTunnelWithError(nil)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
@@ -110,7 +108,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     // Intentionally left empty. The app and extension don't share a keychain access
-    // Radiance resolves the device ID from the main app process. 
+    // Radiance resolves the device ID from the main app process.
     opts.deviceid = ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier

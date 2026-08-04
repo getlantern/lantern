@@ -45,7 +45,9 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       startVPN()
     case "PrivateServer":
       guard let serverName = options?["netEx.ServerName"] as? String else {
-        writeFatalError("Missing netEx.ServerName")
+        let error = NSError(domain: "Missing netEx.ServerName", code: 0)
+        appLogger.error("\(error.localizedDescription)")
+        cancelTunnelWithError(error)
         return
       }
       connectToServer(serverName: serverName)
@@ -54,13 +56,6 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
       startVPN()
     }
-  }
-
-  public func writeFatalError(_ message: String) {
-    appLogger.error("\(String(describing: message))")
-    var error: NSError?
-    LibboxWriteServiceError(message, &error)
-    cancelTunnelWithError(nil)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
