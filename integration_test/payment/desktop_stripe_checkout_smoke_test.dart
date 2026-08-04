@@ -1,18 +1,20 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:lantern/main.dart' as app;
 
 const _stripeHost = 'checkout.stripe.com';
+const _screenshotPath = String.fromEnvironment('PAYMENT_SMOKE_SCREENSHOT_PATH');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -104,7 +106,21 @@ void main() {
       expect(find.byKey(const ValueKey('app-webview')), findsOneWidget);
       expect(observer.uri?.host, _stripeHost);
       expect(observer.documentLength, greaterThan(0));
-      await _captureMacOSCheckoutScreenshot(tester);
+      if (Platform.isMacOS) {
+        final screenshot = observer.screenshot;
+        expect(
+          screenshot,
+          isNotNull,
+          reason: 'The Stripe WebView did not return a screenshot',
+        );
+        await _verifyScreenshot(screenshot!);
+        if (_screenshotPath.isNotEmpty) {
+          final file = File(_screenshotPath);
+          await file.parent.create(recursive: true);
+          await file.writeAsBytes(screenshot, flush: true);
+          debugPrint('Stripe Checkout screenshot saved to ${file.path}');
+        }
+      }
       debugPrint(
         'Stripe Checkout rendered from $_stripeHost '
         '(${observer.documentLength} document characters)',
@@ -114,19 +130,20 @@ void main() {
   );
 }
 
-Future<void> _captureMacOSCheckoutScreenshot(WidgetTester tester) async {
-  if (!Platform.isMacOS) return;
-
-  final directory = await AppStorageUtils.getAppDirectory();
-  final ready = File('${directory.path}/.checkout-screenshot-ready');
-  final captured = File('${directory.path}/.checkout-screenshot-captured');
-  await ready.create(recursive: true);
-  final deadline = DateTime.now().add(const Duration(seconds: 10));
-  while (DateTime.now().isBefore(deadline)) {
-    if (await captured.exists()) return;
-    await tester.pump(const Duration(milliseconds: 100));
+Future<void> _verifyScreenshot(Uint8List screenshot) async {
+  expect(screenshot.lengthInBytes, greaterThan(1024));
+  final codec = await ui.instantiateImageCodec(screenshot);
+  try {
+    final frame = await codec.getNextFrame();
+    try {
+      expect(frame.image.width, greaterThan(100));
+      expect(frame.image.height, greaterThan(100));
+    } finally {
+      frame.image.dispose();
+    }
+  } finally {
+    codec.dispose();
   }
-  debugPrint('Timed out waiting for the macOS checkout screenshot');
 }
 
 Future<void> _waitFor(
@@ -159,6 +176,7 @@ String _newUuid() {
 class _StripeCheckoutObserver implements AppWebViewObserver {
   Uri? uri;
   int documentLength = 0;
+  Uint8List? screenshot;
   String? lastFailure;
   String? checkoutFailure;
 
@@ -169,8 +187,24 @@ class _StripeCheckoutObserver implements AppWebViewObserver {
       : 'Stripe Checkout did not load: $lastFailure';
 
   @override
-  void onPageLoaded(Uri uri, {required int documentLength}) {
+  Future<void> onPageLoaded(
+    Uri uri, {
+    required int documentLength,
+    required Future<Uint8List?> Function() captureScreenshot,
+  }) async {
     if (uri.host != _stripeHost) return;
+    if (Platform.isMacOS) {
+      try {
+        screenshot = await captureScreenshot().timeout(
+          const Duration(seconds: 10),
+        );
+        if (screenshot == null || screenshot!.isEmpty) {
+          checkoutFailure = 'WebView screenshot was empty';
+        }
+      } catch (error) {
+        checkoutFailure = 'Unable to capture WebView screenshot: $error';
+      }
+    }
     this.uri = uri;
     this.documentLength = documentLength;
   }
