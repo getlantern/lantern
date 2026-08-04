@@ -70,7 +70,7 @@ object DefaultNetworkListener {
                 is NetworkMessage.Start -> {
                     if (listeners.isEmpty()) register()
                     listeners[message.key] = message.listener
-                    if (network != null) message.listener(network)
+                    if (network != null) notify(message.listener, network)
                 }
 
                 is NetworkMessage.Get -> {
@@ -91,18 +91,16 @@ object DefaultNetworkListener {
                     network = message.network
                     pendingRequests.forEach { it.response.complete(message.network) }
                     pendingRequests.clear()
-                    listeners.values.forEach { it(network) }
+                    listeners.values.forEach { notify(it, network) }
                 }
 
-                is NetworkMessage.Update -> if (network == message.network) listeners.values.forEach {
-                    it(
-                        network
-                    )
+                is NetworkMessage.Update -> if (network == message.network) {
+                    listeners.values.forEach { notify(it, network) }
                 }
 
                 is NetworkMessage.Lost -> if (network == message.network) {
                     network = null
-                    listeners.values.forEach { it(null) }
+                    listeners.values.forEach { notify(it, null) }
                 }
             }
         } catch (e: Throwable) {
@@ -110,6 +108,18 @@ object DefaultNetworkListener {
             if (message is NetworkMessage.Get && message.response.isActive) {
                 message.response.completeExceptionally(e)
             }
+        }
+    }
+
+    // Invokes one listener in isolation. Listeners are caller-supplied, and the
+    // fan-outs above iterate every registered one: letting a throw escape would
+    // abort the loop, so a single bad listener would silently deprive all the
+    // others of the event — and stay registered to do it again on the next one.
+    private fun notify(listener: (Network?) -> Unit, network: Network?) {
+        try {
+            listener(network)
+        } catch (e: Throwable) {
+            AppLogger.e("DefaultNetworkListener", "Network listener threw; continuing", e)
         }
     }
 
