@@ -10,9 +10,9 @@ import (
 
 func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 	want := &ipc.Client{}
-	ipcClient.Store(want)
+	previousClient := ipcClient.Swap(want)
 	t.Cleanup(func() {
-		ipcClient.Store(nil)
+		ipcClient.Store(previousClient)
 	})
 
 	ipcMu.Lock()

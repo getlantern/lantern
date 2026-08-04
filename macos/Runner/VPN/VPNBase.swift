@@ -31,10 +31,21 @@ enum VPNManagerError: LocalizedError, Equatable {
 
 /// Coordinates connection changes while allowing stop to cancel a pending start.
 actor VPNLifecycleCoordinator {
+  private struct StopWaiter {
+    let connectionID: UInt
+    let continuation: CheckedContinuation<Void, Never>
+  }
+
   private var nextConnectionID: UInt = 0
   private var activeConnectionID: UInt?
   private var stopPending = false
-  private var stopWaiters: [CheckedContinuation<Void, Never>] = []
+  private var stopWaiter: StopWaiter?
+  private var stopHandoffTimeoutTask: Task<Void, Never>?
+  private let stopHandoffTimeoutNanoseconds: UInt64
+
+  init(stopHandoffTimeoutNanoseconds: UInt64 = 5_000_000_000) {
+    self.stopHandoffTimeoutNanoseconds = stopHandoffTimeoutNanoseconds
+  }
 
   /// Starts a connection operation unless another lifecycle change owns the manager.
   func beginConnectionOperation() throws -> UInt {
@@ -55,22 +66,29 @@ actor VPNLifecycleCoordinator {
   func endConnectionOperation(_ id: UInt) {
     guard activeConnectionID == id else { return }
     activeConnectionID = nil
-    let waiters = stopWaiters
-    stopWaiters.removeAll()
-    waiters.forEach { $0.resume() }
+    finishStopHandoff(for: id)
   }
 
-  /// Cancels any active connection operation and waits for its profile writes to finish.
+  /// Cancels any active connection operation and briefly waits for it to hand off the manager.
   /// The return value tells the caller to tear down even if the system status has not caught up.
   func beginStopOperation() async throws -> Bool {
     guard !stopPending else {
       throw VPNManagerError.operationInProgress
     }
     stopPending = true
-    let canceledConnectionOperation = activeConnectionID != nil
-    guard canceledConnectionOperation else { return false }
+    guard let connectionID = activeConnectionID else { return false }
+    let timeout = stopHandoffTimeoutNanoseconds
+
     await withCheckedContinuation { continuation in
-      stopWaiters.append(continuation)
+      stopWaiter = StopWaiter(connectionID: connectionID, continuation: continuation)
+      stopHandoffTimeoutTask = Task { [weak self] in
+        do {
+          try await Task.sleep(nanoseconds: timeout)
+        } catch {
+          return
+        }
+        await self?.expireStopHandoff(for: connectionID)
+      }
     }
     return true
   }
@@ -78,6 +96,24 @@ actor VPNLifecycleCoordinator {
   /// Allows connection changes again once the stop request has completed.
   func endStopOperation() {
     stopPending = false
+  }
+
+  private func finishStopHandoff(for connectionID: UInt) {
+    guard let waiter = stopWaiter, waiter.connectionID == connectionID else { return }
+    stopWaiter = nil
+    stopHandoffTimeoutTask?.cancel()
+    stopHandoffTimeoutTask = nil
+    waiter.continuation.resume()
+  }
+
+  private func expireStopHandoff(for connectionID: UInt) {
+    guard let waiter = stopWaiter, waiter.connectionID == connectionID else { return }
+    stopWaiter = nil
+    stopHandoffTimeoutTask = nil
+    if activeConnectionID == connectionID {
+      activeConnectionID = nil
+    }
+    waiter.continuation.resume()
   }
 }
 
@@ -102,10 +138,8 @@ func shouldStopTunnel(for status: NEVPNStatus) throws -> Bool {
   switch status {
   case .connected, .connecting, .reasserting:
     return true
-  case .disconnected, .disconnecting:
+  case .disconnected, .disconnecting, .invalid:
     return false
-  case .invalid:
-    throw VPNManagerError.loadingProviderFailed
   @unknown default:
     throw VPNManagerError.unknown
   }

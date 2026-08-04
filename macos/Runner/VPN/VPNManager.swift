@@ -136,18 +136,12 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
-    do {
+    try await withConnectionOperation { operationID in
       try await startTunnel(operationID: operationID)
-    } catch {
-      await lifecycleCoordinator.endConnectionOperation(operationID)
-      throw error
     }
-    await lifecycleCoordinator.endConnectionOperation(operationID)
   }
 
   private func startTunnel(operationID: UInt) async throws {
-
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
@@ -173,18 +167,12 @@ class VPNManager: VPNBase {
   func connectToServer(
     serverName: String
   ) async throws {
-    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
-    do {
+    try await withConnectionOperation { operationID in
       try await connectToServer(serverName: serverName, operationID: operationID)
-    } catch {
-      await lifecycleCoordinator.endConnectionOperation(operationID)
-      throw error
     }
-    await lifecycleCoordinator.endConnectionOperation(operationID)
   }
 
   private func connectToServer(serverName: String, operationID: UInt) async throws {
-
     await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw CancellationError()
@@ -204,12 +192,10 @@ class VPNManager: VPNBase {
       return
     }
 
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw CancellationError()
+    }
     try self.manager.connection.startVPNTunnel(options: options)
-    /// Enable on-demand to allow automatic reconnections
-    /// if error it will stuck in infinite loop
-    //    self.manager.isOnDemandEnabled = true
-    //    try await self.saveThenLoadProvider()
-
   }
 
   /// Stops the VPN tunnel.
@@ -227,8 +213,21 @@ class VPNManager: VPNBase {
   }
 
   private func stopTunnelAfterHandoff(canceledConnectionOperation: Bool) async throws {
-
     appLogger.log("Stopping tunnel..")
+
+    // A canceled start already owns the current manager. Stop it before any
+    // preference call can delay teardown again.
+    if canceledConnectionOperation {
+      let shouldSaveOnDemandChange = manager.isOnDemandEnabled
+      manager.isOnDemandEnabled = false
+      manager.connection.stopVPNTunnel()
+      if shouldSaveOnDemandChange {
+        try await manager.saveToPreferences()
+      }
+      appLogger.log("Tunnel stopped.")
+      return
+    }
+
     await syncStatus()
     let status = manager.connection.status
     let shouldStop: Bool
@@ -249,6 +248,20 @@ class VPNManager: VPNBase {
     }
     manager.connection.stopVPNTunnel()
     appLogger.log("Tunnel stopped.")
+  }
+
+  private func withConnectionOperation<T>(
+    _ operation: (UInt) async throws -> T
+  ) async throws -> T {
+    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
+    do {
+      let result = try await operation(operationID)
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      return result
+    } catch {
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      throw error
+    }
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.

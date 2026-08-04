@@ -39,12 +39,8 @@ final class RunnerTests: XCTestCase {
     for status in [NEVPNStatus.connected, .connecting, .reasserting] {
       XCTAssertTrue(try shouldStopTunnel(for: status))
     }
-    for status in [NEVPNStatus.disconnected, .disconnecting] {
+    for status in [NEVPNStatus.disconnected, .disconnecting, .invalid] {
       XCTAssertFalse(try shouldStopTunnel(for: status))
-    }
-
-    assertVPNManagerError(.loadingProviderFailed) {
-      _ = try shouldStopTunnel(for: .invalid)
     }
   }
 
@@ -67,15 +63,20 @@ final class RunnerTests: XCTestCase {
   func testVPNStopCancelsStartupAndWaitsForHandoff() async throws {
     let coordinator = VPNLifecycleCoordinator()
     let operationID = try await coordinator.beginConnectionOperation()
-    let stopStarted = expectation(description: "Stop requested")
 
     let stopTask = Task {
-      stopStarted.fulfill()
       return try await coordinator.beginStopOperation()
     }
-    await fulfillment(of: [stopStarted])
 
+    let deadline = Date().addingTimeInterval(1)
     while await coordinator.canContinueConnectionOperation(operationID) {
+      if Date() >= deadline {
+        await coordinator.endConnectionOperation(operationID)
+        _ = try await stopTask.value
+        await coordinator.endStopOperation()
+        XCTFail("Stop request did not take ownership of the manager")
+        return
+      }
       await Task.yield()
     }
     await coordinator.endConnectionOperation(operationID)
@@ -89,6 +90,28 @@ final class RunnerTests: XCTestCase {
       XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
     }
 
+    await coordinator.endStopOperation()
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
+  }
+
+  func testVPNStopForcesHandoffAfterTimeout() async throws {
+    let coordinator = VPNLifecycleCoordinator(stopHandoffTimeoutNanoseconds: 10_000_000)
+    let operationID = try await coordinator.beginConnectionOperation()
+    let stopFinished = expectation(description: "Stop handoff finished")
+
+    let stopTask = Task {
+      let result = try await coordinator.beginStopOperation()
+      stopFinished.fulfill()
+      return result
+    }
+    await fulfillment(of: [stopFinished], timeout: 1)
+    let canceledConnectionOperation = try await stopTask.value
+    XCTAssertTrue(canceledConnectionOperation)
+    let canContinue = await coordinator.canContinueConnectionOperation(operationID)
+    XCTAssertFalse(canContinue)
+
+    await coordinator.endConnectionOperation(operationID)
     await coordinator.endStopOperation()
     let nextOperationID = try await coordinator.beginConnectionOperation()
     await coordinator.endConnectionOperation(nextOperationID)
