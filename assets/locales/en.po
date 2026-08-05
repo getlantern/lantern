@@ -43,7 +43,7 @@ msgid "send_without_email_title"
 msgstr "Send without an email?"
 
 msgid "send_without_email_body"
-msgstr "You didn't include an email address, so we won't be able to reply or follow up on this report"
+msgstr "You didn't include an email address, so we won't be able to reply or follow up on this report."
 
 msgid "send_without_email"
 msgstr "Send Without Email"
