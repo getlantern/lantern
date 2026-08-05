@@ -71,7 +71,6 @@ env:
   NIGHTLY_GOOGLE_PLAY_TRACK: ${{ vars.NIGHTLY_GOOGLE_PLAY_TRACK || 'internal' }}
 
 permissions:
-  actions: read
   contents: write
   id-token: "write"
 
@@ -469,13 +468,13 @@ jobs:
       - run: echo "Approved"
 
   build-macos:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
@@ -485,13 +484,13 @@ jobs:
       runner_label: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.use_self_hosted_macos == 'true' && 'lantern-macos-smoke' || 'macos-15' }}
 
   build-windows:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
@@ -507,13 +506,13 @@ jobs:
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
 
   build-linux:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
@@ -526,13 +525,13 @@ jobs:
       run_auth_smoke: false
 
   build-ios:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
@@ -541,13 +540,13 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
@@ -557,18 +556,14 @@ jobs:
       stealth_leakage_mode: ${{ needs.set-metadata.outputs.stealth_leakage_mode }}
 
   release-create:
-    needs: [set-metadata, preflight]
-    if: ${{ !cancelled() && needs.set-metadata.result == 'success' && needs.preflight.result == 'success' }}
+    needs: [set-metadata, nightly-gate]
+    if: ${{ !cancelled() && needs.set-metadata.result == 'success' && needs.nightly-gate.result == 'success' }}
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -597,7 +592,7 @@ jobs:
             --draft \
             $PRERELEASE_FLAG \
             --title "$TITLE" \
-            --notes "Build [in progress](${WORKFLOW_URL})..."
+            --notes "Publication [in progress](${WORKFLOW_URL})..."
 
   nightly-gate:
     name: Candidate publication gate
@@ -605,7 +600,6 @@ jobs:
       [
         set-metadata,
         preflight,
-        release-create,
         build-macos,
         build-windows,
         build-linux,
@@ -618,7 +612,6 @@ jobs:
       PLATFORMS: ${{ needs.set-metadata.outputs.platform }}
       METADATA_RESULT: ${{ needs.set-metadata.result }}
       PREFLIGHT_RESULT: ${{ needs.preflight.result }}
-      RELEASE_CREATE_RESULT: ${{ needs.release-create.result }}
       MACOS_RESULT: ${{ needs.build-macos.result }}
       WINDOWS_RESULT: ${{ needs.build-windows.result }}
       LINUX_RESULT: ${{ needs.build-linux.result }}
@@ -637,10 +630,6 @@ jobs:
           if [[ "$PREFLIGHT_RESULT" != "success" ]]; then
             failures+=("preflight: $PREFLIGHT_RESULT")
           fi
-          if [[ "$RELEASE_CREATE_RESULT" != "success" ]]; then
-            failures+=("draft release: $RELEASE_CREATE_RESULT")
-          fi
-
           platform_requested() {
             local platform="$1"
             [[ "$PLATFORMS" == "all" || ",$PLATFORMS," == *",$platform,"* ]]
@@ -1160,6 +1149,7 @@ jobs:
     needs:
       [
         set-metadata,
+        release-create,
         nightly-gate,
         upload-s3,
         upload-release-artifacts,
@@ -1174,12 +1164,8 @@ jobs:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
       - name: Publish release on success
         if: |
           env.IS_TEST_RUN != 'true' &&
@@ -1198,15 +1184,18 @@ jobs:
 
       - name: Delete draft release
         if: |
-          env.IS_TEST_RUN == 'true' ||
-          env.BUILD_TYPE == 'nightly' ||
-          (env.CLEANUP_ON_FAILURE == 'true' &&
-           !(needs.nightly-gate.result == 'success' &&
-             needs.upload-s3.result == 'success' &&
-             needs.upload-release-artifacts.result == 'success' &&
-             needs.publish-update-metadata.result == 'success' &&
-             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
+          needs.release-create.result == 'success' &&
+          (
+            env.IS_TEST_RUN == 'true' ||
+            env.BUILD_TYPE == 'nightly' ||
+            (env.CLEANUP_ON_FAILURE == 'true' &&
+             !(needs.nightly-gate.result == 'success' &&
+               needs.upload-s3.result == 'success' &&
+               needs.upload-release-artifacts.result == 'success' &&
+               needs.publish-update-metadata.result == 'success' &&
+               (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+               (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
+          )
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -1242,6 +1231,7 @@ jobs:
 
       - name: Report failure (cleanup disabled)
         if: |
+          needs.release-create.result == 'success' &&
           env.IS_TEST_RUN != 'true' &&
           env.BUILD_TYPE != 'nightly' &&
           env.CLEANUP_ON_FAILURE != 'true' &&
