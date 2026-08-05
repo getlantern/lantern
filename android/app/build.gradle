@@ -287,7 +287,14 @@ if (!(androidIdentity.applicationId ==~ /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-
 }
 
 android {
-    namespace = stealthMode ? "foundation.bridge" : "org.getlantern.lantern"
+    // Kept as literal assignments (not a ternary) so the Flutter CLI can
+    // statically parse the namespace; the normal branch must stay last
+    // because the CLI regex captures the last `namespace = "<literal>"`.
+    if (stealthMode) {
+        namespace = "foundation.bridge"
+    } else {
+        namespace = "org.getlantern.lantern"
+    }
     compileSdk = 36
     ndkVersion "28.2.13676358"
 
