@@ -5,6 +5,102 @@ import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 
 class AppDialog {
+  static Future<void> show({
+    required BuildContext context,
+    Widget? header,
+    String? title,
+    String? body,
+    Widget? content,
+    required String primaryLabel,
+    OnPressed? onPrimaryPressed,
+    String? secondaryLabel,
+    OnPressed? onSecondaryPressed,
+    bool centered = false,
+    bool barrierDismissible = false,
+    // When false the primary callback is responsible for dismissing the
+    // dialog itself (e.g. vpnConflictDialog callers already pop).
+    bool dismissOnPrimary = true,
+  }) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: barrierDismissible,
+      builder: (context) {
+        final textTheme = Theme.of(context).textTheme;
+        return AlertDialog(
+          // backgroundColor and shape come from dialogTheme in app_theme.dart
+          contentPadding: EdgeInsets.all(24),
+          // Buttons live inside content (not `actions`) so they can stretch
+          // full-width and stack vertically per the design.
+          content: SizedBox(
+            // AlertDialog sizes to the content's intrinsic width, which
+            // collapses custom content. maxFinite makes it fill instead; the
+            // min/max width bounds come from dialogTheme (Material 280–560dp).
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: centered
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.stretch,
+              children: <Widget>[
+                if (header != null) ...[header, SizedBox(height: size24)],
+                if (title != null) ...[
+                  Text(
+                    title,
+                    style: textTheme.headlineMedium,
+                    textAlign: centered ? TextAlign.center : TextAlign.start,
+                  ),
+                  SizedBox(height: 8),
+                ],
+                if (body != null)
+                  Text(
+                    body,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: context.textSecondary,
+                      height: 23 / 16,
+                    ),
+                    textAlign: centered ? TextAlign.center : TextAlign.start,
+                  ),
+                ?content,
+                SizedBox(height: size24),
+                PrimaryButton(
+                  label: primaryLabel,
+                  onPressed: () {
+                    if (!dismissOnPrimary) {
+                      onPrimaryPressed?.call();
+                      return;
+                    }
+                    appRouter.maybePop();
+                    if (onPrimaryPressed != null) {
+                      Future.delayed(
+                        const Duration(milliseconds: 400),
+                        onPrimaryPressed,
+                      );
+                    }
+                  },
+                ),
+                if (secondaryLabel != null) ...[
+                  SizedBox(height: 12),
+                  SecondaryButton(
+                    label: secondaryLabel,
+                    onPressed: () {
+                      appRouter.maybePop();
+                      if (onSecondaryPressed != null) {
+                        Future.delayed(
+                          const Duration(milliseconds: 400),
+                          onSecondaryPressed,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static void showLanternProDialog({
     required BuildContext context,
     String? label,
@@ -12,54 +108,34 @@ class AppDialog {
   }) {
     final textTheme = Theme.of(context).textTheme;
     final size = MediaQuery.sizeOf(context);
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          // backgroundColor and shape come from dialogTheme in app_theme.dart
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(height: 24),
-              LanternRoundedLogo(height: 45),
-              SizedBox(height: 24),
-              Center(
-                child: SizedBox(
-                  width: size.width * 0.7,
-                  height: 40,
-                  child: AutoSizeText(
-                    'welcome_to_lantern_pro'.i18n,
-                    style: textTheme.headlineMedium,
-                    maxLines: 1,
-                    minFontSize: 20,
-                    maxFontSize: 24,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              SizedBox(height: defaultSize),
-              Text(
-                'lantern_pro_description'.i18n,
-                style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
-              ),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: label ?? 'continue'.i18n,
-              onPressed: () {
-                appRouter.maybePop();
-                Future.delayed(const Duration(milliseconds: 400), () {
-                  onPressed?.call();
-                });
-              },
+      centered: true,
+      header: LanternRoundedLogo(height: 45),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(
+            width: size.width * 0.7,
+            height: 40,
+            child: AutoSizeText(
+              'welcome_to_lantern_pro'.i18n,
+              style: textTheme.headlineMedium,
+              maxLines: 1,
+              minFontSize: 20,
+              maxFontSize: 24,
+              textAlign: TextAlign.center,
             ),
-          ],
-        );
-      },
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'lantern_pro_description'.i18n,
+            style: textTheme.bodyMedium?.copyWith(height: 23 / 16),
+          ),
+        ],
+      ),
+      primaryLabel: label ?? 'continue'.i18n,
+      onPrimaryPressed: onPressed,
     );
   }
 
@@ -67,55 +143,19 @@ class AppDialog {
     required BuildContext context,
     OnPressed? onPressed,
   }) {
-    final textTheme = Theme.of(context).textTheme;
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(height: 24),
-              Center(
-                child: AppImage(
-                  path: AppImagePaths.greenCheck,
-                  height: 50,
-                  useThemeColor: false,
-                ),
-              ),
-              SizedBox(height: defaultSize),
-              Center(
-                child: Text(
-                  'purchase_restored_title'.i18n,
-                  style: textTheme.headlineMedium,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'purchase_restored_description'.i18n,
-                style: textTheme.bodyMedium,
-                textAlign: TextAlign.left,
-              ),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: 'continue'.i18n,
-              onPressed: () {
-                appRouter.maybePop();
-                Future.delayed(
-                  const Duration(milliseconds: 400),
-                  () => onPressed?.call(),
-                );
-              },
-            ),
-          ],
-        );
-      },
+      header: Center(
+        child: AppImage(
+          path: AppImagePaths.greenCheck,
+          height: 50,
+          useThemeColor: false,
+        ),
+      ),
+      title: 'purchase_restored_title'.i18n,
+      body: 'purchase_restored_description'.i18n,
+      primaryLabel: 'continue'.i18n,
+      onPrimaryPressed: onPressed,
     );
   }
 
@@ -123,52 +163,16 @@ class AppDialog {
     required BuildContext context,
     OnPressed? onPressed,
   }) {
-    final textTheme = Theme.of(context).textTheme;
     final body = Platform.isIOS
         ? 'no_purchase_found_body_ios'.i18n
         : 'no_purchase_found_body_android'.i18n;
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(height: 24),
-              Center(child: AppImage(path: AppImagePaths.info, height: 40)),
-              SizedBox(height: 8),
-              Center(
-                child: Text(
-                  'no_purchase_found_title'.i18n,
-                  style: textTheme.headlineMedium,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                body,
-                style: textTheme.bodyMedium,
-                textAlign: TextAlign.left,
-              ),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: 'ok'.i18n,
-              onPressed: () {
-                appRouter.maybePop();
-                Future.delayed(
-                  const Duration(milliseconds: 400),
-                  () => onPressed?.call(),
-                );
-              },
-            ),
-          ],
-        );
-      },
+      header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+      title: 'no_purchase_found_title'.i18n,
+      body: body,
+      primaryLabel: 'ok'.i18n,
+      onPrimaryPressed: onPressed,
     );
   }
 
@@ -183,23 +187,28 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          actionsAlignment: MainAxisAlignment.end,
-          actionsOverflowAlignment: OverflowBarAlignment.end,
           // backgroundColor and shape come from dialogTheme in app_theme.dart
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding:
-              actionPadding ??
-              EdgeInsets.only(
-                top: defaultSize,
-                bottom: defaultSize,
-                left: defaultSize,
-                right: defaultSize,
-              ),
+          // Callers add their own top spacing inside content.
+          contentPadding: EdgeInsets.symmetric(horizontal: size24),
+          actionsPadding: actionPadding ?? EdgeInsets.all(size24),
           // AlertDialog sizes to the content's intrinsic width, which collapses
           // this custom content. maxFinite makes it fill instead; the min/max
           // width bounds come from dialogTheme (Material 280–560dp).
           content: SizedBox(width: double.maxFinite, child: content),
-          actions: action,
+          // Actions stack vertically full-width per the design instead of the
+          // default trailing OverflowBar row.
+          actions: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < action.length; i++) ...[
+                  if (i > 0) SizedBox(height: defaultSize),
+                  action[i],
+                ],
+              ],
+            ),
+          ],
         );
       },
     );
@@ -211,38 +220,11 @@ class AppDialog {
     required String content,
     String? action,
   }) {
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          // backgroundColor and shape come from dialogTheme in app_theme.dart
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.only(
-            top: defaultSize,
-            bottom: defaultSize,
-            left: defaultSize,
-            right: defaultSize,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(height: 24),
-              Text(title, style: Theme.of(context).textTheme.headlineMedium),
-              SizedBox(height: defaultSize),
-              Text(content, style: Theme.of(context).textTheme.bodyMedium),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: action ?? 'ok'.i18n,
-              onPressed: () {
-                appRouter.maybePop();
-              },
-            ),
-          ],
-        );
-      },
+      title: title,
+      body: content,
+      primaryLabel: action ?? 'ok'.i18n,
     );
   }
 
@@ -250,47 +232,15 @@ class AppDialog {
     required BuildContext context,
     required VoidCallback onConnectAnyway,
   }) {
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.only(
-            top: defaultSize,
-            bottom: defaultSize,
-            left: defaultSize,
-            right: defaultSize,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(height: 24),
-              Text(
-                'vpn_conflict_title'.i18n,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              SizedBox(height: defaultSize),
-              Text(
-                'vpn_conflict_body'.i18n,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: 'vpn_conflict_dismiss'.i18n,
-              onPressed: () {
-                appRouter.maybePop();
-              },
-            ),
-            AppTextButton(
-              label: 'vpn_conflict_connect_anyway'.i18n,
-              onPressed: onConnectAnyway,
-            ),
-          ],
-        );
-      },
+      title: 'vpn_conflict_title'.i18n,
+      body: 'vpn_conflict_body'.i18n,
+      primaryLabel: 'vpn_conflict_connect_anyway'.i18n,
+      onPrimaryPressed: onConnectAnyway,
+      // Callers pop the dialog inside onConnectAnyway themselves.
+      dismissOnPrimary: false,
+      secondaryLabel: 'vpn_conflict_dismiss'.i18n,
     );
   }
 
@@ -301,40 +251,12 @@ class AppDialog {
     String? action,
     OnPressed? onPressed,
   }) {
-    showDialog(
+    show(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          // backgroundColor and shape come from dialogTheme in app_theme.dart
-          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.only(
-            top: defaultSize,
-            bottom: defaultSize,
-            left: defaultSize,
-            right: defaultSize,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(height: 24),
-              Text(title, style: Theme.of(context).textTheme.headlineMedium),
-              SizedBox(height: defaultSize),
-              Text(content, style: Theme.of(context).textTheme.bodyMedium),
-            ],
-          ),
-          actions: [
-            AppTextButton(
-              label: action ?? 'ok'.i18n,
-              onPressed:
-                  onPressed ??
-                  () {
-                    appRouter.maybePop();
-                  },
-            ),
-          ],
-        );
-      },
+      title: title,
+      body: content,
+      primaryLabel: action ?? 'ok'.i18n,
+      onPrimaryPressed: onPressed,
     );
   }
 }
