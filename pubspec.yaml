@@ -23,6 +23,9 @@ environment:
   flutter: ">=3.41.0 <4.0.0"
 
 dependency_overrides:
+  # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
+  stripe_android: 12.4.0
+  stripe_ios: 12.4.0
   in_app_purchase_storekit: 0.4.8+1
   # 0.5.0 = Play Billing Library 8.0.0; later 0.5.x need Flutter >=3.44.
   in_app_purchase_android: 0.5.0
@@ -110,7 +113,7 @@ dependencies:
   store_checker: ^1.8.0
   # payment
   in_app_purchase: ^3.3.0
-  flutter_stripe: ^12.4.0
+  flutter_stripe: 12.4.0
   # protobuf
   protobuf: ^6.0.0
   # auto updates

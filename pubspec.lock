@@ -716,10 +716,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_stripe
-      sha256: "03ec6f6af8d53dcced0534d2b52840ac4331d9320870c4167957133b2aa45194"
+      sha256: "410f025b27fe5dd03507444a947c44fe8e27eb89483620a70ed6a257b4aff1ba"
       url: "https://pub.dev"
     source: hosted
-    version: "12.6.0"
+    version: "12.4.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -1682,21 +1682,21 @@ packages:
     source: hosted
     version: "1.4.1"
   stripe_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: stripe_android
-      sha256: "596b2c2f18b6be571a99ef3dffe812ee7c99e134753234fd9110964b48e206c9"
+      sha256: "270c9e400f2a0cdff58775c62a088903c743dd970da8d3bc54cd9bd9a1bb2d2c"
       url: "https://pub.dev"
     source: hosted
-    version: "12.6.0"
+    version: "12.4.0"
   stripe_ios:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: stripe_ios
-      sha256: e228c8e8a2e16770bd043a7f93ec26f559763188110dd81baf1aa146a3fd28ab
+      sha256: d186356a101bc2e5b2a15c1bd93e39fd86aca071dc7f8af5f4bdab8b0c43c225
       url: "https://pub.dev"
     source: hosted
-    version: "12.6.0"
+    version: "12.4.0"
   stripe_platform_interface:
     dependency: transitive
     description:
