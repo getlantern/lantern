@@ -8,16 +8,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'available_servers_notifier.g.dart';
 
+const _availableServersSettleReloadThrottle = Duration(seconds: 30);
+const _availableServersSettleReloadDelay = Duration(seconds: 4);
+
 @Riverpod(keepAlive: true)
 class AvailableServersNotifier extends _$AvailableServersNotifier {
+  DateTime? _lastSettleReloadAt;
+  Future<void>? _settleReload;
+
   @override
   Future<AvailableServers> build() async {
     final result = await fetchAvailableServers();
     return result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting available servers: ${failure.error}',
-        );
+        appLogger.error('Error getting available servers: ${failure.error}');
         throw Exception('Failed to load available servers');
       },
       (servers) {
@@ -36,18 +40,61 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
   /// Forces a fetch of the available servers and updates the state.
   /// Updates UI accordingly.
   Future<void> forceFetchAvailableServers() async {
+    if (!ref.mounted) {
+      return;
+    }
     final result = await fetchAvailableServers();
+    // The fetch is async and this notifier can be disposed while it is in
+    // flight (e.g. the app tears down during an integration test). Writing
+    // state on a disposed Ref throws, so bail out if we are no longer mounted.
+    if (!ref.mounted) {
+      return;
+    }
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting available servers: ${failure.error}',
-        );
+        appLogger.error('Error getting available servers: ${failure.error}');
       },
       (servers) {
         state = AsyncValue.data(servers);
         _pushFastestToSmartLocation(servers);
       },
     );
+  }
+
+  /// Reloads available servers from the latest persisted Smart Location probe data.
+  Future<void> refreshAvailableServersAfterProbeSettle() async {
+    final now = DateTime.now();
+    final lastReload = _lastSettleReloadAt;
+    await forceFetchAvailableServers();
+    if (!ref.mounted) {
+      return;
+    }
+
+    if (_settleReload != null) {
+      await _settleReload;
+      return;
+    }
+    if (lastReload != null &&
+        now.difference(lastReload) < _availableServersSettleReloadThrottle) {
+      return;
+    }
+    _lastSettleReloadAt = now;
+
+    final settleReload = Future<void>(() async {
+      await Future.delayed(_availableServersSettleReloadDelay);
+      if (!ref.mounted) {
+        return;
+      }
+      await forceFetchAvailableServers();
+    });
+    _settleReload = settleReload;
+    try {
+      await settleReload;
+    } finally {
+      if (_settleReload == settleReload) {
+        _settleReload = null;
+      }
+    }
   }
 
   /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto
@@ -65,7 +112,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final city = fastest.location.city;
     appLogger.debug(
       'Pushing fastest server to Smart Location: '
-      'tag=${fastest.tag} delay=${fastest.urlTestResult?.delay}ms',
+      'tag=${fastest.tag} delay=${fastest.selectionHistory?.lastSuccessDelayMs}ms',
     );
     ref
         .read(serverLocationProvider.notifier)

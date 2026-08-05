@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,9 +16,8 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
-
-typedef OnServerSelected = Function(Server selectedServer);
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends StatefulHookConsumerWidget {
@@ -30,12 +31,26 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(
+        ref
+            .read(availableServersProvider.notifier)
+            .refreshAvailableServersAfterProbeSettle(),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selected = ref.watch(serverLocationProvider);
     final availableServers = ref.watch(availableServersProvider);
     final isUserPro = ref.watch(isUserProProvider);
 
-    _textTheme = Theme.of(context).textTheme;
+    _textTheme = TextTheme.of(context);
 
     final appBar = CustomAppBar(
       title: Text('server_selection'.i18n),
@@ -86,9 +101,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'automatically_chooses_fastest_location'.i18n,
+                    'smart_routing_mode_description'.i18n,
                     style: _textTheme?.bodyMedium!.copyWith(
-                      color: AppColors.gray8,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -110,8 +125,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              'automatically_chooses_fastest_location'.i18n,
-              style: _textTheme?.bodyMedium!.copyWith(color: AppColors.gray8),
+              'smart_routing_mode_description'.i18n,
+              style: _textTheme?.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: size24),
@@ -238,9 +255,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               if (!context.mounted) return;
               retryResult.fold((failure) {
                 context.showSnackBar(failure.localizedErrorMessage);
-                appLogger.error(
-                  "Error changing VPN state: ${failure.error}",
-                );
+                appLogger.error("Error changing VPN state: ${failure.error}");
               }, (_) => appRouter.popUntilRoot());
             },
           );
@@ -324,76 +339,48 @@ class _ServerLocationListViewState
             ProBanner(topMargin: 0),
             const SizedBox(height: verticalSpacing),
           ],
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
-            child: HeaderText('pro_locations'.i18n),
-          ),
           Flexible(
-            child: AppCard(
-              padding: EdgeInsets.zero,
-              child: availableServers.when(
-                data: (data) {
-                  final locations = data.lanternServers;
+            child: availableServers.when(
+              data: (data) {
+                final allLocations = data.lanternServerLocations;
+                if (allLocations.isEmpty) {
+                  return const Center(child: Text("No locations available"));
+                }
 
-                  if (locations.isEmpty) {
-                    return const Center(child: Text("No locations available"));
-                  }
+                final sections = [
+                  _sectionHeader('pro_locations'.i18n),
+                  _sectionCard(_locationTiles(allLocations, selectedTag)),
+                ];
 
-                  final grouped = _groupLocationsByCountry(locations);
-                  final countryEntries = grouped.entries.toList()
-                    ..sort((a, b) => a.key.compareTo(b.key));
-
-                  return Stack(
-                    children: [
-                      ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(
-                          context,
-                        ).copyWith(scrollbars: false),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          itemCount: countryEntries.length,
-                          separatorBuilder: (_, __) => const DividerSpace(),
-                          itemBuilder: (context, index) {
-                            final entry = countryEntries[index];
-                            final country = entry.key;
-                            final countryLocations = entry.value;
-
-                            if (countryLocations.length == 1) {
-                              final serverData = countryLocations.first;
-                              return SingleCityServerView(
-                                key: ValueKey(serverData.tag),
-                                onServerSelected: onServerSelected,
-                                server: serverData,
-                                isSelected: selectedTag == serverData.tag,
-                              );
-                            }
-
-                            return _CountryCityListView(
-                              country: country,
-                              locations: countryLocations,
-                              selectedServerTag: selectedTag,
-                              onServerSelected: onServerSelected,
-                            );
-                          },
+                return Stack(
+                  children: [
+                    ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(
+                        context,
+                      ).copyWith(scrollbars: false),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: sections,
+                      ),
+                    ),
+                    if (!widget.userPro)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: context.bgElevated.withValues(alpha: 0.72),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.center,
                         ),
                       ),
-                      if (!widget.userPro)
-                        Positioned.fill(
-                          child: Container(
-                            color: context.bgElevated.withValues(alpha: 0.72),
-                            alignment: Alignment.center,
-                          ),
-                        ),
-                    ],
-                  );
-                },
-                loading: () => const Center(child: Spinner()),
-                error: (error, _) => Center(
-                  child: Text(
-                    error.localizedDescription,
-                    textAlign: TextAlign.center,
-                  ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: Spinner()),
+              error: (error, _) => Center(
+                child: Text(
+                  error.localizedDescription,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -401,6 +388,62 @@ class _ServerLocationListViewState
         ],
       ),
     );
+  }
+
+  Widget _sectionHeader(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
+      child: HeaderText(text),
+    );
+  }
+
+  Widget _sectionCard(List<Widget> tiles) {
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: _withDividers(tiles),
+      ),
+    );
+  }
+
+  List<Widget> _locationTiles(List<Server> locations, String selectedTag) {
+    final grouped = _groupLocationsByCountry(locations);
+    final countryEntries = grouped.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return countryEntries.map((entry) {
+      final country = entry.key;
+      final countryLocations = entry.value;
+
+      if (countryLocations.length == 1) {
+        final serverData = countryLocations.first;
+        return SingleCityServerView(
+          key: ValueKey(serverData.tag),
+          onServerSelected: onServerSelected,
+          server: serverData,
+          isSelected: selectedTag == serverData.tag,
+        );
+      }
+
+      return _CountryCityListView(
+        country: country,
+        locations: countryLocations,
+        selectedServerTag: selectedTag,
+        onServerSelected: onServerSelected,
+      );
+    }).toList();
+  }
+
+  List<Widget> _withDividers(List<Widget> tiles) {
+    final children = <Widget>[];
+    for (var i = 0; i < tiles.length; i++) {
+      children.add(tiles[i]);
+      if (i < tiles.length - 1) {
+        children.add(const DividerSpace());
+      }
+    }
+    return children;
   }
 
   Future<void> onServerSelected(Server selectedServer) async {
@@ -413,6 +456,10 @@ class _ServerLocationListViewState
       }
     }
 
+    await _connectToServer(selectedServer);
+  }
+
+  Future<void> _connectToServer(Server selectedServer) async {
     final result = await ref
         .read(vpnProvider.notifier)
         .connectToServer(
@@ -541,6 +588,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
                   : Text(
                       server.type.capitalize,
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelMedium!.copyWith(
                         color: context.textSecondary,
                       ),
@@ -582,7 +630,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             controller: scrollController,
             padding: EdgeInsets.zero,
             itemCount: widget.locations.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const DividerSpace(padding: EdgeInsets.zero),
             itemBuilder: (_, index) {
               final server = widget.locations[index];
@@ -672,7 +720,7 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             itemCount: userLocations.length,
-            separatorBuilder: (_, __) => const DividerSpace(),
+            separatorBuilder: (_, _) => const DividerSpace(),
             itemBuilder: (context, index) {
               final server = userLocations[index];
               final isSelected = selectedTag == server.tag;

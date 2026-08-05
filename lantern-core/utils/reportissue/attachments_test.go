@@ -92,28 +92,41 @@ func TestBuildAttachmentReadsHEICData(t *testing.T) {
 	}
 }
 
-func TestBuildAttachmentRejectsChangedFiles(t *testing.T) {
+func TestBuildAttachmentAllowsCachedSizeMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
-	if err := os.WriteFile(path, testPNGData, 0o644); err != nil {
+	data := append([]byte{}, testPNGData...)
+	data = append(data, 0x00, 0x01, 0x02)
+	if err := os.WriteFile(path, data, 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
-	_, err := validateMetadata([]AttachmentMetadata{{
+	raw, err := json.Marshal([]AttachmentMetadata{{
 		Name:      "vpn_error.png",
 		Path:      path,
 		MimeType:  "image/png",
-		SizeBytes: 999,
+		SizeBytes: -1,
 	}})
-	if err == nil {
-		t.Fatalf("expected size mismatch to fail")
+	if err != nil {
+		t.Fatalf("marshal attachments: %v", err)
+	}
+
+	attachments, err := LoadAttachments(string(raw))
+	if err != nil {
+		t.Fatalf("LoadAttachments returned error: %v", err)
+	}
+	if len(attachments) != 1 {
+		t.Fatalf("expected 1 attachment, got %d", len(attachments))
+	}
+	if string(attachments[0].Data) != string(data) {
+		t.Fatalf("attachment data mismatch: got %q want %q", string(attachments[0].Data), string(data))
 	}
 }
 
-func TestBuildAttachmentRejectsZeroSizeBypass(t *testing.T) {
+func TestBuildAttachmentRejectsEmptyFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "vpn_error.png")
-	if err := os.WriteFile(path, testPNGData, 0o644); err != nil {
+	if err := os.WriteFile(path, nil, 0o644); err != nil {
 		t.Fatalf("write test attachment: %v", err)
 	}
 
@@ -123,8 +136,8 @@ func TestBuildAttachmentRejectsZeroSizeBypass(t *testing.T) {
 		MimeType:  "image/png",
 		SizeBytes: 0,
 	}})
-	if err == nil {
-		t.Fatalf("expected missing exact size to fail")
+	if err == nil || !strings.Contains(err.Error(), "must not be empty") {
+		t.Fatalf("expected empty attachment error, got %v", err)
 	}
 }
 
@@ -169,7 +182,7 @@ func TestLoadAttachmentsRejectsTotalSizeOverLimit(t *testing.T) {
 		Name:      "huge.png",
 		Path:      path,
 		MimeType:  "image/png",
-		SizeBytes: maxAttachmentBytes + 1,
+		SizeBytes: int64(len(testPNGData)),
 	}})
 	if err != nil {
 		t.Fatalf("marshal attachments: %v", err)

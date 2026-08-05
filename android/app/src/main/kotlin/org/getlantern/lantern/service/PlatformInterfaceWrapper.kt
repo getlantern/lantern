@@ -2,9 +2,11 @@ package org.getlantern.lantern.service
 
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.net.LinkAddress
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Process
+import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.InterfaceUpdateListener
@@ -92,15 +94,29 @@ interface PlatformInterfaceWrapper : PlatformInterface {
 
     override fun getInterfaces(): NetworkInterfaceIterator {
         val networks = LanternApp.connectivity.allNetworks
-        val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
+        // Best-effort: getNetworkInterfaces() returns null when no interfaces are
+        // found and can throw (SocketException/SecurityException) on restricted
+        // devices. Fall back to an empty list so the ConnectivityManager +
+        // Os.if_nametoindex path below still runs instead of crashing here.
+        val networkInterfaces = try {
+            NetworkInterface.getNetworkInterfaces()?.toList() ?: emptyList()
+        } catch (e: Exception) {
+            AppLogger.e("PlatformInterface", "getNetworkInterfaces() failed; using ConnectivityManager only", e)
+            emptyList()
+        }
         val interfaces = mutableListOf<lantern.io.libbox.NetworkInterface>()
         for (network in networks) {
             val linkProperties = LanternApp.connectivity.getLinkProperties(network) ?: continue
             val networkCapabilities =
                 LanternApp.connectivity.getNetworkCapabilities(network) ?: continue
             val interfaceName = linkProperties.interfaceName ?: continue
-            val networkInterface =
-                networkInterfaces.find { it.name == interfaceName } ?: continue
+            // On some devices (notably Android 11 / API 30 and certain OEM ROMs)
+            // NetworkInterface.getNetworkInterfaces() returns empty, so the name
+            // match misses and we'd drop every network — leaving sing-box with
+            // "no available network interface" (FD #176099). When that happens,
+            // build the entry from ConnectivityManager + Os.if_nametoindex, which
+            // don't depend on the restricted interface-enumeration syscall.
+            val networkInterface = networkInterfaces.find { it.name == interfaceName }
             // Wrap all property access in a single try-catch so that if the
             // interface disappears mid-enumeration (e.g. tun0 during VPN restart)
             // we skip it instead of reporting a broken interface to sing-box.
@@ -115,22 +131,31 @@ interface PlatformInterfaceWrapper : PlatformInterface {
                     networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> Libbox.InterfaceTypeEthernet
                     else -> Libbox.InterfaceTypeOther
                 }
-                boxInterface.index = networkInterface.index
-                boxInterface.mtu = networkInterface.mtu
-                boxInterface.addresses =
-                    StringArray(networkInterface.interfaceAddresses.mapTo(mutableListOf()) { it.toPrefix() }
-                        .iterator())
+                boxInterface.index = networkInterface?.index ?: Os.if_nametoindex(interfaceName)
+                boxInterface.mtu = networkInterface?.mtu
+                    ?: linkProperties.mtu.takeIf { it > 0 } ?: 1500
+                boxInterface.addresses = StringArray(
+                    (networkInterface?.interfaceAddresses?.map { it.toPrefix() }
+                        ?: linkProperties.linkAddresses.map { it.toPrefix() }).iterator()
+                )
                 var dumpFlags = 0
                 if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
                     dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
                 }
-                if (networkInterface.isLoopback) {
-                    dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
-                }
-                if (networkInterface.isPointToPoint) {
-                    dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
-                }
-                if (networkInterface.supportsMulticast()) {
+                if (networkInterface != null) {
+                    if (networkInterface.isLoopback) {
+                        dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
+                    }
+                    if (networkInterface.isPointToPoint) {
+                        dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
+                    }
+                    if (networkInterface.supportsMulticast()) {
+                        dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
+                    }
+                } else {
+                    // No java.net.NetworkInterface to query loopback/p2p/multicast;
+                    // ConnectivityManager only reports real underlying networks (never
+                    // loopback), so assume a normal multicast-capable physical link.
                     dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
                 }
                 boxInterface.flags = dumpFlags
@@ -159,17 +184,33 @@ interface PlatformInterfaceWrapper : PlatformInterface {
     override fun clearDNSCache() {
     }
 
+    // Returns null rather than throwing on any failure. Go calls this through
+    // gomobile and the interface method has no error return, so a Kotlin throw
+    // leaves a pending JNI exception the Go side cannot observe or clear, which
+    // aborts the process (SIGABRT) instead of surfacing an error. WifiManager is a
+    // realistic source of one: connectionInfo raises SecurityException without
+    // location permission on some vendor builds, and can report a null ssid.
+    //
+    // Null means "no WiFi state", and is returned when there is no connection
+    // info, no ssid, or anything throws. A missing bssid does not invalidate the
+    // answer, so it degrades to an empty string — the same shape the existing
+    // "<unknown ssid>" case returns.
     override fun readWIFIState(): WIFIState? {
-        @Suppress("DEPRECATION") val wifiInfo =
-            LanternApp.wifiManager.connectionInfo ?: return null
-        var ssid = wifiInfo.ssid
-        if (ssid == "<unknown ssid>") {
-            return WIFIState("", "")
+        return try {
+            @Suppress("DEPRECATION") val wifiInfo =
+                LanternApp.wifiManager.connectionInfo ?: return null
+            var ssid = wifiInfo.ssid ?: return null
+            if (ssid == "<unknown ssid>") {
+                return WIFIState("", "")
+            }
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                ssid = ssid.substring(1, ssid.length - 1)
+            }
+            WIFIState(ssid, wifiInfo.bssid ?: "")
+        } catch (e: Throwable) {
+            AppLogger.e("PlatformInterface", "readWIFIState() failed", e)
+            null
         }
-        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-            ssid = ssid.substring(1, ssid.length - 1)
-        }
-        return WIFIState(ssid, wifiInfo.bssid)
     }
 
     private class InterfaceArray(private val iterator: Iterator<lantern.io.libbox.NetworkInterface>) :
@@ -206,6 +247,15 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
         } else {
             "${address.hostAddress}/${networkPrefixLength}"
+        }
+    }
+
+    // ConnectivityManager fallback when java.net.NetworkInterface is unavailable.
+    private fun LinkAddress.toPrefix(): String {
+        return if (address is Inet6Address) {
+            "${Inet6Address.getByAddress(address.address).hostAddress}/${prefixLength}"
+        } else {
+            "${address.hostAddress}/${prefixLength}"
         }
     }
 

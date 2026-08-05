@@ -38,12 +38,256 @@ def generateSideloadManifest = tasks.register("generateSideloadManifest") {
     }
 }
 
-def start = new Date(2015, 1, 1).getTime()
-def now = System.currentTimeMillis()
-def code = (int)((now - start) / 1000)
+// versionCode = whole seconds since a fixed epoch. The only hard constraints
+// are that it increases monotonically (Play/Android reject a lower code on
+// upgrade) and stays below 2^31. EPOCH_2009 keeps today's value (~5.5e8) just
+// above the previous sequence and leaves ~50 years of int headroom.
+//
+// This used to be `new Date(2015, 1, 1).getTime()`, but that's the deprecated
+// java.util.Date(year, month, day) constructor: `year` is years-since-1900 and
+// `month` is 0-indexed, so it actually meant Feb 1 of year 3915 — ~1900 years
+// in the future. `now - start` was a large negative that wrapped on the (int)
+// cast to a positive ~5.3e8, which happened to stay monotonic (so upgrades
+// worked) but was meaningless and fragile. Do NOT "fix" this to a true
+// 2015-01-01 origin: that yields ~3.6e8 today, LOWER than shipped codes, which
+// would break upgrades.
+def EPOCH_2009 = 1230768000L // 2009-01-01T00:00:00Z, in seconds
+def code = (int)((System.currentTimeMillis() / 1000L) - EPOCH_2009)
+def stealthIconSeed = (findProperty("stealthIconSeed") ?: System.getenv("STEALTH_ICON_SEED"))?.toString()?.trim()
+def sha256Hex = { value ->
+    java.security.MessageDigest.getInstance("SHA-256")
+            .digest(value.getBytes("UTF-8"))
+            .collect { String.format("%02x", it & 0xff) }
+            .join()
+}
+def stealthIconSeedSha256 = stealthIconSeed ? sha256Hex(stealthIconSeed) : ""
+def generatedStealthIconResDir = layout.buildDirectory.dir("generated/icons/res")
+def generatedStealthIconMetadata = layout.buildDirectory.file("generated/icons/stealth-icon-metadata.json")
+def generatedStealthIconScript = file("${rootProject.projectDir.parentFile}/scripts/stealth/generate_android_icons.py")
+def launcherIconResource = stealthIconSeed ? "@mipmap/ic_launcher_alt" : "@mipmap/ic_launcher"
+def roundLauncherIconResource = stealthIconSeed ? "@mipmap/ic_launcher_alt_round" : "@mipmap/ic_launcher_round"
+
+def defaultStealthProfile = [
+        mode                        : "normal",
+        packageName                 : "org.getlantern.lantern",
+        appName                     : "Lantern",
+        sessionName                 : "LanternVpn",
+        denylistVersion             : 0,
+        directConnectionAppsEnabled : false,
+]
+
+def stealthModeAliases = [
+        vpn  : "stealth-vpn",
+        novpn: "stealth-novpn",
+]
+
+def normalizeStealthMode = { value ->
+    def mode = value.toString().trim()
+    return stealthModeAliases.get(mode, mode)
+}
+
+def buildConfigString = { value ->
+    def escaped = value.toString()
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replace("\b", "\\b")
+            .replace("\f", "\\f")
+            .replace("\"", "\\\"")
+    return "\"${escaped}\""
+}
+
+def manifestPlaceholderString = { fieldName, value ->
+    def text = value.toString()
+    if (!text.trim()) {
+        throw new GradleException("Stealth profile ${fieldName} must not be empty")
+    }
+    for (int i = 0; i < text.length(); i++) {
+        def ch = text.charAt(i)
+        if (Character.isISOControl(ch) || ['"', "'", '&', '<', '>'].contains(String.valueOf(ch))) {
+            throw new GradleException(
+                    "Stealth profile ${fieldName} contains XML-reserved or control characters"
+            )
+        }
+    }
+    return text
+}
+
+def nonNegativeInteger = { fieldName, value ->
+    try {
+        def parsed = Integer.parseInt(value.toString())
+        if (parsed < 0) {
+            throw new NumberFormatException("negative")
+        }
+        return parsed
+    } catch (NumberFormatException ignored) {
+        throw new GradleException("Stealth profile ${fieldName} must be a non-negative integer")
+    }
+}
+
+def androidApplicationId = { fieldName, value ->
+    if (!(value instanceof CharSequence)) {
+        throw new GradleException("Stealth profile ${fieldName} must be a string")
+    }
+    def text = value.toString().trim()
+    if (!(text ==~ /[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+/)) {
+        throw new GradleException(
+                "Stealth profile ${fieldName} must be a valid Android applicationId"
+        )
+    }
+    return text
+}
+
+def resolveRepoRelativeFile = { path ->
+    def candidate = new File(path.toString())
+    if (candidate.isAbsolute()) {
+        return candidate
+    }
+    def fromRepoRoot = new File(rootProject.projectDir.parentFile, path.toString())
+    if (fromRepoRoot.exists()) {
+        return fromRepoRoot
+    }
+    return file(path.toString())
+}
+
+def loadStealthProfile = {
+    def profilePath = (findProperty("stealthProfile") ?: System.getenv("STEALTH_PROFILE"))?.toString()?.trim()
+    if (!profilePath) {
+        return defaultStealthProfile
+    }
+
+    def profileFile = resolveRepoRelativeFile(profilePath)
+    if (!profileFile.exists()) {
+        throw new GradleException("Stealth profile not found: ${profilePath}")
+    }
+
+    def parsed = new groovy.json.JsonSlurper().parse(profileFile)
+    if (!(parsed instanceof Map)) {
+        throw new GradleException("Stealth profile must be a JSON object: ${profileFile}")
+    }
+
+    def profile = defaultStealthProfile + parsed.findAll { it.value != null }
+    profile.mode = normalizeStealthMode(profile.mode)
+    if (!["stealth-vpn", "stealth-novpn"].contains(profile.mode)) {
+        throw new GradleException(
+                "Unsupported Stealth mode '${profile.mode}' in ${profileFile}; expected stealth-vpn, stealth-novpn, vpn, or novpn"
+        )
+    }
+    profile.appName = manifestPlaceholderString("appName", profile.appName)
+    profile.sessionName = manifestPlaceholderString("sessionName", profile.sessionName)
+    profile.denylistVersion = nonNegativeInteger("denylistVersion", profile.denylistVersion)
+    profile.packageName = androidApplicationId("packageName", profile.packageName)
+    // directConnectionAppsEnabled: profile JSON stores a boolean; default true for stealth modes.
+    def rawDca = profile.get("directConnectionAppsEnabled")
+    if (rawDca == null) {
+        profile.directConnectionAppsEnabled = ["stealth-vpn", "stealth-novpn"].contains(profile.mode)
+    } else if (rawDca instanceof Boolean) {
+        profile.directConnectionAppsEnabled = rawDca
+    } else {
+        throw new GradleException("Stealth profile directConnectionAppsEnabled must be a boolean")
+    }
+    return profile
+}
+
+def stealthProfile = loadStealthProfile()
+
+def rawStealthMode = stealthProfile.mode.toString()
+if (!rawStealthMode || rawStealthMode == "normal") {
+    rawStealthMode = (project.findProperty("STEALTH_MODE") ?: "").toString()
+}
+rawStealthMode = rawStealthMode.trim().toLowerCase(java.util.Locale.ROOT)
+def stealthModePrefix = "stealth-"
+def stealthMode = rawStealthMode.startsWith(stealthModePrefix)
+        ? rawStealthMode.substring(stealthModePrefix.length())
+        : rawStealthMode
+if (rawStealthMode.startsWith(stealthModePrefix) && !stealthMode) {
+    throw new GradleException("Unsupported STEALTH_MODE '${rawStealthMode}'. Expected stealth-vpn or stealth-novpn")
+}
+def explicitStealthNoVpn = project.findProperty("stealthNoVpn")?.toString()?.toBoolean() ?: false
+if (stealthMode == "vpn" && explicitStealthNoVpn) {
+    throw new GradleException("Conflicting stealth inputs: STEALTH_MODE=vpn cannot be combined with -PstealthNoVpn=true")
+}
+if (!stealthMode && explicitStealthNoVpn) {
+    stealthMode = "novpn"
+}
+def stealthModes = ["vpn", "novpn"]
+if (stealthMode && !stealthModes.contains(stealthMode)) {
+    throw new GradleException("Unsupported STEALTH_MODE '${stealthMode}'. Expected one of: ${stealthModes.join(', ')}")
+}
+def stealthNoVpn = explicitStealthNoVpn || stealthMode == "novpn"
+// Emit the resolved mode (e.g. "stealth-vpn"), not stealthProfile.mode, which
+// stays "normal" when stealth is enabled via -PSTEALTH_MODE without a profile.
+def resolvedStealthMode = stealthMode ? "${stealthModePrefix}${stealthMode}" : "normal"
+def stealthManifest = layout.buildDirectory.file("generated/stealth/${stealthMode}/AndroidManifest.xml").get().asFile
+def stealthManifestFilter = file("${rootProject.projectDir}/../scripts/stealth/android_manifest_filter.py")
+def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYTHON") ?: "python3").toString()
+// Stealth compiles a de-branded COPY of the REAL Kotlin (generated by
+// scripts/stealth/debrand_kotlin.py into build/stealth/android/) so the app
+// ships its real native bridge, not the legacy foundation.bridge stub.
+def stealthGeneratedKotlinDir = new File(rootProject.projectDir.parentFile, "build/stealth/android/kotlin")
+def stealthGeneratedResDir = new File(rootProject.projectDir.parentFile, "build/stealth/android/res")
+// src/main/java holds Flutter's generated io.flutter.plugins.GeneratedPluginRegistrant
+// (brand-free) — required so plugins (path_provider, shared_preferences, ...) register;
+// without it storage init throws and the app hangs on a black screen.
+def stealthAndroidSourceDirs = [stealthGeneratedKotlinDir, 'src/main/java']
+
+def androidIdentityDefaults = [
+        applicationId: stealthProfile.packageName.toString(),
+        appLabel: stealthProfile.appName.toString(),
+        launcherLabel: stealthProfile.appName.toString(),
+        identityLabel: stealthProfile.appName.toString(),
+        identityProfileId: "standard",
+        identityMetadata: "{}",
+        vpnSessionName: stealthProfile.sessionName.toString(),
+        notificationChannelVpn: stealthMode ? "${stealthProfile.appName} Status" : "VPN",
+        notificationChannelDataUsage: "Data Usage",
+        notificationTitle: stealthProfile.appName.toString(),
+        notificationConnectedText: stealthMode ? "${stealthProfile.appName} is active" : "${stealthProfile.appName} VPN is running",
+        notificationStartingText: stealthMode ? "Starting ${stealthProfile.appName}..." : "Starting ${stealthProfile.appName} VPN...",
+        notificationDisconnectAction: "Disconnect",
+        quickTileActiveLabel: stealthMode ? "${stealthProfile.appName} on" : "VPN Connected",
+        quickTileInactiveLabel: stealthMode ? "${stealthProfile.appName} off" : "VPN Disconnected",
+        appIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher",
+        appRoundIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher_round",
+        notificationSmallIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
+        quickTileIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
+        appAuthScheme: stealthMode ? "mobileapp" : "lantern",
+]
+
+def androidIdentityProfilePath =
+        (project.findProperty("androidIdentityProfile") ?: System.getenv("ANDROID_IDENTITY_PROFILE"))?.toString()?.trim()
+def androidIdentity = new LinkedHashMap(androidIdentityDefaults)
+if (androidIdentityProfilePath) {
+    def profileFile = new File(androidIdentityProfilePath)
+    if (!profileFile.isAbsolute()) {
+        profileFile = new File(rootProject.projectDir.parentFile, androidIdentityProfilePath)
+    }
+    if (!profileFile.exists()) {
+        throw new GradleException("Android identity profile not found: ${profileFile}")
+    }
+    def props = new java.util.Properties()
+    profileFile.withReader("UTF-8") { props.load(it) }
+    props.each { key, value ->
+        def name = key.toString()
+        if (!androidIdentity.containsKey(name)) {
+            throw new GradleException("Unknown Android identity profile key '${name}' in ${profileFile}")
+        }
+        androidIdentity[name] = value.toString()
+    }
+}
+
+if (stealthIconSeed) {
+    androidIdentity.appIcon = launcherIconResource
+    androidIdentity.appRoundIcon = roundLauncherIconResource
+}
+
+if (!(androidIdentity.applicationId ==~ /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/)) {
+    throw new GradleException("Invalid Android applicationId in identity profile: ${androidIdentity.applicationId}")
+}
 
 android {
-    namespace = "org.getlantern.lantern"
+    namespace = stealthMode ? "foundation.bridge" : "org.getlantern.lantern"
     compileSdk = 36
     ndkVersion "28.2.13676358"
 
@@ -55,8 +299,17 @@ android {
             if (sideloadUpdates) {
                 manifest.srcFile sideloadManifestPath
             }
+            if (stealthMode) {
+                manifest.srcFile stealthManifest
+                java.srcDirs = stealthAndroidSourceDirs
+                kotlin.srcDirs = stealthAndroidSourceDirs
+                res.srcDirs = [stealthGeneratedResDir]
+            }
             jniLibs.srcDirs = ['libs']
             jniLibs.srcDirs += ['src/main/jniLibs']
+            if (stealthIconSeed) {
+                res.srcDirs += [generatedStealthIconResDir.get().asFile]
+            }
         }
     }
 
@@ -82,6 +335,10 @@ android {
     // crashes). Constraint: abiFilters must match the ABIs Flutter built
     // (Makefile --target-platform), or installs crash with "Could not find
     // 'libflutter.so'".
+
+    buildFeatures {
+        buildConfig true
+    }
 
     // Use legacy packaging to help reduce apk size
     packagingOptions {
@@ -109,12 +366,30 @@ android {
     }
 
     defaultConfig {
-        applicationId = "org.getlantern.lantern"
+        applicationId = androidIdentity.applicationId
         minSdkVersion = 24
         targetSdk = 36
+        // Runs Flutter integration_test/ suites as instrumentation tests
+        // (locally and on Firebase Test Lab); see MainActivityTest.
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode = code
         versionName = flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
+        manifestPlaceholders = [
+                appName: androidIdentity.appLabel,
+                appLabel: androidIdentity.appLabel,
+                launcherLabel: androidIdentity.launcherLabel,
+                appIcon: androidIdentity.appIcon,
+                appRoundIcon: androidIdentity.appRoundIcon,
+                launcherIcon: androidIdentity.appIcon,
+                roundLauncherIcon: androidIdentity.appRoundIcon,
+                identityLabel: androidIdentity.identityLabel,
+                identityProfileId: androidIdentity.identityProfileId,
+                identityMetadata: androidIdentity.identityMetadata,
+                quickTileIcon: androidIdentity.quickTileIcon,
+                appAuthScheme: androidIdentity.appAuthScheme,
+        ]
+        resValue "string", "app_name", androidIdentity.appLabel
 
         ndk {
             // arm64 only (APK + AAB) — armeabi-v7a dropped, see the comment
@@ -129,9 +404,33 @@ android {
                 arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
         }
-        buildFeatures {
-            buildConfig true
-        }
+        buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)
+        buildConfigField "String", "ANDROID_IDENTITY_PROFILE_ID", buildConfigString(androidIdentity.identityProfileId)
+        buildConfigField "String", "ANDROID_IDENTITY_METADATA", buildConfigString(androidIdentity.identityMetadata)
+        // The REAL app code reads these BuildConfig fields, so they must exist in
+        // BOTH stealth and regular builds (stealth now compiles the real handlers,
+        // not the legacy stub). Only STEALTH_ENABLED differs by build.
+        buildConfigField "boolean", "STEALTH_ENABLED", stealthMode ? "true" : "false"
+        buildConfigField "String", "STEALTH_MODE", buildConfigString(resolvedStealthMode)
+        buildConfigField "String", "STEALTH_PACKAGE_NAME", buildConfigString(stealthProfile.packageName)
+        buildConfigField "String", "STEALTH_APP_NAME", buildConfigString(stealthProfile.appName)
+        buildConfigField "String", "STEALTH_SESSION_NAME", buildConfigString(stealthProfile.sessionName)
+        buildConfigField "int", "STEALTH_DENYLIST_VERSION", stealthProfile.denylistVersion.toString()
+        buildConfigField "String", "VPN_SESSION_NAME", buildConfigString(androidIdentity.vpnSessionName)
+        buildConfigField "String", "NOTIFICATION_CHANNEL_VPN", buildConfigString(androidIdentity.notificationChannelVpn)
+        buildConfigField "String", "NOTIFICATION_CHANNEL_DATA_USAGE", buildConfigString(androidIdentity.notificationChannelDataUsage)
+        buildConfigField "String", "NOTIFICATION_TITLE", buildConfigString(androidIdentity.notificationTitle)
+        buildConfigField "String", "NOTIFICATION_CONNECTED_TEXT", buildConfigString(androidIdentity.notificationConnectedText)
+        buildConfigField "String", "NOTIFICATION_STARTING_TEXT", buildConfigString(androidIdentity.notificationStartingText)
+        buildConfigField "String", "NOTIFICATION_DISCONNECT_ACTION", buildConfigString(androidIdentity.notificationDisconnectAction)
+        buildConfigField "String", "QUICK_TILE_ACTIVE_LABEL", buildConfigString(androidIdentity.quickTileActiveLabel)
+        buildConfigField "String", "QUICK_TILE_INACTIVE_LABEL", buildConfigString(androidIdentity.quickTileInactiveLabel)
+        buildConfigField "String", "NOTIFICATION_SMALL_ICON", buildConfigString(androidIdentity.notificationSmallIcon)
+        buildConfigField "boolean", "STEALTH_DIRECT_CONNECTION_APPS",
+                stealthProfile.directConnectionAppsEnabled.toString()
+        buildConfigField "boolean", "STEALTH_NO_VPN", stealthNoVpn.toString()
+        buildConfigField "String", "STEALTH_NO_VPN_PROXY_HOST", '"127.0.0.1"'
+        buildConfigField "int", "STEALTH_NO_VPN_PROXY_PORT", "14986"
     }
 
     signingConfigs {
@@ -175,6 +474,49 @@ if (sideloadUpdates) {
             .configureEach { dependsOn(generateSideloadManifest) }
 }
 
+if (stealthMode) {
+    afterEvaluate {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+            task.setSource(files(stealthAndroidSourceDirs))
+            task.exclude("org/getlantern/**")
+        }
+    }
+}
+
+if (stealthMode) {
+    tasks.register("generateStealthManifest", Exec) {
+        inputs.file(file("src/main/AndroidManifest.xml"))
+        inputs.file(stealthManifestFilter)
+        inputs.property("stealthMode", stealthMode)
+        outputs.file(stealthManifest)
+        commandLine(
+                stealthPython,
+                stealthManifestFilter.absolutePath,
+                "--mode", stealthMode,
+                "--input", "${projectDir}/src/main/AndroidManifest.xml",
+                "--output", stealthManifest.absolutePath,
+        )
+    }
+
+    tasks.matching { it.name == "preBuild" }.configureEach {
+        dependsOn(tasks.named("generateStealthManifest"))
+    }
+}
+
+tasks.register("generateStealthAndroidIcons", Exec) {
+    onlyIf { stealthIconSeed }
+    inputs.property("stealthIconSeedSha256", stealthIconSeedSha256)
+    inputs.file(generatedStealthIconScript)
+    outputs.dir(generatedStealthIconResDir)
+    outputs.file(generatedStealthIconMetadata)
+    environment "STEALTH_ICON_SEED", stealthIconSeed ?: ""
+    commandLine stealthPython,
+            generatedStealthIconScript.absolutePath,
+            "--output-res-dir", generatedStealthIconResDir.get().asFile.absolutePath
+}
+
+preBuild.dependsOn("generateStealthAndroidIcons")
+
 flutter {
     source = "../.."
 }
@@ -182,8 +524,76 @@ flutter {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation fileTree(dir: "libs", include: "liblantern.aar")
+    // Used by the real app code (VPN status, logs, background work) in both
+    // stealth and regular builds, so these are always included.
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    // Instrumentation harness for Flutter integration tests (Firebase Test Lab).
+    // 1.2.0 matches what the integration_test Flutter plugin pins on the app
+    // runtime classpath (AGP consistent resolution rejects anything newer).
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+}
+
+// Local-dev convenience: pre-grant the VpnService consent appop on every
+// connected device/emulator so `flutter run` / `flutter test -d <device>`
+// never hit the system VPN dialog (which Flutter tests cannot dismiss).
+// Best-effort by design: no adb, no devices, or app-not-yet-installed are
+// all silently ignored (the grant then lands on the next debug build).
+// FTL/instrumentation runs don't rely on this — MainActivityTest self-grants.
+def grantVpnConsentTask = tasks.register("grantVpnConsentOnConnectedDevices") {
+    group = "verification"
+    description = "Pre-grants ACTIVATE_VPN appop on all connected adb devices (debug convenience)."
+    def appId = androidIdentity.applicationId.toString()
+    doLast {
+        def adbExe = android.adbExecutable
+        if (adbExe == null || !adbExe.exists()) {
+            logger.info("grantVpnConsent: adb not found, skipping")
+            return
+        }
+        def devicesOut = new ByteArrayOutputStream()
+        try {
+            exec {
+                commandLine adbExe.absolutePath, 'devices'
+                standardOutput = devicesOut
+                ignoreExitValue = true
+            }
+        } catch (Exception e) {
+            logger.info("grantVpnConsent: adb devices failed, skipping (${e.message})")
+            return
+        }
+        // `adb devices` lines are "<serial>\t<state>"; mDNS serials can contain
+        // spaces, so split on the tab only.
+        devicesOut.toString().readLines()
+                .collect { it.tokenize('\t') }
+                .findAll { it.size() == 2 && it[1].trim() == 'device' }
+                .collect { it[0].trim() }
+                .each { serial ->
+                    try {
+                        def result = exec {
+                            commandLine adbExe.absolutePath, '-s', serial, 'shell',
+                                    'appops', 'set', appId, 'ACTIVATE_VPN', 'allow'
+                            ignoreExitValue = true
+                        }
+                        if (result.exitValue == 0) {
+                            logger.lifecycle("grantVpnConsent: ACTIVATE_VPN allowed for ${appId} on ${serial}")
+                        } else {
+                            logger.info("grantVpnConsent: skipped ${serial} (exit ${result.exitValue})")
+                        }
+                    } catch (Exception e) {
+                        logger.info("grantVpnConsent: failed on ${serial} (${e.message})")
+                    }
+                }
+    }
+}
+
+tasks.configureEach { t ->
+    // assembleDebug covers the flutter tool path (it installs via adb itself);
+    // installDebug covers direct Gradle installs.
+    if (t.name == 'assembleDebug' || t.name == 'installDebug') {
+        t.finalizedBy(grantVpnConsentTask)
+    }
 }

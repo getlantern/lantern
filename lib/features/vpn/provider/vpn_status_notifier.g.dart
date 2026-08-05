@@ -33,7 +33,7 @@ final class VPNStatusNotifierProvider
   VPNStatusNotifier create() => VPNStatusNotifier();
 }
 
-String _$vPNStatusNotifierHash() => r'6646686e65bcd44969b612a32580dde570328146';
+String _$vPNStatusNotifierHash() => r'0c5d6753d33c548dcb221b946fd79b05758730c8';
 
 abstract class _$VPNStatusNotifier extends $StreamNotifier<LanternStatus> {
   Stream<LanternStatus> build();

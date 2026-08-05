@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/info_row.dart';
@@ -12,6 +11,7 @@ import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -48,7 +48,7 @@ class Account extends HookConsumerWidget {
     final email = ref.watch(userEmailProvider);
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
-
+    final isOAuthLogin = ref.watch(isOAuthLoginProvider).value ?? false;
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +56,7 @@ class Account extends HookConsumerWidget {
           if (isUserFree)
             ProButton(
               onPressed: () {
-                appRouter.push(const Plans());
+                appRouter.push(Plans());
               },
             ),
           if (isExpired) ...{
@@ -73,7 +73,7 @@ class Account extends HookConsumerWidget {
             ProButton(
               label: 'renew_pro_subscription'.i18n,
               onPressed: () {
-                appRouter.push(const Plans());
+                appRouter.push(Plans());
               },
             ),
           },
@@ -98,14 +98,16 @@ class Account extends HookConsumerWidget {
                       copyToClipboard(email);
                     }
                   : null,
-              trailing: AppTextButton(
-                label: 'change_email'.i18n,
-                onPressed: () {
-                  appRouter.push(
-                    SignInPassword(email: email, fromChangeEmail: true),
-                  );
-                },
-              ),
+              trailing: isOAuthLogin
+                  ? null
+                  : AppTextButton(
+                      label: 'change_email'.i18n,
+                      onPressed: () {
+                        appRouter.push(
+                          SignInPassword(email: email, fromChangeEmail: true),
+                        );
+                      },
+                    ),
             ),
           ),
           SizedBox(height: defaultSize),
@@ -136,6 +138,7 @@ class Account extends HookConsumerWidget {
               padding: EdgeInsets.zero,
               child: AppTile(
                 label: user!.legacyUserData.toDate(),
+                subtitle: _referralBonusSubtitle(user, buildContext, theme),
                 contentPadding: EdgeInsets.only(left: 16),
                 icon: AppImagePaths.autoRenew,
                 trailing: planTrailingWidget(user, buildContext, ref),
@@ -185,13 +188,28 @@ class Account extends HookConsumerWidget {
     );
   }
 
+  Widget? _referralBonusSubtitle(
+    UserResponseModel user,
+    BuildContext buildContext,
+    TextTheme theme,
+  ) {
+    final months = user.legacyUserData.referralBonusMonths;
+    if (months <= 0) return null;
+    return Text(
+      months == 1
+          ? 'includes_free_month_from_referrals'.i18n.fill([months])
+          : 'includes_free_months_from_referrals'.i18n.fill([months]),
+      style: theme.labelMedium!.copyWith(color: buildContext.textSecondary),
+    );
+  }
+
   Widget? planTrailingWidget(
     UserResponseModel user,
     BuildContext buildContext,
     WidgetRef ref,
   ) {
     final autoRenew = user.legacyUserData.subscriptionData.autoRenew;
-    final isUserExpired = user.legacyUserData.userLevel == 'expired';
+    final isUserExpired = user.legacyUserData.isExpired;
     final isUserPro = user.legacyUserData.isPro;
 
     ///User has an active subscription with auto-renew enabled
@@ -204,7 +222,6 @@ class Account extends HookConsumerWidget {
     if (isUserPro && !autoRenew) {
       return AppTextButton(label: 'renew'.i18n, onPressed: onRenewTap);
     }
-
     return null;
   }
 
@@ -254,7 +271,7 @@ class Account extends HookConsumerWidget {
   void onRenewTap() {
     /// Most user renewal attempts are one-time purchases.
     /// Send the user to the plans page.
-    appRouter.push(const Plans());
+    appRouter.push(Plans());
   }
 
   Future<void> openGooglePlaySubscriptions() async {
@@ -335,7 +352,7 @@ class Account extends HookConsumerWidget {
         (newUser) {
           final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
           final newPlanId = newUser.legacyUserData.subscriptionData.planID;
-          final isPro = newUser.legacyUserData.userLevel == 'pro';
+          final isPro = newUser.legacyUserData.isPro;
           final isPlanChanged = isPro && oldPlanId != newPlanId;
           final isCancelled =
               !isPro ||

@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
@@ -62,9 +61,7 @@ class _SettingState extends ConsumerState<Setting>
 
     final appSetting = ref.watch(appSettingProvider);
 
-    final hasProSession =
-        (user?.legacyUserData.isPro ?? false) &&
-        (user?.legacyUserData.unpassRegistered ?? false);
+    final hasProSession = hasRegisteredProAccount(user);
 
     final isAuthenticated = appSetting.userLoggedIn || hasProSession;
 
@@ -83,11 +80,12 @@ class _SettingState extends ConsumerState<Setting>
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
+                key: const Key('setting.upgrade_pro_button'),
                 label: isExpired
                     ? 'renew_pro_subscription'.i18n
                     : 'upgrade_to_pro'.i18n,
                 onPressed: () {
-                  appRouter.push(const Plans());
+                  appRouter.push(Plans());
                 },
               ),
             ),
@@ -138,12 +136,14 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('setting.vpn_setting_tile'),
                   label: 'vpn_settings'.i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
                 DividerSpace(),
                 AppTile(
+                  tileKey: const Key('setting.language_tile'),
                   label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
@@ -156,6 +156,7 @@ class _SettingState extends ConsumerState<Setting>
                 ),
                 DividerSpace(),
                 AppTile(
+                  tileKey: const Key('setting.appearance_tile'),
                   label: 'appearance'.i18n,
                   icon: AppImagePaths.theme,
                   trailing: Text(
@@ -175,6 +176,7 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('setting.support_tile'),
                   label: 'support'.i18n,
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
@@ -202,12 +204,14 @@ class _SettingState extends ConsumerState<Setting>
                     );
                   },
                 ),
-                DividerSpace(),
-                AppTile(
-                  label: 'get_30_days_of_pro_free'.i18n,
-                  icon: AppImagePaths.star,
-                  onPressed: () => settingMenuTap(_SettingType.getPro),
-                ),
+                if (!isStoreVersion()) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'get_30_days_of_pro_free'.i18n,
+                    icon: AppImagePaths.star,
+                    onPressed: () => settingMenuTap(_SettingType.getPro),
+                  ),
+                ],
                 if (isStoreVersion() && !isUserPro) ...[
                   DividerSpace(),
                   AppTile(
@@ -296,23 +300,12 @@ class _SettingState extends ConsumerState<Setting>
 
       case _SettingType.account:
         final user = ref.read(homeProvider).value;
-        if (user == null) {
-          appRouter.push(const SignInEmail());
-          return;
-        }
-
         final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-        final email = user.legacyUserData.email;
-        final isPro = user.legacyUserData.isPro;
-        if (isPro && !userSignedIn) {
-          await showProAccountFlowDialog(
-            context: context,
-            hasEmail: email.isNotEmpty,
-          );
-          return;
-        }
-
-        appRouter.push(Account());
+        await openAccountOrProAccountSetup(
+          context: context,
+          user: user,
+          userLoggedIn: userSignedIn,
+        );
         break;
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());

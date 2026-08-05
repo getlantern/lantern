@@ -20,6 +20,7 @@ class LocalStorageService {
   static const _plansKey = 'plans_json';
   static const _developerModeKey = 'developer_mode_json';
   static const _serverLocationKey = 'server_location_json';
+  static const _seenReferralsKey = 'seen_converted_referrals';
 
   Future<void> init() async {
     _prefs = await SharedPreferencesWithCache.create(
@@ -102,6 +103,15 @@ class LocalStorageService {
     await setString(_developerModeKey, jsonEncode(dev.toJson()));
   }
 
+  // ── Referrals ─────────────────────────────────────────────────────────────
+
+  /// User IDs of converted referrals the reward dialog was already shown for.
+  List<String> getSeenConvertedReferrals() =>
+      getStringList(_seenReferralsKey) ?? const [];
+
+  Future<void> saveSeenConvertedReferrals(List<String> userIds) =>
+      setStringList(_seenReferralsKey, userIds);
+
   // Helper methods for basic types
 
   String? getString(String key) => _prefs.getString(key);
@@ -122,6 +132,37 @@ class LocalStorageService {
     } catch (e, st) {
       appLogger.error('LocalStorage setStringList($key) failed', e, st);
     }
+  }
+
+  /// Reads a `Map<String, String>` persisted as a JSON object. Returns an
+  /// empty map when the key is absent or holds an empty string, and clears the
+  /// key when its (non-empty) contents can't be parsed into a map.
+  Future<Map<String, String>> getStringMap(String key) async {
+    final raw = getString(key);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return decoded.map(
+          (k, v) => MapEntry(k.toString(), v.toString()),
+        );
+      }
+      appLogger.warning('Stored map at "$key" had invalid shape; clearing');
+    } catch (e, st) {
+      appLogger.error('Failed to parse stored map at "$key"; clearing', e, st);
+    }
+    await remove(key);
+    return {};
+  }
+
+  /// Persists a `Map<String, String>` as a JSON object, removing the key
+  /// entirely when the map is empty.
+  Future<void> setStringMap(String key, Map<String, String> value) async {
+    if (value.isEmpty) {
+      await remove(key);
+      return;
+    }
+    await setString(key, jsonEncode(value));
   }
 
   bool containsKey(String key) => _prefs.containsKey(key);

@@ -1,0 +1,148 @@
+name: App Smoke Tests
+
+# On the nightly schedule all `inputs.*` are empty, so job conditions use
+# `inputs.x || '<nightly value>'` fallbacks: platforms=all, tests=all.
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Platforms to smoke test"
+        required: true
+        type: choice
+        options:
+          - all
+          - android
+          - linux
+          - macos
+          - windows
+        default: all
+      tests:
+        description: "Which test suites to run on the selected platforms"
+        required: false
+        type: choice
+        options:
+          - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - all # every suite the platform supports
+        default: vpn-smoke
+      linux_arch:
+        description: "Linux arch to test"
+        required: false
+        type: choice
+        options:
+          - amd64
+          - arm64
+          - all
+        default: amd64
+  schedule:
+    # Nightly full sweep (platforms=all, tests=all) at 03:00 UTC so
+    # regressions surface within a day without anyone dispatching manually.
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: app-smoke-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
+  # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
+  # tier builds only the VPN suite and runs it on one virtual device with no
+  # retries; `all` builds the full aggregator on the script's two-device
+  # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
+  android:
+    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) }}
+    uses: ./.github/workflows/firebase-test-lab.yml
+    secrets: inherit
+    with:
+      test_target: >-
+        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+            && 'integration_test/vpn/android_vpn_smoke_test.dart'
+            || 'integration_test/android_all_e2e_test.dart' }}
+      devices: >-
+        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+            && 'model=MediumPhone.arm,version=33,locale=en,orientation=portrait'
+            || '' }}
+      flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
+
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(./scripts/ci/version.sh generate nightly)"
+          BASE_VERSION="$(./scripts/ci/version.sh extract "$VERSION")"
+          FULL_VERSION="${BASE_VERSION}+${GITHUB_RUN_NUMBER}"
+          INSTALLER_BASE_NAME="lantern-smoke-test"
+
+          sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "installer_base_name=$INSTALLER_BASE_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload pubspec.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
+
+  # Remaining suite toggles (IP check, config-url, …) are no longer umbrella
+  # inputs: each build-*.yml declares smoke-appropriate defaults, and anything
+  # exotic can be dispatched on that workflow directly. The `tests` tier maps
+  # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
+  linux:
+    needs: prepare
+    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) }}
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      linux_arch: ${{ inputs.linux_arch || 'amd64' }}
+      force_full_tunnel_smoke: true
+      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+
+  # Not part of platforms=all (and so not the nightly): the connect smoke
+  # needs the self-hosted runner with the approved system extension, so macOS
+  # runs only when asked for explicitly.
+  macos:
+    needs: prepare
+    if: ${{ inputs.platforms == 'macos' }}
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      runner_label: lantern-macos-smoke
+      run_connect_smoke: true
+
+  windows:
+    needs: prepare
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) }}
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      skip_signing: true
+      force_full_tunnel_smoke: true
+      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
