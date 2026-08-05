@@ -6417,6 +6417,26 @@ class LanternBindings {
   late final _isBlockAdsEnabled = _isBlockAdsEnabledPtr
       .asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> setPeerProxyEnabled(int enabled) {
+    return _setPeerProxyEnabled(enabled);
+  }
+
+  late final _setPeerProxyEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setPeerProxyEnabled',
+      );
+  late final _setPeerProxyEnabled = _setPeerProxyEnabledPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isPeerProxyEnabled() {
+    return _isPeerProxyEnabled();
+  }
+
+  late final _isPeerProxyEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isPeerProxyEnabled');
+  late final _isPeerProxyEnabled = _isPeerProxyEnabledPtr
+      .asFunction<int Function()>();
+
   ffi.Pointer<ffi.Char> setSmartRoutingEnabled(int enabled) {
     return _setSmartRoutingEnabled(enabled);
   }

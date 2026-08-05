@@ -830,6 +830,22 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isPeerProxyEnabled();
+    }
+    return _platformService.isPeerProxyEnabled();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setPeerProxyEnabled(enabled);
+    }
+    return _platformService.setPeerProxyEnabled(enabled);
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

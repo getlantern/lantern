@@ -602,6 +602,12 @@ msgstr "Block Ads"
 msgid "only_active"
 msgstr "Only active when VPN is connected"
 
+msgid "share_my_connection"
+msgstr "Share My Connection"
+
+msgid "share_my_connection_subtitle"
+msgstr "Let other Lantern users route through your connection to bypass censorship."
+
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
 

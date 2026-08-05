@@ -29,16 +29,23 @@ class RadianceSettings extends _$RadianceSettings {
     final routingF = svc.isSmartRoutingEnabled();
     final telemetryF = svc.isTelemetryEnabled();
     final splitF = PlatformUtils.isIOS ? null : svc.isSplitTunnelingEnabled();
+    // Peer-proxy probe runs only on platforms with native handlers
+    // (Windows + Linux via FFI, macOS via MethodChannel — i.e. all desktop).
+    // On iOS / Android the call would fail with MissingPluginException on
+    // every settings init.
+    final peerF = PlatformUtils.isDesktop ? svc.isPeerProxyEnabled() : null;
 
     final results = await Future.wait([
       blockAdsF,
       routingF,
       telemetryF,
       ?splitF,
+      ?peerF,
     ]);
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
+    final peerIdx = 3 + (splitF == null ? 0 : 1);
     state = RadianceSettingsState(
       blockAds: results[0].fold((_) => defaults.blockAds, (v) => v),
       routingMode: results[1].fold(
@@ -49,6 +56,9 @@ class RadianceSettings extends _$RadianceSettings {
       splitTunneling: splitF == null
           ? defaults.splitTunneling
           : results[3].fold((_) => defaults.splitTunneling, (v) => v),
+      peerProxy: peerF == null
+          ? defaults.peerProxy
+          : results[peerIdx].fold((_) => defaults.peerProxy, (v) => v),
     );
   }
 
@@ -95,6 +105,16 @@ class RadianceSettings extends _$RadianceSettings {
     result.fold(
       (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
       (_) => state = state.copyWith(telemetry: consent),
+    );
+  }
+
+  Future<void> setPeerProxy(bool value) async {
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.setPeerProxyEnabled(value);
+    if (!ref.mounted) return;
+    result.fold(
+      (err) => appLogger.error('setPeerProxyEnabled failed: ${err.error}'),
+      (_) => state = state.copyWith(peerProxy: value),
     );
   }
 }
