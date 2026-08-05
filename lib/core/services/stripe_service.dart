@@ -127,10 +127,12 @@ class StripeService {
             },
             // The SDK confirms the intent itself with the payment method it
             // collected, so neither callback argument is needed here.
-            confirmHandler: (_, _) => _createSubscriptionAndConfirm(
-              createSubscriptionOnce,
-              intentMode,
-            ),
+            confirmHandler: (_, _) async {
+              await _createSubscriptionAndConfirm(
+                createSubscriptionOnce,
+                intentMode,
+              );
+            },
           ),
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,

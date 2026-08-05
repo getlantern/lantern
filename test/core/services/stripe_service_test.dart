@@ -9,10 +9,16 @@ import 'package:lantern/core/services/stripe_service.dart';
 
 void main() {
   late _FakeStripePlatform platform;
+  late StripePlatform originalPlatform;
 
   setUpAll(() {
+    originalPlatform = StripePlatform.instance;
     platform = _FakeStripePlatform();
     StripePlatform.instance = platform;
+  });
+
+  tearDownAll(() {
+    StripePlatform.instance = originalPlatform;
   });
 
   setUp(() {
@@ -337,7 +343,13 @@ class _FakeStripePlatform extends StripePlatform {
     events.add('payment-sheet:present');
     for (var i = 0; i < confirmationsToRun; i++) {
       _intentCallbackCompleter = Completer<void>();
-      _confirmHandler!.call(_paymentMethod, false);
+      final confirmation = Function.apply(_confirmHandler!, [
+        _paymentMethod,
+        false,
+      ]);
+      if (confirmation is Future<void>) {
+        await confirmation;
+      }
       await _intentCallbackCompleter!.future;
     }
     return null;
