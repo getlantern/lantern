@@ -56,6 +56,7 @@ class LanguageListView extends HookConsumerWidget {
     this.ref = ref;
     final locale = ref.watch(appSettingProvider).locale;
     return ListView(
+      key: const Key('language.list'),
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       controller: scrollController,

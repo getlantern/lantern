@@ -39,6 +39,7 @@ class Support extends ConsumerWidget {
               child: Column(
                 children: [
                   AppTile(
+                    tileKey: const Key('support.report_issue_tile'),
                     icon: Icons.error_outline,
                     label: 'report_an_issue'.i18n,
                     onPressed: () => safePush(context, ReportIssue()),
