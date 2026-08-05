@@ -89,7 +89,9 @@ class MethodHandler {
           )
           return
         }
-        self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+        let couponCode = map["couponCode"] as? String ?? ""
+        self.acknowledgeInAppPurchase(
+          token: token, planId: planId, couponCode: couponCode, result: result)
 
       // user management
       case "startRecoveryByEmail":
@@ -127,6 +129,12 @@ class MethodHandler {
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.activationCode(result: result, data: data)
 
+      case "verifyPassword":
+        self.verifyPassword(
+          result: result,
+          data: call.arguments as? [String: Any] ?? [:]
+        )
+
       case "startChangeEmail":
         self.startChangeEmail(
           result: result,
@@ -154,6 +162,13 @@ class MethodHandler {
       case "attachReferralCode":
         let code = call.arguments as? String ?? ""
         self.referralAttach(result: result, code: code)
+
+      case "attachReferralCodeV2":
+        let data = call.arguments as? [String: Any] ?? [:]
+        let code = data["code"] as? String ?? ""
+        let distributionChannel = data["distributionChannel"] as? String ?? ""
+        self.referralAttachV2(
+          result: result, code: code, distributionChannel: distributionChannel)
 
       // Private server methods
       case "digitalOcean":
@@ -368,6 +383,9 @@ class MethodHandler {
 
       case "sendConfigRequest":
         self.sendConfigRequest(result: result)
+
+      case "clearTunnelCache":
+        self.clearTunnelCache(result: result)
 
       default:
         result(FlutterMethodNotImplemented)
@@ -610,10 +628,12 @@ class MethodHandler {
     }
   }
 
-  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+  func acknowledgeInAppPurchase(
+    token: String, planId: String, couponCode: String, result: @escaping FlutterResult
+  ) {
     Task {
       var error: NSError?
-      let json = MobileAcknowledgeApplePurchase(token, planId, &error)
+      let json = MobileAcknowledgeApplePurchase(token, planId, couponCode, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
         return
@@ -749,6 +769,35 @@ class MethodHandler {
     }
   }
 
+  func verifyPassword(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      guard
+        let email = data["email"] as? String, !email.isEmpty,
+        let password = data["password"] as? String, !password.isEmpty
+      else {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid email/password",
+              details: nil
+            )
+          )
+        }
+        return
+      }
+      var error: NSError?
+      MobileVerifyPassword(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "VERIFY_PASSWORD_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
   func startChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let email = data["newEmail"] as? String ?? ""
@@ -810,6 +859,24 @@ class MethodHandler {
       await MainActor.run {
         appLogger.info("Referral code attached successfully.")
         result("ok")
+      }
+    }
+  }
+
+  func referralAttachV2(
+    result: @escaping FlutterResult, code: String, distributionChannel: String
+  ) {
+    Task {
+      var error: NSError?
+      let json = MobileReferralAttachmentV2(code, distributionChannel, &error)
+      if let error {
+        appLogger.error("Failed to attach referral code v2: \(error.localizedDescription)")
+        await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_V2_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Referral code attached successfully (v2).")
+        result(json)
       }
     }
   }
@@ -1264,12 +1331,25 @@ class MethodHandler {
     }
   }
 
+  func clearTunnelCache(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileClearTunnelCache(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CLEAR_TUNNEL_CACHE_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
   // Payment Methods
   func stripeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let type = data["type"] as? String ?? ""
+      let couponCode = data["couponCode"] as? String ?? ""
       let idempotencyKey: String
       do {
         idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
@@ -1283,6 +1363,7 @@ class MethodHandler {
         planId,
         email,
         idempotencyKey,
+        couponCode,
         &error
       )
       if let err = error {
@@ -1300,6 +1381,7 @@ class MethodHandler {
       let provider = data["provider"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
       let email = data["email"] as? String ?? ""
+      let couponCode = data["couponCode"] as? String ?? ""
       let idempotencyKey: String
       do {
         idempotencyKey = try self.paymentRedirectIdempotencyKey(from: data)
@@ -1313,6 +1395,7 @@ class MethodHandler {
         planId,
         email,
         idempotencyKey,
+        couponCode,
         &error
       )
       if let err = error {

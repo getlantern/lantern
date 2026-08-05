@@ -54,6 +54,54 @@ msgstr "Share your referral code with a friend. When they purchase Lantern Pro, 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
 
+msgid "invite_friends_description"
+msgstr "When a friend upgrades to Lantern Pro using your referral code, you both get 1 month free."
+
+msgid "month_earned"
+msgstr "%s month earned"
+
+msgid "months_earned"
+msgstr "%s months earned"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Includes %s free month from referrals"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Includes %s free months from referrals"
+
+msgid "referral_converted_title"
+msgstr "A friend upgraded to Pro"
+
+msgid "referral_converted_message"
+msgstr "You both earned %s of Lantern Pro, free. You've earned %s so far. Keep sharing your code to earn more."
+
+msgid "month_count"
+msgstr "%s month"
+
+msgid "months_count"
+msgstr "%s months"
+
+msgid "done"
+msgstr "Done"
+
+msgid "view_account"
+msgstr "View Account"
+
+msgid "show_download_links"
+msgstr "Show download links"
+
+msgid "get_lantern"
+msgstr "Get Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Send your friend this download link:"
+
+msgid "scan_to_install"
+msgstr "Scan with your camera app to install Lantern"
+
+msgid "remind_use_code"
+msgstr "Remind them to use code %s when they upgrade!"
+
 msgid "unbounded"
 msgstr "Unbounded"
 
@@ -393,8 +441,11 @@ msgstr "Add your email to access your subscription on any device."
 msgid "confirm_email_code"
 msgstr "Confirmation Code"
 
-msgid "confirm_email_code_message"
-msgstr "Confirm that this email address belongs to you, enter the code sent to: "
+msgid "confirm_email_code_message_part_one"
+msgstr "We sent a code to "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " Enter it below. If it's not in your inbox, check your spam folder."
 
 msgid "resend_email"
 msgstr "Resend Email"
@@ -1227,6 +1278,9 @@ msgstr  "Server alias cannot be empty"
 msgid "referral_code_applied"
 msgstr "Your referral code has been applied!"
 
+msgid "discount_applied"
+msgstr "%s discount applied"
+
 msgid "referral_message_1m"
 msgstr "+ 15 additional days free"
 
@@ -1234,10 +1288,10 @@ msgid "referral_message_1y"
 msgstr "+ 1 additional month free"
 
 msgid "referral_message_2y"
-msgstr "+ 2 additional month free"
+msgstr "+ 2 additional months free"
 
 msgid "referral_code_invalid"
-msgstr "The referral code you entered is invalid. Please check the code and try again."
+msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
 
 msgid "referral_code_own_invalid"
 msgstr "You cannot use your own referral code. Please enter a different code."
@@ -1426,7 +1480,7 @@ msgid "daily_data_cap_reached_message"
 msgstr "Speed reduced to 128 kb/sec - Resets at %s."
 
 msgid "subscription_renewal_info"
-msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in App Store Settings."
+msgstr "Payment is charged to your Apple ID at purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Failed to update routing mode. Please try again."
@@ -1616,3 +1670,58 @@ msgstr "Connection failed. Please try again."
 
 msgid "err_ruleset_failed"
 msgstr "Unable to load routing configuration. Retrying..."
+
+msgid "update_now"
+msgstr "Update now"
+
+msgid "later"
+msgstr "Later"
+
+msgid "update_ready_to_install"
+msgstr "Lantern %s is ready to install"
+
+msgid "up_to_date"
+msgstr "Up to date"
+
+msgid "running_latest_version"
+msgstr "You're running the latest version of Lantern %s"
+
+msgid "couldnt_check_for_updates"
+msgstr "Couldn't check for updates"
+
+msgid "check_connection_and_retry"
+msgstr "Check your connection and try again"
+
+msgid "refresh_configuration"
+msgstr "Refresh Configuration"
+
+msgid "configuration_cleared"
+msgstr "Configuration cleared"
+
+msgid "turn_off_vpn"
+msgstr "Turn off VPN"
+
+msgid "turn_on_vpn"
+msgstr "Turn on VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
+
+msgid "configuration_message"
+msgstr "Your old configuration has been cleared. Turn the VPN on to automatically download the latest."
+
+msgid "promo_referral_code"
+msgstr "Promo / Referral Code"
+
+msgid "promo_code"
+msgstr "Promo Code"
+
+msgid "promo_code_with"
+msgstr "Promo Code (%s)"
+
+msgid "order_total"
+msgstr "Order Total"
+
+msgid "smart_routing_mode_description"
+msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+

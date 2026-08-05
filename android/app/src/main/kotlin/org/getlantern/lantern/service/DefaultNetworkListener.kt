@@ -36,6 +36,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.runBlocking
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.utils.AppLogger
 
 object DefaultNetworkListener {
     private sealed class NetworkMessage {
@@ -56,44 +57,69 @@ object DefaultNetworkListener {
         val listeners = mutableMapOf<Any, (Network?) -> Unit>()
         var network: Network? = null
         val pendingRequests = arrayListOf<NetworkMessage.Get>()
-        for (message in channel) when (message) {
-            is NetworkMessage.Start -> {
-                if (listeners.isEmpty()) register()
-                listeners[message.key] = message.listener
-                if (network != null) message.listener(network)
-            }
+        // Handle each message under a guard. This actor runs on GlobalScope, which
+        // has no CoroutineExceptionHandler, so anything thrown here would reach the
+        // thread's default handler and kill the process — and take the channel with
+        // it, breaking every later network query. Several branches can throw: the
+        // check() below, register()'s ConnectivityManager calls, and the listener
+        // lambdas, which are caller-supplied. A failed Get is completed
+        // exceptionally so its caller sees the error at await() instead of hanging
+        // on a Deferred nothing will ever complete.
+        for (message in channel) try {
+            when (message) {
+                is NetworkMessage.Start -> {
+                    if (listeners.isEmpty()) register()
+                    listeners[message.key] = message.listener
+                    if (network != null) notify(message.listener, network)
+                }
 
-            is NetworkMessage.Get -> {
-                check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
-                if (network == null) pendingRequests += message else message.response.complete(
-                    network
-                )
-            }
+                is NetworkMessage.Get -> {
+                    check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
+                    if (network == null) pendingRequests += message else message.response.complete(
+                        network
+                    )
+                }
 
-            is NetworkMessage.Stop -> if (listeners.isNotEmpty() && // was not empty
-                listeners.remove(message.key) != null && listeners.isEmpty()
-            ) {
-                network = null
-                unregister()
-            }
+                is NetworkMessage.Stop -> if (listeners.isNotEmpty() && // was not empty
+                    listeners.remove(message.key) != null && listeners.isEmpty()
+                ) {
+                    network = null
+                    unregister()
+                }
 
-            is NetworkMessage.Put -> {
-                network = message.network
-                pendingRequests.forEach { it.response.complete(message.network) }
-                pendingRequests.clear()
-                listeners.values.forEach { it(network) }
-            }
+                is NetworkMessage.Put -> {
+                    network = message.network
+                    pendingRequests.forEach { it.response.complete(message.network) }
+                    pendingRequests.clear()
+                    listeners.values.forEach { notify(it, network) }
+                }
 
-            is NetworkMessage.Update -> if (network == message.network) listeners.values.forEach {
-                it(
-                    network
-                )
-            }
+                is NetworkMessage.Update -> if (network == message.network) {
+                    listeners.values.forEach { notify(it, network) }
+                }
 
-            is NetworkMessage.Lost -> if (network == message.network) {
-                network = null
-                listeners.values.forEach { it(null) }
+                is NetworkMessage.Lost -> if (network == message.network) {
+                    network = null
+                    listeners.values.forEach { notify(it, null) }
+                }
             }
+        } catch (e: Throwable) {
+            AppLogger.e("DefaultNetworkListener", "Failed handling ${message.javaClass.simpleName}", e)
+            if (message is NetworkMessage.Get && message.response.isActive) {
+                message.response.completeExceptionally(e)
+            }
+        }
+    }
+
+    // Invokes one listener in isolation. Listeners are caller-supplied, and the
+    // fan-outs above iterate every registered one: letting a throw escape would
+    // abort the loop, so a single bad listener would silently deprive all the
+    // others of the event — and stay registered to do it again on the next one.
+    private fun notify(listener: (Network?) -> Unit, network: Network?) {
+        try {
+            listener(network)
+        } catch (e: Throwable) {
+            AppLogger.e("DefaultNetworkListener", "Network listener threw; continuing", e)
         }
     }
 
@@ -169,8 +195,12 @@ object DefaultNetworkListener {
                     mainHandler
                 )
             }
-            in 24..30 -> {
+            in 26..30 -> {
                 LanternApp.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
+            }
+            // Handler overload was added in API 26; API 24-25 only have the one-arg version.
+            in 24..25 -> {
+                LanternApp.connectivity.registerDefaultNetworkCallback(Callback)
             }
             else -> try {
                 fallback = false

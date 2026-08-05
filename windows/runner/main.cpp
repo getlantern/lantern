@@ -39,6 +39,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // running Lantern instances before launch; handing off here could silently
   // keep a pre-single-instance build alive.
 
+  // Ensure WebView2 uses a writable per-user data folder before the engine
+  // (and any WebView2-backed plugin) starts. Otherwise production installs
+  // under Program Files can't initialize WebView2 and in-app webviews go blank.
+  EnsureWebView2UserDataFolder();
+
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);

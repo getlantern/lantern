@@ -19,35 +19,33 @@ class Updater {
 
   bool _initialized = false;
 
-  bool get _isDesktopSupportedPlatform =>
-      !kIsWeb && (Platform.isMacOS || Platform.isWindows);
-
   bool get _isAndroidPlatform => !kIsWeb && Platform.isAndroid;
+
+  bool get _isSupportedPlatform =>
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
 
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
 
-    if (kDebugMode) return;
-    if (!_isDesktopSupportedPlatform && !_isAndroidPlatform) return;
+    if (kDebugMode || !_isSupportedPlatform) return;
 
     final flags = await _featureFlags();
-
     if (_isAndroidPlatform) {
       await _androidSideloadUpdater.init(flags);
-      return;
+    } else {
+      await _initDesktopUpdater(flags);
     }
-
-    await _initDesktopUpdater(flags);
   }
 
   Future<bool> canCheckForUpdates() async {
-    if (_isDesktopSupportedPlatform) return true;
-    if (!_isAndroidPlatform) return false;
-
+    if (!_isSupportedPlatform) return false;
     try {
       final flags = await _featureFlags();
-      return _androidSideloadUpdater.isEnabled(flags, logDisabled: false);
+      if (_isAndroidPlatform) {
+        return _androidSideloadUpdater.isEnabled(flags, logDisabled: false);
+      }
+      return flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true);
     } catch (e, st) {
       appLogger.error('Failed to determine update-check availability', e, st);
       return false;
@@ -88,19 +86,23 @@ class Updater {
   }
 
   Future<void> checkNow() async {
+    if (!_isSupportedPlatform) return;
+    final flags = await _featureFlags();
+
     if (_isAndroidPlatform) {
-      final flags = await _featureFlags();
       if (!_androidSideloadUpdater.isEnabled(flags)) return;
-      final update = await _androidSideloadUpdater.checkNow(
+      await _androidSideloadUpdater.checkForUpdate(
         source: AndroidSideloadUpdateCheckSource.manual,
       );
-      if (update == null) {
-        _showNoUpdateDialog();
-      }
       return;
     }
 
-    if (!_isDesktopSupportedPlatform) return;
+    if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
+      appLogger.info(
+        'autoUpdater disabled by feature flag; ignoring manual check',
+      );
+      return;
+    }
     await AutoUpdater.instance.checkForUpdates();
   }
 
@@ -109,19 +111,10 @@ class Updater {
     return flagResult.fold((_) => <String, dynamic>{}, (jsonStr) {
       try {
         return json.decode(jsonStr) as Map<String, dynamic>;
-      } catch (_) {
+      } catch (e, st) {
+        appLogger.warning('Failed to decode feature flags JSON', e, st);
         return <String, dynamic>{};
       }
     });
-  }
-
-  void _showNoUpdateDialog() {
-    final context = appRouter.navigatorKey.currentContext;
-    if (context == null || !context.mounted) return;
-    AppDialog.dialog(
-      context: context,
-      title: 'check_for_updates'.i18n,
-      content: 'lantern_is_up_to_date'.i18n,
-    );
   }
 }

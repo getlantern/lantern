@@ -2,6 +2,11 @@ name: Build Linux App
 
 on:
   workflow_call:
+    secrets:
+      APP_ENV:
+        required: true
+      JOIN_SERVER_CONFIG_URLS:
+        required: false
     inputs:
       version:
         required: true

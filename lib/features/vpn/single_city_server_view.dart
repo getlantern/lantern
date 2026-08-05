@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/features/vpn/server_selection.dart';
+import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 
 import '../../core/common/common.dart';
 
@@ -37,6 +37,8 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
           ? null
           : Text(
               widget.server.type.capitalize,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.labelMedium!.copyWith(
                 color: context.textTertiary,
               ),

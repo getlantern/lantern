@@ -13,8 +13,25 @@ extension CapExtension on String {
 }
 
 extension EmailValidation on String {
+  static final RegExp _hiddenChars = RegExp(
+    r'[\p{White_Space}\p{Cf}\p{Cc}]',
+    unicode: true,
+  );
+
+  /// Two-layer email validation. Note this validates a trimmed copy, so
+  /// leading/trailing whitespace is normalized away (accepted) rather than
+  /// rejected — callers that submit the value should trim it too.
+  ///  1. reject any value that still contains an internal hidden/whitespace/
+  ///     control character after trimming (these slip past [EmailValidator]
+  ///     because its default `allowInternational` treats them as legal Unicode
+  ///     characters);
+  ///  2. fall back to the standard validator on the trimmed value, which keeps
+  ///     genuine international addresses working.
   bool isValidEmail() {
-    return EmailValidator.validate(this);
+    final email = trim();
+    if (email.isEmpty) return false;
+    if (_hiddenChars.hasMatch(email)) return false;
+    return EmailValidator.validate(email);
   }
 }
 
@@ -45,8 +62,9 @@ extension PasswordValidations on String {
       'Contains uppercase letter': password.contains(RegExp(r'[A-Z]')),
       'Contains lowercase letter': password.contains(RegExp(r'[a-z]')),
       'Contains number': password.contains(RegExp(r'[0-9]')),
-      'Contains special character':
-          password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')),
+      'Contains special character': password.contains(
+        RegExp(r'[!@#$%^&*(),.?":{}|<>]'),
+      ),
     };
   }
 }
@@ -59,11 +77,8 @@ extension FFIExtension on String {
 
 extension LocalizationExtension on String {
   Locale get toLocale {
-    final spilt = split('_');
-    return Locale(
-      spilt[0],
-      spilt.length > 1 ? spilt[1] : '',
-    );
+    final parts = split('_');
+    return Locale(parts[0], parts.length > 1 ? parts[1] : '');
   }
 }
 
@@ -91,9 +106,11 @@ extension StringCasingExtension on String {
   String toTitleCase() {
     if (isEmpty) return this;
     return split(' ')
-        .map((word) => word.isEmpty
-            ? word
-            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+        )
         .join(' ');
   }
 }

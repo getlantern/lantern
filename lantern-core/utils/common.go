@@ -15,6 +15,13 @@ type Opts struct {
 	Platform         PlatformInterface
 }
 
+// IsStaging reports whether Env selects the staging environment. Both
+// spellings are accepted; keep every env check on this method so the
+// vocabulary can't drift between call sites.
+func (o *Opts) IsStaging() bool {
+	return o.Env == "stage" || o.Env == "staging"
+}
+
 type PrivateServerEventListener interface {
 	OpenBrowser(url string) error
 	OnPrivateServerEvent(event string)

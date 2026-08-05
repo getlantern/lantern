@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
@@ -25,12 +23,11 @@ class PaymentNotifier extends _$PaymentNotifier {
   @override
   void build() {}
 
-  bool get _isAndroidStoreBuild => Platform.isAndroid && isStoreVersion();
-
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
+    String couponCode = '',
   }) async {
     return ref
         .read(lanternServiceProvider)
@@ -38,16 +35,22 @@ class PaymentNotifier extends _$PaymentNotifier {
           planId: planId,
           onSuccess: onSuccess,
           onError: onError,
+          couponCode: couponCode,
         );
   }
 
   Future<Either<Failure, String>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
+    String couponCode = '',
   }) async {
     return ref
         .read(lanternServiceProvider)
-        .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+        .acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken,
+          planId: planId,
+          couponCode: couponCode,
+        );
   }
 
   Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
@@ -61,8 +64,9 @@ class PaymentNotifier extends _$PaymentNotifier {
   Future<Either<Failure, String>> stripeSubscriptionLink(
     BillingType type,
     String planId,
-    String email,
-  ) async {
+    String email, {
+    String couponCode = '',
+  }) async {
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
         .read(lanternServiceProvider)
@@ -71,22 +75,29 @@ class PaymentNotifier extends _$PaymentNotifier {
           planId: planId,
           email: email,
           idempotencyKey: idempotencyKey,
+          couponCode: couponCode,
         );
   }
 
   Future<Either<Failure, Map<String, dynamic>>> stripeSubscription(
     String planId,
-    String email,
-  ) async {
+    String email, {
+    String couponCode = '',
+  }) async {
     return ref
         .read(lanternServiceProvider)
-        .stipeSubscription(planId: planId, email: email);
+        .stipeSubscription(
+          planId: planId,
+          email: email,
+          couponCode: couponCode,
+        );
   }
 
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
     required String planId,
     required String email,
+    String couponCode = '',
   }) async {
     final idempotencyKey = generatePaymentRedirectIdempotencyKey();
     return ref
@@ -96,6 +107,7 @@ class PaymentNotifier extends _$PaymentNotifier {
           planId: planId,
           email: email,
           idempotencyKey: idempotencyKey,
+          couponCode: couponCode,
         );
   }
 
@@ -106,13 +118,15 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
     required String provider,
+    String couponCode = '',
   }) async {
-    if (_isAndroidStoreBuild) {
+    if (isStoreVersion()) {
       // Google Play build uses IAP
       final result = await startInAppPurchaseFlow(
         planId: planId,
         onSuccess: onSuccess,
         onError: onError,
+        couponCode: couponCode,
       );
 
       return result.match((failure) => left(failure), (_) => right(null));
@@ -123,6 +137,7 @@ class PaymentNotifier extends _$PaymentNotifier {
       provider: provider,
       planId: planId,
       email: email,
+      couponCode: couponCode,
     );
 
     return redirectResult.match(
