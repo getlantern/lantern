@@ -557,6 +557,241 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.action, .none)
   }
 
+  func testSystemExtensionSmokeCommandParsesStatus() {
+    switch SystemExtensionSmokeCommand.parse(arguments: ["Lantern", "--smoke-system-extension-status"]) {
+    case .success(let command?):
+      XCTAssertEqual(command.action, .status)
+      XCTAssertEqual(command.timeout, SystemExtensionSmokeCommand.defaultTimeout)
+    default:
+      XCTFail("Expected status smoke command")
+    }
+  }
+
+  func testSystemExtensionSmokeCommandParsesActivationTimeout() {
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: ["Lantern", "--smoke-activate-system-extension", "--timeout-seconds", "45"]
+    ) {
+    case .success(let command?):
+      XCTAssertEqual(command.action, .activate)
+      XCTAssertEqual(command.timeout, 45)
+    default:
+      XCTFail("Expected activate smoke command")
+    }
+  }
+
+  func testSystemExtensionSmokeCommandParsesEqualsStyleTimeout() {
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: ["Lantern", "--smoke-activate-system-extension", "--timeout-seconds=30"]
+    ) {
+    case .success(let command?):
+      XCTAssertEqual(command.action, .activate)
+      XCTAssertEqual(command.timeout, 30)
+    default:
+      XCTFail("Expected activate smoke command")
+    }
+  }
+
+  func testSystemExtensionSmokeCommandRejectsInvalidArguments() {
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--smoke-activate-system-extension",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("cannot be used together"))
+    default:
+      XCTFail("Expected conflicting smoke commands to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: ["Lantern", "--smoke-system-extension-status", "--timeout-seconds", "0"]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("positive number"))
+    default:
+      XCTFail("Expected invalid timeout to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--timeout-seconds",
+        "30",
+        "--timeout-seconds=45",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("can only be set once"))
+    default:
+      XCTFail("Expected duplicate timeout arguments to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: ["Lantern", "--smoke-system-extension-status", "--timeout-seconds"]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("needs a value"))
+    default:
+      XCTFail("Expected missing timeout value to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: ["Lantern", "--smoke-system-extension-status", "--timeout-seconds", "abc"]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("positive number"))
+    default:
+      XCTFail("Expected non-numeric timeout to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--timeout-seconds",
+        "30",
+        "--timeout-seconds",
+        "45",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("can only be set once"))
+    default:
+      XCTFail("Expected duplicate space-form timeout arguments to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--timeout-seconds=30",
+        "--timeout-seconds=45",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("can only be set once"))
+    default:
+      XCTFail("Expected duplicate equals-form timeout arguments to fail")
+    }
+
+    switch SystemExtensionSmokeCommand.parse(
+      arguments: [
+        "Lantern",
+        "--smoke-system-extension-status",
+        "--timeout-seconds",
+        "--other-flag",
+      ]
+    ) {
+    case .failure(let error):
+      XCTAssertTrue(error.message.contains("needs a value"))
+    default:
+      XCTFail("Expected timeout followed by a flag to fail as a missing value")
+    }
+  }
+
+  func testSystemExtensionSmokeResultUsesDistinctActivationExitCodes() {
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .activated,
+        timeout: 120
+      ).exitCode,
+      0
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .requiresApproval,
+        timeout: 120
+      ).exitCode,
+      20
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .requiresReboot(details: "restart required"),
+        timeout: 120
+      ).exitCode,
+      21
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .timedOut,
+        timeout: 120
+      ).exitCode,
+      124
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .installed,
+        timeout: 120
+      ).exitCode,
+      0
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .activate,
+        status: .error("activation failed"),
+        timeout: 120
+      ).exitCode,
+      1
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .status,
+        status: .notInstalled,
+        timeout: 120
+      ).exitCode,
+      0
+    )
+    XCTAssertEqual(
+      SystemExtensionSmokeResult(
+        action: .status,
+        status: .error("status failed"),
+        timeout: 120
+      ).exitCode,
+      1
+    )
+  }
+
+  func testSystemExtensionSmokeResultWritesStructuredJSON() throws {
+    let result = SystemExtensionSmokeResult(
+      action: .activate,
+      status: .requiresReboot(details: "restart required"),
+      timeout: 45
+    )
+
+    let data = try XCTUnwrap(result.jsonLine.data(using: .utf8))
+    let payload = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+
+    XCTAssertEqual(payload["action"] as? String, "activate")
+    XCTAssertEqual(payload["status"] as? String, "requiresReboot")
+    XCTAssertEqual(payload["details"] as? String, "restart required")
+    XCTAssertEqual(payload["exitCode"] as? Int, 21)
+  }
+
+  func testSystemExtensionSmokeResultIncludesTimeoutSecondsWhenTimedOut() throws {
+    let result = SystemExtensionSmokeResult(
+      action: .activate,
+      status: .timedOut,
+      timeout: 45
+    )
+
+    let data = try XCTUnwrap(result.jsonLine.data(using: .utf8))
+    let payload = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+
+    XCTAssertEqual(payload["timeoutSeconds"] as? Double, 45)
+  }
+
   private func makeDescriptor(
     build: String,
     hash: String,

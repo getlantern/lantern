@@ -135,6 +135,15 @@ extension AppSemanticColors on BuildContext {
   Color get statusWarningBorderDot =>
       _isDark ? AppColors.yellow4 : AppColors.yellow2;
 
+  /// text.attention  Yellow.1000 — vivid attention tag, same in both themes.
+  Color get textAttention => AppColors.yellow10;
+
+  /// bg.attention  Yellow.300 — vivid attention tag, same in both themes.
+  Color get bgAttention => AppColors.yellow3;
+
+  /// border.attention  Yellow.400 — vivid attention tag, same in both themes.
+  Color get borderAttention => AppColors.yellow4;
+
   /// status.success-bg-dot  Green.600 light / Green.700 dark
   Color get statusSuccessBgDot => _isDark ? AppColors.green7 : AppColors.green6;
 

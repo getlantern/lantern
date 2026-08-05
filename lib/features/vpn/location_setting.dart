@@ -54,10 +54,7 @@ class LocationSetting extends HookConsumerWidget {
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       actions: [
         if (serverType == ServerLocationType.auto)
-          AppImage(
-            path: AppImagePaths.blot,
-            useThemeColor: false,
-          ),
+          AppImage(path: AppImagePaths.blot, useThemeColor: false),
         const SizedBox(width: 8),
         IconButton(
           onPressed: () => appRouter.push(const ServerSelection()),

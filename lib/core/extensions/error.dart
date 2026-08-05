@@ -72,7 +72,8 @@ extension ErrorExetension on Object {
       if (description.contains("error restoring purchase")) {
         return "purchase_restored_error".i18n;
       }
-      if (description.contains('Invalid referral')) {
+      if (description.contains('Invalid referral') ||
+          description.contains('invalid-referral-code')) {
         return "referral_code_invalid".i18n;
       }
       if (description.contains('Cannot use your own code for promotion')) {

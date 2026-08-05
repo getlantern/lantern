@@ -142,6 +142,7 @@ Future<void> _disconnectVpn(
 Future<void> runConnectSmokeHarness(
   WidgetTester tester, {
   bool enableIpCheck = false,
+  bool requireTrafficAfterConnect = false,
 }) async {
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
@@ -174,6 +175,14 @@ Future<void> runConnectSmokeHarness(
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not reach connected state within 45 seconds',
     );
+
+    if (requireTrafficAfterConnect) {
+      debugPrint('IP check: confirming public traffic after connect');
+      await _fetchPublicIpWithRetry(
+        timeout: const Duration(seconds: 45),
+        reason: 'after connect',
+      );
+    }
 
     if (enableIpCheck && baselinePublicIp != null) {
       debugPrint('IP check: waiting for IP change after connect');

@@ -114,6 +114,7 @@ List<String> collectVisibleSmokeDebugKeys(WidgetTester tester) {
         (k) =>
             k.contains('vpn.') ||
             k.contains('home.') ||
+            k.contains('macos_extension.') ||
             k.contains('split_tunneling.') ||
             k.contains('onboarding.') ||
             k.contains('server_selection.') ||

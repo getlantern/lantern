@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/ipc"
 
@@ -370,6 +371,13 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		if ipcServer != nil {
 			return struct{}{}, nil
 		}
+		// The backend's config fetcher captures common.GetBaseURL() at
+		// construction, so the environment must be set before
+		// NewLocalBackend — SetupRadiance's SetStagingEnv runs too late on
+		// Android, where StartIPCServer is called first.
+		if opts.IsStaging() {
+			env.SetStagingEnv()
+		}
 		bopts := backend.Options{
 			DataDir:           opts.DataDir,
 			LogDir:            opts.LogDir,
@@ -387,7 +395,10 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		ipcBackend = be
 		ipcServer = ipc.NewServer(be, !common.IsMobile())
 		ipcClient = newLoopbackClient(be)
-		return struct{}{}, ipcServer.Start()
+		if err := ipcServer.Start(); err != nil {
+			return struct{}{}, err
+		}
+		return struct{}{}, nil
 	})
 	return err
 }
@@ -572,8 +583,10 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	})
 }
 
-func StripeSubscription(email, planID string) (string, error) {
-	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
+func StripeSubscription(email, planID, couponCode string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.StripeSubscription(email, planID, couponCode)
+	})
 }
 
 func Plans(channel string) (string, error) {
@@ -583,9 +596,9 @@ func StripeBillingPortalUrl() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
-func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
+func AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId)
+		data, err := c.AcknowledgeGooglePurchase(purchaseToken, planId, couponCode)
 		if err != nil {
 			return "", err
 		}
@@ -615,9 +628,9 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) (string, error) {
 	})
 }
 
-func AcknowledgeApplePurchase(receipt, planII string) (string, error) {
+func AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		data, err := c.AcknowledgeApplePurchase(receipt, planII)
+		data, err := c.AcknowledgeApplePurchase(receipt, planII, couponCode)
 		if err != nil {
 			return "", err
 		}
@@ -680,18 +693,18 @@ func restoreSubscription(c lanterncore.Core, fn func(string) (string, error), to
 	return data, nil
 }
 
-func PaymentRedirect(provider, planId, email, idempotencyKey string) (string, error) {
+func PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.PaymentRedirect(provider, planId, email, idempotencyKey)
+		return c.PaymentRedirect(provider, planId, email, idempotencyKey, couponCode)
 	})
 }
 
 // /This is specifically for stripe subscriptions that require a redirect to complete the payment
 // This is only used for macos
-func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey string) (string, error) {
+func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode string) (string, error) {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey)
+		return c.StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, couponCode)
 	})
 }
 
@@ -703,6 +716,10 @@ func Login(email, password string) (string, error) {
 		slog.Debug("Login response", "response", string(b), "error", err)
 		return string(b), err
 	})
+}
+
+func VerifyPassword(email, password string) error {
+	return withCore(func(c lanterncore.Core) error { return c.VerifyPassword(email, password) })
 }
 
 func StartChangeEmail(newEmail, password string) error {
@@ -761,6 +778,15 @@ func ReferralAttachment(referralCode string) error {
 			return err
 		}
 		return nil
+	})
+}
+
+// ReferralAttachmentV2 attaches a referral code and returns the resulting
+// plans, providers, code, and discount as a JSON string.
+func ReferralAttachmentV2(referralCode, channel string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		b, err := c.ReferralAttachmentV2(referralCode, channel)
+		return string(b), err
 	})
 }
 
@@ -922,6 +948,15 @@ func RunURLTests() error {
 func SendConfigRequest() error {
 	return withCore(func(c lanterncore.Core) error {
 		return c.UpdateConfig()
+	})
+}
+
+// ClearTunnelCache clears the daemon's persisted tunnel cache (fakeip store,
+// rule-sets, rdrc).
+func ClearTunnelCache() error {
+	return withCore(func(c lanterncore.Core) error {
+		slog.Info("Clearing tunnel cache")
+		return c.ClearTunnelCache()
 	})
 }
 

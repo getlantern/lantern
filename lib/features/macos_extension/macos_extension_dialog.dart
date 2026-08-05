@@ -50,6 +50,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     }, [systemExtensionStatus.status]);
 
     return BaseScreen(
+      key: const Key('macos_extension.screen'),
       title: '',
       appBar: CustomAppBar(
         leading: SizedBox(),
@@ -60,6 +61,12 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          KeyedSubtree(
+            key: Key(
+              'macos_extension.status.${systemExtensionStatus.status.name}',
+            ),
+            child: const SizedBox.shrink(),
+          ),
           AppImage(path: AppImagePaths.sysDialog, useThemeColor: false),
           const SizedBox(height: 48.0),
           Text(
@@ -99,6 +106,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
           ),
           SizedBox(height: 48.0),
           PrimaryButton(
+            buttonKey: const Key('macos_extension.install'),
             label:
                 systemExtensionStatus.status ==
                     SystemExtensionStatus.requiresApproval

@@ -1,18 +1,27 @@
 package org.getlantern.lantern.service
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import lantern.io.libbox.Notification
@@ -53,6 +62,10 @@ class LanternVpnService :
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
         const val ACTION_TILE_START = "org.getlantern.TILE_START"
 
+        private const val UPGRADE_RESET_PREFS = "vpn_upgrade_reset"
+        private const val LAST_RESET_APK_UPDATE_TIME = "last_reset_apk_update_time"
+        private const val UPGRADE_RESET_SETTLE_MS = 250L
+
         // Hard ceiling on how long Mobile.startVPN / connectToServer can block.
         // Radiance + sing-box + TUN establish usually finishes in under 15 s;
         // anything above 60 s means the Go side has deadlocked (see Freshdesk
@@ -69,7 +82,35 @@ class LanternVpnService :
         // flag clears when the orphan's coroutine actually completes.
         private val connectInFlight = AtomicBoolean(false)
 
+        private sealed class RadianceState {
+            data object Initializing : RadianceState()
+            data object Ready : RadianceState()
+            data class Failed(val cause: Throwable) : RadianceState()
+        }
+
+        private val radianceState = MutableStateFlow<RadianceState>(RadianceState.Initializing)
+        private val radianceSetupMutex = Mutex()
+
+        suspend fun awaitRadianceReady() {
+            if (Mobile.isRadianceConnected()) return
+            when (val state = radianceState.first { it !is RadianceState.Initializing }) {
+                RadianceState.Ready -> check(Mobile.isRadianceConnected()) {
+                    "Radiance setup completed but the core is unavailable"
+                }
+                is RadianceState.Failed -> throw state.cause
+                RadianceState.Initializing -> error("Radiance is still initializing")
+            }
+        }
+
         lateinit var instance: LanternVpnService
+
+        // Process-lifetime scope for teardown that must run off the main thread
+        // but outlive the service instance. Mobile.stopVPN() is a blocking JNI
+        // call; running it on the main thread in onDestroy ANRs during service
+        // teardown (getlantern/engineering#3563). serviceScope is cancelled in
+        // onDestroy's finally, so teardown can't live there — this scope is
+        // never cancelled.
+        private val teardownScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     private val notificationHelper = NotificationHelper()
@@ -95,8 +136,24 @@ class LanternVpnService :
     }
 
     // Create a CoroutineScope tied to the service's lifecycle.
-    // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
-    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    //
+    // SupervisorJob keeps one child's failure from cancelling its siblings, but it does
+    // not handle the exception: without a CoroutineExceptionHandler an uncaught throw in
+    // any launch{} below reaches the thread's default handler and takes the process down
+    // with no Kotlin log and no Go crash file, which reads as a silent death. The handler
+    // makes that case diagnosable and reports it to the UI like any other VPN error.
+    private val serviceScope =
+        CoroutineScope(
+            Dispatchers.IO + SupervisorJob() +
+                CoroutineExceptionHandler { _, e ->
+                    AppLogger.e(TAG, "Uncaught exception in service coroutine", e)
+                    VpnStatusManager.postVPNError(
+                        errorCode = "service_coroutine_uncaught",
+                        errorMessage = "Unexpected VPN service error",
+                        error = e,
+                    )
+                },
+        )
 
     override fun onStartCommand(
         intent: Intent?,
@@ -162,42 +219,43 @@ class LanternVpnService :
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
+            // Only the TUN fd close stays synchronous on the main thread — it's
+            // cheap and the OS should release the interface promptly.
             closeTunInterface()
-            // Clean up synchronously — cannot use serviceScope here because
-            // it is cancelled in the finally block below.
-            //
-            // Call Mobile.stopVPN() as long as radiance is up. The previous
-            // isVPNConnected() guard (status == Connected) was wrong — if the
-            // tunnel is in any non-Connected state (Restarting, Connecting,
-            // Disconnecting, Error), c.tunnel is still non-nil on the Go side
-            // and needs to be closed so the next process lifetime starts clean.
-            // Mobile.stopVPN() itself is a no-op when c.tunnel is nil.
-            val radianceConnected = Mobile.isRadianceConnected()
-            AppLogger.d(TAG, "onDestroy — radianceConnected=$radianceConnected")
-            if (!radianceConnected) {
-                AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
-            } else {
-                runCatching { Mobile.stopVPN() }
-                    .onSuccess { AppLogger.d(TAG, "stopVPN completed during destroy") }
-                    .onFailure { e ->
-                        AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e)
-                    }
-            }
-            runCatching {
-                runBlocking(Dispatchers.IO) { DefaultNetworkMonitor.stop() }
-            }.onFailure { e ->
-                AppLogger.e(
-                    TAG,
-                    "DefaultNetworkMonitor.stop() failed during destroy",
-                    e
-                )
-            }
-            notificationHelper.stopVPNConnectedNotification(this)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                QuickTileService.triggerUpdateTileState(this, false)
-            }
-            serviceCleanUp()
 
+            // Everything else runs OFF the main thread. Mobile.stopVPN() is a
+            // blocking JNI call (tunnel/connection close) — running it on the
+            // main thread here ANRs during service teardown and contends with any
+            // in-flight performStopVPN (getlantern/engineering#3563). teardownScope
+            // is process-lifetime, so this survives the serviceScope.cancel()
+            // below and still completes, keeping the next process launch clean.
+            // Mobile.stopVPN() is a no-op when c.tunnel is already nil, so a
+            // double-call from the stop path is harmless. Closed unconditionally
+            // when radiance is up: any non-Connected state (Restarting,
+            // Connecting, Disconnecting, Error) still has a non-nil c.tunnel.
+            // The notification/tile/receiver cleanup runs AFTER stopVPN so the UI
+            // reflects the stopped state and the status receiver stays registered
+            // through teardown. serviceCleanUp() unregisters via the application
+            // context (not the service), so running it after super.onDestroy() is safe.
+            teardownScope.launch {
+                runCatching {
+                    if (Mobile.isRadianceConnected()) {
+                        Mobile.stopVPN()
+                        AppLogger.d(TAG, "stopVPN completed during destroy")
+                    } else {
+                        AppLogger.d(TAG, "Skipping stopVPN — Radiance IPC not running")
+                    }
+                }.onFailure { e -> AppLogger.e(TAG, "Mobile.stopVPN() failed during destroy", e) }
+
+                runCatching { DefaultNetworkMonitor.stop() }
+                    .onFailure { e -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed during destroy", e) }
+
+                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+                }
+                serviceCleanUp()
+            }
         } finally {
             serviceScope.cancel()
             super.onDestroy()
@@ -210,6 +268,10 @@ class LanternVpnService :
 
     override fun openTun(tunOptions: TunOptions): Int {
         val vpnBuilder = createVPNBuilder(tunOptions)
+        // Android normally tears the previous TUN down when a new VPN is
+        // established, but explicitly dropping our fd first prevents a stale
+        // descriptor from surviving restarts or app-upgrade recovery.
+        closeTunInterface()
         val pfd =
             vpnBuilder.establish()
                 ?: error("android: the application is not prepared or is revoked")
@@ -283,12 +345,30 @@ class LanternVpnService :
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                Mobile.startIPCServer(this@LanternVpnService, opts())
-                Mobile.setupRadiance(opts(), flutterEventListener)
+                setupRadiance()
             }
             AppLogger.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error in Radiance setup", e)
+        }
+    }
+
+    private suspend fun setupRadiance() {
+        radianceSetupMutex.withLock {
+            if (Mobile.isRadianceConnected()) {
+                radianceState.value = RadianceState.Ready
+                return@withLock
+            }
+
+            radianceState.value = RadianceState.Initializing
+            try {
+                Mobile.startIPCServer(this@LanternVpnService, opts())
+                Mobile.setupRadiance(opts(), flutterEventListener)
+                radianceState.value = RadianceState.Ready
+            } catch (e: Exception) {
+                radianceState.value = RadianceState.Failed(e)
+                throw e
+            }
         }
     }
 
@@ -323,19 +403,25 @@ class LanternVpnService :
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
-        // Show foreground notification immediately — required by the OS as soon as
-        // VPN service starts, replaced by connected notification on success.
-        notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
         runCatching {
+            // Show foreground notification immediately — required by the OS as soon as
+            // VPN service starts, replaced by the connected notification on success.
+            // This is startForeground() underneath, which the OS can refuse over
+            // foreground-service type, permission, or vendor policy. Inside the block
+            // so a refusal takes this operation's own failure path — errorCode-tagged
+            // reporting, network-monitor teardown, and serviceCleanUp when the caller
+            // asked for it — rather than the service-wide handler, which only logs and
+            // posts a generic error.
+            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
             // service it may have been killed by the OS before setup completed.
             // Re-run setup here under the foreground notification so it is guaranteed
             // to finish before we attempt to start the VPN tunnel.
             if (!Mobile.isRadianceConnected()) {
                 AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
-                Mobile.startIPCServer(this@LanternVpnService, opts())
-                Mobile.setupRadiance(opts(), flutterEventListener)
+                setupRadiance()
             }
+            resetVpnAfterAppUpgradeIfNeeded()
             DefaultNetworkMonitor.setNetworkChangeCallback { updateUnderlyingNetworks() }
             DefaultNetworkMonitor.start()
             // Tell Android which physical network underlies our VPN so that
@@ -405,6 +491,61 @@ class LanternVpnService :
                 error = e,
             )
             if (cleanUpOnFailure) serviceCleanUp()
+        }
+    }
+
+    private suspend fun resetVpnAfterAppUpgradeIfNeeded() {
+        if (!consumeUpgradeResetMarker()) return
+
+        // An APK update kills the old process, but the Android VPN profile and
+        // app-private native state persist across the upgrade. Reset once on the
+        // first tunnel start after the new process comes up.
+        AppLogger.i(TAG, "App APK updated; resetting VPN state before first tunnel start")
+        stopVPNTunnel()
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+        delay(UPGRADE_RESET_SETTLE_MS)
+    }
+
+    private fun consumeUpgradeResetMarker(): Boolean {
+        val packageInfo = currentPackageInfo()
+        val currentApkUpdateTime = packageInfo.lastUpdateTime
+        val prefs = getSharedPreferences(UPGRADE_RESET_PREFS, Context.MODE_PRIVATE)
+        val lastResetApkUpdateTime = prefs.getLong(LAST_RESET_APK_UPDATE_TIME, Long.MIN_VALUE)
+        if (lastResetApkUpdateTime == currentApkUpdateTime) {
+            return false
+        }
+
+        prefs.edit().putLong(LAST_RESET_APK_UPDATE_TIME, currentApkUpdateTime).apply()
+        if (packageInfo.lastUpdateTime <= packageInfo.firstInstallTime) {
+            AppLogger.d(TAG, "Recording initial APK install for VPN upgrade reset")
+            return false
+        }
+
+        AppLogger.i(
+            TAG,
+            "VPN upgrade reset needed: lastResetApkUpdateTime=$lastResetApkUpdateTime currentApkUpdateTime=$currentApkUpdateTime versionCode=${packageVersionCode(packageInfo)}",
+        )
+        return true
+    }
+
+    private fun currentPackageInfo(): PackageInfo {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(0),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, 0)
+        }
+    }
+
+    private fun packageVersionCode(info: PackageInfo): Long {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
         }
     }
 

@@ -41,7 +41,7 @@ final class ReportIssueDraftProvider
   }
 }
 
-String _$reportIssueDraftHash() => r'b52dd92e1927fe7a602c4b9751d238f7763f162b';
+String _$reportIssueDraftHash() => r'640389ac3ba527924290e119cc6d6402f297f30b';
 
 abstract class _$ReportIssueDraft extends $Notifier<ReportIssueDraftState> {
   ReportIssueDraftState build();
