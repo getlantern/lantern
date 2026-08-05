@@ -39,6 +39,11 @@ on:
           - amd64
           - arm64
         default: all
+      cleanup_on_failure:
+        description: "Delete draft release on failure"
+        required: false
+        type: boolean
+        default: true
       windows_connect_smoke:
         description: "Run Windows connect/disconnect smoke tests on manual dispatch"
         required: false
@@ -1007,6 +1012,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
@@ -1030,22 +1036,24 @@ jobs:
           gh release edit "$RELEASE_TAG" --draft=false
 
       - name: Delete draft release
-        # Only test runs and nightlies delete their draft — those drafts are
-        # throwaway by design. A failed real release deliberately KEEPS its
-        # draft (see "Mark draft release failed"): deleting it here deadlocked
-        # every `gh run rerun --failed`, because release-create does not re-run
-        # and the re-run uploads then found no release to upload to
-        # (v9.1.18-beta, v9.1.19-beta).
         if: |
           env.IS_TEST_RUN == 'true' ||
-          env.BUILD_TYPE == 'nightly'
+          env.BUILD_TYPE == 'nightly' ||
+          (env.CLEANUP_ON_FAILURE == 'true' &&
+           !(needs.upload-s3.result == 'success' &&
+             needs.upload-release-artifacts.result == 'success' &&
+             needs.publish-update-metadata.result == 'success' &&
+             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [[ "$IS_TEST_RUN" == "true" ]]; then
             echo "Test run from non-main branch - deleting draft release"
-          else
+          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
             echo "Nightly build - deleting draft release"
+          else
+            echo "Build failed or cancelled - cleaning up draft release"
           fi
 
           attempt=0
@@ -1070,31 +1078,17 @@ jobs:
             sleep 3
           done
 
-      - name: Mark draft release failed
+      - name: Report failure (cleanup disabled)
         if: |
           env.IS_TEST_RUN != 'true' &&
           env.BUILD_TYPE != 'nightly' &&
+          env.CLEANUP_ON_FAILURE != 'true' &&
           !(needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&
             needs.publish-update-metadata.result == 'success' &&
             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
-        env:
-          GH_TOKEN: ${{ github.token }}
-        # The draft is kept so `gh run rerun --failed` can pick up where the run
-        # left off; the warning notes keep a human from publishing a partial
-        # draft in the meantime. A re-run's notes update overwrites the warning
-        # before finalize publishes. exit 1 keeps a failed release's finalize
-        # red rather than reporting success for cleaning up.
         run: |
-          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release edit "$RELEASE_TAG" \
-              --notes "⚠️ **Build failed — do not publish.** Re-run the failed jobs in [the release run](${WORKFLOW_URL}) to continue this release." \
-              || echo "could not update draft notes (continuing)"
-          else
-            echo "no draft release found to mark"
-          fi
-          echo "Build failed or cancelled - draft release kept for re-run"
+          echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
           exit 1
