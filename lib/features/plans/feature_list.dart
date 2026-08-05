@@ -11,27 +11,30 @@ class FeatureList extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(height: size24),
         _FeatureTile(
-            image: AppImagePaths.location,
-            title: 'select_your_server_location'.i18n),
+          image: AppImagePaths.location,
+          title: 'select_your_server_location'.i18n,
+        ),
         _FeatureTile(
-            image: AppImagePaths.blot,
-            title: 'faster_speeds_unlimited_bandwidth'.i18n),
+          image: AppImagePaths.blot,
+          title: 'faster_speeds_unlimited_bandwidth'.i18n,
+        ),
         _FeatureTile(
-            image: AppImagePaths.premium,
-            title: 'premium_servers_less_congestion'.i18n),
+          image: AppImagePaths.premium,
+          title: 'premium_servers_less_congestion'.i18n,
+        ),
         _FeatureTile(
-            image: AppImagePaths.eyeHide,
-            title: 'advanced_anti_censorship'.i18n),
+          image: AppImagePaths.eyeHide,
+          title: 'advanced_anti_censorship'.i18n,
+        ),
         _FeatureTile(
-            image: AppImagePaths.roundCorrect,
-            title: 'exclusive_access_new_features'.i18n),
+          image: AppImagePaths.connectDevice,
+          title: 'connect_up_to_five_devices'.i18n,
+        ),
         _FeatureTile(
-            image: AppImagePaths.connectDevice,
-            title: 'connect_up_to_five_devices'.i18n),
-        _FeatureTile(
-            image: AppImagePaths.adBlock, title: 'built_in_ad_blocking'.i18n),
+          image: AppImagePaths.adBlock,
+          title: 'built_in_ad_blocking'.i18n,
+        ),
       ],
     );
   }
@@ -51,11 +54,7 @@ class _FeatureTile extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          AppImage(
-            path: image,
-            color: context.textPrimary,
-            height: 24,
-          ),
+          AppImage(path: image, color: context.textPrimary, height: 24),
           SizedBox(width: defaultSize),
           Expanded(
             child: AutoSizeText(

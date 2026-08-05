@@ -2801,12 +2801,14 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _planId,
     ffi.Pointer<ffi.Char> _email,
     ffi.Pointer<ffi.Char> _idempotencyKey,
+    ffi.Pointer<ffi.Char> _couponCode,
   ) {
     return _stripeSubscriptionPaymentRedirect(
       subType,
       _planId,
       _email,
       _idempotencyKey,
+      _couponCode,
     );
   }
 
@@ -2814,6 +2816,7 @@ class LanternBindings {
       _lookup<
         ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
@@ -2829,6 +2832,7 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
             )
           >();
 
@@ -2837,8 +2841,15 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _provider,
     ffi.Pointer<ffi.Char> _email,
     ffi.Pointer<ffi.Char> _idempotencyKey,
+    ffi.Pointer<ffi.Char> _couponCode,
   ) {
-    return _paymentRedirect(_plan, _provider, _email, _idempotencyKey);
+    return _paymentRedirect(
+      _plan,
+      _provider,
+      _email,
+      _idempotencyKey,
+      _couponCode,
+    );
   }
 
   late final _paymentRedirectPtr =
@@ -2849,12 +2860,14 @@ class LanternBindings {
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('paymentRedirect');
   late final _paymentRedirect = _paymentRedirectPtr
       .asFunction<
         ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
@@ -3060,6 +3073,54 @@ class LanternBindings {
   late final _referralAttachment = _referralAttachmentPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> verifyPassword(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _verifyPassword(_email, _password);
+  }
+
+  late final _verifyPasswordPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('verifyPassword');
+  late final _verifyPassword = _verifyPasswordPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
+  ffi.Pointer<ffi.Char> referralAttachmentV2(
+    ffi.Pointer<ffi.Char> _referralCode,
+    ffi.Pointer<ffi.Char> _channel,
+  ) {
+    return _referralAttachmentV2(_referralCode, _channel);
+  }
+
+  late final _referralAttachmentV2Ptr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('referralAttachmentV2');
+  late final _referralAttachmentV2 = _referralAttachmentV2Ptr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
   ffi.Pointer<ffi.Char> startChangeEmail(
     ffi.Pointer<ffi.Char> _newEmail,
     ffi.Pointer<ffi.Char> _password,
@@ -3238,6 +3299,17 @@ class LanternBindings {
         'updateConfig',
       );
   late final _updateConfig = _updateConfigPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> clearTunnelCache() {
+    return _clearTunnelCache();
+  }
+
+  late final _clearTunnelCachePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'clearTunnelCache',
+      );
+  late final _clearTunnelCache = _clearTunnelCachePtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> digitalOceanPrivateServer() {

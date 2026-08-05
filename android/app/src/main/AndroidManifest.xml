@@ -60,6 +60,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/auth" />
             </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/affiliate" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/private-server" />
+            </intent-filter>
             <!-- Custom scheme fallback for browsers that don't support Android App Links (e.g. Firefox) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -79,29 +91,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="lantern" android:host="private-server" />
             </intent-filter>
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/private-server" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="www.lantern.io" android:pathPrefix="/report-issue" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="www.lantern.io" android:pathPrefix="/auth" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="www.lantern.io" android:pathPrefix="/private-server" />
+                <data android:scheme="lantern" android:host="affiliate" />
             </intent-filter>
 
         </activity>

@@ -12,6 +12,28 @@ on:
       installer_base_name:
         required: true
         type: string
+      android_identity_seed:
+        required: false
+        type: string
+      stealth_leakage_mode:
+        description: "Optional stealth leakage scan mode, for example stealth or stealth-novpn"
+        required: false
+        type: string
+        default: ""
+      obfuscate_go:
+        description: "Build Android Go/native libraries through garble"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GRADLE_PROPERTIES:
+        required: true
+      APP_ENV:
+        required: true
+      KEYSTORE:
+        required: true
+      STEALTH_GARBLE_SEED:
+        required: false
 
 jobs:
   build-android:
@@ -48,25 +70,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.android/build-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-    
-
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: "gradle"
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -75,18 +87,8 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;27.0.12077973" \
-            "cmake;3.22.1"
-          yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses >/dev/null || true
-
-          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
-          for var in ANDROID_NDK_HOME ANDROID_NDK_ROOT NDK_HOME; do
-            echo "${var}=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
-          done
+          make install-android-sdk
+          make android-env >> "$GITHUB_ENV"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
@@ -148,13 +150,57 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Run stealth manifest filter tests
+        run: make stealth-manifest-filter-test
+
+      - name: Install garble
+        if: ${{ inputs.obfuscate_go }}
+        run: make install-garble
+
+      - name: Build Android obfuscated (APK + AAB)
+        if: ${{ inputs.obfuscate_go }}
+        run: make android-release-ci-obfuscated
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          ANDROID_IDENTITY_SEED: ${{ inputs.android_identity_seed }}
+          GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          STEALTH_GARBLE_SEED: ${{ secrets.STEALTH_GARBLE_SEED }}
+
       - name: Build Android (APK + AAB)
+        if: ${{ !inputs.obfuscate_go }}
         run: make android-release-ci
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
+          ANDROID_IDENTITY_SEED: ${{ inputs.android_identity_seed }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Stealth leakage check
+        id: stealth_leakage_check
+        if: ${{ inputs.stealth_leakage_mode != '' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          : > stealth-leakage-report.txt
+          make stealth-leakage-check 2>&1 | tee stealth-leakage-report.txt
+        env:
+          STEALTH_LEAKAGE_MODE: ${{ inputs.stealth_leakage_mode }}
+          STEALTH_LEAKAGE_MISSING_OK: "0"
+          STEALTH_LEAKAGE_PATHS: >-
+            ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.apk
+            ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.aab
+
+      - name: Upload stealth leakage report
+        if: ${{ always() && inputs.stealth_leakage_mode != '' && steps.stealth_leakage_check.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: stealth-leakage-report
+          path: stealth-leakage-report.txt
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4

@@ -124,6 +124,23 @@ class _LanternAppState extends ConsumerState<LanternApp>
       if (uri.queryParameters.containsKey('token')) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
+    } else if (path.startsWith('/affiliate') ||
+        (uri.scheme == 'lantern' && uri.host == 'affiliate')) {
+      // https://lantern.io/affiliate/<code> or lantern://affiliate/<code>;
+      // ?code=<code> is accepted as a fallback.
+      final segments = uri.pathSegments
+          .where((s) => s.isNotEmpty && s != 'affiliate')
+          .toList();
+      final code = segments.isNotEmpty
+          ? segments.first
+          : (uri.queryParameters['code'] ?? '');
+      if (code.isEmpty) {
+        appLogger.debug("DeepLink affiliate: missing code");
+        context.showSnackBar('invalid_deep_link'.i18n);
+        return;
+      }
+      appLogger.debug("DeepLink affiliate: navigating to Plans with code");
+      _pushWithHome(Plans(referralCode: code));
     } else if (path.startsWith('/private-server') ||
         (uri.scheme == 'lantern' && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);

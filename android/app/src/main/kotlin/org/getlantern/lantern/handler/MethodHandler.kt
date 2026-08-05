@@ -23,6 +23,7 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
@@ -66,12 +67,14 @@ enum class Methods(val method: String) {
     //User data
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
+    WaitForRadiance("waitForRadiance"),
 
     //Login
     Login("login"),
     SignUp("signUp"),
 
     //Change Email
+    VerifyPassword("verifyPassword"),
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
 
@@ -82,6 +85,7 @@ enum class Methods(val method: String) {
     //Device
     RemoveDevice("removeDevice"),
     AttachReferralCode("attachReferralCode"),
+    AttachReferralCodeV2("attachReferralCodeV2"),
 
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
@@ -156,6 +160,7 @@ enum class Methods(val method: String) {
     GetEnvVars("getEnvVars"),
     RunURLTests("runURLTests"),
     SendConfigRequest("sendConfigRequest"),
+    ClearTunnelCache("clearTunnelCache"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -446,7 +451,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.stripeSubscription(
                             map["email"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
@@ -467,7 +473,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val subscriptionData = Mobile.acknowledgeGooglePurchase(
                             map["purchaseToken"] as String,
-                            map["planId"] as String
+                            map["planId"] as String,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData.toByteArray(Charsets.UTF_8))
@@ -514,7 +521,8 @@ class MethodHandler : FlutterPlugin,
                             map["provider"] as String,
                             map["planId"] as String,
                             map["email"] as String,
-                            idempotencyKey
+                            idempotencyKey,
+                            map["couponCode"] as? String ?: ""
                         )
                         withContext(Dispatchers.Main) {
                             success(url)
@@ -600,6 +608,13 @@ class MethodHandler : FlutterPlugin,
                             e
                         )
                     }
+                }
+            }
+
+            Methods.WaitForRadiance.method -> {
+                scope.handleValue<Any?>(result, "wait_for_radiance") {
+                    LanternVpnService.awaitRadianceReady()
+                    null
                 }
             }
 
@@ -838,6 +853,27 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.AttachReferralCodeV2.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        val distributionChannel =
+                            call.argument<String>("distributionChannel") ?: ""
+                        val response =
+                            Mobile.referralAttachmentV2(code, distributionChannel)
+                        withContext(Dispatchers.Main) {
+                            success(response)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCodeV2",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             // Ad blocking
             Methods.SetBlockAdsEnabled.method -> {
                 scope.handleResult(result, "set_block_ads_enabled") {
@@ -1066,11 +1102,16 @@ class MethodHandler : FlutterPlugin,
             Methods.GetSplitTunnelItems.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val json = Mobile.getSplitTunnelItems(filterType)
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
-                        result.error("GET_SPLIT_TUNNEL_ITEMS_ERROR", e.localizedMessage ?: "Failed to get split tunnel items", e)
+                        result.error(
+                            "GET_SPLIT_TUNNEL_ITEMS_ERROR",
+                            e.localizedMessage ?: "Failed to get split tunnel items",
+                            e
+                        )
                     }
                 }
             }
@@ -1081,7 +1122,11 @@ class MethodHandler : FlutterPlugin,
                         val json = Mobile.getSplitTunnelStateJSON()
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
-                        result.error("GET_SPLIT_TUNNEL_STATE_ERROR", e.localizedMessage ?: "Failed to get split tunnel state", e)
+                        result.error(
+                            "GET_SPLIT_TUNNEL_STATE_ERROR",
+                            e.localizedMessage ?: "Failed to get split tunnel state",
+                            e
+                        )
                     }
                 }
             }
@@ -1105,29 +1150,51 @@ class MethodHandler : FlutterPlugin,
 
             Methods.InstallSideloadUpdate.method -> {
                 scope.launch {
-                    try {
+                    result.runCatching {
                         val update = AndroidSideloadUpdateRequest(
                             url = call.argument<String>("url") ?: error("Missing url"),
-                            checksum = call.argument<String>("checksum") ?: error("Missing checksum"),
-                            version = call.argument<String>("version") ?: error("Missing version"),
+                            checksum = call.argument<String>("checksum")
+                                ?: error("Missing checksum"),
+                            version = call.argument<String>("version")
+                                ?: error("Missing version"),
                         )
-                        val status = AndroidSideloadInstaller.install(MainActivity.instance, update)
+                        val status =
+                            AndroidSideloadInstaller.install(MainActivity.instance, update)
                         withContext(Dispatchers.Main) {
-                            success(status)
+                            result.success(status)
                         }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            result.error(
-                                "install_sideload_update",
-                                e.localizedMessage ?: "Failed to install sideload update",
-                                e
-                            )
-                        }
+
+                    }.onFailure { e ->
+                        result.error(
+                            "install_sideload_update",
+                            e.localizedMessage ?: "Failed to install sideload update",
+                            e
+                        )
                     }
                 }
             }
 
             //Change Email
+            Methods.VerifyPassword.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        Mobile.verifyPassword(email, password)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "VerifyPassword",
+                            e.localizedMessage ?: "Error while verifying password",
+                            e
+                        )
+                    }
+                }
+            }
+
             Methods.StartChangeEmail.method -> {
                 scope.launch {
                     result.runCatching {
@@ -1363,6 +1430,12 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.ClearTunnelCache.method -> {
+                scope.handleResult(result, "clear_tunnel_cache") {
+                    Mobile.clearTunnelCache()
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }
@@ -1385,7 +1458,12 @@ class MethodHandler : FlutterPlugin,
 
             try {
                 if (!currentUrl.startsWith("intent:", ignoreCase = true)) {
-                    return startExternalIntent(Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl)))
+                    return startExternalIntent(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(currentUrl)
+                        )
+                    )
                 }
 
                 val intent = Intent.parseUri(currentUrl, Intent.URI_INTENT_SCHEME)
@@ -1465,7 +1543,13 @@ private inline fun <T> CoroutineScope.handleValue(
 ) = launch {
     runCatching { block() }
         .onSuccess { v -> result.mainSuccess(v) }
-        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
+        .onFailure { e ->
+            result.mainError(
+                errorCode,
+                e.localizedMessage ?: "Please try again",
+                e
+            )
+        }
 }
 
 private inline fun CoroutineScope.handleResult(
@@ -1475,7 +1559,13 @@ private inline fun CoroutineScope.handleResult(
 ) = launch {
     runCatching { block() }
         .onSuccess { result.mainSuccess() }
-        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
+        .onFailure { e ->
+            result.mainError(
+                errorCode,
+                e.localizedMessage ?: "Please try again",
+                e
+            )
+        }
 }
 
 private data class AppEntry(val label: String, val packageName: String)

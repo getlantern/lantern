@@ -12,11 +12,7 @@ class LanternProLicense extends HookConsumerWidget {
   final String email;
   final String code;
 
-  const LanternProLicense({
-    super.key,
-    required this.email,
-    required this.code,
-  });
+  const LanternProLicense({super.key, required this.email, required this.code});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,9 +78,9 @@ class LanternProLicense extends HookConsumerWidget {
                 alignment: Alignment.centerRight,
                 child: Text(
                   '${normalizedLen.value}/25',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: context.textDisabled,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: context.textDisabled),
                 ),
               ),
             ),
@@ -105,7 +101,10 @@ class LanternProLicense extends HookConsumerWidget {
   }
 
   Future<void> onActivatePro(
-      String resellerCode, WidgetRef ref, BuildContext context) async {
+    String resellerCode,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
     final maskedCode = resellerCode.length > 4
         ? '***${resellerCode.substring(resellerCode.length - 4)}'
         : '***';
@@ -127,9 +126,11 @@ class LanternProLicense extends HookConsumerWidget {
         await checkUserAccountStatus(ref, context);
         context.hideLoadingDialog();
 
+        /// User is already signed in or using OAuth
         if (code.isEmpty) {
-          appLogger
-              .info('No code provided, user is using OAuth (skip password)');
+          appLogger.info(
+            'No code provided, user is using OAuth (skip password)',
+          );
           AppDialog.showLanternProDialog(
             context: context,
             onPressed: () => appRouter.popUntilRoot(),
@@ -139,11 +140,13 @@ class LanternProLicense extends HookConsumerWidget {
         if (user!.legacyUserData.unpassRegistered) {
           appRouter.popUntilRoot();
         } else {
-          appRouter.push(CreatePassword(
-            email: email,
-            authFlow: AuthFlow.lanternProLicense,
-            code: code,
-          ));
+          appRouter.push(
+            CreatePassword(
+              email: email,
+              authFlow: AuthFlow.lanternProLicense,
+              code: code,
+            ),
+          );
         }
       },
     );

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/features/vpn/server_selection.dart';
+import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 
 import '../../core/common/common.dart';
 
 class ServerDesktopView extends StatefulWidget {
   final OnServerSelected onServerSelected;
 
-  const ServerDesktopView({
-    super.key,
-    required this.onServerSelected,
-  });
+  const ServerDesktopView({super.key, required this.onServerSelected});
 
   @override
   State<ServerDesktopView> createState() => _ServerDesktopViewState();
@@ -48,8 +45,9 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
             AppTile(
               contentPadding: EdgeInsets.only(left: 46),
               label: 'USA - New Jersey',
-              tileTextStyle:
-                  textTheme.bodyMedium!.copyWith(color: context.textPrimary),
+              tileTextStyle: textTheme.bodyMedium!.copyWith(
+                color: context.textPrimary,
+              ),
               trailing: Radio<bool>(
                 visualDensity: VisualDensity.compact,
                 activeColor: context.textPrimary,
@@ -58,7 +56,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
                 onChanged: (value) {},
               ),
               onPressed: () => onServerTap(),
-            )
+            ),
           ],
         ),
         DividerSpace(),

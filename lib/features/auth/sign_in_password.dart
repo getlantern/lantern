@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/core/models/user.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
@@ -64,8 +64,10 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                   obscureText: obscureText.value,
                   suffixIcon: _buildSuffix(obscureText),
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) =>
-                      signInWithPassword(passwordController.text.trim()),
+                  onSubmitted: (value) {
+                    if (passwordController.text.isEmpty) return;
+                    signInWithPassword(passwordController.text.trim());
+                  },
                   onChanged: (value) {},
                 ),
                 SizedBox(height: 8),
@@ -129,10 +131,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
   Future<void> signInWithPassword(String password) async {
     hideKeyboard();
     if (widget.fromChangeEmail) {
-      /// If the user is changing email, we need to verify the password
-      context.pushRoute(
-        AddEmail(authFlow: AuthFlow.changeEmail, password: password),
-      );
+      await verifyPasswordForChangeEmail(password);
       return;
     }
     context.showLoadingDialog();
@@ -169,6 +168,34 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
+      },
+    );
+  }
+
+  /// Change-email flow: verify the current password against the backend before
+  /// letting the user proceed to enter a new email. Only on success do we
+  /// navigate to [AddEmail], carrying the verified password forward so the
+  /// downstream startChangeEmail call can reuse it.
+  Future<void> verifyPasswordForChangeEmail(String password) async {
+    final loadingOverlay = context.loaderOverlay;
+    loadingOverlay.show();
+    final result = await ref
+        .read(authProvider.notifier)
+        .verifyPassword(widget.email, password);
+    loadingOverlay.hide();
+    if (!mounted) return;
+    result.fold(
+      (error) {
+        AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: error.localizedErrorMessage,
+        );
+      },
+      (_) {
+        context.pushRoute(
+          AddEmail(authFlow: AuthFlow.changeEmail, password: password),
+        );
       },
     );
   }

@@ -141,8 +141,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: cs.surface, // bg.input = bg.elevated
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 20,
+          horizontal: 16,
+        ),
         hintStyle: TextStyle(color: AppColors.gray4),
         labelStyle: TextStyle(color: cs.onSurfaceVariant), // text.secondary
         border: OutlineInputBorder(
@@ -156,7 +158,9 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-              color: AppColors.blue8, width: 2), // border.input-focus
+            color: AppColors.blue8,
+            width: 2,
+          ), // border.input-focus
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -179,8 +183,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: cs.outlineVariant, width: 1),
         ),
-        titleTextStyle: AppTextStyles.headingSmall,
-        contentTextStyle: AppTextStyles.bodyMedium,
+        // Material dialog width: min 280dp, max 520dp (M3 guideline). Applied
+        // app-wide so dialogs stay a sensible width on phones, tablets and
+        // desktop instead of collapsing to content or going full-bleed.
+        constraints: const BoxConstraints(minWidth: 280, maxWidth: 520),
       ),
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────
@@ -222,8 +228,10 @@ class AppTheme {
           backgroundColor: cs.primary, // action.primary.primary-bg
           enableFeedback: true,
           foregroundColor: cs.onPrimary, // action.primary.primary-text
-          textStyle: AppTextStyles.primaryButtonTextStyle
-              .copyWith(fontSize: 18.0, color: cs.onPrimary),
+          textStyle: AppTextStyles.primaryButtonTextStyle.copyWith(
+            fontSize: 18.0,
+            color: cs.onPrimary,
+          ),
           overlayColor: AppColors.blue6,
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -292,25 +300,26 @@ class AppTheme {
         selectionColor: AppColors.blue7,
         selectionHandleColor: AppColors.blue5,
       ),
-      textTheme: GoogleFonts.urbanistTextTheme(
-        ThemeData(brightness: Brightness.dark).textTheme,
-      ).copyWith(
-        bodyLarge: AppTextStyles.bodyLarge,
-        bodyMedium: AppTextStyles.bodyMedium,
-        bodySmall: AppTextStyles.bodySmall,
-        displayLarge: AppTextStyles.displayLarge,
-        displayMedium: AppTextStyles.displayMedium,
-        displaySmall: AppTextStyles.displaySmall,
-        headlineLarge: AppTextStyles.headingLarge,
-        headlineMedium: AppTextStyles.headingMedium,
-        headlineSmall: AppTextStyles.headingSmall,
-        labelLarge: AppTextStyles.labelLarge,
-        labelMedium: AppTextStyles.labelMedium,
-        labelSmall: AppTextStyles.labelSmall,
-        titleLarge: AppTextStyles.titleLarge,
-        titleMedium: AppTextStyles.titleMedium,
-        titleSmall: AppTextStyles.titleSmall,
-      ),
+      textTheme:
+          GoogleFonts.urbanistTextTheme(
+            ThemeData(brightness: Brightness.dark).textTheme,
+          ).copyWith(
+            bodyLarge: AppTextStyles.bodyLarge,
+            bodyMedium: AppTextStyles.bodyMedium,
+            bodySmall: AppTextStyles.bodySmall,
+            displayLarge: AppTextStyles.displayLarge,
+            displayMedium: AppTextStyles.displayMedium,
+            displaySmall: AppTextStyles.displaySmall,
+            headlineLarge: AppTextStyles.headingLarge,
+            headlineMedium: AppTextStyles.headingMedium,
+            headlineSmall: AppTextStyles.headingSmall,
+            labelLarge: AppTextStyles.labelLarge,
+            labelMedium: AppTextStyles.labelMedium,
+            labelSmall: AppTextStyles.labelSmall,
+            titleLarge: AppTextStyles.titleLarge,
+            titleMedium: AppTextStyles.titleMedium,
+            titleSmall: AppTextStyles.titleSmall,
+          ),
 
       // ── AppBar ──────────────────────────────────────────────────────────────
       appBarTheme: AppBarTheme(
@@ -354,11 +363,14 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: cs.surface, // bg.input dark (gray850)
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 20,
+          horizontal: 16,
+        ),
         hintStyle: TextStyle(color: AppColors.gray5), // text.disabled dark
-        labelStyle:
-            TextStyle(color: cs.onSurfaceVariant), // text.secondary dark
+        labelStyle: TextStyle(
+          color: cs.onSurfaceVariant,
+        ), // text.secondary dark
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: cs.outlineVariant), // border.input dark
@@ -370,7 +382,9 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-              color: AppColors.blue2, width: 2), // border.input-focus dark
+            color: AppColors.blue2,
+            width: 2,
+          ), // border.input-focus dark
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -395,6 +409,10 @@ class AppTheme {
         ),
         titleTextStyle: AppTextStyles.headingSmall,
         contentTextStyle: AppTextStyles.bodyMedium,
+        // Material dialog width: min 280dp, max 560dp (M3 guideline). Applied
+        // app-wide so dialogs stay a sensible width on phones, tablets and
+        // desktop instead of collapsing to content or going full-bleed.
+        constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       ),
 
       // ── Bottom Sheet ─────────────────────────────────────────────────────────
@@ -436,8 +454,10 @@ class AppTheme {
           backgroundColor: cs.primary, // action.primary.primary-bg dark
           enableFeedback: true,
           foregroundColor: cs.onPrimary, // action.primary.primary-text
-          textStyle: AppTextStyles.primaryButtonTextStyle
-              .copyWith(fontSize: 18.0, color: cs.onPrimary),
+          textStyle: AppTextStyles.primaryButtonTextStyle.copyWith(
+            fontSize: 18.0,
+            color: cs.onPrimary,
+          ),
           overlayColor: AppColors.blue5, // action.primary.primary-bg-hover dark
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,

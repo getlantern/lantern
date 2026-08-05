@@ -809,18 +809,49 @@ class Onboarding extends _i45.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i24.Plans]
-class Plans extends _i45.PageRouteInfo<void> {
-  const Plans({List<_i45.PageRouteInfo>? children})
-    : super(Plans.name, initialChildren: children);
+class Plans extends _i45.PageRouteInfo<PlansArgs> {
+  Plans({
+    _i46.Key? key,
+    String? referralCode,
+    List<_i45.PageRouteInfo>? children,
+  }) : super(
+         Plans.name,
+         args: PlansArgs(key: key, referralCode: referralCode),
+         initialChildren: children,
+       );
 
   static const String name = 'Plans';
 
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i24.Plans();
+      final args = data.argsAs<PlansArgs>(orElse: () => const PlansArgs());
+      return _i24.Plans(key: args.key, referralCode: args.referralCode);
     },
   );
+}
+
+class PlansArgs {
+  const PlansArgs({this.key, this.referralCode});
+
+  final _i46.Key? key;
+
+  final String? referralCode;
+
+  @override
+  String toString() {
+    return 'PlansArgs{key: $key, referralCode: $referralCode}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PlansArgs) return false;
+    return key == other.key && referralCode == other.referralCode;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ referralCode.hashCode;
 }
 
 /// generated route for

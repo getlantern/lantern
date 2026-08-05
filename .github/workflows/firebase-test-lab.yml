@@ -1,0 +1,241 @@
+name: Firebase Test Lab (Android)
+
+on:
+  workflow_dispatch:
+  # The nightly schedule lives in app-smoke-tests.yml, which calls this
+  # workflow alongside the desktop platforms.
+  push:
+    branches:
+      - main
+  # Callable from umbrella workflows (app-smoke-tests.yml). Empty inputs fall
+  # through to the defaults in scripts/android/ftl-run.sh and the Makefile.
+  workflow_call:
+    inputs:
+      devices:
+        description: "Semicolon-separated FTL device specs"
+        required: false
+        type: string
+        default: ""
+      flaky_attempts:
+        description: "Reruns allowed per failing device"
+        required: false
+        type: string
+        default: ""
+      test_target:
+        description: "Flutter integration-test entrypoint to build"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT:
+        required: true
+      APP_ENV:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ftl-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ftl-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      FTL_RESULTS_BUCKET: lantern-android-ftl-results
+      FTL_RESULTS_DIR: ftl-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # No git operations after checkout need the token.
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        id: gcp-auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Fail fast on auth/permission problems before spending ~30 minutes
+      # building the APKs.
+      - name: Verify Firebase Test Lab access
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ steps.gcp-auth.outputs.project_id }}
+        run: |
+          gcloud firebase test android models list \
+            --project "$GCP_PROJECT_ID" >/dev/null
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: "gradle"
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # android/gradlew is gitignored, so install a matching Gradle on the
+      # runner instead (keep the version in sync with
+      # android/gradle/wrapper/gradle-wrapper.properties).
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euxo pipefail
+          make install-android-sdk
+          make android-env >> "$GITHUB_ENV"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.22.0
+        with:
+          channel: stable
+          flutter-version-file: .github/flutter-version.yaml
+          cache: true
+
+      - name: Decode APP_ENV
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "app.env"
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
+
+      - name: Set gomobile cache dir
+        shell: bash
+        run: |
+          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.cache/gomobile"
+
+      - name: Cache gomobile
+        uses: actions/cache@v4
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: ~/.cache/gomobile
+          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-gomobile-
+
+      - name: Install dependencies (gomobile)
+        run: make install-android-deps
+
+      - name: Fetch packages and generate code
+        run: make pubget gen
+
+      - name: Build liblantern.aar
+        run: make android
+
+      - name: Build integration test APKs (app + androidTest)
+        shell: bash
+        env:
+          ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
+             [[ "$ANDROID_INTEGRATION_TARGET" == *".."* ]] ||
+             [[ ! -f "$ANDROID_INTEGRATION_TARGET" ]]; then
+            echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"
+            exit 1
+          fi
+          make android-integration-apks ANDROID_GRADLE=gradle \
+            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET"
+
+      - name: Run tests on Firebase Test Lab
+        id: ftl
+        shell: bash
+        env:
+          FTL_PROJECT: ${{ steps.gcp-auth.outputs.project_id }}
+          # Empty on non-workflow_call triggers; the script's :- defaults
+          # treat empty and unset alike.
+          FTL_DEVICES: ${{ inputs.devices }}
+          FTL_FLAKY_ATTEMPTS: ${{ inputs.flaky_attempts }}
+        run: scripts/android/ftl-run.sh
+
+      # Runs on success and on test failure, but not when an earlier step
+      # (build, auth) died before any tests ran.
+      - name: Write test summary
+        if: always() && steps.ftl.outcome != 'skipped'
+        shell: bash
+        run: |
+          set -uo pipefail
+          {
+            echo "## Firebase Test Lab results"
+            echo
+            # Link to the run in the Firebase console, as printed by gcloud.
+            url=$(grep -o 'https://console.firebase.google.com[^ ]*' ftl-output.log | head -1 || true)
+            [ -n "$url" ] && echo "[View full results in the Firebase console]($url)" && echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          mkdir -p ftl-results
+          gcloud storage cp --recursive \
+            "gs://$FTL_RESULTS_BUCKET/$FTL_RESULTS_DIR/*" ftl-results/ 2>/dev/null || true
+
+          python3 - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import glob, os, xml.etree.ElementTree as ET
+
+          rows = []
+          skipped_files = []
+          for path in sorted(glob.glob("ftl-results/**/test_result_*.xml", recursive=True)):
+              device = os.path.relpath(path, "ftl-results").split(os.sep)[0]
+              # A malformed XML from Test Lab must not fail the summary (and
+              # with it the whole job) when the tests themselves passed.
+              try:
+                  suite = ET.parse(path).getroot()
+                  if suite.tag == "testsuites":
+                      suite = suite.find("testsuite")
+                  assert suite is not None
+              except Exception:
+                  skipped_files.append(path)
+                  continue
+              total = int(suite.get("tests", 0))
+              failures = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
+              skipped = int(suite.get("skipped", 0))
+              passed = total - failures - skipped
+              status = "✅" if failures == 0 else "❌"
+              rows.append((device, status, total, passed, failures, skipped,
+                           suite.get("time", "?")))
+
+          if rows:
+              print("| Device | Status | Tests | Passed | Failed | Skipped | Time (s) |")
+              print("|---|---|---|---|---|---|---|")
+              for r in rows:
+                  print("| {} | {} | {} | {} | {} | {} | {} |".format(*r))
+          else:
+              print("_No JUnit test results found in the results bucket._")
+          for path in skipped_files:
+              print(f"\n_Could not parse `{path}`; see the Firebase console for that device._")
+          EOF
+
+      # Test Lab writes logcat, screen video, and JUnit XML per device; attach
+      # them to the run so failures can be debugged without GCS access. The
+      # summary step above is what downloads ftl-results/.
+      - name: Upload Test Lab artifacts
+        if: always() && steps.ftl.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftl-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ftl-results/
+            ftl-output.log
+          if-no-files-found: warn
+          retention-days: 14

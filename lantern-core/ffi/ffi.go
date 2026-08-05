@@ -341,7 +341,7 @@ func reportIssue(
 			logPath,
 			attachmentsJSON,
 		); err != nil {
-			return C.CString(fmt.Sprintf("error reporting issue: %v", err))
+			return SendError(fmt.Errorf("error reporting issue: %w", err))
 		}
 		return C.CString("ok")
 	})
@@ -645,17 +645,18 @@ func fetchUserData() *C.char {
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey, _couponCode *C.char) *C.char {
 	subscriptionType := C.GoString(subType)
 	planID := C.GoString(_planId)
 	email := C.GoString(_email)
 	idempotencyKey := C.GoString(_idempotencyKey)
+	couponCode := C.GoString(_couponCode)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey)
+		redirect, err := c.StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode)
 		if err != nil {
 			return SendError(err)
 		}
@@ -666,17 +667,18 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email, _idempotencyKey
 // Fetch payment redirect link for providers like alipay
 //
 //export paymentRedirect
-func paymentRedirect(_plan, _provider, _email, _idempotencyKey *C.char) *C.char {
+func paymentRedirect(_plan, _provider, _email, _idempotencyKey, _couponCode *C.char) *C.char {
 	plan := C.GoString(_plan)
 	provider := C.GoString(_provider)
 	email := C.GoString(_email)
 	idempotencyKey := C.GoString(_idempotencyKey)
+	couponCode := C.GoString(_couponCode)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		redirect, err := c.PaymentRedirect(provider, plan, email, idempotencyKey)
+		redirect, err := c.PaymentRedirect(provider, plan, email, idempotencyKey, couponCode)
 		if err != nil {
 			return SendError(err)
 		}
@@ -892,6 +894,44 @@ func referralAttachment(_referralCode *C.char) *C.char {
 	})
 }
 
+// verifyPassword confirms the given password is correct for the email without
+// performing any account mutation. Used to gate the change-email flow.
+//
+//export verifyPassword
+func verifyPassword(_email, _password *C.char) *C.char {
+	email, password := C.GoString(_email), C.GoString(_password)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.VerifyPassword(email, password); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+// referralAttachmentV2 attaches a referral code to the user's account and
+// returns the resulting plans, providers, code, and discount as JSON.
+//
+//export referralAttachmentV2
+func referralAttachmentV2(_referralCode, _channel *C.char) *C.char {
+	referralCode := C.GoString(_referralCode)
+	channel := C.GoString(_channel)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		bytes, err := c.ReferralAttachmentV2(referralCode, channel)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(string(bytes))
+	})
+}
+
 // startChangeEmail initiates the process of changing the user's email address.
 //
 //export startChangeEmail
@@ -1070,6 +1110,20 @@ func updateConfig() *C.char {
 			return errStr
 		}
 		if err := c.UpdateConfig(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export clearTunnelCache
+func clearTunnelCache() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.ClearTunnelCache(); err != nil {
 			return SendError(err)
 		}
 		return C.CString("ok")

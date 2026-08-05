@@ -52,6 +52,13 @@ class AppEventNotifier extends _$AppEventNotifier {
 
           break;
         case 'server-location':
+          // The selected server event is also our current Lantern-only signal
+          // that Smart Location probe data may have changed.
+          unawaited(
+            ref
+                .read(availableServersProvider.notifier)
+                .forceFetchAvailableServers(),
+          );
           // Only consume this event when the user is actually in auto mode.
           // Otherwise (custom server selected) ignore it — applying it would
           // silently flip the user's selection back to Smart Location on

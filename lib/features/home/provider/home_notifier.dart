@@ -17,7 +17,9 @@ class HomeNotifier extends _$HomeNotifier {
   Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
     /// If yes, load it first to avoid delay in UI
-    final result = await ref.read(lanternServiceProvider).getUserData();
+    final service = ref.read(lanternServiceProvider);
+    await service.waitForRadiance();
+    final result = await service.getUserData();
     return result.fold(
       (failure) {
         appLogger.error(

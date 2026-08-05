@@ -1,5 +1,7 @@
 # Miscellaneous
 *.class
+*.apk
+*.so
 *.log
 *.pyc
 *.swp
@@ -55,3 +57,4 @@ app.*.map.json
 
 app.env
 /android/app/libs
+/.claude/skills

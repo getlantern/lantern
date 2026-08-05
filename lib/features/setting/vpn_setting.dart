@@ -36,6 +36,7 @@ class VPNSetting extends HookConsumerWidget {
       radianceSettingsProvider.select((s) => s.telemetry),
     );
     return ListView(
+      key: const Key('vpn_setting.list'),
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
       children: <Widget>[

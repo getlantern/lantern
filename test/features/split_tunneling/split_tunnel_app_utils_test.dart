@@ -96,6 +96,46 @@ void main() {
     expect(deduped[1].iconPath, isNotEmpty);
   });
 
+  test('dedupeAndSortApps orders display names case-insensitively', () {
+    final apps = [
+      _app(
+        name: 'Word',
+        bundleId: 'word',
+        appPath: r'C:\Program Files\Microsoft Office\winword.exe',
+      ),
+      _app(
+        name: 'chatgpt',
+        bundleId: 'chatgpt',
+        appPath: r'C:\Users\user\AppData\Local\ChatGPT\chatgpt.exe',
+      ),
+      _app(
+        name: 'Access',
+        bundleId: 'access',
+        appPath: r'C:\Program Files\Microsoft Office\msaccess.exe',
+      ),
+      _app(
+        name: '1Password',
+        bundleId: '1password',
+        appPath: r'C:\Program Files\1Password\1Password.exe',
+      ),
+      _app(
+        name: 'ms-teams',
+        bundleId: 'ms-teams',
+        appPath: r'C:\Program Files\WindowsApps\ms-teams.exe',
+      ),
+    ];
+
+    final sorted = dedupeAndSortApps(apps, excludeLantern: false);
+
+    expect(sorted.map((a) => a.name).toList(), [
+      '1Password',
+      'Access',
+      'chatgpt',
+      'ms-teams',
+      'Word',
+    ]);
+  });
+
   test('dedupeAndSortApps can keep Lantern entries when requested', () {
     final apps = [
       _app(

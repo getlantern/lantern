@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
@@ -12,6 +11,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
+import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -32,6 +32,27 @@ class Home extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Congratulate the user once per converted referral, whenever fresh
+    // user data lands (first load or later refreshes). listenManual (not
+    // ref.listen) because the subscription must outlive a rebuild and is
+    // torn down explicitly; the empty dep list keeps it to one
+    // subscription for the widget's lifetime rather than one per build.
+    useEffect(() {
+      final sub = ref.listenManual(homeProvider, fireImmediately: true, (
+        previous,
+        next,
+      ) {
+        final user = next.value;
+        if (user == null) return;
+        if (!ref.read(appSettingProvider).onboardingCompleted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          checkAndShowReferralReward(context, user);
+        });
+      });
+      return sub.close;
+    }, const []);
+
     final tabController = useTabController(initialLength: 2);
     // Tell the Unbounded globe whether its tab is on screen so it can mute
     // its ~60fps sphere re-projection while the user is on the VPN tab
@@ -173,7 +194,10 @@ class Home extends HookConsumerWidget {
         title: LanternLogo(isPro: isUserPro, color: context.textPrimary),
         elevation: 5,
         leading: IconButton(
-          onPressed: () => appRouter.push(Setting()),
+          key: const Key('home.menu_button'),
+          onPressed: () {
+            appRouter.push(Setting());
+          },
           icon: const AppImage(path: AppImagePaths.menu),
         ),
         actions: [
@@ -183,16 +207,11 @@ class Home extends HookConsumerWidget {
               onPressed: () async {
                 final localUser = ref.read(homeProvider).value;
                 final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-                final email = localUser!.legacyUserData.email;
-                final isPro = localUser.legacyUserData.isPro;
-                if (isPro && !userSignedIn) {
-                  await showProAccountFlowDialog(
-                    context: context,
-                    hasEmail: email.isNotEmpty,
-                  );
-                  return;
-                }
-                appRouter.push(Account());
+                await openAccountOrProAccountSetup(
+                  context: context,
+                  user: localUser,
+                  userLoggedIn: userSignedIn,
+                );
               },
             )
           else if (!userLoggedIn)
