@@ -1,26 +1,45 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/user.dart';
+
+enum StripeIntentMode { payment, setup }
+
+/// Mirrors the backend's active one-time-purchase branch closely enough to
+/// choose the deferred PaymentSheet intent type before the backend creates the
+/// subscription. The backend returns a SetupIntent only for this case.
+StripeIntentMode stripeIntentModeForRenewal(
+  UserDataModel? userData, {
+  int? currentTimeSeconds,
+}) {
+  if (userData == null) return StripeIntentMode.payment;
+
+  final now =
+      currentTimeSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final purchases = userData.purchases.trim();
+  final hasPurchaseHistory = purchases.isNotEmpty && purchases != '[]';
+  final hasActiveOneTimePurchase =
+      userData.isPro &&
+      userData.expiration > now &&
+      !userData.subscriptionData.autoRenew &&
+      userData.subscriptionData.subscriptionID.isEmpty &&
+      hasPurchaseHistory;
+
+  return hasActiveOneTimePurchase
+      ? StripeIntentMode.setup
+      : StripeIntentMode.payment;
+}
 
 class StripeService {
   /// Adopts the publishable key advertised by the plans response so the SDK
   /// always confirms intents against the same Stripe account/environment the
   /// backend creates them in (prod → live key, staging → test key). The SDK
-  /// no-ops on an unchanged key; applySettings pushes a changed one to the
-  /// native SDK right away so it's already applied by the time the payment
-  /// sheet initializes.
+  /// no-ops on an unchanged key. PaymentSheet applies and awaits changed
+  /// settings before it initializes.
   void updatePublishableKey(String? pubKey) {
     if (pubKey == null || pubKey.isEmpty) return;
     Stripe.publishableKey = pubKey;
-    unawaited(
-      Stripe.instance.applySettings().catchError((Object e) {
-        // Non-fatal: initPaymentSheet re-applies pending settings itself.
-        appLogger.error('Stripe applySettings failed', e);
-      }),
-    );
   }
 
   /// Presents the payment sheet using Stripe's deferred-intent flow: no
@@ -38,6 +57,7 @@ class StripeService {
     required BuildContext context,
     required int amount,
     required String email,
+    required StripeIntentMode intentMode,
     required Future<StripeOptions> Function() onCreateSubscription,
     required OnPressed onSuccess,
     required Function(dynamic error) onError,
@@ -65,23 +85,52 @@ class StripeService {
         placeholderText: context.textDisabled,
       );
 
+      // PaymentSheet can invoke its confirmation callback again when the user
+      // retries. Reuse the subscription that was already created so a retry
+      // cannot create another incomplete subscription. A failed request is
+      // cleared so a transient backend failure remains retryable.
+      Future<StripeOptions>? subscriptionFuture;
+      Future<StripeOptions> createSubscriptionOnce() async {
+        final existing = subscriptionFuture;
+        if (existing != null) return existing;
+
+        final pending = onCreateSubscription();
+        subscriptionFuture = pending;
+        try {
+          return await pending;
+        } catch (_) {
+          if (identical(subscriptionFuture, pending)) {
+            subscriptionFuture = null;
+          }
+          rethrow;
+        }
+      }
+
       // initPaymentSheet applies any pending settings (including the
       // publishable key) to the native SDK itself. If plans never provided
       // a key, this throws StripeConfigException into the catch below.
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           intentConfiguration: IntentConfiguration(
-            mode: IntentMode.paymentMode(
-              currencyCode: 'USD',
-              amount: amount,
-              // The subscription charges this payment method on renewal, so
-              // it must be saved for off-session reuse.
-              setupFutureUsage: IntentFutureUsage.OffSession,
-            ),
+            mode: switch (intentMode) {
+              StripeIntentMode.payment => IntentMode.paymentMode(
+                currencyCode: 'USD',
+                amount: amount,
+                // The subscription charges this payment method on renewal, so
+                // it must be saved for off-session reuse.
+                setupFutureUsage: IntentFutureUsage.OffSession,
+              ),
+              StripeIntentMode.setup => const IntentMode.setupMode(
+                currencyCode: 'USD',
+                setupFutureUsage: IntentFutureUsage.OffSession,
+              ),
+            },
             // The SDK confirms the intent itself with the payment method it
             // collected, so neither callback argument is needed here.
-            confirmHandler: (_, _) =>
-                _createSubscriptionAndConfirm(onCreateSubscription),
+            confirmHandler: (_, _) => _createSubscriptionAndConfirm(
+              createSubscriptionOnce,
+              intentMode,
+            ),
           ),
           merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
@@ -122,6 +171,7 @@ class StripeService {
   /// lets the user retry, instead of crashing the flow.
   Future<void> _createSubscriptionAndConfirm(
     Future<StripeOptions> Function() onCreateSubscription,
+    StripeIntentMode intentMode,
   ) async {
     try {
       appLogger.info('Stripe: user tapped Pay, creating subscription');
@@ -131,12 +181,14 @@ class StripeService {
         '(subscriptionId: ${options.subscriptionId}, '
         'secret type: ${options.clientSecret.isNotEmpty ? 'payment' : 'setup'})',
       );
-      // The sheet was initialized with IntentMode.paymentMode, so it can only
-      // confirm a PaymentIntent secret. The trial path (user still has an
-      // unexpired one-time purchase) returns a SetupIntent secret instead,
-      // which this sheet can't confirm — fail with a retryable message rather
-      // than hand the SDK a mismatched intent type.
-      final secret = options.clientSecret;
+      // The client must return the same kind of intent used to initialize the
+      // deferred sheet. Active one-time purchases start with a free trial and
+      // therefore return a SetupIntent; ordinary purchases return a
+      // PaymentIntent.
+      final secret = switch (intentMode) {
+        StripeIntentMode.payment => options.clientSecret,
+        StripeIntentMode.setup => options.setupIntentClientSecret,
+      };
 
       if (secret.isEmpty) {
         throw Exception(
@@ -171,22 +223,20 @@ class StripeService {
 }
 
 extension StripeErrorMessage on StripeException {
-  /// API/integration error types hidden from the user: their messages carry
-  /// developer text (e.g. "Expired API Key provided: pk_live_…", which is
-  /// type api_error) rather than anything the user can act on. Everything
-  /// else (card declines, bad CVC, ...) shows Stripe's own localized message.
-  static const _hiddenErrorTypes = {
-    'api_error',
-    'authentication_error',
-    'invalid_request_error',
-  };
+  /// Stripe types whose localized messages are intended for customers. An
+  /// allowlist keeps new API/integration error types from accidentally
+  /// exposing developer details or publishable keys in the UI.
+  static const _userFacingErrorTypes = {'card_error', 'validation_error'};
 
   /// A message safe to show the user for this Stripe failure.
   String get userFacingMessage {
-    if (_hiddenErrorTypes.contains(error.type)) {
-      return 'an_error_occurred'.i18n;
+    if (_userFacingErrorTypes.contains(error.type) ||
+        error.declineCode != null) {
+      return error.localizedMessage ??
+          error.message ??
+          'an_error_occurred'.i18n;
     }
-    return error.localizedMessage ?? error.message ?? 'an_error_occurred'.i18n;
+    return 'an_error_occurred'.i18n;
   }
 }
 

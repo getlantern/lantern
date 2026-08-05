@@ -244,12 +244,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
                 locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
                 builder: (context, child) {
-                  if (!isStaging) return child!;
+                  final router = child ?? const SizedBox.shrink();
+                  if (!isStaging) return router;
                   return Banner(
                     message: 'STAGING',
                     location: BannerLocation.topEnd,
                     color: AppColors.red6,
-                    child: child!,
+                    child: router,
                   );
                 },
                 theme: AppTheme.appTheme(),
