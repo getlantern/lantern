@@ -711,11 +711,21 @@ jobs:
               ;;
           esac
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          gh release create "$RELEASE_TAG" \
+          if ! output=$(gh release create "$RELEASE_TAG" \
             --draft \
             $PRERELEASE_FLAG \
             --title "$TITLE" \
-            --notes "Build [in progress](${WORKFLOW_URL})..."
+            --notes "Build [in progress](${WORKFLOW_URL})..." 2>&1); then
+            echo "$output"
+            # The view above can fail transiently (API hiccup, rate limit) with
+            # the release actually present, making this create fail on "already
+            # exists". Existence is all this guard needs, however it came about.
+            if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+              echo "Release $RELEASE_TAG exists after all - continuing"
+              exit 0
+            fi
+            exit 1
+          fi
 
       - name: Generate AI release notes
         env:
