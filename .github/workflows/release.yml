@@ -681,6 +681,42 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
+      - name: Ensure release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # A failed run's cleanup (release-finalize's "Delete draft release") removes
+        # the draft, and `gh run rerun --failed` never re-runs the successful
+        # release-create job — so every re-run of this job found no release to
+        # upload to and died with "release not found" (v9.1.18-beta, v9.1.19-beta).
+        # Recreate the draft here, mirroring release-create, if it is gone.
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG exists"
+            exit 0
+          fi
+          echo "Release $RELEASE_TAG not found (deleted by a failed run's cleanup?) - recreating draft"
+          VERSION="${RELEASE_TAG#v}"
+          case "$BUILD_TYPE" in
+            production)
+              PRERELEASE_FLAG=""
+              TITLE="Lantern $VERSION"
+              ;;
+            beta)
+              PRERELEASE_FLAG="--prerelease"
+              TITLE="Beta $VERSION"
+              ;;
+            nightly)
+              PRERELEASE_FLAG="--prerelease"
+              TITLE="Nightly $VERSION"
+              ;;
+          esac
+          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh release create "$RELEASE_TAG" \
+            --draft \
+            $PRERELEASE_FLAG \
+            --title "$TITLE" \
+            --notes "Build [in progress](${WORKFLOW_URL})..."
+
       - name: Generate AI release notes
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
