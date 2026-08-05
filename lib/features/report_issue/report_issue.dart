@@ -278,6 +278,27 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     hideKeyboard();
 
+    // Without an email we can't reply or follow up, so confirm before sending.
+    if (_emailController.text.trim().isEmpty) {
+      AppDialog.show(
+        context: context,
+        title: 'send_without_email_title'.i18n,
+        body: 'send_without_email_body'.i18n,
+        primaryLabel: 'add_email'.i18n,
+        secondaryLabel: 'send_without_email'.i18n,
+        onSecondaryPressed: _performSubmit,
+      );
+      return;
+    }
+
+    await _performSubmit();
+  }
+
+  Future<void> _performSubmit() async {
+    if (!mounted) {
+      return;
+    }
+
     final draft = ref.read(reportIssueDraftProvider);
     final issueType = _selectedIssue ?? '';
     final email = _emailController.text.trim();
