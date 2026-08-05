@@ -98,6 +98,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
           child: Column(
             children: <Widget>[
               AppTextField(
+                key: const Key('report_issue.email'),
                 controller: _emailController,
                 hintText: 'email_optional'.i18n,
                 label: 'email'.i18n,

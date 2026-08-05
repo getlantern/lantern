@@ -69,7 +69,9 @@ class AppDialog {
                       onPrimaryPressed?.call();
                       return;
                     }
-                    appRouter.maybePop();
+                    // Pop via the dialog's own navigator so this also works
+                    // when shown outside appRouter (e.g. widget tests).
+                    Navigator.of(context).pop();
                     if (onPrimaryPressed != null) {
                       Future.delayed(
                         const Duration(milliseconds: 400),
@@ -83,7 +85,7 @@ class AppDialog {
                   SecondaryButton(
                     label: secondaryLabel,
                     onPressed: () {
-                      appRouter.maybePop();
+                      Navigator.of(context).pop();
                       if (onSecondaryPressed != null) {
                         Future.delayed(
                           const Duration(milliseconds: 400),
