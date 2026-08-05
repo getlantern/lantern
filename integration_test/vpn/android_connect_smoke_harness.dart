@@ -149,7 +149,8 @@ Future<String?> _fetchPublicIpOnce() async {
     }
     final body = await response
         .transform(const SystemEncoding().decoder)
-        .join();
+        .join()
+        .timeout(const Duration(seconds: 6));
     final ip = body.trim();
     if (ip.isNotEmpty && InternetAddress.tryParse(ip) != null) {
       return ip;
