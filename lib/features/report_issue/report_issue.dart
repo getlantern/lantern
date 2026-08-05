@@ -279,31 +279,50 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     hideKeyboard();
 
+    // Snapshot the validated fields now so later edits (e.g. while the
+    // confirmation dialog is up or during its dismiss delay) can't change
+    // what gets sent.
+    final draft = ref.read(reportIssueDraftProvider);
+    final issueType = _selectedIssue ?? '';
+    final email = _emailController.text.trim();
+    final description = _descriptionController.text.trim();
+    final attachments = List<ReportIssueAttachment>.of(draft.attachments);
+
     // Without an email we can't reply or follow up, so confirm before sending.
-    if (_emailController.text.trim().isEmpty) {
+    if (email.isEmpty) {
       AppDialog.show(
         context: context,
         title: 'send_without_email_title'.i18n,
         body: 'send_without_email_body'.i18n,
         primaryLabel: 'add_email'.i18n,
         secondaryLabel: 'send_without_email'.i18n,
-        onSecondaryPressed: _performSubmit,
+        onSecondaryPressed: () => _performSubmit(
+          email: email,
+          issueType: issueType,
+          description: description,
+          attachments: attachments,
+        ),
       );
       return;
     }
 
-    await _performSubmit();
+    await _performSubmit(
+      email: email,
+      issueType: issueType,
+      description: description,
+      attachments: attachments,
+    );
   }
 
-  Future<void> _performSubmit() async {
+  Future<void> _performSubmit({
+    required String email,
+    required String issueType,
+    required String description,
+    required List<ReportIssueAttachment> attachments,
+  }) async {
     if (!mounted) {
       return;
     }
-
-    final draft = ref.read(reportIssueDraftProvider);
-    final issueType = _selectedIssue ?? '';
-    final email = _emailController.text.trim();
-    final description = _descriptionController.text.trim();
 
     context.showLoadingDialog();
     appLogger.debug('Submitting issue report: $issueType, $description');
@@ -314,7 +333,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
           email: email,
           issueType: issueType,
           description: description,
-          attachments: draft.attachments,
+          attachments: attachments,
         );
 
     if (!mounted) {
