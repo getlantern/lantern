@@ -80,6 +80,7 @@ class _SettingState extends ConsumerState<Setting>
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(
+                key: const Key('setting.upgrade_pro_button'),
                 label: isExpired
                     ? 'renew_pro_subscription'.i18n
                     : 'upgrade_to_pro'.i18n,
@@ -135,12 +136,14 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('setting.vpn_setting_tile'),
                   label: 'vpn_settings'.i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
                 DividerSpace(),
                 AppTile(
+                  tileKey: const Key('setting.language_tile'),
                   label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
@@ -153,6 +156,7 @@ class _SettingState extends ConsumerState<Setting>
                 ),
                 DividerSpace(),
                 AppTile(
+                  tileKey: const Key('setting.appearance_tile'),
                   label: 'appearance'.i18n,
                   icon: AppImagePaths.theme,
                   trailing: Text(
@@ -172,6 +176,7 @@ class _SettingState extends ConsumerState<Setting>
             child: Column(
               children: [
                 AppTile(
+                  tileKey: const Key('setting.support_tile'),
                   label: 'support'.i18n,
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),

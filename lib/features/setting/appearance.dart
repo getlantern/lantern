@@ -38,6 +38,7 @@ class AppearanceListView extends ConsumerWidget {
     ];
 
     return ListView.separated(
+      key: const Key('appearance.list'),
       controller: scrollController,
       padding: EdgeInsets.zero,
       shrinkWrap: true,
