@@ -11,6 +11,7 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
@@ -200,9 +201,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     // usdPrice is the backend's plan price in USD cents — always USD,
     // unlike the currency-keyed `price` map (local currency on CNY plans).
     final amount = userPlan.usdPrice;
+    final intentMode = _stripeIntentMode(ref);
     appLogger.info(
       'Stripe subscription flow started (plan: ${userPlan.id}, '
-      'amount: $amount cents)',
+      'amount: $amount cents, intent: ${intentMode.name})',
     );
 
     /// Deferred-intent flow: the sheet opens right away and the backend
@@ -214,6 +216,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       context: context,
       amount: amount,
       email: email,
+      intentMode: intentMode,
       onCreateSubscription: () async {
         // paymentProvider is autoDispose, so it must be read here at Pay-tap
         // time — a notifier captured when the sheet opened is disposed by the
@@ -253,6 +256,17 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.showSnackBar((error as Object).localizedDescription);
       },
     );
+  }
+
+  /// The Stripe backend gives users with an active one-time purchase a trial
+  /// subscription backed by a SetupIntent. Everyone else gets a PaymentIntent.
+  StripeIntentMode _stripeIntentMode(WidgetRef ref) {
+    if (authFlow != AuthFlow.renewSubscription) {
+      return StripeIntentMode.payment;
+    }
+
+    final userData = ref.read(homeProvider).value?.legacyUserData;
+    return stripeIntentModeForRenewal(userData);
   }
 
   Future<void> desktopStripePurchaseFlow(
