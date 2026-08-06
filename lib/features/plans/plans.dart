@@ -135,6 +135,7 @@ class _PlansState extends ConsumerState<Plans>
                   horizontal: context.isSmallDevice ? defaultSize : 0,
                 ),
                 child: PrimaryButton(
+                  buttonKey: const Key('plans.cta'),
                   label: 'get_lantern_pro'.i18n,
                   isTaller: true,
                   onPressed: onGetLanternProTap,
@@ -144,6 +145,7 @@ class _PlansState extends ConsumerState<Plans>
                 SizedBox(height: 8),
                 Center(
                   child: AppRichText(
+                    key: const Key('plans.restore'),
                     texts: '${'already_purchased'.i18n} ',
                     boldTexts: 'restore_purchase'.i18n,
                     boldUnderline: true,

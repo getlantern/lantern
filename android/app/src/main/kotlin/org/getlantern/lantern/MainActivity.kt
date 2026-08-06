@@ -1,6 +1,8 @@
 package org.getlantern.lantern
 
 import android.Manifest
+import android.app.ActivityManager
+import android.app.ApplicationExitInfo
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
@@ -8,6 +10,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -35,6 +38,10 @@ class MainActivity : FlutterFragmentActivity() {
         lateinit var instance: MainActivity
         const val VPN_PERMISSION_REQUEST_CODE = 7777
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
+
+        // Tombstones and ANR traces run to hundreds of KB; enough to identify the
+        // faulting frame without displacing the rest of an attached log bundle.
+        private const val MAX_EXIT_TRACE_CHARS = 20_000
         var receiverRegistered: Boolean = false
         var pendingServiceStart: Boolean = false
         var isEngineConfigured: Boolean = false
@@ -69,6 +76,7 @@ class MainActivity : FlutterFragmentActivity() {
         Log.d(TAG, "Config directories set up")
         AppLogger.init()
         AppLogger.d(TAG, "AppLogger initialized")
+        logPreviousExitReasons()
         // Wire up Go-side logging before any Mobile.* call. Without this, every
         // lantern-core / radiance slog call that fires before LanternVpnService's
         // ACTION_START_RADIANCE coroutine reaches common.Init falls through to
@@ -315,5 +323,67 @@ class MainActivity : FlutterFragmentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    /**
+     * Logs how previous processes died, as reported by the OS.
+     *
+     * A process killed by the system — an uncaught exception on a thread with no
+     * handler, a foreground-service deadline, a native abort, low memory — leaves
+     * nothing behind in our own logs, so a bug report shows a truncated file that
+     * simply stops. [android.app.ActivityManager.getHistoricalProcessExitReasons]
+     * is the OS's record of what happened, and reading it on the next launch is
+     * the only way that reason reaches an attached log bundle.
+     *
+     * Runs after AppLogger.init() so the output lands in
+     * .lantern/logs/lantern_android.log rather than only logcat, which users
+     * cannot capture.
+     */
+    private fun logPreviousExitReasons() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        try {
+            val am = getSystemService(ActivityManager::class.java) ?: return
+            val exits = am.getHistoricalProcessExitReasons(packageName, 0, 5)
+            if (exits.isEmpty()) {
+                AppLogger.d(TAG, "No previous process exits recorded")
+                return
+            }
+            for (info in exits) {
+                AppLogger.i(
+                    TAG,
+                    "Previous exit: reason=${exitReasonName(info.reason)}(${info.reason}) " +
+                        "status=${info.status} importance=${info.importance} " +
+                        "pss=${info.pss}kB rss=${info.rss}kB " +
+                        "timestamp=${info.timestamp} description=${info.description}",
+                )
+                // Present only for ANRs and native crashes, and the single most
+                // useful artifact when it is: the tombstone or ANR trace.
+                runCatching {
+                    info.traceInputStream?.use { stream ->
+                        val trace = stream.bufferedReader().readText().take(MAX_EXIT_TRACE_CHARS)
+                        if (trace.isNotBlank()) AppLogger.i(TAG, "Previous exit trace:\n$trace")
+                    }
+                }.onFailure { AppLogger.w(TAG, "Could not read previous exit trace", it) }
+            }
+        } catch (e: Throwable) {
+            // Diagnostics must never be the reason startup fails.
+            AppLogger.w(TAG, "Failed to read previous exit reasons", e)
+        }
+    }
 
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun exitReasonName(reason: Int): String = when (reason) {
+        ApplicationExitInfo.REASON_ANR -> "ANR"
+        ApplicationExitInfo.REASON_CRASH -> "CRASH"
+        ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NATIVE"
+        ApplicationExitInfo.REASON_DEPENDENCY_DIED -> "DEPENDENCY_DIED"
+        ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE -> "EXCESSIVE_RESOURCE_USAGE"
+        ApplicationExitInfo.REASON_EXIT_SELF -> "EXIT_SELF"
+        ApplicationExitInfo.REASON_INITIALIZATION_FAILURE -> "INITIALIZATION_FAILURE"
+        ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEMORY"
+        ApplicationExitInfo.REASON_OTHER -> "OTHER"
+        ApplicationExitInfo.REASON_PERMISSION_CHANGE -> "PERMISSION_CHANGE"
+        ApplicationExitInfo.REASON_SIGNALED -> "SIGNALED"
+        ApplicationExitInfo.REASON_USER_REQUESTED -> "USER_REQUESTED"
+        ApplicationExitInfo.REASON_USER_STOPPED -> "USER_STOPPED"
+        else -> "UNKNOWN"
+    }
 }

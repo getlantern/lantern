@@ -29,9 +29,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
   late final TextEditingController _emailController;
   late final TextEditingController _descriptionController;
-
   String? _selectedIssue;
-
   List<String> get issueOptions => <String>[
     'cannot_complete_purchase'.i18n,
     'cannot_sign_in'.i18n,
@@ -98,6 +96,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
           child: Column(
             children: <Widget>[
               AppTextField(
+                key: const Key('report_issue.email'),
                 controller: _emailController,
                 hintText: 'email_optional'.i18n,
                 label: 'email'.i18n,
@@ -278,10 +277,50 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     hideKeyboard();
 
+    // Snapshot the validated fields now so later edits (e.g. while the
+    // confirmation dialog is up or during its dismiss delay) can't change
+    // what gets sent.
     final draft = ref.read(reportIssueDraftProvider);
     final issueType = _selectedIssue ?? '';
     final email = _emailController.text.trim();
     final description = _descriptionController.text.trim();
+    final attachments = List<ReportIssueAttachment>.of(draft.attachments);
+
+    // Without an email we can't reply or follow up, so confirm before sending.
+    if (email.isEmpty) {
+      AppDialog.show(
+        context: context,
+        title: 'send_without_email_title'.i18n,
+        body: 'send_without_email_body'.i18n,
+        primaryLabel: 'add_email'.i18n,
+        secondaryLabel: 'send_without_email'.i18n,
+        onSecondaryPressed: () => _performSubmit(
+          email: email,
+          issueType: issueType,
+          description: description,
+          attachments: attachments,
+        ),
+      );
+      return;
+    }
+
+    await _performSubmit(
+      email: email,
+      issueType: issueType,
+      description: description,
+      attachments: attachments,
+    );
+  }
+
+  Future<void> _performSubmit({
+    required String email,
+    required String issueType,
+    required String description,
+    required List<ReportIssueAttachment> attachments,
+  }) async {
+    if (!mounted) {
+      return;
+    }
 
     context.showLoadingDialog();
     appLogger.debug('Submitting issue report: $issueType, $description');
@@ -292,7 +331,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
           email: email,
           issueType: issueType,
           description: description,
-          attachments: draft.attachments,
+          attachments: attachments,
         );
 
     if (!mounted) {
