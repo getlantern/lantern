@@ -37,6 +37,7 @@ class PlansListView extends HookConsumerWidget {
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 : null,
       child: ListView.builder(
+        key: const Key('plans.list'),
         shrinkWrap: true,
         itemCount: data.plans.length,
         scrollDirection: context.isSmallDevice
@@ -49,6 +50,7 @@ class PlansListView extends HookConsumerWidget {
         itemBuilder: (context, index) {
           final item = data.plans[index];
           return PlanItem(
+            key: Key('plans.item.${item.id}'),
             plan: item,
             planSelected: selectedPlan.id == item.id,
             referralMessage: showReferralBonus ? getReferralMessage() : '',
