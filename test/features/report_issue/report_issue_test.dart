@@ -230,6 +230,16 @@ void main() {
         await tester.tap(submitButton);
         await tester.pumpAndSettle();
 
+        // Submitting without an email asks for confirmation first.
+        expect(find.text('send_without_email_title'), findsOneWidget);
+        expect(submitter.calls, isEmpty);
+
+        await tester.tap(find.text('send_without_email'));
+        await tester.pumpAndSettle();
+        // The confirmed submit runs after the dialog's dismiss delay.
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pumpAndSettle();
+
         expect(submitter.calls, hasLength(1));
         expect(submitter.calls.single.attachments, isEmpty);
         expect(submitter.calls.single.email, isEmpty);
@@ -252,8 +262,97 @@ void main() {
       await tester.tap(submitButton);
       await tester.pumpAndSettle();
 
+      // Confirm sending without an email.
+      await tester.tap(find.text('send_without_email'));
+      await tester.pumpAndSettle();
+      // The confirmed submit runs after the dialog's dismiss delay.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
       expect(submitter.calls, hasLength(1));
       expect(find.text('cannot_complete_purchase'), findsNothing);
+    });
+
+    testWidgets('asks for confirmation when submitting without an email', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildScreen(screen: const ReportIssue(type: '0')),
+      );
+      await tester.pumpAndSettle();
+
+      final submitButton = find.byKey(const Key('report_issue.submit_button'));
+      await tester.ensureVisible(submitButton);
+      await tester.tap(submitButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('send_without_email_title'), findsOneWidget);
+      expect(find.text('send_without_email_body'), findsOneWidget);
+      expect(find.text('add_email'), findsOneWidget);
+      expect(find.text('send_without_email'), findsOneWidget);
+      expect(submitter.calls, isEmpty);
+
+      // "Add Email" backs out to the form without submitting.
+      await tester.tap(find.text('add_email'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('send_without_email_title'), findsNothing);
+      expect(submitter.calls, isEmpty);
+    });
+
+    testWidgets('submits the snapshot taken at validation time, not later '
+        'edits made during the confirmation flow', (tester) async {
+      await tester.pumpWidget(
+        buildScreen(screen: const ReportIssue(type: '0')),
+      );
+      await tester.pumpAndSettle();
+
+      final descriptionField = find.byKey(
+        const Key('report_issue.description'),
+      );
+      await tester.enterText(descriptionField, 'original description');
+      await tester.pump();
+
+      final submitButton = find.byKey(const Key('report_issue.submit_button'));
+      await tester.ensureVisible(submitButton);
+      await tester.tap(submitButton);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('send_without_email'));
+      await tester.pumpAndSettle();
+
+      // Edit the form during the dialog's dismiss delay, before the
+      // confirmed submit fires.
+      await tester.enterText(descriptionField, 'edited after confirming');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(submitter.calls, hasLength(1));
+      expect(submitter.calls.single.description, 'original description');
+    });
+
+    testWidgets('skips the confirmation dialog when an email is provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildScreen(screen: const ReportIssue(type: '0')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('report_issue.email')),
+        'user@example.com',
+      );
+      await tester.pump();
+
+      final submitButton = find.byKey(const Key('report_issue.submit_button'));
+      await tester.ensureVisible(submitButton);
+      await tester.tap(submitButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('send_without_email_title'), findsNothing);
+      expect(submitter.calls, hasLength(1));
+      expect(submitter.calls.single.email, 'user@example.com');
     });
   });
 }
