@@ -259,6 +259,9 @@ class AppDialog {
       body: content,
       primaryLabel: action ?? 'ok'.i18n,
       onPrimaryPressed: onPressed,
+      // Preserve the original dialog contract: when a callback is supplied,
+      // it is responsible for dismissing or replacing the current route.
+      dismissOnPrimary: onPressed == null,
     );
   }
 }
