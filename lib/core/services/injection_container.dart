@@ -75,22 +75,20 @@ Future<void> injectServices() async {
     return service;
   });
 
-  appLogger.debug('Initializing notification/Stripe services...');
+  if (PlatformUtils.isAndroid) {
+    // The publishable key arrives with the plans response (synced by the
+    // listenSelf listener in PlansNotifier.build), so no upfront
+    // initialization.
+    sl.registerSingleton<StripeService>(StripeService());
+    appLogger.debug('StripeService registered');
+  }
+
+  appLogger.debug('Initializing notification service...');
   final notificationService = NotificationService();
   try {
-    if (PlatformUtils.isAndroid) {
-      final stripeService = StripeService();
-      await Future.wait([
-        notificationService.init(),
-        stripeService.initialize(),
-      ]);
-      sl.registerSingleton<StripeService>(stripeService);
-      appLogger.debug('StripeService initialized');
-    } else {
-      await notificationService.init();
-    }
+    await notificationService.init();
   } catch (e, st) {
-    appLogger.error('Notification/Stripe init failed', e, st);
+    appLogger.error('Notification init failed', e, st);
   }
   sl.registerSingleton<NotificationService>(notificationService);
   appLogger.debug('NotificationService initialized');
