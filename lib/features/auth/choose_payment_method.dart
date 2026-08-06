@@ -265,7 +265,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       return StripeIntentMode.payment;
     }
 
-    final userData = ref.read(homeProvider).value?.legacyUserData;
+    final home = ref.read(homeProvider);
+    final userData = home.value?.legacyUserData;
+    if (userData == null) {
+      appLogger.error(
+        'Stripe: renewal intent mode selected without user data '
+        '(homeProvider loading: ${home.isLoading}, '
+        'error: ${home.hasError}); defaulting to PaymentIntent',
+      );
+    }
     return stripeIntentModeForRenewal(userData);
   }
 

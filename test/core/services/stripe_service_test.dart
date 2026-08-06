@@ -293,6 +293,21 @@ void main() {
         StripeIntentMode.payment,
       );
     });
+
+    test('treats other empty purchase encodings as no history', () {
+      for (final encoded in ['', '  ', 'null', '[ ]', '[\n]', '{}']) {
+        final user = UserDataModel(
+          userLevel: 'pro',
+          expiration: 2000,
+          purchases: encoded,
+        );
+        expect(
+          stripeIntentModeForRenewal(user, currentTimeSeconds: 1000),
+          StripeIntentMode.payment,
+          reason: 'purchases: "$encoded"',
+        );
+      }
+    });
   });
 }
 

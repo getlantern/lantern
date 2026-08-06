@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -17,8 +19,7 @@ StripeIntentMode stripeIntentModeForRenewal(
 
   final now =
       currentTimeSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final purchases = userData.purchases.trim();
-  final hasPurchaseHistory = purchases.isNotEmpty && purchases != '[]';
+  final hasPurchaseHistory = _hasPurchaseHistory(userData.purchases);
   final hasActiveOneTimePurchase =
       userData.isPro &&
       userData.expiration > now &&
@@ -29,6 +30,21 @@ StripeIntentMode stripeIntentModeForRenewal(
   return hasActiveOneTimePurchase
       ? StripeIntentMode.setup
       : StripeIntentMode.payment;
+}
+
+/// The backend serializes purchases as JSON, so empty history can arrive as
+/// '[]', 'null', '[ ]', or blank text — decode rather than compare raw text.
+bool _hasPurchaseHistory(String purchases) {
+  final trimmed = purchases.trim();
+  if (trimmed.isEmpty || trimmed == 'null') return false;
+  try {
+    final decoded = jsonDecode(trimmed);
+    if (decoded is List) return decoded.isNotEmpty;
+    if (decoded is Map) return decoded.isNotEmpty;
+  } catch (_) {
+    // Not JSON; fall through to the textual check.
+  }
+  return trimmed != '[]';
 }
 
 class StripeService {
@@ -181,7 +197,8 @@ class StripeService {
       appLogger.info(
         'Stripe: subscription created '
         '(subscriptionId: ${options.subscriptionId}, '
-        'secret type: ${options.clientSecret.isNotEmpty ? 'payment' : 'setup'})',
+        'payment secret: ${options.clientSecret.isNotEmpty}, '
+        'setup secret: ${options.setupIntentClientSecret.isNotEmpty})',
       );
       // The client must return the same kind of intent used to initialize the
       // deferred sheet. Active one-time purchases start with a free trial and
@@ -193,6 +210,15 @@ class StripeService {
       };
 
       if (secret.isEmpty) {
+        // The backend chose the other intent type than the sheet was
+        // initialized with. Don't substitute the other secret — the SDK
+        // requires the confirmed intent to match the declared
+        // IntentConfiguration mode.
+        appLogger.error(
+          'Stripe: intent mode mismatch — client selected $intentMode but the '
+          'backend returned no matching secret '
+          '(subscriptionId: ${options.subscriptionId})',
+        );
         throw Exception(
           'Please try again after some time. If the issue persists, contact support.',
         );
