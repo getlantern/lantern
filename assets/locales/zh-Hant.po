@@ -2,14 +2,15 @@
 # Chi-Hsun Tsai, 2025
 # YFdyh000 <yfdyh000@gmail.com>, 2025
 # Aki, 2025
-# Derek F <derek@getlantern.org>, 2025
 # e2f <projects@e2f.com>, 2026
-# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
 # Lantern, 2026
+# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
+# fffw <fffw@getlantern.org>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Chinese Traditional (https://app.transifex.com/lantern-1/teams/94371/zh-Hant/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -27,6 +28,30 @@ msgstr "設定"
 
 msgid "report_an_issue"
 msgstr "回報問題"
+
+msgid "report_issue_add_screenshots"
+msgstr "新增螢幕截圖"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG、JPG 或 GIF — 總計最多 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "新增圖片"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "僅支援 PNG、JPG 和 GIF 圖片。"
+
+msgid "report_issue_attachments_too_many"
+msgstr "最多可附加 3 張圖片。"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "附件總大小必須小於 15 MB。"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "該圖片已附加。"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "無法讀取其中一個檔案。"
 
 msgid "lantern_projects"
 msgstr "Lantern 專案:"
@@ -153,6 +178,30 @@ msgstr "登出"
 
 msgid "check_for_updates"
 msgstr "檢查更新"
+
+msgid "update_available"
+msgstr "有可用更新"
+
+msgid "android_sideload_update_available_message"
+msgstr "Lantern %s 已推出。Lantern 會在開啟 Android 安裝程式前下載並驗證 APK。"
+
+msgid "download_and_install_update"
+msgstr "下載並安裝"
+
+msgid "allow_unknown_app_installs"
+msgstr "允許安裝應用程式"
+
+msgid "android_sideload_install_permission_message"
+msgstr "Android 需要權限才能安裝來自 Lantern 的更新。請開啟「允許來自此來源」，然後再次檢查更新。"
+
+msgid "error_install_update"
+msgstr "無法安裝更新"
+
+msgid "android_sideload_install_failed_message"
+msgstr "Lantern 無法驗證或安裝此更新。請稍後再試。"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern 已是最新版本。"
 
 msgid "support"
 msgstr "支援"
@@ -355,8 +404,11 @@ msgstr "新增你的電子郵件以在任何裝置上存取你的訂閱。"
 msgid "confirm_email_code"
 msgstr "確認碼"
 
-msgid "confirm_email_code_message"
-msgstr "確認此電子郵件地址屬於你,請輸入傳送至以下地址的驗證碼:"
+msgid "confirm_email_code_message_part_one"
+msgstr "我們已將驗證碼傳送至 "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " 請在下方輸入。如果收件匣中沒有，請檢查垃圾郵件資料夾。"
 
 msgid "resend_email"
 msgstr "重新傳送電子郵件"
@@ -465,6 +517,21 @@ msgstr "歡迎使用 Lantern！"
 
 msgid "lantern_pro_description"
 msgstr "你的專業版功能已解鎖—盡情享受無限數據、更快速度和高級伺服器。"
+
+msgid "purchase_restored_title"
+msgstr "購買已恢復"
+
+msgid "purchase_restored_description"
+msgstr "你的 Lantern Pro 訂閱現已在此裝置上生效。"
+
+msgid "no_purchase_found_title"
+msgstr "找不到購買紀錄"
+
+msgid "no_purchase_found_body_ios"
+msgstr "此 Apple ID 未連結任何有效訂閱。"
+
+msgid "no_purchase_found_body_android"
+msgstr "此 Google 帳戶未連結任何有效訂閱。"
 
 msgid "plans_fetch_error"
 msgstr "取得方案時發生錯誤。請稍後再試。"
@@ -943,6 +1010,9 @@ msgstr "變更電子郵件"
 msgid "change_email_message"
 msgstr "這將成為你的新登入電子郵件。你需要先驗證才能生效。"
 
+msgid "email_must_be_different"
+msgstr "請輸入其他電子郵件地址。"
+
 msgid "enter_new_email"
 msgstr "輸入你的新電子郵件"
 
@@ -1011,6 +1081,15 @@ msgstr "輸入啟用碼"
 
 msgid "restore_purchase"
 msgstr "恢復購買"
+
+msgid "already_purchased"
+msgstr "已經購買過？"
+
+msgid "restore_purchase_success"
+msgstr "已成功恢復購買。"
+
+msgid "restore_purchase_no_purchases"
+msgstr "找不到可恢復的購買紀錄。"
 
 msgid "do_private_server_setup"
 msgstr "DO 私人伺服器設定"
@@ -1499,50 +1578,52 @@ msgstr "您的帳戶已永久刪除。"
 msgid "verify_with"
 msgstr "透過 %s 驗證"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "續訂"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "偵測到 VPN 衝突"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"你的裝置上正在執行另一個 VPN。Lantern 作為唯一啟用的 VPN 時效果最佳。為獲得最佳效果，請在使用 Lantern 前中斷該 VPN "
+"的連線。"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "我知道了"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "仍要連線"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "無法連線。請檢查你的網路連線。"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "服務暫時無法使用。正在重試..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "連線失敗。請再試一次。"
+
+msgid "err_ruleset_failed"
+msgstr "無法載入路由設定。正在重試..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "立即更新"
 
 msgid "later"
-msgstr "Later"
+msgstr "稍後"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s 已準備好安裝"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "已是最新"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "你正在使用最新版本的 Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "無法檢查更新"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "請檢查連線後再試一次"

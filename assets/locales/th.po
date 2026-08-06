@@ -1,15 +1,15 @@
 # Translators:
-# Acclaro Thailand <bkk-project@acclaro.com>, 2025
-# Amazing Nev <nev@nevagency.com>, 2025
-# Thai Localization, 2025
 # e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
 # Lantern, 2026
+# Amazing Nev <nev@nevagency.com>, 2026
+# Acclaro Thailand <bkk-project@acclaro.com>, 2026
+# Thai Localization, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Thai (https://app.transifex.com/lantern-1/teams/94371/th/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -27,6 +27,30 @@ msgstr "การตั้งค่า"
 
 msgid "report_an_issue"
 msgstr "รายงานปัญหา"
+
+msgid "report_issue_add_screenshots"
+msgstr "เพิ่มภาพหน้าจอ"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG หรือ GIF — รวมสูงสุด 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "เพิ่มรูปภาพ"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "รองรับเฉพาะรูปภาพ PNG, JPG และ GIF เท่านั้น"
+
+msgid "report_issue_attachments_too_many"
+msgstr "คุณสามารถแนบรูปภาพได้สูงสุด 3 รูป"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "ไฟล์แนบต้องมีขนาดรวมไม่เกิน 15 MB"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "รูปภาพนั้นถูกแนบไว้แล้ว"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "เราไม่สามารถอ่านไฟล์ใดไฟล์หนึ่งเหล่านั้นได้"
 
 msgid "lantern_projects"
 msgstr "โปรเจกต์ Lantern:"
@@ -157,6 +181,35 @@ msgstr "ออกจากระบบ"
 
 msgid "check_for_updates"
 msgstr "ตรวจสอบการอัปเดต"
+
+msgid "update_available"
+msgstr "มีอัปเดตพร้อมใช้งาน"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s พร้อมใช้งานแล้ว Lantern จะดาวน์โหลดและตรวจสอบไฟล์ APK "
+"ก่อนเปิดตัวติดตั้งของ Android"
+
+msgid "download_and_install_update"
+msgstr "ดาวน์โหลดและติดตั้ง"
+
+msgid "allow_unknown_app_installs"
+msgstr "อนุญาตการติดตั้งแอป"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android ต้องการสิทธิ์ในการติดตั้งอัปเดตจาก Lantern เปิดใช้ "
+"อนุญาตจากแหล่งที่มานี้ แล้วตรวจหาอัปเดตอีกครั้ง"
+
+msgid "error_install_update"
+msgstr "ไม่สามารถติดตั้งอัปเดตได้"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern ไม่สามารถตรวจสอบหรือติดตั้งอัปเดตนี้ได้ โปรดลองอีกครั้งภายหลัง"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern เป็นเวอร์ชันล่าสุดแล้ว"
 
 msgid "support"
 msgstr "ฝ่ายสนับสนุน"
@@ -363,8 +416,11 @@ msgstr "เพิ่มอีเมลของคุณเพื่อเข้
 msgid "confirm_email_code"
 msgstr "รหัสยืนยัน"
 
-msgid "confirm_email_code_message"
-msgstr "ยืนยันว่าที่อยู่อีเมลนี้เป็นของคุณ กรอกรหัสที่ส่งไปยง: "
+msgid "confirm_email_code_message_part_one"
+msgstr "เราได้ส่งรหัสไปที่ "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " กรอกรหัสด้านล่าง หากไม่พบในกล่องจดหมาย โปรดตรวจสอบโฟลเดอร์สแปม"
 
 msgid "resend_email"
 msgstr "ส่งอีเมลอีกครั้ง"
@@ -483,6 +539,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "ฟีเจอร์ Pro ของคุณปลดล็อกแล้ว—เพลิดเพลินกับข้อมูลไม่จำกัด, "
 "ความเร็วที่เร็วขึ้น, และเซิร์ฟเวอร์พรีเมียม"
+
+msgid "purchase_restored_title"
+msgstr "กู้คืนการซื้อแล้ว"
+
+msgid "purchase_restored_description"
+msgstr "การสมัครสมาชิก Lantern Pro ของคุณใช้งานได้บนอุปกรณ์นี้แล้ว"
+
+msgid "no_purchase_found_title"
+msgstr "ไม่พบการซื้อ"
+
+msgid "no_purchase_found_body_ios"
+msgstr "ไม่มีการสมัครสมาชิกที่ใช้งานอยู่ผูกกับ Apple ID นี้"
+
+msgid "no_purchase_found_body_android"
+msgstr "ไม่มีการสมัครสมาชิกที่ใช้งานอยู่ผูกกับบัญชี Google นี้"
 
 msgid "plans_fetch_error"
 msgstr "เกิดข้อผิดพลาดในการดึงข้อมูลแผน กรุณาลองอีกครั้งในภายหลัง"
@@ -1003,6 +1074,9 @@ msgstr ""
 "นี่จะเป็นอีเมลเข้าสู่ระบบใหม่ของคุณ "
 "คุณจะต้องยืนยันก่อนที่การเปลี่ยนแปลงจะมีผล"
 
+msgid "email_must_be_different"
+msgstr "โปรดกรอกที่อยู่อีเมลอื่น"
+
 msgid "enter_new_email"
 msgstr "กรอกอีเมลใหม่ของคุณ"
 
@@ -1072,6 +1146,15 @@ msgstr "กรอกรหัสเปิดใช้งาน"
 
 msgid "restore_purchase"
 msgstr "คืนค่าการซื้อ"
+
+msgid "already_purchased"
+msgstr "ซื้อแล้วใช่ไหม?"
+
+msgid "restore_purchase_success"
+msgstr "กู้คืนการซื้อสำเร็จแล้ว"
+
+msgid "restore_purchase_no_purchases"
+msgstr "ไม่พบการซื้อที่จะกู้คืน"
 
 msgid "do_private_server_setup"
 msgstr "การตั้งค่าเซิร์ฟเวอร์ส่วนตัว DO"
@@ -1605,50 +1688,53 @@ msgstr "บัญชีของคุณถูกลบอย่างถาว
 msgid "verify_with"
 msgstr "ยืนยันด้วย %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "ต่ออายุ"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "ตรวจพบความขัดแย้งของ VPN"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"มี VPN อื่นกำลังทำงานอยู่บนอุปกรณ์ของคุณ Lantern ทำงานได้ดีที่สุดเมื่อเป็น "
+"VPN เดียวที่ใช้งานอยู่ เพื่อผลลัพธ์ที่ดีที่สุด โปรดยกเลิกการเชื่อมต่อ VPN "
+"นั้นก่อนใช้ Lantern"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "เข้าใจแล้ว"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "เชื่อมต่อต่อไป"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "ไม่สามารถเชื่อมต่อได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "บริการไม่พร้อมใช้งานชั่วคราว กำลังลองใหม่..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "การเชื่อมต่อล้มเหลว โปรดลองอีกครั้ง"
+
+msgid "err_ruleset_failed"
+msgstr "ไม่สามารถโหลดการกำหนดค่าเส้นทางได้ กำลังลองใหม่..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "อัปเดตตอนนี้"
 
 msgid "later"
-msgstr "Later"
+msgstr "ภายหลัง"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s พร้อมติดตั้งแล้ว"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "เป็นเวอร์ชันล่าสุด"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "คุณกำลังใช้ Lantern เวอร์ชันล่าสุด %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "ไม่สามารถตรวจหาอัปเดตได้"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "ตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
