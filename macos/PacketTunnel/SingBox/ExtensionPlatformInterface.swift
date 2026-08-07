@@ -241,11 +241,16 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
 
+    // This fallback carries every tunnel on macOS 12, where the KVC path above never resolves.
+    // It scans the process for the *lowest-numbered* utun, so it is only correct while exactly one
+    // utun is open — hence the teardown guard in ExtensionProvider.startTunnel. Log the descriptor
+    // so a recurrence can still be told apart from a stale-fd selection in the user's logs.
     appLogger.info("Accessing tunnel file descriptor from C loop...")
     let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
     guard tunFdFromLoop != -1 else {
       throw NSError(domain: "Missing TUN FD", code: 0)
     }
+    appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
     ret0_.pointee = tunFdFromLoop
   }
 

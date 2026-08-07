@@ -25,10 +25,27 @@ import OSLog
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
+
+  /// Whether a tunnel bring-up has been attempted and not yet torn down. The extension process
+  /// outlives the app, so this survives an app quit — unlike any state the app holds.
+  private var tunnelIsRunning = false
+
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
     }
+
+    // A start can arrive while the previous tunnel is still up: the app force-quits without
+    // disconnecting, or its stopTunnel no-ops on a stale NEVPNStatus. Starting on top leaves the
+    // old utun open, and openTunAsync's fallback then hands the new sing-box the lowest-numbered
+    // utun — the dead one — while the system routes traffic to the new interface, blackholing
+    // everything. Tear the old tunnel down first, the way restartService already does.
+    if tunnelIsRunning {
+      appLogger.info("(lantern-tunnel) start with a live tunnel; stopping the previous one first")
+      stopService()
+    }
+    // Set before the bring-up, not after: a start that fails partway can still have opened a utun.
+    tunnelIsRunning = true
 
     // Start the IPC server before any VPN operations
     var ipcError: NSError?
@@ -111,6 +128,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error closing IPC server \(error?.localizedDescription ?? "")")
     }
     appLogger.log("(lantern-tunnel) tunnel closed")
+    tunnelIsRunning = false
     platformInterface.reset()
   }
 
@@ -121,6 +139,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
     }
+    tunnelIsRunning = false
     postServiceClose()
   }
 
@@ -142,6 +161,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       cancelTunnelWithError(error)
       throw error
     }
+    tunnelIsRunning = true
     appLogger.log("(lantern-tunnel) tunnel restarted successfully")
   }
 
