@@ -95,6 +95,22 @@ extension IsoDateFormatter on UserDataModel {
     }
   }
 
+  /// Formatted account expiration when it extends past the auto-renewing
+  /// subscription's endAt (e.g. time stacked from another platform or granted
+  /// by support). Null when there is no extra time to show, so the renewal
+  /// date from [toDate] is the whole story.
+  String? get extendedExpirationDate {
+    if (isExpired) return null;
+    final endAt = subscriptionData.endAt;
+    if (!subscriptionData.autoRenew || endAt <= 0) return null;
+    if (expiration <= endAt) return null;
+    final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+      expiration * 1000,
+      isUtc: true,
+    ).toLocal();
+    return _formatDate(expirationDate);
+  }
+
   String _formatDate(DateTime dateTime) {
     final mm = dateTime.month.toString().padLeft(2, '0');
     final dd = dateTime.day.toString().padLeft(2, '0');
