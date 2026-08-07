@@ -156,6 +156,11 @@ type SmartRouting interface {
 	IsSmartRoutingEnabled() bool
 }
 
+type PeerShare interface {
+	SetPeerShareEnabled(bool) error
+	IsPeerShareEnabled() bool
+}
+
 type VPN interface {
 	ConnectVPN(tag string) error
 	SelectServer(tag string) error
@@ -172,6 +177,7 @@ type Core interface {
 	SplitTunnel
 	Ads
 	SmartRouting
+	PeerShare
 	VPN
 	Client() *ipc.Client
 }
@@ -454,6 +460,16 @@ func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
 
 func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 	b, _ := lc.settings()[settings.SmartRoutingKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetPeerShareEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerShareEnabledKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsPeerShareEnabled() bool {
+	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
 	return b
 }
 

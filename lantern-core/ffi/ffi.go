@@ -1406,6 +1406,29 @@ func isSmartRoutingEnabled() C.int {
 	return 0
 }
 
+//export setPeerProxyEnabled
+func setPeerProxyEnabled(enabled C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetPeerShareEnabled(enabled != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export isPeerProxyEnabled
+func isPeerProxyEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsPeerShareEnabled() {
+		return 1
+	}
+	return 0
+}
+
 //export getSplitTunnelState
 func getSplitTunnelState() *C.char {
 	return runOnGoStack(func() *C.char {
