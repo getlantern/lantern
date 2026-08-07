@@ -215,9 +215,16 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val tag = map["serverName"] as String? ?: error("Missing serverName")
+                        // As in Methods.Start above: the connect runs for seconds inside
+                        // the service, and the Dart toggle debounces only on a connecting
+                        // / disconnecting state. Without this post the state stays
+                        // disconnected for the whole attempt, so a second tap dispatches a
+                        // duplicate connect (Freshdesk #181166).
+                        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                         MainActivity.instance.connectToServer(tag)
                         success("ok")
                     }.onFailure { e ->
+                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         result.error(
                             "set_private_server",
                             e.localizedMessage ?: "Please try again",

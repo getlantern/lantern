@@ -403,6 +403,10 @@ class LanternVpnService :
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
+        // Ownership of connectInFlight passes to the Deferred completion path below once
+        // the connect coroutine exists; until then any failure has to release it here or
+        // the flag wedges every later attempt.
+        var connectLaunched = false
         runCatching {
             // Show foreground notification immediately — required by the OS as soon as
             // VPN service starts, replaced by the connected notification on success.
@@ -411,8 +415,19 @@ class LanternVpnService :
             // so a refusal takes this operation's own failure path — errorCode-tagged
             // reporting, network-monitor teardown, and serviceCleanUp when the caller
             // asked for it — rather than the service-wide handler, which only logs and
-            // posts a generic error.
+            // posts a generic error. Runs before the in-flight check below because the
+            // OS still expects a startForeground() for the duplicate startForegroundService().
             notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+            // Reject concurrent attempts so repeated retries while a previous call is
+            // stuck in JNI don't accumulate orphan coroutines on Dispatchers.IO. Claim
+            // the flag before touching any shared state and leave by returning rather
+            // than throwing: a rejected attempt owns none of the state the failure path
+            // tears down, and doing it anyway unregistered the winning attempt's network
+            // listener and posted Error moments before its tunnel came up (Freshdesk #181166).
+            if (!connectInFlight.compareAndSet(false, true)) {
+                AppLogger.d(TAG, "Ignoring VPN operation ($errorCode): previous connect attempt still in flight")
+                return@withContext
+            }
             // Radiance is pre-warmed via ACTION_START_RADIANCE, but as a background
             // service it may have been killed by the OS before setup completed.
             // Re-run setup here under the foreground notification so it is guaranteed
@@ -447,16 +462,12 @@ class LanternVpnService :
             // of a frozen button only a phone reboot can clear
             // (Freshdesk #173507).
             //
-            // Reject concurrent attempts with connectInFlight so repeated
-            // retries while a previous call is stuck in JNI don't accumulate
-            // orphan coroutines on Dispatchers.IO. Clear the flag from the
-            // Deferred completion path so early cancellation before the async
-            // body starts can't wedge future attempts.
-            if (!connectInFlight.compareAndSet(false, true)) {
-                throw IllegalStateException("previous VPN connect attempt still in flight")
-            }
+            // connectInFlight is cleared from the Deferred completion path so
+            // early cancellation before the async body starts can't wedge
+            // future attempts.
             val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             val deferred = connectScope.async { connect() }
+            connectLaunched = true
             deferred.invokeOnCompletion {
                 connectInFlight.set(false)
             }
@@ -474,6 +485,7 @@ class LanternVpnService :
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }
         }.onFailure { e ->
+            if (!connectLaunched) connectInFlight.set(false)
             val timedOut = e is TimeoutCancellationException
             if (timedOut) {
                 AppLogger.e(TAG, "VPN operation ($errorCode) timed out after ${VPN_START_TIMEOUT_MS}ms — Go side likely deadlocked", e)
