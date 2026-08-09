@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:auto_route/annotations.dart';
@@ -188,13 +189,27 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       final documentLength = value is num
           ? value.toInt()
           : int.tryParse(value?.toString() ?? '') ?? 0;
+      unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
+    } catch (error, stackTrace) {
+      appLogger.error('Unable to inspect WebView document', error, stackTrace);
+      observer.onPageLoadFailed(uri, error.toString());
+    }
+  }
+
+  Future<void> _notifyPageLoaded(
+    AppWebViewObserver observer,
+    InAppWebViewController controller,
+    Uri uri,
+    int documentLength,
+  ) async {
+    try {
       await observer.onPageLoaded(
         uri,
         documentLength: documentLength,
         captureScreenshot: () => controller.takeScreenshot(),
       );
     } catch (error, stackTrace) {
-      appLogger.error('Unable to inspect WebView document', error, stackTrace);
+      appLogger.error('Unable to notify WebView observer', error, stackTrace);
       observer.onPageLoadFailed(uri, error.toString());
     }
   }
