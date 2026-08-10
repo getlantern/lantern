@@ -25,17 +25,40 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     self.tunnel = tunnel
   }
 
-  public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?)
-    throws
-  {
-    try runBlocking { [self] in
-      try await openTun0(options, ret0_)
+  /// Applies tunnel network settings and waits for NetworkExtension's completion.
+  ///
+  /// Uses the completion-handler form rather than the `async` one deliberately. The
+  /// async form resumes its continuation on Swift's cooperative pool; when the caller
+  /// is a libbox thread blocked in a semaphore, that resumption can be starved and the
+  /// call never returns — leaving a routed-but-unserviced utun, which is a total
+  /// traffic blackhole. NE delivers this completion on its own queue, so it cannot be
+  /// starved by the wait here.
+  private func applyNetworkSettings(_ settings: NEPacketTunnelNetworkSettings?) throws {
+    let semaphore = DispatchSemaphore(value: 0)
+    var failure: Error?
+    tunnel.setTunnelNetworkSettings(settings) { error in
+      failure = error
+      semaphore.signal()
+    }
+    guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+      throw RunBlockingError.timedOut
+    }
+    if let failure {
+      throw failure
     }
   }
 
-  private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?)
-    async throws
+  public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?)
+    throws
   {
+    // Called directly: this path's only await was setTunnelNetworkSettings, now handled
+    // by applyNetworkSettings, so there is nothing to bridge.
+    try openTunSync(options, ret0_)
+  }
+
+  private func openTunSync(
+    _ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?
+  ) throws {
     guard let options else {
       throw NSError(domain: "nil options", code: 0)
     }
@@ -206,7 +229,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     }
 
     networkSettings = settings
-    try await tunnel.setTunnelNetworkSettings(settings)
+    try applyNetworkSettings(settings)
 
     if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
       ret0_.pointee = tunFd
@@ -272,7 +295,14 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       }
     }
     monitor.start(queue: DispatchQueue.global())
-    semaphore.wait()
+    // Wait for the first path so libbox starts with an interface, but never
+    // indefinitely: with no network at all the first update may not arrive, and this
+    // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
+    // handler above stays installed and reports the interface once one appears.
+    if semaphore.wait(timeout: .now() + runBlockingTimeout) == .timedOut {
+      appLogger.error(
+        "startDefaultInterfaceMonitor: no path update within \(runBlockingTimeout); continuing")
+    }
   }
 
   private func onUpdateDefaultInterface(
@@ -364,9 +394,12 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func readWIFIState() -> LibboxWIFIState? {
-    let network = runBlocking {
-      await NEHotspotNetwork.fetchCurrent()
-    }
+    // Double optional: runBlocking returns nil on timeout, fetchCurrent returns nil
+    // when there is no network. Both mean "no WIFI state", so flatten them.
+    let network =
+      runBlocking {
+        await NEHotspotNetwork.fetchCurrent()
+      } ?? nil
     guard let network else {
       return nil
     }
@@ -374,9 +407,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func restartService() throws {
-    try runBlocking { [self] in
-      try tunnel.restartService()
-    }
+    try tunnel.restartService()
   }
 
   public func postServiceClose() {
@@ -415,9 +446,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     proxySettings.httpEnabled = isEnabled
     proxySettings.httpsEnabled = isEnabled
     networkSettings.proxySettings = proxySettings
-    try runBlocking {
-      try await self.tunnel.setTunnelNetworkSettings(networkSettings)
-    }
+    try applyNetworkSettings(networkSettings)
   }
 
   func reset() {

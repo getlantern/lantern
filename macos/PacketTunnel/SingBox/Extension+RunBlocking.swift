@@ -8,7 +8,22 @@
 import Foundation
 import NetworkExtension
 
-func runBlocking<T>(_ block: @escaping () async -> T) -> T {
+/// Bound on every sync-over-async bridge below. Blocking a thread while awaiting a
+/// continuation is exactly what Swift concurrency forbids: the continuation may need
+/// a cooperative-pool thread that this wait is holding, and then nothing ever
+/// signals. Without a deadline that wedges the extension permanently — a tunnel with
+/// its routes installed and nothing servicing them. Generous, because the real work
+/// here is milliseconds.
+let runBlockingTimeout: DispatchTimeInterval = .seconds(15)
+
+enum RunBlockingError: Error {
+  /// The awaited work never completed. Treat as a failed operation, not a retryable
+  /// stall: something upstream is wedged and the caller should tear down.
+  case timedOut
+}
+
+/// Returns nil if the block did not finish within `runBlockingTimeout`.
+func runBlocking<T>(_ block: @escaping () async -> T) -> T? {
   let semaphore = DispatchSemaphore(value: 0)
   let box = resultBox<T>()
   Task.detached {
@@ -16,7 +31,9 @@ func runBlocking<T>(_ block: @escaping () async -> T) -> T {
     box.result0 = value
     semaphore.signal()
   }
-  semaphore.wait()
+  guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+    return nil
+  }
   return box.result0
 }
 
@@ -32,7 +49,9 @@ func runBlocking<T>(_ tBlock: @escaping () async throws -> T) throws -> T {
     }
     semaphore.signal()
   }
-  semaphore.wait()
+  guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+    throw RunBlockingError.timedOut
+  }
   return try box.result.get()
 }
 
