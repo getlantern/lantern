@@ -110,10 +110,9 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   Widget _purchaseAndEnvironmentCard() {
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.read(developerModeProvider.notifier);
-    final environment = ref.watch(
-      appSettingProvider.select((s) => s.environment),
+    final isStaging = ref.watch(
+      appSettingProvider.select((s) => s.isStaging),
     );
-    final isStaging = environment == 'stage' || environment == 'staging';
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(

@@ -3,16 +3,17 @@
 # Aşkın Özgür <askin@askin.ws>, 2025
 # efe kerem sözeri <eksozeri@hotmail.com>, 2025
 # Volkan Gezer <volkangezer@gmail.com>, 2025
-# Teo Westbrook, 2025
 # Emre Deniz, 2025
 # Zeynel Cebeci <cebeciz@gmail.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Lantern, 2026
+# Teo Westbrook, 2026
+# Gökhan Kalayci <gkmediagokhan@gmail.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Turkish (https://app.transifex.com/lantern-1/teams/94371/tr/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -30,6 +31,30 @@ msgstr "Ayarlar"
 
 msgid "report_an_issue"
 msgstr "Sorun Bildir"
+
+msgid "report_issue_add_screenshots"
+msgstr "Ekran görüntüsü ekle"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG veya GIF — toplam en fazla 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "Görsel ekle"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Yalnızca PNG, JPG ve GIF görseller desteklenir."
+
+msgid "report_issue_attachments_too_many"
+msgstr "En fazla 3 görsel ekleyebilirsiniz."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Eklerin toplam boyutu 15 MB'ın altında olmalıdır."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Bu görsel zaten eklenmiş."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Bu dosyalardan birini okuyamadık."
 
 msgid "lantern_projects"
 msgstr "Lantern Projeleri:"
@@ -160,6 +185,37 @@ msgstr "Çıkış Yap"
 
 msgid "check_for_updates"
 msgstr "Güncellemeleri Kontrol Et"
+
+msgid "update_available"
+msgstr "Güncelleme mevcut"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s mevcut. Lantern, Android'in yükleyicisini açmadan önce APK'yı "
+"indirip doğrulayacak."
+
+msgid "download_and_install_update"
+msgstr "İndir ve yükle"
+
+msgid "allow_unknown_app_installs"
+msgstr "Uygulama yüklemeye izin ver"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android'in Lantern'den güncelleme yüklemek için izne ihtiyacı var. Bu "
+"kaynaktan izin ver seçeneğini açın, ardından güncellemeleri yeniden kontrol "
+"edin."
+
+msgid "error_install_update"
+msgstr "Güncelleme yüklenemedi"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern bu güncellemeyi doğrulayamadı veya yükleyemedi. Lütfen daha sonra "
+"tekrar deneyin."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern güncel."
 
 msgid "support"
 msgstr "Destek"
@@ -366,10 +422,12 @@ msgstr "Aboneliğinize herhangi bir cihazdan erişmek için e-postanızı ekleyi
 msgid "confirm_email_code"
 msgstr "Onay Kodu"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "Şu adrese bir kod gönderdik: "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"Bu e-posta adresinin size ait olduğunu onaylayın, şu adrese gönderilen kodu "
-"girin: "
+" Kodu aşağıya girin. Gelen kutunuzda yoksa spam klasörünüzü kontrol edin."
 
 msgid "resend_email"
 msgstr "E-postayı Yeniden Gönder"
@@ -491,6 +549,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "Pro özellikleriniz açıldı—sınırsız veri, daha hızlı hız ve premium "
 "sunucuların keyfini çıkarın."
+
+msgid "purchase_restored_title"
+msgstr "Satın alma geri yüklendi"
+
+msgid "purchase_restored_description"
+msgstr "Lantern Pro aboneliğiniz artık bu cihazda etkin."
+
+msgid "no_purchase_found_title"
+msgstr "Satın alma bulunamadı"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Bu Apple ID ile ilişkili etkin bir abonelik yok."
+
+msgid "no_purchase_found_body_android"
+msgstr "Bu Google hesabıyla ilişkili etkin bir abonelik yok."
 
 msgid "plans_fetch_error"
 msgstr "Planlar alınırken hata oluştu. Lütfen daha sonra tekrar deneyin."
@@ -1017,6 +1090,9 @@ msgstr ""
 "Bu, yeni giriş e-postanız olacaktır. Değişiklik yürürlüğe girmeden önce "
 "doğrulamanız gerekecektir."
 
+msgid "email_must_be_different"
+msgstr "Lütfen farklı bir e-posta adresi girin."
+
 msgid "enter_new_email"
 msgstr "Yeni e-postanı girin"
 
@@ -1086,6 +1162,15 @@ msgstr "Aktivasyon Kodu Girin"
 
 msgid "restore_purchase"
 msgstr "Satın Almayı Geri Yükle"
+
+msgid "already_purchased"
+msgstr "Zaten satın aldınız mı?"
+
+msgid "restore_purchase_success"
+msgstr "Satın alma başarıyla geri yüklendi."
+
+msgid "restore_purchase_no_purchases"
+msgstr "Geri yüklenecek satın alma bulunamadı."
 
 msgid "do_private_server_setup"
 msgstr "DO Özel Sunucu Kurulumu"
@@ -1631,50 +1716,53 @@ msgstr "Hesabınız kalıcı olarak silindi."
 msgid "verify_with"
 msgstr "%s ile doğrula"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "Yenile"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "VPN çakışması algılandı"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"Cihazınızda başka bir VPN çalışıyor. Lantern, tek etkin VPN'iniz olduğunda "
+"en iyi şekilde çalışır. En iyi sonuç için lütfen Lantern'i kullanmadan önce "
+"onun bağlantısını kesin."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "Tamam"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "Yine de bağlan"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "Bağlanılamıyor. İnternet bağlantınızı kontrol edin."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "Hizmet geçici olarak kullanılamıyor. Yeniden deneniyor..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "Bağlantı başarısız oldu. Lütfen tekrar deneyin."
+
+msgid "err_ruleset_failed"
+msgstr "Yönlendirme yapılandırması yüklenemedi. Yeniden deneniyor..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "Şimdi güncelle"
 
 msgid "later"
-msgstr "Later"
+msgstr "Daha sonra"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s yüklenmeye hazır"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "Güncel"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "Lantern'in en son sürümünü (%s) kullanıyorsunuz"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "Güncellemeler kontrol edilemedi"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "Bağlantınızı kontrol edip tekrar deneyin"

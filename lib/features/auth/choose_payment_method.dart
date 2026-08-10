@@ -10,7 +10,9 @@ import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
+import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
@@ -20,12 +22,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
   final String? code;
   final AuthFlow authFlow;
+  final AppWebViewObserver? checkoutObserver;
 
   const ChoosePaymentMethod({
     super.key,
     required this.email,
     this.code,
     required this.authFlow,
+    this.checkoutObserver,
   });
 
   @override
@@ -196,51 +200,84 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
-    final payments = ref.read(paymentProvider.notifier);
-    context.showLoadingDialog();
 
-    ///get stripe details
-    final result = await payments.stripeSubscription(
-      userPlan.id,
-      email,
-      couponCode: _affiliateCoupon(ref),
+    // usdPrice is the backend's plan price in USD cents — always USD,
+    // unlike the currency-keyed `price` map (local currency on CNY plans).
+    final amount = userPlan.usdPrice;
+    final intentMode = _stripeIntentMode(ref);
+    appLogger.info(
+      'Stripe subscription flow started (plan: ${userPlan.id}, '
+      'amount: $amount cents, intent: ${intentMode.name})',
     );
-    result.fold(
-      (error) {
-        context.showSnackBar(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-        finishPaymentRedirect(paymentRedirectInFlight);
-      },
-      (stripeData) async {
-        // Handle success
-        context.hideLoadingDialog();
 
-        /// Start stripe SDK. The flag is cleared inside the SDK callbacks
-        /// since startStripeSDK returns before the user finishes the flow.
-        sl<StripeService>().startStripeSDK(
-          context: context,
-          options: StripeOptions.fromJson(stripeData),
-          onSuccess: () {
-            finishPaymentRedirect(paymentRedirectInFlight);
-            onPurchaseResult(true, context, ref);
-          },
-          onError: (error) {
-            finishPaymentRedirect(paymentRedirectInFlight);
-
-            ///error while subscribing
-            appLogger.error('Error subscribing to plan: $error');
-            if (error is StripeException) {
-              context.showSnackBar(
-                error.error.localizedMessage ?? error.localizedDescription,
-              );
-              return;
-            }
-            context.showSnackBar(error.toString());
-          },
+    /// Deferred-intent flow: the sheet opens right away and the backend
+    /// subscription is only created once the user taps Pay (inside
+    /// onCreateSubscription), so dismissing the sheet leaves no abandoned
+    /// subscription behind. The flag is cleared inside the SDK callbacks
+    /// since startStripeSDK returns before the user finishes the flow.
+    sl<StripeService>().startStripeSDK(
+      context: context,
+      amount: amount,
+      email: email,
+      intentMode: intentMode,
+      onCreateSubscription: () async {
+        // paymentProvider is autoDispose, so it must be read here at Pay-tap
+        // time — a notifier captured when the sheet opened is disposed by the
+        // time this callback runs, and using it throws.
+        appLogger.info('Stripe onCreateSubscription callback invoked');
+        final payments = ref.read(paymentProvider.notifier);
+        final result = await payments.stripeSubscription(
+          userPlan.id,
+          email,
+          couponCode: _affiliateCoupon(ref),
+        );
+        return result.fold(
+          (error) => throw Exception(error.localizedErrorMessage),
+          (stripeData) => StripeOptions.fromJson(stripeData),
         );
       },
+      onSuccess: () {
+        // These callbacks fire after async SDK work; the screen may have
+        // been disposed while the sheet was open.
+        if (!context.mounted) return;
+        finishPaymentRedirect(paymentRedirectInFlight);
+        onPurchaseResult(true, context, ref);
+      },
+      onError: (error) {
+        if (!context.mounted) return;
+        finishPaymentRedirect(paymentRedirectInFlight);
+        if (error is StripeException) {
+          // Dismissing the sheet is not an error — no snackbar.
+          if (error.error.code == FailureCode.Canceled) return;
+          appLogger.error('Error subscribing to plan: $error');
+          // userFacingMessage filters out developer text (expired/invalid
+          // API key, bad request, ...) that Stripe puts in localizedMessage.
+          context.showSnackBar(error.userFacingMessage);
+          return;
+        }
+        appLogger.error('Error subscribing to plan: $error');
+        context.showSnackBar((error as Object).localizedDescription);
+      },
     );
+  }
+
+  /// The Stripe backend gives users with an active one-time purchase a trial
+  /// subscription backed by a SetupIntent. Everyone else gets a PaymentIntent.
+  StripeIntentMode _stripeIntentMode(WidgetRef ref) {
+    if (authFlow != AuthFlow.renewSubscription) {
+      return StripeIntentMode.payment;
+    }
+
+    final home = ref.read(homeProvider);
+    final userData = home.value?.legacyUserData;
+    if (userData == null) {
+      appLogger.error(
+        'Stripe: renewal intent mode selected without user data '
+        '(homeProvider loading: ${home.isLoading}, '
+        'error: ${home.hasError}); defaulting to PaymentIntent',
+      );
+    }
+    return stripeIntentModeForRenewal(userData);
   }
 
   Future<void> desktopStripePurchaseFlow(
@@ -295,6 +332,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
               title: 'stripe_payment'.i18n,
+              observer: checkoutObserver,
             );
             if (!context.mounted || purchaseResult == null) return;
             await onPurchaseResult(purchaseResult, context, ref);
@@ -480,6 +518,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
+            key: Key('payment.provider.${method.providers.name}'),
             initiallyExpanded: index == 0,
             backgroundColor: context.bgElevated,
             collapsedBackgroundColor: context.bgElevated,
@@ -593,6 +632,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               PrimaryButton(
+                buttonKey: Key('payment.checkout.${method.providers.name}'),
                 label: method.providers.supportSubscription
                     ? 'subscribe'.i18n
                     : 'checkout'.i18n,

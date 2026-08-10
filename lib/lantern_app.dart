@@ -222,6 +222,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   Widget build(BuildContext context) {
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
+    final isStaging = appSetting.isStaging;
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
       overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
@@ -242,6 +243,16 @@ class _LanternAppState extends ConsumerState<LanternApp>
               child: MaterialApp.router(
                 locale: locale.toLocale,
                 debugShowCheckedModeBanner: false,
+                builder: (context, child) {
+                  final router = child ?? const SizedBox.shrink();
+                  if (!isStaging) return router;
+                  return Banner(
+                    message: 'STAGING',
+                    location: BannerLocation.topEnd,
+                    color: AppColors.red6,
+                    child: router,
+                  );
+                },
                 theme: AppTheme.appTheme(),
                 darkTheme: AppTheme.darkTheme(),
                 themeMode: resolveThemeMode(appSetting.themeMode),
