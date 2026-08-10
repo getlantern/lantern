@@ -15,8 +15,8 @@ func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 		ipcClient.Store(previousClient)
 	})
 
-	ipcMu.Lock()
-	defer ipcMu.Unlock()
+	ipcLifecycle.mu.Lock()
+	defer ipcLifecycle.mu.Unlock()
 
 	result := make(chan *ipc.Client, 1)
 	go func() {
@@ -35,20 +35,20 @@ func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 }
 
 func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
-	ipcMu.Lock()
-	previousServer := ipcServer
-	previousStarting := ipcStarting
-	previousClosing := ipcClosing
-	ipcServer = nil
-	ipcStarting = true
-	ipcClosing = false
-	ipcMu.Unlock()
+	ipcLifecycle.mu.Lock()
+	previousServer := ipcLifecycle.server
+	previousStarting := ipcLifecycle.starting
+	previousClosing := ipcLifecycle.closing
+	ipcLifecycle.server = nil
+	ipcLifecycle.starting = true
+	ipcLifecycle.closing = false
+	ipcLifecycle.mu.Unlock()
 	t.Cleanup(func() {
-		ipcMu.Lock()
-		ipcServer = previousServer
-		ipcStarting = previousStarting
-		ipcClosing = previousClosing
-		ipcMu.Unlock()
+		ipcLifecycle.mu.Lock()
+		ipcLifecycle.server = previousServer
+		ipcLifecycle.starting = previousStarting
+		ipcLifecycle.closing = previousClosing
+		ipcLifecycle.mu.Unlock()
 	})
 
 	err := StartIPCServer(nil, nil)

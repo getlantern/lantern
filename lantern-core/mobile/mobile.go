@@ -7,18 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/account"
-	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
-	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/ipc"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/logs"
@@ -27,21 +23,9 @@ import (
 )
 
 var (
-	lanternCore         atomic.Value
-	errLanternNotReady  = errors.New("radiance not initialized")
-	errIPCLifecycleBusy = errors.New("IPC server lifecycle operation in progress")
-	errIPCStartCanceled = errors.New("IPC server startup canceled")
-
-	ipcServer     *ipc.Server
-	ipcClient     atomic.Pointer[ipc.Client] // loopback client for extension process
-	ipcBackend    *backend.LocalBackend
-	ipcMu         sync.Mutex
-	ipcStarting   bool
-	ipcClosing    bool
-	ipcGeneration uint64
+	lanternCore        atomic.Value
+	errLanternNotReady = errors.New("radiance not initialized")
 )
-
-const ipcStartTimeout = 60 * time.Second
 
 func getCore() (lanterncore.Core, error) {
 	v := lanternCore.Load()
@@ -77,21 +61,6 @@ func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 		}
 		return fn(c)
 	})
-}
-
-// getClient returns an IPC client. It prefers the loopback client created by
-// StartIPCServer (extension process), falling back to lanternCore's client
-// (main app process).
-func getClient() (*ipc.Client, error) {
-	c := ipcClient.Load()
-	if c != nil {
-		return c, nil
-	}
-	core, err := getCore()
-	if err != nil {
-		return nil, err
-	}
-	return core.Client(), nil
 }
 
 // SetQAEnvOverrides applies QA-only environment overrides before Radiance starts.
@@ -280,152 +249,6 @@ func StopVPN() error {
 		defer cancel()
 		if err := vpn_tunnel.StopVPN(ctx, client); err != nil {
 			return struct{}{}, err
-		}
-		return struct{}{}, nil
-	})
-	return err
-}
-
-func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
-	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		ipcMu.Lock()
-		if ipcServer != nil {
-			ipcMu.Unlock()
-			return struct{}{}, nil
-		}
-		if ipcStarting || ipcClosing {
-			ipcMu.Unlock()
-			return struct{}{}, errIPCLifecycleBusy
-		}
-		ipcStarting = true
-		generation := ipcGeneration
-		ipcMu.Unlock()
-		defer func() {
-			ipcMu.Lock()
-			ipcStarting = false
-			ipcMu.Unlock()
-		}()
-
-		// The backend's config fetcher captures common.GetBaseURL() at
-		// construction, so the environment must be set before
-		// NewLocalBackend — SetupRadiance's SetStagingEnv runs too late on
-		// Android, where StartIPCServer is called first.
-		if opts.IsStaging() {
-			env.SetStagingEnv()
-		}
-		bopts := backend.Options{
-			DataDir:           opts.DataDir,
-			LogDir:            opts.LogDir,
-			Locale:            opts.Locale,
-			LogLevel:          opts.LogLevel,
-			DeviceID:          opts.Deviceid,
-			TelemetryConsent:  opts.TelemetryConsent,
-			PlatformInterface: platform,
-		}
-
-		// NewLocalBackend performs synchronous disk and platform setup that does
-		// not consistently observe its context. Bound the complete construction
-		// and server-start path here so a stalled startup cannot leave
-		// ipcStarting set forever. LocalBackend retains its context for its full
-		// lifetime, so keep that context independent from this startup deadline.
-		type startResult struct {
-			backend *backend.LocalBackend
-			server  *ipc.Server
-			err     error
-		}
-		startupCtx, cancelStartup := context.WithTimeout(
-			context.Background(),
-			ipcStartTimeout,
-		)
-		defer cancelStartup()
-		resultCh := make(chan startResult)
-		go func() {
-			result := startResult{}
-			be, err := backend.NewLocalBackend(context.Background(), bopts)
-			if err != nil {
-				result.err = fmt.Errorf("error creating backend for IPC server: %w", err)
-			} else {
-				be.Start()
-				server := ipc.NewServer(be, !common.IsMobile())
-				if err := server.Start(); err != nil {
-					be.Close()
-					result.err = err
-				} else {
-					result.backend = be
-					result.server = server
-				}
-			}
-
-			select {
-			case resultCh <- result:
-			case <-startupCtx.Done():
-				if result.server != nil {
-					_ = result.server.Close()
-				}
-				if result.backend != nil {
-					result.backend.Close()
-				}
-			}
-		}()
-
-		var result startResult
-		select {
-		case result = <-resultCh:
-			if result.err != nil {
-				return struct{}{}, result.err
-			}
-		case <-startupCtx.Done():
-			return struct{}{}, fmt.Errorf(
-				"IPC server startup exceeded %s: %w",
-				ipcStartTimeout,
-				startupCtx.Err(),
-			)
-		}
-		be := result.backend
-		server := result.server
-
-		ipcMu.Lock()
-		if generation != ipcGeneration {
-			ipcMu.Unlock()
-			_ = server.Close()
-			be.Close()
-			return struct{}{}, errIPCStartCanceled
-		}
-		ipcBackend = be
-		ipcServer = server
-		ipcClient.Store(newLoopbackClient(be))
-		ipcMu.Unlock()
-		return struct{}{}, nil
-	})
-	return err
-}
-
-func CloseIPCServer() error {
-	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		ipcMu.Lock()
-		if ipcClosing {
-			ipcMu.Unlock()
-			return struct{}{}, nil
-		}
-		ipcClosing = true
-		ipcGeneration++
-		ipcClient.Store(nil)
-		be := ipcBackend
-		server := ipcServer
-		ipcBackend = nil
-		ipcServer = nil
-		ipcMu.Unlock()
-		defer func() {
-			ipcMu.Lock()
-			ipcClosing = false
-			ipcMu.Unlock()
-		}()
-
-		if server != nil {
-			_ = server.Close()
-		}
-		if be != nil {
-			be.Close()
 		}
 		return struct{}{}, nil
 	})
