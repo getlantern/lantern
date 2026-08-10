@@ -4,16 +4,16 @@
 # e2f <projects@e2f.com>, 2025
 # tx_e2f_es t1 <tx_e2f_es_t1@ate2f.com>, 2025
 # Katherine Mojena, 2025
-# Aimara pena, 2026
 # e2f_es r2 <tx_e2f_es_r2@ate2f.com>, 2026
 # tx_e2f_es t35 <tx_e2f_es_t35@ate2f.com>, 2026
+# Lantern, 2026
+# Aimara pena, 2026
 # strel, 2026
 # Derek F <derek@getlantern.org>, 2026
-# Lantern, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Spanish (Cuba) (https://app.transifex.com/lantern-1/teams/94371/es_CU/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -31,6 +31,30 @@ msgstr "Configuración"
 
 msgid "report_an_issue"
 msgstr "Informar un problema"
+
+msgid "report_issue_add_screenshots"
+msgstr "Añadir capturas de pantalla"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG o GIF — máximo 15 MB en total"
+
+msgid "report_issue_add_images"
+msgstr "Añadir imágenes"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Solo se admiten imágenes PNG, JPG y GIF."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Puedes adjuntar hasta 3 imágenes."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Los archivos adjuntos no deben superar los 15 MB en total."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Esa imagen ya está adjunta."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "No pudimos leer uno de esos archivos."
 
 msgid "lantern_projects"
 msgstr "Proyectos de Lantern:"
@@ -164,6 +188,36 @@ msgstr "Cerrar sesión"
 
 msgid "check_for_updates"
 msgstr "Buscar actualizaciones"
+
+msgid "update_available"
+msgstr "Actualización disponible"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s está disponible. Lantern descargará y verificará el APK antes de "
+"abrir el instalador de Android."
+
+msgid "download_and_install_update"
+msgstr "Descargar e instalar"
+
+msgid "allow_unknown_app_installs"
+msgstr "Permitir instalación de aplicaciones"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android necesita permiso para instalar actualizaciones desde Lantern. Activa"
+" Permitir desde esta fuente y vuelve a buscar actualizaciones."
+
+msgid "error_install_update"
+msgstr "No se pudo instalar la actualización"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern no pudo verificar o instalar esta actualización. Por favor, "
+"inténtalo de nuevo más tarde."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern está actualizado."
 
 msgid "support"
 msgstr "Soporte"
@@ -374,10 +428,13 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "Código de Confirmación"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "Enviamos un código a "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"Confirma que esta dirección de correo electrónico es tuya ingresando el "
-"código enviado a:"
+" Ingrésalo abajo. Si no está en tu bandeja de entrada, revisa tu carpeta de "
+"spam."
 
 msgid "resend_email"
 msgstr "Reenviar Email"
@@ -499,6 +556,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "Tus funciones Pro están desbloqueadas—disfruta de datos ilimitados, "
 "velocidades más rápidas y servidores premium."
+
+msgid "purchase_restored_title"
+msgstr "Compra restaurada"
+
+msgid "purchase_restored_description"
+msgstr "Tu suscripción a Lantern Pro ya está activa en este dispositivo."
+
+msgid "no_purchase_found_title"
+msgstr "No se encontró ninguna compra"
+
+msgid "no_purchase_found_body_ios"
+msgstr "No hay ninguna suscripción activa vinculada a este Apple ID."
+
+msgid "no_purchase_found_body_android"
+msgstr "No hay ninguna suscripción activa vinculada a esta cuenta de Google."
 
 msgid "plans_fetch_error"
 msgstr "Error al cargar los planes. Por favor intenta de nuevo más tarde."
@@ -1035,6 +1107,9 @@ msgstr ""
 "Este será tu nuevo email de inicio de sesión. Necesitarás verificarlo antes "
 "de que el cambio tenga efecto."
 
+msgid "email_must_be_different"
+msgstr "Por favor, ingresa una dirección de correo electrónico diferente."
+
 msgid "enter_new_email"
 msgstr "Ingresa tu nuevo Email"
 
@@ -1104,6 +1179,15 @@ msgstr "Ingresa un Código de Activación"
 
 msgid "restore_purchase"
 msgstr "Restaurar Compra"
+
+msgid "already_purchased"
+msgstr "¿Ya compraste?"
+
+msgid "restore_purchase_success"
+msgstr "Compra restaurada exitosamente."
+
+msgid "restore_purchase_no_purchases"
+msgstr "No se encontraron compras para restaurar."
 
 msgid "do_private_server_setup"
 msgstr "Configuración de Servidor Privado DO"
@@ -1658,50 +1742,53 @@ msgstr "Tu cuenta ha sido eliminada permanentemente. "
 msgid "verify_with"
 msgstr "Verificar con %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "Renovar"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "Conflicto de VPN detectado"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"Hay otra VPN en ejecución en tu dispositivo. Lantern funciona mejor como tu "
+"única VPN activa. Para obtener los mejores resultados, desconéctala antes de"
+" usar Lantern."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "Lo tengo"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "Conectar de todos modos"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "No se puede conectar. Verifica tu conexión a internet."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "Servicio temporalmente no disponible. Intentando de nuevo..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "Falló la conexión. Por favor, inténtalo de nuevo."
+
+msgid "err_ruleset_failed"
+msgstr "No se pudo cargar la configuración de enrutamiento. Reintentando..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "Actualizar ahora"
 
 msgid "later"
-msgstr "Later"
+msgstr "Más tarde"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s está listo para instalar"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "Actualizado"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "Estás usando la última versión de Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "No se pudo buscar actualizaciones"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "Verifica tu conexión y vuelve a intentarlo"
