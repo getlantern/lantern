@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/smoke/payment_checkout_smoke.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern_app.dart';
@@ -19,7 +17,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-Future<void> main([List<String> arguments = const []]) async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Timezone is only needed for notification scheduling (data-cap alerts),
@@ -41,13 +39,6 @@ Future<void> main([List<String> arguments = const []]) async {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
-    if (PlatformUtils.isWindows) {
-      appLogger.info(
-        'WEBVIEW2_DIAGNOSTIC user_data_folder_set='
-        '${Platform.environment['WEBVIEW2_USER_DATA_FOLDER'] != null} '
-        'local_app_data_set=${Platform.environment['LOCALAPPDATA'] != null}',
-      );
-    }
     unawaited(_logDeviceInfo());
     await _loadAppSecrets();
     appLogger.debug('Injecting services...');
@@ -73,33 +64,10 @@ Future<void> main([List<String> arguments = const []]) async {
     appLogger.error('Failed to start Updater.init', e, st);
   }
 
-  PaymentCheckoutSmokeConfig? paymentCheckoutSmoke;
-  try {
-    paymentCheckoutSmoke = PaymentCheckoutSmokeConfig.parse(
-      arguments,
-      isWindows: PlatformUtils.isWindows,
-      buildType: AppBuildInfo.buildType,
-    );
-    if (paymentCheckoutSmoke != null) {
-      appLogger.info(
-        'PAYMENT_CHECKOUT_SMOKE event=enabled '
-        'provider=${paymentCheckoutSmoke.provider} '
-        'run_id=${paymentCheckoutSmoke.runID}',
-      );
-    }
-  } on FormatException catch (error, stackTrace) {
-    appLogger.error(
-      'PAYMENT_CHECKOUT_SMOKE event=rejected error=$error',
-      error,
-      stackTrace,
-    );
-    rethrow;
-  }
-
   runApp(
     ProviderScope(
       retry: (retryCount, error) => null,
-      child: LanternApp(paymentCheckoutSmoke: paymentCheckoutSmoke),
+      child: const LanternApp(),
     ),
   );
 }

@@ -18,6 +18,7 @@ abstract interface class AppWebViewObserver {
     Uri uri, {
     required int documentLength,
     required Future<Uint8List?> Function() captureScreenshot,
+    required Future<Object?> Function(String source) evaluateJavaScript,
   });
 
   void onPageLoadFailed(Uri? uri, String reason);
@@ -124,10 +125,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {
-        final uri = Uri.tryParse(widget.url);
-        _logSmokeEvent('created', uri);
-      },
+      onWebViewCreated: (controller) {},
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {
@@ -147,12 +145,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         return false;
       },
       onLoadStart: (_, webUri) async {
+        // Handle load start
         final loading = ref.read(webViewLoadingProvider.notifier);
         loading.start();
-        _logSmokeEvent(
-          'load_start',
-          webUri == null ? null : Uri.tryParse(webUri.toString()),
-        );
       },
       onLoadStop: (controller, webUri) async {
         ref.read(webViewLoadingProvider.notifier).stop();
@@ -164,13 +159,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         appLogger.error("Received error: $error");
         ref.read(webViewLoadingProvider.notifier).stop();
         final uri = Uri.tryParse(webResourceRequest.url.toString());
-        _logSmokeEvent(
-          webResourceRequest.isForMainFrame == true
-              ? 'navigation_error'
-              : 'resource_error',
-          uri,
-          detail: 'error_type=${error.type}',
-        );
         if (webResourceRequest.isForMainFrame == true) {
           widget.observer?.onPageLoadFailed(
             uri,
@@ -183,11 +171,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         if (request.isForMainFrame != true) return;
         ref.read(webViewLoadingProvider.notifier).stop();
         final uri = Uri.tryParse(request.url.toString());
-        _logSmokeEvent(
-          'navigation_error',
-          uri,
-          detail: 'http_status=${response.statusCode}',
-        );
         widget.observer?.onPageLoadFailed(uri, 'HTTP ${response.statusCode}');
       },
     );
@@ -198,7 +181,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     Uri? uri,
   ) async {
     final observer = widget.observer;
-    if (uri == null) return;
+    if (observer == null || uri == null) return;
 
     try {
       final value = await controller.evaluateJavascript(
@@ -207,32 +190,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       final documentLength = value is num
           ? value.toInt()
           : int.tryParse(value?.toString() ?? '') ?? 0;
-      _logSmokeEvent(
-        'load_stop',
-        uri,
-        detail: 'document_length=$documentLength',
-      );
-      if (observer != null) {
-        unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
-      }
+      unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
     } catch (error, stackTrace) {
       appLogger.error('Unable to inspect WebView document', error, stackTrace);
-      _logSmokeEvent('document_error', uri, detail: 'error=$error');
-      observer?.onPageLoadFailed(uri, error.toString());
+      observer.onPageLoadFailed(uri, error.toString());
     }
-  }
-
-  void _logSmokeEvent(String event, Uri? uri, {String detail = ''}) {
-    // Checkout paths and query strings can contain session tokens. The origin
-    // is enough to prove which provider loaded without putting them in CI logs.
-    final safeUri = uri == null
-        ? '<none>'
-        : uri.replace(path: '', query: '', fragment: '').toString();
-    final suffix = detail.isEmpty ? '' : ' $detail';
-    appLogger.info(
-      'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '
-      'url=$safeUri$suffix',
-    );
   }
 
   Future<void> _notifyPageLoaded(
@@ -246,6 +208,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         uri,
         documentLength: documentLength,
         captureScreenshot: () => controller.takeScreenshot(),
+        evaluateJavaScript: (source) =>
+            controller.evaluateJavascript(source: source),
       );
     } catch (error, stackTrace) {
       appLogger.error('Unable to notify WebView observer', error, stackTrace);
@@ -306,10 +270,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     final purchaseResult = _extractPurchaseResult(uri);
     if (purchaseResult != null && isLanternHost(uri.host)) {
-      final purchased = purchaseResult.toLowerCase() == 'true';
-      _logSmokeEvent('purchase_result', uri, detail: 'result=$purchased');
       loading.stop();
-      await appRouter.maybePop(purchased);
+      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
       return true;
     }
 

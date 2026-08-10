@@ -9,12 +9,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/models/plan_data.dart' as plan_models;
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/smoke/payment_checkout_smoke.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -28,9 +25,7 @@ final globalRouter = sl<AppRouter>();
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class LanternApp extends StatefulHookConsumerWidget {
-  final PaymentCheckoutSmokeConfig? paymentCheckoutSmoke;
-
-  const LanternApp({super.key, this.paymentCheckoutSmoke});
+  const LanternApp({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _LanternAppState();
@@ -49,86 +44,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     initLifecycleListener();
-    if (widget.paymentCheckoutSmoke != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(_openPaymentCheckoutSmoke(widget.paymentCheckoutSmoke!));
-      });
-    }
-  }
-
-  Future<void> _openPaymentCheckoutSmoke(
-    PaymentCheckoutSmokeConfig smoke,
-  ) async {
-    try {
-      var planData = await ref.read(plansProvider.future);
-      var matchingProviders = planData.providers.desktop
-          .where((provider) => provider.providers.name == smoke.provider)
-          .toList();
-      if (smoke.usesE2EProvider && matchingProviders.isEmpty) {
-        // Staging omits the E2E provider from normal plan responses. Expose it
-        // only to this smoke session; the server still requires its run-scoped
-        // email before issuing a checkout.
-        final e2eProvider = plan_models.Android(
-          method: 'E2E Checkout',
-          providers: plan_models.Provider(
-            name: smoke.provider,
-            icons: const [],
-            supportSubscription: false,
-          ),
-        );
-        planData = planData.copyWith(
-          providers: plan_models.Providers(
-            android: planData.providers.android,
-            desktop: [...planData.providers.desktop, e2eProvider],
-          ),
-        );
-        ref.read(plansProvider.notifier).updatePlans(planData);
-        matchingProviders = [e2eProvider];
-        appLogger.info(
-          'PAYMENT_CONVERSION_SMOKE event=provider_enabled '
-          'provider=${smoke.provider} run_id=${smoke.runID}',
-        );
-      }
-      if (matchingProviders.isEmpty) {
-        throw StateError(
-          'Provider ${smoke.provider} is absent from staging desktop plans',
-        );
-      }
-      final provider = matchingProviders.first.providers;
-      final expectedSubscription = smoke.provider == 'stripe';
-      if (provider.supportSubscription != expectedSubscription) {
-        throw StateError(
-          'Provider ${smoke.provider} has unexpected subscription capability',
-        );
-      }
-      if (planData.plans.isEmpty) {
-        throw StateError('Staging returned no payment plans');
-      }
-
-      final selectedPlan = planData.plans.firstWhere(
-        (plan) => plan.bestValue,
-        orElse: () => planData.plans.first,
-      );
-      ref.read(plansProvider.notifier).setSelectedPlan(selectedPlan);
-      appLogger.info(
-        'PAYMENT_CHECKOUT_SMOKE event=ready provider=${smoke.provider} '
-        'run_id=${smoke.runID} plan=${selectedPlan.id} '
-        'billing=${expectedSubscription ? 'subscription' : 'one_time'}',
-      );
-      await appRouter.replaceAll([
-        ChoosePaymentMethod(
-          email: smoke.email,
-          authFlow: AuthFlow.renewSubscription,
-        ),
-      ]);
-    } catch (error, stackTrace) {
-      appLogger.error(
-        'PAYMENT_CHECKOUT_SMOKE event=bootstrap_error '
-        'provider=${smoke.provider} error=$error',
-        error,
-        stackTrace,
-      );
-    }
   }
 
   void initLifecycleListener() {

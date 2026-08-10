@@ -20,7 +20,6 @@ param(
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
   [switch]$RunPaymentCheckoutSmoke,
-  [switch]$RunInstalledPaymentCheckoutSmoke,
   [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-checkout-smoke",
   [switch]$RunPaymentConversionSmoke,
   [string]$PaymentConversionArtifactDirectory = "build/windows-payment-conversion-smoke",
@@ -140,6 +139,7 @@ function Invoke-FlutterSmokeTest {
     [string]$Description,
     [ValidateSet("prod", "staging")]
     [string]$RadianceEnvironment = "prod",
+    [string[]]$DartDefines = @(),
     [switch]$EnableIpCheck,
     [switch]$ForceFullTunnel
   )
@@ -154,6 +154,10 @@ function Invoke-FlutterSmokeTest {
   )
 
   $args += "--dart-define=RADIANCE_ENV=$RadianceEnvironment"
+
+  foreach ($define in $DartDefines) {
+    $args += "--dart-define=$define"
+  }
 
   if ($EnableIpCheck) {
     $args += "--dart-define=ENABLE_IP_CHECK=true"
@@ -335,12 +339,31 @@ try {
   }
 
   if ($RunPaymentCheckoutSmoke) {
+    $checkoutDefines = @(
+      "PAYMENT_SMOKE_MODE=render",
+      "PAYMENT_SMOKE_SCREENSHOT_PATH=$PaymentSmokeArtifactDirectory/checkout.png"
+    )
     Invoke-FlutterSmokeTest `
       -Path $PaymentCheckoutTestPath `
       -Description "Windows Stripe checkout smoke test" `
-      -RadianceEnvironment $ServiceEnvironment
+      -RadianceEnvironment $ServiceEnvironment `
+      -DartDefines $checkoutDefines
   } else {
     Write-Step "Skipping Windows Stripe checkout smoke test."
+  }
+
+  if ($RunPaymentConversionSmoke) {
+    $conversionDefines = @(
+      "PAYMENT_SMOKE_MODE=conversion",
+      "PAYMENT_SMOKE_SCREENSHOT_PATH=$PaymentConversionArtifactDirectory/checkout.png"
+    )
+    Invoke-FlutterSmokeTest `
+      -Path $PaymentCheckoutTestPath `
+      -Description "Windows payment conversion smoke test" `
+      -RadianceEnvironment $ServiceEnvironment `
+      -DartDefines $conversionDefines
+  } else {
+    Write-Step "Skipping Windows payment conversion smoke test."
   }
 
   if ($RunSplitTunnelWebsiteSmoke) {
@@ -385,32 +408,6 @@ try {
         -Description "Windows config URL UI smoke test" `
         -ForceFullTunnel:$ForceFullTunnel
     }
-  }
-
-  if ($RunInstalledPaymentCheckoutSmoke) {
-    if (-not $UseInstaller) {
-      throw "The installed payment checkout smoke requires the generated installer"
-    }
-    Write-Step "Running installed Windows payment checkout smoke tests"
-    & "$PSScriptRoot/windows_payment_checkout_smoke.ps1" `
-      -ServiceName $ServiceName `
-      -ArtifactDirectory $PaymentSmokeArtifactDirectory
-  } else {
-    Write-Step "Skipping installed Windows payment checkout smoke tests."
-  }
-
-  if ($RunPaymentConversionSmoke) {
-    if (-not $UseInstaller) {
-      throw "The payment conversion smoke requires the generated installer"
-    }
-    Write-Step "Running installed Windows payment conversion smoke test"
-    & "$PSScriptRoot/windows_payment_checkout_smoke.ps1" `
-      -ServiceName $ServiceName `
-      -ArtifactDirectory $PaymentConversionArtifactDirectory `
-      -RunCheckoutCases:$false `
-      -RunPaymentConversion:$true
-  } else {
-    Write-Step "Skipping installed Windows payment conversion smoke test."
   }
 }
 finally {

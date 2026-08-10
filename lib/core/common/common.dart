@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/models/server_location.dart';
@@ -149,25 +150,17 @@ Future<bool> checkUserAccountStatus(
     initialDelay: const Duration(seconds: 1),
     interval: const Duration(seconds: 2),
     fetch: (attempt) async {
-      appLogger.info(
-        'PAYMENT_CONVERSION_SMOKE event=account_fetch attempt=$attempt',
-      );
+      appLogger.info('Checking user account status (attempt $attempt)');
       final result = await ref.read(lanternServiceProvider).fetchUserData();
       return result.fold(
         (failure) {
-          appLogger.error(
-            'PAYMENT_CONVERSION_SMOKE event=account_fetch_error '
-            'attempt=$attempt error=$failure',
-          );
+          appLogger.error('Failed to fetch user data: $failure');
           return null;
         },
         (newUser) {
           final userLevel = newUser.legacyUserData.userLevel;
-          appLogger.info(
-            'PAYMENT_CONVERSION_SMOKE event=server_user attempt=$attempt '
-            'userLevel=$userLevel',
-          );
-          return userLevel == 'pro' ? newUser : null;
+          appLogger.info('Fetched user account level: $userLevel');
+          return newUser.legacyUserData.isPro ? newUser : null;
         },
       );
     },
@@ -175,19 +168,19 @@ Future<bool> checkUserAccountStatus(
 
   if (proUser == null) {
     appLogger.warning(
-      'PAYMENT_CONVERSION_SMOKE event=account_timeout '
-      'timeout_seconds=${timeout.inSeconds}',
+      'Timed out waiting for the user account to become Pro after '
+      '${timeout.inSeconds} seconds',
     );
     return false;
   }
 
   if (!context.mounted) {
-    appLogger.warning('PAYMENT_CONVERSION_SMOKE event=account_unmounted');
+    appLogger.warning('Payment screen was disposed before account refresh');
     return false;
   }
 
   ref.read(homeProvider.notifier).updateUserData(proUser);
-  appLogger.info('PAYMENT_CONVERSION_SMOKE event=local_user userLevel=pro');
+  appLogger.info('User account is Pro');
   return true;
 }
 

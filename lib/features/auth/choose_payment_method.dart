@@ -190,6 +190,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         }
         break;
 
+      // The payment integration test injects this staging-only provider. It
+      // follows the normal desktop redirect flow so the test exercises the
+      // same callback and account-refresh behavior as a real checkout without
+      // creating a charge.
       case 'e2e':
         if (isDesktop) {
           await paymentRedirectFlow(
@@ -408,6 +412,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
+              observer: checkoutObserver,
             );
             if (!context.mounted || purchaseResult == null) return;
             await onPurchaseResult(purchaseResult, context, ref);
@@ -442,9 +447,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    appLogger.info(
-      'PAYMENT_CONVERSION_SMOKE event=webview_callback purchased=$purchased',
-    );
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
       ref.read(paymentSessionProvider.notifier).clearRedirect();
@@ -487,9 +489,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
       case AuthFlow.renewSubscription:
-        appLogger.info(
-          'PAYMENT_CONVERSION_SMOKE event=success_ui userLevel=pro',
-        );
         AppDialog.showLanternProDialog(
           context: context,
           onPressed: () {
@@ -556,20 +555,15 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               horizontal: defaultSize,
               vertical: defaultSize,
             ),
-            title: Semantics(
-              container: true,
-              excludeSemantics: true,
-              label: 'payment-provider-${method.providers.name}',
-              child: Row(
-                children: [
-                  Text(
-                    method.method.replaceAll('-', " ").toTitleCase(),
-                    style: theme.titleMedium,
-                  ),
-                  SizedBox(width: defaultSize),
-                  LogsPath(logoPaths: method.providers.icons),
-                ],
-              ),
+            title: Row(
+              children: [
+                Text(
+                  method.method.replaceAll('-', " ").toTitleCase(),
+                  style: theme.titleMedium,
+                ),
+                SizedBox(width: defaultSize),
+                LogsPath(logoPaths: method.providers.icons),
+              ],
             ),
             children: [
               Row(
@@ -654,23 +648,15 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 style: theme.bodySmall!.copyWith(color: context.textDisabled),
               ),
               SizedBox(height: defaultSize),
-              Semantics(
-                container: true,
-                excludeSemantics: true,
-                label: 'payment-checkout-${method.providers.name}',
-                button: true,
+              PrimaryButton(
+                buttonKey: Key('payment.checkout.${method.providers.name}'),
+                label: method.providers.supportSubscription
+                    ? 'subscribe'.i18n
+                    : 'checkout'.i18n,
                 enabled: !isSubmitting,
-                onTap: isSubmitting ? null : () => onSubscribe.call(method),
-                child: PrimaryButton(
-                  buttonKey: Key('payment.checkout.${method.providers.name}'),
-                  label: method.providers.supportSubscription
-                      ? 'subscribe'.i18n
-                      : 'checkout'.i18n,
-                  enabled: !isSubmitting,
-                  onPressed: () {
-                    onSubscribe.call(method);
-                  },
-                ),
+                onPressed: () {
+                  onSubscribe.call(method);
+                },
               ),
             ],
           ),

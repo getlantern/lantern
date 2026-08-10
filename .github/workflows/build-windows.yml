@@ -35,12 +35,12 @@ on:
         type: boolean
         default: true
       run_payment_checkout_smoke:
-        description: "Run installed-app staging payment checkout smoke tests"
+        description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
         default: false
       run_payment_conversion_smoke:
-        description: "Run installed-app staging payment-to-Pro conversion smoke test"
+        description: "Verify staging payment-to-Pro conversion in a Flutter integration test"
         required: false
         type: boolean
         default: false
@@ -61,11 +61,6 @@ on:
         default: false
       run_auth_smoke:
         description: "Run auth smoke integration tests"
-        required: false
-        type: boolean
-        default: false
-      run_payment_checkout_smoke:
-        description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
         default: false
@@ -205,6 +200,17 @@ jobs:
             -RunConnectSmoke:$false `
             -RunPaymentCheckoutSmoke
 
+      - name: Windows payment conversion smoke
+        if: ${{ inputs.run_payment_conversion_smoke }}
+        shell: pwsh
+        timeout-minutes: 15
+        run: |
+          ./.github/scripts/windows_smoke_suite.ps1 `
+            -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
+            -ServiceEnvironment staging `
+            -RunConnectSmoke:$false `
+            -RunPaymentConversionSmoke
+
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}
         shell: pwsh
@@ -328,15 +334,11 @@ jobs:
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
-          $runPaymentCheckoutSmoke = "${{ inputs.run_payment_checkout_smoke }}" -eq "true"
-          $runPaymentConversionSmoke = "${{ inputs.run_payment_conversion_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke paymentCheckout=$runPaymentCheckoutSmoke paymentConversion=$runPaymentConversionSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
-            -RunInstalledPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
-            -RunPaymentConversionSmoke:$runPaymentConversionSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
