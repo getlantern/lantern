@@ -56,4 +56,51 @@ void main() {
       expect(date, 'N/A');
     });
   });
+
+  group('UserDataModel.extendedExpirationDate', () {
+    const endAt = 1783036800; // 2026-07-03 UTC, between endAt and expiration
+
+    UserDataModel user({
+      String userLevel = 'pro',
+      int expiration = expiration,
+      bool autoRenew = true,
+      int endAt = endAt,
+    }) => UserDataModel(
+      userLevel: userLevel,
+      expiration: expiration,
+      subscriptionData: SubscriptionDataModel(
+        autoRenew: autoRenew,
+        endAt: endAt,
+      ),
+    );
+
+    test('formats the account expiration when it extends past endAt', () {
+      expect(user().extendedExpirationDate, formattedLocal(expiration));
+    });
+
+    test('is null when the account is expired', () {
+      expect(user(userLevel: 'expired').extendedExpirationDate, isNull);
+    });
+
+    test('is null when the subscription is not auto-renewing', () {
+      expect(user(autoRenew: false).extendedExpirationDate, isNull);
+    });
+
+    test('is null when the subscription has no endAt', () {
+      expect(user(endAt: 0).extendedExpirationDate, isNull);
+    });
+
+    test('is null when expiration does not extend past endAt', () {
+      expect(user(expiration: endAt).extendedExpirationDate, isNull);
+    });
+
+    test('is null instead of throwing for an out-of-range expiration', () {
+      // DateTime.fromMillisecondsSinceEpoch rejects |ms| > 8.64e15; an
+      // unvalidated backend value this large used to crash the account screen.
+      expect(
+        user(expiration: 9000000000000000).extendedExpirationDate,
+        isNull,
+      );
+    });
+  });
 }

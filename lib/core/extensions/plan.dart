@@ -99,15 +99,19 @@ extension IsoDateFormatter on UserDataModel {
   /// endAt (e.g. stacked or support-granted time). Null when there is no
   /// extra time to show.
   String? get extendedExpirationDate {
-    if (isExpired) return null;
-    final endAt = subscriptionData.endAt;
-    if (!subscriptionData.autoRenew || endAt <= 0) return null;
-    if (expiration <= endAt) return null;
-    final expirationDate = DateTime.fromMillisecondsSinceEpoch(
-      expiration * 1000,
-      isUtc: true,
-    ).toLocal();
-    return _formatDate(expirationDate);
+    try {
+      if (isExpired) return null;
+      final endAt = subscriptionData.endAt;
+      if (!subscriptionData.autoRenew || endAt <= 0) return null;
+      if (expiration <= endAt) return null;
+      final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+        expiration * 1000,
+        isUtc: true,
+      ).toLocal();
+      return _formatDate(expirationDate);
+    } catch (e) {
+      return null;
+    }
   }
 
   String _formatDate(DateTime dateTime) {
