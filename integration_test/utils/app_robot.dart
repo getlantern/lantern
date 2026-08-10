@@ -21,6 +21,9 @@ class AppRobot {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder macosExtensionScreen = find.byKey(
+    const Key('macos_extension.screen'),
+  );
 
   /// String-valued widget keys currently in the tree, sorted — a lightweight
   /// "what's on screen" dump for failure diagnostics. `Key('foo')` is a
@@ -247,6 +250,44 @@ class AppRobot {
     return true;
   }
 
+  /// Dismisses the macOS system-extension screen if shown. On a fresh data
+  /// dir it covers home until the extension is installed/activated; tests
+  /// that don't exercise the VPN can safely close it.
+  Future<bool> dismissMacOSExtensionScreenIfShown() async {
+    if (macosExtensionScreen.evaluate().isEmpty) {
+      return false;
+    }
+    e2eLog('macOS system extension screen shown — dismissing');
+
+    final close = find
+        .descendant(
+          of: macosExtensionScreen,
+          matching: find.byType(CloseButton),
+        )
+        .hitTestable();
+    final tapDeadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(tapDeadline)) {
+      if (macosExtensionScreen.evaluate().isEmpty) {
+        return true;
+      }
+      if (close.evaluate().isNotEmpty) {
+        await tester.tap(close);
+        await tester.pump(const Duration(milliseconds: 400));
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    await WidgetWaitUtils.waitForFinderToDisappear(
+      tester,
+      macosExtensionScreen,
+      timeout: const Duration(seconds: 10),
+      reason: 'macOS system extension screen did not close after dismiss',
+    );
+    e2eLog('macOS system extension screen dismissed');
+    return true;
+  }
+
   /// Waits until [control] is hit-testable — the app-ready gate — clearing
   /// onboarding that appears while waiting. Home renders before onboarding is
   /// pushed on top of it, so we first spend up to [onboardingGrace] letting
@@ -269,6 +310,10 @@ class AppRobot {
     while (DateTime.now().isBefore(end)) {
       if (onboardingScreen.evaluate().isNotEmpty) {
         await dismissOnboardingIfShown();
+        continue;
+      }
+      if (macosExtensionScreen.evaluate().isNotEmpty) {
+        await dismissMacOSExtensionScreenIfShown();
         continue;
       }
 

@@ -12,7 +12,14 @@ SCREENSHOT_WATCHER_PID=""
 
 capture_checkout_screenshot() {
   local deadline=$((SECONDS + 300))
+  local next_frame=0
   while ((SECONDS < deadline)); do
+    # Rolling capture — on failure this is the only screenshot taken while
+    # the app window is still up.
+    if ((SECONDS >= next_frame)); then
+      /usr/sbin/screencapture -x "$ARTIFACT_DIR/last-frame.png" 2>/dev/null || true
+      next_frame=$((SECONDS + 5))
+    fi
     if [[ -f "$SCREENSHOT_READY_FILE" ]]; then
       if /usr/sbin/screencapture -x "$SCREENSHOT_PATH"; then
         printf 'Stripe Checkout screenshot captured at %s\n' "$SCREENSHOT_PATH" \
@@ -45,8 +52,7 @@ cleanup() {
   exit "$status"
 }
 
-# This script wipes $LANTERN_DATA_DIR (real Lantern app data) and kills any
-# running Lantern — refuse to run outside CI.
+# Refuse outside CI: this wipes real Lantern app data.
 if [[ -z "${CI:-}" ]]; then
   echo "Refusing to run outside CI: this wipes $LANTERN_DATA_DIR" >&2
   exit 1
@@ -59,8 +65,7 @@ rm -rf "$LANTERN_DATA_DIR"
 mkdir -p "$LANTERN_LOG_DIR"
 mkdir -p "$ARTIFACT_DIR"
 
-# The macOS app sets up Radiance natively at launch and selects staging when
-# this marker file exists (see FilePath.isRadianceEnv()).
+# Marker makes the native Radiance setup pick staging (FilePath.isRadianceEnv).
 touch "$LANTERN_DATA_DIR/.radiance_env"
 
 capture_checkout_screenshot &
