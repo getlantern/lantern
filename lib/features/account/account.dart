@@ -138,7 +138,7 @@ class Account extends HookConsumerWidget {
               padding: EdgeInsets.zero,
               child: AppTile(
                 label: user!.legacyUserData.toDate(),
-                subtitle: _referralBonusSubtitle(user, buildContext, theme),
+                subtitle: _planSubtitle(user, buildContext, theme),
                 contentPadding: EdgeInsets.only(left: 16),
                 icon: AppImagePaths.autoRenew,
                 trailing: planTrailingWidget(user, buildContext, ref),
@@ -188,17 +188,27 @@ class Account extends HookConsumerWidget {
     );
   }
 
-  Widget? _referralBonusSubtitle(
+  Widget? _planSubtitle(
     UserResponseModel user,
     BuildContext buildContext,
     TextTheme theme,
   ) {
+    final lines = <String>[];
+    final extendedExpiration = user.legacyUserData.extendedExpirationDate;
+    if (extendedExpiration != null) {
+      lines.add('pro_access_until'.i18n.fill([extendedExpiration]));
+    }
     final months = user.legacyUserData.referralBonusMonths;
-    if (months <= 0) return null;
+    if (months > 0) {
+      lines.add(
+        months == 1
+            ? 'includes_free_month_from_referrals'.i18n.fill([months])
+            : 'includes_free_months_from_referrals'.i18n.fill([months]),
+      );
+    }
+    if (lines.isEmpty) return null;
     return Text(
-      months == 1
-          ? 'includes_free_month_from_referrals'.i18n.fill([months])
-          : 'includes_free_months_from_referrals'.i18n.fill([months]),
+      lines.join('\n'),
       style: theme.labelMedium!.copyWith(color: buildContext.textSecondary),
     );
   }
