@@ -17,7 +17,6 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
-import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -164,11 +163,21 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// Determine the appropriate environment string for Radiance based on build mode and stage detection.
+  Future<String> _radianceEnv() async {
+    if (kReleaseMode) {
+      return "prod";
+    } else {
+      final isStageFound = await isStageEnvironment();
+      return isStageFound ? "stage" : "prod";
+    }
+  }
+
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
       int consent = 0;
-      final env = await radianceEnvironment();
+      String env = await _radianceEnv();
       try {
         // Telemetry consent can be forwarded here when needed.
       } catch (_) {

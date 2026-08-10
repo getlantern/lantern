@@ -1,4 +1,5 @@
 import FlutterMacOS
+import Liblantern
 import OSLog
 import app_links
 
@@ -42,6 +43,8 @@ class AppDelegate: FlutterAppDelegate {
     }
 
     registerEventHandlers(controller: controller)
+
+    setupRadiance()
 
     // Setup native method channel
     setupMethodHandler(controller: controller)
@@ -101,6 +104,30 @@ class AppDelegate: FlutterAppDelegate {
       binaryMessenger: controller.engine.binaryMessenger
     )
     methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+  }
+
+  /// Calls API handler setup
+  private func setupRadiance() {
+    let startupTime = Date()
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
+    opts.deviceid = ""
+    opts.logLevel = "trace"
+    opts.telemetryConsent = FilePath.isTelemetryEnabled()
+    opts.env = FilePath.isRadianceEnv()
+    opts.locale = Locale.current.identifier
+    appLogger.info(
+      "logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel) telemetryConsent: \(opts.telemetryConsent) locale: \(opts.locale)"
+    )
+    var error: NSError?
+    MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
+    // Handle any error returned by the setup
+    if let error {
+      appLogger.error("Error while setting up radiance: \(error)")
+    } else {
+      appLogger.info("Radiance setup took \(Date().timeIntervalSince(startupTime)) seconds")
+    }
   }
 
 }

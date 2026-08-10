@@ -155,16 +155,10 @@ class AppWebview extends _i44.PageRouteInfo<AppWebviewArgs> {
     _i45.Key? key,
     required String title,
     required String url,
-    _i3.AppWebViewObserver? observer,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          AppWebview.name,
-         args: AppWebviewArgs(
-           key: key,
-           title: title,
-           url: url,
-           observer: observer,
-         ),
+         args: AppWebviewArgs(key: key, title: title, url: url),
          initialChildren: children,
        );
 
@@ -174,23 +168,13 @@ class AppWebview extends _i44.PageRouteInfo<AppWebviewArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<AppWebviewArgs>();
-      return _i3.AppWebView(
-        key: args.key,
-        title: args.title,
-        url: args.url,
-        observer: args.observer,
-      );
+      return _i3.AppWebView(key: args.key, title: args.title, url: args.url);
     },
   );
 }
 
 class AppWebviewArgs {
-  const AppWebviewArgs({
-    this.key,
-    required this.title,
-    required this.url,
-    this.observer,
-  });
+  const AppWebviewArgs({this.key, required this.title, required this.url});
 
   final _i45.Key? key;
 
@@ -198,26 +182,20 @@ class AppWebviewArgs {
 
   final String url;
 
-  final _i3.AppWebViewObserver? observer;
-
   @override
   String toString() {
-    return 'AppWebviewArgs{key: $key, title: $title, url: $url, observer: $observer}';
+    return 'AppWebviewArgs{key: $key, title: $title, url: $url}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! AppWebviewArgs) return false;
-    return key == other.key &&
-        title == other.title &&
-        url == other.url &&
-        observer == other.observer;
+    return key == other.key && title == other.title && url == other.url;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^ title.hashCode ^ url.hashCode ^ observer.hashCode;
+  int get hashCode => key.hashCode ^ title.hashCode ^ url.hashCode;
 }
 
 /// generated route for
@@ -260,7 +238,6 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
     required String email,
     String? code,
     required _i46.AuthFlow authFlow,
-    _i3.AppWebViewObserver? checkoutObserver,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          ChoosePaymentMethod.name,
@@ -269,7 +246,6 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
            email: email,
            code: code,
            authFlow: authFlow,
-           checkoutObserver: checkoutObserver,
          ),
          initialChildren: children,
        );
@@ -285,7 +261,6 @@ class ChoosePaymentMethod extends _i44.PageRouteInfo<ChoosePaymentMethodArgs> {
         email: args.email,
         code: args.code,
         authFlow: args.authFlow,
-        checkoutObserver: args.checkoutObserver,
       );
     },
   );
@@ -297,7 +272,6 @@ class ChoosePaymentMethodArgs {
     required this.email,
     this.code,
     required this.authFlow,
-    this.checkoutObserver,
   });
 
   final _i45.Key? key;
@@ -308,11 +282,9 @@ class ChoosePaymentMethodArgs {
 
   final _i46.AuthFlow authFlow;
 
-  final _i3.AppWebViewObserver? checkoutObserver;
-
   @override
   String toString() {
-    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow, checkoutObserver: $checkoutObserver}';
+    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow}';
   }
 
   @override
@@ -322,17 +294,12 @@ class ChoosePaymentMethodArgs {
     return key == other.key &&
         email == other.email &&
         code == other.code &&
-        authFlow == other.authFlow &&
-        checkoutObserver == other.checkoutObserver;
+        authFlow == other.authFlow;
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^
-      email.hashCode ^
-      code.hashCode ^
-      authFlow.hashCode ^
-      checkoutObserver.hashCode;
+      key.hashCode ^ email.hashCode ^ code.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
