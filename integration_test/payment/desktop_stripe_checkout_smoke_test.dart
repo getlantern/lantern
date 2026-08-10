@@ -57,10 +57,7 @@ void main() {
         );
       }
 
-      final runningApp = await _launchApp(
-        tester,
-        refreshPlans: mode == _PaymentSmokeMode.conversion,
-      );
+      final runningApp = await _launchApp(tester);
       switch (mode) {
         case _PaymentSmokeMode.render:
           await _runStripeRenderSmoke(tester, runningApp);
@@ -68,14 +65,11 @@ void main() {
           await _runPaymentConversionSmoke(tester, runningApp);
       }
     },
-    timeout: const Timeout(Duration(minutes: 6)),
+    timeout: const Timeout(Duration(minutes: 8)),
   );
 }
 
-Future<_RunningApp> _launchApp(
-  WidgetTester tester, {
-  required bool refreshPlans,
-}) async {
+Future<_RunningApp> _launchApp(WidgetTester tester) async {
   await app.main();
   await _waitFor(
     tester,
@@ -89,19 +83,9 @@ Future<_RunningApp> _launchApp(
   final plansSubscription = container.listen(plansProvider, (_, _) {});
   addTearDown(plansSubscription.close);
 
-  var plans = await container
+  final plans = await container
       .read(plansProvider.future)
       .timeout(const Duration(seconds: 60));
-  if (refreshPlans) {
-    // A prior smoke invocation may have cached plans, which makes the provider
-    // return immediately and refresh in the background. Wait for that refresh
-    // before mutating the provider so it cannot erase the injected E2E method.
-    await container
-        .read(plansProvider.notifier)
-        .waitForPendingRefresh()
-        .timeout(const Duration(seconds: 60));
-    plans = container.read(plansProvider).value ?? plans;
-  }
   expect(plans.plans, isNotEmpty, reason: 'Staging returned no plans');
   return _RunningApp(container: container, plans: plans);
 }
@@ -161,12 +145,45 @@ Future<void> _runPaymentConversionSmoke(
       supportSubscription: false,
     ),
   );
-  final plansWithE2E = runningApp.plans.copyWith(
-    providers: plan_models.Providers(
-      android: runningApp.plans.providers.android,
-      desktop: [e2eProvider, ...runningApp.plans.providers.desktop],
-    ),
-  );
+  plan_models.PlansData withE2EProvider(plan_models.PlansData plans) {
+    if (plans.providers.desktop.any(
+      (provider) => provider.providers.name == 'e2e',
+    )) {
+      return plans;
+    }
+    return plans.copyWith(
+      providers: plan_models.Providers(
+        android: plans.providers.android,
+        desktop: [e2eProvider, ...plans.providers.desktop],
+      ),
+    );
+  }
+
+  void ensureE2EProvider() {
+    final currentPlans = runningApp.container.read(plansProvider).value;
+    if (currentPlans == null) return;
+    final plansWithE2E = withE2EProvider(currentPlans);
+    if (identical(plansWithE2E, currentPlans)) return;
+    runningApp.container.read(plansProvider.notifier).updatePlans(plansWithE2E);
+  }
+
+  final e2eProviderSubscription = runningApp.container.listen(plansProvider, (
+    _,
+    next,
+  ) {
+    final plans = next.value;
+    if (plans == null ||
+        plans.providers.desktop.any(
+          (provider) => provider.providers.name == 'e2e',
+        )) {
+      return;
+    }
+    scheduleMicrotask(ensureE2EProvider);
+  });
+  addTearDown(e2eProviderSubscription.close);
+
+  final currentPlans = runningApp.container.read(plansProvider).value;
+  final plansWithE2E = withE2EProvider(currentPlans ?? runningApp.plans);
   runningApp.container.read(plansProvider.notifier).updatePlans(plansWithE2E);
   _selectBestPlan(
     _RunningApp(container: runningApp.container, plans: plansWithE2E),

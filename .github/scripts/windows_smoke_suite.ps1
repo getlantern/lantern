@@ -353,6 +353,9 @@ try {
   }
 
   if ($RunPaymentConversionSmoke) {
+    if ($ServiceEnvironment -ne "staging") {
+      throw "Payment conversion smoke requires -ServiceEnvironment staging (got '$ServiceEnvironment')"
+    }
     $conversionDefines = @(
       "PAYMENT_SMOKE_MODE=conversion",
       "PAYMENT_SMOKE_SCREENSHOT_PATH=$PaymentConversionArtifactDirectory/checkout.png"

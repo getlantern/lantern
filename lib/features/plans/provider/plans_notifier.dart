@@ -15,7 +15,6 @@ class PlansNotifier extends _$PlansNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
   Plan? userSelectedPlan;
-  Future<void>? _pendingBackgroundRefresh;
 
   // build() reruns on the same notifier instance when the provider is
   // invalidated, but listenSelf subscriptions survive rebuilds — without this
@@ -41,9 +40,7 @@ class PlansNotifier extends _$PlansNotifier {
     final cached = _storage.getPlans();
     if (cached != null) {
       appLogger.info('Found cached plans, refreshing in background');
-      final refresh = _refreshInBackground();
-      _pendingBackgroundRefresh = refresh;
-      unawaited(refresh);
+      unawaited(_refreshInBackground());
       state = AsyncData(cached);
       return cached;
     }
@@ -117,11 +114,6 @@ class PlansNotifier extends _$PlansNotifier {
       '[PlansNotifier] Background refresh complete, updating state',
     );
     state = AsyncData(remotePlans);
-  }
-
-  /// Waits for the cache-triggered refresh, if this provider started one.
-  Future<void> waitForPendingRefresh() async {
-    await _pendingBackgroundRefresh;
   }
 
   /// Replaces the current plans with [plans] — e.g. the discounted plans
