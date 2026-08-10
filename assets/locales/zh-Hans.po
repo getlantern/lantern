@@ -1,13 +1,15 @@
 # Translators:
 # Aki, 2025
-# Derek F <derek@getlantern.org>, 2025
-# e2f <projects@e2f.com>, 2026
 # e2f_cn c3 <tx_e2f_cn_c3@ate2f.com>, 2026
 # Lantern, 2026
+# CN R10 <tx_e2f_cn_r10@ate2f.com>, 2026
+# e2f <projects@e2f.com>, 2026
+# fffw <fffw@getlantern.org>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Chinese Simplified (https://app.transifex.com/lantern-1/teams/94371/zh-Hans/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,6 +27,30 @@ msgstr "设置"
 
 msgid "report_an_issue"
 msgstr "报告问题"
+
+msgid "report_issue_add_screenshots"
+msgstr "添加截图"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG、JPG 或 GIF — 总计不超过 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "添加图片"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "仅支持 PNG、JPG 和 GIF 图片。"
+
+msgid "report_issue_attachments_too_many"
+msgstr "最多可附加 3 张图片。"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "附件总大小必须小于 15 MB。"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "该图片已附加。"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "无法读取其中一个文件。"
 
 msgid "lantern_projects"
 msgstr "蓝灯项目:"
@@ -151,6 +177,30 @@ msgstr "退出登录"
 
 msgid "check_for_updates"
 msgstr "检查更新"
+
+msgid "update_available"
+msgstr "有可用更新"
+
+msgid "android_sideload_update_available_message"
+msgstr "蓝灯 %s 已发布。蓝灯将在打开 Android 安装程序之前下载并验证 APK。"
+
+msgid "download_and_install_update"
+msgstr "下载并安装"
+
+msgid "allow_unknown_app_installs"
+msgstr "允许安装应用"
+
+msgid "android_sideload_install_permission_message"
+msgstr "Android 需要权限才能安装来自蓝灯的更新。请开启“允许来自此来源的应用”，然后再次检查更新。"
+
+msgid "error_install_update"
+msgstr "无法安装更新"
+
+msgid "android_sideload_install_failed_message"
+msgstr "蓝灯无法验证或安装此更新。请稍后再试。"
+
+msgid "lantern_is_up_to_date"
+msgstr "蓝灯已是最新版本。"
 
 msgid "support"
 msgstr "支持"
@@ -353,8 +403,11 @@ msgstr "添加您的电子邮箱以在任何设备上访问您的订阅。"
 msgid "confirm_email_code"
 msgstr "确认码"
 
-msgid "confirm_email_code_message"
-msgstr "请确认此电子邮箱地址属于您,输入发送至以下地址的验证码:"
+msgid "confirm_email_code_message_part_one"
+msgstr "我们已将验证码发送至 "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " 请在下方输入。如果收件箱中没有，请检查垃圾邮件文件夹。"
 
 msgid "resend_email"
 msgstr "重新发送邮件"
@@ -463,6 +516,21 @@ msgstr "欢迎使用蓝灯！"
 
 msgid "lantern_pro_description"
 msgstr "您的专业版功能已解锁——享受无限数据、更快速度和高级服务器。"
+
+msgid "purchase_restored_title"
+msgstr "購買已恢復"
+
+msgid "purchase_restored_description"
+msgstr "您的蓝灯 Pro 订阅现已在此设备上生效。"
+
+msgid "no_purchase_found_title"
+msgstr "未找到购买记录"
+
+msgid "no_purchase_found_body_ios"
+msgstr "此 Apple ID 未关联任何有效订阅。"
+
+msgid "no_purchase_found_body_android"
+msgstr "此 Google 账号未关联任何有效订阅。"
 
 msgid "plans_fetch_error"
 msgstr "获取套餐时出错。请稍后重试。"
@@ -941,6 +1009,9 @@ msgstr "更改电子邮箱"
 msgid "change_email_message"
 msgstr "这将成为您的新登录电子邮箱。您需要先验证它,更改才会生效。"
 
+msgid "email_must_be_different"
+msgstr "请输入其他电子邮件地址。"
+
 msgid "enter_new_email"
 msgstr "输入您的新电子邮箱"
 
@@ -1009,6 +1080,15 @@ msgstr "输入激活码"
 
 msgid "restore_purchase"
 msgstr "恢复购买"
+
+msgid "already_purchased"
+msgstr "已经购买过？"
+
+msgid "restore_purchase_success"
+msgstr "购买恢复成功。"
+
+msgid "restore_purchase_no_purchases"
+msgstr "未找到可恢复的购买记录。"
 
 msgid "do_private_server_setup"
 msgstr "DO 私有服务器设置"
@@ -1497,50 +1577,50 @@ msgstr "您的账户已永久删除。"
 msgid "verify_with"
 msgstr "通过 %s 验证"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "续费"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "检测到 VPN 冲突"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr "您的设备上正在运行另一个 VPN。蓝灯作为唯一启用的 VPN 时效果最佳。为获得最佳效果，请在使用蓝灯前断开该 VPN。"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "明白了"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "仍然连接"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "无法连接。请检查您的网络连接。"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "服务暂时不可用。正在重试..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "连接失败。请重试。"
+
+msgid "err_ruleset_failed"
+msgstr "无法加载路由配置。正在重试..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "立即更新"
 
 msgid "later"
-msgstr "Later"
+msgstr "稍后"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "蓝灯 %s 已准备好安装"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "已是最新"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "您正在使用最新版本的蓝灯 %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "无法检查更新"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "请检查网络连接后重试"
