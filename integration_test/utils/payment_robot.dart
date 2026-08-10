@@ -9,6 +9,7 @@ import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
 import 'app_robot.dart';
+import 'widget_wait_utils.dart';
 
 /// Drives plan selection and the payment-method screen through the same state
 /// and controls used by the app.
@@ -85,6 +86,13 @@ class PaymentRobot {
       await tester.tap(providerTile);
       await tester.pump(const Duration(milliseconds: 300));
     }
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      checkoutButton,
+      timeout: const Duration(seconds: 10),
+      reason: '$provider checkout button was not available',
+    );
+    await tester.ensureVisible(checkoutButton);
     await app.waitForControlReady(
       checkoutButton,
       controlName: '$provider checkout button',
@@ -92,7 +100,6 @@ class PaymentRobot {
     );
 
     e2eLog('Starting $provider checkout');
-    await tester.ensureVisible(checkoutButton);
     await tester.tap(checkoutButton);
   }
 }
