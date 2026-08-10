@@ -40,6 +40,7 @@ type ipcResources struct {
 	backend *backend.LocalBackend
 }
 
+// close shuts down the server and its backend.
 func (resources ipcResources) close() {
 	if resources.server != nil {
 		_ = resources.server.Close()
@@ -68,6 +69,8 @@ func getClient() (*ipc.Client, error) {
 	return core.Client(), nil
 }
 
+// StartIPCServer starts the local IPC server. Once it is running, repeated
+// calls are no-ops.
 func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		return struct{}{}, startIPCServer(platform, opts)
@@ -75,6 +78,8 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	return err
 }
 
+// startIPCServer builds the backend, then publishes it if shutdown did not
+// happen in the meantime.
 func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	generation, shouldStart, err := beginIPCStart()
 	if err != nil || !shouldStart {
@@ -108,6 +113,8 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	return publishIPCResources(generation, resources)
 }
 
+// beginIPCStart reserves the lifecycle for one startup attempt. The generation
+// tells us whether shutdown happened before that attempt finished.
 func beginIPCStart() (generation uint64, shouldStart bool, err error) {
 	ipcLifecycle.mu.Lock()
 	defer ipcLifecycle.mu.Unlock()
@@ -122,16 +129,15 @@ func beginIPCStart() (generation uint64, shouldStart bool, err error) {
 	return ipcLifecycle.generation, true, nil
 }
 
+// finishIPCStart releases the startup guard.
 func finishIPCStart() {
 	ipcLifecycle.mu.Lock()
 	ipcLifecycle.starting = false
 	ipcLifecycle.mu.Unlock()
 }
 
-// startIPCResources bounds backend construction and server startup even though
-// NewLocalBackend does not consistently observe a context. LocalBackend retains
-// its context for its full lifetime, so construction uses an independent
-// background context while startupCtx controls waiting and late-result cleanup.
+// startIPCResources waits for backend setup and cleans up if the result arrives
+// after the caller has stopped waiting.
 func startIPCResources(startupCtx context.Context, opts backend.Options) (ipcResources, error) {
 	resultCh := make(chan ipcStartResult)
 	go func() {
@@ -155,6 +161,7 @@ func startIPCResources(startupCtx context.Context, opts backend.Options) (ipcRes
 	}
 }
 
+// newIPCResources builds the local backend and starts its IPC server.
 func newIPCResources(opts backend.Options) ipcStartResult {
 	localBackend, err := backend.NewLocalBackend(context.Background(), opts)
 	if err != nil {
@@ -173,6 +180,8 @@ func newIPCResources(opts backend.Options) ipcStartResult {
 	}}
 }
 
+// publishIPCResources makes a completed startup visible to clients. If
+// CloseIPCServer ran during setup, it closes the new resources instead.
 func publishIPCResources(generation uint64, resources ipcResources) error {
 	ipcLifecycle.mu.Lock()
 	if generation != ipcLifecycle.generation {
@@ -187,6 +196,7 @@ func publishIPCResources(generation uint64, resources ipcResources) error {
 	return nil
 }
 
+// CloseIPCServer detaches the current IPC resources before shutting them down.
 func CloseIPCServer() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		resources, shouldClose := beginIPCClose()
@@ -201,6 +211,7 @@ func CloseIPCServer() error {
 	return err
 }
 
+// beginIPCClose detaches the live resources and invalidates any in-flight start.
 func beginIPCClose() (ipcResources, bool) {
 	ipcLifecycle.mu.Lock()
 	defer ipcLifecycle.mu.Unlock()
@@ -221,6 +232,7 @@ func beginIPCClose() (ipcResources, bool) {
 	return resources, true
 }
 
+// finishIPCClose releases the shutdown guard.
 func finishIPCClose() {
 	ipcLifecycle.mu.Lock()
 	ipcLifecycle.closing = false
