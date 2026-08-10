@@ -62,6 +62,19 @@ actor VPNLifecycleCoordinator {
     activeConnectionID == id && !stopPending
   }
 
+  /// Performs the final synchronous connection transition while this actor
+  /// still owns the lifecycle decision, so a stop cannot interleave between
+  /// the cancellation check and starting the system tunnel.
+  func performFinalConnectionTransition<T>(
+    _ id: UInt,
+    _ transition: () throws -> T
+  ) throws -> T {
+    guard activeConnectionID == id, !stopPending else {
+      throw VPNManagerError.operationInProgress
+    }
+    return try transition()
+  }
+
   /// Hands the manager to a waiting stop request after startup work has finished.
   func endConnectionOperation(_ id: UInt) {
     guard activeConnectionID == id else { return }

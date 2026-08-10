@@ -158,10 +158,11 @@ class VPNManager: VPNBase {
 
     self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
-    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw VPNManagerError.operationInProgress
-    }
-    try self.manager.connection.startVPNTunnel(options: options)
+    try await startOrNotifyExistingTunnel(
+      operationID: operationID,
+      options: options,
+      methodName: "Lantern"
+    )
   }
 
   func connectToServer(
@@ -183,19 +184,33 @@ class VPNManager: VPNBase {
       "netEx.ServerName": serverName as NSString,
     ]
 
-    if try !shouldStartNewTunnel(for: manager.connection.status) {
-      appLogger.info("VPN is already connected, sending command to extension")
-      _ = try await triggerExtensionMethod(
-        methodName: "PrivateServer",
-        params: ["server": serverName]
-      )
-      return
-    }
+    try await startOrNotifyExistingTunnel(
+      operationID: operationID,
+      options: options,
+      methodName: "PrivateServer",
+      params: ["server": serverName]
+    )
+  }
 
-    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw VPNManagerError.operationInProgress
+  private func startOrNotifyExistingTunnel(
+    operationID: UInt,
+    options: [String: NSObject],
+    methodName: String,
+    params: [String: Any] = [:]
+  ) async throws {
+    let startedNewTunnel = try await lifecycleCoordinator.performFinalConnectionTransition(
+      operationID
+    ) {
+      if try !shouldStartNewTunnel(for: self.manager.connection.status) {
+        return false
+      }
+      try self.manager.connection.startVPNTunnel(options: options)
+      return true
     }
-    try self.manager.connection.startVPNTunnel(options: options)
+    if !startedNewTunnel {
+      appLogger.info("VPN is already connected, sending command to extension")
+      _ = try await triggerExtensionMethod(methodName: methodName, params: params)
+    }
   }
 
   /// Stops the VPN tunnel.

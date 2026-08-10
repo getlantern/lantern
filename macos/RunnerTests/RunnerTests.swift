@@ -79,6 +79,14 @@ final class RunnerTests: XCTestCase {
       }
       await Task.yield()
     }
+    do {
+      try await coordinator.performFinalConnectionTransition(operationID) {
+        XCTFail("Canceled connection transition must not run")
+      }
+      XCTFail("Expected operationInProgress for the canceled transition")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
+    }
     await coordinator.endConnectionOperation(operationID)
     let canceledConnectionOperation = try await stopTask.value
     XCTAssertTrue(canceledConnectionOperation)
