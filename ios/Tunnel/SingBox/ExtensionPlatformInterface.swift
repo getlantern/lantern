@@ -473,6 +473,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
         identifier: notification.identifier, content: content, trigger: nil)
       try runBlocking {
         try await center.requestAuthorization(options: [.alert])
+        // requestAuthorization ignores cancellation, so a timed-out runBlocking would
+        // otherwise still post the notification long after the caller gave up.
+        try Task.checkCancellation()
         try await center.add(request)
       }
     #endif
