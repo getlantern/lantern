@@ -1,18 +1,25 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:lantern/main.dart' as app;
 
 const _stripeHost = 'checkout.stripe.com';
+const _screenshotPath = String.fromEnvironment('PAYMENT_SMOKE_SCREENSHOT_PATH');
+const _screenshotRenderTimeout = Duration(seconds: 30);
+const _screenshotPollInterval = Duration(milliseconds: 250);
+const _minimumScreenshotContrast = 64;
+const _darkPixelLuminance = 192;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -104,7 +111,18 @@ void main() {
       expect(find.byKey(const ValueKey('app-webview')), findsOneWidget);
       expect(observer.uri?.host, _stripeHost);
       expect(observer.documentLength, greaterThan(0));
-      await _captureMacOSCheckoutScreenshot(tester);
+      if (Platform.isMacOS) {
+        final screenshot = observer.screenshot;
+        if (screenshot == null) {
+          fail('The Stripe WebView did not return a screenshot');
+        }
+        if (_screenshotPath.isNotEmpty) {
+          final file = File(_screenshotPath);
+          await file.parent.create(recursive: true);
+          await file.writeAsBytes(screenshot, flush: true);
+          debugPrint('Stripe Checkout screenshot saved to ${file.path}');
+        }
+      }
       debugPrint(
         'Stripe Checkout rendered from $_stripeHost '
         '(${observer.documentLength} document characters)',
@@ -114,19 +132,69 @@ void main() {
   );
 }
 
-Future<void> _captureMacOSCheckoutScreenshot(WidgetTester tester) async {
-  if (!Platform.isMacOS) return;
-
-  final directory = await AppStorageUtils.getAppDirectory();
-  final ready = File('${directory.path}/.checkout-screenshot-ready');
-  final captured = File('${directory.path}/.checkout-screenshot-captured');
-  await ready.create(recursive: true);
-  final deadline = DateTime.now().add(const Duration(seconds: 10));
+Future<Uint8List> _waitForRenderedScreenshot(
+  Future<Uint8List?> Function() captureScreenshot,
+) async {
+  final deadline = DateTime.now().add(_screenshotRenderTimeout);
+  Object? lastError;
   while (DateTime.now().isBefore(deadline)) {
-    if (await captured.exists()) return;
-    await tester.pump(const Duration(milliseconds: 100));
+    try {
+      final screenshot = await captureScreenshot().timeout(
+        const Duration(seconds: 5),
+      );
+      if (screenshot != null && await _hasVisibleContent(screenshot)) {
+        return screenshot;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+    await Future<void>.delayed(_screenshotPollInterval);
   }
-  debugPrint('Timed out waiting for the macOS checkout screenshot');
+  final detail = lastError == null ? '' : ': $lastError';
+  throw TimeoutException(
+    'Stripe Checkout did not become visually ready$detail',
+    _screenshotRenderTimeout,
+  );
+}
+
+Future<bool> _hasVisibleContent(Uint8List screenshot) async {
+  if (screenshot.lengthInBytes <= 1024) return false;
+
+  final codec = await ui.instantiateImageCodec(screenshot);
+  try {
+    final frame = await codec.getNextFrame();
+    try {
+      if (frame.image.width <= 100 || frame.image.height <= 100) return false;
+      final data = await frame.image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
+      if (data == null) return false;
+
+      var darkest = 255;
+      var lightest = 0;
+      var darkPixels = 0;
+      final pixelCount = data.lengthInBytes ~/ 4;
+      final minimumDarkPixels = max(64, pixelCount ~/ 1000);
+      for (var offset = 0; offset < data.lengthInBytes; offset += 4) {
+        final red = data.getUint8(offset);
+        final green = data.getUint8(offset + 1);
+        final blue = data.getUint8(offset + 2);
+        final luminance = (299 * red + 587 * green + 114 * blue) ~/ 1000;
+        if (luminance < darkest) darkest = luminance;
+        if (luminance > lightest) lightest = luminance;
+        if (luminance <= _darkPixelLuminance) darkPixels++;
+        if (lightest - darkest >= _minimumScreenshotContrast &&
+            darkPixels >= minimumDarkPixels) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      frame.image.dispose();
+    }
+  } finally {
+    codec.dispose();
+  }
 }
 
 Future<void> _waitFor(
@@ -159,6 +227,7 @@ String _newUuid() {
 class _StripeCheckoutObserver implements AppWebViewObserver {
   Uri? uri;
   int documentLength = 0;
+  Uint8List? screenshot;
   String? lastFailure;
   String? checkoutFailure;
 
@@ -169,8 +238,19 @@ class _StripeCheckoutObserver implements AppWebViewObserver {
       : 'Stripe Checkout did not load: $lastFailure';
 
   @override
-  void onPageLoaded(Uri uri, {required int documentLength}) {
+  Future<void> onPageLoaded(
+    Uri uri, {
+    required int documentLength,
+    required Future<Uint8List?> Function() captureScreenshot,
+  }) async {
     if (uri.host != _stripeHost) return;
+    if (Platform.isMacOS) {
+      try {
+        screenshot = await _waitForRenderedScreenshot(captureScreenshot);
+      } catch (error) {
+        checkoutFailure = 'Unable to capture WebView screenshot: $error';
+      }
+    }
     this.uri = uri;
     this.documentLength = documentLength;
   }

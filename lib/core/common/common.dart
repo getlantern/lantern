@@ -141,7 +141,7 @@ Future<String> pasteFromClipboard() async {
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(
   WidgetRef ref,
-  BuildContext context, {
+  BuildContext _, {
   Duration timeout = const Duration(seconds: 45),
 }) async {
   final proUser = await boundedPoll<UserResponseModel>(

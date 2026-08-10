@@ -5,39 +5,11 @@ TEST_PATH="${TEST_PATH:-integration_test/payment/desktop_stripe_checkout_smoke_t
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos-payment-checkout}"
 LANTERN_DATA_DIR="/Users/Shared/Lantern"
 LANTERN_LOG_DIR="$LANTERN_DATA_DIR/Logs"
-SCREENSHOT_READY_FILE="$LANTERN_DATA_DIR/.checkout-screenshot-ready"
-SCREENSHOT_CAPTURED_FILE="$LANTERN_DATA_DIR/.checkout-screenshot-captured"
 SCREENSHOT_PATH="$ARTIFACT_DIR/stripe-checkout.png"
-SCREENSHOT_WATCHER_PID=""
-
-capture_checkout_screenshot() {
-  local deadline=$((SECONDS + 300))
-  while ((SECONDS < deadline)); do
-    if [[ -f "$SCREENSHOT_READY_FILE" ]]; then
-      if /usr/sbin/screencapture -x "$SCREENSHOT_PATH"; then
-        printf 'Stripe Checkout screenshot captured at %s\n' "$SCREENSHOT_PATH" \
-          >"$ARTIFACT_DIR/screenshot-status.txt"
-      else
-        printf 'Unable to capture the Stripe Checkout screenshot\n' \
-          >"$ARTIFACT_DIR/screenshot-status.txt"
-      fi
-      touch "$SCREENSHOT_CAPTURED_FILE"
-      return
-    fi
-    sleep 0.1
-  done
-}
 
 cleanup() {
   local status=$?
-  if [[ -n "$SCREENSHOT_WATCHER_PID" ]]; then
-    kill "$SCREENSHOT_WATCHER_PID" 2>/dev/null || true
-    wait "$SCREENSHOT_WATCHER_PID" 2>/dev/null || true
-  fi
   mkdir -p "$ARTIFACT_DIR"
-  if [[ ! -f "$SCREENSHOT_PATH" ]]; then
-    /usr/sbin/screencapture -x "$SCREENSHOT_PATH" 2>/dev/null || true
-  fi
   if [[ -d "$LANTERN_LOG_DIR" ]]; then
     cp -R "$LANTERN_LOG_DIR/." "$ARTIFACT_DIR/" 2>/dev/null || true
   fi
@@ -52,12 +24,15 @@ rm -rf "$LANTERN_DATA_DIR"
 mkdir -p "$LANTERN_LOG_DIR"
 mkdir -p "$ARTIFACT_DIR"
 
-capture_checkout_screenshot &
-SCREENSHOT_WATCHER_PID=$!
-
 flutter test \
   "$TEST_PATH" \
   -d macos \
   --reporter=expanded \
   --dart-define=DISABLE_SYSTEM_TRAY=true \
+  --dart-define=PAYMENT_SMOKE_SCREENSHOT_PATH="$SCREENSHOT_PATH" \
   --dart-define=RADIANCE_ENV=staging
+
+if [[ ! -s "$SCREENSHOT_PATH" ]]; then
+  echo "Stripe Checkout screenshot was not created" >&2
+  exit 1
+fi

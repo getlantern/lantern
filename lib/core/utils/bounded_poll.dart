@@ -23,6 +23,7 @@ Future<T?> boundedPoll<T>({
   while (stopwatch.elapsed < timeout) {
     attempt++;
     final remaining = timeout - stopwatch.elapsed;
+    if (remaining <= Duration.zero) break;
     final result = await fetch(
       attempt,
     ).timeout(remaining, onTimeout: () => null);

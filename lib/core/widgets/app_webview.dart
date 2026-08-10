@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -11,7 +14,11 @@ final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
 
 /// Receives main-frame load events from an in-app WebView.
 abstract interface class AppWebViewObserver {
-  void onPageLoaded(Uri uri, {required int documentLength});
+  Future<void> onPageLoaded(
+    Uri uri, {
+    required int documentLength,
+    required Future<Uint8List?> Function() captureScreenshot,
+  });
 
   void onPageLoadFailed(Uri? uri, String reason);
 }
@@ -205,7 +212,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         uri,
         detail: 'document_length=$documentLength',
       );
-      observer.onPageLoaded(uri, documentLength: documentLength);
+      unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
     } catch (error, stackTrace) {
       appLogger.error('Unable to inspect WebView document', error, stackTrace);
       _logSmokeEvent('document_error', uri, detail: 'error=$error');
@@ -224,6 +231,24 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       'PAYMENT_WEBVIEW_SMOKE event=$event host=${uri?.host ?? '<none>'} '
       'url=$safeUri$suffix',
     );
+  }
+
+  Future<void> _notifyPageLoaded(
+    AppWebViewObserver observer,
+    InAppWebViewController controller,
+    Uri uri,
+    int documentLength,
+  ) async {
+    try {
+      await observer.onPageLoaded(
+        uri,
+        documentLength: documentLength,
+        captureScreenshot: () => controller.takeScreenshot(),
+      );
+    } catch (error, stackTrace) {
+      appLogger.error('Unable to notify WebView observer', error, stackTrace);
+      observer.onPageLoadFailed(uri, error.toString());
+    }
   }
 
   bool isLanternHost(String host) =>
