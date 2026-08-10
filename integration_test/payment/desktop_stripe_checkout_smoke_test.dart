@@ -6,15 +6,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
-import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/main.dart' as app;
 
 import '../utils/app_robot.dart';
-import '../utils/widget_wait_utils.dart';
+import '../utils/payment_robot.dart';
 
 const _stripeHost = 'checkout.stripe.com';
 const _screenshotPath = String.fromEnvironment('PAYMENT_SMOKE_SCREENSHOT_PATH');
@@ -37,18 +35,10 @@ void main() {
 
       await app.main();
       final robot = AppRobot(tester);
+      final payment = PaymentRobot(tester, robot);
       await robot.waitForHomeReady();
 
-      final container = ProviderScope.containerOf(
-        tester.element(robot.homeScreen),
-        listen: false,
-      );
-      final plansSubscription = container.listen(plansProvider, (_, _) {});
-      addTearDown(plansSubscription.close);
-
-      final plans = await container
-          .read(plansProvider.future)
-          .timeout(const Duration(seconds: 60));
+      final plans = await payment.loadPlans();
       final stripe = plans.providers.desktop.where(
         (provider) => provider.providers.name == 'stripe',
       );
@@ -59,67 +49,24 @@ void main() {
         reason: 'Staging Stripe must support subscriptions',
       );
       expect(plans.plans, isNotEmpty, reason: 'Staging returned no plans');
-
-      final selectedPlan = plans.plans.firstWhere(
-        (plan) => plan.bestValue,
-        orElse: () => plans.plans.first,
-      );
-      container.read(plansProvider.notifier).setSelectedPlan(selectedPlan);
-      e2eLog('Selected plan ${selectedPlan.id}');
+      payment.selectBestValuePlan(plans);
 
       final checkout = _StripeCheckoutTracker();
-      final pageEventSubscription = container.listen(webViewPageEventProvider, (
-        _,
-        event,
-      ) {
-        if (event != null) unawaited(checkout.add(event));
-      });
+      final pageEventSubscription = payment.container.listen(
+        webViewPageEventProvider,
+        (_, event) {
+          if (event != null) unawaited(checkout.add(event));
+        },
+      );
       addTearDown(pageEventSubscription.close);
 
-      await appRouter.replaceAll([
-        ChoosePaymentMethod(
-          email: 'e2e+${_newUuid()}@getlantern.org',
-          authFlow: AuthFlow.renewSubscription,
-        ),
-      ]);
-
-      final stripeProvider = find.byKey(const Key('payment.provider.stripe'));
-      await WidgetWaitUtils.waitForCondition(
-        tester,
-        () => stripeProvider.evaluate().isNotEmpty,
-        timeout: const Duration(seconds: 30),
-        describeFailure: () =>
-            'Stripe was not shown on the payment-method screen. '
-            'Visible keys: ${robot.visibleKeys().join(', ')}',
+      await payment.openPaymentMethods(
+        email: e2eEmail(),
+        authFlow: AuthFlow.renewSubscription,
       );
+      await payment.startStripeCheckout();
 
-      final checkoutButton = find.byKey(const Key('payment.checkout.stripe'));
-      if (checkoutButton.evaluate().isEmpty) {
-        e2eLog('Expanding the Stripe payment method');
-        await tester.tap(stripeProvider);
-        await tester.pump(const Duration(milliseconds: 300));
-      }
-      await WidgetWaitUtils.waitForCondition(
-        tester,
-        () => checkoutButton.evaluate().isNotEmpty,
-        timeout: const Duration(seconds: 10),
-        describeFailure: () =>
-            'Stripe checkout button was not available. '
-            'Visible keys: ${robot.visibleKeys().join(', ')}',
-      );
-
-      // Tapped directly (not via robot.tap): the tap opens the WebView with
-      // its loading spinner, and pumpAndSettle would hang on the animation.
-      e2eLog('Tapping the Stripe checkout button');
-      await tester.ensureVisible(checkoutButton);
-      await tester.tap(checkoutButton);
-
-      await WidgetWaitUtils.waitForCondition(
-        tester,
-        () => checkout.finished,
-        timeout: const Duration(minutes: 3),
-        describeFailure: () => checkout.failureMessage,
-      );
+      await _waitForCheckout(tester, checkout);
 
       if (checkout.failure != null) {
         fail('Stripe Checkout failed to load: ${checkout.failure}');
@@ -146,6 +93,20 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 5)),
   );
+}
+
+/// Waits until the tracker sees Stripe load or fail — a state wait, not a
+/// widget wait, so the robot's finder-based helpers don't apply.
+Future<void> _waitForCheckout(
+  WidgetTester tester,
+  _StripeCheckoutTracker checkout,
+) async {
+  final deadline = DateTime.now().add(const Duration(minutes: 3));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (checkout.finished) return;
+  }
+  fail(checkout.failureMessage);
 }
 
 Future<Uint8List> _waitForRenderedScreenshot(
@@ -211,19 +172,6 @@ Future<bool> _hasVisibleContent(Uint8List screenshot) async {
   } finally {
     codec.dispose();
   }
-}
-
-String _newUuid() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  final hex = bytes
-      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      .join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
 }
 
 /// Folds [webViewPageEventProvider] events into a checkout verdict.
