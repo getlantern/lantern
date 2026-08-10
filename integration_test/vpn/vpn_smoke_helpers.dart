@@ -27,6 +27,9 @@ class VpnSmokeFinders {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder macosExtensionScreen = find.byKey(
+    const Key('macos_extension.screen'),
+  );
   final Finder vpnToggle = find.byKey(const Key('vpn.toggle'));
 }
 
@@ -131,6 +134,7 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
   required Finder onboardingScreen,
   required Finder onboardingSkip,
   required Finder onboardingPrimary,
+  required Finder macosExtensionScreen,
   required Duration timeout,
 }) async {
   final end = DateTime.now().add(timeout);
@@ -140,6 +144,24 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
         await tester.tap(onboardingSkip);
       } else if (onboardingPrimary.evaluate().isNotEmpty) {
         await tester.tap(onboardingPrimary);
+      }
+      await tester.pump(const Duration(milliseconds: 400));
+      continue;
+    }
+
+    // On a fresh data dir, macOS pushes the system-extension screen after
+    // onboarding; it never auto-closes while the debug bundle reports
+    // updatePending, so close it — the preflight-activated extension still
+    // serves the tunnel.
+    if (macosExtensionScreen.evaluate().isNotEmpty) {
+      final close = find
+          .descendant(
+            of: macosExtensionScreen,
+            matching: find.byType(CloseButton),
+          )
+          .hitTestable();
+      if (close.evaluate().isNotEmpty) {
+        await tester.tap(close);
       }
       await tester.pump(const Duration(milliseconds: 400));
       continue;
@@ -165,20 +187,18 @@ Future<void> waitForHomeReadyForVpnSmoke(
     reason: 'Home or onboarding did not appear after launch',
   );
 
-  await WidgetWaitUtils.waitForFinder(
-    tester,
-    finders.homeScreen,
-    timeout: const Duration(seconds: 45),
-    reason: 'Home screen did not load',
-  );
-
+  // No strict wait for home here: find.byKey skips offstage widgets, and
+  // home is offstage while onboarding (or the macOS extension screen)
+  // covers it on a fresh data dir. The toggle wait below clears those
+  // overlays and is the real ready gate.
   await waitForVpnToggleWithOnboardingHandling(
     tester,
     vpnToggle: finders.vpnToggle,
     onboardingScreen: finders.onboardingScreen,
     onboardingSkip: finders.onboardingSkip,
     onboardingPrimary: finders.onboardingPrimary,
-    timeout: const Duration(seconds: 30),
+    macosExtensionScreen: finders.macosExtensionScreen,
+    timeout: const Duration(seconds: 45),
   );
 
   await WidgetWaitUtils.waitForFinderToDisappear(
@@ -221,6 +241,7 @@ Future<VPNStatus> resolveInitialStableVpnStateForSmoke(
       onboardingScreen: finders.onboardingScreen,
       onboardingSkip: finders.onboardingSkip,
       onboardingPrimary: finders.onboardingPrimary,
+      macosExtensionScreen: finders.macosExtensionScreen,
       timeout: const Duration(seconds: 15),
     );
 

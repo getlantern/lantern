@@ -2,67 +2,20 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
-import 'vpn_smoke_helpers.dart';
+import '../utils/app_robot.dart';
+import '../utils/vpn_robot.dart';
 
-const _vpnStateLabels = <VPNStatus, String>{
-  VPNStatus.connected: 'Connected',
-  VPNStatus.disconnected: 'Disconnected',
-  VPNStatus.connecting: 'Connecting',
-  VPNStatus.disconnecting: 'Disconnecting',
-  VPNStatus.missingPermission: 'MissingPermission',
-  VPNStatus.error: 'Error',
-};
+/// Desktop connect/disconnect smoke harness. App shell via [AppRobot], VPN
+/// state via [VpnRobot] (which listens to vpnProvider) — same structure as
+/// the Android harness in android_connect_smoke_harness.dart.
 
 const _ipCheckEndpoint = 'https://api64.ipify.org';
 const _forceFullTunnelForSmoke = bool.fromEnvironment(
   'SMOKE_FORCE_FULL_TUNNEL',
   defaultValue: false,
 );
-
-Future<void> _setRoutingModeToFullTunnelForSmoke(
-  WidgetTester tester, {
-  required VpnSmokeFinders finders,
-}) async {
-  if (!_forceFullTunnelForSmoke) {
-    return;
-  }
-
-  final homeElements = finders.homeScreen.evaluate();
-  if (homeElements.isEmpty) {
-    fail('Home screen not found while applying smoke routing mode override');
-  }
-
-  final container = ProviderScope.containerOf(
-    homeElements.first,
-    listen: false,
-  );
-  debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; switching to full tunnel mode');
-  final result = await container
-      .read(radianceSettingsProvider.notifier)
-      .setRoutingMode(RoutingMode.full);
-
-  result.fold(
-    (failure) => fail(
-      'Failed to switch routing mode to full tunnel for smoke: $failure',
-    ),
-    (_) {},
-  );
-
-  final deadline = DateTime.now().add(const Duration(seconds: 20));
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    final updatedMode = container.read(radianceSettingsProvider).routingMode;
-    if (updatedMode == RoutingMode.full) {
-      return;
-    }
-  }
-
-  fail('Routing mode did not settle to full tunnel for smoke');
-}
 
 Future<String?> _fetchPublicIpOnce() async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
@@ -117,45 +70,29 @@ Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
   return false;
 }
 
-Future<void> _disconnectVpn(
-  WidgetTester tester, {
-  required Finder vpnToggle,
-  required VpnStateFinders vpnStateFinders,
-}) async {
-  final currentState = vpnStateFinders.current();
-  if (currentState != VPNStatus.connected &&
-      currentState != VPNStatus.connecting) {
-    return;
-  }
-
-  await tester.tap(vpnToggle);
-  await tester.pump(const Duration(milliseconds: 200));
-
-  await vpnStateFinders.waitFor(
-    tester,
-    expected: const [VPNStatus.disconnected],
-    timeout: const Duration(seconds: 45),
-    reason: 'VPN did not return to disconnected state within 45 seconds',
-  );
-}
-
 Future<void> runConnectSmokeHarness(
   WidgetTester tester, {
   bool enableIpCheck = false,
   bool requireTrafficAfterConnect = false,
 }) async {
-  final finders = VpnSmokeFinders();
-  final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
+  final app = AppRobot(tester);
+  final vpn = VpnRobot(tester, app);
+
+  await app.launchToHome();
+  await app.waitForControlReady(vpn.vpnToggle, controlName: 'VPN toggle');
+  await vpn.ensureDisconnected();
+
+  vpn.beginErrorWatch();
+  addTearDown(vpn.assertNoErrorsSeen);
+
+  if (_forceFullTunnelForSmoke) {
+    debugPrint(
+      'SMOKE_FORCE_FULL_TUNNEL enabled; switching to full tunnel mode',
+    );
+    await vpn.setRoutingMode(RoutingMode.full);
+  }
+
   String? baselinePublicIp;
-
-  await prepareVpnStartsDisconnectedForSmoke(
-    tester,
-    finders: finders,
-    vpnStateFinders: vpnStateFinders,
-    scenario: 'connect/disconnect smoke',
-  );
-  await _setRoutingModeToFullTunnelForSmoke(tester, finders: finders);
-
   if (enableIpCheck) {
     debugPrint('IP check: enabled; fetching baseline before connect');
     baselinePublicIp = await _fetchPublicIpWithRetry(
@@ -166,15 +103,7 @@ Future<void> runConnectSmokeHarness(
 
   var ipChanged = true;
   try {
-    await tester.tap(finders.vpnToggle);
-    await tester.pump(const Duration(milliseconds: 200));
-
-    await vpnStateFinders.waitFor(
-      tester,
-      expected: const [VPNStatus.connected],
-      timeout: const Duration(seconds: 45),
-      reason: 'VPN did not reach connected state within 45 seconds',
-    );
+    await vpn.connect();
 
     if (requireTrafficAfterConnect) {
       debugPrint('IP check: confirming public traffic after connect');
@@ -193,11 +122,7 @@ Future<void> runConnectSmokeHarness(
       }
     }
   } finally {
-    await _disconnectVpn(
-      tester,
-      vpnToggle: finders.vpnToggle,
-      vpnStateFinders: vpnStateFinders,
-    );
+    await vpn.disconnectIfNeeded();
   }
 
   if (enableIpCheck && baselinePublicIp != null && !ipChanged) {
