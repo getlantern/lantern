@@ -95,12 +95,7 @@ void main() {
     });
 
     test('is null instead of throwing for an out-of-range expiration', () {
-      // DateTime.fromMillisecondsSinceEpoch rejects |ms| > 8.64e15; an
-      // unvalidated backend value this large used to crash the account screen.
-      expect(
-        user(expiration: 9000000000000000).extendedExpirationDate,
-        isNull,
-      );
+      expect(user(expiration: 9000000000000000).extendedExpirationDate, isNull);
     });
   });
 }
