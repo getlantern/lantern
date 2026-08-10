@@ -268,8 +268,7 @@ run_with_timeout() {
 enable_system_extension_developer_mode() {
   # The Flutter connect smoke runs from the build directory, and macOS only
   # activates system extensions from /Applications unless developer mode is
-  # on. Idempotent; needs root AND SIP disabled (systemextensionsctl refuses
-  # the developer subcommand while SIP is enabled).
+  # on. Idempotent; needs root.
   log_step "SIP status: $(csrutil status 2>&1 || true)"
   local dev_state
   dev_state="$(systemextensionsctl developer 2>&1 || true)"
@@ -281,7 +280,7 @@ enable_system_extension_developer_mode() {
   if sudo -n systemextensionsctl developer on 2>/dev/null; then
     log_step "Enabled system extension developer mode"
   else
-    printf 'WARNING: could not enable system extension developer mode (needs passwordless sudo and SIP disabled). The Flutter connect smoke cannot activate its bundled extension without it. Run once on this runner: sudo systemextensionsctl developer on\n' >&2
+    printf 'WARNING: could not enable system extension developer mode (needs passwordless sudo). The Flutter connect smoke cannot activate its bundled extension without it. Run once on this runner: sudo systemextensionsctl developer on\n' >&2
   fi
 }
 

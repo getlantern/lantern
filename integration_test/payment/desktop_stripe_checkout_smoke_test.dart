@@ -211,18 +211,12 @@ class _StripeCheckoutTracker {
         documentLength = event.documentLength;
       case WebViewPageLoadFailed():
         lastFailure = '${event.uri?.host ?? 'unknown host'}: ${event.reason}';
-        // A main-frame failure anywhere in the redirect chain is terminal
-        // for the smoke — don't wait out the full timeout. Cancellation
-        // errors fire during normal redirects, so they only count on the
-        // Stripe host itself.
-        if (event.uri?.host == _stripeHost || !_isCancellation(event.reason)) {
+        // Only a main-frame failure on the Stripe host itself is terminal —
+        // intermediate redirect hosts can fail benignly before Checkout
+        // loads. Other failures are kept as context for the timeout message.
+        if (event.uri?.host == _stripeHost) {
           _terminalFailure = lastFailure;
         }
     }
-  }
-
-  static bool _isCancellation(String reason) {
-    final lower = reason.toLowerCase();
-    return lower.contains('cancel') || lower.contains('abort');
   }
 }
