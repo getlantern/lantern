@@ -53,7 +53,8 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
     finders.onboardingScreen,
   ]);
   var state = container.read(macosExtensionProvider);
-  final end = DateTime.now().add(const Duration(seconds: 45));
+  final end = DateTime.now().add(const Duration(seconds: 120));
+  var activationRequested = false;
 
   while (DateTime.now().isBefore(end)) {
     if (state.isReady) {
@@ -63,6 +64,30 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
 
     if (_extensionBlockingStatuses.contains(state.status)) {
       fail(_systemExtensionDebugMessage(tester, state));
+    }
+
+    // updatePending/notInstalled never resolve on their own: activation is
+    // only requested when a user taps Install in the extension dialog.
+    // Request it here — macOS auto-approves replacing an already-approved
+    // same-team extension, so on CI this needs no interaction.
+    if (!activationRequested &&
+        (state.status == SystemExtensionStatus.updatePending ||
+            state.status == SystemExtensionStatus.notInstalled)) {
+      activationRequested = true;
+      debugPrint(
+        'macOS smoke: requesting system extension activation '
+        '(${state.status.name})',
+      );
+      final result = await container
+          .read(macosExtensionProvider.notifier)
+          .triggerSystemExtensionInstallation();
+      result.fold(
+        (failure) => debugPrint(
+          'macOS smoke: extension activation request failed: '
+          '${failure.error}',
+        ),
+        (message) => debugPrint('macOS smoke: activation requested: $message'),
+      );
     }
 
     await tester.pump(const Duration(milliseconds: 300));
