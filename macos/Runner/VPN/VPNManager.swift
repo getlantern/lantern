@@ -145,7 +145,7 @@ class VPNManager: VPNBase {
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw CancellationError()
+      throw VPNManagerError.operationInProgress
     }
     let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
@@ -159,7 +159,7 @@ class VPNManager: VPNBase {
     self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw CancellationError()
+      throw VPNManagerError.operationInProgress
     }
     try self.manager.connection.startVPNTunnel(options: options)
   }
@@ -175,7 +175,7 @@ class VPNManager: VPNBase {
   private func connectToServer(serverName: String, operationID: UInt) async throws {
     await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw CancellationError()
+      throw VPNManagerError.operationInProgress
     }
     let options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
@@ -193,7 +193,7 @@ class VPNManager: VPNBase {
     }
 
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
-      throw CancellationError()
+      throw VPNManagerError.operationInProgress
     }
     try self.manager.connection.startVPNTunnel(options: options)
   }
@@ -230,12 +230,7 @@ class VPNManager: VPNBase {
 
     await syncStatus()
     let status = manager.connection.status
-    let shouldStop: Bool
-    if canceledConnectionOperation {
-      shouldStop = true
-    } else {
-      shouldStop = try shouldStopTunnel(for: status)
-    }
+    let shouldStop = try shouldStopTunnel(for: status)
     if !shouldStop {
       appLogger.log("VPN is already stopped or stopping: \(status)")
       return

@@ -41,6 +41,8 @@ var (
 	ipcGeneration uint64
 )
 
+const ipcStartTimeout = 60 * time.Second
+
 func getCore() (lanterncore.Core, error) {
 	v := lanternCore.Load()
 	if v == nil {
@@ -320,16 +322,67 @@ func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 			TelemetryConsent:  opts.TelemetryConsent,
 			PlatformInterface: platform,
 		}
-		be, err := backend.NewLocalBackend(context.Background(), bopts)
-		if err != nil {
-			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
+
+		// NewLocalBackend performs synchronous disk and platform setup that does
+		// not consistently observe its context. Bound the complete construction
+		// and server-start path here so a stalled startup cannot leave
+		// ipcStarting set forever. LocalBackend retains its context for its full
+		// lifetime, so keep that context independent from this startup deadline.
+		type startResult struct {
+			backend *backend.LocalBackend
+			server  *ipc.Server
+			err     error
 		}
-		be.Start()
-		server := ipc.NewServer(be, !common.IsMobile())
-		if err := server.Start(); err != nil {
-			be.Close()
-			return struct{}{}, err
+		startupCtx, cancelStartup := context.WithTimeout(
+			context.Background(),
+			ipcStartTimeout,
+		)
+		defer cancelStartup()
+		resultCh := make(chan startResult)
+		go func() {
+			result := startResult{}
+			be, err := backend.NewLocalBackend(context.Background(), bopts)
+			if err != nil {
+				result.err = fmt.Errorf("error creating backend for IPC server: %w", err)
+			} else {
+				be.Start()
+				server := ipc.NewServer(be, !common.IsMobile())
+				if err := server.Start(); err != nil {
+					be.Close()
+					result.err = err
+				} else {
+					result.backend = be
+					result.server = server
+				}
+			}
+
+			select {
+			case resultCh <- result:
+			case <-startupCtx.Done():
+				if result.server != nil {
+					_ = result.server.Close()
+				}
+				if result.backend != nil {
+					result.backend.Close()
+				}
+			}
+		}()
+
+		var result startResult
+		select {
+		case result = <-resultCh:
+			if result.err != nil {
+				return struct{}{}, result.err
+			}
+		case <-startupCtx.Done():
+			return struct{}{}, fmt.Errorf(
+				"IPC server startup exceeded %s: %w",
+				ipcStartTimeout,
+				startupCtx.Err(),
+			)
 		}
+		be := result.backend
+		server := result.server
 
 		ipcMu.Lock()
 		if generation != ipcGeneration {
