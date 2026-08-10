@@ -53,8 +53,8 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
     finders.onboardingScreen,
   ]);
   var state = container.read(macosExtensionProvider);
-  final end = DateTime.now().add(const Duration(seconds: 45));
-  DateTime? updatePendingSince;
+  final end = DateTime.now().add(const Duration(seconds: 120));
+  var activationRequested = false;
 
   while (DateTime.now().isBefore(end)) {
     if (state.isReady) {
@@ -66,23 +66,30 @@ Future<void> _requireSystemExtensionReady(WidgetTester tester) async {
       fail(_systemExtensionDebugMessage(tester, state));
     }
 
-    // updatePending is steady state for this test: the debug bundle's
-    // extension hash never matches the one the CI preflight activated from
-    // /Applications, and macOS refuses activation from a build-dir app.
-    // The activated extension still serves the tunnel, so proceed after a
-    // short grace — the connect harness proves connectivity right after.
-    if (state.status == SystemExtensionStatus.updatePending) {
-      updatePendingSince ??= DateTime.now();
-      if (DateTime.now().difference(updatePendingSince) >
-          const Duration(seconds: 10)) {
-        debugPrint(
-          'macOS smoke: proceeding with updatePending '
-          '(${state.message}); an activated extension is already in place',
-        );
-        return;
-      }
-    } else {
-      updatePendingSince = null;
+    // The test bundle's extension never hash-matches the installed app's,
+    // so a fresh run reports updatePending. Request activation — the same
+    // call as the dialog's Install button. This only succeeds when
+    // system-extension developer mode is enabled on the runner (the bundle
+    // runs from the build dir, not /Applications); the smoke suite enables
+    // it before launching this test.
+    if (!activationRequested &&
+        (state.status == SystemExtensionStatus.updatePending ||
+            state.status == SystemExtensionStatus.notInstalled)) {
+      activationRequested = true;
+      debugPrint(
+        'macOS smoke: requesting system extension activation '
+        '(${state.status.name})',
+      );
+      final result = await container
+          .read(macosExtensionProvider.notifier)
+          .triggerSystemExtensionInstallation();
+      result.fold(
+        (failure) => debugPrint(
+          'macOS smoke: extension activation request failed: '
+          '${failure.error}',
+        ),
+        (message) => debugPrint('macOS smoke: activation requested: $message'),
+      );
     }
 
     await tester.pump(const Duration(milliseconds: 300));
@@ -117,5 +124,8 @@ String _systemExtensionDebugMessage(
   return 'macOS system extension was not ready before connect: '
       '${state.status.name}.$details '
       'Status key visible: $statusKeyVisible. '
-      'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}';
+      'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}. '
+      'If activation failed with "must be in /Applications", enable '
+      'system-extension developer mode on this runner: '
+      'sudo systemextensionsctl developer on';
 }

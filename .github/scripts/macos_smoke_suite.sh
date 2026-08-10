@@ -203,6 +203,8 @@ capture_diagnostics() {
   } >"$ARTIFACT_DIR/diagnostics.txt"
 
   capture_command "systemextensionsctl-list" systemextensionsctl list
+  capture_command "csrutil-status" csrutil status
+  capture_command "systemextensionsctl-developer" systemextensionsctl developer
   capture_command "process-list" ps aux
   capture_command "packet-tunnel-processes" pgrep -fl "org.getlantern.lantern.PacketTunnel"
   capture_lantern_logs
@@ -261,6 +263,26 @@ run_with_timeout() {
   local exit_code=0
   wait "$command_pid" || exit_code=$?
   return "$exit_code"
+}
+
+enable_system_extension_developer_mode() {
+  # The Flutter connect smoke runs from the build directory, and macOS only
+  # activates system extensions from /Applications unless developer mode is
+  # on. Idempotent; needs root AND SIP disabled (systemextensionsctl refuses
+  # the developer subcommand while SIP is enabled).
+  log_step "SIP status: $(csrutil status 2>&1 || true)"
+  local dev_state
+  dev_state="$(systemextensionsctl developer 2>&1 || true)"
+  log_step "System extension developer mode state: $dev_state"
+  if echo "$dev_state" | grep -qiE 'mode is on|mode: on|enabled'; then
+    log_step "System extension developer mode already enabled"
+    return 0
+  fi
+  if sudo -n systemextensionsctl developer on 2>/dev/null; then
+    log_step "Enabled system extension developer mode"
+  else
+    printf 'WARNING: could not enable system extension developer mode (needs passwordless sudo and SIP disabled). The Flutter connect smoke cannot activate its bundled extension without it. Run once on this runner: sudo systemextensionsctl developer on\n' >&2
+  fi
 }
 
 run_system_extension_preflight() {
@@ -348,6 +370,7 @@ if [[ ! -x "$app_executable" ]]; then
 fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  enable_system_extension_developer_mode
   run_system_extension_preflight "$app_executable"
   run_flutter_connect_smoke
 else
