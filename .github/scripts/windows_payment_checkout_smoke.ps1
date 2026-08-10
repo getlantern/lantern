@@ -108,11 +108,71 @@ function Wait-ServiceRunning {
   throw "Service $Name did not reach Running state"
 }
 
+function Remove-ServiceIfPresent {
+  param([string]$Name)
+
+  $existingService = Get-Service -Name $Name -ErrorAction SilentlyContinue
+  if (-not $existingService) {
+    return
+  }
+  $existingService.Close()
+
+  Write-Step "Stopping existing Windows service $Name"
+  $stopOutput = & sc.exe stop $Name 2>&1
+  $stopExitCode = $LASTEXITCODE
+  if ($stopOutput) {
+    $stopOutput | ForEach-Object { Write-Host $_ }
+  }
+  if (@(0, 1062) -notcontains $stopExitCode) {
+    throw "Stopping $Name failed with exit code $stopExitCode"
+  }
+
+  for ($i = 0; $i -lt 30; $i++) {
+    $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    if (-not $service) {
+      break
+    }
+    $status = $service.Status
+    $service.Close()
+    if ($status -eq "Stopped") { break }
+    Start-Sleep -Seconds 1
+  }
+  $stoppedService = Get-Service -Name $Name -ErrorAction SilentlyContinue
+  if ($stoppedService) {
+    $stoppedStatus = $stoppedService.Status
+    $stoppedService.Close()
+    if ($stoppedStatus -ne "Stopped") {
+      throw "Service $Name did not stop before staging reinstall"
+    }
+  }
+
+  Write-Step "Deleting existing Windows service $Name"
+  $deleteOutput = & sc.exe delete $Name 2>&1
+  $deleteExitCode = $LASTEXITCODE
+  if ($deleteOutput) {
+    $deleteOutput | ForEach-Object { Write-Host $_ }
+  }
+  if (@(0, 1060) -notcontains $deleteExitCode) {
+    throw "Deleting $Name failed with exit code $deleteExitCode"
+  }
+
+  for ($i = 0; $i -lt 30; $i++) {
+    $remainingService = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    if (-not $remainingService) {
+      return
+    }
+    $remainingService.Close()
+    Start-Sleep -Seconds 1
+  }
+  throw "Service $Name remained registered after deletion"
+}
+
 function Use-StagingService {
   if (-not (Test-Path $InstalledDaemonPath)) {
     throw "Installed daemon not found: $InstalledDaemonPath"
   }
   Write-Step "Reinstalling the installed service for staging"
+  Remove-ServiceIfPresent -Name $ServiceName
   Remove-Item $serviceDataDirectory -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item $serviceLogDirectory -Recurse -Force -ErrorAction SilentlyContinue
   & $InstalledDaemonPath install --environment staging `
@@ -563,10 +623,9 @@ $app.WaitForExit()
     if (-not $udf.exists -or -not $udf.writable -or $udf.path -ne $expectedUDF) {
       throw "Unexpected or unwritable WebView2 folder: $($udf | ConvertTo-Json -Compress)"
     }
-    $escapedExpectedUDF = [regex]::Escape($expectedUDF)
     $flutterLogText = Get-Content $flutterLog -Raw
-    if ($flutterLogText -notmatch "WEBVIEW2_DIAGNOSTIC user_data_folder=$escapedExpectedUDF") {
-      throw "Flutter did not record the actual per-user WebView2 folder $expectedUDF"
+    if ($flutterLogText -notmatch 'WEBVIEW2_DIAGNOSTIC user_data_folder_set=true local_app_data_set=true') {
+      throw "Flutter did not record the expected WebView2 environment state"
     }
 
     if ($CompletePayment) {

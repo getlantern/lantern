@@ -24,10 +24,14 @@ class PaymentCheckoutSmokeConfig {
     required bool isWindows,
     required String buildType,
   }) {
-    final providerArgument = _singleArgument(arguments, _providerPrefix);
-    final runIDArgument = _singleArgument(arguments, _runIDPrefix);
+    final hasProvider = arguments.any(
+      (argument) => argument.startsWith(_providerPrefix),
+    );
+    final hasRunID = arguments.any(
+      (argument) => argument.startsWith(_runIDPrefix),
+    );
 
-    if (providerArgument == null && runIDArgument == null) {
+    if (!hasProvider && !hasRunID) {
       return null;
     }
     if (!isWindows || buildType != 'nightly') {
@@ -35,6 +39,9 @@ class PaymentCheckoutSmokeConfig {
         'Payment checkout smoke mode is available only in Windows nightly builds',
       );
     }
+
+    final providerArgument = _singleArgument(arguments, _providerPrefix);
+    final runIDArgument = _singleArgument(arguments, _runIDPrefix);
     if (providerArgument == null || runIDArgument == null) {
       throw const FormatException(
         'Payment checkout smoke mode requires a provider and run ID',

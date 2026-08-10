@@ -57,6 +57,31 @@ void main() {
         ),
         throwsFormatException,
       );
+      expect(
+        () => PaymentCheckoutSmokeConfig.parse(
+          const [
+            '--payment-checkout-smoke=stripe',
+            '--payment-checkout-run-id=9a1632f8-5b33-4d6f-8a42-7a8a4f77d829',
+          ],
+          isWindows: false,
+          buildType: 'nightly',
+        ),
+        throwsFormatException,
+      );
+      expect(
+        () => PaymentCheckoutSmokeConfig.parse(
+          const ['--payment-checkout-smoke='],
+          isWindows: false,
+          buildType: 'production',
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('only in Windows nightly builds'),
+          ),
+        ),
+      );
     });
 
     test('rejects arbitrary providers and malformed run IDs', () {

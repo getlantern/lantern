@@ -60,24 +60,30 @@ class _LanternAppState extends ConsumerState<LanternApp>
     PaymentCheckoutSmokeConfig smoke,
   ) async {
     try {
-      final planData = await ref.read(plansProvider.future);
-      final matchingProviders = planData.providers.desktop
+      var planData = await ref.read(plansProvider.future);
+      var matchingProviders = planData.providers.desktop
           .where((provider) => provider.providers.name == smoke.provider)
           .toList();
       if (smoke.usesE2EProvider && matchingProviders.isEmpty) {
         // Staging omits the E2E provider from normal plan responses. Expose it
         // only to this smoke session; the server still requires its run-scoped
         // email before issuing a checkout.
-        matchingProviders.add(
-          plan_models.Android(
-            method: 'E2E Checkout',
-            providers: plan_models.Provider(
-              name: smoke.provider,
-              icons: const [],
-              supportSubscription: false,
-            ),
+        final e2eProvider = plan_models.Android(
+          method: 'E2E Checkout',
+          providers: plan_models.Provider(
+            name: smoke.provider,
+            icons: const [],
+            supportSubscription: false,
           ),
         );
+        planData = planData.copyWith(
+          providers: plan_models.Providers(
+            android: planData.providers.android,
+            desktop: [...planData.providers.desktop, e2eProvider],
+          ),
+        );
+        ref.read(plansProvider.notifier).updatePlans(planData);
+        matchingProviders = [e2eProvider];
         appLogger.info(
           'PAYMENT_CONVERSION_SMOKE event=provider_enabled '
           'provider=${smoke.provider} run_id=${smoke.runID}',

@@ -141,7 +141,7 @@ Future<String> pasteFromClipboard() async {
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(
   WidgetRef ref,
-  BuildContext _, {
+  BuildContext context, {
   Duration timeout = const Duration(seconds: 45),
 }) async {
   final proUser = await boundedPoll<UserResponseModel>(
@@ -178,6 +178,11 @@ Future<bool> checkUserAccountStatus(
       'PAYMENT_CONVERSION_SMOKE event=account_timeout '
       'timeout_seconds=${timeout.inSeconds}',
     );
+    return false;
+  }
+
+  if (!context.mounted) {
+    appLogger.warning('PAYMENT_CONVERSION_SMOKE event=account_unmounted');
     return false;
   }
 

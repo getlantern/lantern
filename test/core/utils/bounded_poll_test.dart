@@ -33,5 +33,20 @@ void main() {
       expect(result, isNull);
       expect(stopwatch.elapsed, lessThan(const Duration(milliseconds: 500)));
     });
+
+    test('does not fetch when the timeout is not positive', () async {
+      var calls = 0;
+
+      final result = await boundedPoll<String>(
+        timeout: Duration.zero,
+        fetch: (_) async {
+          calls++;
+          return 'pro';
+        },
+      );
+
+      expect(result, isNull);
+      expect(calls, 0);
+    });
   });
 }

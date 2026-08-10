@@ -198,7 +198,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     Uri? uri,
   ) async {
     final observer = widget.observer;
-    if (observer == null || uri == null) return;
+    if (uri == null) return;
 
     try {
       final value = await controller.evaluateJavascript(
@@ -212,11 +212,13 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         uri,
         detail: 'document_length=$documentLength',
       );
-      unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
+      if (observer != null) {
+        unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
+      }
     } catch (error, stackTrace) {
       appLogger.error('Unable to inspect WebView document', error, stackTrace);
       _logSmokeEvent('document_error', uri, detail: 'error=$error');
-      observer.onPageLoadFailed(uri, error.toString());
+      observer?.onPageLoadFailed(uri, error.toString());
     }
   }
 

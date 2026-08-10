@@ -43,9 +43,9 @@ Future<void> main([List<String> arguments = const []]) async {
     appLogger.debug('Starting app initialization...');
     if (PlatformUtils.isWindows) {
       appLogger.info(
-        'WEBVIEW2_DIAGNOSTIC user_data_folder='
-        '${Platform.environment['WEBVIEW2_USER_DATA_FOLDER'] ?? '<unset>'} '
-        'local_app_data=${Platform.environment['LOCALAPPDATA'] ?? '<unset>'}',
+        'WEBVIEW2_DIAGNOSTIC user_data_folder_set='
+        '${Platform.environment['WEBVIEW2_USER_DATA_FOLDER'] != null} '
+        'local_app_data_set=${Platform.environment['LOCALAPPDATA'] != null}',
       );
     }
     unawaited(_logDeviceInfo());

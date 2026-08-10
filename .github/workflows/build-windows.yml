@@ -335,7 +335,7 @@ jobs:
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
-            -RunPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
+            -RunInstalledPaymentCheckoutSmoke:$runPaymentCheckoutSmoke `
             -RunPaymentConversionSmoke:$runPaymentConversionSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
