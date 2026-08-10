@@ -903,6 +903,12 @@ jobs:
         run: python3 -m unittest scripts/ci/generate_update_metadata_test.py
 
       - name: Publish update metadata sidecars
+        # DISABLED: `auto_updater:sign_update` exits 255 on the dmg, which failed
+        # this job and made release-finalize delete the draft release on every
+        # tagged run (v9.1.19-beta, v9.1.20-beta got tags with no release).
+        if: |
+          false &&
+          needs.set-metadata.outputs.build_type != 'nightly'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -983,7 +989,10 @@ jobs:
 
   verify-update-service:
     needs: [set-metadata, publish-update-metadata, release-finalize]
+    # DISABLED with the sidecar step above: with nothing published, this polls
+    # for its full 2700s timeout and then fails.
     if: |
+      false &&
       !cancelled() &&
       needs.set-metadata.outputs.build_type == 'beta' &&
       needs.publish-update-metadata.result == 'success' &&
