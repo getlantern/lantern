@@ -27,12 +27,16 @@ enum RunBlockingError: Error {
 func runBlocking<T>(_ block: @escaping () async -> T) -> T? {
   let semaphore = DispatchSemaphore(value: 0)
   let box = resultBox<T>()
-  Task.detached {
+  let task = Task.detached {
     let value = await block()
     box.result0 = value
     semaphore.signal()
   }
   guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+    // Cancellation is cooperative, so this only helps if the awaited work checks
+    // for it — but a framework await that ignores it would otherwise run to
+    // completion long after we gave up.
+    task.cancel()
     return nil
   }
   return box.result0
@@ -41,7 +45,7 @@ func runBlocking<T>(_ block: @escaping () async -> T) -> T? {
 func runBlocking<T>(_ tBlock: @escaping () async throws -> T) throws -> T {
   let semaphore = DispatchSemaphore(value: 0)
   let box = resultBox<T>()
-  Task.detached {
+  let task = Task.detached {
     do {
       let value = try await tBlock()
       box.result = .success(value)
@@ -51,6 +55,7 @@ func runBlocking<T>(_ tBlock: @escaping () async throws -> T) throws -> T {
     semaphore.signal()
   }
   guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+    task.cancel()
     throw RunBlockingError.timedOut
   }
   return try box.result.get()
