@@ -78,9 +78,15 @@ Future<void> runConnectSmokeHarness(
   final app = AppRobot(tester);
   final vpn = VpnRobot(tester, app);
 
-  await app.launchToHome();
-  await app.waitForControlReady(vpn.vpnToggle, controlName: 'VPN toggle');
-  await vpn.ensureDisconnected();
+  try {
+    await app.launchToHome();
+    await app.waitForControlReady(vpn.vpnToggle, controlName: 'VPN toggle');
+    await vpn.ensureDisconnected();
+  } catch (_) {
+    await app.captureScreenshot('connect-smoke-setup-failure');
+    rethrow;
+  }
+  await app.captureScreenshot('connect-smoke-baseline');
 
   vpn.beginErrorWatch();
   addTearDown(vpn.assertNoErrorsSeen);
@@ -104,6 +110,7 @@ Future<void> runConnectSmokeHarness(
   var ipChanged = true;
   try {
     await vpn.connect();
+    await app.captureScreenshot('connect-smoke-connected');
 
     if (requireTrafficAfterConnect) {
       debugPrint('IP check: confirming public traffic after connect');
@@ -121,8 +128,13 @@ Future<void> runConnectSmokeHarness(
         debugPrint('IP check: passed');
       }
     }
+  } catch (_) {
+    // Capture the failing screen before the disconnect cleanup changes it.
+    await app.captureScreenshot('connect-smoke-failure');
+    rethrow;
   } finally {
     await vpn.disconnectIfNeeded();
+    await app.captureScreenshot('connect-smoke-disconnected');
   }
 
   if (enableIpCheck && baselinePublicIp != null && !ipChanged) {
