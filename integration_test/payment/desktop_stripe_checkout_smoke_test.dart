@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
+import 'dart:math' show max;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -13,8 +13,10 @@ import 'package:lantern/core/models/plan_data.dart' as plan_models;
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
-import 'package:lantern/lantern_app.dart';
 import 'package:lantern/main.dart' as app;
+
+import '../utils/app_robot.dart';
+import '../utils/payment_robot.dart';
 
 const _stripeHost = 'checkout.stripe.com';
 const _e2eHost = 'api.staging.iantem.io';
@@ -71,23 +73,12 @@ void main() {
 
 Future<_RunningApp> _launchApp(WidgetTester tester) async {
   await app.main();
-  await _waitFor(
-    tester,
-    () => find.byType(LanternApp).evaluate().isNotEmpty,
-    timeout: const Duration(seconds: 30),
-    failure: () => 'Lantern did not render its Flutter UI',
-  );
-
-  final appElement = find.byType(LanternApp).evaluate().first;
-  final container = ProviderScope.containerOf(appElement, listen: false);
-  final plansSubscription = container.listen(plansProvider, (_, _) {});
-  addTearDown(plansSubscription.close);
-
-  final plans = await container
-      .read(plansProvider.future)
-      .timeout(const Duration(seconds: 60));
+  final robot = AppRobot(tester);
+  await robot.waitForHomeReady();
+  final payment = PaymentRobot(tester, robot);
+  final plans = await payment.loadPlans();
   expect(plans.plans, isNotEmpty, reason: 'Staging returned no plans');
-  return _RunningApp(container: container, plans: plans);
+  return _RunningApp(payment: payment, plans: plans);
 }
 
 Future<void> _runStripeRenderSmoke(
@@ -104,31 +95,32 @@ Future<void> _runStripeRenderSmoke(
     reason: 'Staging Stripe must support subscriptions',
   );
 
-  _selectBestPlan(runningApp);
-  final observer = _StripeCheckoutObserver();
-  await _openPaymentMethods(
-    email: 'e2e+${_newUuid()}@getlantern.org',
-    observer: observer,
+  runningApp.payment.selectBestValuePlan(runningApp.plans);
+  final checkout = _StripeCheckoutTracker();
+  await runningApp.payment.openPaymentMethods(
+    email: e2eEmail(),
+    authFlow: AuthFlow.renewSubscription,
+    checkoutObserver: checkout,
   );
-  await _startCheckout(tester, provider: 'stripe');
+  await runningApp.payment.startCheckout(provider: 'stripe');
 
   await _waitFor(
     tester,
-    () => observer.finished,
+    () => checkout.finished,
     timeout: const Duration(minutes: 3),
-    failure: () => observer.failureMessage,
+    failure: () => checkout.failureMessage,
   );
 
-  if (observer.failure != null) {
-    fail('Stripe Checkout failed to load: ${observer.failure}');
+  if (checkout.failure != null) {
+    fail('Stripe Checkout failed to load: ${checkout.failure}');
   }
   expect(find.byKey(const ValueKey('app-webview')), findsOneWidget);
-  expect(observer.uri?.host, _stripeHost);
-  expect(observer.documentLength, greaterThan(0));
-  expect(observer.screenshot, isNotNull);
-  debugPrint(
+  expect(checkout.uri?.host, _stripeHost);
+  expect(checkout.documentLength, greaterThan(0));
+  expect(checkout.screenshot, isNotNull);
+  e2eLog(
     'Stripe Checkout rendered from $_stripeHost '
-    '(${observer.documentLength} document characters)',
+    '(${checkout.documentLength} document characters)',
   );
 }
 
@@ -136,7 +128,7 @@ Future<void> _runPaymentConversionSmoke(
   WidgetTester tester,
   _RunningApp runningApp,
 ) async {
-  final runID = _newUuid();
+  final runID = newE2ERunID();
   final e2eProvider = plan_models.Android(
     method: 'E2E Checkout',
     providers: plan_models.Provider(
@@ -185,25 +177,24 @@ Future<void> _runPaymentConversionSmoke(
   final currentPlans = runningApp.container.read(plansProvider).value;
   final plansWithE2E = withE2EProvider(currentPlans ?? runningApp.plans);
   runningApp.container.read(plansProvider.notifier).updatePlans(plansWithE2E);
-  _selectBestPlan(
-    _RunningApp(container: runningApp.container, plans: plansWithE2E),
-  );
+  runningApp.payment.selectBestValuePlan(plansWithE2E);
 
-  final observer = _PaymentConversionObserver();
-  await _openPaymentMethods(
-    email: 'e2e+$runID@getlantern.org',
-    observer: observer,
+  final checkout = _PaymentConversionTracker();
+  await runningApp.payment.openPaymentMethods(
+    email: e2eEmail(runID),
+    authFlow: AuthFlow.renewSubscription,
+    checkoutObserver: checkout,
   );
-  await _startCheckout(tester, provider: 'e2e');
+  await runningApp.payment.startCheckout(provider: 'e2e');
 
   await _waitFor(
     tester,
-    () => observer.completeClicked || observer.failure != null,
+    () => checkout.completeClicked || checkout.failure != null,
     timeout: const Duration(minutes: 2),
-    failure: () => observer.failureMessage,
+    failure: () => checkout.failureMessage,
   );
-  if (observer.failure != null) {
-    fail('E2E checkout failed: ${observer.failure}');
+  if (checkout.failure != null) {
+    fail('E2E checkout failed: ${checkout.failure}');
   }
 
   await _waitFor(
@@ -221,65 +212,14 @@ Future<void> _runPaymentConversionSmoke(
     failure: () => 'The Lantern Pro success dialog was not shown',
   );
 
-  expect(observer.uri?.host, _e2eHost);
-  expect(observer.documentLength, greaterThan(0));
-  expect(observer.screenshot, isNotNull);
+  expect(checkout.uri?.host, _e2eHost);
+  expect(checkout.documentLength, greaterThan(0));
+  expect(checkout.screenshot, isNotNull);
   expect(
     runningApp.container.read(homeProvider).value?.legacyUserData.isPro,
     isTrue,
   );
-  debugPrint('Staging E2E checkout converted run $runID to Pro');
-}
-
-void _selectBestPlan(_RunningApp runningApp) {
-  final selectedPlan = runningApp.plans.plans.firstWhere(
-    (plan) => plan.bestValue,
-    orElse: () => runningApp.plans.plans.first,
-  );
-  runningApp.container
-      .read(plansProvider.notifier)
-      .setSelectedPlan(selectedPlan);
-}
-
-Future<void> _openPaymentMethods({
-  required String email,
-  required AppWebViewObserver observer,
-}) {
-  return appRouter.replaceAll([
-    ChoosePaymentMethod(
-      email: email,
-      authFlow: AuthFlow.renewSubscription,
-      checkoutObserver: observer,
-    ),
-  ]);
-}
-
-Future<void> _startCheckout(
-  WidgetTester tester, {
-  required String provider,
-}) async {
-  final providerTile = find.byKey(Key('payment.provider.$provider'));
-  await _waitFor(
-    tester,
-    () => providerTile.evaluate().isNotEmpty,
-    timeout: const Duration(seconds: 30),
-    failure: () => '$provider was not shown on the payment-method screen',
-  );
-
-  final checkoutButton = find.byKey(Key('payment.checkout.$provider'));
-  if (checkoutButton.evaluate().isEmpty) {
-    await tester.tap(providerTile);
-    await tester.pump(const Duration(milliseconds: 300));
-  }
-  await _waitFor(
-    tester,
-    () => checkoutButton.evaluate().isNotEmpty,
-    timeout: const Duration(seconds: 10),
-    failure: () => '$provider checkout button was not available',
-  );
-
-  await tester.ensureVisible(checkoutButton);
-  await tester.tap(checkoutButton);
+  e2eLog('Staging E2E checkout converted run $runID to Pro');
 }
 
 Future<Uint8List> _waitForRenderedScreenshot(
@@ -312,7 +252,7 @@ Future<void> _saveScreenshot(Uint8List screenshot) async {
   final file = File(_screenshotPath);
   await file.parent.create(recursive: true);
   await file.writeAsBytes(screenshot, flush: true);
-  debugPrint('Checkout screenshot saved to ${file.path}');
+  e2eLog('Checkout screenshot saved to ${file.path}');
 }
 
 Future<bool> _hasVisibleContent(Uint8List screenshot) async {
@@ -369,30 +309,20 @@ Future<void> _waitFor(
   fail(failure());
 }
 
-String _newUuid() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  final hex = bytes
-      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      .join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
-}
-
 bool _isJavaScriptTrue(Object? value) =>
     value == true || value == 1 || value?.toString().toLowerCase() == 'true';
 
 class _RunningApp {
-  final ProviderContainer container;
+  final PaymentRobot payment;
   final plan_models.PlansData plans;
 
-  const _RunningApp({required this.container, required this.plans});
+  const _RunningApp({required this.payment, required this.plans});
+
+  ProviderContainer get container => payment.container;
 }
 
-class _StripeCheckoutObserver implements AppWebViewObserver {
+/// Folds scoped WebView callbacks into a stateful Stripe checkout verdict.
+class _StripeCheckoutTracker implements AppWebViewObserver {
   Uri? uri;
   int documentLength = 0;
   Uint8List? screenshot;
@@ -432,7 +362,8 @@ class _StripeCheckoutObserver implements AppWebViewObserver {
   }
 }
 
-class _PaymentConversionObserver implements AppWebViewObserver {
+/// Tracks the staging checkout state and completes it through the WebView.
+class _PaymentConversionTracker implements AppWebViewObserver {
   static const _clickCompleteScript = r'''
     (() => {
       const candidates = Array.from(

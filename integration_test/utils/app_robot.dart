@@ -9,8 +9,8 @@ import 'widget_wait_utils.dart';
 /// that Firebase Test Lab captures (adb logcat | grep E2E).
 void e2eLog(String message) => debugPrint('[E2E] $message');
 
-/// Drives the app shell during integration tests, independent of any feature.
-/// Android-only for now; other platforms still use `vpn/vpn_smoke_helpers.dart`.
+/// Drives the app shell during Android and desktop integration tests,
+/// independent of any feature.
 class AppRobot {
   AppRobot(this.tester);
 
@@ -20,6 +20,9 @@ class AppRobot {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder macosExtensionScreen = find.byKey(
+    const Key('macos_extension.screen'),
+  );
 
   /// String-valued widget keys currently in the tree, sorted — a lightweight
   /// "what's on screen" dump for failure diagnostics. `Key('foo')` is a
@@ -244,6 +247,41 @@ class AppRobot {
     return true;
   }
 
+  /// Dismisses the macOS system-extension screen when it covers home. Payment
+  /// smokes do not exercise the VPN, so they can safely close this prompt.
+  Future<bool> dismissMacOSExtensionScreenIfShown() async {
+    if (macosExtensionScreen.evaluate().isEmpty) {
+      return false;
+    }
+    e2eLog('macOS system extension screen shown — dismissing');
+
+    final close = find
+        .descendant(
+          of: macosExtensionScreen,
+          matching: find.byType(CloseButton),
+        )
+        .hitTestable();
+    final tapDeadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(tapDeadline)) {
+      if (macosExtensionScreen.evaluate().isEmpty) return true;
+      if (close.evaluate().isNotEmpty) {
+        await tester.tap(close);
+        await tester.pump(const Duration(milliseconds: 400));
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    await WidgetWaitUtils.waitForFinderToDisappear(
+      tester,
+      macosExtensionScreen,
+      timeout: const Duration(seconds: 10),
+      reason: 'macOS system extension screen did not close after dismiss',
+    );
+    e2eLog('macOS system extension screen dismissed');
+    return true;
+  }
+
   /// Waits until [control] is hit-testable — the app-ready gate — clearing
   /// onboarding that appears while waiting. Home renders before onboarding is
   /// pushed on top of it, so we first spend up to [onboardingGrace] letting
@@ -266,6 +304,10 @@ class AppRobot {
     while (DateTime.now().isBefore(end)) {
       if (onboardingScreen.evaluate().isNotEmpty) {
         await dismissOnboardingIfShown();
+        continue;
+      }
+      if (macosExtensionScreen.evaluate().isNotEmpty) {
+        await dismissMacOSExtensionScreenIfShown();
         continue;
       }
 

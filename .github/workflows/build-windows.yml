@@ -211,6 +211,15 @@ jobs:
             -RunConnectSmoke:$false `
             -RunPaymentConversionSmoke
 
+      - name: Upload Windows payment smoke logs
+        if: ${{ always() && (inputs.run_payment_checkout_smoke || inputs.run_payment_conversion_smoke) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-smoke-logs
+          path: C:\Users\Public\Lantern\logs
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}
         shell: pwsh
