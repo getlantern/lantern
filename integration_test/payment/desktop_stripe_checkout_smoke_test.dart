@@ -57,7 +57,10 @@ void main() {
         );
       }
 
-      final runningApp = await _launchApp(tester);
+      final runningApp = await _launchApp(
+        tester,
+        refreshPlans: mode == _PaymentSmokeMode.conversion,
+      );
       switch (mode) {
         case _PaymentSmokeMode.render:
           await _runStripeRenderSmoke(tester, runningApp);
@@ -69,7 +72,10 @@ void main() {
   );
 }
 
-Future<_RunningApp> _launchApp(WidgetTester tester) async {
+Future<_RunningApp> _launchApp(
+  WidgetTester tester, {
+  required bool refreshPlans,
+}) async {
   await app.main();
   await _waitFor(
     tester,
@@ -83,9 +89,19 @@ Future<_RunningApp> _launchApp(WidgetTester tester) async {
   final plansSubscription = container.listen(plansProvider, (_, _) {});
   addTearDown(plansSubscription.close);
 
-  final plans = await container
+  var plans = await container
       .read(plansProvider.future)
       .timeout(const Duration(seconds: 60));
+  if (refreshPlans) {
+    // A prior smoke invocation may have cached plans, which makes the provider
+    // return immediately and refresh in the background. Wait for that refresh
+    // before mutating the provider so it cannot erase the injected E2E method.
+    await container
+        .read(plansProvider.notifier)
+        .waitForPendingRefresh()
+        .timeout(const Duration(seconds: 60));
+    plans = container.read(plansProvider).value ?? plans;
+  }
   expect(plans.plans, isNotEmpty, reason: 'Staging returned no plans');
   return _RunningApp(container: container, plans: plans);
 }
