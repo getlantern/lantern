@@ -9,8 +9,10 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
-import 'package:lantern/lantern_app.dart';
 import 'package:lantern/main.dart' as app;
+
+import '../utils/app_robot.dart';
+import '../utils/widget_wait_utils.dart';
 
 const _stripeHost = 'checkout.stripe.com';
 
@@ -27,15 +29,13 @@ void main() {
       );
 
       await app.main();
-      await _waitFor(
-        tester,
-        () => find.byType(LanternApp).evaluate().isNotEmpty,
-        timeout: const Duration(seconds: 30),
-        failure: () => 'Lantern did not render its Flutter UI',
-      );
+      final robot = AppRobot(tester);
+      await robot.waitForHomeReady();
 
-      final appElement = find.byType(LanternApp).evaluate().first;
-      final container = ProviderScope.containerOf(appElement, listen: false);
+      final container = ProviderScope.containerOf(
+        tester.element(robot.homeScreen),
+        listen: false,
+      );
       final plansSubscription = container.listen(plansProvider, (_, _) {});
       addTearDown(plansSubscription.close);
 
@@ -58,56 +58,72 @@ void main() {
         orElse: () => plans.plans.first,
       );
       container.read(plansProvider.notifier).setSelectedPlan(selectedPlan);
+      e2eLog('Selected plan ${selectedPlan.id}');
 
-      final observer = _StripeCheckoutObserver();
+      final checkout = _StripeCheckoutTracker();
+      final pageEventSubscription = container.listen(webViewPageEventProvider, (
+        _,
+        event,
+      ) {
+        if (event != null) checkout.add(event);
+      });
+      addTearDown(pageEventSubscription.close);
+
       await appRouter.replaceAll([
         ChoosePaymentMethod(
           email: 'e2e+${_newUuid()}@getlantern.org',
           authFlow: AuthFlow.renewSubscription,
-          checkoutObserver: observer,
         ),
       ]);
 
       final stripeProvider = find.byKey(const Key('payment.provider.stripe'));
-      await _waitFor(
+      await WidgetWaitUtils.waitForCondition(
         tester,
         () => stripeProvider.evaluate().isNotEmpty,
         timeout: const Duration(seconds: 30),
-        failure: () => 'Stripe was not shown on the payment-method screen',
+        describeFailure: () =>
+            'Stripe was not shown on the payment-method screen. '
+            'Visible keys: ${robot.visibleKeys().join(', ')}',
       );
 
       final checkoutButton = find.byKey(const Key('payment.checkout.stripe'));
       if (checkoutButton.evaluate().isEmpty) {
+        e2eLog('Expanding the Stripe payment method');
         await tester.tap(stripeProvider);
         await tester.pump(const Duration(milliseconds: 300));
       }
-      await _waitFor(
+      await WidgetWaitUtils.waitForCondition(
         tester,
         () => checkoutButton.evaluate().isNotEmpty,
         timeout: const Duration(seconds: 10),
-        failure: () => 'Stripe checkout button was not available',
+        describeFailure: () =>
+            'Stripe checkout button was not available. '
+            'Visible keys: ${robot.visibleKeys().join(', ')}',
       );
 
+      // Tapped directly (not via robot.tap): the tap opens the WebView with
+      // its loading spinner, and pumpAndSettle would hang on the animation.
+      e2eLog('Tapping the Stripe checkout button');
       await tester.ensureVisible(checkoutButton);
       await tester.tap(checkoutButton);
 
-      await _waitFor(
+      await WidgetWaitUtils.waitForCondition(
         tester,
-        () => observer.finished,
+        () => checkout.finished,
         timeout: const Duration(minutes: 3),
-        failure: () => observer.failureMessage,
+        describeFailure: () => checkout.failureMessage,
       );
 
-      if (observer.checkoutFailure != null) {
-        fail('Stripe Checkout failed to load: ${observer.checkoutFailure}');
+      if (checkout.failure != null) {
+        fail('Stripe Checkout failed to load: ${checkout.failure}');
       }
       expect(find.byKey(const ValueKey('app-webview')), findsOneWidget);
-      expect(observer.uri?.host, _stripeHost);
-      expect(observer.documentLength, greaterThan(0));
+      expect(checkout.uri?.host, _stripeHost);
+      expect(checkout.documentLength, greaterThan(0));
       await _captureMacOSCheckoutScreenshot(tester);
-      debugPrint(
+      e2eLog(
         'Stripe Checkout rendered from $_stripeHost '
-        '(${observer.documentLength} document characters)',
+        '(${checkout.documentLength} document characters)',
       );
     },
     timeout: const Timeout(Duration(minutes: 5)),
@@ -126,21 +142,7 @@ Future<void> _captureMacOSCheckoutScreenshot(WidgetTester tester) async {
     if (await captured.exists()) return;
     await tester.pump(const Duration(milliseconds: 100));
   }
-  debugPrint('Timed out waiting for the macOS checkout screenshot');
-}
-
-Future<void> _waitFor(
-  WidgetTester tester,
-  bool Function() condition, {
-  required Duration timeout,
-  required String Function() failure,
-}) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    if (condition()) return;
-  }
-  fail(failure());
+  e2eLog('Timed out waiting for the macOS checkout screenshot');
 }
 
 String _newUuid() {
@@ -156,30 +158,44 @@ String _newUuid() {
       '${hex.substring(20)}';
 }
 
-class _StripeCheckoutObserver implements AppWebViewObserver {
+/// Folds [webViewPageEventProvider] events into a checkout verdict.
+class _StripeCheckoutTracker {
   Uri? uri;
   int documentLength = 0;
   String? lastFailure;
-  String? checkoutFailure;
+  String? _terminalFailure;
 
-  bool get finished => uri?.host == _stripeHost || checkoutFailure != null;
+  bool get loaded => uri?.host == _stripeHost;
+
+  bool get finished => loaded || _terminalFailure != null;
+
+  /// Non-null once checkout can no longer succeed.
+  String? get failure => _terminalFailure;
 
   String get failureMessage => lastFailure == null
       ? 'Stripe Checkout did not load a non-empty document'
       : 'Stripe Checkout did not load: $lastFailure';
 
-  @override
-  void onPageLoaded(Uri uri, {required int documentLength}) {
-    if (uri.host != _stripeHost) return;
-    this.uri = uri;
-    this.documentLength = documentLength;
+  void add(WebViewPageEvent event) {
+    switch (event) {
+      case WebViewPageLoaded(:final uri, :final documentLength):
+        if (uri?.host != _stripeHost) return;
+        this.uri = uri;
+        this.documentLength = documentLength;
+      case WebViewPageLoadFailed(:final uri, :final reason):
+        lastFailure = '${uri?.host ?? 'unknown host'}: $reason';
+        // A main-frame failure anywhere in the redirect chain is terminal
+        // for the smoke — don't wait out the full timeout. Cancellation
+        // errors fire during normal redirects, so they only count on the
+        // Stripe host itself.
+        if (uri?.host == _stripeHost || !_isCancellation(reason)) {
+          _terminalFailure = lastFailure;
+        }
+    }
   }
 
-  @override
-  void onPageLoadFailed(Uri? uri, String reason) {
-    lastFailure = '${uri?.host ?? 'unknown host'}: $reason';
-    if (uri?.host == _stripeHost) {
-      checkoutFailure = reason;
-    }
+  static bool _isCancellation(String reason) {
+    final lower = reason.toLowerCase();
+    return lower.contains('cancel') || lower.contains('abort');
   }
 }

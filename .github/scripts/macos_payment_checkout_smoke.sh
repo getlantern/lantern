@@ -45,12 +45,23 @@ cleanup() {
   exit "$status"
 }
 
+# This script wipes $LANTERN_DATA_DIR (real Lantern app data) and kills any
+# running Lantern — refuse to run outside CI.
+if [[ -z "${CI:-}" ]]; then
+  echo "Refusing to run outside CI: this wipes $LANTERN_DATA_DIR" >&2
+  exit 1
+fi
+
 trap cleanup EXIT
 
 pkill -x Lantern 2>/dev/null || true
 rm -rf "$LANTERN_DATA_DIR"
 mkdir -p "$LANTERN_LOG_DIR"
 mkdir -p "$ARTIFACT_DIR"
+
+# The macOS app sets up Radiance natively at launch and selects staging when
+# this marker file exists (see FilePath.isRadianceEnv()).
+touch "$LANTERN_DATA_DIR/.radiance_env"
 
 capture_checkout_screenshot &
 SCREENSHOT_WATCHER_PID=$!
@@ -59,5 +70,4 @@ flutter test \
   "$TEST_PATH" \
   -d macos \
   --reporter=expanded \
-  --dart-define=DISABLE_SYSTEM_TRAY=true \
-  --dart-define=RADIANCE_ENV=staging
+  --dart-define=DISABLE_SYSTEM_TRAY=true

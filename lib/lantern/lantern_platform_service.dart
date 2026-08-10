@@ -21,7 +21,6 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/enabled_apps.dart';
-import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -84,10 +83,6 @@ class LanternPlatformService implements LanternCoreService {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
           .map(MacOSExtensionState.fromEvent);
-      await _methodChannel.invokeMethod<void>(
-        'setupRadiance',
-        await radianceEnvironment(),
-      );
     }
     // _enabledApps starts as EnabledAppsSnapshot.empty() and is refreshed
     // lazily inside installedAppsStream / addSplitTunnelItem / etc.

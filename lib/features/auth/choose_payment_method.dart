@@ -10,7 +10,6 @@ import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
-import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -22,14 +21,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
   final String? code;
   final AuthFlow authFlow;
-  final AppWebViewObserver? checkoutObserver;
 
   const ChoosePaymentMethod({
     super.key,
     required this.email,
     this.code,
     required this.authFlow,
-    this.checkoutObserver,
   });
 
   @override
@@ -332,7 +329,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
               title: 'stripe_payment'.i18n,
-              observer: checkoutObserver,
             );
             if (!context.mounted || purchaseResult == null) return;
             await onPurchaseResult(purchaseResult, context, ref);

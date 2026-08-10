@@ -10,7 +10,8 @@ import 'widget_wait_utils.dart';
 void e2eLog(String message) => debugPrint('[E2E] $message');
 
 /// Drives the app shell during integration tests, independent of any feature.
-/// Android-only for now; other platforms still use `vpn/vpn_smoke_helpers.dart`.
+/// Used on Android and desktop; the VPN smokes still use
+/// `vpn/vpn_smoke_helpers.dart`.
 class AppRobot {
   AppRobot(this.tester);
 
@@ -52,7 +53,7 @@ class AppRobot {
   /// Opens Settings through the UI: home menu button.
   Future<void> openSettings() async {
     await waitForHomeReady();
-    await _tap(
+    await tap(
       find.byKey(const Key('home.menu_button')),
       name: 'Home menu button',
     );
@@ -61,7 +62,7 @@ class AppRobot {
   /// Opens the Language screen through the UI: Settings -> Language.
   Future<void> openLanguage() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.language_tile')),
       name: 'Settings language tile',
     );
@@ -78,7 +79,7 @@ class AppRobot {
   /// same list.
   Future<void> openAppearance() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.appearance_tile')),
       name: 'Settings appearance tile',
     );
@@ -100,7 +101,7 @@ class AppRobot {
       e2eLog('No upgrade button on Settings — account is Pro');
       return false;
     }
-    await _tap(upgrade, name: 'Upgrade to Pro button');
+    await tap(upgrade, name: 'Upgrade to Pro button');
     await WidgetWaitUtils.waitForFinder(
       tester,
       find.byKey(const Key('plans.list')),
@@ -115,11 +116,11 @@ class AppRobot {
   /// home menu -> Settings -> Support -> Report an issue.
   Future<void> openReportIssue() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.support_tile')),
       name: 'Settings support tile',
     );
-    await _tap(
+    await tap(
       find.byKey(const Key('support.report_issue_tile')),
       name: 'Support report-issue tile',
     );
@@ -180,8 +181,10 @@ class AppRobot {
     reason: 'None of ${finders.keys.join(', ')} appeared within $timeout',
   );
 
-  /// Waits for [target], taps it, and lets the navigation settle.
-  Future<void> _tap(Finder target, {required String name}) async {
+  /// Waits for [target], taps it, and lets the navigation settle. Don't use
+  /// this for taps that start an unbounded animation (e.g. a loading spinner):
+  /// pumpAndSettle would hang until its timeout.
+  Future<void> tap(Finder target, {required String name}) async {
     e2eLog('Tapping $name');
     await WidgetWaitUtils.waitForFinder(
       tester,

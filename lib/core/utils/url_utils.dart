@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
@@ -126,7 +125,6 @@ class UrlUtils {
     String url, {
     String? title,
     Function(T)? onWebviewResult,
-    AppWebViewObserver? observer,
   }) async {
     try {
       final normalizedUrl = normalizeWebviewUrl(url);
@@ -141,11 +139,7 @@ class UrlUtils {
         case 'macos':
         case 'windows':
           final result = await appRouter.push<T>(
-            AppWebview(
-              title: title ?? '',
-              url: normalizedUrl,
-              observer: observer,
-            ),
+            AppWebview(title: title ?? '', url: normalizedUrl),
           );
           if (result != null) {
             onWebviewResult?.call(result);
