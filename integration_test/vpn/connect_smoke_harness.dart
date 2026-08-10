@@ -79,7 +79,6 @@ Future<void> runConnectSmokeHarness(
   final vpn = VpnRobot(tester, app);
 
   try {
-    await app.launchToHome();
     await app.waitForControlReady(vpn.vpnToggle, controlName: 'VPN toggle');
     await vpn.ensureDisconnected();
   } catch (_) {
