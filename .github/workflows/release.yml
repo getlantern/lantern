@@ -380,6 +380,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Validate GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
@@ -414,7 +415,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
       - name: Verify Go dependencies
         run: |
@@ -591,6 +592,7 @@ jobs:
           gh release create "$RELEASE_TAG" \
             --draft \
             $PRERELEASE_FLAG \
+            --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes "Publication [in progress](${WORKFLOW_URL})..."
 
@@ -1280,6 +1282,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Format Slack message
         id: slack-message
@@ -1326,6 +1329,7 @@ jobs:
       ]
     if: |
       always() &&
+      !cancelled() &&
       github.event_name == 'schedule' &&
       (
         needs.set-metadata.result != 'success' ||

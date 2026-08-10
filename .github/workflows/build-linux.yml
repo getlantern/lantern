@@ -189,6 +189,7 @@ jobs:
         with:
           name: lantern-installer-rpm-${{ matrix.arch }}
           path: ${{ env.FULL_INSTALLER_NAME }}.rpm
+          if-no-files-found: error
           retention-days: 2
 
       - name: Upload Linux DEB candidate
@@ -196,6 +197,7 @@ jobs:
         with:
           name: lantern-installer-deb-${{ matrix.arch }}
           path: ${{ env.FULL_INSTALLER_NAME }}.deb
+          if-no-files-found: error
           retention-days: 2
 
       - name: Upload Linux Arch candidate
@@ -203,6 +205,7 @@ jobs:
         with:
           name: lantern-installer-pkg-${{ matrix.arch }}
           path: ${{ env.FULL_INSTALLER_NAME }}.pkg.tar.zst
+          if-no-files-found: error
           retention-days: 2
 
       - name: Install .deb and verify postinst started daemon
