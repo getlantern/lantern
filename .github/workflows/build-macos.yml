@@ -54,6 +54,11 @@ on:
         required: false
         type: boolean
         default: true
+      auto_update_e2e:
+        description: "Build a fixture that reads the isolated staging appcast"
+        required: false
+        type: boolean
+        default: false
       run_connect_smoke:
         description: "Run the macOS connect/disconnect smoke after building"
         required: false
@@ -263,6 +268,7 @@ jobs:
           esac
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
           FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
           FLUTTER_TARGET: ${{ inputs.flutter_target }}
           VERSION: ${{ inputs.version }}

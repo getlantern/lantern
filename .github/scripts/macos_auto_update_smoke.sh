@@ -206,14 +206,15 @@ install_fixture() {
 revalidate_target() {
   local recheck="$ARTIFACT_DIR/live-recheck"
   mkdir -p "$recheck"
-  python3 scripts/ci/resolve_macos_update_target.py \
+  python3 scripts/ci/resolve_desktop_update_target.py \
+    --platform macos \
     --appcast-url "$(jq -r .appcast_url "$TARGET_JSON")" \
     --appcast-output "$recheck/appcast.xml" \
     --target-output "$recheck/target.json" \
     --pubspec-input pubspec.yaml \
     --pubspec-output "$recheck/pubspec.yaml"
   [[ "$(jq -r .appcast_sha256 "$TARGET_JSON")" == "$(jq -r .appcast_sha256 "$recheck/target.json")" ]] || {
-    printf 'The live beta appcast changed while the fixture was building; rerun the workflow.\n' >&2
+    printf 'The staging beta appcast changed while the fixture was building; rerun the workflow.\n' >&2
     return 1
   }
 }
@@ -247,7 +248,7 @@ flutter drive \
   --use-application-binary="$APP_PATH" \
   --keep-app-running \
   --driver=test_driver/integration_test.dart \
-  --target=integration_test/auto_update/macos_auto_update_smoke_test.dart \
+  --target=integration_test/auto_update/desktop_auto_update_smoke_test.dart \
   --device-id=macos \
   >"$ARTIFACT_DIR/flutter-drive.log" 2>&1
 drive_status=$?

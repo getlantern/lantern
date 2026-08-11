@@ -21,6 +21,36 @@ on:
       installer_base_name:
         required: true
         type: string
+      flutter_target:
+        description: "Optional Flutter entrypoint used to build the app"
+        required: false
+        type: string
+        default: ""
+      flutter_build_mode:
+        description: "Flutter build mode: release or profile"
+        required: false
+        type: string
+        default: release
+      pubspec_artifact:
+        description: "Artifact containing the version-stamped pubspec.yaml"
+        required: false
+        type: string
+        default: pubspec
+      sign_update_artifact:
+        description: "Generate the Sparkle signature published with this installer"
+        required: false
+        type: boolean
+        default: true
+      auto_update_e2e:
+        description: "Build a fixture that reads the isolated staging appcast"
+        required: false
+        type: boolean
+        default: false
+      run_installer_smoke:
+        description: "Install the packaged app and run the Windows smoke suite"
+        required: false
+        type: boolean
+        default: true
       skip_signing:
         description: "Skip code signing (e.g. for nightly builds)"
         required: false
@@ -79,7 +109,7 @@ jobs:
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
-          name: pubspec
+          name: ${{ inputs.pubspec_artifact }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -171,11 +201,22 @@ jobs:
 
       - name: Build Windows binaries
         shell: pwsh
+        env:
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
+          FLUTTER_TARGET: ${{ inputs.flutter_target }}
         run: |
           dart pub global activate fastforge
-          make windows-release
+          switch ($env:FLUTTER_BUILD_MODE) {
+            'release' { make windows-release }
+            'profile' { make windows-profile-ci }
+            default {
+              Write-Error "Unsupported Windows Flutter build mode: $env:FLUTTER_BUILD_MODE"
+              exit 2
+            }
+          }
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "make windows-release failed with exit code $LASTEXITCODE"
+            Write-Error "Windows build failed with exit code $LASTEXITCODE"
             exit $LASTEXITCODE
           }
 
@@ -306,6 +347,7 @@ jobs:
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
       - name: Windows installer smoke suite
+        if: ${{ inputs.run_installer_smoke }}
         shell: pwsh
         timeout-minutes: 30
         env:
@@ -354,7 +396,7 @@ jobs:
             -Description "Installer - GitHub Actions build ${{ inputs.version }}"
 
       - name: Sign Windows update
-        if: ${{ inputs.build_type != 'nightly' }}
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         shell: pwsh
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
@@ -372,7 +414,7 @@ jobs:
           retention-days: 2
 
       - name: Upload Windows update signature
-        if: ${{ inputs.build_type != 'nightly' }}
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe-signature

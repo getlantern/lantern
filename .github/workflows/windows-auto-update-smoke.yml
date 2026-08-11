@@ -1,4 +1,4 @@
-name: macOS auto-update smoke
+name: Windows auto-update smoke
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: macos-auto-update-smoke
+  group: windows-auto-update-smoke
   cancel-in-progress: false
 
 jobs:
@@ -42,12 +42,12 @@ jobs:
         id: target
         shell: bash
         env:
-          TARGET_DIR: ${{ runner.temp }}/macos-auto-update-target
+          TARGET_DIR: ${{ runner.temp }}/windows-auto-update-target
         run: |
           set -o pipefail
           mkdir -p "$TARGET_DIR/pubspec"
           python scripts/ci/resolve_desktop_update_target.py \
-            --platform macos \
+            --platform windows \
             --appcast-url "https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta" \
             --appcast-output "$TARGET_DIR/appcast.xml" \
             --target-output "$TARGET_DIR/target.json" \
@@ -65,7 +65,7 @@ jobs:
           TARGET_BUILD: ${{ steps.target.outputs.target_build }}
         run: |
           {
-            echo "### macOS auto-update target"
+            echo "### Windows auto-update target"
             echo
             echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
             echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
@@ -75,11 +75,11 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: macos-auto-update-target
+          name: windows-auto-update-target
           path: |
-            ${{ runner.temp }}/macos-auto-update-target/appcast.xml
-            ${{ runner.temp }}/macos-auto-update-target/target.json
-            ${{ runner.temp }}/macos-auto-update-target/resolve.log
+            ${{ runner.temp }}/windows-auto-update-target/appcast.xml
+            ${{ runner.temp }}/windows-auto-update-target/target.json
+            ${{ runner.temp }}/windows-auto-update-target/resolve.log
           if-no-files-found: warn
           retention-days: 7
 
@@ -87,8 +87,8 @@ jobs:
         if: ${{ steps.target.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: macos-auto-update-pubspec
-          path: ${{ runner.temp }}/macos-auto-update-target/pubspec/pubspec.yaml
+          name: windows-auto-update-pubspec
+          path: ${{ runner.temp }}/windows-auto-update-target/pubspec/pubspec.yaml
           if-no-files-found: error
           retention-days: 2
 
@@ -98,29 +98,30 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: ./.github/workflows/build-macos.yml
+    uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
       version: ${{ needs.resolve-target.outputs.display_version }}
       build_type: beta
       installer_base_name: lantern-autoupdate-fixture
-      runner_label: lantern-macos-smoke
       flutter_target: integration_test/auto_update/desktop_auto_update_smoke_test.dart
       flutter_build_mode: profile
-      pubspec_artifact: macos-auto-update-pubspec
+      pubspec_artifact: windows-auto-update-pubspec
       sign_update_artifact: false
       auto_update_e2e: true
+      run_installer_smoke: false
       run_connect_smoke: false
+      run_split_tunnel_website_smoke: false
+      run_config_url_smoke: false
+      run_auth_smoke: false
       run_payment_checkout_smoke: false
 
   exercise-update:
-    name: Install and update through Sparkle
+    name: Install and update through WinSparkle
     needs:
       - resolve-target
       - build-fixture
-    runs-on:
-      - self-hosted
-      - lantern-macos-smoke
+    runs-on: windows-latest
     timeout-minutes: 30
     env:
       LANTERN_AUTO_UPDATE_SMOKE: "true"
@@ -133,7 +134,7 @@ jobs:
       - name: Download fixture pubspec
         uses: actions/download-artifact@v4
         with:
-          name: macos-auto-update-pubspec
+          name: windows-auto-update-pubspec
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
@@ -157,39 +158,40 @@ jobs:
       - name: Download lower fixture
         uses: actions/download-artifact@v4
         with:
-          name: lantern-installer-dmg
-          path: ${{ runner.temp }}/macos-auto-update-fixture
+          name: lantern-installer-exe
+          path: ${{ runner.temp }}/windows-auto-update-fixture
 
       - name: Download resolved target
         uses: actions/download-artifact@v4
         with:
-          name: macos-auto-update-target
-          path: ${{ runner.temp }}/macos-auto-update-target
+          name: windows-auto-update-target
+          path: ${{ runner.temp }}/windows-auto-update-target
 
       - name: Run Flutter-led auto-update smoke
-        shell: bash
+        shell: pwsh
         env:
-          APPCAST_XML: ${{ runner.temp }}/macos-auto-update-target/appcast.xml
-          ARTIFACT_DIR: ${{ runner.temp }}/macos-auto-update-smoke
-          FIXTURE_DMG: ${{ runner.temp }}/macos-auto-update-fixture/lantern-autoupdate-fixture-beta.dmg
-          TARGET_JSON: ${{ runner.temp }}/macos-auto-update-target/target.json
-        run: bash ./.github/scripts/macos_auto_update_smoke.sh
+          APPCAST_XML: ${{ runner.temp }}/windows-auto-update-target/appcast.xml
+          ARTIFACT_DIR: ${{ runner.temp }}/windows-auto-update-smoke
+          FIXTURE_INSTALLER: ${{ runner.temp }}/windows-auto-update-fixture/lantern-autoupdate-fixture-beta.exe
+          TARGET_JSON: ${{ runner.temp }}/windows-auto-update-target/target.json
+        run: ./.github/scripts/windows_auto_update_smoke.ps1
 
       - name: Upload auto-update diagnostics
         if: ${{ always() }}
         id: diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: macos-auto-update-smoke
-          path: ${{ runner.temp }}/macos-auto-update-smoke
+          name: windows-auto-update-smoke
+          path: ${{ runner.temp }}/windows-auto-update-smoke
           if-no-files-found: warn
           retention-days: 7
 
       - name: Link diagnostics
         if: ${{ always() && steps.diagnostics.outputs.artifact-url != '' }}
-        shell: bash
+        shell: pwsh
         env:
           ARTIFACT_URL: ${{ steps.diagnostics.outputs.artifact-url }}
         run: |
-          echo "::notice title=macOS auto-update diagnostics::$ARTIFACT_URL"
-          echo "[Download macOS auto-update diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
+          Write-Host "::notice title=Windows auto-update diagnostics::$env:ARTIFACT_URL"
+          "[Download Windows auto-update diagnostics]($env:ARTIFACT_URL)" |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

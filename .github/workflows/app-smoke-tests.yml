@@ -22,7 +22,7 @@ on:
         type: choice
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
-          - auto-update # macOS only: install a lower signed fixture and update it from the live beta feed
+          - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - all # every standard suite the platform supports
         default: vpn-smoke
       linux_arch:
@@ -52,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate auto-update selection
-        if: ${{ inputs.tests == 'auto-update' && inputs.platforms != 'macos' }}
+        if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["macos", "windows"]'), inputs.platforms) }}
         shell: bash
         run: |
-          echo '::error title=Invalid smoke selection::auto-update requires platforms=macos'
+          echo '::error title=Invalid smoke selection::auto-update requires platforms=macos or windows'
           exit 2
 
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
@@ -159,7 +159,7 @@ jobs:
 
   windows:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) }}
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
@@ -171,3 +171,9 @@ jobs:
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_payment_checkout_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+
+  windows-auto-update:
+    needs: validate-inputs
+    if: ${{ inputs.platforms == 'windows' && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/windows-auto-update-smoke.yml
+    secrets: inherit

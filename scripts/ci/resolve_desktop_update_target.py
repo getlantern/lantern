@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve and validate the live macOS beta target for the update smoke test."""
+"""Resolve and validate a desktop beta target for the update smoke test."""
 
 from __future__ import annotations
 
@@ -33,13 +33,14 @@ class TargetError(Exception):
 
 @dataclass(frozen=True)
 class UpdateTarget:
+    platform: str
     appcast_url: str
     appcast_sha256: str
     target_build: int
     fixture_build: int
     display_version: str
-    dmg_url: str
-    dmg_length: int
+    artifact_url: str
+    artifact_length: int
     ed_signature: str
 
     @property
@@ -73,7 +74,8 @@ def fetch_appcast(url: str) -> bytes:
         raise TargetError(f"unable to fetch appcast: {err.reason}") from err
 
 
-def parse_target(xml_data: bytes, appcast_url: str) -> UpdateTarget:
+def parse_target(xml_data: bytes, appcast_url: str, platform: str) -> UpdateTarget:
+    require(platform in {"macos", "windows"}, f"unsupported platform {platform!r}")
     try:
         root = ET.fromstring(xml_data)
     except (DefusedXmlException, ET.ParseError) as err:
@@ -106,50 +108,59 @@ def parse_target(xml_data: bytes, appcast_url: str) -> UpdateTarget:
         "appcast display version must be a valid dotted version",
     )
 
-    mac_enclosures = [
+    platform_name = "macOS" if platform == "macos" else "Windows"
+    platform_enclosures = [
         enclosure
         for enclosure in item.findall("enclosure")
-        if enclosure.attrib.get(f"{{{SPARKLE_NS}}}os") == "macos"
+        if enclosure.attrib.get(f"{{{SPARKLE_NS}}}os") == platform
     ]
-    require(mac_enclosures, "appcast has no macOS enclosure")
-    require(len(mac_enclosures) == 1, "appcast has more than one macOS enclosure")
-    enclosure = mac_enclosures[0]
+    require(platform_enclosures, f"appcast has no {platform_name} enclosure")
+    require(
+        len(platform_enclosures) == 1,
+        f"appcast has more than one {platform_name} enclosure",
+    )
+    enclosure = platform_enclosures[0]
 
-    dmg_url = enclosure.attrib.get("url", "").strip()
-    parsed_url = urllib.parse.urlparse(dmg_url)
+    artifact_url = enclosure.attrib.get("url", "").strip()
+    parsed_url = urllib.parse.urlparse(artifact_url)
     require(
         parsed_url.scheme == "https" and bool(parsed_url.netloc),
-        "macOS update URL must use HTTPS",
+        f"{platform_name} update URL must use HTTPS",
     )
+    expected_suffix = ".dmg" if platform == "macos" else ".exe"
     require(
-        parsed_url.path.lower().endswith(".dmg"),
-        "macOS update URL must point to a DMG",
+        parsed_url.path.lower().endswith(expected_suffix),
+        f"{platform_name} update URL must point to a {expected_suffix.upper()[1:]}",
     )
 
     length_text = enclosure.attrib.get("length", "").strip()
     require(
         length_text.isascii() and length_text.isdigit(),
-        "macOS enclosure length must be numeric",
+        f"{platform_name} enclosure length must be numeric",
     )
-    dmg_length = int(length_text)
-    require(dmg_length > 0, "macOS enclosure length must be positive")
+    artifact_length = int(length_text)
+    require(artifact_length > 0, f"{platform_name} enclosure length must be positive")
 
     signature = enclosure.attrib.get(f"{{{SPARKLE_NS}}}edSignature", "").strip()
-    require(bool(signature), "macOS enclosure is missing an EdDSA signature")
+    require(bool(signature), f"{platform_name} enclosure is missing an EdDSA signature")
     try:
         decoded_signature = base64.b64decode(signature, validate=True)
     except (binascii.Error, ValueError) as err:
-        raise TargetError("macOS EdDSA signature is not valid base64") from err
-    require(len(decoded_signature) == 64, "macOS EdDSA signature must decode to 64 bytes")
+        raise TargetError(f"{platform_name} EdDSA signature is not valid base64") from err
+    require(
+        len(decoded_signature) == 64,
+        f"{platform_name} EdDSA signature must decode to 64 bytes",
+    )
 
     return UpdateTarget(
+        platform=platform,
         appcast_url=appcast_url,
         appcast_sha256=hashlib.sha256(xml_data).hexdigest(),
         target_build=target_build,
         fixture_build=target_build - 1,
         display_version=display_version,
-        dmg_url=dmg_url,
-        dmg_length=dmg_length,
+        artifact_url=artifact_url,
+        artifact_length=artifact_length,
         ed_signature=signature,
     )
 
@@ -185,6 +196,7 @@ def write_github_output(path: pathlib.Path, target: UpdateTarget) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--platform", required=True, choices=("macos", "windows"))
     parser.add_argument("--appcast-url", default=DEFAULT_APPCAST_URL)
     parser.add_argument("--appcast-output", required=True, type=pathlib.Path)
     parser.add_argument("--target-output", required=True, type=pathlib.Path)
@@ -197,7 +209,7 @@ def main() -> None:
         xml_data = fetch_appcast(args.appcast_url)
         args.appcast_output.parent.mkdir(parents=True, exist_ok=True)
         args.appcast_output.write_bytes(xml_data)
-        target = parse_target(xml_data, args.appcast_url)
+        target = parse_target(xml_data, args.appcast_url, args.platform)
         args.target_output.parent.mkdir(parents=True, exist_ok=True)
         args.target_output.write_text(
             json.dumps(asdict(target), indent=2, sort_keys=True) + "\n",
@@ -207,10 +219,12 @@ def main() -> None:
         if args.github_output is not None:
             write_github_output(args.github_output, target)
     except (OSError, TargetError) as err:
-        raise SystemExit(f"unable to resolve macOS beta update target: {err}") from err
+        raise SystemExit(
+            f"unable to resolve {args.platform} beta update target: {err}"
+        ) from err
 
     print(
-        "[E2E] resolved live beta "
+        f"[E2E] resolved live beta {target.platform} "
         f"{target.display_version} build {target.target_build}; "
         f"fixture build is {target.fixture_build}"
     )

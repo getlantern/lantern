@@ -8,6 +8,7 @@ import base64
 import binascii
 import hashlib
 import json
+import urllib.parse
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -72,6 +73,7 @@ def sidecar_for(
     bucket: str,
     signature_dir: Optional[Path] = None,
     sparkle_version: Optional[str] = None,
+    asset_base_url: Optional[str] = None,
 ) -> Optional[dict[str, object]]:
     info = artifact_info(path.name)
     if info is None:
@@ -79,7 +81,10 @@ def sidecar_for(
 
     platform, os_name, arch = info
     channel = release_channel(build_type)
-    url = f"https://s3.amazonaws.com/{bucket}/releases/{build_type}/{version}/{path.name}"
+    if asset_base_url:
+        url = f"{asset_base_url.rstrip('/')}/{urllib.parse.quote(path.name)}"
+    else:
+        url = f"https://s3.amazonaws.com/{bucket}/releases/{build_type}/{version}/{path.name}"
     metadata: dict[str, object] = {
         "schema_version": 1,
         "app": "lantern",
@@ -113,6 +118,10 @@ def main() -> None:
     parser.add_argument("--bucket", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--sparkle-signature-dir", required=True, type=Path)
+    parser.add_argument(
+        "--asset-base-url",
+        help="Override the artifact directory URL for synthetic fixture releases",
+    )
     parser.add_argument("artifacts", nargs="+", type=Path)
     args = parser.parse_args()
 
@@ -128,6 +137,7 @@ def main() -> None:
             args.bucket,
             args.sparkle_signature_dir,
             args.sparkle_version,
+            args.asset_base_url,
         )
         if metadata is None:
             continue

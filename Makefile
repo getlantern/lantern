@@ -158,7 +158,10 @@ WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
 WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
+WINDOWS_PROFILE_DIR  := $(BUILD_DIR)/windows/x64/runner/Profile
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
+LANTERND_WINDOWS_PROFILE := $(WINDOWS_PROFILE_DIR)/$(LANTERND).exe
+LANTERND_WINDOWS_PROFILE_ARM64 := $(WINDOWS_PROFILE_DIR)/arm64/$(LANTERND).exe
 LANTERND_WINDOWS_RELEASE := $(WINDOWS_RELEASE_DIR)/$(LANTERND).exe
 LANTERND_WINDOWS_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/$(LANTERND).exe
 
@@ -270,7 +273,8 @@ SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
-DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
+DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(AUTO_UPDATE_E2E_DART_DEFINE)
 FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
@@ -760,11 +764,25 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
 	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(WINDOWS_DEBUG_DIR)/$(LANTERND).exe)
 
+copy-lanternd-profile: $(LANTERND_WINDOWS_AMD64)
+	$(call MKDIR_P,$(WINDOWS_PROFILE_DIR))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_PROFILE))
+
+copy-lanternd-profile-arm64: $(LANTERND_WINDOWS_ARM64)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_PROFILE_ARM64)))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_ARM64),$(LANTERND_WINDOWS_PROFILE_ARM64))
+
 .PHONY: prepare-windows-release
 prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release
 	$(MAKE) copy-lanternd-release-arm64
 	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_RELEASE_DIR)/lanternd-log-level)
+
+.PHONY: prepare-windows-profile
+prepare-windows-profile: lanternd-windows-amd64 lanternd-windows-arm64
+	$(MAKE) copy-lanternd-profile
+	$(MAKE) copy-lanternd-profile-arm64
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_PROFILE_DIR)/lanternd-log-level)
 
 .PHONY: windows-debug
 windows-debug: windows $(MAYBE_STEALTH_PROFILE)
@@ -774,10 +792,23 @@ windows-debug: windows $(MAYBE_STEALTH_PROFILE)
 .PHONY: build-windows-release
 build-windows-release: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for Windows..."
-	flutter build windows --release --verbose $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	flutter build windows --release --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-windows-profile stage-windows-profile
+build-windows-profile: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for Windows..."
+	flutter build windows --profile --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+# Fastforge packages the Release directory. Stage the test-only profile build
+# there after its native service binaries have been added.
+stage-windows-profile: build-windows-profile prepare-windows-profile
+	$(PS) "if (Test-Path '$(WINDOWS_RELEASE_DIR)') { Remove-Item -Recurse -Force -LiteralPath '$(WINDOWS_RELEASE_DIR)' }; New-Item -ItemType Directory -Force -Path '$(WINDOWS_RELEASE_DIR)' | Out-Null; Copy-Item -Recurse -Force -Path '$(WINDOWS_PROFILE_DIR)\\*' -Destination '$(WINDOWS_RELEASE_DIR)'"
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release
+
+.PHONY: windows-profile-ci
+windows-profile-ci: clean windows pubget gen stage-windows-profile
 
 .PHONY: install-gomobile
 install-gomobile:

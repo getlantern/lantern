@@ -10,8 +10,19 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/app_robot.dart';
 import '../utils/widget_wait_utils.dart';
 
-const autoUpdateHandoffPath =
-    '/Users/Shared/Lantern/E2E/auto-update-handoff.json';
+String get autoUpdateHandoffPath {
+  if (Platform.isMacOS) {
+    return '/Users/Shared/Lantern/E2E/auto-update-handoff.json';
+  }
+  if (Platform.isWindows) {
+    final programData = Platform.environment['ProgramData'];
+    if (programData == null || programData.isEmpty) {
+      throw StateError('ProgramData is unavailable for the update handoff');
+    }
+    return '$programData\\Lantern\\E2E\\auto-update-handoff.json';
+  }
+  throw UnsupportedError('Auto-update handoff is desktop-only');
+}
 
 /// Drives Lantern up to the native Sparkle boundary.
 class AutoUpdateRobot {
@@ -83,6 +94,6 @@ class AutoUpdateRobot {
     };
     await handoff.parent.create(recursive: true);
     await handoff.writeAsString('${jsonEncode(payload)}\n', flush: true);
-    e2eLog('Native Sparkle handoff ready at ${handoff.path}');
+    e2eLog('Native updater handoff ready at ${handoff.path}');
   }
 }

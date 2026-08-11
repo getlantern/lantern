@@ -10,7 +10,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-import resolve_macos_update_target as resolver
+import resolve_desktop_update_target as resolver
 
 
 SIGNATURE = base64.b64encode(bytes(range(64))).decode("ascii")
@@ -40,19 +40,35 @@ def appcast(
 """.encode()
 
 
-class ResolveMacOSUpdateTargetTest(unittest.TestCase):
+class ResolveDesktopUpdateTargetTest(unittest.TestCase):
     def test_parse_target_accepts_signed_numeric_macos_release(self) -> None:
-        target = resolver.parse_target(appcast(), APPCAST_URL)
+        target = resolver.parse_target(appcast(), APPCAST_URL, "macos")
 
+        self.assertEqual(target.platform, "macos")
         self.assertEqual(target.target_build, 920)
         self.assertEqual(target.fixture_build, 919)
         self.assertEqual(target.display_version, "9.2.0")
         self.assertEqual(target.fixture_pubspec_version, "9.2.0+919")
         self.assertEqual(target.ed_signature, SIGNATURE)
 
+    def test_parse_target_accepts_signed_numeric_windows_release(self) -> None:
+        target = resolver.parse_target(
+            appcast(
+                os_name="windows",
+                url="https://example.com/lantern-installer-beta.exe",
+            ),
+            APPCAST_URL,
+            "windows",
+        )
+
+        self.assertEqual(target.platform, "windows")
+        self.assertEqual(target.artifact_url, "https://example.com/lantern-installer-beta.exe")
+        self.assertEqual(target.artifact_length, 12345)
+        self.assertEqual(target.ed_signature, SIGNATURE)
+
     def test_parse_target_rejects_non_numeric_sparkle_version(self) -> None:
         with self.assertRaises(resolver.TargetError) as raised:
-            resolver.parse_target(appcast(build="9.2.0-beta"), APPCAST_URL)
+            resolver.parse_target(appcast(build="9.2.0-beta"), APPCAST_URL, "macos")
         self.assertEqual(
             str(raised.exception),
             "appcast Sparkle version must be numeric; got '9.2.0-beta'",
@@ -60,21 +76,23 @@ class ResolveMacOSUpdateTargetTest(unittest.TestCase):
 
     def test_parse_target_requires_display_version(self) -> None:
         with self.assertRaisesRegex(resolver.TargetError, "display version"):
-            resolver.parse_target(appcast(display_version=""), APPCAST_URL)
+            resolver.parse_target(appcast(display_version=""), APPCAST_URL, "macos")
         with self.assertRaisesRegex(resolver.TargetError, "display version"):
             resolver.parse_target(
                 appcast(display_version="9.2.0+metadata"),
                 APPCAST_URL,
+                "macos",
             )
 
     def test_parse_target_requires_macos_dmg(self) -> None:
         with self.assertRaisesRegex(resolver.TargetError, "no macOS enclosure"):
-            resolver.parse_target(appcast(os_name="windows"), APPCAST_URL)
+            resolver.parse_target(appcast(os_name="windows"), APPCAST_URL, "macos")
 
         with self.assertRaisesRegex(resolver.TargetError, "point to a DMG"):
             resolver.parse_target(
                 appcast(url="https://example.com/lantern.exe"),
                 APPCAST_URL,
+                "macos",
             )
 
     def test_parse_target_requires_https(self) -> None:
@@ -82,6 +100,7 @@ class ResolveMacOSUpdateTargetTest(unittest.TestCase):
             resolver.parse_target(
                 appcast(url="http://example.com/lantern.dmg"),
                 APPCAST_URL,
+                "macos",
             )
 
     def test_parse_target_requires_valid_signature(self) -> None:
@@ -93,7 +112,7 @@ class ResolveMacOSUpdateTargetTest(unittest.TestCase):
         for signature in signatures:
             with self.subTest(signature=signature):
                 with self.assertRaisesRegex(resolver.TargetError, "signature"):
-                    resolver.parse_target(appcast(signature=signature), APPCAST_URL)
+                    resolver.parse_target(appcast(signature=signature), APPCAST_URL, "macos")
 
     def test_parse_target_rejects_unsafe_xml(self) -> None:
         xml_data = appcast().replace(
@@ -101,10 +120,10 @@ class ResolveMacOSUpdateTargetTest(unittest.TestCase):
             b'<!DOCTYPE rss [<!ENTITY build "920">]><rss version="2.0"',
         ).replace(b">920<", b">&build;<")
         with self.assertRaisesRegex(resolver.TargetError, "unsafe appcast"):
-            resolver.parse_target(xml_data, APPCAST_URL)
+            resolver.parse_target(xml_data, APPCAST_URL, "macos")
 
     def test_write_fixture_pubspec_only_replaces_version(self) -> None:
-        target = resolver.parse_target(appcast(), APPCAST_URL)
+        target = resolver.parse_target(appcast(), APPCAST_URL, "macos")
         with tempfile.TemporaryDirectory() as tmp:
             source = pathlib.Path(tmp) / "source.yaml"
             destination = pathlib.Path(tmp) / "pubspec.yaml"

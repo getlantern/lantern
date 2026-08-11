@@ -154,6 +154,33 @@ class GenerateUpdateMetadataTest(TestCase):
             self.assertEqual(metadata["sparkle_version"], "920")
             self.assertEqual(metadata["sparkle_ed_signature"], signature)
 
+    def test_sidecar_can_point_at_a_fixture_release(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
+            artifact.write_bytes(b"windows")
+            signature = base64.b64encode(bytes(range(64))).decode("ascii")
+            (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
+                signature,
+                encoding="ascii",
+            )
+
+            metadata = generate_update_metadata.sidecar_for(
+                artifact,
+                "beta",
+                "9.2.0-beta.e2e.123",
+                "unused-bucket",
+                pathlib.Path(tmp),
+                "123",
+                "https://github.com/getlantern/lantern-update-fixtures/"
+                "releases/download/v9.2.0-beta.e2e.123",
+            )
+
+        self.assertEqual(
+            metadata["url"],
+            "https://github.com/getlantern/lantern-update-fixtures/releases/"
+            "download/v9.2.0-beta.e2e.123/lantern-installer-beta.exe",
+        )
+
     def test_updater_signature_rejects_invalid_base64(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
