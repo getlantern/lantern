@@ -3,6 +3,7 @@ param(
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
+  [string]$PaymentCheckoutTestPath = "integration_test/payment/desktop_stripe_checkout_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
@@ -11,11 +12,14 @@ param(
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
+  [ValidateSet("prod", "staging")]
+  [string]$ServiceEnvironment = "prod",
   [bool]$RunConnectSmoke = $true,
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
+  [switch]$RunPaymentCheckoutSmoke,
   [switch]$UseInstaller
 )
 
@@ -130,6 +134,8 @@ function Invoke-FlutterSmokeTest {
     [string]$Path,
     [Parameter(Mandatory = $true)]
     [string]$Description,
+    [ValidateSet("prod", "staging")]
+    [string]$RadianceEnvironment = "prod",
     [switch]$EnableIpCheck,
     [switch]$ForceFullTunnel
   )
@@ -142,6 +148,8 @@ function Invoke-FlutterSmokeTest {
     "--reporter=expanded",
     "--dart-define=DISABLE_SYSTEM_TRAY=true"
   )
+
+  $args += "--dart-define=RADIANCE_ENV=$RadianceEnvironment"
 
   if ($EnableIpCheck) {
     $args += "--dart-define=ENABLE_IP_CHECK=true"
@@ -307,7 +315,7 @@ try {
     Remove-ServiceIfPresent -Name $ServiceName
     Invoke-LanterndCommand `
       -FilePath $resolvedServiceExe `
-      -ArgumentList @("install") `
+      -ArgumentList @("install", "--environment", $ServiceEnvironment) `
       -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
@@ -320,6 +328,15 @@ try {
       -ForceFullTunnel:$ForceFullTunnel
   } else {
     Write-Step "Skipping Windows connect smoke test."
+  }
+
+  if ($RunPaymentCheckoutSmoke) {
+    Invoke-FlutterSmokeTest `
+      -Path $PaymentCheckoutTestPath `
+      -Description "Windows Stripe checkout smoke test" `
+      -RadianceEnvironment $ServiceEnvironment
+  } else {
+    Write-Step "Skipping Windows Stripe checkout smoke test."
   }
 
   if ($RunSplitTunnelWebsiteSmoke) {
@@ -372,14 +389,18 @@ finally {
     if ($UseInstaller) {
       Uninstall-FromInstalledService -Name $ServiceName
     } else {
-      $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
-      if ($resolvedServiceExe) {
-        Invoke-LanterndCommand `
-          -FilePath $resolvedServiceExe `
-          -ArgumentList @("uninstall") `
-          -Description "Uninstalling lanternd service from $resolvedServiceExe"
+      if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+        $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
+        if ($resolvedServiceExe) {
+          Invoke-LanterndCommand `
+            -FilePath $resolvedServiceExe `
+            -ArgumentList @("uninstall") `
+            -Description "Uninstalling lanternd service from $resolvedServiceExe"
+        } else {
+          Remove-ServiceIfPresent -Name $ServiceName
+        }
       } else {
-        Remove-ServiceIfPresent -Name $ServiceName
+        Write-Step "Windows service $ServiceName was not installed; skipping uninstall."
       }
     }
     Write-Step "Cleanup finished"

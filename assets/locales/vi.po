@@ -1,16 +1,16 @@
 # Translators:
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
-# Yen Le Van <yenlevanbk@gmail.com>, 2025
 # Anh Phan <vietnamesel10n@gmail.com>, 2025
 # e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# Yen Le Van <yenlevanbk@gmail.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Vietnamese (https://app.transifex.com/lantern-1/teams/94371/vi/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -28,6 +28,30 @@ msgstr "Cài đặt"
 
 msgid "report_an_issue"
 msgstr "Báo cáo sự cố"
+
+msgid "report_issue_add_screenshots"
+msgstr "Thêm ảnh chụp màn hình"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG hoặc GIF — tối đa 15 MB tổng cộng"
+
+msgid "report_issue_add_images"
+msgstr "Thêm hình ảnh"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Chỉ hỗ trợ hình ảnh PNG, JPG và GIF."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Bạn có thể đính kèm tối đa 3 hình ảnh."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Tổng dung lượng tệp đính kèm phải dưới 15 MB."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Hình ảnh đó đã được đính kèm."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Chúng tôi không thể đọc một trong những tệp đó."
 
 msgid "lantern_projects"
 msgstr "Dự án Lantern:"
@@ -159,6 +183,36 @@ msgstr "Đăng xuất"
 
 msgid "check_for_updates"
 msgstr "Kiểm tra cập nhật"
+
+msgid "update_available"
+msgstr "Có bản cập nhật"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s đã có sẵn. Lantern sẽ tải xuống và xác minh tệp APK trước khi mở "
+"trình cài đặt của Android."
+
+msgid "download_and_install_update"
+msgstr "Tải xuống và cài đặt"
+
+msgid "allow_unknown_app_installs"
+msgstr "Cho phép cài đặt ứng dụng"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android cần quyền để cài đặt bản cập nhật từ Lantern. Hãy bật Cho phép từ "
+"nguồn này, sau đó kiểm tra cập nhật lại."
+
+msgid "error_install_update"
+msgstr "Không thể cài đặt bản cập nhật"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern không thể xác minh hoặc cài đặt bản cập nhật này. Vui lòng thử lại "
+"sau."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern đã là phiên bản mới nhất."
 
 msgid "support"
 msgstr "Hỗ trợ"
@@ -371,9 +425,13 @@ msgstr "Thêm email để truy cập gói đăng ký trên bất kỳ thiết b�
 msgid "confirm_email_code"
 msgstr "Mã xác nhận"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "Chúng tôi đã gửi mã đến "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"Xác nhận địa chỉ email này thuộc về bạn bằng cách nhập mã được gửi đến: "
+" Nhập mã bên dưới. Nếu không thấy trong hộp thư đến, hãy kiểm tra thư mục "
+"spam."
 
 msgid "resend_email"
 msgstr "Gửi lại email"
@@ -495,6 +553,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "Các tính năng Pro của bạn đã được mở khóa—tận hưởng dữ liệu không giới hạn, "
 "tốc độ nhanh hơn và máy chủ cao cấp."
+
+msgid "purchase_restored_title"
+msgstr "Đã khôi phục giao dịch mua"
+
+msgid "purchase_restored_description"
+msgstr "Gói đăng ký Lantern Pro của bạn hiện đã hoạt động trên thiết bị này."
+
+msgid "no_purchase_found_title"
+msgstr "Không tìm thấy giao dịch mua"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Không có gói đăng ký đang hoạt động nào gắn với Apple ID này."
+
+msgid "no_purchase_found_body_android"
+msgstr "Không có gói đăng ký đang hoạt động nào gắn với tài khoản Google này."
 
 msgid "plans_fetch_error"
 msgstr "Lỗi khi tải gói dịch vụ. Vui lòng thử lại sau."
@@ -1023,6 +1096,9 @@ msgstr ""
 "Đây sẽ trở thành email đăng nhập mới của bạn. Bạn sẽ cần xác minh nó trước "
 "khi thay đổi có hiệu lực."
 
+msgid "email_must_be_different"
+msgstr "Vui lòng nhập một địa chỉ email khác."
+
 msgid "enter_new_email"
 msgstr "Nhập email mới của bạn"
 
@@ -1093,6 +1169,15 @@ msgstr "Nhập mã kích hoạt"
 
 msgid "restore_purchase"
 msgstr "Khôi phục gói mua"
+
+msgid "already_purchased"
+msgstr "Đã mua trước đó?"
+
+msgid "restore_purchase_success"
+msgstr "Khôi phục giao dịch mua thành công."
+
+msgid "restore_purchase_no_purchases"
+msgstr "Không tìm thấy giao dịch mua nào để khôi phục."
 
 msgid "do_private_server_setup"
 msgstr "Thiết lập máy chủ riêng DO"
@@ -1238,7 +1323,7 @@ msgid "referral_message_1m"
 msgstr "+ 15 ngày bổ sung miễn phí"
 
 msgid "referral_message_1y"
-msgstr "+ 1 tháng bổ sung miễn phí"
+msgstr "+ 15 ngày bổ sung miễn phí"
 
 msgid "referral_message_2y"
 msgstr "+ 2 tháng bổ sung miễn phí"
@@ -1636,50 +1721,53 @@ msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
 msgid "verify_with"
 msgstr "Xác minh với %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "Làm mới"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "Phát hiện xung đột VPN"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"Một VPN khác đang chạy trên thiết bị của bạn. Lantern hoạt động tốt nhất khi"
+" là VPN duy nhất đang hoạt động. Để có kết quả tốt nhất, vui lòng ngắt kết "
+"nối VPN đó trước khi dùng Lantern."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "Đã nhận được"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "Vẫn kết nối"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "Không thể kết nối. Kiểm tra kết nối internet của bạn."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "Dịch vụ tạm thời không khả dụng. Đang thử lại..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "Kết nối thất bại. Vui lòng thử lại."
+
+msgid "err_ruleset_failed"
+msgstr "Không thể tải cấu hình định tuyến. Đang thử lại..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "Cập nhật ngay"
 
 msgid "later"
-msgstr "Later"
+msgstr "Để sau"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s đã sẵn sàng để cài đặt"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "Đã cập nhật"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "Bạn đang dùng phiên bản mới nhất của Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "Không thể kiểm tra cập nhật"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "Kiểm tra kết nối của bạn và thử lại"

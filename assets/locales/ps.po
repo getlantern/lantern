@@ -1,10 +1,10 @@
 # Translators:
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Pashto (https://app.transifex.com/lantern-1/teams/94371/ps/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -22,6 +22,30 @@ msgstr "تنظیمات"
 
 msgid "report_an_issue"
 msgstr "د یوې ستونزې راپور ورکړئ"
+
+msgid "report_issue_add_screenshots"
+msgstr "سکرین شاټونه اضافه کړئ"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG، JPG یا GIF — ټولټال تر 15 MB پورې"
+
+msgid "report_issue_add_images"
+msgstr "انځورونه اضافه کړئ"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "یوازې د PNG، JPG او GIF انځورونه ملاتړ کیږي."
+
+msgid "report_issue_attachments_too_many"
+msgstr "تاسو کولی شئ تر 3 انځورونو پورې ضمیمه کړئ."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "ضمیمې باید په ټولیز ډول له 15 MB څخه کمې وي."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "دا انځور لا دمخه ضمیمه شوی دی."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "موږ له دغو فایلونو څخه یو نه شو لوستلی."
 
 msgid "lantern_projects"
 msgstr "د Lantern پروژې:"
@@ -156,6 +180,36 @@ msgstr "وتل"
 
 msgid "check_for_updates"
 msgstr "د تازه کولو لپاره وګورئ"
+
+msgid "update_available"
+msgstr "اپډیټ شتون لري"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s شتون لري. Lantern به د اندروید انسټالر پرانیستلو دمخه APK ډاونلوډ"
+" او تایید کړي."
+
+msgid "download_and_install_update"
+msgstr "ډاونلوډ او انسټال کړئ"
+
+msgid "allow_unknown_app_installs"
+msgstr "د اپ انسټال اجازه ورکړئ"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"اندروید د Lantern څخه د اپډیټونو انسټالولو لپاره اجازې ته اړتیا لري. له دې "
+"سرچینې څخه اجازه فعاله کړئ، بیا یو ځل بیا اپډیټونه وګورئ."
+
+msgid "error_install_update"
+msgstr "اپډیټ نه شي انسټالېدلی"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern دا اپډیټ تایید یا انسټال نه شو کولی. مهرباني وکړئ وروسته بیا هڅه "
+"وکړئ."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern تازه دی."
 
 msgid "support"
 msgstr "ملاتړ"
@@ -366,10 +420,12 @@ msgstr "په هر وسیله کې د خپل ګډون لاسرسي لپاره خ�
 msgid "confirm_email_code"
 msgstr "د تایید کوډ"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "موږ یو کوډ ولېږه: "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"تایید کړئ چې دا بریښنالیک پته ستاسو ده، هغه کوډ دننه کړئ چې ولیږل شوی: تایید"
-" کړئ چې دا د بریښنالیک پته ستاسو ده، هغه کوډ دننه کړئ چې ولیږل شو:"
+" هغه لاندې دننه کړئ. که ستاسو په انباکس کې نه وي، خپل سپم فولډر وګورئ."
 
 msgid "resend_email"
 msgstr "بریښنالیک بیا واستوئ"
@@ -493,6 +549,21 @@ msgstr ""
 "ستاسو Pro ځانګړتیاوې خلاص شوي—د نامحدود ډیټا، ګړندي سرعت، او پریمیم سرورونو "
 "څخه خوند واخلئ.ستاسو د پرو ځانګړتیاوې خلاصې شوې دي - له نامحدود ډیټا، ګړندي "
 "سرعت، او پریمیم سرورونو څخه خوند واخلئ."
+
+msgid "purchase_restored_title"
+msgstr "پیرود بیرته راګرځول شو"
+
+msgid "purchase_restored_description"
+msgstr "ستاسو د Lantern Pro ګډون اوس پدې وسیله فعال دی."
+
+msgid "no_purchase_found_title"
+msgstr "هیڅ پیرود ونه موندل شو"
+
+msgid "no_purchase_found_body_ios"
+msgstr "له دې Apple ID سره هیڅ فعال ګډون تړلی نه دی."
+
+msgid "no_purchase_found_body_android"
+msgstr "له دې Google حساب سره هیڅ فعال ګډون تړلی نه دی."
 
 msgid "plans_fetch_error"
 msgstr "د پلانونو په راوړلو کې تېروتنه. مهرباني وکړئ وروسته بیا هڅه وکړئ."
@@ -1040,6 +1111,9 @@ msgstr ""
 "مخکې له دې چې بدلون اغیزه ولري.دا به ستاسو نوی د ننوتلو بریښنالیک شي. تاسو "
 "ته اړتیا ده چې د بدلون د اغیزمن کیدو مخکې یې تایید کړئ."
 
+msgid "email_must_be_different"
+msgstr "مهرباني وکړئ یو بل بریښنالیک پته دننه کړئ."
+
 msgid "enter_new_email"
 msgstr "خپل نوی بریښنالیک دننه کړئ"
 
@@ -1111,6 +1185,15 @@ msgstr "د فعالولو کوډ دننه کړئ"
 
 msgid "restore_purchase"
 msgstr "پیرود بیرته راګرځوئ"
+
+msgid "already_purchased"
+msgstr "لا دمخه مو پیرودلی؟"
+
+msgid "restore_purchase_success"
+msgstr "پیرود په بریالیتوب سره بیرته راګرځول شو."
+
+msgid "restore_purchase_no_purchases"
+msgstr "د بیرته راګرځولو لپاره هیڅ پیرود ونه موندل شو."
 
 msgid "do_private_server_setup"
 msgstr "د DO شخصي سرور تنظیم"
@@ -1660,50 +1743,53 @@ msgstr "ستاسو حساب د تل لپاره حذف شو."
 msgid "verify_with"
 msgstr "د %s سره تایید وکړئ"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "نوی کړئ"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "د VPN ټکر وموندل شو"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"ستاسو په وسیله کې بل VPN روان دی. Lantern هغه وخت غوره کار کوي چې ستاسو "
+"یوازینی فعال VPN وي. د غوره پایلو لپاره، مهرباني وکړئ د Lantern کارولو دمخه "
+"هغه پرې کړئ."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "پوه شوم"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "په هر حال وصل شئ"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "نښلول ممکن نه دي. خپل انټرنیټ اتصال وګورئ."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "خدمت په لنډمهاله توګه شتون نلري. بیا هڅه کیږي..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "اتصال ناکام شو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "err_ruleset_failed"
+msgstr "د روټینګ تنظیمات نه شي پورته کېدلی. بیا هڅه کیږي..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "اوس اپډیټ کړئ"
 
 msgid "later"
-msgstr "Later"
+msgstr "وروسته"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s د انسټال لپاره چمتو دی"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "تازه"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "تاسو د Lantern وروستۍ نسخه %s کاروئ"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "اپډیټونه نه شو کتلی"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "خپل اتصال وګورئ او بیا هڅه وکړئ"

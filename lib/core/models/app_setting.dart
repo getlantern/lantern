@@ -39,6 +39,10 @@ class AppSetting {
     this.unboundedTotalHelped = 0,
   });
 
+  /// Whether the app points at the staging backend. The notifier writes
+  /// 'stage'; 'staging' is accepted for older stored settings.
+  bool get isStaging => environment == 'stage' || environment == 'staging';
+
   AppSetting copyWith({
     String? newLocale,
     String? themeMode,

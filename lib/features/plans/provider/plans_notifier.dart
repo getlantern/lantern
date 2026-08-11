@@ -4,6 +4,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,8 +16,26 @@ class PlansNotifier extends _$PlansNotifier {
 
   Plan? userSelectedPlan;
 
+  // build() reruns on the same notifier instance when the provider is
+  // invalidated, but listenSelf subscriptions survive rebuilds — without this
+  // guard every rebuild would stack another listener.
+  bool _stripeKeyListenerAttached = false;
+
   @override
   Future<PlansData> build() async {
+    // Every plans arrival (cache, fetch, referral update) funnels through
+    // state, so this one listener keeps the Stripe key in sync. StripeService
+    // is only registered on Android, hence the guard.
+    if (!_stripeKeyListenerAttached && sl.isRegistered<StripeService>()) {
+      _stripeKeyListenerAttached = true;
+      listenSelf(
+        (_, next) => next.whenData(
+          (plans) =>
+              sl<StripeService>().updatePublishableKey(plans.stripePubKey),
+        ),
+      );
+    }
+
     state = const AsyncLoading();
     final cached = _storage.getPlans();
     if (cached != null) {
