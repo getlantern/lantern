@@ -33,29 +33,47 @@ tunnel_bundle_id="org.getlantern.lantern.PacketTunnel"
 # (AMFI spawn error 163) — a failure that surfaces long after the build.
 
 # Every cert SHA-1 (upper-case, no colons) embedded in provisioning profile $1.
+# Bounded by the array count rather than stopping at the first entry that fails
+# to decode: one unparseable cert must not hide the ones after it.
 profile_certs() {
-  local plist cert i=0
+  local plist count cert i=0
   plist="$(security cms -D -i "$1" 2>/dev/null)" || return 0
-  while cert="$(printf '%s' "$plist" | plutil -extract "DeveloperCertificates.$i" raw -o - - 2>/dev/null \
+  count="$(printf '%s' "$plist" | plutil -extract DeveloperCertificates raw -o - - 2>/dev/null)" || return 0
+  [[ "$count" =~ ^[0-9]+$ ]] || return 0
+  while [[ "$i" -lt "$count" ]]; do
+    cert="$(printf '%s' "$plist" | plutil -extract "DeveloperCertificates.$i" raw -o - - 2>/dev/null \
       | base64 -d 2>/dev/null | openssl x509 -inform DER -noout -fingerprint -sha1 2>/dev/null \
-      | sed 's/.*=//; s/://g' | tr '[:lower:]' '[:upper:]')" && [[ -n "$cert" ]]; do
-    echo "$cert"
+      | sed 's/.*=//; s/://g' | tr '[:lower:]' '[:upper:]')" || cert=""
+    [[ -n "$cert" ]] && echo "$cert"
     i=$((i + 1))
   done
 }
 
 # Profiles whose entitlements name app-id $1 exactly. Both search paths matter:
 # Xcode writes to UserData, while CI installs into the older MobileDevice path.
-# The trailing quote keeps `...lantern` from also matching `...lantern.PacketTunnel`.
+#
+# The match is anchored to the application-identifier entitlement rather than
+# grepping the whole plist: an app-group value like "group.<app-id>" would
+# otherwise match, and so would the identifier of a *different* target that has
+# ours as a prefix. macOS profiles spell the key "com.apple.application-identifier";
+# the bare form is accepted too so this keeps working for iOS-style profiles.
+#
+# The plist is captured before matching, so no `grep -q` sits mid-pipeline where
+# its early exit could SIGPIPE plutil and fail the pipeline under `pipefail`.
 profiles_for_appid() {
-  local dir file
+  local dir file plist appid_re
+  appid_re="${1//./\\.}"
   for dir in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
              "$HOME/Library/MobileDevice/Provisioning Profiles"; do
     [[ -d "$dir" ]] || continue
     for file in "$dir"/*.provisionprofile; do
       [[ -f "$file" ]] || continue
-      security cms -D -i "$file" 2>/dev/null | plutil -p - 2>/dev/null \
-        | grep -qF ".$1\"" && echo "$file"
+      plist="$(security cms -D -i "$file" 2>/dev/null | plutil -p - 2>/dev/null)" || continue
+      [[ -n "$plist" ]] || continue
+      if grep -qE "\"(com\.apple\.)?application-identifier\" => \"[^\"]*\.${appid_re}\"" \
+           <<<"$plist"; then
+        echo "$file"
+      fi
     done
   done
   return 0
@@ -97,6 +115,17 @@ derive_sign_identity() {
     fi
   done < <(keychain_identities "$sign_id")
   [[ -n "${both:-$any}" ]] || return 1
+  # Falling back to a cert only the app profile accepts is the AMFI-163 case this
+  # script exists to prevent, so say so. Not fatal: with no tunnel profile in the
+  # store there is nothing to intersect, and callers may sign the extension
+  # separately. When a tunnel profile *is* present and shares nothing, that is
+  # worth a loud warning rather than a silent choice.
+  if [[ -z "$both" && -n "$tunnel_certs" ]]; then
+    echo "warning: $any is accepted by the $app_bundle_id profile but NOT by the" >&2
+    echo "         $tunnel_bundle_id profile. The system extension may notarize and" >&2
+    echo "         then fail to launch (AMFI spawn error 163). Regenerate the two" >&2
+    echo "         profiles against a common certificate." >&2
+  fi
   echo "${both:-$any}"
 }
 
