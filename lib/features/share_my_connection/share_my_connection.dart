@@ -214,6 +214,20 @@ class ShareNotifier extends Notifier<ShareState> {
     return true;
   }
 
+  /// Persists the auto-start preference, collecting consent first when turning
+  /// it on. Every surface that offers the toggle routes through here:
+  /// autoStart refuses to run without an ack, so a preference written without
+  /// one would read as enabled and then silently never start.
+  Future<void> setAutoEnable(BuildContext context, bool enabled) async {
+    final settings = ref.read(appSettingProvider.notifier);
+    if (!enabled) {
+      settings.setUnboundedAutoEnable(false);
+      return;
+    }
+    if (!await ensureConsent(context)) return;
+    settings.setUnboundedAutoEnable(true);
+  }
+
   StreamSubscription? _appEventSub;
   int _workerSeq = 0;
   // Per-peer arc + active-stream count. samizdat multiplexes many H2 streams
@@ -1048,7 +1062,7 @@ class _AutoEnableCard extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final autoEnable =
         ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
-    final notifier = ref.read(appSettingProvider.notifier);
+    final notifier = ref.read(shareProvider.notifier);
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -1057,7 +1071,7 @@ class _AutoEnableCard extends ConsumerWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => notifier.setUnboundedAutoEnable(!autoEnable),
+        onTap: () => notifier.setAutoEnable(context, !autoEnable),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -1079,7 +1093,7 @@ class _AutoEnableCard extends ConsumerWidget {
               const SizedBox(width: 8),
               Checkbox(
                 value: autoEnable,
-                onChanged: (v) => notifier.setUnboundedAutoEnable(v ?? false),
+                onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
                 activeColor: AppColors.blue10,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
