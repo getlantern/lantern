@@ -56,10 +56,10 @@ class UnboundedSetting extends ConsumerWidget {
                   icon: AppImagePaths.share,
                   trailing: SwitchButton(
                     value: autoEnable,
-                    onChanged: notifier.setUnboundedAutoEnable,
+                    onChanged: (v) => _setAutoEnable(context, ref, v),
                   ),
                   onPressed: () =>
-                      notifier.setUnboundedAutoEnable(!autoEnable),
+                      _setAutoEnable(context, ref, !autoEnable),
                 ),
                 DividerSpace(),
                 AppTile(
@@ -87,5 +87,25 @@ class UnboundedSetting extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Turning auto-start on is a start path like any other, so it collects the
+  /// same consent. Without this, enabling it here would let autoStart share on
+  /// the next launch for a user who was never shown the disclosure — and
+  /// autoStart itself cannot prompt.
+  Future<void> _setAutoEnable(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final notifier = ref.read(appSettingProvider.notifier);
+    if (!enabled) {
+      notifier.setUnboundedAutoEnable(false);
+      return;
+    }
+    final consented =
+        await ref.read(shareProvider.notifier).ensureConsent(context);
+    if (!consented) return;
+    notifier.setUnboundedAutoEnable(true);
   }
 }
