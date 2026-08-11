@@ -962,42 +962,6 @@ jobs:
             gh release upload "$RELEASE_TAG" "$metadata" --clobber
           done
 
-      - name: Publish legacy appcast.xml
-        if: |
-          false &&
-          needs.set-metadata.outputs.build_type != 'nightly' &&
-          (
-            needs.set-metadata.outputs.platform == 'all' ||
-            contains(needs.set-metadata.outputs.platform, 'macos') ||
-            contains(needs.set-metadata.outputs.platform, 'windows') ||
-            contains(needs.set-metadata.outputs.platform, 'linux')
-          )
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
-          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
-          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
-          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
-        run: |
-          # Strip 'v' prefix for S3 paths
-          VERSION="${RELEASE_TAG#v}"
-
-          python3 scripts/generate_appcast.py
-
-          # Keep this legacy feed for released clients that still point at S3.
-          # New clients use lantern-cloud's channel-aware appcast endpoint.
-          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/appcast.xml" --acl public-read
-          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/appcast.xml" --acl public-read
-          if [[ "$BUILD_TYPE" == "production" ]]; then
-            aws s3 cp appcast.xml "s3://${BUCKET}/releases/appcast.xml" --acl public-read
-          fi
-
-          # Upload appcast.xml to GitHub release, but
-          # not git because we may be in detached HEAD
-          gh release upload "$RELEASE_TAG" appcast.xml --clobber
-
   verify-update-service:
     needs: [set-metadata, publish-update-metadata, release-finalize]
     if: |
@@ -1049,8 +1013,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "All steps succeeded - publishing draft release"
+          echo "Required release artifacts succeeded - publishing draft release"
           gh release edit "$RELEASE_TAG" --draft=false
+
+      - name: Report update metadata failure
+        if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
+          needs.publish-update-metadata.result == 'failure'
+        run: |
+          echo "::warning title=Auto-update metadata was not published::The release remains valid, but desktop auto-update metadata needs follow-up."
+          echo "### Auto-update metadata publishing failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "The release was preserved, but desktop auto-update metadata needs follow-up." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete draft release
         if: |

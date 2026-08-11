@@ -360,61 +360,9 @@ jobs:
           WINSPARKLE_DSA_PRIVATE_KEY: ${{ secrets.WINSPARKLE_DSA_PRIVATE_KEY }}
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:WINSPARKLE_DSA_PRIVATE_KEY)) {
-            throw "WINSPARKLE_DSA_PRIVATE_KEY is required for Windows update signing"
-          }
-
-          $installerPath = "$env:FULL_INSTALLER_NAME.exe"
-          if (-not (Test-Path $installerPath)) {
-            throw "Windows installer not found: $installerPath"
-          }
-
-          $signer = "windows\flutter\ephemeral\.plugin_symlinks\auto_updater_windows\windows\WinSparkle-0.8.1\bin\sign_update.bat"
-          if (-not (Test-Path $signer)) {
-            throw "WinSparkle signer not found: $signer"
-          }
-
-          $privateKeyPath = Join-Path $env:RUNNER_TEMP "winsparkle-dsa-private-key.pem"
-          $signaturePath = Join-Path $env:RUNNER_TEMP "$env:FULL_INSTALLER_NAME.exe.sparkle-signature"
-          $signatureBinPath = Join-Path $env:RUNNER_TEMP "winsparkle-signature.bin"
-          $digestPath = Join-Path $env:RUNNER_TEMP "winsparkle-installer.sha1"
-          try {
-            [System.IO.File]::WriteAllText(
-              $privateKeyPath,
-              $env:WINSPARKLE_DSA_PRIVATE_KEY,
-              [System.Text.Encoding]::ASCII
-            )
-
-            $signatureOutput = & $signer $installerPath $privateKeyPath
-            if ($LASTEXITCODE -ne 0) {
-              throw "WinSparkle signing failed with exit code $LASTEXITCODE"
-            }
-            $signature = ($signatureOutput -join "").Trim()
-            if ([string]::IsNullOrWhiteSpace($signature)) {
-              throw "WinSparkle produced an empty Windows update signature"
-            }
-            [System.IO.File]::WriteAllText(
-              $signaturePath,
-              $signature,
-              [System.Text.Encoding]::ASCII
-            )
-
-            & openssl enc -base64 -d -A -in $signaturePath -out $signatureBinPath
-            if ($LASTEXITCODE -ne 0) {
-              throw "Unable to decode the WinSparkle signature"
-            }
-            & openssl dgst -sha1 -binary -out $digestPath $installerPath
-            if ($LASTEXITCODE -ne 0) {
-              throw "Unable to hash the Windows installer for verification"
-            }
-            & openssl dgst -sha1 -verify "windows\dsa_pub.pem" -signature $signatureBinPath $digestPath
-            if ($LASTEXITCODE -ne 0) {
-              throw "Windows update signature verification failed"
-            }
-          }
-          finally {
-            Remove-Item -Force -ErrorAction SilentlyContinue $privateKeyPath, $signatureBinPath, $digestPath
-          }
+          & ".\.github\scripts\sign_windows_update.ps1" `
+            -InstallerPath "$env:FULL_INSTALLER_NAME.exe" `
+            -SignaturePath "$env:RUNNER_TEMP\$env:FULL_INSTALLER_NAME.exe.sparkle-signature"
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
