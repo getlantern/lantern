@@ -8,6 +8,13 @@ on:
         required: false
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      publish:
+        description: "Publish the signed targets as a fixture-repository prerelease"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read

@@ -52,11 +52,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate auto-update selection
-        if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["macos", "windows"]'), inputs.platforms) }}
+        if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
         shell: bash
         run: |
-          echo '::error title=Invalid smoke selection::auto-update requires platforms=macos or windows'
+          echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
           exit 2
+
+  # Build one signed/notarized macOS target and one signed Windows target with
+  # the same numeric update version. Publishing stays outside Actions so the
+  # Lantern repository does not need a long-lived cross-repository token.
+  auto-update-fixture:
+    needs: validate-inputs
+    if: ${{ inputs.platforms == 'all' && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/build-auto-update-fixtures.yml
+    secrets: inherit
+    with:
+      publish: false
 
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
   # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
@@ -65,7 +76,7 @@ jobs:
   # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
   android:
     needs: validate-inputs
-    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) }}
+    if: ${{ inputs.tests != 'auto-update' && contains(fromJSON('["all", "android", ""]'), inputs.platforms) }}
     uses: ./.github/workflows/firebase-test-lab.yml
     secrets: inherit
     with:
@@ -121,7 +132,7 @@ jobs:
   # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
   linux:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) }}
+    if: ${{ inputs.tests != 'auto-update' && contains(fromJSON('["all", "linux", ""]'), inputs.platforms) }}
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
