@@ -63,11 +63,17 @@ class Home extends HookConsumerWidget {
     // fully shown), so > 0 means the Unbounded tab is at least partly
     // revealed. (indexIsChanging only covers tap/animateTo, not a finger
     // drag, so it would freeze the globe during a swipe in.)
+    // The app bar shows the Unbounded wordmark instead of the Lantern one
+    // while that tab is up, so the title has to track the swipe too.
+    final onUnboundedTab = useState(false);
     useEffect(() {
       void sync() {
         final pos =
             tabController.animation?.value ?? tabController.index.toDouble();
         ref.read(unboundedTabVisibleProvider.notifier).set(pos > 0.0);
+        // Halfway through the swipe, so the title swaps once rather than
+        // flickering per frame.
+        onUnboundedTab.value = pos >= 0.5;
       }
 
       tabController.addListener(sync);
@@ -191,7 +197,16 @@ class Home extends HookConsumerWidget {
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
-        title: LanternLogo(isPro: isUserPro, color: context.textPrimary),
+        title: showUnboundedTab && onUnboundedTab.value
+            ? Text(
+                'unbounded'.i18n.toUpperCase(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+              )
+            : LanternLogo(isPro: isUserPro, color: context.textPrimary),
         elevation: 5,
         leading: IconButton(
           key: const Key('home.menu_button'),
@@ -228,12 +243,28 @@ class Home extends HookConsumerWidget {
             ? null
             : TabBar(
                 controller: tabController,
+                // Pill-shaped selection rather than the Material underline,
+                // per the Figma spec. indicatorPadding insets the fill so the
+                // pill floats inside the tab instead of filling it edge to
+                // edge; the strip carries no divider in the spec.
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  color: AppColors.blue1,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                indicatorPadding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                dividerColor: Colors.transparent,
+                labelColor: context.textPrimary,
+                unselectedLabelColor: context.textSecondary,
                 tabs: [
                   _TabLabel(
                       label: 'vpn'.i18n,
+                      iconPath: AppImagePaths.key,
                       active: vpnStatus == VPNStatus.connected),
                   _TabLabel(
                       label: 'unbounded'.i18n,
+                      iconPath: AppImagePaths.lanternLogoRounded,
                       active: shareActive),
                 ],
               ),
@@ -251,20 +282,35 @@ class Home extends HookConsumerWidget {
   }
 }
 
-/// Tab label with the green/grey status dot from the Figma spec.
+/// Tab label with the leading feature icon and green/grey status dot from the
+/// Figma spec. The dot reflects whether the feature is running, which is
+/// independent of which tab is selected.
 class _TabLabel extends StatelessWidget {
-  const _TabLabel({required this.label, required this.active});
+  const _TabLabel({
+    required this.label,
+    required this.iconPath,
+    required this.active,
+  });
 
   final String label;
+  final String iconPath;
   final bool active;
 
   @override
   Widget build(BuildContext context) {
+    // TabBar wraps each tab in a DefaultTextStyle carrying the resolved
+    // selected/unselected label colour, so tinting the icon from it keeps the
+    // two in step without plumbing the selected index down here.
+    final labelColor = DefaultTextStyle.of(context).style.color;
     return Tab(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
+          AppImage(path: iconPath, width: 18, height: 18, color: labelColor),
+          const SizedBox(width: 8),
+          Text(label),
+          const SizedBox(width: 8),
           Container(
             width: 8,
             height: 8,
@@ -273,8 +319,6 @@ class _TabLabel extends StatelessWidget {
               color: active ? AppColors.green4 : context.textDisabled,
             ),
           ),
-          const SizedBox(width: 6),
-          Text(label),
         ],
       ),
     );

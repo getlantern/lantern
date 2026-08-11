@@ -782,27 +782,35 @@ class UnboundedTab extends HookConsumerWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    'smc_intro'.i18n,
-                    style: textTheme.bodyMedium,
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black12),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tappable despite reading as a static glyph: it is the only
+                  // way back into the welcome dialog once it has been seen.
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'about_unbounded'.i18n,
+                    onPressed: () => showUnboundedWelcomeDialog(context, ref),
                   ),
-                ),
-                // Info bubble — re-opens the welcome popup. Mirrors the
-                // Figma spec, which calls out the info-bubble as the
-                // way back into the explanatory dialog.
-                IconButton(
-                  icon: const Icon(Icons.info_outline, size: 20),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: 'about_unbounded'.i18n,
-                  onPressed: () => showUnboundedWelcomeDialog(context, ref),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'smc_intro'.i18n,
+                      style: textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -901,88 +909,62 @@ class _StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
       ),
-      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'smc_status_label'.i18n,
-                      style: textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      modeLabel,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: state.active
-                            ? AppColors.blue4
-                            : Theme.of(context).hintColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Match the rest of the app's toggles (vpn_setting.dart etc.).
-              // SwitchButton has no built-in disabled state, so during the
-              // probe we render the switch but absorb the tap so the user
-              // doesn't double-fire toggle().
-              SwitchButton(
-                value: state.active || state.probing,
-                onChanged: (value) {
-                  if (state.probing) return;
-                  onToggle();
-                },
-              ),
-            ],
-          ),
-          if (state.active) ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Stack(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _Stat(
-                        label: 'smc_stat_active_now'.i18n,
-                        value: '${state.activeCount}'),
-                    _Stat(
-                        label: 'smc_stat_total_helped'.i18n,
-                        value: '${state.totalCount}'),
-                  ],
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    waitDuration: const Duration(milliseconds: 200),
-                    showDuration: const Duration(seconds: 8),
-                    preferBelow: false,
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    textStyle: const TextStyle(color: Colors.white, fontSize: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    message: 'smc_connections_tooltip'.i18n,
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Theme.of(context).hintColor,
+                Icon(Icons.public,
+                    size: 20, color: Theme.of(context).hintColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      style: textTheme.bodyMedium,
+                      children: [
+                        TextSpan(text: '${'smc_status_label'.i18n}: '),
+                        TextSpan(
+                          text: modeLabel,
+                          style: TextStyle(
+                            color: state.active
+                                ? AppColors.green6
+                                : Theme.of(context).hintColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                // Match the rest of the app's toggles (vpn_setting.dart etc.).
+                // SwitchButton has no built-in disabled state, so during the
+                // probe we render the switch but absorb the tap so the user
+                // doesn't double-fire toggle().
+                SwitchButton(
+                  value: state.active || state.probing,
+                  onChanged: (value) {
+                    if (state.probing) return;
+                    onToggle();
+                  },
+                ),
               ],
+            ),
+          ),
+          if (state.active) ...[
+            const Divider(height: 1),
+            _StatRow(
+              icon: Icons.person_outline,
+              label: 'smc_stat_active_now'.i18n,
+              value: '${state.activeCount}',
+              tooltip: 'smc_connections_tooltip'.i18n,
+            ),
+            const Divider(height: 1),
+            _StatRow(
+              icon: Icons.people_outline,
+              label: 'smc_stat_total_helped'.i18n,
+              value: '${state.totalCount}',
             ),
           ],
         ],
@@ -991,19 +973,61 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
+class _StatRow extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _Stat({required this.label, required this.value});
+  final String? tooltip;
+
+  const _StatRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Column(
-      children: [
-        Text(value, style: textTheme.headlineSmall),
-        Text(label, style: textTheme.labelSmall),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).hintColor),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: textTheme.bodyMedium)),
+          if (tooltip != null) ...[
+            Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              waitDuration: const Duration(milliseconds: 200),
+              showDuration: const Duration(seconds: 8),
+              preferBelow: false,
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              message: tooltip!,
+              child: Icon(
+                Icons.info_outline,
+                size: 16,
+                color: Theme.of(context).hintColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            value,
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.blue6,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1016,7 +1040,12 @@ class _GlobeView extends ConsumerStatefulWidget {
 }
 
 class _GlobeViewState extends ConsumerState<_GlobeView> {
-  static final _arcColor = AppColors.blue4.withValues(alpha: 0.75);
+  // Two arc colours, picked by workerIdx parity, so concurrent connections
+  // stay distinguishable where they overlap near the origin.
+  static final _arcColors = [
+    AppColors.blue4.withValues(alpha: 0.75),
+    AppColors.yellow3.withValues(alpha: 0.75),
+  ];
   static final _originPointColor = AppColors.blue4.withValues(alpha: 0.15);
   static final _peerPointColor = AppColors.yellow3.withValues(alpha: 0.15);
   static const _atmosphereDark = AppColors.blue4;
@@ -1161,7 +1190,7 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       end: _originCoords!,
       curveScale: .6,
       style: PointConnectionStyle(
-        color: _arcColor,
+        color: _arcColors[event.workerIdx.abs() % _arcColors.length],
         lineWidth: 3,
         type: PointConnectionType.solid,
         dashAnimateTime: 0,
@@ -1312,6 +1341,11 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
   @override
   Widget build(BuildContext context) {
     final event = _current;
+    // _current only tracks arrivals from the last few seconds, so its absence
+    // does not mean nobody is connected. The idle pill has to key off the live
+    // peer count or it claims we are waiting for connections directly above a
+    // stat reporting several active ones.
+    final hasPeers = ref.watch(shareProvider).activeCount > 0;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       transitionBuilder: (child, anim) => FadeTransition(
@@ -1324,10 +1358,9 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
         ),
       ),
       child: event == null
-          // Idle state — the spec wants a "Waiting for connections..."
-          // pill rather than empty space, so the user knows the screen
-          // is live and just nothing has arrived yet.
-          ? const _WaitingCard(key: ValueKey('arrival-waiting'))
+          ? (hasPeers
+              ? const SizedBox.shrink(key: ValueKey('arrival-idle'))
+              : const _WaitingCard(key: ValueKey('arrival-waiting')))
           : _ArrivalCard(
               // ValueKey forces AnimatedSwitcher to swap children when a
               // new arrival lands while the previous toast is still up,
