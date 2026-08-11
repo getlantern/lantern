@@ -265,21 +265,30 @@ class ShareNotifier extends Notifier<ShareState> {
     // and the persisted value via setUnboundedTotalHelped.
     final persistedTotal =
         ref.read(appSettingProvider).unboundedTotalHelped;
+    // Reconcile an auto-enable preference stored before consent existed.
+    // Earlier builds defaulted it to true and wrote it with no disclosure, so
+    // after an upgrade the toggle would read as on while autoStart refuses to
+    // run for want of an ack — enabled in the UI, silently never starting.
+    // Clear it rather than grandfather consent nobody gave; re-enabling
+    // prompts. Deferred because build() must not mutate another provider.
+    if (!_consentAcked && ref.read(appSettingProvider).unboundedAutoEnable) {
+      Future.microtask(
+        () =>
+            ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
+      );
+    }
     return ShareState(totalCount: persistedTotal);
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
-  /// disclosure modal inline, and a WidgetRef so we can drive the radiance
+  /// consent modal inline, and a WidgetRef so we can drive the radiance
   /// peer-share toggle.
   ///
-  /// Resolution order on enable:
-  ///   1. If the user has set a manual port in Advanced settings, that
-  ///      is an explicit opt-in — go straight to SmC mode. No UPnP
-  ///      probe, no disclosure (user already crossed that line by
-  ///      configuring the port forward on their router).
-  ///   2. Otherwise probe UPnP. If UPnP works AND the user accepts
-  ///      the SmC disclosure, run SmC. Decline → Unbounded.
-  ///   3. UPnP unavailable → Unbounded fallback.
+  /// Consent is collected first and covers both modes. The mode itself is not
+  /// the user's choice — it follows from the network:
+  ///   1. A manual port set in Unbounded Settings means the user has already
+  ///      forwarded a port, so use it and skip the probe.
+  ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
