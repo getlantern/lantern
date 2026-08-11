@@ -1079,14 +1079,11 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   // remove them all without relying on per-peer -1 events (which _stop()
   // never emits).
   final Set<int> _drawn = {};
+  Brightness? _appliedBrightness;
 
   @override
   void initState() {
     super.initState();
-    _globeController.onLoaded = () {
-      if (!mounted) return;
-      _applyTheme();
-    };
     // Subscribe FIRST so we don't miss any real-time +1 events while
     // _initOrigin is in flight. _addPeer guards on _originCoords —
     // events that arrive before origin lookup completes are still
@@ -1112,8 +1109,26 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     super.dispose();
   }
 
+  // Driven from didChangeDependencies, not initState or the controller's
+  // onLoaded: reading Theme.of() outside build/didChangeDependencies registers
+  // no dependency, so the first value read is latched for the widget's whole
+  // life. macOS reports a platformBrightness for the first frame that can
+  // still change once the platform settles — every other widget self-corrects
+  // on the rebuild, but a one-shot read leaves the globe on the wrong texture
+  // for the rest of the session.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _applyTheme();
+  }
+
   void _applyTheme() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    // loadSurface re-decodes and re-projects a 2048x1024 texture, so skip the
+    // work when an unrelated inherited widget changed.
+    if (brightness == _appliedBrightness) return;
+    _appliedBrightness = brightness;
+    final isDark = brightness == Brightness.dark;
     _globeController.loadSurface(AssetImage(
       isDark
           ? 'assets/unbounded/uv-map-dark.png'
