@@ -34,6 +34,26 @@ on:
         required: false
         type: string
         default: macos-15
+      flutter_target:
+        description: "Optional Flutter entrypoint used to build the app"
+        required: false
+        type: string
+        default: ""
+      flutter_build_mode:
+        description: "Flutter build mode: release or profile"
+        required: false
+        type: string
+        default: release
+      pubspec_artifact:
+        description: "Artifact containing the version-stamped pubspec.yaml"
+        required: false
+        type: string
+        default: pubspec
+      sign_update_artifact:
+        description: "Generate the Sparkle signature published with this DMG"
+        required: false
+        type: boolean
+        default: true
       run_connect_smoke:
         description: "Run the macOS connect/disconnect smoke after building"
         required: false
@@ -79,7 +99,7 @@ jobs:
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
-          name: pubspec
+          name: ${{ inputs.pubspec_artifact }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -230,10 +250,21 @@ jobs:
           echo "::notice title=macOS payment smoke diagnostics::$ARTIFACT_URL"
           echo "[Download the macOS payment smoke screenshot and diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Build macOS release
-        run: make macos-release-ci
+      - name: Build macOS app
+        shell: bash
+        run: |
+          case "$FLUTTER_BUILD_MODE" in
+            release) make macos-release-ci ;;
+            profile) make macos-profile-ci ;;
+            *)
+              printf 'Unsupported macOS Flutter build mode: %s\n' "$FLUTTER_BUILD_MODE" >&2
+              exit 2
+              ;;
+          esac
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
+          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
+          FLUTTER_TARGET: ${{ inputs.flutter_target }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -259,7 +290,7 @@ jobs:
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
 
       - name: Sign macOS update
-        if: ${{ inputs.build_type != 'nightly' }}
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         shell: bash
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
@@ -284,7 +315,7 @@ jobs:
           retention-days: 2
 
       - name: Upload macOS update signature
-        if: ${{ inputs.build_type != 'nightly' }}
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-dmg-signature

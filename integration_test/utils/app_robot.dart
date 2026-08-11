@@ -10,7 +10,6 @@ import 'widget_wait_utils.dart';
 void e2eLog(String message) => debugPrint('[E2E] $message');
 
 /// Drives the app shell during integration tests, independent of any feature.
-/// Android-only for now; other platforms still use `vpn/vpn_smoke_helpers.dart`.
 class AppRobot {
   AppRobot(this.tester);
 
@@ -20,6 +19,9 @@ class AppRobot {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder macosExtensionScreen = find.byKey(
+    const Key('macos_extension.screen'),
+  );
 
   /// String-valued widget keys currently in the tree, sorted — a lightweight
   /// "what's on screen" dump for failure diagnostics. `Key('foo')` is a
@@ -52,7 +54,7 @@ class AppRobot {
   /// Opens Settings through the UI: home menu button.
   Future<void> openSettings() async {
     await waitForHomeReady();
-    await _tap(
+    await tap(
       find.byKey(const Key('home.menu_button')),
       name: 'Home menu button',
     );
@@ -61,7 +63,7 @@ class AppRobot {
   /// Opens the Language screen through the UI: Settings -> Language.
   Future<void> openLanguage() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.language_tile')),
       name: 'Settings language tile',
     );
@@ -78,7 +80,7 @@ class AppRobot {
   /// same list.
   Future<void> openAppearance() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.appearance_tile')),
       name: 'Settings appearance tile',
     );
@@ -100,7 +102,7 @@ class AppRobot {
       e2eLog('No upgrade button on Settings — account is Pro');
       return false;
     }
-    await _tap(upgrade, name: 'Upgrade to Pro button');
+    await tap(upgrade, name: 'Upgrade to Pro button');
     await WidgetWaitUtils.waitForFinder(
       tester,
       find.byKey(const Key('plans.list')),
@@ -115,11 +117,11 @@ class AppRobot {
   /// home menu -> Settings -> Support -> Report an issue.
   Future<void> openReportIssue() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.support_tile')),
       name: 'Settings support tile',
     );
-    await _tap(
+    await tap(
       find.byKey(const Key('support.report_issue_tile')),
       name: 'Support report-issue tile',
     );
@@ -180,8 +182,12 @@ class AppRobot {
     reason: 'None of ${finders.keys.join(', ')} appeared within $timeout',
   );
 
-  /// Waits for [target], taps it, and lets the navigation settle.
-  Future<void> _tap(Finder target, {required String name}) async {
+  /// Waits for [target] and taps it. Native handoffs can skip settling.
+  Future<void> tap(
+    Finder target, {
+    required String name,
+    bool settle = true,
+  }) async {
     e2eLog('Tapping $name');
     await WidgetWaitUtils.waitForFinder(
       tester,
@@ -191,7 +197,11 @@ class AppRobot {
     );
     await tester.ensureVisible(target);
     await tester.tap(target);
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump(const Duration(milliseconds: 300));
+    }
   }
 
   /// Waits for the home screen after launch. Does not touch onboarding.
@@ -244,6 +254,42 @@ class AppRobot {
     return true;
   }
 
+  /// Closes the macOS extension screen when a non-VPN smoke starts fresh.
+  Future<bool> dismissMacOSExtensionScreenIfShown() async {
+    if (macosExtensionScreen.evaluate().isEmpty) {
+      return false;
+    }
+    e2eLog('macOS system extension screen shown — dismissing');
+
+    final close = find
+        .descendant(
+          of: macosExtensionScreen,
+          matching: find.byType(CloseButton),
+        )
+        .hitTestable();
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(deadline)) {
+      if (macosExtensionScreen.evaluate().isEmpty) {
+        return true;
+      }
+      if (close.evaluate().isNotEmpty) {
+        await tester.tap(close);
+        await tester.pump(const Duration(milliseconds: 400));
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    await WidgetWaitUtils.waitForFinderToDisappear(
+      tester,
+      macosExtensionScreen,
+      timeout: const Duration(seconds: 10),
+      reason: 'macOS system extension screen did not close after dismiss',
+    );
+    e2eLog('macOS system extension screen dismissed');
+    return true;
+  }
+
   /// Waits until [control] is hit-testable — the app-ready gate — clearing
   /// onboarding that appears while waiting. Home renders before onboarding is
   /// pushed on top of it, so we first spend up to [onboardingGrace] letting
@@ -266,6 +312,10 @@ class AppRobot {
     while (DateTime.now().isBefore(end)) {
       if (onboardingScreen.evaluate().isNotEmpty) {
         await dismissOnboardingIfShown();
+        continue;
+      }
+      if (macosExtensionScreen.evaluate().isNotEmpty) {
+        await dismissMacOSExtensionScreenIfShown();
         continue;
       }
 

@@ -102,6 +102,8 @@ DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
+DARWIN_PROFILE_DIR := $(BUILD_DIR)/macos/Build/Products/Profile
+DARWIN_PROFILE_BUILD := $(DARWIN_PROFILE_DIR)/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).dmg
 MACOS_DIR := macos/
@@ -269,6 +271,7 @@ get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which
 APPDMG    := $(call get-command,appdmg)
 
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
@@ -522,9 +525,25 @@ macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 $(DARWIN_RELEASE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for macOS..."
 	rm -vf $(MACOS_INSTALLER)
-	flutter build macos --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	flutter build macos --release $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
+
+$(DARWIN_PROFILE_BUILD): $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for macOS..."
+	rm -vf $(MACOS_INSTALLER)
+	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-macos-profile stage-macos-profile
+build-macos-profile: $(DARWIN_PROFILE_BUILD)
+
+# Keep packaging and signing on the established Release staging path. The
+# profile fixture is test-only, but it still goes through the same Developer ID
+# signing, DMG packaging, and notarization steps as a release artifact.
+stage-macos-profile: build-macos-profile
+	rm -rf $(DARWIN_RELEASE_BUILD)
+	mkdir -p $(DARWIN_RELEASE_DIR)
+	ditto $(DARWIN_PROFILE_BUILD) $(DARWIN_RELEASE_BUILD)
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
@@ -572,6 +591,9 @@ macos-release: clean macos pubget gen build-macos-release sign-app package-macos
 
 .PHONY: macos-release-ci
 macos-release-ci: macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-profile-ci
+macos-profile-ci: macos pubget gen stage-macos-profile sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
