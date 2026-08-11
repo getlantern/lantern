@@ -188,6 +188,7 @@ class ShareNotifier extends Notifier<ShareState> {
   // case, which is the stronger of the two, so that ack carries forward rather
   // than re-prompting them.
   static const _legacySmcAckKey = 'smc_disclosure_acked';
+  Future<bool>? _consentInFlight;
   LocalStorageService get _storage => sl<LocalStorageService>();
   bool get _consentAcked =>
       _storage.containsKey(_consentAckKey) ||
@@ -199,11 +200,19 @@ class ShareNotifier extends Notifier<ShareState> {
   /// short-circuits without showing anything.
   ///
   /// Both modes route other people's traffic through the user's connection, so
-  /// one disclosure covers both; it is worded for the worse case (SmC, where
+  /// one disclosure covers both; it is worded for the worst case (SmC, where
   /// the user's own IP is the exit) because the mode isn't known until the
   /// UPnP probe runs, after consent.
-  Future<bool> ensureConsent(BuildContext context) async {
-    if (_consentAcked) return true;
+  Future<bool> ensureConsent(BuildContext context) {
+    if (_consentAcked) return Future.value(true);
+    // The toggle, the tab's auto-enable card and its checkbox, and the
+    // Settings row can all reach this before the first dialog closes. Sharing
+    // one future keeps that to a single dialog and a single ack write.
+    return _consentInFlight ??= _showConsentDialog(context)
+        .whenComplete(() => _consentInFlight = null);
+  }
+
+  Future<bool> _showConsentDialog(BuildContext context) async {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -296,10 +305,10 @@ class ShareNotifier extends Notifier<ShareState> {
     }
 
     // Consent gates every start path, before the mode is even known.
-    if (!await ensureConsent(context)) {
-      state = state.copyWith(probing: false);
-      return;
-    }
+    if (!await ensureConsent(context)) return;
+    // Showing it is async, so re-check: another surface — or a second tap on
+    // this one — can have started sharing while the dialog was up.
+    if (state.active || state.probing) return;
 
     state = state.copyWith(probing: true);
 
@@ -1890,7 +1899,7 @@ class _ManualPortField extends HookConsumerWidget {
 
 /// One disclosure for both sharing modes. The user is not asked to pick a
 /// mode — that follows from whether their router supports port forwarding —
-/// so the copy describes the worse case (their own IP as the exit) and the
+/// so the copy describes the worst case (their own IP as the exit) and the
 /// relayed case, and the single choice is whether to share at all.
 class ShareConsentDialog extends StatelessWidget {
   const ShareConsentDialog({super.key});

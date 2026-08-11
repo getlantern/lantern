@@ -748,7 +748,6 @@ msgstr "Manual port cleared — using UPnP"
 msgid "smc_manual_port_saved"
 msgstr "Manual port set to %d"
 
-# SmC disclosure dialog (shown before opting into the residential-proxy mode)
 # Unbounded Settings menu entry (Settings → Unbounded Settings)
 msgid "unbounded_settings_title"
 msgstr "Unbounded Settings"
@@ -1887,6 +1886,7 @@ msgstr "Order Total"
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
 
+# Share consent dialog (shown once before any sharing starts, covers both modes)
 msgid "share_consent_title"
 msgstr "Share your connection?"
 
@@ -1894,7 +1894,7 @@ msgid "share_consent_body_what"
 msgstr "While sharing is on, people in censored countries route their traffic through your connection to reach the open internet."
 
 msgid "share_consent_body_ip"
-msgstr "If your router supports port forwarding, your home connection is used as the exit and your IP address will appear in the destination's logs while you're sharing. Otherwise your traffic is relayed through Lantern's servers and your IP is not exposed that way."
+msgstr "If your router supports port forwarding, your home connection is used as the exit and your IP address will appear in the destination's logs while you're sharing. Otherwise that traffic is relayed through Lantern's servers instead, and your IP is not exposed that way."
 
 msgid "share_consent_body_safety"
 msgstr "In both cases Lantern blocks known-abuse destinations, private network ranges, and abuse-prone ports, rotates credentials, and operates as a \"mere conduit\" under DMCA § 512(a)."
