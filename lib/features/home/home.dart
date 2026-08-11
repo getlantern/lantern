@@ -77,7 +77,14 @@ class Home extends HookConsumerWidget {
       }
 
       tabController.addListener(sync);
-      sync();
+      // Deferred: on first mount this effect body runs inside Home.build, and
+      // sync writes to a provider, which Riverpod rejects during a build.
+      // Later invocations come from the controller's animation ticks, which
+      // are already outside the build phase.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        sync();
+      });
       return () => tabController.removeListener(sync);
     }, [tabController]);
     final isUserPro = ref.watch(isUserProProvider);
@@ -260,11 +267,11 @@ class Home extends HookConsumerWidget {
                 tabs: [
                   _TabLabel(
                       label: 'vpn'.i18n,
-                      iconPath: AppImagePaths.key,
+                      icon: Icons.vpn_key_outlined,
                       active: vpnStatus == VPNStatus.connected),
                   _TabLabel(
                       label: 'unbounded'.i18n,
-                      iconPath: AppImagePaths.lanternLogoRounded,
+                      icon: Icons.handshake_outlined,
                       active: shareActive),
                 ],
               ),
@@ -288,12 +295,14 @@ class Home extends HookConsumerWidget {
 class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.label,
-    required this.iconPath,
+    required this.icon,
     required this.active,
   });
 
   final String label;
-  final String iconPath;
+  // Outline icons rather than the brand SVGs: the rounded logo is a filled
+  // mark, so tinting it to the label colour collapses it into a solid disc.
+  final IconData icon;
   final bool active;
 
   @override
@@ -307,7 +316,7 @@ class _TabLabel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppImage(path: iconPath, width: 18, height: 18, color: labelColor),
+          Icon(icon, size: 18, color: labelColor),
           const SizedBox(width: 8),
           Text(label),
           const SizedBox(width: 8),
