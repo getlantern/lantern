@@ -15,6 +15,7 @@ class MethodHandler {
 
   private var channel: FlutterMethodChannel
   private var vpnManager: VPNManager
+  private var isRadianceReady = false
 
   init(channel: FlutterMethodChannel, vpnManager: VPNManager = VPNManager.shared) {
     self.channel = channel
@@ -28,6 +29,15 @@ class MethodHandler {
       guard let self = self else { return }
 
       switch call.method {
+      case "setupRadiance":
+        guard
+          let environment: String = self.decodeValue(
+            from: call.arguments,
+            result: result
+          )
+        else { return }
+        self.setupRadiance(environment: environment, result: result)
+
       case "startVPN":
         self.startVPN(result: result)
 
@@ -426,6 +436,63 @@ class MethodHandler {
         result(FlutterMethodNotImplemented)
       }
     }
+  }
+
+  private func setupRadiance(environment: String, result: @escaping FlutterResult) {
+    guard environment == "prod" || environment == "stage" else {
+      result(
+        FlutterError(
+          code: "INVALID_ENVIRONMENT",
+          message: "Radiance environment must be prod or stage",
+          details: environment
+        )
+      )
+      return
+    }
+    guard !isRadianceReady else {
+      result(nil)
+      return
+    }
+
+    let startupTime = Date()
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
+    opts.deviceid = ""
+    opts.logLevel = "trace"
+    opts.telemetryConsent = FilePath.isTelemetryEnabled()
+    opts.env = environment
+    opts.locale = Locale.current.identifier
+    appLogger.info(
+      "Setting up Radiance in \(environment), logging to \(opts.logDir), dataDir: \(opts.dataDir), telemetryConsent: \(opts.telemetryConsent), locale: \(opts.locale)"
+    )
+
+    var error: NSError?
+    let success = MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
+    if let error {
+      result(
+        FlutterError(
+          code: "RADIANCE_SETUP_FAILED",
+          message: error.localizedDescription,
+          details: error.debugDescription
+        )
+      )
+      return
+    }
+    guard success else {
+      result(
+        FlutterError(
+          code: "RADIANCE_SETUP_FAILED",
+          message: "Radiance setup did not complete",
+          details: nil
+        )
+      )
+      return
+    }
+
+    isRadianceReady = true
+    appLogger.info("Radiance setup took \(Date().timeIntervalSince(startupTime)) seconds")
+    result(nil)
   }
 
   private func startVPN(result: @escaping FlutterResult) {

@@ -1,12 +1,12 @@
 # Translators:
-# code smite <codesmite@gmail.com>, 2025
 # tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# code smite <codesmite@gmail.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Bengali (https://app.transifex.com/lantern-1/teams/94371/bn/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -24,6 +24,30 @@ msgstr "সেটিংস"
 
 msgid "report_an_issue"
 msgstr "সমস্যা রিপোর্ট করুন"
+
+msgid "report_issue_add_screenshots"
+msgstr "স্ক্রিনশট যোগ করুন"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG বা GIF — মোট সর্বোচ্চ 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "ছবি যোগ করুন"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "শুধুমাত্র PNG, JPG এবং GIF ছবি সমর্থিত।"
+
+msgid "report_issue_attachments_too_many"
+msgstr "আপনি সর্বোচ্চ 3টি ছবি সংযুক্ত করতে পারবেন।"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "সংযুক্তিগুলির মোট আকার 15 MB-এর কম হতে হবে।"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "এই ছবিটি ইতিমধ্যে সংযুক্ত করা হয়েছে।"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "আমরা এই ফাইলগুলির একটি পড়তে পারিনি।"
 
 msgid "lantern_projects"
 msgstr "Lantern প্রজেক্টস:"
@@ -154,6 +178,36 @@ msgstr "সাইন আউট করুন"
 
 msgid "check_for_updates"
 msgstr "আপডেট চেক করুন"
+
+msgid "update_available"
+msgstr "আপডেট উপলব্ধ"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s উপলব্ধ। Android-এর ইনস্টলার খোলার আগে Lantern APK ডাউনলোড করে "
+"যাচাই করবে।"
+
+msgid "download_and_install_update"
+msgstr "ডাউনলোড করে ইনস্টল করুন"
+
+msgid "allow_unknown_app_installs"
+msgstr "অ্যাপ ইনস্টলের অনুমতি দিন"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Lantern থেকে আপডেট ইনস্টল করতে Android-এর অনুমতি প্রয়োজন। 'এই উৎস থেকে "
+"অনুমতি দিন' চালু করুন, তারপর আবার আপডেটের জন্য চেক করুন।"
+
+msgid "error_install_update"
+msgstr "আপডেট ইনস্টল করা যায়নি"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern এই আপডেটটি যাচাই বা ইনস্টল করতে পারেনি। অনুগ্রহ করে পরে আবার চেষ্টা "
+"করুন।"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern আপ টু ডেট আছে।"
 
 msgid "support"
 msgstr "সহায়তা"
@@ -363,9 +417,11 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "নিশ্চিতকরণ কোড"
 
-msgid "confirm_email_code_message"
-msgstr ""
-"নিশ্চিত করুন যে এই ইমেইল ঠিকানাটি আপনার, যে কোড পাঠানো হয়েছে সেটি লিখুন: "
+msgid "confirm_email_code_message_part_one"
+msgstr "আমরা একটি কোড পাঠিয়েছি: "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " নিচে এটি লিখুন। ইনবক্সে না থাকলে স্প্যাম ফোল্ডার দেখুন।"
 
 msgid "resend_email"
 msgstr "ইমেইল আবার পাঠান"
@@ -488,6 +544,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "আপনার প্রো ফিচারগুলি আনলক হয়েছে—আনলিমিটেড ডেটা, দ্রুত গতি এবং প্রিমিয়াম "
 "সার্ভার উপভোগ করুন।"
+
+msgid "purchase_restored_title"
+msgstr "ক্রয় পুনরুদ্ধার হয়েছে"
+
+msgid "purchase_restored_description"
+msgstr "আপনার Lantern Pro সাবস্ক্রিপশন এখন এই ডিভাইসে সক্রিয়।"
+
+msgid "no_purchase_found_title"
+msgstr "কোনো ক্রয় পাওয়া যায়নি"
+
+msgid "no_purchase_found_body_ios"
+msgstr "এই Apple ID-এর সাথে কোনো সক্রিয় সাবস্ক্রিপশন যুক্ত নেই।"
+
+msgid "no_purchase_found_body_android"
+msgstr "এই Google অ্যাকাউন্টের সাথে কোনো সক্রিয় সাবস্ক্রিপশন যুক্ত নেই।"
 
 msgid "plans_fetch_error"
 msgstr "প্ল্যান আনতে ত্রুটি। পরে আবার চেষ্টা করুন।"
@@ -1016,6 +1087,9 @@ msgstr ""
 "এটি আপনার নতুন লগইন ইমেইল হবে। পরিবর্তন কার্যকর হওয়ার আগে আপনাকে এটি যাচাই "
 "করতে হবে।"
 
+msgid "email_must_be_different"
+msgstr "অনুগ্রহ করে একটি ভিন্ন ইমেইল ঠিকানা লিখুন।"
+
 msgid "enter_new_email"
 msgstr "আপনার নতুন ইমেইল লিখুন"
 
@@ -1086,6 +1160,15 @@ msgstr "একটি অ্যাক্টিভেশন কোড লিখু
 
 msgid "restore_purchase"
 msgstr "ক্রয় পুনরুদ্ধার করুন"
+
+msgid "already_purchased"
+msgstr "ইতিমধ্যে কিনেছেন?"
+
+msgid "restore_purchase_success"
+msgstr "ক্রয় সফলভাবে পুনরুদ্ধার হয়েছে।"
+
+msgid "restore_purchase_no_purchases"
+msgstr "পুনরুদ্ধার করার মতো কোনো ক্রয় পাওয়া যায়নি।"
 
 msgid "do_private_server_setup"
 msgstr "DO প্রাইভেট সার্ভার সেটআপ"
@@ -1633,50 +1716,52 @@ msgstr "আপনার অ্যাকাউন্ট স্থায়ীভ�
 msgid "verify_with"
 msgstr "%s দিয়ে যাচাই করুন"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "হালনাগাদ"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "VPN দ্বন্দ্ব শনাক্ত হয়েছে"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"আপনার ডিভাইসে আরেকটি VPN চলছে। Lantern একমাত্র সক্রিয় VPN হিসেবে সবচেয়ে "
+"ভালো কাজ করে। সেরা ফলাফলের জন্য, Lantern ব্যবহারের আগে সেটি বিচ্ছিন্ন করুন।"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "পেয়েছি"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "তবুও সংযোগ করুন"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "সংযোগ করা যাচ্ছে না। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "পরিষেবা সাময়িকভাবে অনুপলব্ধ। আবার চেষ্টা করা হচ্ছে..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "সংযোগ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "err_ruleset_failed"
+msgstr "রাউটিং কনফিগারেশন লোড করা যায়নি। পুনরায় চেষ্টা করা হচ্ছে..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "এখনি আপডেট করুন"
 
 msgid "later"
-msgstr "Later"
+msgstr "পরে"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s ইনস্টলের জন্য প্রস্তুত"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "আপ টু ডেট"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "আপনি Lantern-এর সর্বশেষ সংস্করণ %s ব্যবহার করছেন"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "আপডেট চেক করা যায়নি"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
-
-msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন"

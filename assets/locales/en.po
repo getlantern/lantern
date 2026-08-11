@@ -39,6 +39,15 @@ msgstr "That image is already attached."
 msgid "report_issue_attachments_unreadable"
 msgstr "We could not read one of those files."
 
+msgid "send_without_email_title"
+msgstr "Send without an email?"
+
+msgid "send_without_email_body"
+msgstr "You didn't include an email address, so we won't be able to reply or follow up on this report."
+
+msgid "send_without_email"
+msgstr "Send Without Email"
+
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
 
@@ -1308,6 +1317,9 @@ msgstr "Available on:"
 
 msgid "subscription_renewal_date"
 msgstr "Subscription Renewal Date"
+
+msgid "pro_access_until"
+msgstr "Pro access until %s"
 
 msgid "enabled_bypass_lists"
 msgstr "Enabled bypass lists (%d):"

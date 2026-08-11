@@ -1,5 +1,4 @@
 // Common file to export all common files
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -17,7 +16,6 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -241,10 +239,4 @@ ThemeMode resolveThemeMode(String raw) {
     default:
       return ThemeMode.system;
   }
-}
-
-Future<bool> isStageEnvironment() async {
-  final dir = await AppStorageUtils.getAppDirectory();
-  final envFile = File('${dir.path}/.radiance_env');
-  return envFile.existsSync();
 }
