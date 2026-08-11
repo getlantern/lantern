@@ -1109,9 +1109,9 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     super.dispose();
   }
 
-  // Driven from didChangeDependencies, not initState or the controller's
-  // onLoaded: reading Theme.of() outside build/didChangeDependencies registers
-  // no dependency, so the first value read is latched for the widget's whole
+  // Theme is read here, not in initState or the controller's onLoaded:
+  // reading Theme.of() outside build/didChangeDependencies registers no
+  // dependency, so the first value read is latched for the widget's whole
   // life. macOS reports a platformBrightness for the first frame that can
   // still change once the platform settles — every other widget self-corrects
   // on the rebuild, but a one-shot read leaves the globe on the wrong texture
@@ -1119,15 +1119,21 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _applyTheme();
-  }
-
-  void _applyTheme() {
     final brightness = Theme.of(context).brightness;
-    // loadSurface re-decodes and re-projects a 2048x1024 texture, so skip the
-    // work when an unrelated inherited widget changed.
+    // Re-projecting a 2048x1024 texture is expensive, so ignore the inherited
+    // changes that leave brightness alone.
     if (brightness == _appliedBrightness) return;
     _appliedBrightness = brightness;
+    // Deferred because the controller's setters notify synchronously and
+    // didChangeDependencies runs inside the build phase, so applying here
+    // would mark the globe dirty while it is already building.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _applyTheme(brightness);
+    });
+  }
+
+  void _applyTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     _globeController.loadSurface(AssetImage(
       isDark
