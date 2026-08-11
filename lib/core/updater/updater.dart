@@ -65,8 +65,12 @@ class Updater {
       final feedUrl = AppUrls.appcastFor(buildType);
       final updater = AutoUpdater.instance;
       if (Platform.isWindows) {
-        final packageInfo = await PackageInfo.fromPlatform();
-        setWinSparkleBuildVersion(packageInfo.buildNumber);
+        try {
+          final packageInfo = await PackageInfo.fromPlatform();
+          setWinSparkleBuildVersion(packageInfo.buildNumber);
+        } catch (e, st) {
+          appLogger.warning('Failed to set WinSparkle build version', e, st);
+        }
       }
       await updater.setFeedURL(feedUrl);
       await updater.setScheduledCheckInterval(3600);

@@ -10,7 +10,7 @@ on:
       SIGNPATH_API_TOKEN:
         required: false
       WINSPARKLE_DSA_PRIVATE_KEY:
-        required: true
+        required: false
     inputs:
       version:
         required: true

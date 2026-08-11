@@ -18,7 +18,7 @@ on:
       MACOS_PROVISION_TUNNEL_BASE64:
         required: true
       SPARKLE_ED_PRIVATE_KEY:
-        required: true
+        required: false
     inputs:
       version:
         required: true

@@ -47,6 +47,58 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _der_value(data: bytes, offset: int, expected_tag: int) -> tuple[bytes, int]:
+    """Read one definite-length DER value and return its contents and end offset."""
+    if offset >= len(data) or data[offset] != expected_tag:
+        raise ValueError("unexpected DER tag")
+    offset += 1
+    if offset >= len(data):
+        raise ValueError("missing DER length")
+
+    first_length_byte = data[offset]
+    offset += 1
+    if first_length_byte < 0x80:
+        length = first_length_byte
+    else:
+        length_byte_count = first_length_byte & 0x7F
+        if (
+            length_byte_count == 0
+            or offset + length_byte_count > len(data)
+            or data[offset] == 0
+        ):
+            raise ValueError("invalid DER length")
+        length = int.from_bytes(data[offset : offset + length_byte_count], "big")
+        if length < 0x80:
+            raise ValueError("non-minimal DER length")
+        offset += length_byte_count
+
+    end = offset + length
+    if end > len(data):
+        raise ValueError("truncated DER value")
+    return data[offset:end], end
+
+
+def _is_valid_dsa_signature(signature: bytes) -> bool:
+    """Return whether a signature is one DER sequence of two positive integers."""
+    try:
+        sequence, end = _der_value(signature, 0, 0x30)
+        if end != len(signature):
+            return False
+        r_value, offset = _der_value(sequence, 0, 0x02)
+        s_value, offset = _der_value(sequence, offset, 0x02)
+        if offset != len(sequence):
+            return False
+    except ValueError:
+        return False
+
+    for value in (r_value, s_value):
+        if not value or not any(value) or value[0] & 0x80:
+            return False
+        if len(value) > 1 and value[0] == 0 and not value[1] & 0x80:
+            return False
+    return True
+
+
 def updater_signature(path: Path, signature_dir: Path, kind: str) -> str:
     # Signing happens on the native platform build runners. This Linux job only
     # validates and packages their public signatures into release sidecars.
@@ -62,7 +114,7 @@ def updater_signature(path: Path, signature_dir: Path, kind: str) -> str:
         raise RuntimeError(f"invalid {kind} signature for {path.name}") from err
     if kind == "EdDSA" and len(decoded) != 64:
         raise RuntimeError(f"invalid EdDSA signature length for {path.name}")
-    if kind == "DSA" and (not decoded or decoded[0] != 0x30):
+    if kind == "DSA" and not _is_valid_dsa_signature(decoded):
         raise RuntimeError(f"invalid DSA signature for {path.name}")
     return signature
 

@@ -239,9 +239,11 @@ def run_checks_once(config: Config) -> None:
         verify_stable_excludes_beta(config.update_url, expected_version, platform)
 
     if config.platforms & set(APPCAST_PLATFORMS):
-        expected_sparkle_version = normalize_version(
-            config.sparkle_version or config.version
+        require(
+            bool(config.sparkle_version.strip()),
+            "--sparkle-version is required when verifying macOS or Windows appcasts",
         )
+        expected_sparkle_version = normalize_version(config.sparkle_version)
         verify_beta_appcast(
             config.update_url,
             expected_sparkle_version,
@@ -291,6 +293,12 @@ def main() -> None:
     parser.add_argument("--interval-seconds", type=int, default=60)
     args = parser.parse_args()
 
+    platforms = normalize_platforms(args.platform)
+    if platforms & set(APPCAST_PLATFORMS) and not args.sparkle_version.strip():
+        parser.error(
+            "--sparkle-version is required when verifying macOS or Windows appcasts"
+        )
+
     poll_until_verified(
         Config(
             update_url=args.update_url,
@@ -298,7 +306,7 @@ def main() -> None:
             version=args.version,
             timeout_seconds=args.timeout_seconds,
             interval_seconds=args.interval_seconds,
-            platforms=normalize_platforms(args.platform),
+            platforms=platforms,
             sparkle_version=args.sparkle_version,
         )
     )

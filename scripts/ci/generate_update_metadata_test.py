@@ -153,7 +153,9 @@ class GenerateUpdateMetadataTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
             artifact.write_bytes(b"exe bytes")
-            signature = "MAMCAQE="
+            signature = base64.b64encode(
+                bytes.fromhex("3006020101020101")
+            ).decode("ascii")
             (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
                 signature,
                 encoding="ascii",
@@ -172,6 +174,28 @@ class GenerateUpdateMetadataTest(TestCase):
         self.assertEqual(metadata["sparkle_version"], "920")
         self.assertEqual(metadata["sparkle_dsa_signature"], signature)
         self.assertNotIn("sparkle_ed_signature", metadata)
+
+    def test_updater_signature_rejects_malformed_dsa_der(self) -> None:
+        malformed_signatures = {
+            "missing s integer": bytes.fromhex("3003020101"),
+            "trailing byte": bytes.fromhex("300602010102010100"),
+        }
+        for name, malformed in malformed_signatures.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
+                artifact.write_bytes(b"exe bytes")
+                signature = base64.b64encode(malformed).decode("ascii")
+                (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
+                    signature,
+                    encoding="ascii",
+                )
+
+                with self.assertRaisesRegex(RuntimeError, "invalid DSA signature"):
+                    generate_update_metadata.updater_signature(
+                        artifact,
+                        pathlib.Path(tmp),
+                        "DSA",
+                    )
 
     def test_updater_signature_rejects_invalid_base64(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

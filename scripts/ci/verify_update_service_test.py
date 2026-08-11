@@ -163,6 +163,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("all"),
+                sparkle_version="9.2.0-beta",
             )
         )
 
@@ -179,8 +180,25 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("macos"),
+                sparkle_version="9.2.0-beta",
             )
         )
+
+    def test_run_checks_once_requires_sparkle_version_for_desktop(self) -> None:
+        with self.assertRaisesRegex(
+            verify_update_service.VerificationError,
+            "--sparkle-version is required",
+        ):
+            verify_update_service.run_checks_once(
+                verify_update_service.Config(
+                    update_url=self.update_url,
+                    channel="beta",
+                    version="v9.2.0-beta",
+                    timeout_seconds=1,
+                    interval_seconds=1,
+                    platforms=verify_update_service.normalize_platforms("windows"),
+                )
+            )
 
     def test_run_checks_once_skips_appcast_for_android_only_release(self) -> None:
         UpdateServiceHandler.stable_appcast_status = 404
