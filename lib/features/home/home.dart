@@ -63,8 +63,8 @@ class Home extends HookConsumerWidget {
     // fully shown), so > 0 means the Unbounded tab is at least partly
     // revealed. (indexIsChanging only covers tap/animateTo, not a finger
     // drag, so it would freeze the globe during a swipe in.)
-    // The app bar shows the Unbounded wordmark instead of the Lantern one
-    // while that tab is up, so the title has to track the swipe too.
+    //
+    // The same listener drives the app bar wordmark, which swaps with the tab.
     final onUnboundedTab = useState(false);
     useEffect(() {
       void sync() {
@@ -155,7 +155,7 @@ class Home extends HookConsumerWidget {
     ref.read(appEventProvider);
 
     // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
-    // toggle from Unbounded Settings (default ON) AND the per-user
+    // toggle from Unbounded Settings (opt-in, default off) AND the per-user
     // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
     // who hid Unbounded should not see it silently auto-enable in
     // the background. Fires from two entry points so the spec's
@@ -204,14 +204,14 @@ class Home extends HookConsumerWidget {
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
+        // Both titles are brand logotypes, not text: the wordmarks use a
+        // condensed face the app's Urbanist theme cannot reproduce.
         title: showUnboundedTab && onUnboundedTab.value
-            ? Text(
-                'unbounded'.i18n.toUpperCase(),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: context.textPrimary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
+            ? AppImage(
+                path: AppImagePaths.unboundedWordmark,
+                color: context.textPrimary,
+                height: 20,
+                width: 149,
               )
             : LanternLogo(isPro: isUserPro, color: context.textPrimary),
         elevation: 5,
@@ -256,22 +256,25 @@ class Home extends HookConsumerWidget {
                 // edge; the strip carries no divider in the spec.
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicator: BoxDecoration(
-                  color: AppColors.blue1,
-                  borderRadius: BorderRadius.circular(24),
+                  color: AppColors.blue1, // action/tabbar/tabbar-bg
+                  borderRadius: BorderRadius.circular(9999),
+                  border: Border.all(
+                    color: AppColors.blue2, // action/tabbar/tabbar-border
+                  ),
                 ),
                 indicatorPadding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 dividerColor: Colors.transparent,
-                labelColor: context.textPrimary,
-                unselectedLabelColor: context.textSecondary,
+                labelColor: AppColors.blue10, // tabbar-selected-text
+                unselectedLabelColor: AppColors.gray6, // tabbar-disabled-text
                 tabs: [
                   _TabLabel(
                       label: 'vpn'.i18n,
-                      icon: Icons.vpn_key_outlined,
+                      iconPath: AppImagePaths.key,
                       active: vpnStatus == VPNStatus.connected),
                   _TabLabel(
                       label: 'unbounded'.i18n,
-                      icon: Icons.handshake_outlined,
+                      iconPath: AppImagePaths.unbounded,
                       active: shareActive),
                 ],
               ),
@@ -295,14 +298,12 @@ class Home extends HookConsumerWidget {
 class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.label,
-    required this.icon,
+    required this.iconPath,
     required this.active,
   });
 
   final String label;
-  // Outline icons rather than the brand SVGs: the rounded logo is a filled
-  // mark, so tinting it to the label colour collapses it into a solid disc.
-  final IconData icon;
+  final String iconPath;
   final bool active;
 
   @override
@@ -316,16 +317,20 @@ class _TabLabel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: labelColor),
+          AppImage(path: iconPath, width: 24, height: 24, color: labelColor),
           const SizedBox(width: 8),
           Text(label),
           const SizedBox(width: 8),
           Container(
-            width: 8,
-            height: 8,
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: active ? AppColors.green4 : context.textDisabled,
+              color: active ? AppColors.green6 : AppColors.gray5,
+              border: Border.all(
+                color: active ? AppColors.green3 : AppColors.gray3,
+                width: 2,
+              ),
             ),
           ),
         ],

@@ -90,6 +90,8 @@ class AppImagePaths {
   static const success = 'assets/images/green_checkmark.svg';
   static const errorIcon = 'assets/images/error_icon.svg';
   static const key = 'assets/images/key.svg';
+  static const unbounded = 'assets/images/unbounded.svg';
+  static const unboundedWordmark = 'assets/images/unbounded_wordmark.svg';
   static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
   static const settingServer = 'assets/images/setting_server.svg';
   static const joinServer = 'assets/images/join_server.svg';

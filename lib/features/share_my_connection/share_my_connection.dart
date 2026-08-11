@@ -839,7 +839,7 @@ class UnboundedTab extends HookConsumerWidget {
             const SizedBox(height: 8),
             _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
             const SizedBox(height: 12),
-            const _AdvancedCard(),
+            const _AutoEnableCard(),
             const SizedBox(height: 16),
           ],
         ),
@@ -1022,11 +1022,66 @@ class _StatRow extends StatelessWidget {
           Text(
             value,
             style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.blue6,
+              color: AppColors.blue8, // text/link
               fontWeight: FontWeight.w600,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
+/// the spec puts the choice next to the thing it controls.
+class _AutoEnableCard extends ConsumerWidget {
+  const _AutoEnableCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final autoEnable =
+        ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
+    final notifier = ref.read(appSettingProvider.notifier);
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => notifier.setUnboundedAutoEnable(!autoEnable),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.auto_mode,
+                  size: 20, color: Theme.of(context).hintColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('auto_enable_unbounded'.i18n,
+                        style: textTheme.bodyMedium),
+                    Text('auto_enable_unbounded_subtitle'.i18n,
+                        style: textTheme.labelSmall),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Checkbox(
+                value: autoEnable,
+                onChanged: (v) => notifier.setUnboundedAutoEnable(v ?? false),
+                activeColor: AppColors.blue10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1040,14 +1095,16 @@ class _GlobeView extends ConsumerStatefulWidget {
 }
 
 class _GlobeViewState extends ConsumerState<_GlobeView> {
-  // Two arc colours, picked by workerIdx parity, so concurrent connections
-  // stay distinguishable where they overlap near the origin.
+  // The spec draws each arc as a cyan-to-yellow gradient, but
+  // PointConnectionStyle exposes a single flat colour, so alternate the two
+  // ends of that ramp by workerIdx instead. Concurrent connections stay
+  // distinguishable where they overlap near the origin either way.
   static final _arcColors = [
     AppColors.blue4.withValues(alpha: 0.75),
     AppColors.yellow3.withValues(alpha: 0.75),
   ];
   static final _originPointColor = AppColors.blue4.withValues(alpha: 0.15);
-  static final _peerPointColor = AppColors.yellow3.withValues(alpha: 0.15);
+  static const _peerPointColor = AppColors.green6;
   static const _atmosphereDark = AppColors.blue4;
   static const _atmosphereLight = AppColors.blue6;
 
@@ -1063,8 +1120,16 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     isZoomEnabled: false,
     showAtmosphere: true,
     atmosphereColor: _atmosphereDark,
-    atmosphereOpacity: 0.2,
-    atmosphereBlur: 20,
+    // Soft bloom, not a rim: a small blur reads as a hard teal ring.
+    atmosphereOpacity: 0.18,
+    atmosphereBlur: 22,
+    // The package's defaults (ambient 0.6 / intensity 0.75) multiply the
+    // surface down to ~60% on the unlit side, turning the light texture into
+    // a mid-grey ball. The spec's globe renders its ocean at the texture's
+    // own 233, so almost everything here is ambient; the small directional
+    // term is only what keeps the sphere from reading flat.
+    ambientLight: 0.97,
+    lightIntensity: 0.15,
   );
 
   StreamSubscription<UnboundedConnectionEvent>? _eventSub;
@@ -1282,8 +1347,13 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
         // within this widget's box; ClipRect keeps arcs from painting
         // outside the box when they curve high.
         final widgetSize = Size(constraints.maxWidth, constraints.maxHeight);
-        final radius =
-            min(constraints.maxWidth, constraints.maxHeight) / 2 * 0.7;
+        // Driven off width, since the spec sizes the globe as a fraction of
+        // the frame (~50% of it across), then clamped so a short slot doesn't
+        // push the sphere out of its box.
+        final radius = min(
+          constraints.maxWidth * 0.275,
+          constraints.maxHeight * 0.42,
+        );
         return ClipRect(
           // copyWith preserves the inherited devicePixelRatio,
           // textScaleFactor, padding/insets etc. — constructing
@@ -1294,6 +1364,25 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
             data: MediaQuery.of(context).copyWith(size: widgetSize),
             child: Stack(
               children: [
+                // Sits behind the sphere because the package paints no
+                // shadow of its own; matched to the spec's Globe effect.
+                Align(
+                  alignment: const Alignment(0.0, -0.1),
+                  child: Container(
+                    width: radius * 2,
+                    height: radius * 2,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x42006163),
+                          offset: Offset(0, 4),
+                          blurRadius: 64,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Positioned.fill(
                   child: FlutterEarthGlobe(
                     controller: _globeController,
@@ -1583,16 +1672,16 @@ class _HeartPainter extends CustomPainter {
 
 // ─── Advanced section ────────────────────────────────────────────────────────
 
-/// _AdvancedCard exposes power-user knobs that don't belong in the
-/// always-visible status card. Today: manual port forward (for users on
-/// networks where UPnP doesn't work, who've configured a router-side
-/// port forward by hand).
+/// UnboundedAdvancedCard exposes power-user knobs that don't belong on the
+/// Unbounded tab itself. Today: manual port forward (for users on networks
+/// where UPnP doesn't work, who've configured a router-side port forward by
+/// hand). Lives in Unbounded Settings.
 ///
 /// Persisted via the existing FFI setPeerManualPort path; takes effect
 /// on the next peer.Client.Start (i.e. next time the toggle is flipped
 /// on after editing the field).
-class _AdvancedCard extends HookConsumerWidget {
-  const _AdvancedCard();
+class UnboundedAdvancedCard extends HookConsumerWidget {
+  const UnboundedAdvancedCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

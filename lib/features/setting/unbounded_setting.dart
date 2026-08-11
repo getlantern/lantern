@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 
 import '../../core/common/common.dart';
 
@@ -16,6 +17,9 @@ import '../../core/common/common.dart';
 /// 2. Hide Unbounded — collapse the Unbounded tab in the Home shell
 ///    when the user doesn't want to see it. With only the VPN tab
 ///    left, Home hides the tab strip entirely.
+///
+/// Manual port forwarding sits here rather than on the tab because the spec's
+/// Unbounded screen has no Advanced section.
 @RoutePage(name: 'UnboundedSetting')
 class UnboundedSetting extends ConsumerWidget {
   const UnboundedSetting({super.key});
@@ -77,6 +81,9 @@ class UnboundedSetting extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 8),
+          const UnboundedAdvancedCard(),
+          const SizedBox(height: 8),
         ],
       ),
     );
