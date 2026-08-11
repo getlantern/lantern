@@ -90,7 +90,7 @@ def parse_target(xml_data: bytes, appcast_url: str) -> UpdateTarget:
     )
     require(
         version.isascii() and version.isdigit(),
-        "appcast Sparkle version must be numeric",
+        f"appcast Sparkle version must be numeric; got {version!r}",
     )
     target_build = int(version)
     require(target_build > 1, "appcast Sparkle build must be greater than 1")

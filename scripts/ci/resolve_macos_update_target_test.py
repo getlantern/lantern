@@ -51,8 +51,12 @@ class ResolveMacOSUpdateTargetTest(unittest.TestCase):
         self.assertEqual(target.ed_signature, SIGNATURE)
 
     def test_parse_target_rejects_non_numeric_sparkle_version(self) -> None:
-        with self.assertRaisesRegex(resolver.TargetError, "must be numeric"):
+        with self.assertRaises(resolver.TargetError) as raised:
             resolver.parse_target(appcast(build="9.2.0-beta"), APPCAST_URL)
+        self.assertEqual(
+            str(raised.exception),
+            "appcast Sparkle version must be numeric; got '9.2.0-beta'",
+        )
 
     def test_parse_target_requires_display_version(self) -> None:
         with self.assertRaisesRegex(resolver.TargetError, "display version"):

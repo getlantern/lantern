@@ -48,12 +48,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate auto-update selection
+        if: ${{ inputs.tests == 'auto-update' && inputs.platforms != 'macos' }}
+        shell: bash
+        run: |
+          echo '::error title=Invalid smoke selection::auto-update requires platforms=macos'
+          exit 2
+
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
   # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
   # tier builds only the VPN suite and runs it on one virtual device with no
   # retries; `all` builds the full aggregator on the script's two-device
   # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
   android:
+    needs: validate-inputs
     if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) }}
     uses: ./.github/workflows/firebase-test-lab.yml
     secrets: inherit
@@ -69,6 +80,7 @@ jobs:
       flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
 
   prepare:
+    needs: validate-inputs
     if: ${{ inputs.tests != 'auto-update' }}
     runs-on: ubuntu-latest
     outputs:
@@ -140,6 +152,7 @@ jobs:
   # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
   # selected explicitly, and never runs in the nightly sweep.
   macos-auto-update:
+    needs: validate-inputs
     if: ${{ inputs.platforms == 'macos' && inputs.tests == 'auto-update' }}
     uses: ./.github/workflows/macos-auto-update-smoke.yml
     secrets: inherit
