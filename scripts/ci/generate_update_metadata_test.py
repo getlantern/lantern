@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import pathlib
-import subprocess
 import sys
 import tempfile
-from unittest import TestCase, main, mock
+from unittest import TestCase, main
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
@@ -130,50 +130,76 @@ class GenerateUpdateMetadataTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             artifact = pathlib.Path(tmp) / "lantern-installer-beta.dmg"
             artifact.write_bytes(b"dmg bytes")
-
-            completed = subprocess.CompletedProcess(
-                args=["dart"],
-                returncode=0,
-                stdout='sparkle:edSignature="sparkle-signature"\n',
-                stderr="",
+            signature = base64.b64encode(b"s" * 64).decode("ascii")
+            (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
+                signature,
+                encoding="ascii",
             )
-            with mock.patch(
-                "generate_update_metadata.subprocess.run",
-                return_value=completed,
-            ) as run:
-                metadata = generate_update_metadata.sidecar_for(
-                    artifact,
-                    "beta",
-                    "9.2.0-beta",
-                    "lantern.io",
-                )
+
+            metadata = generate_update_metadata.sidecar_for(
+                artifact,
+                "beta",
+                "9.2.0-beta",
+                "lantern.io",
+                pathlib.Path(tmp),
+                "920",
+            )
 
         self.assertEqual(metadata["platform"], "macos")
-        self.assertEqual(metadata["sparkle_ed_signature"], "sparkle-signature")
-        run.assert_called_once_with(
-            ["dart", "run", "auto_updater:sign_update", str(artifact)],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        self.assertEqual(metadata["sparkle_version"], "920")
+        self.assertEqual(metadata["sparkle_ed_signature"], signature)
 
-    def test_sparkle_signature_rejects_unexpected_output(self) -> None:
+    def test_sidecar_for_adds_dsa_signature_for_windows(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
             artifact.write_bytes(b"exe bytes")
-
-            completed = subprocess.CompletedProcess(
-                args=["dart"],
-                returncode=0,
-                stdout="no signature here",
-                stderr="",
+            signature = "MAMCAQE="
+            (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
+                signature,
+                encoding="ascii",
             )
-            with mock.patch(
-                "generate_update_metadata.subprocess.run",
-                return_value=completed,
-            ):
-                with self.assertRaises(RuntimeError):
-                    generate_update_metadata.sparkle_signature(artifact)
+
+            metadata = generate_update_metadata.sidecar_for(
+                artifact,
+                "beta",
+                "9.2.0-beta",
+                "lantern.io",
+                pathlib.Path(tmp),
+                "920",
+            )
+
+        self.assertEqual(metadata["platform"], "windows")
+        self.assertEqual(metadata["sparkle_version"], "920")
+        self.assertEqual(metadata["sparkle_dsa_signature"], signature)
+        self.assertNotIn("sparkle_ed_signature", metadata)
+
+    def test_updater_signature_rejects_invalid_base64(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = pathlib.Path(tmp) / "lantern-installer-beta.exe"
+            artifact.write_bytes(b"exe bytes")
+            (pathlib.Path(tmp) / f"{artifact.name}.sparkle-signature").write_text(
+                "not a signature",
+                encoding="ascii",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "invalid DSA signature"):
+                generate_update_metadata.updater_signature(
+                    artifact,
+                    pathlib.Path(tmp),
+                    "DSA",
+                )
+
+    def test_updater_signature_requires_native_runner_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = pathlib.Path(tmp) / "lantern-installer-beta.dmg"
+            artifact.write_bytes(b"dmg bytes")
+
+            with self.assertRaisesRegex(RuntimeError, "missing EdDSA signature"):
+                generate_update_metadata.updater_signature(
+                    artifact,
+                    pathlib.Path(tmp),
+                    "EdDSA",
+                )
 
 
 if __name__ == "__main__":

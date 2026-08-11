@@ -57,6 +57,15 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// WinSparkle
+//
+
+// Verify update signatures with the public half of the CI signing key.
+DSAPub                  DSAPEM                  "..\\dsa_pub.pem"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Version
 //
 

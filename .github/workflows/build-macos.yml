@@ -17,6 +17,8 @@ on:
         required: true
       MACOS_PROVISION_TUNNEL_BASE64:
         required: true
+      SPARKLE_ED_PRIVATE_KEY:
+        required: true
     inputs:
       version:
         required: true
@@ -256,6 +258,35 @@ jobs:
 
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
 
+      - name: Sign macOS update
+        if: ${{ inputs.build_type != 'nightly' }}
+        shell: bash
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          DMG_PATH: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
+        run: |
+          set -euo pipefail
+          if [[ -z "${SPARKLE_ED_PRIVATE_KEY:-}" ]]; then
+            echo "SPARKLE_ED_PRIVATE_KEY is required for macOS update signing" >&2
+            exit 1
+          fi
+          if [[ ! -f "$DMG_PATH" ]]; then
+            echo "macOS installer not found: $DMG_PATH" >&2
+            exit 1
+          fi
+
+          signature_path="$RUNNER_TEMP/$(basename "$DMG_PATH").sparkle-signature"
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" \
+            | macos/Pods/Sparkle/bin/sign_update --ed-key-file - -p "$DMG_PATH" \
+            > "$signature_path"
+          signature="$(tr -d '\r\n' < "$signature_path")"
+          if [[ -z "$signature" ]]; then
+            echo "Sparkle produced an empty macOS update signature" >&2
+            exit 1
+          fi
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" \
+            | macos/Pods/Sparkle/bin/sign_update --verify --ed-key-file - "$DMG_PATH" "$signature"
+
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
         with:
@@ -268,6 +299,14 @@ jobs:
         with:
           name: lantern-installer-dmg
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
+          retention-days: 2
+
+      - name: Upload macOS update signature
+        if: ${{ inputs.build_type != 'nightly' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-dmg-signature
+          path: ${{ runner.temp }}/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg.sparkle-signature
           retention-days: 2
 
       - name: Run macOS connect smoke

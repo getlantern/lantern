@@ -8,7 +8,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
+import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class Updater {
   Updater({AndroidSideloadUpdater? androidSideloadUpdater})
@@ -62,6 +64,10 @@ class Updater {
       final buildType = AppBuildInfo.buildType;
       final feedUrl = AppUrls.appcastFor(buildType);
       final updater = AutoUpdater.instance;
+      if (Platform.isWindows) {
+        final packageInfo = await PackageInfo.fromPlatform();
+        setWinSparkleBuildVersion(packageInfo.buildNumber);
+      }
       await updater.setFeedURL(feedUrl);
       await updater.setScheduledCheckInterval(3600);
 

@@ -4,15 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import hashlib
 import json
-import re
-import subprocess
 from pathlib import Path
 from typing import Optional, Tuple
-
-
-SPARKLE_SIGNATURE_RE = re.compile(r'sparkle:edSignature="([^"]+)"')
 
 
 def release_channel(build_type: str) -> str:
@@ -50,22 +47,34 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def sparkle_signature(path: Path) -> str:
-    # Lantern CI owns Sparkle signing. lantern-cloud only reads this value back
-    # from the sidecar when it renders the channel appcast.
-    proc = subprocess.run(
-        ["dart", "run", "auto_updater:sign_update", str(path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    match = SPARKLE_SIGNATURE_RE.search(proc.stdout.strip())
-    if not match:
-        raise RuntimeError(f"could not parse Sparkle signature for {path.name}: {proc.stdout}")
-    return match.group(1)
+def updater_signature(path: Path, signature_dir: Path, kind: str) -> str:
+    # Signing happens on the native platform build runners. This Linux job only
+    # validates and packages their public signatures into release sidecars.
+    signature_path = signature_dir / f"{path.name}.sparkle-signature"
+    try:
+        signature = signature_path.read_text(encoding="ascii").strip()
+    except FileNotFoundError as err:
+        raise RuntimeError(f"missing {kind} signature for {path.name}") from err
+
+    try:
+        decoded = base64.b64decode(signature, validate=True)
+    except (binascii.Error, ValueError) as err:
+        raise RuntimeError(f"invalid {kind} signature for {path.name}") from err
+    if kind == "EdDSA" and len(decoded) != 64:
+        raise RuntimeError(f"invalid EdDSA signature length for {path.name}")
+    if kind == "DSA" and (not decoded or decoded[0] != 0x30):
+        raise RuntimeError(f"invalid DSA signature for {path.name}")
+    return signature
 
 
-def sidecar_for(path: Path, build_type: str, version: str, bucket: str) -> Optional[dict[str, object]]:
+def sidecar_for(
+    path: Path,
+    build_type: str,
+    version: str,
+    bucket: str,
+    signature_dir: Optional[Path] = None,
+    sparkle_version: Optional[str] = None,
+) -> Optional[dict[str, object]]:
     info = artifact_info(path.name)
     if info is None:
         return None
@@ -88,8 +97,20 @@ def sidecar_for(path: Path, build_type: str, version: str, bucket: str) -> Optio
         "size": path.stat().st_size,
         "sha256": sha256_file(path),
     }
-    if platform in ("macos", "windows"):
-        metadata["sparkle_ed_signature"] = sparkle_signature(path)
+    if platform == "macos":
+        if not sparkle_version:
+            raise RuntimeError(f"missing Sparkle version for {path.name}")
+        if signature_dir is None:
+            raise RuntimeError(f"missing signature directory for {path.name}")
+        metadata["sparkle_version"] = sparkle_version
+        metadata["sparkle_ed_signature"] = updater_signature(path, signature_dir, "EdDSA")
+    elif platform == "windows":
+        if not sparkle_version:
+            raise RuntimeError(f"missing Sparkle version for {path.name}")
+        if signature_dir is None:
+            raise RuntimeError(f"missing signature directory for {path.name}")
+        metadata["sparkle_version"] = sparkle_version
+        metadata["sparkle_dsa_signature"] = updater_signature(path, signature_dir, "DSA")
     return metadata
 
 
@@ -97,8 +118,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-type", required=True)
     parser.add_argument("--version", required=True, help="Release version without leading v")
+    parser.add_argument("--sparkle-version", required=True, help="Desktop bundle build number")
     parser.add_argument("--bucket", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--sparkle-signature-dir", required=True, type=Path)
     parser.add_argument("artifacts", nargs="+", type=Path)
     args = parser.parse_args()
 
@@ -107,7 +130,14 @@ def main() -> None:
     for artifact in args.artifacts:
         if not artifact.is_file():
             continue
-        metadata = sidecar_for(artifact, args.build_type, args.version, args.bucket)
+        metadata = sidecar_for(
+            artifact,
+            args.build_type,
+            args.version,
+            args.bucket,
+            args.sparkle_signature_dir,
+            args.sparkle_version,
+        )
         if metadata is None:
             continue
         output = args.output_dir / f"{artifact.name}.update.json"
