@@ -60,8 +60,8 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 // WinSparkle
 //
 
-// Verify update signatures with the public half of the CI signing key.
-DSAPub                  DSAPEM                  "..\\dsa_pub.pem"
+// Keep this in sync with SUPublicEDKey in macos/Runner/Info.plist.
+EdDSAPub                EDDSA                   {"J9Pe9z0DTNLMygl0zxG0BWBON2HbTebIO1et3fARypo="}
 
 
 /////////////////////////////////////////////////////////////////////////////

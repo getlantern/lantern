@@ -101,7 +101,7 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
     def appcast_xml(version: str, enclosures: list[tuple[str, str, str]]) -> str:
         enclosure_xml = "\n".join(
             f'<enclosure url="{url}" '
-            f'sparkle:{"edSignature" if os_name == "macos" else "dsaSignature"}="{signature}" '
+            f'sparkle:edSignature="{signature}" '
             f'sparkle:os="{os_name}" '
             'length="12" type="application/octet-stream"/>'
             for os_name, signature, url in enclosures

@@ -171,7 +171,6 @@ def parse_appcast(xml_text: str) -> tuple[str, list[dict[str, str]]]:
             {
                 "url": enclosure.attrib.get("url", ""),
                 "ed_signature": enclosure.attrib.get(f"{{{SPARKLE_NS}}}edSignature", ""),
-                "dsa_signature": enclosure.attrib.get(f"{{{SPARKLE_NS}}}dsaSignature", ""),
                 "os": enclosure.attrib.get(f"{{{SPARKLE_NS}}}os", ""),
             }
         )
@@ -203,10 +202,9 @@ def verify_beta_appcast(
     for os_name, suffix in required_platforms.items():
         enclosure = by_os.get(os_name)
         require(enclosure is not None, f"beta appcast missing {os_name} enclosure")
-        signature_key = "ed_signature" if os_name == "macos" else "dsa_signature"
         require(
-            enclosure[signature_key],
-            f"beta appcast {os_name} enclosure missing {signature_key}",
+            enclosure["ed_signature"],
+            f"beta appcast {os_name} enclosure missing EdDSA signature",
         )
         require(
             enclosure["url"].endswith(suffix),
