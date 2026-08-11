@@ -180,13 +180,62 @@ class _PeerArc {
 }
 
 class ShareNotifier extends Notifier<ShareState> {
-  // Disclosure ack persists across launches via LocalStorageService
+  // Consent ack persists across launches via LocalStorageService
   // (SharedPreferences). Key-presence is the signal — the value is
   // arbitrary. Cleared by deleteAll() in the existing reset flow.
-  static const _smcAckKey = 'smc_disclosure_acked';
+  static const _consentAckKey = 'share_consent_acked';
+  // Anyone who accepted the old SmC-only disclosure consented to the exit-node
+  // case, which is the stronger of the two, so that ack carries forward rather
+  // than re-prompting them.
+  static const _legacySmcAckKey = 'smc_disclosure_acked';
+  Future<bool>? _consentInFlight;
   LocalStorageService get _storage => sl<LocalStorageService>();
-  bool get _smcAck => _storage.containsKey(_smcAckKey);
-  Future<void> _persistSmcAck() => _storage.setString(_smcAckKey, '1');
+  bool get _consentAcked =>
+      _storage.containsKey(_consentAckKey) ||
+      _storage.containsKey(_legacySmcAckKey);
+  Future<void> _persistConsentAck() => _storage.setString(_consentAckKey, '1');
+
+  /// Prompts for sharing consent if it hasn't been given, and reports whether
+  /// sharing may proceed. Safe to call when consent already exists — it
+  /// short-circuits without showing anything.
+  ///
+  /// Both modes route other people's traffic through the user's connection, so
+  /// one disclosure covers both; it is worded for the worst case (SmC, where
+  /// the user's own IP is the exit) because the mode isn't known until the
+  /// UPnP probe runs, after consent.
+  Future<bool> ensureConsent(BuildContext context) {
+    if (_consentAcked) return Future.value(true);
+    // The toggle, the tab's auto-enable card and its checkbox, and the
+    // Settings row can all reach this before the first dialog closes. Sharing
+    // one future keeps that to a single dialog and a single ack write.
+    return _consentInFlight ??= _showConsentDialog(context)
+        .whenComplete(() => _consentInFlight = null);
+  }
+
+  Future<bool> _showConsentDialog(BuildContext context) async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ShareConsentDialog(),
+    );
+    if (accepted != true) return false;
+    await _persistConsentAck();
+    return true;
+  }
+
+  /// Persists the auto-start preference, collecting consent first when turning
+  /// it on. Every surface that offers the toggle routes through here:
+  /// autoStart refuses to run without an ack, so a preference written without
+  /// one would read as enabled and then silently never start.
+  Future<void> setAutoEnable(BuildContext context, bool enabled) async {
+    final settings = ref.read(appSettingProvider.notifier);
+    if (!enabled) {
+      settings.setUnboundedAutoEnable(false);
+      return;
+    }
+    if (!await ensureConsent(context)) return;
+    settings.setUnboundedAutoEnable(true);
+  }
 
   StreamSubscription? _appEventSub;
   int _workerSeq = 0;
@@ -225,33 +274,46 @@ class ShareNotifier extends Notifier<ShareState> {
     // and the persisted value via setUnboundedTotalHelped.
     final persistedTotal =
         ref.read(appSettingProvider).unboundedTotalHelped;
+    // Reconcile an auto-enable preference stored before consent existed.
+    // Earlier builds defaulted it to true and wrote it with no disclosure, so
+    // after an upgrade the toggle would read as on while autoStart refuses to
+    // run for want of an ack — enabled in the UI, silently never starting.
+    // Clear it rather than grandfather consent nobody gave; re-enabling
+    // prompts. Deferred because build() must not mutate another provider.
+    if (!_consentAcked && ref.read(appSettingProvider).unboundedAutoEnable) {
+      Future.microtask(
+        () =>
+            ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
+      );
+    }
     return ShareState(totalCount: persistedTotal);
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
-  /// disclosure modal inline, and a WidgetRef so we can drive the radiance
+  /// consent modal inline, and a WidgetRef so we can drive the radiance
   /// peer-share toggle.
   ///
-  /// Resolution order on enable:
-  ///   1. If the user has set a manual port in Advanced settings, that
-  ///      is an explicit opt-in — go straight to SmC mode. No UPnP
-  ///      probe, no disclosure (user already crossed that line by
-  ///      configuring the port forward on their router).
-  ///   2. Otherwise probe UPnP. If UPnP works AND the user accepts
-  ///      the SmC disclosure, run SmC. Decline → Unbounded.
-  ///   3. UPnP unavailable → Unbounded fallback.
+  /// Consent is collected first and covers both modes. The mode itself is not
+  /// the user's choice — it follows from the network:
+  ///   1. A manual port set in Unbounded Settings means the user has already
+  ///      forwarded a port, so use it and skip the probe.
+  ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
       return;
     }
 
+    // Consent gates every start path, before the mode is even known.
+    if (!await ensureConsent(context)) return;
+    // Showing it is async, so re-check: another surface — or a second tap on
+    // this one — can have started sharing while the dialog was up.
+    if (state.active || state.probing) return;
+
     state = state.copyWith(probing: true);
 
-    // Manual port forward bypasses both the UPnP probe and the SmC
-    // disclosure dialog. Configuring a port in Advanced is an explicit
-    // user-driven SmC opt-in — they wouldn't have set it up if they
-    // weren't sure they wanted to share via the residential-IP path.
+    // Manual port forward skips the UPnP probe: configuring a port by hand is
+    // an explicit request for the residential-IP path.
     final manualPortRes =
         await widgetRef.read(lanternServiceProvider).getPeerManualPort();
     final manualPort = manualPortRes.fold((_) => 0, (p) => p);
@@ -275,33 +337,7 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
 
-    if (_smcAck) {
-      await _start(widgetRef, ShareMode.smc);
-      return;
-    }
-
-    if (!context.mounted) {
-      state = state.copyWith(probing: false);
-      return;
-    }
-
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const SmcDisclosureDialog(),
-    );
-
-    if (accepted == null) {
-      // User dismissed without choosing — leave off.
-      state = state.copyWith(probing: false);
-      return;
-    }
-    if (accepted) {
-      await _persistSmcAck();
-      await _start(widgetRef, ShareMode.smc);
-    } else {
-      await _start(widgetRef, ShareMode.unbounded);
-    }
+    await _start(widgetRef, ShareMode.smc);
   }
 
   /// Programmatic entry point used by the Home shell's auto-enable
@@ -309,15 +345,17 @@ class ShareNotifier extends Notifier<ShareState> {
   /// "Auto-enable Unbounded" Settings toggle.
   ///
   /// Always starts Unbounded mode regardless of UPnP capability or
-  /// manual-port configuration. SmC requires the explicit-disclosure
-  /// dialog enforced by toggle(); auto-enabling SmC would silently
-  /// turn the user's device into a residential exit they never
-  /// agreed to act as. The auto path is the low-friction Unbounded
-  /// surface only.
+  /// manual-port configuration. SmC would make the user's device a
+  /// residential exit, and this path has no UI to disclose that, so it stays
+  /// on the relayed surface even for a user who has consented.
   ///
-  /// No-ops if already active or in flight.
+  /// No-ops if already active or in flight, or if consent has never been
+  /// given — this path cannot prompt, so refusing to start is the only safe
+  /// direction. Consent is collected by toggle() or by enabling auto-start in
+  /// Unbounded Settings, both of which have a BuildContext.
   Future<void> autoStart(WidgetRef widgetRef) async {
     if (state.active || state.probing) return;
+    if (!_consentAcked) return;
     state = state.copyWith(probing: true);
     await _start(widgetRef, ShareMode.unbounded);
   }
@@ -1042,7 +1080,7 @@ class _AutoEnableCard extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final autoEnable =
         ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
-    final notifier = ref.read(appSettingProvider.notifier);
+    final notifier = ref.read(shareProvider.notifier);
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -1051,7 +1089,7 @@ class _AutoEnableCard extends ConsumerWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => notifier.setUnboundedAutoEnable(!autoEnable),
+        onTap: () => notifier.setAutoEnable(context, !autoEnable),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -1073,7 +1111,7 @@ class _AutoEnableCard extends ConsumerWidget {
               const SizedBox(width: 8),
               Checkbox(
                 value: autoEnable,
-                onChanged: (v) => notifier.setUnboundedAutoEnable(v ?? false),
+                onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
                 activeColor: AppColors.blue10,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
@@ -1859,31 +1897,29 @@ class _ManualPortField extends HookConsumerWidget {
 
 // ─── Disclosure dialog ───────────────────────────────────────────────────────
 
-class SmcDisclosureDialog extends StatelessWidget {
-  const SmcDisclosureDialog({super.key});
+/// One disclosure for both sharing modes. The user is not asked to pick a
+/// mode — that follows from whether their router supports port forwarding —
+/// so the copy describes the worst case (their own IP as the exit) and the
+/// relayed case, and the single choice is whether to share at all.
+class ShareConsentDialog extends StatelessWidget {
+  const ShareConsentDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
-      title: Text('smc_disclosure_title'.i18n),
+      title: Text('share_consent_title'.i18n),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'smc_disclosure_body_capability'.i18n,
-              style: textTheme.bodyMedium,
-            ),
+            Text('share_consent_body_what'.i18n, style: textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            Text('share_consent_body_ip'.i18n, style: textTheme.bodyMedium),
             const SizedBox(height: 12),
             Text(
-              'smc_disclosure_body_safety'.i18n,
-              style: textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'smc_disclosure_body_alternative'.i18n,
+              'share_consent_body_safety'.i18n,
               style: textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).hintColor,
               ),
@@ -1894,11 +1930,11 @@ class SmcDisclosureDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text('smc_disclosure_basic'.i18n),
+          child: Text('share_consent_decline'.i18n),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text('smc_disclosure_full'.i18n),
+          child: Text('share_consent_accept'.i18n),
         ),
       ],
     );

@@ -56,10 +56,12 @@ class UnboundedSetting extends ConsumerWidget {
                   icon: AppImagePaths.share,
                   trailing: SwitchButton(
                     value: autoEnable,
-                    onChanged: notifier.setUnboundedAutoEnable,
+                    onChanged: (v) =>
+                        ref.read(shareProvider.notifier).setAutoEnable(context, v),
                   ),
-                  onPressed: () =>
-                      notifier.setUnboundedAutoEnable(!autoEnable),
+                  onPressed: () => ref
+                      .read(shareProvider.notifier)
+                      .setAutoEnable(context, !autoEnable),
                 ),
                 DividerSpace(),
                 AppTile(
