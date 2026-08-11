@@ -23,6 +23,7 @@ SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
 DEFAULT_APPCAST_URL = (
     "https://update.getlantern.org/update/lantern/appcast.xml?channel=beta"
 )
+USER_AGENT = "LanternAutoUpdateSmoke/1.0"
 DISPLAY_VERSION_RE = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
 
 
@@ -54,15 +55,19 @@ def require(condition: bool, message: str) -> None:
 def fetch_appcast(url: str) -> bytes:
     request = urllib.request.Request(
         url,
-        headers={"Accept": "application/rss+xml, application/xml;q=0.9"},
+        headers={
+            "Accept": "application/rss+xml, application/xml;q=0.9",
+            "User-Agent": USER_AGENT,
+        },
     )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             require(response.status == 200, f"appcast returned HTTP {response.status}")
             return response.read()
     except urllib.error.HTTPError as err:
-        body = err.read().decode("utf-8", errors="replace").strip()
-        detail = f": {body}" if body else ""
+        content_type = err.headers.get_content_type()
+        body = err.read(256).decode("utf-8", errors="replace").strip()
+        detail = f": {body}" if content_type == "text/plain" and body else ""
         raise TargetError(f"appcast returned HTTP {err.code}{detail}") from err
     except urllib.error.URLError as err:
         raise TargetError(f"unable to fetch appcast: {err.reason}") from err
