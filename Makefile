@@ -1155,7 +1155,14 @@ pubget:
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
+# flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
+# Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing
+# those targets are still satisfied, so it skips regenerating them: the
+# native-assets hook stops running and the macOS build dies in the Xcode phase
+# looking for a framework NativeAssetsManifest.json still references. Every
+# target depending on clean re-runs pubget, so dropping .dart_tool is safe.
 clean:
+	flutter clean
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(MACOS_FRAMEWORK_DIR)/*
