@@ -178,6 +178,9 @@ func markBrowsers(list []*AppData) {
 		if app == nil {
 			continue
 		}
+		// Recompute from the live registry index rather than trusting a flag
+		// persisted by an older cache (e.g. a browser uninstalled since).
+		app.IsBrowser = false
 		p := strings.Trim(strings.TrimSpace(app.AppPath), `"`)
 		if p == "" {
 			continue

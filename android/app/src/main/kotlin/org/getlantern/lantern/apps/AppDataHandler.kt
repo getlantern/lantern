@@ -238,9 +238,13 @@ internal class AppDataHandler(
      * hardcoded list of the common ones.
      */
     private fun browserPackages(pm: PackageManager): Set<String> = runCatching {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://example.com"))
-            .addCategory(Intent.CATEGORY_BROWSABLE)
-        pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        // Query both schemes: an app registering only https would otherwise
+        // slip through with isBrowser = false.
+        listOf("http", "https").flatMap { scheme ->
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$scheme://example.com"))
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+            pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        }
             .mapNotNull { it.activityInfo?.packageName }
             .toSet()
     }.getOrDefault(emptySet())
