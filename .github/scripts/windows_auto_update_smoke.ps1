@@ -206,17 +206,41 @@ function Wait-ForUpdatePrompt {
   throw 'WinSparkle update prompt did not appear before timeout'
 }
 
-function Install-Update([int]$OriginalPid) {
+function Get-DownloadedInstaller([string]$ExpectedName, [long]$ExpectedLength) {
+  @(
+    Get-ChildItem $env:TEMP -Filter 'Update-*' -Directory -ErrorAction SilentlyContinue |
+      ForEach-Object {
+        Get-ChildItem $_.FullName -Filter $ExpectedName -File -ErrorAction SilentlyContinue
+      } |
+      Where-Object Length -eq $ExpectedLength |
+      Sort-Object LastWriteTimeUtc -Descending
+  ) | Select-Object -First 1
+}
+
+function Install-Update(
+  [int]$OriginalPid,
+  [string]$ExpectedInstallerName,
+  [long]$ExpectedInstallerLength
+) {
   $deadline = [DateTime]::UtcNow.AddSeconds($UpdateTimeout)
+  $launchRequested = $false
   while ([DateTime]::UtcNow -lt $deadline) {
     $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
     $button = Get-Button $installer @('Next >', 'Next', 'Install', 'Finish', 'Yes')
-    if (-not $button) {
-      $button = Get-Button (Get-Window @('Software Update')) @('Run installer')
-    }
     if ($button) {
       Press-Button $button
       Start-Sleep -Milliseconds 500
+    } elseif (-not $launchRequested) {
+      $download = Get-DownloadedInstaller $ExpectedInstallerName $ExpectedInstallerLength
+      if ($download) {
+        $button = Get-Button (Get-Window @('Software Update')) @('Install update', 'Run installer')
+        if ($button) {
+          Write-E2E "download complete; launching $($download.Name)"
+          Press-Button $button
+          $launchRequested = $true
+          Start-Sleep -Milliseconds 500
+        }
+      }
     }
     if (-not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
       $relaunched = Get-LanternProcesses | Where-Object Id -ne $OriginalPid | Select-Object -First 1
@@ -271,6 +295,9 @@ $target = Get-Content $TargetJson -Raw | ConvertFrom-Json
 $targetBuild = [int]$target.target_build
 $fixtureBuild = [int]$target.fixture_build
 $displayVersion = [string]$target.display_version
+$targetUri = [Uri][string]$target.artifact_url
+$targetInstallerName = [IO.Path]::GetFileName($targetUri.AbsolutePath)
+$targetInstallerLength = [long]$target.artifact_length
 
 try {
   Install-Fixture
@@ -304,7 +331,7 @@ try {
   Save-UiTree 'prompt'
   Save-Screenshot 'prompt'
   Press-Button $installButton
-  $relaunched = Install-Update $script:OriginalPid
+  $relaunched = Install-Update $script:OriginalPid $targetInstallerName $targetInstallerLength
   $script:RelaunchedPid = $relaunched.Id
   Wait-ForMainWindow $script:RelaunchedPid
   Assert-AppVersion 'updated' $targetBuild $displayVersion
