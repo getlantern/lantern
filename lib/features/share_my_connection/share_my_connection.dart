@@ -1148,12 +1148,13 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
 
   final FlutterEarthGlobeController _globeController =
       FlutterEarthGlobeController(
-    // Static globe — no continuous rotation. A spinning sphere re-projects
-    // in software via setState() every frame (~60fps), which is the
-    // dominant CPU cost of this tab. Instead we rotate only on demand
-    // (focusOnCoordinates) to bring each new connection into view, then
-    // settle back to static.
-    isRotating: false,
+    // Slow continuous spin, matching unbounded.lantern.io. Desktop only:
+    // the package falls back to a per-pixel Dart projection when its sphere
+    // shader is unavailable, and that cost is not worth a background
+    // animation on battery. TickerMode in build() freezes this whenever the
+    // tab is off screen, so it only runs while the user is watching it.
+    isRotating: PlatformUtils.isDesktop,
+    rotationSpeed: 0.04,
     zoom: 0,
     isZoomEnabled: false,
     showAtmosphere: true,
