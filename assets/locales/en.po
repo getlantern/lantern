@@ -1740,3 +1740,15 @@ msgstr "%s will connect directly, without Lantern's protection. In countries tha
 
 msgid "add_anyway"
 msgstr "Add Anyway"
+
+msgid "bypass_all_warning_title"
+msgstr "Add all apps to the bypass list?"
+
+msgid "bypass_all_warning_body"
+msgstr "This includes browsers like %s. Apps on the bypass list connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_all_except_browsers"
+msgstr "Add All Except Browsers"
+
+msgid "add_all_anyway"
+msgstr "Add All Anyway"
