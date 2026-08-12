@@ -140,14 +140,17 @@ function Assert-AppVersion {
   }
 }
 
-function Get-Window([string[]]$Names) {
+function Get-Window([string[]]$NamePrefixes) {
   $condition = [System.Windows.Automation.PropertyCondition]::new(
     [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
     [System.Windows.Automation.ControlType]::Window
   )
   foreach ($window in [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
       [System.Windows.Automation.TreeScope]::Children, $condition)) {
-    if ($Names -contains $window.Current.Name) { return $window }
+    $name = $window.Current.Name
+    foreach ($prefix in $NamePrefixes) {
+      if ($name -eq $prefix -or $name.StartsWith("$prefix ")) { return $window }
+    }
   }
   return $null
 }
@@ -206,15 +209,14 @@ function Wait-ForUpdatePrompt {
 function Install-Update([int]$OriginalPid) {
   $deadline = [DateTime]::UtcNow.AddSeconds($UpdateTimeout)
   while ([DateTime]::UtcNow -lt $deadline) {
-    foreach ($candidate in @(
-        @{ Window = @('Software Update'); Button = @('Install update', 'Get update', 'Run installer') },
-        @{ Window = @('Setup - Lantern', 'Lantern Setup'); Button = @('Next >', 'Install', 'Finish') }
-      )) {
-      $button = Get-Button (Get-Window $candidate.Window) $candidate.Button
-      if ($button) {
-        Press-Button $button
-        Start-Sleep -Milliseconds 500
-      }
+    $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
+    $button = Get-Button $installer @('Next >', 'Next', 'Install', 'Finish', 'Yes')
+    if (-not $button) {
+      $button = Get-Button (Get-Window @('Software Update')) @('Run installer')
+    }
+    if ($button) {
+      Press-Button $button
+      Start-Sleep -Milliseconds 500
     }
     if (-not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
       $relaunched = Get-LanternProcesses | Where-Object Id -ne $OriginalPid | Select-Object -First 1
@@ -245,7 +247,7 @@ function Save-Diagnostics {
     "original_pid=$script:OriginalPid"
     "relaunched_pid=$script:RelaunchedPid"
   ) | Set-Content (Join-Path $ArtifactDirectory 'result.txt')
-  Get-CimInstance Win32_Process | Where-Object Name -Match '^(lantern|lanternd|Update|unins\d*)\.exe$' |
+  Get-CimInstance Win32_Process | Where-Object Name -Match '^(lantern|lanternd|lantern-installer.*|Update|unins\d*)\.exe$' |
     Select-Object ProcessId, ParentProcessId, Name, ExecutablePath, CommandLine |
     Format-List | Out-String -Width 4096 |
     Set-Content (Join-Path $ArtifactDirectory 'processes-final.txt')
