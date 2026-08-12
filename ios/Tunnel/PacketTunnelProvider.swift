@@ -12,6 +12,15 @@ class PacketTunnelProvider: ExtensionProvider {
   private var memoryLogTimer: DispatchSourceTimer?
   private var memoryPressureSource: DispatchSourceMemoryPressure?
   private var currentMemoryPressure: DispatchSource.MemoryPressureEvent = .normal
+  private var memorySampleCount = 0
+  private var lastMemoryLog: Date?
+
+  // A tunnel torn down seconds after start used to leave a single sample, so a
+  // footprint climbing toward the jetsam cap was indistinguishable from a flat
+  // one. Sample every second and throttle the log instead (cf. radiance memmon).
+  private static let memorySampleInterval: TimeInterval = 1
+  private static let memoryEagerSamples = 10
+  private static let memoryLogInterval: TimeInterval = 10
 
   override func startTunnel(options: [String: NSObject]?) async throws {
     try await super.startTunnel(options: options)
@@ -19,17 +28,22 @@ class PacketTunnelProvider: ExtensionProvider {
   }
 
   override func stopTunnel(with reason: NEProviderStopReason) async {
+    // Record the reason and a final sample before any teardown work: an outright
+    // kill never reaches this at all, so its absence is itself the signal.
+    appLogger.info("PacketTunnelProvider stopping, reason: \(reason.rawValue)")
+    logMemoryUsage()
     stopMemoryLogger()
     try? await super.stopTunnel(with: reason)
   }
 
-  private func startMemoryLogger(interval: TimeInterval = 10) {
+  private func startMemoryLogger(interval: TimeInterval = PacketTunnelProvider.memorySampleInterval)
+  {
     stopMemoryLogger()
     startMemoryPressureMonitor()
     let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
     timer.schedule(deadline: .now(), repeating: interval)
     timer.setEventHandler { [weak self] in
-      self?.logMemoryUsage()
+      self?.sampleMemory()
     }
     memoryLogTimer = timer
     timer.resume()
@@ -41,6 +55,20 @@ class PacketTunnelProvider: ExtensionProvider {
     memoryPressureSource?.cancel()
     memoryPressureSource = nil
     currentMemoryPressure = .normal
+    memorySampleCount = 0
+    lastMemoryLog = nil
+  }
+
+  // Logs every early sample so a fast pre-kill climb is visible, every sample
+  // once the kernel reports pressure, and a 10s heartbeat otherwise.
+  private func sampleMemory() {
+    memorySampleCount += 1
+    let elevated = currentMemoryPressure != .normal
+    let heartbeatDue =
+      lastMemoryLog.map { Date().timeIntervalSince($0) >= Self.memoryLogInterval } ?? true
+    guard memorySampleCount <= Self.memoryEagerSamples || elevated || heartbeatDue else { return }
+    lastMemoryLog = Date()
+    logMemoryUsage()
   }
 
   // Subscribes to kernel memory-pressure notifications. The OS publishes one
