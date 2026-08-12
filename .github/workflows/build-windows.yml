@@ -142,11 +142,21 @@ jobs:
       - name: Set up MinGW
         run: choco install mingw -y
 
+      - name: Read pinned Flutter version
+        id: flutter-version
+        shell: pwsh
+        run: |
+          $match = Select-String -Path '.github/flutter-version.yaml' -Pattern '^\s*flutter:\s*["'']?([^"'']+)["'']?\s*$'
+          if (-not $match) {
+            throw 'Unable to read the pinned Flutter version'
+          }
+          "version=$($match.Matches[0].Groups[1].Value.Trim())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.22.0
+        uses: subosito/flutter-action@v2.23.0
         with:
           channel: stable
-          flutter-version-file: .github/flutter-version.yaml
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -159,15 +169,8 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      - name: Cache Dart pub global cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-dart-pub-cache-
-
       - name: Install Inno Setup 6
+        if: ${{ inputs.package_installer }}
         shell: pwsh
         # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
         # --version=6.5.0 now fails ("a newer version is already installed; use
@@ -178,6 +181,7 @@ jobs:
         run: choco install -y innosetup --version=6.7.1 --allow-downgrade
 
       - name: Install unofficial Inno Setup translations
+        if: ${{ inputs.package_installer }}
         shell: pwsh
         # Chinese Simplified and Farsi/Persian are not bundled Inno translations;
         # copy the vendored .isl files into Inno's Languages dir so inno_setup.iss
@@ -211,7 +215,6 @@ jobs:
           FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
           FLUTTER_TARGET: ${{ inputs.flutter_target }}
         run: |
-          dart pub global activate fastforge
           switch ($env:FLUTTER_BUILD_MODE) {
             'release' { make windows-release }
             'profile' { make windows-profile-ci }
@@ -346,6 +349,7 @@ jobs:
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
+          dart pub global activate fastforge
           fastforge package `
             --platform=windows `
             --targets=exe `
