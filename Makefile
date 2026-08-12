@@ -1161,6 +1161,7 @@ find-duplicate-translations:
 # native-assets hook stops running and the macOS build dies in the Xcode phase
 # looking for a framework NativeAssetsManifest.json still references. Every
 # target depending on clean re-runs pubget, so dropping .dart_tool is safe.
+.PHONY: clean
 clean:
 	flutter clean
 	rm -rf $(BUILD_DIR)/*
