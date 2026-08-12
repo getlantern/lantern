@@ -220,10 +220,12 @@ function Get-DownloadedInstaller([string]$ExpectedName, [long]$ExpectedLength) {
 function Install-Update(
   [int]$OriginalPid,
   [string]$ExpectedInstallerName,
-  [long]$ExpectedInstallerLength
+  [long]$ExpectedInstallerLength,
+  [int]$ExpectedBuild
 ) {
   $deadline = [DateTime]::UtcNow.AddSeconds($UpdateTimeout)
   $launchRequested = $false
+  $originalExited = $false
   while ([DateTime]::UtcNow -lt $deadline) {
     $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
     $button = Get-Button $installer @('Next >', 'Next', 'Install', 'Finish', 'Yes')
@@ -242,27 +244,28 @@ function Install-Update(
         }
       }
     }
-    if (-not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
-      $relaunched = Get-LanternProcesses | Where-Object Id -ne $OriginalPid | Select-Object -First 1
-      if ($relaunched) { return $relaunched }
+    if (-not $originalExited -and -not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
+      $originalExited = $true
+      Write-E2E "original Lantern process $OriginalPid exited"
+    }
+    if ($originalExited -and (Test-Path -LiteralPath $AppExecutable)) {
+      try {
+        $installedBuild = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($AppExecutable).FilePrivatePart
+        if ($installedBuild -eq $ExpectedBuild) {
+          $relaunchCandidates = @(Get-LanternProcesses | Where-Object Id -ne $OriginalPid)
+          foreach ($relaunched in $relaunchCandidates) {
+            $relaunched.Refresh()
+            if ($relaunched.MainWindowHandle -ne 0) { return $relaunched }
+          }
+        }
+      } catch {
+        # The installer may be replacing the executable while this poll runs.
+      }
     }
     Start-Sleep -Milliseconds 250
   }
   Save-UiTree 'install-timeout'
   throw 'WinSparkle did not install and relaunch Lantern before timeout'
-}
-
-function Wait-ForMainWindow([int]$ProcessId) {
-  $deadline = [DateTime]::UtcNow.AddSeconds($UiTimeout)
-  while ([DateTime]::UtcNow -lt $deadline) {
-    $process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
-    if ($process) {
-      $process.Refresh()
-      if ($process.MainWindowHandle -ne 0) { return }
-    }
-    Start-Sleep -Milliseconds 250
-  }
-  throw "Lantern process $ProcessId did not expose a main window before timeout"
 }
 
 function Save-Diagnostics {
@@ -331,9 +334,12 @@ try {
   Save-UiTree 'prompt'
   Save-Screenshot 'prompt'
   Press-Button $installButton
-  $relaunched = Install-Update $script:OriginalPid $targetInstallerName $targetInstallerLength
+  $relaunched = Install-Update `
+    $script:OriginalPid `
+    $targetInstallerName `
+    $targetInstallerLength `
+    $targetBuild
   $script:RelaunchedPid = $relaunched.Id
-  Wait-ForMainWindow $script:RelaunchedPid
   Assert-AppVersion 'updated' $targetBuild $displayVersion
   Save-Screenshot 'after'
   $script:Result = 'success'
