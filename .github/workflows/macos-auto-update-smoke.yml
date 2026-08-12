@@ -144,16 +144,6 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: scripts/requirements.txt
-
-      - name: Install appcast parser dependency
-        run: python -m pip install -r scripts/requirements.txt
-
       - name: Download lower fixture
         uses: actions/download-artifact@v4
         with:

@@ -58,17 +58,6 @@ jobs:
           echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
           exit 2
 
-  # Build one signed/notarized macOS target and one signed Windows target with
-  # the same numeric update version. Publishing stays outside Actions so the
-  # Lantern repository does not need a long-lived cross-repository token.
-  auto-update-fixture:
-    needs: validate-inputs
-    if: ${{ inputs.platforms == 'all' && inputs.tests == 'auto-update' }}
-    uses: ./.github/workflows/build-auto-update-fixtures.yml
-    secrets: inherit
-    with:
-      publish: false
-
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
   # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
   # tier builds only the VPN suite and runs it on one virtual device with no
@@ -164,7 +153,7 @@ jobs:
   # selected explicitly, and never runs in the nightly sweep.
   macos-auto-update:
     needs: validate-inputs
-    if: ${{ inputs.platforms == 'macos' && inputs.tests == 'auto-update' }}
+    if: ${{ contains(fromJSON('["all", "macos"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
     uses: ./.github/workflows/macos-auto-update-smoke.yml
     secrets: inherit
 
@@ -185,6 +174,6 @@ jobs:
 
   windows-auto-update:
     needs: validate-inputs
-    if: ${{ inputs.platforms == 'windows' && inputs.tests == 'auto-update' }}
+    if: ${{ contains(fromJSON('["all", "windows"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
     uses: ./.github/workflows/windows-auto-update-smoke.yml
     secrets: inherit

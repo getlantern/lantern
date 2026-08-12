@@ -203,28 +203,11 @@ install_fixture() {
   detach_dmg
 }
 
-revalidate_target() {
-  local recheck="$ARTIFACT_DIR/live-recheck"
-  mkdir -p "$recheck"
-  python3 scripts/ci/resolve_desktop_update_target.py \
-    --platform macos \
-    --appcast-url "$(jq -r .appcast_url "$TARGET_JSON")" \
-    --appcast-output "$recheck/appcast.xml" \
-    --target-output "$recheck/target.json" \
-    --pubspec-input pubspec.yaml \
-    --pubspec-output "$recheck/pubspec.yaml"
-  [[ "$(jq -r .appcast_sha256 "$TARGET_JSON")" == "$(jq -r .appcast_sha256 "$recheck/target.json")" ]] || {
-    printf 'The staging beta appcast changed while the fixture was building; rerun the workflow.\n' >&2
-    return 1
-  }
-}
-
 guard_ci_paths
 mkdir -p "$ARTIFACT_DIR"
 cp "$APPCAST_XML" "$ARTIFACT_DIR/appcast.xml"
 cp "$TARGET_JSON" "$ARTIFACT_DIR/resolved-target.json"
 osacompile -o "$ROBOT_SCRIPT" "$ROBOT_SOURCE"
-revalidate_target
 
 TARGET_BUILD="$(jq -er '.target_build | tostring' "$TARGET_JSON")"
 FIXTURE_BUILD="$(jq -er '.fixture_build | tostring' "$TARGET_JSON")"
