@@ -148,7 +148,21 @@ class AppsSplitTunneling extends ConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () => notifier.toggleApp(app),
+                                onToggle: () {
+                                  // Adding a browser routes its traffic
+                                  // outside the VPN — warn before adding
+                                  // (getlantern/engineering#3755).
+                                  if (app.isBrowser) {
+                                    AppDialog.browserBypassWarningDialog(
+                                      context: ctx,
+                                      browserName: app.name,
+                                      onAddAnyway: () =>
+                                          notifier.toggleApp(app),
+                                    );
+                                  } else {
+                                    notifier.toggleApp(app);
+                                  }
+                                },
                               );
                             },
                           ),

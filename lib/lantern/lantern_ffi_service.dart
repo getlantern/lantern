@@ -297,6 +297,7 @@ class LanternFFIService implements LanternCoreService {
           iconPath: raw["iconPath"] as String? ?? '',
           iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
           isEnabled: enabledKeys.contains(key),
+          isBrowser: raw["isBrowser"] == true,
         );
       }).toList();
     } catch (e, st) {

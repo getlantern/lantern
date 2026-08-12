@@ -7,9 +7,10 @@ internal data class AppData(
     val label: String,
     val lastUpdateTime: Long,
     val appPath: String,
-    val iconPath: String = ""
+    val iconPath: String = "",
+    val isBrowser: Boolean = false
 ) {
-    fun hasCachedIcon(ctx: Context, sizePx: Int, dpi: Int): Boolean =
+    fun hasCachedIcon(ctx: Context,  sizePx: Int, dpi: Int): Boolean =
         IconCache.pathFor(ctx, packageName, lastUpdateTime, sizePx, dpi).exists()
 
     fun withIconPathIfCached(ctx: Context, sizePx: Int, dpi: Int): AppData {
@@ -23,6 +24,7 @@ internal data class AppData(
         "label" to label,
         "name" to label,
         "appPath" to appPath,
-        "iconPath" to iconPath
+        "iconPath" to iconPath,
+        "isBrowser" to isBrowser
     )
 }

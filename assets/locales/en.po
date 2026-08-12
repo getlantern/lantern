@@ -1731,3 +1731,12 @@ msgstr "Order Total"
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
 
+
+msgid "bypass_browser_warning_title"
+msgstr "Add %s to the bypass list?"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s will connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_anyway"
+msgstr "Add Anyway"
