@@ -500,8 +500,10 @@ class LanternFFIService implements LanternCoreService {
       if (result == nullptr) {
         return right(unit);
       }
+      // Don't free `result`: it's a Go-allocated C string on Go's heap, so
+      // Dart's malloc.free would hard-crash (0xC0000409). Only free the input
+      // pointers we allocated (tPtr/vPtr), below.
       final resultStr = result.cast<Utf8>().toDartString();
-      malloc.free(result);
       // The Go FFI returns a non-null C string like "ok" on success; only
       // treat unexpected payloads as errors.
       if (_ffiOkResults.contains(resultStr)) {

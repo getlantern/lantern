@@ -18,55 +18,43 @@ type browserExeIndex struct {
 	basenames map[string]bool
 }
 
-// loadBrowserIndexOnce reads Software\Clients\StartMenuInternet — the
-// registry every installed browser joins to be eligible as the default
-// browser (Chrome, Firefox, Edge, Brave, Opera, regional browsers, ...).
-// Dynamic per device, so any properly installed browser is detected without
-// a hardcoded list. Portable browsers that skip registration (e.g. Tor
-// Browser) are not caught.
+// registryRoot pairs a registry hive with the access flags used to read it.
+type registryRoot struct {
+	root  registry.Key
+	flags uint32
+}
+
+// browserRegistryRoots covers the hives/views installed browsers register
+// under: both WOW64 views of HKLM (machine-wide installs) plus HKCU
+// (per-user installs, and packaged browsers whose default-app registration
+// lives under the current user).
+var browserRegistryRoots = []registryRoot{
+	{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_64KEY},
+	{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_32KEY},
+	{registry.CURRENT_USER, registry.READ | registry.WOW64_64KEY},
+}
+
+// loadBrowserIndexOnce builds the set of registered browser executables from
+// the modern default-app registration, so any properly installed browser is
+// detected without a hardcoded list:
+//
+//	Software\RegisteredApplications -> Capabilities\URLAssociations
+//
+// Each RegisteredApplications value points at a Capabilities key, and an app
+// is a browser exactly when its URLAssociations declare an http/https handler.
+// This covers both classic Win32 browsers (Chrome, Firefox, Edge, ...) and
+// packaged/MSIX browsers (e.g. Arc), which register here rather than under the
+// legacy Software\Clients\StartMenuInternet key.
+//
+// Portable browsers that skip registration entirely (e.g. Tor Browser) are
+// not caught.
 var loadBrowserIndexOnce = sync.OnceValue(func() browserExeIndex {
 	idx := browserExeIndex{
 		paths:     map[string]bool{},
 		basenames: map[string]bool{},
 	}
 
-	const clientsKey = `Software\Clients\StartMenuInternet`
-	type rootSpec struct {
-		root  registry.Key
-		flags uint32
-	}
-	roots := []rootSpec{
-		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_64KEY},
-		{registry.LOCAL_MACHINE, registry.READ | registry.WOW64_32KEY},
-		// Per-user browser installs (e.g. user-level Chrome) register here.
-		{registry.CURRENT_USER, registry.READ | registry.WOW64_64KEY},
-	}
-
-	for _, r := range roots {
-		k, err := registry.OpenKey(r.root, clientsKey, r.flags)
-		if err != nil {
-			continue
-		}
-		names, _ := k.ReadSubKeyNames(-1)
-		k.Close()
-
-		for _, name := range names {
-			ck, err := registry.OpenKey(
-				r.root, clientsKey+`\`+name+`\shell\open\command`, r.flags)
-			if err != nil {
-				continue
-			}
-			cmd, _, _ := ck.GetStringValue("")
-			ck.Close()
-
-			exe := browserCommandExe(cmd)
-			if exe == "" {
-				continue
-			}
-			idx.paths[normalizeKey(filepath.Clean(exe))] = true
-			idx.basenames[strings.ToLower(filepath.Base(exe))] = true
-		}
-	}
+	scanRegisteredApplicationBrowsers(&idx)
 
 	slog.Info("browser registry scan complete",
 		"browsers", len(idx.paths),
@@ -75,9 +63,91 @@ var loadBrowserIndexOnce = sync.OnceValue(func() browserExeIndex {
 	return idx
 })
 
-// browserCommandExe extracts the executable path from a StartMenuInternet
-// shell\open\command value (typically a quoted exe path, sometimes with
-// arguments).
+// addExe records a browser executable under both its full path and basename.
+func (idx *browserExeIndex) addExe(exe string) {
+	if exe == "" {
+		return
+	}
+	idx.paths[normalizeKey(filepath.Clean(exe))] = true
+	idx.basenames[strings.ToLower(filepath.Base(exe))] = true
+}
+
+// scanRegisteredApplicationBrowsers indexes browsers via the modern
+// default-app registration: each Software\RegisteredApplications value points
+// at a Capabilities key, and an app is a browser exactly when its
+// Capabilities\URLAssociations declares an http/https handler. This catches
+// classic Win32 browsers as well as packaged/MSIX browsers (Arc,
+// Store-installed Chromium forks, ...).
+func scanRegisteredApplicationBrowsers(idx *browserExeIndex) {
+	const regAppsKey = `Software\RegisteredApplications`
+	for _, r := range browserRegistryRoots {
+		k, err := registry.OpenKey(r.root, regAppsKey, r.flags)
+		if err != nil {
+			continue
+		}
+		valueNames, _ := k.ReadValueNames(-1)
+		capPaths := make([]string, 0, len(valueNames))
+		for _, vn := range valueNames {
+			capPath, _, err := k.GetStringValue(vn)
+			if err == nil && strings.TrimSpace(capPath) != "" {
+				capPaths = append(capPaths, strings.TrimSpace(capPath))
+			}
+		}
+		k.Close()
+
+		for _, capPath := range capPaths {
+			addBrowserFromCapabilities(idx, r, capPath)
+		}
+	}
+}
+
+// addBrowserFromCapabilities inspects a Capabilities key and, when it
+// declares an http/https URL handler, resolves that handler's executable into
+// the index.
+func addBrowserFromCapabilities(idx *browserExeIndex, r registryRoot, capPath string) {
+	ua, err := registry.OpenKey(r.root, capPath+`\URLAssociations`, r.flags)
+	if err != nil {
+		return
+	}
+	defer ua.Close()
+
+	for _, scheme := range []string{"http", "https"} {
+		progID, _, err := ua.GetStringValue(scheme)
+		if err != nil || strings.TrimSpace(progID) == "" {
+			continue
+		}
+		idx.addExe(browserExeFromProgID(r, strings.TrimSpace(progID)))
+	}
+}
+
+// browserExeFromProgID resolves a URL-handler ProgID to its executable via
+// Software\Classes\<progID>\shell\open\command. It checks the ProgID's own
+// hive first, then the opposite hive, since a per-user default may point at a
+// machine-registered ProgID (or vice versa).
+func browserExeFromProgID(r registryRoot, progID string) string {
+	roots := []registry.Key{r.root}
+	if r.root == registry.CURRENT_USER {
+		roots = append(roots, registry.LOCAL_MACHINE)
+	} else {
+		roots = append(roots, registry.CURRENT_USER)
+	}
+	for _, root := range roots {
+		ck, err := registry.OpenKey(
+			root, `Software\Classes\`+progID+`\shell\open\command`, r.flags)
+		if err != nil {
+			continue
+		}
+		cmd, _, _ := ck.GetStringValue("")
+		ck.Close()
+		if exe := browserCommandExe(cmd); exe != "" {
+			return exe
+		}
+	}
+	return ""
+}
+
+// browserCommandExe extracts the executable path from a shell\open\command
+// value (typically a quoted exe path, sometimes with arguments).
 func browserCommandExe(cmd string) string {
 	tokens := parseWindowsCommandTokens(cmd)
 	if len(tokens) == 0 {
