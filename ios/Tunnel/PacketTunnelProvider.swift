@@ -22,6 +22,18 @@ class PacketTunnelProvider: ExtensionProvider {
   private static let memoryEagerSamples = 10
   private static let memoryLogInterval: TimeInterval = 10
 
+  // The kernel's pressure source only fires on a transition, so a provider that
+  // starts already tight would sit on the normal-pressure heartbeat until one
+  // arrives. Treat scarce headroom as elevated too. A healthy tunnel plateaus
+  // around 13 MB free of the 50 MB cap and the killed ones were under 10 MB, so
+  // this trips only when genuinely close.
+  private static let lowHeadroomBytes = 10 * 1024 * 1024
+
+  // Every logger field is confined to this serial queue, and both dispatch
+  // sources fire on it. cancel() does not interrupt a handler already running,
+  // so teardown joins the queue rather than assuming sampling has stopped.
+  private let memoryQueue = DispatchQueue(label: "org.getlantern.lantern.tunnel.memory")
+
   override func startTunnel(options: [String: NSObject]?) async throws {
     try await super.startTunnel(options: options)
     startMemoryLogger()
@@ -31,7 +43,7 @@ class PacketTunnelProvider: ExtensionProvider {
     // Record the reason and a final sample before any teardown work: an outright
     // kill never reaches this at all, so its absence is itself the signal.
     appLogger.info("PacketTunnelProvider stopping, reason: \(reason.rawValue)")
-    logMemoryUsage()
+    memoryQueue.sync { _ = logMemoryUsage() }
     stopMemoryLogger()
     try? await super.stopTunnel(with: reason)
   }
@@ -40,7 +52,7 @@ class PacketTunnelProvider: ExtensionProvider {
   {
     stopMemoryLogger()
     startMemoryPressureMonitor()
-    let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+    let timer = DispatchSource.makeTimerSource(queue: memoryQueue)
     timer.schedule(deadline: .now(), repeating: interval)
     timer.setEventHandler { [weak self] in
       self?.sampleMemory()
@@ -54,21 +66,31 @@ class PacketTunnelProvider: ExtensionProvider {
     memoryLogTimer = nil
     memoryPressureSource?.cancel()
     memoryPressureSource = nil
-    currentMemoryPressure = .normal
-    memorySampleCount = 0
-    lastMemoryLog = nil
+    // A handler already in flight when cancel() lands still runs to completion;
+    // draining the queue first keeps it from resetting state after this does, or
+    // logging a sample once the tunnel is gone.
+    memoryQueue.sync {
+      currentMemoryPressure = .normal
+      memorySampleCount = 0
+      lastMemoryLog = nil
+    }
   }
 
   // Logs every early sample so a fast pre-kill climb is visible, every sample
-  // once the kernel reports pressure, and a 10s heartbeat otherwise.
+  // once memory is tight, and a 10s heartbeat otherwise. Runs on memoryQueue.
   private func sampleMemory() {
+    let now = Date()
     memorySampleCount += 1
     let elevated = currentMemoryPressure != .normal
+      || os_proc_available_memory() < Self.lowHeadroomBytes
     let heartbeatDue =
-      lastMemoryLog.map { Date().timeIntervalSince($0) >= Self.memoryLogInterval } ?? true
+      lastMemoryLog.map { now.timeIntervalSince($0) >= Self.memoryLogInterval } ?? true
     guard memorySampleCount <= Self.memoryEagerSamples || elevated || heartbeatDue else { return }
-    lastMemoryLog = Date()
-    logMemoryUsage()
+    // Only a sample that actually read the counters may start the next heartbeat,
+    // or a failed read would suppress logging for the following ten seconds.
+    if logMemoryUsage() {
+      lastMemoryLog = now
+    }
   }
 
   // Subscribes to kernel memory-pressure notifications. The OS publishes one
@@ -77,7 +99,7 @@ class PacketTunnelProvider: ExtensionProvider {
   private func startMemoryPressureMonitor() {
     let source = DispatchSource.makeMemoryPressureSource(
       eventMask: [.normal, .warning, .critical],
-      queue: .global(qos: .utility)
+      queue: memoryQueue
     )
     source.setEventHandler { [weak self, weak source] in
       guard let self = self, let source = source else { return }
@@ -88,7 +110,10 @@ class PacketTunnelProvider: ExtensionProvider {
   }
 
 
-  private func logMemoryUsage() {
+  // Returns whether the counters were read, so a failed sample doesn't count as
+  // a heartbeat. Runs on memoryQueue.
+  @discardableResult
+  private func logMemoryUsage() -> Bool {
     var info = task_vm_info_data_t()
     var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size)
     let kerr = withUnsafeMutablePointer(to: &info) {
@@ -98,7 +123,7 @@ class PacketTunnelProvider: ExtensionProvider {
     }
     guard kerr == KERN_SUCCESS else {
       appLogger.error("PacketTunnelProvider failed to read memory info: \(kerr)")
-      return
+      return false
     }
     let mb = 1024.0 * 1024.0
     let footprintMB = Double(info.phys_footprint) / mb
@@ -126,6 +151,7 @@ class PacketTunnelProvider: ExtensionProvider {
       pressureLabel, footprintMB, availableMB, residentMB, peakMB, dirtyMB, compressedMB, virtualMB
     )
     appLogger.info("\(message)")
+    return true
   }
 
   public override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?)
