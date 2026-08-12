@@ -259,7 +259,7 @@ class AppDialog {
   }) {
     return show(
       context: context,
-      header: Center(child: AppImage(path: AppImagePaths.warning, height: 40)),
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
       centeredTitle: true,
       title: 'bypass_browser_warning_title'.i18n.fill([browserName]),
       body: 'bypass_browser_warning_body'.i18n.fill([browserName]),

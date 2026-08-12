@@ -230,7 +230,7 @@ Future<void> _showSelectAllBypassWarning({
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         SizedBox(height: size24),
-        Center(child: AppImage(path: AppImagePaths.warning, height: 40)),
+        Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
         SizedBox(height: size24),
         Text(
           'bypass_all_warning_title'.i18n,
