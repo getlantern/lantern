@@ -91,17 +91,21 @@ class WebsiteDomainInput extends HookConsumerWidget {
 
       final storage = sl<LocalStorageService>();
       if (!storage.hasSeenBypassWebsiteDialog) {
-        unawaited(storage.markBypassWebsiteDialogSeen());
         await AppDialog.show(
           context: context,
           header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
           centeredTitle: true,
           title: 'bypass_website_first_time_title'.i18n,
           body: 'bypass_website_first_time_body'.i18n.fill([
-            added.first.domain,
+            added.map((website) => website.domain).join(', '),
           ]),
           primaryLabel: 'add'.i18n,
-          onPrimaryPressed: () => addValidatedWebsites(added),
+          onPrimaryPressed: () {
+            // Mark seen only on confirm; cancelling should show the
+            // explainer again next time.
+            unawaited(storage.markBypassWebsiteDialogSeen());
+            unawaited(addValidatedWebsites(added));
+          },
           secondaryLabel: 'cancel'.i18n,
         );
         return;

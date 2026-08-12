@@ -23,7 +23,7 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
     var appURLs: [URL]
     if #available(macOS 12.0, *) {
       appURLs = NSWorkspace.shared.urlsForApplications(toOpen: url)
-      let htmlHandlers = Set(NSWorkspace.shared.urlsForApplications(toOpen: .html))
+      let htmlHandlers = Set(NSWorkspace.shared.urlsForApplications(toOpen: UTType.html))
       if !htmlHandlers.isEmpty {
         appURLs = appURLs.filter { htmlHandlers.contains($0) }
       }
@@ -52,9 +52,13 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
       var m = item
       let bundleId = (item["bundleId"] as? String) ?? ""
       let appPath = (item["appPath"] as? String) ?? ""
+      // browserApps.paths holds standardized paths; standardize the incoming
+      // path too so symlinks/relative components don't cause false negatives.
+      let standardizedPath = appPath.isEmpty
+        ? "" : URL(fileURLWithPath: appPath).standardizedFileURL.path
       m["isBrowser"] =
         (!bundleId.isEmpty && browsers.bundleIds.contains(bundleId))
-        || (!appPath.isEmpty && browsers.paths.contains(appPath))
+        || (!standardizedPath.isEmpty && browsers.paths.contains(standardizedPath))
       return m
     }
   }

@@ -178,7 +178,6 @@ class AppsSplitTunneling extends ConsumerWidget {
     }
     final storage = sl<LocalStorageService>();
     if (!storage.hasSeenBypassAppDialog) {
-      unawaited(storage.markBypassAppDialogSeen());
       await AppDialog.show(
         context: context,
         header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
@@ -186,7 +185,12 @@ class AppsSplitTunneling extends ConsumerWidget {
         title: 'bypass_app_first_time_title'.i18n,
         body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
         primaryLabel: 'add'.i18n,
-        onPrimaryPressed: () => notifier.toggleApp(app),
+        onPrimaryPressed: () {
+          // Mark seen only on confirm; cancelling should show the
+          // explainer again next time.
+          unawaited(storage.markBypassAppDialogSeen());
+          notifier.toggleApp(app);
+        },
         secondaryLabel: 'cancel'.i18n,
       );
       return;

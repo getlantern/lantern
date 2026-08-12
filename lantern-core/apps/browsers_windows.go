@@ -5,6 +5,7 @@ package apps
 import (
 	"log/slog"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -193,5 +194,6 @@ func sortedKeys(m map[string]bool) []string {
 	for k := range m {
 		out = append(out, k)
 	}
+	sort.Strings(out)
 	return out
 }

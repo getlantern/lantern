@@ -13,7 +13,8 @@ class AppData {
   final bool removed;
 
   /// True when the app registers itself as an http(s) handler (a browser).
-  /// Currently only populated on Android; defaults to false elsewhere.
+  /// Populated on Android (intent handlers), macOS (LaunchServices) and
+  /// Windows (registry default-app scan); defaults to false elsewhere.
   final bool isBrowser;
 
   const AppData({
