@@ -6,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
 class WebsiteDomainInput extends HookConsumerWidget {
@@ -43,9 +45,24 @@ class WebsiteDomainInput extends HookConsumerWidget {
       return website;
     }
 
+    Future<void> addValidatedWebsites(List<Website> added) async {
+      textController.clear();
+
+      final failures = await ref
+          .read(splitTunnelingWebsitesProvider.notifier)
+          .addWebsites(added);
+
+      if (!context.mounted || failures.isEmpty) {
+        return;
+      }
+
+      showSnackbar(
+        failures.map((failure) => failure.localizedErrorMessage).join('\n'),
+      );
+    }
+
     Future<void> validateAndExtractDomain() async {
       final inputText = textController.text.trim();
-
       if (inputText.isEmpty) {
         showSnackbar("Please enter a URL or domain.");
         return;
@@ -67,26 +84,30 @@ class WebsiteDomainInput extends HookConsumerWidget {
         }
       }
 
-      if (added.isNotEmpty) {
-        textController.clear();
-      }
-
       if (errors.isNotEmpty) {
         showSnackbar(errors.join('\n'));
         return;
       }
 
-      final failures = await ref
-          .read(splitTunnelingWebsitesProvider.notifier)
-          .addWebsites(added);
-
-      if (!context.mounted || failures.isEmpty) {
+      final storage = sl<LocalStorageService>();
+      if (!storage.hasSeenBypassWebsiteDialog) {
+        unawaited(storage.markBypassWebsiteDialogSeen());
+        await AppDialog.show(
+          context: context,
+          header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+          centeredTitle: true,
+          title: 'bypass_website_first_time_title'.i18n,
+          body: 'bypass_website_first_time_body'.i18n.fill([
+            added.first.domain,
+          ]),
+          primaryLabel: 'add'.i18n,
+          onPrimaryPressed: () => addValidatedWebsites(added),
+          secondaryLabel: 'cancel'.i18n,
+        );
         return;
       }
 
-      showSnackbar(
-        failures.map((failure) => failure.localizedErrorMessage).join('\n'),
-      );
+      await addValidatedWebsites(added);
     }
 
     return Column(

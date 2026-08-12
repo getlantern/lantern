@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -7,6 +8,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
@@ -148,21 +151,7 @@ class AppsSplitTunneling extends ConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () {
-                                  // Adding a browser routes its traffic
-                                  // outside the VPN — warn before adding
-                                  // (getlantern/engineering#3755).
-                                  if (app.isBrowser) {
-                                    AppDialog.browserBypassWarningDialog(
-                                      context: ctx,
-                                      browserName: app.name,
-                                      onAddAnyway: () =>
-                                          notifier.toggleApp(app),
-                                    );
-                                  } else {
-                                    notifier.toggleApp(app);
-                                  }
-                                },
+                                onToggle: () => onTapAddApp(ctx, notifier, app),
                               );
                             },
                           ),
@@ -171,6 +160,38 @@ class AppsSplitTunneling extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Show info dialog for first time user
+  Future<void> onTapAddApp(
+    BuildContext context,
+    SplitTunnelingApps notifier,
+    AppData app,
+  ) async {
+    if (app.isBrowser) {
+      await AppDialog.browserBypassWarningDialog(
+        context: context,
+        browserName: app.name,
+        onAddAnyway: () => notifier.toggleApp(app),
+      );
+      return;
+    }
+    final storage = sl<LocalStorageService>();
+    if (!storage.hasSeenBypassAppDialog) {
+      unawaited(storage.markBypassAppDialogSeen());
+      await AppDialog.show(
+        context: context,
+        header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+        centeredTitle: true,
+        title: 'bypass_app_first_time_title'.i18n,
+        body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
+        primaryLabel: 'add'.i18n,
+        onPrimaryPressed: () => notifier.toggleApp(app),
+        secondaryLabel: 'cancel'.i18n,
+      );
+      return;
+    }
+    notifier.toggleApp(app);
   }
 
   /// Warn when Select All would put browsers on the bypass list

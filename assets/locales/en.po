@@ -1752,3 +1752,15 @@ msgstr "Add All Except Browsers"
 
 msgid "add_all_anyway"
 msgstr "Add All Anyway"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bypass the VPN for this app?"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bypass the VPN for this website?"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
