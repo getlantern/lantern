@@ -1,86 +1,58 @@
 package mobile
 
-// // todo implement a mock for all test cases
-// func radianceOptions() radiance.Options {
-// 	return radiance.Options{
-// 		DataDir:  os.TempDir(),
-// 		LogDir:   os.TempDir(),
-// 		DeviceID: "test-123",
-// 		Locale:   "en-us",
-// 	}
-// }
+import (
+	"errors"
+	"testing"
+	"time"
 
-// func TestSetupRadiance(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
+	"github.com/getlantern/radiance/ipc"
+)
 
-// }
+func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
+	want := &ipc.Client{}
+	previousClient := ipcClient.Swap(want)
+	t.Cleanup(func() {
+		ipcClient.Store(previousClient)
+	})
 
-// // // skip this test for now
-// // func TestStartVPN(t *testing.T) {
-// // 	data := radianceOptions().DataDir
-// // 	log := radianceOptions().LogDir
-// // 	rr, err := client.NewVPNClient(data, log, nil, false)
-// // 	assert.Nil(t, err)
-// // 	assert.NotNil(t, rr)
-// // 	err1 := rr.StartVPN()
-// // 	assert.Nil(t, err1)
-// // }
+	ipcLifecycle.mu.Lock()
+	defer ipcLifecycle.mu.Unlock()
 
-// func TestCreateUser(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	user, err := api.NewUser(context.Background())
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }
+	result := make(chan *ipc.Client, 1)
+	go func() {
+		client, _ := getClient()
+		result <- client
+	}()
 
-// func TestSubscriptionRedirect(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	apiClient := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	data := api.PaymentRedirectData{
-// 		Provider:    "stripe",
-// 		Plan:        "monthly",
-// 		DeviceName:  "test-123",
-// 		Email:       "test@getlantern.org",
-// 		BillingType: api.SubscriptionTypeSubscription,
-// 	}
-// 	user, err := apiClient.SubscriptionPaymentRedirectURL(context.Background(), data)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }
+	select {
+	case got := <-result:
+		if got != want {
+			t.Fatalf("getClient() = %p, want %p", got, want)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("getClient blocked on the IPC lifecycle lock")
+	}
+}
 
-// func TestUserData(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	user, err := api.UserData(context.Background())
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }
+func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
+	ipcLifecycle.mu.Lock()
+	previousServer := ipcLifecycle.server
+	previousStartState := ipcLifecycle.startState
+	previousClosing := ipcLifecycle.closing
+	ipcLifecycle.server = nil
+	ipcLifecycle.startState = ipcStarting
+	ipcLifecycle.closing = false
+	ipcLifecycle.mu.Unlock()
+	t.Cleanup(func() {
+		ipcLifecycle.mu.Lock()
+		ipcLifecycle.server = previousServer
+		ipcLifecycle.startState = previousStartState
+		ipcLifecycle.closing = previousClosing
+		ipcLifecycle.mu.Unlock()
+	})
 
-// func TestPlans(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	plans, err := api.SubscriptionPlans(context.Background(), "non-store")
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, plans)
-// }
-
-// func TestOAuthLoginUrl(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	user, err := api.OAuthLoginUrl(context.Background(), "google")
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }
+	err := StartIPCServer(nil, nil)
+	if !errors.Is(err, errIPCLifecycleBusy) {
+		t.Fatalf("StartIPCServer() error = %v, want %v", err, errIPCLifecycleBusy)
+	}
+}
