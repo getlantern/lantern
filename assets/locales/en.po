@@ -1195,6 +1195,9 @@ msgstr "Available on:"
 msgid "subscription_renewal_date"
 msgstr "Subscription Renewal Date"
 
+msgid "pro_access_until"
+msgstr "Pro access until %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Enabled bypass lists (%d):"
 
@@ -1704,9 +1707,6 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
-msgid "turn_on_vpn"
-msgstr "Turn on VPN"
-
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
@@ -1727,4 +1727,3 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
-

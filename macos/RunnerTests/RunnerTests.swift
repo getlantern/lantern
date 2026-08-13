@@ -1,9 +1,129 @@
-@testable import Lantern
 import Foundation
+import NetworkExtension
 import SystemExtensions
 import XCTest
 
+@testable import Lantern
+
 final class RunnerTests: XCTestCase {
+
+  private func assertVPNManagerError(
+    _ expected: VPNManagerError,
+    _ operation: () throws -> Void
+  ) {
+    XCTAssertThrowsError(try operation()) { error in
+      XCTAssertEqual(error as? VPNManagerError, expected)
+    }
+  }
+
+  func testVPNStartStates() throws {
+    XCTAssertTrue(try shouldStartNewTunnel(for: .disconnected))
+    XCTAssertFalse(try shouldStartNewTunnel(for: .connected))
+
+    for status in [NEVPNStatus.connecting, .disconnecting, .reasserting] {
+      XCTAssertThrowsError(try shouldStartNewTunnel(for: status)) { error in
+        guard let vpnError = error as? VPNManagerError,
+          case .operationInProgress = vpnError
+        else {
+          return XCTFail("Expected operationInProgress for \(status), got \(error)")
+        }
+      }
+    }
+
+    assertVPNManagerError(.loadingProviderFailed) {
+      _ = try shouldStartNewTunnel(for: .invalid)
+    }
+  }
+
+  func testVPNStopStates() throws {
+    for status in [NEVPNStatus.connected, .connecting, .reasserting] {
+      XCTAssertTrue(try shouldStopTunnel(for: status))
+    }
+    for status in [NEVPNStatus.disconnected, .disconnecting, .invalid] {
+      XCTAssertFalse(try shouldStopTunnel(for: status))
+    }
+  }
+
+  func testVPNLifecycleCoordinatorRejectsOverlappingConnections() async throws {
+    let coordinator = VPNLifecycleCoordinator()
+    let operationID = try await coordinator.beginConnectionOperation()
+
+    do {
+      _ = try await coordinator.beginConnectionOperation()
+      XCTFail("Expected operationInProgress")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
+    }
+
+    await coordinator.endConnectionOperation(operationID)
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
+  }
+
+  func testVPNStopCancelsStartupAndWaitsForHandoff() async throws {
+    let coordinator = VPNLifecycleCoordinator()
+    let operationID = try await coordinator.beginConnectionOperation()
+
+    let stopTask = Task {
+      return try await coordinator.beginStopOperation()
+    }
+
+    let deadline = Date().addingTimeInterval(1)
+    while await coordinator.canContinueConnectionOperation(operationID) {
+      if Date() >= deadline {
+        await coordinator.endConnectionOperation(operationID)
+        _ = try await stopTask.value
+        await coordinator.endStopOperation()
+        XCTFail("Stop request did not take ownership of the manager")
+        return
+      }
+      await Task.yield()
+    }
+    do {
+      try await coordinator.performFinalConnectionTransition(operationID) {
+        XCTFail("Canceled connection transition must not run")
+      }
+      XCTFail("Expected operationInProgress for the canceled transition")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
+    }
+    await coordinator.endConnectionOperation(operationID)
+    let canceledConnectionOperation = try await stopTask.value
+    XCTAssertTrue(canceledConnectionOperation)
+
+    do {
+      _ = try await coordinator.beginConnectionOperation()
+      XCTFail("Expected operationInProgress while stop owns the manager")
+    } catch {
+      XCTAssertEqual(error as? VPNManagerError, .operationInProgress)
+    }
+
+    await coordinator.endStopOperation()
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
+  }
+
+  func testVPNStopForcesHandoffAfterTimeout() async throws {
+    let coordinator = VPNLifecycleCoordinator(stopHandoffTimeoutNanoseconds: 10_000_000)
+    let operationID = try await coordinator.beginConnectionOperation()
+    let stopFinished = expectation(description: "Stop handoff finished")
+
+    let stopTask = Task {
+      let result = try await coordinator.beginStopOperation()
+      stopFinished.fulfill()
+      return result
+    }
+    await fulfillment(of: [stopFinished], timeout: 1)
+    let canceledConnectionOperation = try await stopTask.value
+    XCTAssertTrue(canceledConnectionOperation)
+    let canContinue = await coordinator.canContinueConnectionOperation(operationID)
+    XCTAssertFalse(canContinue)
+
+    await coordinator.endConnectionOperation(operationID)
+    await coordinator.endStopOperation()
+    let nextOperationID = try await coordinator.beginConnectionOperation()
+    await coordinator.endConnectionOperation(nextOperationID)
+  }
 
   func testHashBundleIsStableForIdenticalContents() throws {
     let firstURL = try createExtensionBundle(
