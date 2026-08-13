@@ -103,13 +103,35 @@ jobs:
           Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
 
       - name: Set up MinGW
-        run: choco install mingw -y
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh mingw -y
+
+      - name: Read pinned Flutter version
+        id: flutter-version
+        shell: bash
+        # Parsed here and passed as flutter-version rather than flutter-version-file:
+        # given the file input, flutter-action unconditionally runs `choco install yq`
+        # on Windows to parse it, and chocolatey.org 504s on that step failed the
+        # v9.1.18 and v9.1.19 release builds. The direct version input skips it.
+        run: |
+          matches=$(sed -n 's/^[[:space:]]*flutter:[[:space:]]*"\{0,1\}\([0-9][^"]*\)"\{0,1\}[[:space:]]*$/\1/p' .github/flutter-version.yaml)
+          if [ "$(printf '%s\n' "$matches" | grep -c .)" -ne 1 ]; then
+            echo "expected exactly one flutter version in .github/flutter-version.yaml, got:" >&2
+            printf '%s\n' "$matches" >&2
+            exit 1
+          fi
+          version=$(printf '%s' "$matches" | tr -d '[:space:]')
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'; then
+            echo "parsed flutter version does not look like a version: '$version'" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: .github/flutter-version.yaml
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -131,14 +153,14 @@ jobs:
             ${{ runner.os }}-dart-pub-cache-
 
       - name: Install Inno Setup 6
-        shell: pwsh
+        shell: bash
         # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
         # --version=6.5.0 now fails ("a newer version is already installed; use
         # --allow-downgrade"), so pin to 6.7.1 with --allow-downgrade: the install
         # is deterministic and the Languages dir stays "Inno Setup 6". The vendored
         # Farsi/ChineseSimplified .isl files are "6.5.0+" and message-key-identical
         # to 6.7.1's Default.isl, so they remain valid as-is.
-        run: choco install -y innosetup --version=6.7.1 --allow-downgrade
+        run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
 
       - name: Install unofficial Inno Setup translations
         shell: pwsh
