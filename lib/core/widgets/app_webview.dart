@@ -18,6 +18,7 @@ abstract interface class AppWebViewObserver {
     Uri uri, {
     required int documentLength,
     required Future<Uint8List?> Function() captureScreenshot,
+    required Future<Object?> Function(String source) evaluateJavaScript,
   });
 
   void onPageLoadFailed(Uri? uri, String reason);
@@ -124,7 +125,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {},
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {
@@ -207,6 +207,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         uri,
         documentLength: documentLength,
         captureScreenshot: () => controller.takeScreenshot(),
+        evaluateJavaScript: (source) =>
+            controller.evaluateJavascript(source: source),
       );
     } catch (error, stackTrace) {
       appLogger.error('Unable to notify WebView observer', error, stackTrace);
