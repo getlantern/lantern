@@ -1,0 +1,1773 @@
+# Translators:
+# tx_e2f_pk r6 <tx_e2f_pk_r6@ate2f.com>, 2025
+# e2f <projects@e2f.com>, 2025
+# Lantern, 2026
+# Diversity83 83, 2026
+# tx_e2f_ur c1 <tx_e2f_ur_c1@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: Urdu (https://app.transifex.com/lantern-1/teams/94371/ur/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "app_name"
+msgstr "Lantern"
+
+msgid "upgrade_to_pro"
+msgstr "پرو میں اپ گریڈ کریں"
+
+msgid "settings"
+msgstr "ترتیبات"
+
+msgid "report_an_issue"
+msgstr "مسئلہ رپورٹ کریں"
+
+msgid "report_issue_add_screenshots"
+msgstr "اسکرین شاٹس شامل کریں"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG، JPG یا GIF — مجموعی طور پر زیادہ سے زیادہ 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "تصاویر شامل کریں"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "صرف PNG، JPG اور GIF تصاویر معاون ہیں۔"
+
+msgid "report_issue_attachments_too_many"
+msgstr "آپ زیادہ سے زیادہ 3 تصاویر منسلک کر سکتے ہیں۔"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "منسلکات کا مجموعی حجم 15 MB سے کم ہونا چاہیے۔"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "یہ تصویر پہلے سے منسلک ہے۔"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "ہم ان میں سے ایک فائل نہیں پڑھ سکے۔"
+
+msgid "lantern_projects"
+msgstr "Lantern پروجیکٹس:"
+
+msgid "invite_friends"
+msgstr "دوستوں کو مدعو کریں"
+
+msgid "your_referral_code"
+msgstr "آپ کا ریفرل کوڈ"
+
+msgid "invite_friends_message"
+msgstr ""
+"اپنا ریفرل کوڈ کسی دوست کے ساتھ شیئر کریں۔ جب وہ Lantern Pro خریدیں گے، آپ "
+"دونوں کو بونس ٹائم ملے گا:"
+
+msgid "share_referral_code"
+msgstr "ریفرل کوڈ شیئر کریں"
+
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "عالمی انٹرنیٹ سنسرشپ کے خلاف لڑنے میں مدد کریں"
+
+msgid "vpn_settings"
+msgstr "VPN کی ترتیبات"
+
+msgid "split_tunneling"
+msgstr "اسپلٹ ٹنلنگ"
+
+msgid "server_locations"
+msgstr "سرور کے مقامات"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro ای میل:"
+
+msgid "pro_account_expiration"
+msgstr "پرو اکاؤنٹ کی میعاد ختم ہونا"
+
+msgid "manage_subscription"
+msgstr "سبسکرپشن کا انتظام کریں"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro ڈیوائسز"
+
+msgid "remove"
+msgstr "ہٹائیں"
+
+msgid "add_device"
+msgstr "ڈیوائس شامل کریں"
+
+msgid "danger_zone"
+msgstr "خطرہ زون:"
+
+msgid "delete_account"
+msgstr "اکاؤنٹ حذف کریں"
+
+msgid "delete"
+msgstr "حذف کریں"
+
+msgid "account"
+msgstr "اکاؤنٹ"
+
+msgid "delete_account_?"
+msgstr "اپنا اکاؤنٹ حذف کریں؟"
+
+msgid "delete_account_message"
+msgstr ""
+"اکاؤنٹ کا حذف ہونا مستقل ہے۔ آپ تمام ڈیوائسز پر رسائی کھو دیں گے، اور باقی "
+"ماندہ پرو سبسکرپشن کا وقت بغیر رقم واپسی کے ضائع ہو جائے گا۔"
+
+msgid "delete_account_message_two"
+msgstr "اکاؤنٹ حذف کرنے کی تصدیق کے لیے براہ کرم اپنا پاس ورڈ درج کریں"
+
+msgid "Submit Issue Report"
+msgstr "تصدیق کے لیے پاس ورڈ درج کریں"
+
+msgid "confirm_deletion"
+msgstr "حذف کرنے کی تصدیق کریں"
+
+msgid "cancel"
+msgstr "منسوخ کریں"
+
+msgid "daily_data_usage"
+msgstr "روزانہ ڈیٹا کا استعمال"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN کی حیثیت"
+
+msgid "telegram"
+msgstr "ٹیلیگرام"
+
+msgid "instagram"
+msgstr "انسٹاگرام"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "ہمیں فالو کریں"
+
+msgid "server_selection"
+msgstr "سرور کا انتخاب"
+
+msgid "smart_location"
+msgstr "سمارٹ لوکیشن"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "خودکار طور پر تیز ترین مقام کا انتخاب کرتا ہے"
+
+msgid "pro_locations"
+msgstr "پرو مقامات:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Lantern Pro کے ساتھ اپنا مقام منتخب کریں:"
+
+msgid "language"
+msgstr "زبان"
+
+msgid "sign_in"
+msgstr "سائن ان کریں"
+
+msgid "sign_out"
+msgstr "سائن آؤٹ کریں"
+
+msgid "check_for_updates"
+msgstr "اپ ڈیٹس چیک کریں"
+
+msgid "update_available"
+msgstr "اپ ڈیٹ دستیاب ہے"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s دستیاب ہے۔ Lantern اینڈرائیڈ کا انسٹالر کھولنے سے پہلے APK ڈاؤن "
+"لوڈ کر کے اس کی تصدیق کرے گا۔"
+
+msgid "download_and_install_update"
+msgstr "ڈاؤن لوڈ اور انسٹال کریں"
+
+msgid "allow_unknown_app_installs"
+msgstr "ایپ انسٹال کی اجازت دیں"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"اینڈرائیڈ کو Lantern سے اپ ڈیٹس انسٹال کرنے کے لیے اجازت درکار ہے۔ اس ذریعے "
+"سے اجازت دیں کو آن کریں، پھر دوبارہ اپ ڈیٹس چیک کریں۔"
+
+msgid "error_install_update"
+msgstr "اپ ڈیٹ انسٹال نہیں ہو سکی"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern اس اپ ڈیٹ کی تصدیق یا تنصیب نہیں کر سکا۔ براہ کرم بعد میں دوبارہ "
+"کوشش کریں۔"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern اپ ٹو ڈیٹ ہے۔"
+
+msgid "support"
+msgstr "سپورٹ"
+
+msgid "download_links"
+msgstr "ڈاؤن لوڈ لنکس"
+
+msgid "get_30_days_of_pro_free"
+msgstr "30 دن کا مفت پرو حاصل کریں"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Lantern Pro کا ایک مفت مہینہ حاصل کرنے کے لیے، یہ ریفرل کوڈ استعمال کریں: %s"
+" ; آپ اسے یہاں سے ڈاؤن لوڈ کر سکتے ہیں: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "مسئلہ کی رپورٹ جمع کروائیں"
+
+msgid "select_an_issue"
+msgstr "ایک مسئلہ منتخب کریں"
+
+msgid "cannot_access_blocked_sites"
+msgstr "مسدود سائٹس تک رسائی نہیں ہو سکتی"
+
+msgid "cannot_complete_purchase"
+msgstr "خریداری مکمل نہیں ہو سکتی"
+
+msgid "discover_not_working"
+msgstr "دریافت کام نہیں کر رہا"
+
+msgid "cannot_sign_in"
+msgstr "سائن ان نہیں ہو سکتا"
+
+msgid "spinner_loads_endlessly"
+msgstr "اسپنر لامتناہی لوڈ ہو رہا ہے"
+
+msgid "slow"
+msgstr "سست"
+
+msgid "cannot_link_devices"
+msgstr "ڈیوائسز کو لنک نہیں کر سکتے"
+
+msgid "wrong_device_linking_code"
+msgstr "غلط یا غیر درست ڈیوائس لنکنگ کوڈ"
+
+msgid "cannot_remove_device"
+msgstr "ڈیوائس کو ہٹا نہیں سکتے"
+
+msgid "application_crashes"
+msgstr "ایپلیکیشن کریش ہو جاتی ہے"
+
+msgid "other"
+msgstr "دیگر"
+
+msgid "issue_description"
+msgstr "اپنے مسئلے کی تفصیل بیان کریں"
+
+msgid "enter_password_to_confirm"
+msgstr "تصدیق کے لیے پاس ورڈ درج کریں"
+
+msgid "cannot_view_logs"
+msgstr ""
+"Lantern آپ کے تشخیصی لاگز نہیں دیکھ سکتا جب تک آپ انہیں ہمیں نہ بھیجیں۔"
+
+msgid "split_tunneling_mode"
+msgstr "اسپلٹ ٹنلنگ موڈ"
+
+msgid "apps_split_tunneling"
+msgstr "ایپس اسپلٹ ٹنلنگ"
+
+msgid "website_split_tunneling"
+msgstr "ویب سائٹ اسپلٹ ٹنلنگ"
+
+msgid "iran_optimized"
+msgstr "ایران کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
+
+msgid "china_optimized"
+msgstr "چین کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
+
+msgid "russia_optimized"
+msgstr "روس کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
+
+msgid "global_optimized"
+msgstr "عالمی سطح پر بہتر بنایا گیا اسپلٹ ٹنلنگ"
+
+msgid "enter_url"
+msgstr "URL درج کریں"
+
+msgid "add"
+msgstr "شامل کریں"
+
+msgid "enabled"
+msgstr "فعال"
+
+msgid "disabled"
+msgstr "غیر فعال"
+
+msgid "automatic"
+msgstr "خودکار"
+
+msgid "automatic_mode"
+msgstr "خودکار موڈ"
+
+msgid "manual"
+msgstr "دستی"
+
+msgid "enter_url_or_ip"
+msgstr "URL یا IP ایڈریس درج کریں"
+
+msgid "installed_apps"
+msgstr "انسٹال شدہ ایپس"
+
+msgid "search_apps"
+msgstr "ایپس تلاش کریں"
+
+msgid "search_websites"
+msgstr "ویب سائٹس تلاش کریں"
+
+msgid "mode"
+msgstr "موڈ"
+
+msgid "use_commas"
+msgstr "متعدد URLs کو الگ کرنے کے لیے کوما استعمال کریں"
+
+msgid "deep_link_expired"
+msgstr "اس لنک کی میعاد ختم ہو گئی ہے۔ براہ کرم نیا لنک کی درخواست کریں۔"
+
+msgid "invalid_deep_link"
+msgstr "یہ لنک غلط ہے۔ براہ کرم نیا لنک کی درخواست کریں۔"
+
+msgid "default_bypass"
+msgstr "ڈیفالٹ بائی پاس لسٹس"
+
+msgid "global_bypass_list"
+msgstr "عالمی بائی پاس لسٹ"
+
+msgid "global_bypass_desc"
+msgstr "قابل اعتماد سائٹس (HTTPS) جن میں غیر حساس مواد ہے۔"
+
+msgid "china_bypass_list"
+msgstr "چین بائی پاس لسٹ"
+
+msgid "china_bypass_desc"
+msgstr "چین میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
+
+msgid "iran_bypass_list"
+msgstr "ایران بائی پاس لسٹ"
+
+msgid "iran_bypass_desc"
+msgstr "ایران میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
+
+msgid "russia_bypass_list"
+msgstr "روس بائی پاس لسٹ"
+
+msgid "russia_bypass_desc"
+msgstr "روس میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
+
+msgid "see_sites_included"
+msgstr "شامل سائٹس دیکھیں "
+
+msgid "default_lists_here"
+msgstr "ڈیفالٹ لسٹس یہاں"
+
+msgid "when_connected"
+msgstr "جب منسلک ہو، تو آپ کی منتخب کردہ ویب سائٹس VPN کو بائی پاس کریں گی۔"
+
+msgid "lantern_automatic"
+msgstr ""
+"Lantern خودکار طور پر یہ منتخب کرتا ہے کہ کون سی ایپس اور ویب سائٹس بہترین "
+"کارکردگی کے لیے آپ کے مقام کی بنیاد پر VPN کو بائی پاس کریں۔ "
+
+msgid "apps_bypassing_vpn"
+msgstr "VPN کو بائی پاس کرنے والی ایپس (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "VPN کو بائی پاس کرنے والی ویب سائٹس (%d)"
+
+msgid "logs_share_message"
+msgstr "یہ Lantern سے میرے تشخیصی لاگز ہیں۔"
+
+msgid "payment_options"
+msgstr "ادائیگی کے اختیارات"
+
+msgid "add_your_email"
+msgstr "اپنا ای میل شامل کریں"
+
+msgid "continue"
+msgstr "جاری رکھیں"
+
+msgid "continue_with_google"
+msgstr "Google کے ساتھ جاری رکھیں"
+
+msgid "continue_with_apple"
+msgstr "Apple کے ساتھ جاری رکھیں"
+
+msgid "continue_without_email"
+msgstr "ای میل کے بغیر جاری رکھیں"
+
+msgid "confirm_email"
+msgstr "ای میل کی تصدیق کریں"
+
+msgid "add_your_email_message"
+msgstr ""
+"کسی بھی ڈیوائس پر اپنی سبسکرپشن تک رسائی کے لیے اپنا ای میل شامل کریں۔"
+
+msgid "confirm_email_code"
+msgstr "تصدیقی کوڈ"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "ہم نے ایک کوڈ بھیجا ہے: "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" اسے نیچے درج کریں۔ اگر یہ آپ کے ان باکس میں نہیں ہے تو اپنا اسپام فولڈر چیک"
+" کریں۔"
+
+msgid "resend_email"
+msgstr "ای میل دوبارہ بھیجیں"
+
+msgid "create_password"
+msgstr "پاس ورڈ بنائیں"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Lantern میں سائن ان کریں"
+
+msgid "sign_in_with_email"
+msgstr "ای میل کے ساتھ سائن ان کریں"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "اپنے Lantern اکاؤنٹ کی تفصیلات درج کریں۔"
+
+msgid "email"
+msgstr "ای میل"
+
+msgid "enter_password"
+msgstr "پاس ورڈ درج کریں"
+
+msgid "forgot_password"
+msgstr "اپنا پاس ورڈ بھول گئے؟"
+
+msgid "reset_your_password"
+msgstr "اپنا پاس ورڈ ری سیٹ کریں"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "اپنے Lantern اکاؤنٹ کی ای میل درج کریں۔"
+
+msgid "reset_password"
+msgstr "پاس ورڈ ری سیٹ کریں"
+
+msgid "confirm_new_password"
+msgstr "نئے پاس ورڈ کی تصدیق کریں"
+
+msgid "create_new_password"
+msgstr "نیا پاس ورڈ بنائیں"
+
+msgid "confirm_password"
+msgstr "پاس ورڈ کی تصدیق کریں"
+
+msgid "confirm_password_required"
+msgstr "پاس ورڈ کی تصدیق ضروری ہے"
+
+msgid "passwords_do_not_match"
+msgstr "پاس ورڈز مماثل نہیں ہیں"
+
+msgid "activation_code"
+msgstr "ایکٹیویشن کوڈ"
+
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro کو فعال کریں"
+
+msgid "invalid_email"
+msgstr "غیر درست ای میل ایڈریس"
+
+msgid "purchase_already_owned"
+msgstr "آپ پہلے سے ہی یہ خریداری کے مالک ہیں، خریداری بحال کرنے کی کوشش کریں"
+
+msgid "stripe_payment"
+msgstr "Stripe ادائیگی"
+
+msgid "split_tunneling_description"
+msgstr ""
+"Lantern آپ کے مقام کی بنیاد پر انٹرنیٹ ٹریفک کو ذہانت سے روٹ کرتا ہے، محفوظ "
+"رسائی کو یقینی بناتے ہوئے صرف ضرورت کے وقت VPN استعمال کرکے آپ کا کنکشن تیز "
+"رکھتا ہے۔"
+
+msgid "region_specific_rules"
+msgstr "علاقائی قواعد"
+
+msgid "location_based_rules"
+msgstr "Lantern آپ کے مقام کی بنیاد پر مختلف روٹنگ قواعد استعمال کرتا ہے:"
+
+msgid "censored_regions"
+msgstr "سنسر شدہ علاقوں میں:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"مسدود ویب سائٹس اور ایپس (خبریں، پیغام رسانی، محدود خدمات) کو پراکسی کیا "
+"جاتا ہے۔"
+
+msgid "unblocked_sites_bypass"
+msgstr ""
+"زیادہ تر غیر مسدود ویب سائٹس تیز براؤزنگ کے لیے VPN کو بائی پاس کرتی ہیں۔"
+
+msgid "uncensored_regions"
+msgstr "غیر سنسر شدہ علاقوں میں:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"صرف قابل اعتماد ویب سائٹس اور خدمات بطور ڈیفالٹ VPN کو بائی پاس کرتی ہیں۔"
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"ان میں HTTPS سے خفیہ کردہ سائٹس شامل ہیں جن میں عوامی یا غیر حساس مواد ہے "
+"جیسے شاپنگ، موسم، اور سافٹ ویئر اپ ڈیٹس۔"
+
+msgid "routing_rules_vary"
+msgstr ""
+"یہ قواعد ملک کے لحاظ سے مختلف ہوتے ہیں اور باقاعدگی سے اپ ڈیٹ کیے جاتے ہیں۔"
+
+msgid "view_the_full_list"
+msgstr "روٹنگ قواعد کی مکمل فہرست دیکھیں۔"
+
+msgid "turn_on_split_tunneling"
+msgstr ""
+"اسپلٹ ٹنلنگ آن کریں تاکہ اپنی مرضی سے یہ طے کریں کہ کون سی ویب سائٹس VPN "
+"استعمال کریں۔"
+
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro میں خوش آمدید!"
+
+msgid "welcome_to_lantern"
+msgstr "Lantern میں خوش آمدید!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"آپ کی پرو خصوصیات کھل گئی ہیں—لامحدود ڈیٹا، تیز رفتار، اور پریمیم سرورز کا "
+"لطف اٹھائیں۔"
+
+msgid "purchase_restored_title"
+msgstr "خریداری بحال ہو گئی"
+
+msgid "purchase_restored_description"
+msgstr "آپ کی Lantern Pro سبسکرپشن اب اس آلے پر فعال ہے۔"
+
+msgid "no_purchase_found_title"
+msgstr "کوئی خریداری نہیں ملی"
+
+msgid "no_purchase_found_body_ios"
+msgstr "اس Apple ID سے کوئی فعال سبسکرپشن منسلک نہیں ہے۔"
+
+msgid "no_purchase_found_body_android"
+msgstr "اس Google اکاؤنٹ سے کوئی فعال سبسکرپشن منسلک نہیں ہے۔"
+
+msgid "plans_fetch_error"
+msgstr "پلانز حاصل کرنے میں خرابی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"
+
+msgid "best_value"
+msgstr "بہترین قیمت!"
+
+msgid "choose_payment_method"
+msgstr "ادائیگی کا طریقہ منتخب کریں"
+
+msgid "payment_information_encrypted"
+msgstr "آپ کی ادائیگی کی معلومات مکمل طور پر خفیہ کردہ ہیں۔"
+
+msgid "purchase_not_completed"
+msgstr ""
+"خریداری مکمل نہیں ہوئی۔ آپ کسی بھی وقت دوبارہ کوشش کر سکتے ہیں، یا اگر آپ کو"
+" مدد کی ضرورت ہے تو سپورٹ سے رابطہ کریں"
+
+msgid "are_you_sure"
+msgstr "کیا آپ کو یقین ہے؟"
+
+msgid "continue_without_email_message"
+msgstr ""
+"دوسری ڈیوائسز پر اپنی سبسکرپشن استعمال کرنے کے لیے ایک درست ای میل ایڈریس "
+"ضروری ہے۔"
+
+msgid "add_email"
+msgstr "ای میل شامل کریں"
+
+msgid "block_ads"
+msgstr "اشتہارات کو بلاک کریں"
+
+msgid "only_active"
+msgstr "صرف اس وقت فعال جب VPN منسلک ہو"
+
+msgid "vpn_connected"
+msgstr "Lantern منسلک ہو گیا ہے۔"
+
+msgid "vpn_disconnected"
+msgstr "Lantern منقطع ہو گیا ہے۔"
+
+msgid "open_notification"
+msgstr "اطلاع کھولیں"
+
+msgid "logout"
+msgstr "لاگ آؤٹ"
+
+msgid "logout_message"
+msgstr ""
+"لاگ آؤٹ کرنے سے Lantern مفت ورژن میں تبدیل ہو جائے گا۔ اپنے اکاؤنٹ تک دوبارہ"
+" رسائی کے لیے، آپ کو دوبارہ سائن ان کرنا ہوگا۔"
+
+msgid "logout_message_expired"
+msgstr "کیا آپ واقعی اپنے اکاؤنٹ سے لاگ آؤٹ کرنا چاہتے ہیں؟"
+
+msgid "not_now"
+msgstr "ابھی نہیں"
+
+msgid "billed_once"
+msgstr "ایک بار بل کیا گیا"
+
+msgid "subscription"
+msgstr "سبسکرپشن"
+
+msgid "subscribe"
+msgstr "سبسکرائب کریں"
+
+msgid "checkout"
+msgstr "چیک آؤٹ"
+
+msgid "next_billing_date"
+msgstr "اگلی بلنگ کی تاریخ"
+
+msgid "vpn_may_be_needed"
+msgstr "VPN کی ضرورت ہو سکتی ہے"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"اس خطے میں Google اور Apple سائن ان مسدود ہو سکتے ہیں۔ اپنے اکاؤنٹ کی تشکیل "
+"مکمل کرنے کے لیے، براہ کرم پہلے VPN آن کریں۔"
+
+msgid "continue_without_vpn"
+msgstr "VPN کے بغیر جاری رکھیں"
+
+msgid "turn_on_vpn"
+msgstr "VPN آن کریں"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean استعمال کرتے ہوئے سیٹ اپ کریں"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean کے ذریعے صرف %s ماہانہ"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform استعمال کرتے ہوئے سیٹ اپ کریں"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean کے ساتھ جاری رکھیں"
+
+msgid "do_allows"
+msgstr ""
+"Digital Ocean آپ کو نیچے دیے گئے %d اختیارات میں سے ایک سرور کا مقام منتخب "
+"کرنے کی اجازت دیتا ہے"
+
+msgid "server_setup_gcp_price"
+msgstr "GCP کے ذریعے صرف %s ماہانہ"
+
+msgid "continue_with_gcp"
+msgstr "Google کے ساتھ جاری رکھیں"
+
+msgid "gcp_allows"
+msgstr ""
+"Google Cloud Platform آپ کو نیچے دیے گئے %d اختیارات میں سے ایک سرور کا مقام"
+" منتخب کرنے کی اجازت دیتا ہے:"
+
+msgid "server_setup_aws"
+msgstr "AWS پر نجی سرور سیٹ اپ کریں"
+
+msgid "server_setup_aws_price"
+msgstr "AWS کے ذریعے صرف %s ماہانہ"
+
+msgid "server_setup_manual"
+msgstr "دستی طور پر سیٹ اپ کریں"
+
+msgid "seamless_integration"
+msgstr "Lantern کے ساتھ بغیر رکاوٹ انضمام"
+
+msgid "easiest_setup"
+msgstr "آسان ترین سیٹ اپ کا عمل"
+
+msgid "multiple_location_options"
+msgstr "متعدد سرور مقامات کے اختیارات"
+
+msgid "one_month_included"
+msgstr "%d TB/ماہ ڈیٹا شامل ہے"
+
+msgid "easiest_setup_process"
+msgstr "آسان ترین سیٹ اپ کا عمل"
+
+msgid "setup_a_private_server"
+msgstr "نجی سرور سیٹ اپ کریں"
+
+msgid "setup_private_server"
+msgstr "نجی سرور سیٹ اپ کریں"
+
+msgid "previous"
+msgstr "پچھلا"
+
+msgid "next"
+msgstr "اگلا"
+
+msgid "error"
+msgstr "خرابی"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"لگتا ہے سائن اپ میں کوئی مسئلہ ہوا۔ براہ کرم دوبارہ کوشش کریں یا اگر آپ کا "
+"اکاؤنٹ پہلے سے موجود ہے تو سائن ان کریں"
+
+msgid "user_not_found"
+msgstr ""
+"صارف کو نہیں پہچانا گیا۔ براہ کرم اپنی اسناد چیک کریں اور دوبارہ کوشش کریں۔ "
+"اگر آپ کو مسائل کا سامنا جاری رہے، تو براہ کرم مدد کے لیے ہماری سپورٹ ٹیم سے"
+" رابطہ کریں۔"
+
+msgid "invalid_code"
+msgstr ""
+"غلط کوڈ یا اس کی میعاد ختم ہو گئی ہے۔ براہ کرم دوبارہ بھیجنے کی کوشش کریں"
+
+msgid "email_resend_message"
+msgstr "آپ کا نیا تصدیقی کوڈ بھیج دیا گیا ہے"
+
+msgid "password_has_been_updated"
+msgstr "پاس ورڈ اپ ڈیٹ ہو گیا ہے"
+
+msgid "password_has_been_updated_message"
+msgstr "آپ کا پاس ورڈ کامیابی سے ری سیٹ ہو گیا ہے"
+
+msgid "update_pro_account"
+msgstr "پرو اکاؤنٹ اپ ڈیٹ کریں"
+
+msgid "update_pro_account_message"
+msgstr ""
+"اپنے اکاؤنٹ کا انتظام کرنے یا کسی دوسری ڈیوائس میں سائن ان کرنے کے لیے، براہ"
+" کرم پہلے اپنے اکاؤنٹ میں ای میل اور پاس ورڈ شامل کریں۔"
+
+msgid "subscription_cancelled"
+msgstr "آپ کی سبسکرپشن منسوخ ہو گئی ہے۔"
+
+msgid "subscription_updated"
+msgstr "آپ کی سبسکرپشن اپ ڈیٹ ہو گئی ہے۔"
+
+msgid "subscription_renewed"
+msgstr "آپ کی سبسکرپشن تجدید ہو گئی ہے۔"
+
+msgid "got_it"
+msgstr "سمجھ گیا"
+
+msgid "server_location"
+msgstr "سرور کا مقام"
+
+msgid "choose"
+msgstr "منتخب کریں"
+
+msgid "choose_your_account"
+msgstr "اپنا اکاؤنٹ منتخب کریں"
+
+msgid "choose_your_project"
+msgstr "اپنا پروجیکٹ منتخب کریں"
+
+msgid "name_your_google_cloud_project"
+msgstr "اپنے Google Cloud پروجیکٹ کا نام رکھیں"
+
+msgid "billing_account"
+msgstr "بلنگ اکاؤنٹ"
+
+msgid "billing_account_placeholder"
+msgstr "%s کے لیے بلنگ اکاؤنٹ"
+
+msgid "server_name"
+msgstr "سرور کا نام"
+
+msgid "google_project"
+msgstr "Google پروجیکٹ"
+
+msgid "field_name_required"
+msgstr "نام ضروری ہے"
+
+msgid "choose_google_account"
+msgstr "Google بلنگ اکاؤنٹ منتخب کریں"
+
+msgid "server_name_placeholder"
+msgstr "ڈیرک کا سرور"
+
+msgid "change"
+msgstr "تبدیل کریں"
+
+msgid "choose_location"
+msgstr "مقام منتخب کریں"
+
+msgid "choose_your_location"
+msgstr "اپنا مقام منتخب کریں"
+
+msgid "start_deployment"
+msgstr "ڈیپلائمنٹ شروع کریں"
+
+msgid "server_name_description"
+msgstr "سرور انتخاب کی فہرست میں یہ کیسے ظاہر ہوگا۔"
+
+msgid "select_private_server_region"
+msgstr ""
+"اپنے نجی سرور کے لیے ایک خطہ منتخب کریں۔ قریبی مقامات رفتار اور تاخیر کو "
+"بہتر بنا سکتے ہیں۔"
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform مقامات کے اختیارات (%d):"
+
+msgid "australia_sydney"
+msgstr "آسٹریلیا - سڈنی"
+
+msgid "belgium_stghislain"
+msgstr "بیلجیئم - سینٹ گیسلین"
+
+msgid "brazil_saopaulo"
+msgstr "ساؤ پالو"
+
+msgid "us_los_angeles"
+msgstr "امریکہ - لاس اینجلس"
+
+msgid "japan_tokyo"
+msgstr "جاپان - ٹوکیو"
+
+msgid "deploying_private_server"
+msgstr "نجی سرور ڈیپلائی ہو رہا ہے"
+
+msgid "deploying_server_status"
+msgstr "ٹھہریں! آپ کا نجی سرور سیٹ اپ ہو رہا ہے۔ اس میں کچھ منٹ لگ سکتے ہیں۔"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"ٹھہریں! آپ کا نجی سرور سیٹ اپ ہو رہا ہے۔ اس میں کچھ منٹ لگ سکتے ہیں، براہ "
+"کرم یہ اسکرین کھلی رکھیں۔"
+
+msgid "cancel_server_deployment"
+msgstr "سرور ڈیپلائمنٹ منسوخ کریں"
+
+msgid "server_ready_title"
+msgstr "نجی سرور تیار ہے"
+
+msgid "server_ready_message"
+msgstr ""
+"آپ کا نجی سرور سیٹ اپ ہو گیا ہے اور آپ کی سرور فہرست میں شامل ہو گیا ہے۔ آپ "
+"منسلک ہونے کے لیے تیار ہیں!"
+
+msgid "server_failed_message"
+msgstr ""
+"آپ کے نجی سرور کو سیٹ اپ کرتے وقت کچھ غلط ہو گیا۔ آپ دوبارہ کوشش کر سکتے ہیں"
+" یا بعد میں دوبارہ کوشش کر سکتے ہیں۔"
+
+msgid "close"
+msgstr "بند کریں"
+
+msgid "connect_now"
+msgstr "ابھی منسلک کریں"
+
+msgid "server_setup_failed"
+msgstr "سرور سیٹ اپ ناکام ہو گیا"
+
+msgid "cancel_deployment"
+msgstr "ڈیپلائمنٹ منسوخ کریں"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"آپ کے نجی سرور کو سیٹ اپ کرتے وقت کچھ غلط ہو گیا۔ آپ دوبارہ کوشش کر سکتے ہیں"
+" یا بعد میں دوبارہ کوشش کر سکتے ہیں۔"
+
+msgid "exit"
+msgstr "باہر نکلیں"
+
+msgid "retry"
+msgstr "دوبارہ کوشش کریں"
+
+msgid "all_required_fields"
+msgstr "براہ کرم تمام ضروری فیلڈز بھریں۔"
+
+msgid "private_server_ready"
+msgstr "نجی سرور تیار ہے!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) سرور سیٹ اپ ہو گیا ہے اور آپ کی سرور فہرست میں شامل ہو گیا ہے۔ آپ منسلک"
+" ہونے کے لیے تیار ہیں!"
+
+msgid "set_up_your_server"
+msgstr "اپنا سرور سیٹ اپ کریں"
+
+msgid "view_instructions_github"
+msgstr "GitHub پر ہدایات دیکھیں"
+
+msgid "server_access_key"
+msgstr "سرور ایکسیس کی"
+
+msgid "access_key"
+msgstr "ایکسیس کی"
+
+msgid "name_your_server"
+msgstr "اپنے سرور کا نام رکھیں"
+
+msgid "how_server_appears"
+msgstr "سرور انتخاب کی فہرست میں یہ کیسے ظاہر ہوگا"
+
+msgid "server_nickname"
+msgstr "سرور کا عرفی نام"
+
+msgid "verify_server"
+msgstr "سرور کی تصدیق کریں"
+
+msgid "vpn_client_not_setup"
+msgstr "براہ کرم VPN کلائنٹ آن کریں۔"
+
+msgid "continue_with"
+msgstr "جاری رکھیں"
+
+msgid "join_a_private_server"
+msgstr "نجی سرور میں شامل ہوں"
+
+msgid "join_private_server"
+msgstr "نجی سرور میں شامل ہوں"
+
+msgid "join_server"
+msgstr "سرور میں شامل ہوں"
+
+msgid "private_server_usage_message"
+msgstr ""
+"نجی سرور کا استعمال آپ کی Lantern روزانہ ڈیٹا کی حد میں شمار نہیں ہوتا۔"
+
+msgid "manage_private_servers"
+msgstr "نجی سرورز کا انتظام کریں"
+
+msgid "my_servers"
+msgstr "میرے سرورز"
+
+msgid "joined_servers"
+msgstr "شامل شدہ سرورز"
+
+msgid "access_key_expiration"
+msgstr ""
+"ہر ایکسیس کی منفرد ہے اور 1 دن بعد ختم ہو جاتی ہے۔ آپ کسی بھی وقت نئی بنا "
+"سکتے ہیں۔"
+
+msgid "share_access_key"
+msgstr "ایکسیس کی شیئر کریں"
+
+msgid "rename_server"
+msgstr "سرور کا نام تبدیل کریں"
+
+msgid "rename"
+msgstr "نام تبدیل کریں"
+
+msgid "selected_location"
+msgstr "منتخب شدہ مقام"
+
+msgid "remove_server_?"
+msgstr "سرور ہٹائیں؟"
+
+msgid "remove_server_message"
+msgstr ""
+"%s ہٹائیں؟ یہ صرف آپ کی ایپ سے اسے ہٹا دے گا، یہ آپ کے کلاؤڈ فراہم کنندہ سے "
+"سرور کو حذف نہیں کرے گا۔"
+
+msgid "generate_access_key"
+msgstr "ایکسیس کی بنائیں"
+
+msgid "invite_name"
+msgstr "دعوت نامہ کا نام"
+
+msgid "trust_server_operator"
+msgstr "سرور آپریٹر پر اعتماد کریں"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"نجی سرورز Lantern سے باہر افراد یا تنظیموں کے ذریعے ہوسٹ اور چلائے جاتے ہیں۔"
+" جب آپ کسی سے منسلک ہوتے ہیں، تو آپ اسے چلانے والے شخص پر اعتماد کر رہے ہیں "
+"کہ وہ اسے محفوظ طریقے سے منظم کرے اور ذمہ داری سے استعمال کرے۔"
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern نجی سرورز کا انتظام یا نگرانی نہیں کرتا۔ یقینی بنائیں کہ آپ سرور "
+"آپریٹر کو جانتے اور اس پر اعتماد کرتے ہیں کسی میں شامل ہونے سے پہلے۔"
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"اگر آپ کو یقین نہیں کہ سرور کون چلاتا ہے یا یہ کیسے ترتیب دیا گیا ہے، تو ہم "
+"آپ کی سرور فہرست میں دستیاب ڈیفالٹ Lantern سرورز میں سے ایک استعمال کرنے کی "
+"تجویز دیتے ہیں۔"
+
+msgid "invalid_server_details"
+msgstr ""
+"غیر درست سرور کی تفصیلات۔ براہ کرم ایکسیس کی چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "lantern_servers"
+msgstr "Lantern سرورز"
+
+msgid "private_servers"
+msgstr "نجی سرورز"
+
+msgid "fastest_server"
+msgstr "تیز ترین سرور"
+
+msgid "join_my_private_server"
+msgstr "میرے Lantern نجی سرور میں شامل ہوں"
+
+msgid "your_server"
+msgstr "آپ کے سرورز:"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"آپ نے ابھی تک نجی سرور سیٹ اپ نہیں کیا۔ شروع کرنے کے لیے نیچے دیا گیا بٹن "
+"کلک کریں۔"
+
+msgid "connect"
+msgstr "منسلک کریں"
+
+msgid "disconnect"
+msgstr "منقطع کریں"
+
+msgid "show"
+msgstr "دکھائیں"
+
+msgid "status_on"
+msgstr "منسلک"
+
+msgid "status_off"
+msgstr "منقطع"
+
+msgid "select_location"
+msgstr "مقام منتخب کریں"
+
+msgid "select_your_server_location"
+msgstr "اپنے سرور کا مقام منتخب کریں"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "تیز رفتار اور لامحدود بینڈوتھ"
+
+msgid "premium_servers_less_congestion"
+msgstr "کم بھیڑ والے پریمیم سرورز"
+
+msgid "advanced_anti_censorship"
+msgstr "جدید سنسرشپ مخالف ٹیکنالوجی"
+
+msgid "exclusive_access_new_features"
+msgstr "نئی خصوصیات تک خصوصی رسائی"
+
+msgid "connect_up_to_five_devices"
+msgstr "5 ڈیوائسز تک منسلک کریں"
+
+msgid "built_in_ad_blocking"
+msgstr "بلٹ ان اشتہار بلاکنگ"
+
+msgid "get_lantern_pro"
+msgstr "Lantern Pro حاصل کریں"
+
+msgid "connected_to_private_server"
+msgstr "نجی سرور سے منسلک"
+
+msgid "server_already_selected"
+msgstr "آپ پہلے سے ہی اس سرور سے منسلک ہیں۔"
+
+msgid "device_limit_reached"
+msgstr "ڈیوائس کی حد پوری ہو گئی"
+
+msgid "device_limit_reached_message"
+msgstr ""
+"آپ اپنی 5 ڈیوائس کی حد تک پہنچ گئے ہیں۔ جاری رکھنے کے لیے براہ کرم ایک "
+"ڈیوائس ہٹائیں۔"
+
+msgid "remove_device_and_sign_in"
+msgstr "ڈیوائس ہٹائیں اور سائن ان کریں"
+
+msgid "cancel_sign_in"
+msgstr "سائن ان منسوخ کریں"
+
+msgid "change_email"
+msgstr "ای میل تبدیل کریں"
+
+msgid "change_email_message"
+msgstr ""
+"یہ آپ کا نیا لاگ ان ای میل بن جائے گا۔ تبدیلی مؤثر ہونے سے پہلے آپ کو اس کی "
+"تصدیق کرنی ہوگی۔"
+
+msgid "email_must_be_different"
+msgstr "براہ کرم ایک مختلف ای میل ایڈریس درج کریں۔"
+
+msgid "enter_new_email"
+msgstr "اپنا نیا ای میل درج کریں"
+
+msgid "confirm_password_to_continue"
+msgstr "جاری رکھنے کے لیے، براہ کرم اپنے پاس ورڈ کی تصدیق کریں۔"
+
+msgid "email_updated"
+msgstr "آپ کا ای میل اپ ڈیٹ ہو گیا ہے۔"
+
+msgid "enable_network_extension"
+msgstr "نیٹ ورک ایکسٹینشن فعال کریں"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Lantern استعمال کرنے کے لیے، ہمیں آپ کے Mac کے لیے ایک نیٹ ورک ایکسٹینشن "
+"انسٹال کرنی ہوگی۔"
+
+msgid "install_now"
+msgstr "ابھی انسٹال کریں"
+
+msgid "learn_more"
+msgstr "مزید جانیں"
+
+msgid "network_extension_required"
+msgstr "نیٹ ورک ایکسٹینشن ضروری ہے"
+
+msgid "click"
+msgstr "کلک کریں"
+
+msgid "open_system_settings"
+msgstr "سسٹم کی ترتیبات کھولیں"
+
+msgid "when_prompted"
+msgstr "جب پوچھا جائے۔"
+
+msgid "activate_extension"
+msgstr "ابھی انسٹال کریں"
+
+msgid "email_optional"
+msgstr "ای میل (اختیاری)"
+
+msgid "please_enter_valid_email"
+msgstr "براہ کرم ایک درست ای میل درج کریں"
+
+msgid "please_select_an_issue"
+msgstr "براہ کرم ایک مسئلہ منتخب کریں"
+
+msgid "please_enter_issue_description"
+msgstr "براہ کرم مسئلے کی تفصیل درج کریں"
+
+msgid "thanks_for_feedback"
+msgstr "آپ کے فیڈ بیک کا شکریہ!"
+
+msgid "no_apps_selected"
+msgstr "کوئی ایپ منتخب نہیں"
+
+msgid "deselect_all"
+msgstr "سب کو غیر منتخب کریں"
+
+msgid "select_all"
+msgstr "سب کو منتخب کریں"
+
+msgid "no_websites_selected"
+msgstr "کوئی ویب سائٹ منتخب نہیں"
+
+msgid "enter_activation_code"
+msgstr "ایکٹیویشن کوڈ درج کریں"
+
+msgid "restore_purchase"
+msgstr "خریداری بحال کریں"
+
+msgid "already_purchased"
+msgstr "پہلے ہی خرید چکے ہیں؟"
+
+msgid "restore_purchase_success"
+msgstr "خریداری کامیابی سے بحال ہو گئی۔"
+
+msgid "restore_purchase_no_purchases"
+msgstr "بحال کرنے کے لیے کوئی خریداری نہیں ملی۔"
+
+msgid "do_private_server_setup"
+msgstr "DO نجی سرور سیٹ اپ"
+
+msgid "private_server_note"
+msgstr ""
+"اپنے نجی سرور کے لیے ایک خطہ منتخب کریں۔ قریبی مقامات رفتار اور تاخیر کو "
+"بہتر بنا سکتے ہیں۔"
+
+msgid "gcp_private_server_setup"
+msgstr "GCP نجی سرور سیٹ اپ"
+
+msgid "gcp_private_server_location"
+msgstr "GCP نجی سرور کا مقام"
+
+msgid "do_private_server_location"
+msgstr "DO نجی سرور کا مقام"
+
+msgid "confirm"
+msgstr "تصدیق کریں"
+
+msgid "private_server_warning"
+msgstr ""
+"صرف ان سرورز کو شامل کریں جنہیں آپ چلانے والے لوگوں پر اعتماد کرتے ہیں "
+
+msgid "go_to_server_locations"
+msgstr "سرور کے مقامات پر جائیں"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "متبادل ڈاؤن لوڈ لنکس"
+
+msgid "github_download_page"
+msgstr "GitHub ڈاؤن لوڈ صفحہ"
+
+msgid "telegram_bot"
+msgstr "ٹیلیگرام بوٹ"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"اگر آپ کو ہماری ویب سائٹ تک رسائی میں کوئی مسئلہ ہو، تو آپ Lantern کو اوپر "
+"دیے گئے لنکس سے ڈاؤن لوڈ کر سکتے ہیں۔"
+
+msgid "available_on"
+msgstr "دستیاب ہے:"
+
+msgid "subscription_renewal_date"
+msgstr "سبسکرپشن کی تجدید کی تاریخ"
+
+msgid "enabled_bypass_lists"
+msgstr "فعال بائی پاس لسٹس (%d):"
+
+msgid "diagnostic_logs"
+msgstr "تشخیصی لاگز"
+
+msgid "lantern_user_forum"
+msgstr "Lantern صارف فورم"
+
+msgid "frequently_asked_questions"
+msgstr "اکثر پوچھے گئے سوالات"
+
+msgid "privacy_policy"
+msgstr "پرائیویسی پالیسی"
+
+msgid "terms_of_service"
+msgstr "سروس کی شرائط"
+
+msgid "get_unlimited_data"
+msgstr "لامحدود ڈیٹا، اور تیز رفتار حاصل کریں!"
+
+msgid "private_server_options"
+msgstr "نجی سرور کے اختیارات"
+
+msgid "lantern_version"
+msgstr "Lantern ورژن"
+
+msgid "quit"
+msgstr "باہر نکلیں"
+
+msgid "device_removed"
+msgstr "ڈیوائس ہٹا دی گئی"
+
+msgid "set_server_alias"
+msgstr "سرور کا عرفی نام مقرر کریں"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"یہ نام مدعو صارف کے لیے پہلے سے بھرا ہوگا تاکہ انہیں سرور کی شناخت میں مدد "
+"ملے۔ وہ اسے بعد میں تبدیل کر سکتے ہیں۔"
+
+msgid "server_alias"
+msgstr "سرور کا عرفی نام"
+
+msgid "add_referral_code"
+msgstr "ریفرل کوڈ شامل کریں"
+
+msgid "referral_code"
+msgstr "ریفرل کوڈ"
+
+msgid "update_fails"
+msgstr "اپ ڈیٹ ناکام"
+
+msgid "scan_qr_code"
+msgstr "QR کوڈ اسکین کریں"
+
+msgid "choose_your_server_location"
+msgstr "اپنے سرور کا مقام منتخب کریں"
+
+msgid "we_handle_configuration"
+msgstr "ہم کنفیگریشن کو سنبھالتے ہیں، بس سائن اپ کریں۔"
+
+msgid "90_day_free_trial"
+msgstr "90 دن کی مفت آزمائش"
+
+msgid "identity_changed"
+msgstr "%s کے لیے شناخت تبدیل ہو گئی"
+
+msgid "identity_changed_message"
+msgstr ""
+"%s کا سیکیورٹی فنگر پرنٹ تبدیل ہو گیا ہے۔ یہ چھیڑ چھاڑ یا غلط کنفیگریشن کی "
+"نشاندہی کر سکتا ہے۔"
+
+msgid "recommendation"
+msgstr "سفارش:"
+
+msgid "recommendation_message"
+msgstr ""
+"ہم تجویز کرتے ہیں کہ %s کو Lantern سے ہٹا دیں اور اپنے کلاؤڈ فراہم کنندہ کے "
+"اکاؤنٹ سے حذف کریں، پھر اپنے کنکشن کو محفوظ رکھنے کے لیے ایک نیا سرور سیٹ اپ"
+" کریں۔"
+
+msgid "remove_server"
+msgstr "سرور ہٹائیں"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "سرور کا عرفی نام خالی نہیں ہو سکتا"
+
+msgid "referral_code_applied"
+msgstr "آپ کا ریفرل کوڈ لاگو ہو گیا ہے!"
+
+msgid "referral_message_1m"
+msgstr "+ 15 اضافی دن مفت"
+
+msgid "referral_message_1y"
+msgstr "+ 1 اضافی مہینہ مفت"
+
+msgid "referral_message_2y"
+msgstr "+ 2 اضافی مہینے مفت"
+
+msgid "referral_code_invalid"
+msgstr ""
+"آپ نے جو ریفرل کوڈ درج کیا ہے وہ غلط ہے۔ براہ کرم کوڈ چیک کریں اور دوبارہ "
+"کوشش کریں۔"
+
+msgid "referral_code_own_invalid"
+msgstr ""
+"آپ اپنا ریفرل کوڈ استعمال نہیں کر سکتے۔ براہ کرم کوئی اور کوڈ درج کریں۔"
+
+msgid "free"
+msgstr "مفت"
+
+msgid "monthly_plan"
+msgstr "ماہانہ پلان:"
+
+msgid "15_days_each"
+msgstr "+15 دن ہر ایک کو"
+
+msgid "annual_plan"
+msgstr "سالانہ پلان:"
+
+msgid "1_month_each"
+msgstr "ہر ایک کے لیے +1 مہینہ"
+
+msgid "two_year_plan"
+msgstr "دو سالہ پلان:"
+
+msgid "2_month_each"
+msgstr "ہر ایک کے لیے +2 مہینے"
+
+msgid "referral_code_info"
+msgstr ""
+"ابھی تک Lantern Pro صارف نہیں ہیں؟ آپ اس وقت بن جائیں گے جب آپ کا پہلا ریفرل"
+" سبسکرائب کرے گا"
+
+msgid "lantern_pro_license"
+msgstr "Lantern Pro لائسنس"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro لائسنس درکار ہے"
+
+msgid "lantern_pro_license_invalid"
+msgstr "غلط Lantern Pro لائسنس"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro لائسنس 25 حروف کا ہونا چاہیے"
+
+msgid "select_account"
+msgstr "اکاؤنٹ منتخب کریں"
+
+msgid "new_to_lantern"
+msgstr "Lantern پر نئے ہیں؟"
+
+msgid "create_an_account"
+msgstr "اکاؤنٹ بنائیں"
+
+msgid "no_projects_found"
+msgstr "کوئی پروجیکٹ نہیں ملا"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"کوئی پروجیکٹ نہیں ملا۔ براہ کرم پہلے اپنے کلاؤڈ فراہم کنندہ کے اکاؤنٹ میں "
+"ایک پروجیکٹ بنائیں۔"
+
+msgid "add_billing_details"
+msgstr "بلنگ کی تفصیلات شامل کریں"
+
+msgid "do_billing_details_message"
+msgstr "DigitalOcean کو سرورز بنانے کے لیے ادائیگی کی معلومات کی ضرورت ہے۔"
+
+msgid "tap"
+msgstr "تھپتھپائیں"
+
+msgid "below_to_go_to_do"
+msgstr "DigitalOcean پر جانے کے لیے نیچے"
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "ادائیگی کا طریقہ شامل کریں (کریڈٹ کارڈ یا PayPal)"
+
+msgid "return_to_lantern"
+msgstr ""
+"Lantern پر واپس جائیں اور سیٹ اپ جاری رکھنے کے لیے \"جاری رکھیں\" پر "
+"تھپتھپائیں"
+
+msgid "how_to_add_billing_details"
+msgstr "بلنگ کی تفصیلات کیسے شامل کریں:"
+
+msgid "add_payment_method_message"
+msgstr ""
+"براہ کرم اپنے DigitalOcean اکاؤنٹ میں ادائیگی کا طریقہ شامل کریں۔ اگر آپ "
+"پہلے ہی شامل کر چکے ہیں، تو چند منٹ انتظار کریں اور دوبارہ کوشش کریں۔"
+
+msgid "ok"
+msgstr "ٹھیک ہے"
+
+msgid "could_not_open_url"
+msgstr "URL کھول نہیں سکے"
+
+msgid "new_to_lantern_pro"
+msgstr "Lantern پر نئے ہیں؟"
+
+msgid "an_error_occurred"
+msgstr "ایک خرابی پیش آئی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"
+
+msgid "developer_mode"
+msgstr "ڈویلپر موڈ"
+
+msgid "developer_mode_note"
+msgstr ""
+"ڈویلپر موڈ صرف Lantern ڈویلپرز کے لیے ترقی کے دوران خصوصیات کی جانچ کے لیے "
+"ہے۔"
+
+msgid "invalid_activation_code"
+msgstr "غلط ایکٹیویشن کوڈ۔ براہ کرم کوڈ چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "invalid_activation_code_length"
+msgstr "ایکٹیویشن کوڈ 25 حروف لمبا ہونا چاہیے۔"
+
+msgid "error_while_vpn_connection"
+msgstr "VPN کنکشن قائم کرتے وقت ایک خرابی پیش آئی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "help_improve_lantern"
+msgstr "Lantern کو بہتر بنانے میں مدد کریں"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"رفتار اور قابل اعتمادی کو بہتر بنانے میں مدد کے لیے گمنام استعمال کا ڈیٹا "
+"شیئر کریں۔"
+
+msgid "data_we_collect"
+msgstr ""
+"ہم کبھی بھی براؤزنگ کی سرگزشت، ٹریفک کی منزلیں، DNS سوالات یا کنکشن لاگز جمع"
+" نہیں کرتے۔"
+
+msgid "you_can_change_anytime"
+msgstr "آپ اسے کسی بھی وقت VPN ترتیبات میں تبدیل کر سکتے ہیں۔"
+
+msgid "dont_allow"
+msgstr "اجازت نہ دیں"
+
+msgid "allow"
+msgstr "اجازت دیں"
+
+msgid "anonymous_usage_data"
+msgstr "گمنام استعمال کا ڈیٹا"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Lantern کی کارکردگی کو بہتر بنانے میں مدد کرتا ہے"
+
+msgid "changes_applied_after_restart"
+msgstr "تبدیلیاں Lantern دوبارہ شروع کرنے کے بعد لاگو ہوں گی۔"
+
+msgid "email_deliverability_notice"
+msgstr "ای میل ترسیل کا نوٹس"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com، 126.com، qq.com اور sina.com پتوں پر بھیجی گئی ای میلز بعض اوقات "
+"بلاک ہو جاتی ہیں اور پہنچ نہیں سکتیں"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"اگر آپ کو تصدیقی کوڈ موصول نہیں ہوتا، تو متبادل ای میل فراہم کنندہ استعمال "
+"کرنے پر غور کریں۔"
+
+msgid "continue_anyway"
+msgstr "پھر بھی جاری رکھیں"
+
+msgid "routing_mode"
+msgstr "راؤٹنگ موڈ"
+
+msgid "smart_routing"
+msgstr "سمارٹ راؤٹنگ"
+
+msgid "full_tunnel"
+msgstr "مکمل ٹنل"
+
+msgid "region_optimized_routing"
+msgstr "آپ کے علاقے کے لیے بہتر بنایا گیا قاعدہ پر مبنی راؤٹنگ"
+
+msgid "all_traffic_through_vpn"
+msgstr "تمام ٹریفک VPN کے ذریعے"
+
+msgid "smart_routing_description"
+msgstr ""
+"سمارٹ راؤٹنگ علاقائی مخصوص قوانین استعمال کرتی ہے تاکہ VPN کی ضرورت والی "
+"ٹریفک کو خودکار طور پر Lantern کے ذریعے بھیجا جائے۔ باقی تمام ٹریفک رفتار "
+"اور قابل اعتماد ہونے کے لیے براہ راست جاتی ہے۔"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN کو نظرانداز کرنے کے لیے ایپس اور ویب سائٹس شامل کریں"
+
+msgid "lantern_pro_license_applied"
+msgstr "آپ کا Lantern Pro لائسنس آپ کے موجودہ اکاؤنٹ پر لاگو ہوگا"
+
+msgid "your_purchase_will_be_applied_to_your_existing_account"
+msgstr "آپ کی خریداری آپ کے موجودہ اکاؤنٹ پر لاگو ہوگی"
+
+msgid "daily_data_cap_reached"
+msgstr "روزانہ ڈیٹا کی حد پوری ہو گئی"
+
+msgid "daily_data_cap_reached_message"
+msgstr "رفتار 128 kb/s تک کم ہو گئی - %s پر ری سیٹ ہوگی۔"
+
+msgid "subscription_renewal_info"
+msgstr ""
+"خریداری پر ادائیگی آپ کی Apple ID سے وصول کی جاتی ہے۔ سبسکرپشنز خودکار طور "
+"پر تجدید ہوتی ہیں جب تک کہ موجودہ مدت ختم ہونے سے کم از کم 24 گھنٹے پہلے "
+"منسوخ نہ کیا جائے۔ App Store کی ترتیبات میں منظم یا منسوخ کریں۔"
+
+msgid "failed_to_update_routing_mode"
+msgstr "راؤٹنگ موڈ اپ ڈیٹ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "apps"
+msgstr "ایپس"
+
+msgid "websites"
+msgstr "ویب سائٹس"
+
+msgid "main_channel"
+msgstr "مرکزی چینل"
+
+msgid "data_cap_channel"
+msgstr "ڈیٹا استعمال کی اطلاعات"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB مفت ڈیٹا باقی ہے"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"آپ کا ڈیٹا %s پر ری سیٹ ہو جائے گا۔ لامحدود تیز رفتار ڈیٹا کے لیے Pro میں اپ"
+" گریڈ کریں۔"
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"اگر آپ نے پہلے Lantern Pro پاس ورڈ سیٹ نہیں کیا ہے، تو نیچے 'اپنا پاس ورڈ "
+"بھول گئے؟' کا اختیار منتخب کریں۔"
+
+msgid "pro_subscription_expired"
+msgstr "آپ کی Pro سبسکرپشن کی میعاد ختم ہو گئی ہے"
+
+msgid "renew_pro_subscription"
+msgstr "Pro سبسکرپشن کی تجدید کریں"
+
+msgid "subscription_expired"
+msgstr "سبسکرپشن کی میعاد ختم ہو گئی"
+
+msgid "pro"
+msgstr "پرو"
+
+msgid "pro_subscription_expired_message"
+msgstr ""
+"Lantern Pro سبسکرپشن کی میعاد ختم ہو گئی۔ لامحدود ڈیٹا اور Pro خصوصیات بحال "
+"کرنے کے لیے تجدید کریں۔"
+
+msgid "last_subscription_renewal_date"
+msgstr "سبسکرپشن کی آخری تجدید کی تاریخ"
+
+msgid "set_account_password"
+msgstr "اکاؤنٹ پاس ورڈ سیٹ کریں"
+
+msgid "set_password"
+msgstr "پاس ورڈ سیٹ کریں"
+
+msgid "set_account_password_message"
+msgstr ""
+"اپنے اکاؤنٹ کا انتظام کرنے یا دوسرے آلات پر سائن ان کرنے کے لیے، اب آپ کو اپنے Lantern Pro اکاؤنٹ کے لیے پاس ورڈ سیٹ کرنا ہوگا۔\n"
+"\n"
+"ہم آپ کو ای میل کے ذریعے ایک تصدیقی کوڈ بھیجیں گے تاکہ آپ اپنا پاس ورڈ بنا سکیں۔"
+
+msgid "expired"
+msgstr "میعاد ختم"
+
+msgid "lantern_pro_tagline"
+msgstr "تیز، قابل اعتماد اور نجی انٹرنیٹ رسائی"
+
+msgid "what_makes_lantern_different"
+msgstr "Lantern کو کیا مختلف بناتا ہے"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "رازداری، رفتار اور آزادی کے لیے بنایا گیا"
+
+msgid "smart_routing_mode"
+msgstr "سمارٹ روٹنگ موڈ"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"علاقائی قواعد صرف وہ ٹریفک روٹ کرتے ہیں جسے VPN کی ضرورت ہے، آپ کا کنکشن تیز"
+" رکھتے ہیں۔"
+
+msgid "advanced_protocols"
+msgstr "جدید پروٹوکولز"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"زیادہ سے زیادہ قابل اعتمادی کے لیے دوسرے VPNs سے زیادہ پروٹوکولز۔ AnyTLS، "
+"Hysteria2، VLESS، Kindling، WATER اور مزید۔"
+
+msgid "private_servers_description"
+msgstr "اپنے کنکشن پر مکمل کنٹرول کے لیے اپنے سرورز منسلک کریں۔"
+
+msgid "nonprofit_mission"
+msgstr "غیر منافع بخش مشن"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"انٹرنیٹ کی آزادی کو فروغ دینے میں 12 سال سے زیادہ تجربے والی غیر منافع بخش "
+"تنظیم نے بنایا"
+
+msgid "choose_your_routing_mode"
+msgstr "اپنا روٹنگ موڈ منتخب کریں"
+
+msgid "fastest"
+msgstr "تیز ترین"
+
+msgid "traditional_vpn_mode"
+msgstr "روایتی VPN موڈ"
+
+msgid "traditional_vpn_mode_description"
+msgstr "تمام ٹریفک کو Lantern کے ذریعے روٹ کرتا ہے، چاہے ضرورت ہو یا نہ ہو۔"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "روٹنگ موڈ سیٹنگز میں کسی بھی وقت تبدیل کریں"
+
+msgid "get_started"
+msgstr "شروع کریں"
+
+msgid "skip_connect_now"
+msgstr "چھوڑیں - ابھی جڑیں"
+
+msgid "renew_pro"
+msgstr "Pro تجدید کریں"
+
+msgid "payment"
+msgstr "ادائیگی"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"لگتا ہے کچھ غلط ہو گیا۔ اگر آپ نے ادائیگی کی ہے لیکن سبسکرپشن فعال نظر نہیں "
+"آ رہی، تو براہ کرم چند گھنٹے انتظار کریں اور دوبارہ چیک کریں۔"
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"آپ کا Pro پلان Google Play کے ذریعے خریدا گیا تھا۔ براہ کرم اپنی سبسکرپشن "
+"Google Play اکاؤنٹ سیٹنگز سے منظم کریں۔"
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"آپ کا Pro پلان Apple App Store کے ذریعے خریدا گیا تھا۔ براہ کرم اپنی "
+"سبسکرپشن Apple ID اکاؤنٹ سیٹنگز سے منظم کریں۔"
+
+msgid "create_account_error"
+msgstr "اکاؤنٹ بنانے میں خرابی"
+
+msgid "appearance"
+msgstr "ظاہری شکل"
+
+msgid "light"
+msgstr "ہلکا"
+
+msgid "dark"
+msgstr "گہرا"
+
+msgid "system"
+msgstr "سسٹم"
+
+msgid "lantern_email"
+msgstr "لینٹرن ای میل"
+
+msgid "confirm_with_account"
+msgstr "حذف کی تصدیق کے لیے براہ کرم نیچے اپنے %s اکاؤنٹ سے تصدیق کریں:"
+
+msgid "oauth_different_account"
+msgstr ""
+"جس اکاؤنٹ سے آپ سائن ان کرنے کی کوشش کر رہے ہیں وہ اس ای میل سے منسلک اکاؤنٹ"
+" سے میل نہیں کھاتا۔ براہ کرم صحیح اکاؤنٹ سے سائن ان کریں یا مختلف ای میل "
+"منتخب کریں۔"
+
+msgid "account_deleted"
+msgstr "اکاؤنٹ حذف ہو گیا"
+
+msgid "account_deleted_message"
+msgstr "آپ کا اکاؤنٹ مستقل طور پر حذف کر دیا گیا ہے۔"
+
+msgid "verify_with"
+msgstr "%s سے تصدیق کریں"
+
+msgid "renew"
+msgstr "تجدید"
+
+msgid "vpn_conflict_title"
+msgstr "VPN تصادم کا پتہ چلا"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"آپ کے آلے پر ایک اور VPN چل رہا ہے۔ Lantern اس وقت بہترین کام کرتا ہے جب وہ "
+"آپ کا واحد فعال VPN ہو۔ بہترین نتائج کے لیے، براہ کرم Lantern استعمال کرنے "
+"سے پہلے اسے منقطع کریں۔"
+
+msgid "vpn_conflict_dismiss"
+msgstr "سمجھ گئے"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "بہر حال جڑیں"
+
+msgid "err_check_connection"
+msgstr "جڑ نہیں سکتے۔ اپنا انٹرنیٹ کنکشن چیک کریں۔"
+
+msgid "err_service_unavailable"
+msgstr "سروس عارضی طور پر دستیاب نہیں۔ دوبارہ کوشش کی جا رہی ہے..."
+
+msgid "err_connection_failed"
+msgstr "کنکشن ناکام ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "err_ruleset_failed"
+msgstr "روٹنگ کنفیگریشن لوڈ نہیں ہو سکی۔ دوبارہ کوشش کی جا رہی ہے..."
+
+msgid "update_now"
+msgstr "ابھی اپ ڈیٹ کریں"
+
+msgid "later"
+msgstr "بعد میں"
+
+msgid "update_ready_to_install"
+msgstr "Lantern %s انسٹال کے لیے تیار ہے"
+
+msgid "up_to_date"
+msgstr "اپ ٹو ڈیٹ"
+
+msgid "running_latest_version"
+msgstr "آپ Lantern کا تازہ ترین ورژن %s استعمال کر رہے ہیں"
+
+msgid "couldnt_check_for_updates"
+msgstr "اپ ڈیٹس چیک نہیں ہو سکیں"
+
+msgid "check_connection_and_retry"
+msgstr "اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں"
