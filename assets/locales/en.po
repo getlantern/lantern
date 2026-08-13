@@ -1707,9 +1707,6 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
-msgid "turn_on_vpn"
-msgstr "Turn on VPN"
-
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
