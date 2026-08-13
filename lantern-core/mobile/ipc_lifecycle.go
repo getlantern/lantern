@@ -26,11 +26,23 @@ var (
 	ipcLifecycle ipcLifecycleState
 )
 
+// ipcState tracks the start/run lifecycle of the local IPC server. It's
+// tracked separately from closing: beginIPCClose can cancel an in-flight
+// start (via the generation bump) without waiting for it, so a close and a
+// start can be in progress at the same time.
+type ipcState int
+
+const (
+	ipcIdle ipcState = iota
+	ipcStarting
+	ipcRunning
+)
+
 type ipcLifecycleState struct {
 	mu         sync.Mutex
 	server     *ipc.Server
 	backend    *backend.LocalBackend
-	starting   bool
+	startState ipcState
 	closing    bool
 	generation uint64
 }
@@ -119,20 +131,26 @@ func beginIPCStart() (generation uint64, shouldStart bool, err error) {
 	ipcLifecycle.mu.Lock()
 	defer ipcLifecycle.mu.Unlock()
 
-	if ipcLifecycle.server != nil {
+	if ipcLifecycle.startState == ipcRunning {
 		return 0, false, nil
 	}
-	if ipcLifecycle.starting || ipcLifecycle.closing {
+	if ipcLifecycle.startState == ipcStarting || ipcLifecycle.closing {
 		return 0, false, errIPCLifecycleBusy
 	}
-	ipcLifecycle.starting = true
+	ipcLifecycle.startState = ipcStarting
 	return ipcLifecycle.generation, true, nil
 }
 
-// finishIPCStart releases the startup guard.
+// finishIPCStart releases the startup guard, resolving to ipcRunning if
+// publishIPCResources succeeded or ipcIdle if the start failed or was
+// canceled.
 func finishIPCStart() {
 	ipcLifecycle.mu.Lock()
-	ipcLifecycle.starting = false
+	if ipcLifecycle.server != nil {
+		ipcLifecycle.startState = ipcRunning
+	} else {
+		ipcLifecycle.startState = ipcIdle
+	}
 	ipcLifecycle.mu.Unlock()
 }
 
@@ -229,6 +247,9 @@ func beginIPCClose() (ipcResources, bool) {
 	}
 	ipcLifecycle.server = nil
 	ipcLifecycle.backend = nil
+	if ipcLifecycle.startState == ipcRunning {
+		ipcLifecycle.startState = ipcIdle
+	}
 	return resources, true
 }
 

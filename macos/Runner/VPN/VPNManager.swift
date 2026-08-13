@@ -147,20 +147,16 @@ class VPNManager: VPNBase {
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
-    let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
-    if try !shouldStartNewTunnel(for: manager.connection.status) {
-      appLogger.info("VPN is already connected, sending command to extension")
-      _ = try await triggerExtensionMethod(methodName: "Lantern")
-      return
+    if try shouldStartNewTunnel(for: manager.connection.status) {
+      self.manager.isOnDemandEnabled = false
+      try await self.saveThenLoadProvider()
     }
 
-    self.manager.isOnDemandEnabled = false
-    try await self.saveThenLoadProvider()
     try await startOrNotifyExistingTunnel(
       operationID: operationID,
-      options: options,
+      options: ["netEx.StartReason": NSString("Lantern")],
       methodName: "Lantern"
     )
   }
