@@ -1,0 +1,179 @@
+name: Build auto-update fixture targets
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the signed targets as a fixture-repository prerelease"
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      publish:
+        description: "Publish the signed targets as a fixture-repository prerelease"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: build-auto-update-fixtures
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      display_version: ${{ steps.fixture.outputs.display_version }}
+      release_tag: ${{ steps.fixture.outputs.release_tag }}
+      release_version: ${{ steps.fixture.outputs.release_version }}
+      target_build: ${{ steps.fixture.outputs.target_build }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare target version
+        id: fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          DISPLAY_VERSION="$(sed -nE 's/^version:[[:space:]]*([^+[:space:]]+).*/\1/p' pubspec.yaml)"
+          TARGET_BUILD="$((1000 + GITHUB_RUN_NUMBER))"
+          RELEASE_VERSION="${DISPLAY_VERSION}-beta.e2e.${GITHUB_RUN_ID}"
+          RELEASE_TAG="v${RELEASE_VERSION}"
+          [[ "$TARGET_BUILD" =~ ^[0-9]+$ && "$TARGET_BUILD" -gt 1 && "$TARGET_BUILD" -le 65535 ]]
+          sed -i.bak -E "s/^version:.*/version: ${DISPLAY_VERSION}+${TARGET_BUILD}/" pubspec.yaml
+          rm pubspec.yaml.bak
+          {
+            echo "display_version=$DISPLAY_VERSION"
+            echo "release_tag=$RELEASE_TAG"
+            echo "release_version=$RELEASE_VERSION"
+            echo "target_build=$TARGET_BUILD"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload target pubspec
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-update-target-pubspec
+          path: pubspec.yaml
+          retention-days: 2
+
+  build-macos:
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.display_version }}
+      build_type: beta
+      installer_base_name: lantern-installer
+      pubspec_artifact: auto-update-target-pubspec
+      auto_update_e2e: true
+      sign_update_artifact: true
+      run_connect_smoke: false
+      run_payment_checkout_smoke: false
+
+  build-windows:
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.display_version }}
+      build_type: beta
+      installer_base_name: lantern-installer
+      pubspec_artifact: auto-update-target-pubspec
+      auto_update_e2e: true
+      sign_update_artifact: true
+      run_installer_smoke: false
+      run_connect_smoke: false
+      run_split_tunnel_website_smoke: false
+      run_config_url_smoke: false
+      run_auth_smoke: false
+      run_payment_checkout_smoke: false
+
+  assemble:
+    needs:
+      - prepare
+      - build-macos
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download signed installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lantern-installer-*
+          path: fixture-downloads
+
+      - name: Assemble and verify fixture release
+        shell: bash
+        env:
+          ASSET_BASE_URL: https://github.com/getlantern/lantern-update-fixtures/releases/download/${{ needs.prepare.outputs.release_tag }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.release_version }}
+          TARGET_BUILD: ${{ needs.prepare.outputs.target_build }}
+        run: |
+          set -euo pipefail
+          mkdir -p fixture-release/artifacts fixture-release/metadata fixture-release/signatures
+          find fixture-downloads -type f -name 'lantern-installer-beta.dmg' -exec cp {} fixture-release/artifacts/ \;
+          find fixture-downloads -type f -name 'lantern-installer-beta.exe' -exec cp {} fixture-release/artifacts/ \;
+          find fixture-downloads -type f -name '*.sparkle-signature' -exec cp {} fixture-release/signatures/ \;
+          test -f fixture-release/artifacts/lantern-installer-beta.dmg
+          test -f fixture-release/artifacts/lantern-installer-beta.exe
+          test -f fixture-release/signatures/lantern-installer-beta.dmg.sparkle-signature
+          test -f fixture-release/signatures/lantern-installer-beta.exe.sparkle-signature
+          python scripts/ci/generate_update_metadata.py \
+            --build-type beta \
+            --version "$RELEASE_VERSION" \
+            --sparkle-version "$TARGET_BUILD" \
+            --bucket unused-fixture-bucket \
+            --asset-base-url "$ASSET_BASE_URL" \
+            --output-dir fixture-release/metadata \
+            --sparkle-signature-dir fixture-release/signatures \
+            fixture-release/artifacts/*
+          python scripts/ci/verify_fixture_update_artifacts.py \
+            --artifact-dir fixture-release/artifacts \
+            --metadata-dir fixture-release/metadata \
+            --asset-base-url "$ASSET_BASE_URL"
+          cp fixture-release/metadata/* fixture-release/artifacts/
+
+      - name: Upload verified fixture release
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-update-fixture-release
+          path: fixture-release/artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish fixture prerelease
+        if: ${{ inputs.publish }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.UPDATE_FIXTURES_GH_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ -n "$GH_TOKEN" ]] || {
+            echo '::error title=Missing fixture token::Set UPDATE_FIXTURES_GH_TOKEN before publishing.'
+            exit 1
+          }
+          gh release create "$RELEASE_TAG" \
+            --repo getlantern/lantern-update-fixtures \
+            --prerelease \
+            --title "Lantern auto-update fixture $RELEASE_TAG" \
+            --notes "Synthetic signed update target for Lantern E2E tests. Safe to delete after validation." \
+            fixture-release/artifacts/*

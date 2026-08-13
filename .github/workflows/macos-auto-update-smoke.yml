@@ -1,0 +1,185 @@
+name: macOS auto-update smoke
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-auto-update-smoke
+  cancel-in-progress: false
+
+jobs:
+  resolve-target:
+    name: Resolve staging fixture target
+    runs-on: ubuntu-latest
+    outputs:
+      display_version: ${{ steps.target.outputs.display_version }}
+      fixture_build: ${{ steps.target.outputs.fixture_build }}
+      target_build: ${{ steps.target.outputs.target_build }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install appcast parser dependency
+        run: python -m pip install -r scripts/requirements.txt
+
+      - name: Test target resolver
+        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py
+
+      - name: Resolve staging fixture target
+        id: target
+        shell: bash
+        env:
+          TARGET_DIR: ${{ runner.temp }}/macos-auto-update-target
+        run: |
+          set -o pipefail
+          mkdir -p "$TARGET_DIR/pubspec"
+          python scripts/ci/resolve_desktop_update_target.py \
+            --platform macos \
+            --appcast-url "https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta" \
+            --appcast-output "$TARGET_DIR/appcast.xml" \
+            --target-output "$TARGET_DIR/target.json" \
+            --pubspec-input pubspec.yaml \
+            --pubspec-output "$TARGET_DIR/pubspec/pubspec.yaml" \
+            --github-output "$GITHUB_OUTPUT" \
+            2>&1 | tee "$TARGET_DIR/resolve.log"
+
+      - name: Summarize target
+        if: ${{ steps.target.outcome == 'success' }}
+        shell: bash
+        env:
+          DISPLAY_VERSION: ${{ steps.target.outputs.display_version }}
+          FIXTURE_BUILD: ${{ steps.target.outputs.fixture_build }}
+          TARGET_BUILD: ${{ steps.target.outputs.target_build }}
+        run: |
+          {
+            echo "### macOS auto-update target"
+            echo
+            echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
+            echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload target diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-auto-update-target
+          path: |
+            ${{ runner.temp }}/macos-auto-update-target/appcast.xml
+            ${{ runner.temp }}/macos-auto-update-target/target.json
+            ${{ runner.temp }}/macos-auto-update-target/resolve.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload lower-build pubspec
+        if: ${{ steps.target.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-auto-update-pubspec
+          path: ${{ runner.temp }}/macos-auto-update-target/pubspec/pubspec.yaml
+          if-no-files-found: error
+          retention-days: 2
+
+  build-fixture:
+    name: Build signed lower fixture
+    needs: resolve-target
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.resolve-target.outputs.display_version }}
+      build_type: beta
+      installer_base_name: lantern-autoupdate-fixture
+      runner_label: lantern-macos-smoke
+      flutter_target: integration_test/auto_update/desktop_auto_update_smoke_test.dart
+      flutter_build_mode: profile
+      pubspec_artifact: macos-auto-update-pubspec
+      sign_update_artifact: false
+      auto_update_e2e: true
+      run_connect_smoke: false
+      run_payment_checkout_smoke: false
+
+  exercise-update:
+    name: Install and update through Sparkle
+    needs:
+      - resolve-target
+      - build-fixture
+    runs-on:
+      - self-hosted
+      - lantern-macos-smoke
+    timeout-minutes: 30
+    env:
+      LANTERN_AUTO_UPDATE_SMOKE: "true"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download fixture pubspec
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-auto-update-pubspec
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          channel: stable
+          flutter-version-file: .github/flutter-version.yaml
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Download lower fixture
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-dmg
+          path: ${{ runner.temp }}/macos-auto-update-fixture
+
+      - name: Download resolved target
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-auto-update-target
+          path: ${{ runner.temp }}/macos-auto-update-target
+
+      - name: Run Flutter-led auto-update smoke
+        shell: bash
+        env:
+          APPCAST_XML: ${{ runner.temp }}/macos-auto-update-target/appcast.xml
+          ARTIFACT_DIR: ${{ runner.temp }}/macos-auto-update-smoke
+          FIXTURE_DMG: ${{ runner.temp }}/macos-auto-update-fixture/lantern-autoupdate-fixture-beta.dmg
+          TARGET_JSON: ${{ runner.temp }}/macos-auto-update-target/target.json
+        run: bash ./.github/scripts/macos_auto_update_smoke.sh
+
+      - name: Upload auto-update diagnostics
+        if: ${{ always() }}
+        id: diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-auto-update-smoke
+          path: ${{ runner.temp }}/macos-auto-update-smoke
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Link diagnostics
+        if: ${{ always() && steps.diagnostics.outputs.artifact-url != '' }}
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.diagnostics.outputs.artifact-url }}
+        run: |
+          echo "::notice title=macOS auto-update diagnostics::$ARTIFACT_URL"
+          echo "[Download macOS auto-update diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"

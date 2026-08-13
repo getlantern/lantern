@@ -138,7 +138,7 @@ jobs:
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> "$GITHUB_ENV"
 
       - name: Install Flutter (amd64)
-        uses: subosito/flutter-action@v2.22.0
+        uses: subosito/flutter-action@v2.23.0
         if: ${{ matrix.arch == 'amd64' }}
         with:
           channel: stable

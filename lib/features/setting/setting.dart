@@ -194,7 +194,9 @@ class _SettingState extends ConsumerState<Setting>
                       children: [
                         DividerSpace(),
                         AppTile(
+                          tileKey: const Key('setting.check_for_updates_tile'),
                           label: 'check_for_updates'.i18n,
+                          semanticsLabel: 'check_for_updates'.i18n,
                           icon: AppImagePaths.update,
                           onPressed: () async => await settingMenuTap(
                             _SettingType.checkForUpdates,
