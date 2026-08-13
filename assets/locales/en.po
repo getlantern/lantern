@@ -39,6 +39,15 @@ msgstr "That image is already attached."
 msgid "report_issue_attachments_unreadable"
 msgstr "We could not read one of those files."
 
+msgid "send_without_email_title"
+msgstr "Send without an email?"
+
+msgid "send_without_email_body"
+msgstr "You didn't include an email address, so we won't be able to reply or follow up on this report."
+
+msgid "send_without_email"
+msgstr "Send Without Email"
+
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
 
@@ -1186,6 +1195,9 @@ msgstr "Available on:"
 msgid "subscription_renewal_date"
 msgstr "Subscription Renewal Date"
 
+msgid "pro_access_until"
+msgstr "Pro access until %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Enabled bypass lists (%d):"
 
@@ -1695,9 +1707,6 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
-msgid "turn_on_vpn"
-msgstr "Turn on VPN"
-
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
@@ -1718,4 +1727,3 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
-

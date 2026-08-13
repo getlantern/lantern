@@ -9,6 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
+  private let lifecycleCoordinator = VPNLifecycleCoordinator()
   //Do not switch to NEVPNManager.shared() that is only for class app extension
   private var manager: NEVPNManager = NETunnelProviderManager()
   static let shared: VPNManager = VPNManager()
@@ -135,68 +136,114 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
+    try await withConnectionOperation { operationID in
+      try await startTunnel(operationID: operationID)
+    }
+  }
+
+  private func startTunnel(operationID: UInt) async throws {
     appLogger.log("Starting tunnel..")
     await self.setupVPN()
-    let options = ["netEx.StartReason": NSString("Lantern")]
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw VPNManagerError.operationInProgress
+    }
     appLogger.log("Calling manager.connection.startVPNTunnel..")
 
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
-      appLogger.info("VPN is already connected, sending command to extension")
-      do {
-        let result = try await triggerExtensionMethod(
-          methodName: "Lantern"
-        )
-        return
-      } catch {
-        // Rethrow so caller can handle it
-        throw error
-      }
+    if try shouldStartNewTunnel(for: manager.connection.status) {
+      self.manager.isOnDemandEnabled = false
+      try await self.saveThenLoadProvider()
     }
 
-    try self.manager.connection.startVPNTunnel(options: options)
-    self.manager.isOnDemandEnabled = false
-    try await self.saveThenLoadProvider()
+    try await startOrNotifyExistingTunnel(
+      operationID: operationID,
+      options: ["netEx.StartReason": NSString("Lantern")],
+      methodName: "Lantern"
+    )
   }
 
   func connectToServer(
     serverName: String
   ) async throws {
+    try await withConnectionOperation { operationID in
+      try await connectToServer(serverName: serverName, operationID: operationID)
+    }
+  }
+
+  private func connectToServer(serverName: String, operationID: UInt) async throws {
     await self.setupVPN()
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw VPNManagerError.operationInProgress
+    }
     let options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
       "netEx.ServerName": serverName as NSString,
     ]
 
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
-      appLogger.info("VPN is already connected, sending command to extension")
-      do {
-        let result = try await triggerExtensionMethod(
-          methodName: "PrivateServer",
-          params: ["server": serverName]
-        )
-        return
-      } catch {
-        // Rethrow so caller can handle it
-        throw error
+    try await startOrNotifyExistingTunnel(
+      operationID: operationID,
+      options: options,
+      methodName: "PrivateServer",
+      params: ["server": serverName]
+    )
+  }
+
+  private func startOrNotifyExistingTunnel(
+    operationID: UInt,
+    options: [String: NSObject],
+    methodName: String,
+    params: [String: Any] = [:]
+  ) async throws {
+    let startedNewTunnel = try await lifecycleCoordinator.performFinalConnectionTransition(
+      operationID
+    ) {
+      if try !shouldStartNewTunnel(for: self.manager.connection.status) {
+        return false
       }
+      try self.manager.connection.startVPNTunnel(options: options)
+      return true
     }
-
-    try self.manager.connection.startVPNTunnel(options: options)
-    /// Enable on-demand to allow automatic reconnections
-    /// if error it will stuck in infinite loop
-    //    self.manager.isOnDemandEnabled = true
-    //    try await self.saveThenLoadProvider()
-
+    if !startedNewTunnel {
+      appLogger.info("VPN is already connected, sending command to extension")
+      _ = try await triggerExtensionMethod(methodName: methodName, params: params)
+    }
   }
 
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
+    let canceledConnectionOperation = try await lifecycleCoordinator.beginStopOperation()
+    do {
+      try await stopTunnelAfterHandoff(
+        canceledConnectionOperation: canceledConnectionOperation)
+    } catch {
+      await lifecycleCoordinator.endStopOperation()
+      throw error
+    }
+    await lifecycleCoordinator.endStopOperation()
+  }
+
+  private func stopTunnelAfterHandoff(canceledConnectionOperation: Bool) async throws {
     appLogger.log("Stopping tunnel..")
+
+    // A canceled start already owns the current manager. Stop it before any
+    // preference call can delay teardown again.
+    if canceledConnectionOperation {
+      let shouldSaveOnDemandChange = manager.isOnDemandEnabled
+      manager.isOnDemandEnabled = false
+      manager.connection.stopVPNTunnel()
+      if shouldSaveOnDemandChange {
+        try await manager.saveToPreferences()
+      }
+      appLogger.log("Tunnel stopped.")
+      return
+    }
+
     await syncStatus()
-    guard connectionStatus == .connected else {
-      appLogger.log("In unexpected state: \(connectionStatus)")
+    let status = manager.connection.status
+    let shouldStop = try shouldStopTunnel(for: status)
+    if !shouldStop {
+      appLogger.log("VPN is already stopped or stopping: \(status)")
       return
     }
 
@@ -207,6 +254,20 @@ class VPNManager: VPNBase {
     }
     manager.connection.stopVPNTunnel()
     appLogger.log("Tunnel stopped.")
+  }
+
+  private func withConnectionOperation<T>(
+    _ operation: (UInt) async throws -> T
+  ) async throws -> T {
+    let operationID = try await lifecycleCoordinator.beginConnectionOperation()
+    do {
+      let result = try await operation(operationID)
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      return result
+    } catch {
+      await lifecycleCoordinator.endConnectionOperation(operationID)
+      throw error
+    }
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.

@@ -54,6 +54,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_payment_checkout_smoke:
+        description: "Verify staging Stripe Checkout in a Flutter integration test"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -200,6 +205,17 @@ jobs:
           } else {
             Write-Warning "Release directory does not exist"
           }
+
+      - name: Windows Stripe checkout smoke
+        if: ${{ inputs.run_payment_checkout_smoke }}
+        shell: pwsh
+        timeout-minutes: 15
+        run: |
+          ./.github/scripts/windows_smoke_suite.ps1 `
+            -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
+            -ServiceEnvironment staging `
+            -RunConnectSmoke:$false `
+            -RunPaymentCheckoutSmoke
 
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}

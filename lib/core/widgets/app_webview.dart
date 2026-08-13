@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -8,6 +11,17 @@ import 'package:lantern/core/widgets/loading_indicator.dart';
 final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
   WebViewLoading.new,
 );
+
+/// Receives main-frame load events from an in-app WebView.
+abstract interface class AppWebViewObserver {
+  Future<void> onPageLoaded(
+    Uri uri, {
+    required int documentLength,
+    required Future<Uint8List?> Function() captureScreenshot,
+  });
+
+  void onPageLoadFailed(Uri? uri, String reason);
+}
 
 class WebViewLoading extends Notifier<bool> {
   @override
@@ -22,8 +36,14 @@ class WebViewLoading extends Notifier<bool> {
 class AppWebView extends HookConsumerWidget {
   final String title;
   final String url;
+  final AppWebViewObserver? observer;
 
-  const AppWebView({super.key, required this.title, required this.url});
+  const AppWebView({
+    super.key,
+    required this.title,
+    required this.url,
+    this.observer,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +68,7 @@ class AppWebView extends HookConsumerWidget {
       ),
       body: Stack(
         children: [
-          _InnerWebView(url: url),
+          _InnerWebView(url: url, observer: observer),
           if (isLoading) Center(child: LoadingIndicator()),
         ],
       ),
@@ -58,8 +78,9 @@ class AppWebView extends HookConsumerWidget {
 
 class _InnerWebView extends StatefulHookConsumerWidget {
   final String url;
+  final AppWebViewObserver? observer;
 
-  const _InnerWebView({required this.url});
+  const _InnerWebView({required this.url, this.observer});
 
   @override
   ConsumerState<_InnerWebView> createState() => _InnerWebViewState();
@@ -94,7 +115,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
   @override
   Widget build(BuildContext context) {
-    appLogger.debug("Building _InnerWebView with URL: ${widget.url}");
+    final initialUri = Uri.tryParse(widget.url);
+    appLogger.debug(
+      'Building _InnerWebView for host: ${initialUri?.host ?? '<none>'}',
+    );
     return InAppWebView(
       key: const ValueKey('app-webview'),
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
@@ -125,22 +149,69 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         loading.start();
       },
       onLoadStop: (controller, webUri) async {
-        // Handle load stop
         ref.read(webViewLoadingProvider.notifier).stop();
-        await _handleCompletionUrl(
-          webUri == null ? null : Uri.tryParse(webUri.toString()),
-        );
+        final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
+        await _reportPageLoaded(controller, uri);
+        await _handleCompletionUrl(uri);
       },
       onReceivedError: (_, webResourceRequest, error) async {
-        // Handle received error
         appLogger.error("Received error: $error");
-        // Handle load stop
         ref.read(webViewLoadingProvider.notifier).stop();
-        await _handleCompletionUrl(
-          Uri.tryParse(webResourceRequest.url.toString()),
-        );
+        final uri = Uri.tryParse(webResourceRequest.url.toString());
+        if (webResourceRequest.isForMainFrame == true) {
+          widget.observer?.onPageLoadFailed(
+            uri,
+            '${error.type}: ${error.description}',
+          );
+        }
+        await _handleCompletionUrl(uri);
+      },
+      onReceivedHttpError: (_, request, response) {
+        if (request.isForMainFrame != true) return;
+        ref.read(webViewLoadingProvider.notifier).stop();
+        final uri = Uri.tryParse(request.url.toString());
+        widget.observer?.onPageLoadFailed(uri, 'HTTP ${response.statusCode}');
       },
     );
+  }
+
+  Future<void> _reportPageLoaded(
+    InAppWebViewController controller,
+    Uri? uri,
+  ) async {
+    final observer = widget.observer;
+    if (observer == null || uri == null) return;
+
+    try {
+      final value = await controller.evaluateJavascript(
+        source: 'document.documentElement?.outerHTML?.length ?? 0',
+      );
+      final documentLength = value is num
+          ? value.toInt()
+          : int.tryParse(value?.toString() ?? '') ?? 0;
+      unawaited(_notifyPageLoaded(observer, controller, uri, documentLength));
+    } catch (error, stackTrace) {
+      appLogger.error('Unable to inspect WebView document', error, stackTrace);
+      observer.onPageLoadFailed(uri, error.toString());
+    }
+  }
+
+  Future<void> _notifyPageLoaded(
+    AppWebViewObserver observer,
+    InAppWebViewController controller,
+    Uri uri,
+    int documentLength,
+  ) async {
+    try {
+      await observer.onPageLoaded(
+        uri,
+        documentLength: documentLength,
+        captureScreenshot: () => controller.takeScreenshot(),
+      );
+    } catch (error, stackTrace) {
+      appLogger.error('Unable to notify WebView observer', error, stackTrace);
+      observer.onPageLoadFailed(uri, error.toString());
+    }
   }
 
   bool isLanternHost(String host) =>
