@@ -171,9 +171,6 @@ func browserCommandExe(cmd string) string {
 // but not byte-identical path.
 func markBrowsers(list []*AppData) {
 	idx := loadBrowserIndexOnce()
-	if len(idx.paths) == 0 && len(idx.basenames) == 0 {
-		return
-	}
 	for _, app := range list {
 		if app == nil {
 			continue

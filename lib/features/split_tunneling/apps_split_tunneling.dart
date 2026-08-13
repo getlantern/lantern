@@ -223,8 +223,8 @@ class AppsSplitTunneling extends ConsumerWidget {
 Future<void> _showSelectAllBypassWarning({
   required BuildContext context,
   required String browserName,
-  required VoidCallback onAddAllExceptBrowsers,
-  required VoidCallback onAddAllAnyway,
+  required Future<void> Function() onAddAllExceptBrowsers,
+  required Future<void> Function() onAddAllAnyway,
 }) {
   final textTheme = Theme.of(context).textTheme;
   return AppDialog.customDialog(
@@ -254,16 +254,16 @@ Future<void> _showSelectAllBypassWarning({
     action: [
       PrimaryButton(
         label: 'add_all_except_browsers'.i18n,
-        onPressed: () {
+        onPressed: () async {
           appRouter.pop();
-          onAddAllExceptBrowsers();
+          await onAddAllExceptBrowsers();
         },
       ),
       SecondaryButton(
         label: 'add_all_anyway'.i18n,
-        onPressed: () {
+        onPressed: () async {
           appRouter.pop();
-          onAddAllAnyway();
+          await onAddAllAnyway();
         },
       ),
       Center(

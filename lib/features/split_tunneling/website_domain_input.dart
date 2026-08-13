@@ -46,6 +46,9 @@ class WebsiteDomainInput extends HookConsumerWidget {
     }
 
     Future<void> addValidatedWebsites(List<Website> added) async {
+      if (added.isEmpty) {
+        return;
+      }
       textController.clear();
 
       final failures = await ref
