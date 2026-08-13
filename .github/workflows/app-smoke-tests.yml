@@ -133,7 +133,7 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
       run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
-      run_payment_checkout_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
   windows:
     needs: prepare
@@ -149,5 +149,4 @@ jobs:
       run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
-      run_payment_checkout_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
-      run_payment_conversion_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}

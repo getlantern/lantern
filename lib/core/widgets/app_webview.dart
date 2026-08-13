@@ -125,7 +125,6 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       shouldOverrideUrlLoading: shouldOverrideUrlLoading,
       initialUrlRequest: _initialRequest,
       initialSettings: setting,
-      onWebViewCreated: (controller) {},
       onCreateWindow: (controller, createWindowAction) async {
         final req = createWindowAction.request;
         if (PlatformUtils.isWindows) {

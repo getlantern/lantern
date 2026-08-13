@@ -34,13 +34,8 @@ on:
         required: false
         type: boolean
         default: true
-      run_payment_checkout_smoke:
-        description: "Verify staging Stripe Checkout in a Flutter integration test"
-        required: false
-        type: boolean
-        default: false
-      run_payment_conversion_smoke:
-        description: "Verify staging payment-to-Pro conversion in a Flutter integration test"
+      run_payment_smoke:
+        description: "Verify staging checkout rendering and payment-to-Pro conversion"
         required: false
         type: boolean
         default: false
@@ -211,8 +206,8 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
-      - name: Windows Stripe checkout smoke
-        if: ${{ inputs.run_payment_checkout_smoke }}
+      - name: Windows payment smoke
+        if: ${{ inputs.run_payment_smoke }}
         shell: pwsh
         timeout-minutes: 15
         run: |
@@ -220,25 +215,14 @@ jobs:
             -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
             -ServiceEnvironment staging `
             -RunConnectSmoke:$false `
-            -RunPaymentCheckoutSmoke
+            -RunPaymentSmoke
 
-      - name: Windows payment conversion smoke
-        if: ${{ inputs.run_payment_conversion_smoke }}
-        shell: pwsh
-        timeout-minutes: 15
-        run: |
-          ./.github/scripts/windows_smoke_suite.ps1 `
-            -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
-            -ServiceEnvironment staging `
-            -RunConnectSmoke:$false `
-            -RunPaymentConversionSmoke
-
-      - name: Upload Windows payment smoke logs
-        if: ${{ always() && (inputs.run_payment_checkout_smoke || inputs.run_payment_conversion_smoke) }}
+      - name: Upload Windows payment smoke diagnostics
+        if: ${{ always() && inputs.run_payment_smoke }}
         uses: actions/upload-artifact@v4
         with:
-          name: windows-payment-smoke-logs
-          path: C:\Users\Public\Lantern\logs
+          name: windows-payment-smoke
+          path: build/windows-payment-smoke
           if-no-files-found: ignore
           retention-days: 7
 
@@ -374,24 +358,6 @@ jobs:
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke
-
-      - name: Upload Windows payment checkout smoke artifacts
-        if: ${{ always() && inputs.run_payment_checkout_smoke }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-payment-checkout-smoke
-          path: build/windows-payment-checkout-smoke
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Upload Windows payment conversion smoke artifacts
-        if: ${{ always() && inputs.run_payment_conversion_smoke }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-payment-conversion-smoke
-          path: build/windows-payment-conversion-smoke
-          if-no-files-found: warn
-          retention-days: 7
 
       # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
       - name: Windows UI auth smoke integration

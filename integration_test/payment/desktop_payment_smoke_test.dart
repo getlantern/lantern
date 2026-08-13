@@ -20,51 +20,28 @@ import '../utils/payment_robot.dart';
 
 const _stripeHost = 'checkout.stripe.com';
 const _e2eHost = 'api.staging.iantem.io';
-const _smokeMode = String.fromEnvironment(
-  'PAYMENT_SMOKE_MODE',
-  defaultValue: 'render',
-);
-const _screenshotPath = String.fromEnvironment('PAYMENT_SMOKE_SCREENSHOT_PATH');
+const _artifactDirectory = String.fromEnvironment('PAYMENT_SMOKE_ARTIFACT_DIR');
 const _screenshotRenderTimeout = Duration(seconds: 30);
 const _screenshotPollInterval = Duration(milliseconds: 250);
 const _minimumScreenshotContrast = 64;
 const _darkPixelLuminance = 192;
 
-enum _PaymentSmokeMode { render, conversion }
-
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  final mode = switch (_smokeMode) {
-    'render' => _PaymentSmokeMode.render,
-    'conversion' => _PaymentSmokeMode.conversion,
-    _ => throw StateError('Unsupported PAYMENT_SMOKE_MODE: $_smokeMode'),
-  };
-
   testWidgets(
-    mode == _PaymentSmokeMode.render
-        ? 'staging Stripe Checkout renders in the desktop WebView'
-        : 'staging E2E checkout converts the Windows app to Pro',
+    'staging checkout renders and converts to Pro',
     (tester) async {
       expect(
         Platform.isWindows || Platform.isMacOS,
         isTrue,
         reason: 'Payment smoke tests run only on desktop',
       );
-      if (mode == _PaymentSmokeMode.conversion) {
-        expect(
-          Platform.isWindows,
-          isTrue,
-          reason: 'Payment conversion currently runs on Windows CI',
-        );
-      }
 
       final runningApp = await _launchApp(tester);
-      switch (mode) {
-        case _PaymentSmokeMode.render:
-          await _runStripeRenderSmoke(tester, runningApp);
-        case _PaymentSmokeMode.conversion:
-          await _runPaymentConversionSmoke(tester, runningApp);
+      await _runStripeRenderSmoke(tester, runningApp);
+      if (Platform.isWindows) {
+        await _runPaymentConversionSmoke(tester, runningApp);
       }
     },
     timeout: const Timeout(Duration(minutes: 8)),
@@ -247,9 +224,9 @@ Future<Uint8List> _waitForRenderedScreenshot(
   );
 }
 
-Future<void> _saveScreenshot(Uint8List screenshot) async {
-  if (_screenshotPath.isEmpty) return;
-  final file = File(_screenshotPath);
+Future<void> _saveScreenshot(Uint8List screenshot, String name) async {
+  if (_artifactDirectory.isEmpty) return;
+  final file = File('$_artifactDirectory${Platform.pathSeparator}$name');
   await file.parent.create(recursive: true);
   await file.writeAsBytes(screenshot, flush: true);
   e2eLog('Checkout screenshot saved to ${file.path}');
@@ -345,7 +322,7 @@ class _StripeCheckoutTracker implements AppWebViewObserver {
     if (uri.host != _stripeHost) return;
     try {
       screenshot = await _waitForRenderedScreenshot(captureScreenshot);
-      await _saveScreenshot(screenshot!);
+      await _saveScreenshot(screenshot!, 'stripe-checkout.png');
     } catch (error) {
       failure = 'Unable to capture WebView screenshot: $error';
     }
@@ -385,7 +362,7 @@ class _PaymentConversionTracker implements AppWebViewObserver {
   int documentLength = 0;
   Uint8List? screenshot;
   bool completeClicked = false;
-  bool _completionStarted = false;
+  bool _completionInProgress = false;
   String? failure;
 
   String get failureMessage =>
@@ -398,14 +375,16 @@ class _PaymentConversionTracker implements AppWebViewObserver {
     required Future<Uint8List?> Function() captureScreenshot,
     required Future<Object?> Function(String source) evaluateJavaScript,
   }) async {
-    if (uri.host != _e2eHost || _completionStarted) return;
-    _completionStarted = true;
+    if (uri.host != _e2eHost || completeClicked || _completionInProgress) {
+      return;
+    }
+    _completionInProgress = true;
     this.uri = uri;
     this.documentLength = documentLength;
 
     try {
       screenshot = await _waitForRenderedScreenshot(captureScreenshot);
-      await _saveScreenshot(screenshot!);
+      await _saveScreenshot(screenshot!, 'payment-conversion.png');
 
       final deadline = DateTime.now().add(const Duration(seconds: 30));
       while (DateTime.now().isBefore(deadline)) {
@@ -418,9 +397,10 @@ class _PaymentConversionTracker implements AppWebViewObserver {
         }
         await Future<void>.delayed(_screenshotPollInterval);
       }
-      failure = 'The staging E2E completion control was not found';
     } catch (error) {
       failure = 'Unable to complete the staging checkout: $error';
+    } finally {
+      _completionInProgress = false;
     }
   }
 

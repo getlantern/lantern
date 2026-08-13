@@ -17,6 +17,8 @@ import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
+const _paymentE2EEnabled = bool.fromEnvironment('PAYMENT_E2E_ENABLED');
+
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
@@ -195,7 +197,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       // same callback and account-refresh behavior as a real checkout without
       // creating a charge.
       case 'e2e':
-        if (isDesktop) {
+        if (isDesktop && _paymentE2EEnabled) {
           await paymentRedirectFlow(
             provider.providers.name,
             ref,
