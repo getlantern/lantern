@@ -29,6 +29,29 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     self.tunnel = tunnel
   }
 
+  /// Applies tunnel network settings and waits for NetworkExtension's completion.
+  ///
+  /// Uses the completion-handler form rather than the `async` one deliberately. The
+  /// async form resumes its continuation on Swift's cooperative pool; when the caller
+  /// is a libbox thread blocked in a semaphore, that resumption can be starved and the
+  /// call never returns — leaving a routed-but-unserviced utun, which is a total
+  /// traffic blackhole the user can only escape by killing the extension. NE delivers
+  /// this completion on its own queue, so it cannot be starved by the wait here.
+  private func applyNetworkSettings(_ settings: NEPacketTunnelNetworkSettings?) throws {
+    let semaphore = DispatchSemaphore(value: 0)
+    var failure: Error?
+    tunnel.setTunnelNetworkSettings(settings) { error in
+      failure = error
+      semaphore.signal()
+    }
+    guard semaphore.wait(timeout: .now() + runBlockingTimeout) == .success else {
+      throw RunBlockingError.timedOut
+    }
+    if let failure {
+      throw failure
+    }
+  }
+
   public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?)
     throws
   {
@@ -36,18 +59,16 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     guard let opts = options, let retPtr = ret0_ else {
       throw NSError(domain: "Invalid arguments to openTun", code: 0)
     }
-    runBlocking { [self] in
-      do {
-        try await openTunAsync(opts, retPtr)
-      } catch {
-        appLogger.error("Error opening TUN: \(error)")
-      }
-    }
+    // Called directly: openTun's only await was setTunnelNetworkSettings, now handled
+    // by applyNetworkSettings, so there is nothing to bridge. Errors propagate instead
+    // of being logged and swallowed — libbox must not be told the TUN opened when
+    // ret0_ was never written.
+    try openTunSync(opts, retPtr)
   }
 
-  private func openTunAsync(
+  private func openTunSync(
     _ options: LibboxTunOptionsProtocol, _ ret0_: UnsafeMutablePointer<Int32>
-  ) async throws {
+  ) throws {
     // Use subranges instead of a single default route
     let autoRouteUseSubRangesByDefault = true
     // Exclude Apple Push Notification Service by default
@@ -232,7 +253,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
     networkSettings = settings
     appLogger.info("Setting tunnel network settings to \(settings)...")
-    try await tunnel.setTunnelNetworkSettings(settings)
+    try applyNetworkSettings(settings)
 
     appLogger.info("Accessing the socket file descriptor...")
     if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
@@ -304,7 +325,14 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       }
     }
     monitor.start(queue: DispatchQueue.global())
-    semaphore.wait()
+    // Wait for the first path so libbox starts with an interface, but never
+    // indefinitely: with no network at all the first update may not arrive, and this
+    // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
+    // handler above stays installed and reports the interface once one appears.
+    if semaphore.wait(timeout: .now() + runBlockingTimeout) == .timedOut {
+      appLogger.error(
+        "startDefaultInterfaceMonitor: no path update within \(runBlockingTimeout); continuing")
+    }
   }
 
   private func onUpdateDefaultInterface(
@@ -395,9 +423,12 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   public func readWIFIState() -> LibboxWIFIState? {
     #if os(iOS)
-      let network = runBlocking {
-        await NEHotspotNetwork.fetchCurrent()
-      }
+      // Double optional: runBlocking returns nil on timeout, fetchCurrent returns nil
+      // when there is no network. Both mean "no WIFI state", so flatten them.
+      let network =
+        runBlocking {
+          await NEHotspotNetwork.fetchCurrent()
+        } ?? nil
       guard let network else {
         return nil
       }
@@ -450,9 +481,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     proxySettings.httpEnabled = isEnabled
     proxySettings.httpsEnabled = isEnabled
     networkSettings.proxySettings = proxySettings
-    try runBlocking {
-      try await self.tunnel.setTunnelNetworkSettings(networkSettings)
-    }
+    try applyNetworkSettings(networkSettings)
   }
 
   func reset() {
@@ -460,9 +489,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   public func restartService() throws {
-    try runBlocking { [self] in
-      try tunnel.restartService()
-    }
+    try tunnel.restartService()
   }
 
   public func postServiceClose() {
@@ -491,6 +518,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
         identifier: notification.identifier, content: content, trigger: nil)
       try runBlocking {
         try await center.requestAuthorization(options: [.alert])
+        // requestAuthorization ignores cancellation, so a timed-out runBlocking would
+        // otherwise still post the notification long after the caller gave up.
+        try Task.checkCancellation()
         try await center.add(request)
       }
     #endif
