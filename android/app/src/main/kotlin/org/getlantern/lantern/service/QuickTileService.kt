@@ -137,8 +137,8 @@ class QuickTileService : TileService() {
                 Intent(this, LanternVpnService::class.java)
                     .setAction(ACTION_STOP_VPN)
             )
-        }.onFailure { AppLogger.e(TAG, "Error sending stop to VPN service", it) }
-        AppLogger.d(TAG, "VPN service stop requested")
+        }.onSuccess { AppLogger.d(TAG, "VPN service stop requested") }
+            .onFailure { AppLogger.e(TAG, "Error sending stop to VPN service", it) }
     }
 
     private fun isPermissionIntent(): Intent? = VpnService.prepare(this)
