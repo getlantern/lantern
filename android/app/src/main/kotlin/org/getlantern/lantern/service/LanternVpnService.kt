@@ -166,6 +166,7 @@ class LanternVpnService :
             VpnStatusManager.registerVPNStatusReceiver()
             MainActivity.receiverRegistered = true
         }
+
         AppLogger.d(TAG, "Received action: $action")
         return when (action) {
             ACTION_START_RADIANCE -> {
@@ -452,8 +453,11 @@ class LanternVpnService :
             // orphan coroutines on Dispatchers.IO. Clear the flag from the
             // Deferred completion path so early cancellation before the async
             // body starts can't wedge future attempts.
+            // Duplicate attempt (e.g. double-tap): drop it — the in-flight
+            // attempt reports its own result.
             if (!connectInFlight.compareAndSet(false, true)) {
-                throw IllegalStateException("previous VPN connect attempt still in flight")
+                AppLogger.i(TAG, "VPN operation ($errorCode) ignored: previous connect attempt still in flight")
+                return@runCatching
             }
             val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             val deferred = connectScope.async { connect() }
@@ -490,7 +494,10 @@ class LanternVpnService :
                 errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
                 error = e,
             )
-            if (cleanUpOnFailure) serviceCleanUp()
+            // Don't unregister the status receiver while a live tunnel still
+            // needs it; a failing bridge call counts as not connected.
+            val vpnConnected = runCatching { Mobile.isVPNConnected() }.getOrDefault(false)
+            if (cleanUpOnFailure && !vpnConnected) serviceCleanUp()
         }
     }
 

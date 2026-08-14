@@ -242,14 +242,16 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun stopVPN() {
         if (isServiceRunning(this, LanternVpnService::class.java)) {
-            LanternApp.application.sendBroadcast(
-                Intent(LanternVpnService.ACTION_STOP_VPN)
-                    .setPackage(LanternApp.application.packageName)
+            // Service intent, not broadcast: works even if the status receiver
+            // was torn down.
+            startService(
+                Intent(this, LanternVpnService::class.java)
+                    .setAction(LanternVpnService.ACTION_STOP_VPN)
             )
             return
         }
 
-        // service isn’t up.. stop core directly and publish status
+        // service isn’t up. stop core directly and publish status
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 runCatching { Mobile.stopVPN() }

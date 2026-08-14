@@ -130,10 +130,15 @@ class QuickTileService : TileService() {
     }
 
     private fun stopVPN() {
-        LanternApp.application.sendBroadcast(
-            Intent(ACTION_STOP_VPN).setPackage(LanternApp.application.packageName)
-        )
-        AppLogger.d(TAG, "VPN service stopped")
+        // Service intent, not broadcast: works even if the status receiver
+        // was torn down.
+        runCatching {
+            startService(
+                Intent(this, LanternVpnService::class.java)
+                    .setAction(ACTION_STOP_VPN)
+            )
+        }.onFailure { AppLogger.e(TAG, "Error sending stop to VPN service", it) }
+        AppLogger.d(TAG, "VPN service stop requested")
     }
 
     private fun isPermissionIntent(): Intent? = VpnService.prepare(this)
