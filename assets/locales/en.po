@@ -1727,3 +1727,37 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+
+
+msgid "bypass_browser_warning_title"
+msgstr "Add %s to the bypass list?"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s will connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_anyway"
+msgstr "Add Anyway"
+
+msgid "bypass_all_warning_title"
+msgstr "Add all apps to the bypass list?"
+
+msgid "bypass_all_warning_body"
+msgstr "This includes browsers like %s. Apps on the bypass list connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_all_except_browsers"
+msgstr "Add All Except Browsers"
+
+msgid "add_all_anyway"
+msgstr "Add All Anyway"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bypass the VPN for this app?"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bypass the VPN for this website?"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."

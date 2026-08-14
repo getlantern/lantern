@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
@@ -53,10 +54,11 @@ class SplitTunneling extends HookConsumerWidget {
                     fontSize: 16,
                     color: context.textPrimary,
                   ),
-                  subtitle: Text(
+                  subtitle: AutoSizeText(
                     'add_apps_websites_bypass_vpn'.i18n,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    minFontSize: 10,
+                    maxLines: 2,
+                    maxFontSize: 12,
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                       letterSpacing: 0.0,
@@ -88,7 +90,7 @@ class SplitTunneling extends HookConsumerWidget {
                     actionText: '${enabledWebsites.length} Added',
                     onPressed: () => appRouter.push(WebsiteSplitTunneling()),
                   ),
-                }
+                },
               ],
             ),
           ),

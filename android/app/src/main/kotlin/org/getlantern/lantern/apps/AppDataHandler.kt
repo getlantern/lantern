@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.*
+import android.net.Uri
 import android.os.Build
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.EventChannel
@@ -110,13 +111,14 @@ internal class AppDataHandler(
                     Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
                     PackageManager.MATCH_ALL
                 )
+                val browsers = browserPackages(pm)
 
                 val entries = launchables.mapNotNull { ri ->
                     val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
                     if (AppFilters.shouldSkip(pkg, lanternPkg)) return@mapNotNull null
                     val label = runCatching { ri.loadLabel(pm).toString() }.getOrDefault(pkg)
                     val lastUpdate = runCatching { pm.getPackageInfoCompat(pkg).lastUpdateTime }.getOrDefault(0L)
-                    AppData(pkg, label, lastUpdate, appPath = "")
+                    AppData(pkg, label, lastUpdate, appPath = "", isBrowser = pkg in browsers)
                 }
                     .distinctBy { it.packageName }
                     .sortedBy { it.label.lowercase(Locale.getDefault()) }
@@ -227,8 +229,25 @@ internal class AppDataHandler(
             pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
         }.getOrDefault(pkg)
         val lastUpdate = runCatching { pm.getPackageInfoCompat(pkg).lastUpdateTime }.getOrDefault(0L)
-        return AppData(pkg, label, lastUpdate, appPath = "")
+        return AppData(pkg, label, lastUpdate, appPath = "", isBrowser = pkg in browserPackages(pm))
     }
+
+    /**
+     * Packages that register themselves as http(s) handlers — i.e. browsers.
+     * Dynamic per device, so any installed browser is detected, not just a
+     * hardcoded list of the common ones.
+     */
+    private fun browserPackages(pm: PackageManager): Set<String> = runCatching {
+        // Query both schemes: an app registering only https would otherwise
+        // slip through with isBrowser = false.
+        listOf("http", "https").flatMap { scheme ->
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$scheme://example.com"))
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+            pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        }
+            .mapNotNull { it.activityInfo?.packageName }
+            .toSet()
+    }.getOrDefault(emptySet())
 
     private fun isSystemApp(pm: PackageManager, pkg: String): Boolean = runCatching {
         val ai = pm.getApplicationInfo(pkg, 0)

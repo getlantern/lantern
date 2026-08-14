@@ -369,6 +369,7 @@ class LanternPlatformService implements LanternCoreService {
         lastUpdateTime: lastUpdateTime,
         removed: removed,
         isEnabled: enabled.contains(key: key, name: name),
+        isBrowser: raw["isBrowser"] == true,
       );
     }).toList();
   }
