@@ -2,7 +2,6 @@
 # Vaseto Nora <n.nouri67@gmail.com>, 2025
 # Amir Moezzi <amirreza.mz@yahoo.com>, 2025
 # Chip Stehr <chip@getlantern.org>, 2025
-# NoProfile, 2025
 # Mersen M, 2025
 # e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2026
 # Evan <alireza.firoozi68@gmail.com>, 2026
@@ -11,6 +10,8 @@
 # Pedram Azizallahi <pedram672004@yahoo.com>, 2026
 # Mary Sol <salar.adlparvar@gmail.com>, 2026
 # kian kamali <kian@tahgheegh.com>, 2026
+# b0b47d46632b78a09a40de799fda9a65, 2026
+# NoProfile, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -58,6 +59,17 @@ msgstr "این تصویر قبلاً پیوست شده است."
 msgid "report_issue_attachments_unreadable"
 msgstr "یکی از این فایل‌ها قابل خواندن نبود."
 
+msgid "send_without_email_title"
+msgstr "ارسال بدون ایمیل؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"آدرس ایمیلی وارد نکرده‌اید، بنابراین نمی‌توانیم به این گزارش پاسخ دهیم یا آن"
+" را پیگیری کنیم."
+
+msgid "send_without_email"
+msgstr "ارسال بدون ایمیل"
+
 msgid "lantern_projects"
 msgstr "پروژه‌های Lantern:"
 
@@ -74,6 +86,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "هم‌رسانی کد معرف"
+
+msgid "invite_friends_description"
+msgstr ""
+"وقتی دوستی با استفاده از کد معرف شما به Lantern Pro ارتقا دهد، هر دو 1 ماه "
+"رایگان دریافت می‌کنید."
+
+msgid "month_earned"
+msgstr "%s ماه به دست آمد"
+
+msgid "months_earned"
+msgstr "%s ماه به دست آمد"
+
+msgid "includes_free_month_from_referrals"
+msgstr "شامل %s ماه رایگان از معرفی‌ها"
+
+msgid "includes_free_months_from_referrals"
+msgstr "شامل %s ماه رایگان از معرفی‌ها"
+
+msgid "referral_converted_title"
+msgstr "یک دوست به نسخه پرو ارتقا داد"
+
+msgid "referral_converted_message"
+msgstr ""
+"هر دو %s از Lantern Pro را رایگان دریافت کردید. تاکنون %s به دست آورده‌اید. "
+"برای کسب بیشتر، به اشتراک‌گذاری کد خود ادامه دهید."
+
+msgid "month_count"
+msgstr "%s ماه"
+
+msgid "months_count"
+msgstr "%s ماه"
+
+msgid "done"
+msgstr "انجام شد"
+
+msgid "view_account"
+msgstr "مشاهده حساب"
+
+msgid "show_download_links"
+msgstr "نمایش لینک‌های دانلود"
+
+msgid "get_lantern"
+msgstr "دریافت لنترن"
+
+msgid "send_friend_download_link"
+msgstr "این لینک دانلود را برای دوست خود بفرستید:"
+
+msgid "scan_to_install"
+msgstr "برای نصب Lantern با برنامه دوربین خود اسکن کنید"
+
+msgid "remind_use_code"
+msgstr "به آن‌ها یادآوری کنید هنگام ارتقا از کد %s استفاده کنند!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1223,6 +1287,9 @@ msgstr "در دسترس در:"
 msgid "subscription_renewal_date"
 msgstr "تاریخ تمدید اشتراک"
 
+msgid "pro_access_until"
+msgstr "دسترسی پرو تا %s"
+
 msgid "enabled_bypass_lists"
 msgstr "لیست‌های دور زدن فعال شده (%d):"
 
@@ -1314,6 +1381,9 @@ msgstr "نام مستعار سرور نمی‌تواند خالی باشد"
 msgid "referral_code_applied"
 msgstr "کد ارجاع شما اعمال شد!"
 
+msgid "discount_applied"
+msgstr "تخفیف %s اعمال شد"
+
 msgid "referral_message_1m"
 msgstr "+ ۱۵ روز اضافی رایگان"
 
@@ -1325,8 +1395,8 @@ msgstr "+ 2 ماه اضافی رایگان"
 
 msgid "referral_code_invalid"
 msgstr ""
-"کد ارجاعی که وارد کرده‌اید نامعتبر است. لطفاً کد را بررسی کرده و دوباره تلاش"
-" کنید."
+"کد معرف/تخفیفی که وارد کردید نامعتبر است. لطفاً کد را بررسی کنید و دوباره "
+"تلاش کنید."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1536,9 +1606,8 @@ msgstr "سرعت به 128 kb/s کاهش یافت - بازنشانی در %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"هنگام خرید، پرداخت از Apple ID شما کسر می‌شود. اشتراک‌ها به‌طور خودکار تمدید"
-" می‌شوند مگر اینکه حداقل 24 ساعت قبل از پایان دوره فعلی لغو شوند. در تنظیمات"
-" App Store مدیریت یا لغو کنید."
+"مبلغ پرداخت هنگام خرید از Apple ID شما کسر می‌شود. اشتراک‌ها به‌طور خودکار "
+"تمدید می‌شوند مگر اینکه حداقل 24 ساعت قبل از پایان دوره فعلی لغو شوند."
 
 msgid "failed_to_update_routing_mode"
 msgstr "به‌روزرسانی حالت مسیریابی ناموفق بود. لطفاً دوباره تلاش کنید."
@@ -1767,3 +1836,81 @@ msgstr "بررسی به‌روزرسانی‌ها ممکن نبود"
 
 msgid "check_connection_and_retry"
 msgstr "اتصال خود را بررسی کنید و دوباره تلاش کنید"
+
+msgid "refresh_configuration"
+msgstr "تازه‌سازی پیکربندی"
+
+msgid "configuration_cleared"
+msgstr "پیکربندی پاک شد"
+
+msgid "turn_off_vpn"
+msgstr "خاموش کردن VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"قبل از تازه‌سازی پیکربندی، VPN باید خاموش باشد. آن را خاموش کنید و دوباره "
+"تلاش کنید."
+
+msgid "configuration_message"
+msgstr ""
+"پیکربندی قدیمی شما پاک شد. VPN را روشن کنید تا جدیدترین نسخه به‌طور خودکار "
+"دانلود شود."
+
+msgid "promo_referral_code"
+msgstr "کد تخفیف / معرف"
+
+msgid "promo_code"
+msgstr "کد تخفیف"
+
+msgid "promo_code_with"
+msgstr "کد تخفیف (%s)"
+
+msgid "order_total"
+msgstr "جمع سفارش"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"مکان هوشمند سریع‌ترین سرور را انتخاب می‌کند و با یافتن مسیرهای بهتر، به‌طور "
+"خودکار تغییر می‌دهد."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s به فهرست عبور اضافه شود؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. در کشورهایی که وب‌سایت‌های "
+"خاصی را مسدود می‌کنند، برخی سایت‌ها دیگر بارگیری نمی‌شوند."
+
+msgid "add_anyway"
+msgstr "در هر صورت اضافه شود"
+
+msgid "bypass_all_warning_title"
+msgstr "همه برنامه‌ها به فهرست عبور اضافه شوند؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های فهرست عبور مستقیماً و "
+"بدون محافظت Lantern متصل می‌شوند. در کشورهایی که وب‌سایت‌های خاصی را مسدود "
+"می‌کنند، برخی سایت‌ها دیگر بارگیری نمی‌شوند."
+
+msgid "add_all_except_browsers"
+msgstr "افزودن همه به‌جز مرورگرها"
+
+msgid "add_all_anyway"
+msgstr "در هر صورت همه اضافه شوند"
+
+msgid "bypass_app_first_time_title"
+msgstr "VPN برای این برنامه دور زده شود؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. اگر در کشور شما مسدود باشد، "
+"ممکن است از کار بیفتد."
+
+msgid "bypass_website_first_time_title"
+msgstr "VPN برای این وب‌سایت دور زده شود؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. اگر در کشور شما مسدود باشد، "
+"ممکن است از کار بیفتد."
