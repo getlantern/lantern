@@ -51,6 +51,17 @@ msgstr "یہ تصویر پہلے سے منسلک ہے۔"
 msgid "report_issue_attachments_unreadable"
 msgstr "ہم ان میں سے ایک فائل نہیں پڑھ سکے۔"
 
+msgid "send_without_email_title"
+msgstr "ای میل کے بغیر بھیجیں؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"آپ نے ای میل ایڈریس شامل نہیں کیا، اس لیے ہم اس رپورٹ کا جواب یا پیروی نہیں "
+"کر سکیں گے۔"
+
+msgid "send_without_email"
+msgstr "ای میل کے بغیر بھیجیں"
+
 msgid "lantern_projects"
 msgstr "Lantern پروجیکٹس:"
 
@@ -67,6 +78,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "ریفرل کوڈ شیئر کریں"
+
+msgid "invite_friends_description"
+msgstr ""
+"جب کوئی دوست آپ کے ریفرل کوڈ سے Lantern Pro میں اپ گریڈ کرتا ہے، تو آپ دونوں"
+" کو 1 مہینہ مفت ملتا ہے۔"
+
+msgid "month_earned"
+msgstr "%s مہینہ حاصل ہوا"
+
+msgid "months_earned"
+msgstr "%s مہینے حاصل ہوئے"
+
+msgid "includes_free_month_from_referrals"
+msgstr "ریفرلز سے %s مفت مہینہ شامل ہے"
+
+msgid "includes_free_months_from_referrals"
+msgstr "ریفرلز سے %s مفت مہینے شامل ہیں"
+
+msgid "referral_converted_title"
+msgstr "ایک دوست نے Pro میں اپ گریڈ کیا"
+
+msgid "referral_converted_message"
+msgstr ""
+"آپ دونوں نے %s کا Lantern Pro مفت حاصل کیا۔ اب تک آپ %s حاصل کر چکے ہیں۔ "
+"مزید حاصل کرنے کے لیے اپنا کوڈ شیئر کرتے رہیں۔"
+
+msgid "month_count"
+msgstr "%s مہینہ"
+
+msgid "months_count"
+msgstr "%s مہینے"
+
+msgid "done"
+msgstr "ہو گیا"
+
+msgid "view_account"
+msgstr "اکاؤنٹ دیکھیں"
+
+msgid "show_download_links"
+msgstr "ڈاؤن لوڈ لنکس دکھائیں"
+
+msgid "get_lantern"
+msgstr "Lantern حاصل کریں"
+
+msgid "send_friend_download_link"
+msgstr "اپنے دوست کو یہ ڈاؤن لوڈ لنک بھیجیں:"
+
+msgid "scan_to_install"
+msgstr "Lantern انسٹال کرنے کے لیے اپنی کیمرہ ایپ سے اسکین کریں"
+
+msgid "remind_use_code"
+msgstr "انہیں یاد دلائیں کہ اپ گریڈ کرتے وقت کوڈ %s استعمال کریں!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1225,6 +1288,9 @@ msgstr "دستیاب ہے:"
 msgid "subscription_renewal_date"
 msgstr "سبسکرپشن کی تجدید کی تاریخ"
 
+msgid "pro_access_until"
+msgstr "%s تک Pro رسائی"
+
 msgid "enabled_bypass_lists"
 msgstr "فعال بائی پاس لسٹس (%d):"
 
@@ -1316,6 +1382,9 @@ msgstr "سرور کا عرفی نام خالی نہیں ہو سکتا"
 msgid "referral_code_applied"
 msgstr "آپ کا ریفرل کوڈ لاگو ہو گیا ہے!"
 
+msgid "discount_applied"
+msgstr "%s رعایت لاگو ہو گئی"
+
 msgid "referral_message_1m"
 msgstr "+ 15 اضافی دن مفت"
 
@@ -1323,12 +1392,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 اضافی مہینہ مفت"
 
 msgid "referral_message_2y"
-msgstr "+ 2 اضافی مہینے مفت"
+msgstr "+ مزید 2 مہینے مفت"
 
 msgid "referral_code_invalid"
 msgstr ""
-"آپ نے جو ریفرل کوڈ درج کیا ہے وہ غلط ہے۔ براہ کرم کوڈ چیک کریں اور دوبارہ "
-"کوشش کریں۔"
+"آپ کا درج کردہ ریفرل/پرومو کوڈ غلط ہے۔ براہ کرم کوڈ چیک کر کے دوبارہ کوشش "
+"کریں۔"
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1540,9 +1609,9 @@ msgstr "رفتار 128 kb/s تک کم ہو گئی - %s پر ری سیٹ ہوگی
 
 msgid "subscription_renewal_info"
 msgstr ""
-"خریداری پر ادائیگی آپ کی Apple ID سے وصول کی جاتی ہے۔ سبسکرپشنز خودکار طور "
-"پر تجدید ہوتی ہیں جب تک کہ موجودہ مدت ختم ہونے سے کم از کم 24 گھنٹے پہلے "
-"منسوخ نہ کیا جائے۔ App Store کی ترتیبات میں منظم یا منسوخ کریں۔"
+"خریداری کے وقت ادائیگی آپ کے Apple ID سے لی جاتی ہے۔ سبسکرپشنز خود بخود "
+"تجدید ہوتی ہیں جب تک کہ موجودہ مدت کے اختتام سے کم از کم 24 گھنٹے پہلے منسوخ"
+" نہ کی جائیں۔"
 
 msgid "failed_to_update_routing_mode"
 msgstr "راؤٹنگ موڈ اپ ڈیٹ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
@@ -1771,3 +1840,81 @@ msgstr "اپ ڈیٹس چیک نہیں ہو سکیں"
 
 msgid "check_connection_and_retry"
 msgstr "اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں"
+
+msgid "refresh_configuration"
+msgstr "کنفیگریشن ریفریش کریں"
+
+msgid "configuration_cleared"
+msgstr "کنفیگریشن صاف ہو گئی"
+
+msgid "turn_off_vpn"
+msgstr "VPN بند کریں"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"کنفیگریشن ریفریش کرنے سے پہلے VPN بند ہونا ضروری ہے۔ اسے بند کریں، پھر "
+"دوبارہ کوشش کریں۔"
+
+msgid "configuration_message"
+msgstr ""
+"آپ کی پرانی کنفیگریشن صاف کر دی گئی ہے۔ تازہ ترین خود بخود ڈاؤن لوڈ کرنے کے "
+"لیے VPN آن کریں۔"
+
+msgid "promo_referral_code"
+msgstr "پرومو / ریفرل کوڈ"
+
+msgid "promo_code"
+msgstr "پرومو کوڈ"
+
+msgid "promo_code_with"
+msgstr "پرومو کوڈ (%s)"
+
+msgid "order_total"
+msgstr "آرڈر کا کل"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"اسمارٹ لوکیشن تیز ترین سرور منتخب کرتی ہے اور بہتر راستے ملنے پر خود بخود "
+"تبدیل ہو جاتی ہے۔"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s کو بائی پاس فہرست میں شامل کریں؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s براہ راست جڑے گا، Lantern کے تحفظ کے بغیر۔ جن ممالک میں کچھ ویب سائٹس "
+"بلاک ہیں، وہاں کچھ سائٹس لوڈ ہونا بند ہو جائیں گی۔"
+
+msgid "add_anyway"
+msgstr "بہر حال شامل کریں"
+
+msgid "bypass_all_warning_title"
+msgstr "تمام ایپس کو بائی پاس فہرست میں شامل کریں؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"اس میں %s جیسے براؤزرز شامل ہیں۔ بائی پاس فہرست کی ایپس براہ راست جڑتی ہیں، "
+"Lantern کے تحفظ کے بغیر۔ جن ممالک میں کچھ ویب سائٹس بلاک ہیں، وہاں کچھ سائٹس"
+" لوڈ ہونا بند ہو جائیں گی۔"
+
+msgid "add_all_except_browsers"
+msgstr "براؤزرز کے علاوہ سب شامل کریں"
+
+msgid "add_all_anyway"
+msgstr "بہر حال سب شامل کریں"
+
+msgid "bypass_app_first_time_title"
+msgstr "اس ایپ کے لیے VPN بائی پاس کریں؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s براہ راست جڑے گا، Lantern کے تحفظ کے بغیر۔ اگر یہ آپ کے ملک میں بلاک ہے، "
+"تو یہ کام کرنا بند کر سکتا ہے۔"
+
+msgid "bypass_website_first_time_title"
+msgstr "اس ویب سائٹ کے لیے VPN بائی پاس کریں؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s براہ راست جڑے گا، Lantern کے تحفظ کے بغیر۔ اگر یہ آپ کے ملک میں بلاک ہے، "
+"تو یہ کام کرنا بند کر سکتا ہے۔"
