@@ -312,6 +312,17 @@ class ShareNotifier extends Notifier<ShareState> {
 
     state = state.copyWith(probing: true);
 
+    // iOS runs radiance inside the network extension, whose memory budget
+    // cannot carry the peer proxy's second sing-box instance, so the backend
+    // refuses SmC there. Fall through to Unbounded before the probe rather
+    // than after: the probe blocks ~6s and its answer cannot change the mode.
+    // A manually forwarded port doesn't override this — the constraint is the
+    // extension's budget, not reachability.
+    if (PlatformUtils.isIOS) {
+      await _start(widgetRef, ShareMode.unbounded);
+      return;
+    }
+
     // Manual port forward skips the UPnP probe: configuring a port by hand is
     // an explicit request for the residential-IP path.
     final manualPortRes =
