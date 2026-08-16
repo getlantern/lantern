@@ -66,6 +66,49 @@ func TestRunOffCgoStackSanitizesUnsafeMessages(t *testing.T) {
 	}
 }
 
+// mutatingError answers differently on each call, the way an error formatting a
+// buffer another goroutine is still appending to would. The bridge calls
+// Error() itself when it builds NSLocalizedDescriptionKey, so validating a
+// message and handing back the callee's error would let the second answer —
+// the one that actually gets marshalled — be anything at all.
+type mutatingError struct{ calls int }
+
+func (e *mutatingError) Error() string {
+	e.calls++
+	if e.calls == 1 {
+		return "fine"
+	}
+	return "bad\xffbytes"
+}
+
+func TestRunOffCgoStackFreezesTheMessage(t *testing.T) {
+	in := &mutatingError{}
+	_, got := RunOffCgoStack(func() (struct{}, error) { return struct{}{}, in })
+	first := got.Error()
+	if first != "fine" {
+		t.Fatalf("first read: got %q, want %q", first, "fine")
+	}
+	if second := got.Error(); second != first {
+		t.Errorf("message not frozen: bridge would marshal %q after seeing %q", second, first)
+	}
+}
+
+// A nil *typedNilError inside a non-nil error interface derefs on Error().
+type typedNilError struct{ msg string }
+
+func (e *typedNilError) Error() string { return e.msg }
+
+func TestRunOffCgoStackSurvivesTypedNilError(t *testing.T) {
+	var typed *typedNilError
+	_, got := RunOffCgoStack(func() (struct{}, error) { return struct{}{}, typed })
+	if got == nil {
+		t.Fatal("a non-nil error interface must not come back nil")
+	}
+	if got.Error() == "" {
+		t.Error("the bridge needs a non-empty message even for this shape")
+	}
+}
+
 func TestRunOffCgoStackNilErrorStaysNil(t *testing.T) {
 	if _, err := RunOffCgoStack(func() (int, error) { return 7, nil }); err != nil {
 		t.Fatalf("nil error became %v", err)
