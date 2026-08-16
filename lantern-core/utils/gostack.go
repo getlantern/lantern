@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"runtime/debug"
@@ -20,8 +19,8 @@ import (
 // If fn panics, the panic is recovered and a zero value + error are returned
 // instead of blocking the caller forever.
 //
-// Returned errors are normalized to a plain *errorString with a guaranteed
-// non-empty, valid-UTF-8 message before crossing back into gomobile's
+// Returned errors are guaranteed to carry a non-empty, valid-UTF-8 message
+// before crossing back into gomobile's
 // objc bridge. The bridge wraps non-nil Go errors as a Universeerror whose
 // initWithRef calls [NSString initWithBytesNoCopy: ... encoding:UTF8] on the
 // raw error bytes; that returns nil for invalid UTF-8 (e.g. a gzipped 404
@@ -51,16 +50,34 @@ func RunOffCgoStack[T any](fn func() (T, error)) (T, error) {
 	return r.val, sanitizeForGomobile(r.err)
 }
 
+// sanitizedError presents a bridge-safe message while leaving the original
+// error reachable. Replacing the error outright would strip its type and wrap
+// chain, silently breaking every errors.Is and errors.As on the far side of a
+// gomobile-exported call — the bridge only ever reads Error(), so there is no
+// reason to pay that price.
+type sanitizedError struct {
+	msg string
+	err error
+}
+
+func (e *sanitizedError) Error() string { return e.msg }
+func (e *sanitizedError) Unwrap() error { return e.err }
+
 func sanitizeForGomobile(err error) error {
 	if err == nil {
 		return nil
 	}
 	msg := err.Error()
+	// The overwhelmingly common case: nothing to fix, so hand back the error
+	// itself rather than a copy that merely reads the same.
+	if msg != "" && utf8.ValidString(msg) {
+		return err
+	}
 	if !utf8.ValidString(msg) {
 		msg = strings.ToValidUTF8(msg, "?")
 	}
 	if msg == "" {
 		msg = "unknown error"
 	}
-	return errors.New(msg)
+	return &sanitizedError{msg: msg, err: err}
 }
