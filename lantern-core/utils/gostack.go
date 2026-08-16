@@ -79,7 +79,11 @@ func sanitizeForGomobile(err error) (safe error) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error("panic formatting error for gomobile", "panic", r, "stack", string(debug.Stack()))
-			safe = &sanitizedError{msg: "unknown error"}
+			// Keep the cause reachable even here. An error whose Error()
+			// panics can still be the sentinel a caller is testing for, and
+			// dropping it would make recovery silently change what errors.Is
+			// answers.
+			safe = &sanitizedError{msg: "unknown error", err: err}
 		}
 	}()
 	msg := err.Error()

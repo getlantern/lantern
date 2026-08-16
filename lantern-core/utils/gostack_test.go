@@ -107,6 +107,16 @@ func TestRunOffCgoStackSurvivesTypedNilError(t *testing.T) {
 	if got.Error() == "" {
 		t.Error("the bridge needs a non-empty message even for this shape")
 	}
+	// Recovering from the panic must not quietly cost the caller the cause;
+	// an error that panics while formatting can still be the one they are
+	// testing for.
+	if !errors.Is(got, error(typed)) {
+		t.Error("the recovered error no longer unwraps to the original")
+	}
+	var as *typedNilError
+	if !errors.As(got, &as) {
+		t.Error("errors.As cannot reach the original through the recovery path")
+	}
 }
 
 func TestRunOffCgoStackNilErrorStaysNil(t *testing.T) {
