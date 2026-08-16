@@ -84,8 +84,14 @@ class UnboundedSetting extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const UnboundedAdvancedCard(),
-          const SizedBox(height: 8),
+          // The only knob in here is the manually forwarded port, which
+          // exists to select the peer-proxy mode. iOS never enters that mode,
+          // so the field would report a setting as active that nothing can
+          // act on.
+          if (!PlatformUtils.isIOS) ...[
+            const UnboundedAdvancedCard(),
+            const SizedBox(height: 8),
+          ],
         ],
       ),
     );
