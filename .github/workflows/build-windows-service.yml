@@ -23,7 +23,8 @@ jobs:
         with:
           go-version-file: "go.mod"
       - name: Set up MinGW
-        run: choco install mingw -y
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh mingw -y
 
       - name: Build Windows service
         shell: pwsh

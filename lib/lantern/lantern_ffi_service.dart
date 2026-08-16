@@ -297,6 +297,7 @@ class LanternFFIService implements LanternCoreService {
           iconPath: raw["iconPath"] as String? ?? '',
           iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
           isEnabled: enabledKeys.contains(key),
+          isBrowser: raw["isBrowser"] == true,
         );
       }).toList();
     } catch (e, st) {
@@ -499,8 +500,15 @@ class LanternFFIService implements LanternCoreService {
       if (result == nullptr) {
         return right(unit);
       }
-      final resultStr = result.cast<Utf8>().toDartString();
-      malloc.free(result);
+      // `result` is a Go-allocated C string, so Dart's malloc.free would
+      // hard-crash (0xC0000409); hand it back to Go via freeCString after
+      // copying it into a Dart string.
+      final String resultStr;
+      try {
+        resultStr = result.cast<Utf8>().toDartString();
+      } finally {
+        _ffiService.freeCString(result);
+      }
       // The Go FFI returns a non-null C string like "ok" on success; only
       // treat unexpected payloads as errors.
       if (_ffiOkResults.contains(resultStr)) {

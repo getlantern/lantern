@@ -6,6 +6,7 @@
 # Lantern, 2026
 # TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
 # fffw <fffw@getlantern.org>, 2026
+# e2f_tw c1 <tx_e2f_tw_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -53,6 +54,15 @@ msgstr "該圖片已附加。"
 msgid "report_issue_attachments_unreadable"
 msgstr "無法讀取其中一個檔案。"
 
+msgid "send_without_email_title"
+msgstr "不填電子郵件直接傳送？"
+
+msgid "send_without_email_body"
+msgstr "你沒有填寫電子郵件地址，因此我們將無法回覆或跟進此回報。"
+
+msgid "send_without_email"
+msgstr "不填電子郵件傳送"
+
 msgid "lantern_projects"
 msgstr "Lantern 專案:"
 
@@ -67,6 +77,54 @@ msgstr "將你的推薦碼分享給朋友。當他們購買 Lantern Pro 時，�
 
 msgid "share_referral_code"
 msgstr "分享推薦碼"
+
+msgid "invite_friends_description"
+msgstr "當朋友使用你的推薦碼升級至 Lantern Pro 時，你們雙方都可獲得 1 個月免費時長。"
+
+msgid "month_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "months_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "includes_free_month_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "includes_free_months_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "referral_converted_title"
+msgstr "一位朋友已升級至專業版"
+
+msgid "referral_converted_message"
+msgstr "你們雙方均免費獲得了 %s 的 Lantern Pro。你目前已累計獲得 %s。繼續分享你的推薦碼以獲得更多。"
+
+msgid "month_count"
+msgstr "%s 個月"
+
+msgid "months_count"
+msgstr "%s 個月"
+
+msgid "done"
+msgstr "完成"
+
+msgid "view_account"
+msgstr "檢視帳戶"
+
+msgid "show_download_links"
+msgstr "顯示下載連結"
+
+msgid "get_lantern"
+msgstr "取得 Lantern"
+
+msgid "send_friend_download_link"
+msgstr "將此下載連結傳送給你的朋友："
+
+msgid "scan_to_install"
+msgstr "使用相機應用程式掃描即可安裝 Lantern"
+
+msgid "remind_use_code"
+msgstr "提醒他們升級時使用推薦碼 %s！"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1136,6 +1194,9 @@ msgstr "適用於:"
 msgid "subscription_renewal_date"
 msgstr "訂閱續訂日期"
 
+msgid "pro_access_until"
+msgstr "專業版有效期至 %s"
+
 msgid "enabled_bypass_lists"
 msgstr "已啟用的繞過清單 (%d):"
 
@@ -1220,6 +1281,9 @@ msgstr "伺服器別名不能為空"
 msgid "referral_code_applied"
 msgstr "您的推薦代碼已成功套用！"
 
+msgid "discount_applied"
+msgstr "已套用 %s 折扣"
+
 msgid "referral_message_1m"
 msgstr "+ 15 天免費"
 
@@ -1227,10 +1291,10 @@ msgid "referral_message_1y"
 msgstr "+ 1 個月免費"
 
 msgid "referral_message_2y"
-msgstr "+ 2 個月免費"
+msgstr "+ 額外贈送 2 個月"
 
 msgid "referral_code_invalid"
-msgstr "您輸入的推薦碼無效。請檢查該碼並重試。"
+msgstr "你輸入的推薦碼/優惠碼無效。請檢查後再試一次。"
 
 msgid "referral_code_own_invalid"
 msgstr "你不能使用自己的推薦碼。請輸入其他代碼。"
@@ -1419,8 +1483,7 @@ msgid "daily_data_cap_reached_message"
 msgstr "速度已降至 128 kb/s - 將在 %s 重設。"
 
 msgid "subscription_renewal_info"
-msgstr ""
-"購買時將從您的 Apple ID 扣款。訂閱將自動續訂，除非在當前週期結束前至少 24 小時取消。在 App Store 設定中管理或取消。"
+msgstr "購買時費用將透過你的 Apple ID 收取。除非在目前訂閱期結束前至少 24 小時取消，否則訂閱將自動續訂。"
 
 msgid "failed_to_update_routing_mode"
 msgstr "更新路由模式失敗。請重試。"
@@ -1627,3 +1690,66 @@ msgstr "無法檢查更新"
 
 msgid "check_connection_and_retry"
 msgstr "請檢查連線後再試一次"
+
+msgid "refresh_configuration"
+msgstr "重新整理設定"
+
+msgid "configuration_cleared"
+msgstr "設定已清除"
+
+msgid "turn_off_vpn"
+msgstr "關閉 VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "重新整理設定前需要先關閉 VPN。請關閉後再試一次。"
+
+msgid "configuration_message"
+msgstr "你的舊設定已清除。開啟 VPN 即可自動下載最新設定。"
+
+msgid "promo_referral_code"
+msgstr "優惠碼 / 推薦碼"
+
+msgid "promo_code"
+msgstr "優惠碼"
+
+msgid "promo_code_with"
+msgstr "優惠碼（%s）"
+
+msgid "order_total"
+msgstr "訂單總額"
+
+msgid "smart_routing_mode_description"
+msgstr "智慧位置會選擇最快的伺服器，並在發現更佳路線時自動切換。"
+
+msgid "bypass_browser_warning_title"
+msgstr "將 %s 加入繞行清單？"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_anyway"
+msgstr "仍要加入"
+
+msgid "bypass_all_warning_title"
+msgstr "將所有應用程式加入繞行清單？"
+
+msgid "bypass_all_warning_body"
+msgstr "其中包括 %s 等瀏覽器。繞行清單中的應用程式將直接連線，不受 Lantern 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_all_except_browsers"
+msgstr "加入除瀏覽器外的全部"
+
+msgid "add_all_anyway"
+msgstr "仍要全部加入"
+
+msgid "bypass_app_first_time_title"
+msgstr "為此應用程式繞過 VPN？"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
+
+msgid "bypass_website_first_time_title"
+msgstr "為此網站繞過 VPN？"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
