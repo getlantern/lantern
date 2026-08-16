@@ -241,6 +241,17 @@ class ShareNotifier extends Notifier<ShareState> {
 
     state = state.copyWith(probing: true);
 
+    // iOS runs radiance inside the network extension, whose memory budget
+    // cannot carry the peer proxy's second sing-box instance, so the backend
+    // refuses SmC there. Short-circuit ahead of every SmC path below: the
+    // probe blocks ~6s and neither it, a manually forwarded port, nor the
+    // disclosure dialog can change the outcome, because the constraint is
+    // the extension's budget rather than reachability or consent.
+    if (PlatformUtils.isIOS) {
+      await _start(widgetRef, ShareMode.unbounded);
+      return;
+    }
+
     // Manual port forward bypasses both the UPnP probe and the SmC
     // disclosure dialog. Configuring a port in Advanced is an explicit
     // user-driven SmC opt-in — they wouldn't have set it up if they
