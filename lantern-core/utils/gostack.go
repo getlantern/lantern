@@ -19,16 +19,20 @@ import (
 // If fn panics, the panic is recovered and a zero value + error are returned
 // instead of blocking the caller forever.
 //
-// Returned errors are guaranteed to carry a non-empty, valid-UTF-8 message
-// before crossing back into gomobile's
-// objc bridge. The bridge wraps non-nil Go errors as a Universeerror whose
-// initWithRef calls [NSString initWithBytesNoCopy: ... encoding:UTF8] on the
-// raw error bytes; that returns nil for invalid UTF-8 (e.g. a gzipped 404
-// page, or a binary blob from an upstream LB), and the dictionary literal
-// `@{NSLocalizedDescriptionKey: nil}` then aborts the app with
-// "attempt to insert nil object from objects[0]". Sanitizing here means every
-// gomobile-exported function that funnels through RunOffCgoStack is safe by
-// construction, regardless of what shape of error its callee returns.
+// Returned errors always carry a frozen, valid-UTF-8 message before crossing
+// back into gomobile's objc bridge. The bridge wraps non-nil Go errors as a
+// Universeerror whose initWithRef builds
+// `@{NSLocalizedDescriptionKey: [self error]}`; [self error] calls back into
+// Go, and the result reaches [NSString initWithBytesNoCopy: ... encoding:UTF8],
+// which returns nil for invalid UTF-8 (a gzipped 404 page, a binary blob from
+// an upstream LB). Inserting that nil into the dictionary literal aborts the
+// app with "attempt to insert nil object from objects[0]".
+//
+// Because the bridge calls Error() itself rather than reusing anything checked
+// here, validating a message and then returning the callee's error would only
+// hold for an Error() that answers identically every time. The wrapper is
+// therefore unconditional: it is the frozen message, not the check, that makes
+// this safe by construction.
 func RunOffCgoStack[T any](fn func() (T, error)) (T, error) {
 	type result struct {
 		val T
@@ -63,19 +67,32 @@ type sanitizedError struct {
 func (e *sanitizedError) Error() string { return e.msg }
 func (e *sanitizedError) Unwrap() error { return e.err }
 
-func sanitizeForGomobile(err error) error {
+func sanitizeForGomobile(err error) (safe error) {
 	if err == nil {
 		return nil
 	}
+	// Error() is callee-supplied and runs here, on the cgo-callback goroutine,
+	// outside the recover that guards fn. An interface holding a typed nil
+	// pointer is non-nil but derefs on the call, and an unrecovered panic in
+	// the helper whose job is to keep the bridge safe would take the process
+	// down on the way out.
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("panic formatting error for gomobile", "panic", r, "stack", string(debug.Stack()))
+			// Keep the cause reachable even here. An error whose Error()
+			// panics can still be the sentinel a caller is testing for, and
+			// dropping it would make recovery silently change what errors.Is
+			// answers.
+			safe = &sanitizedError{msg: "unknown error", err: err}
+		}
+	}()
 	msg := err.Error()
-	// The overwhelmingly common case: nothing to fix, so hand back the error
-	// itself rather than a copy that merely reads the same.
-	if msg != "" && utf8.ValidString(msg) {
-		return err
-	}
 	if !utf8.ValidString(msg) {
 		msg = strings.ToValidUTF8(msg, "?")
 	}
+	// Not for the bridge's sake — go_seq_to_objc_string returns @"" for an
+	// empty message and never reaches initWithBytesNoCopy. An error whose
+	// text is blank is just useless to whoever reads the crash report.
 	if msg == "" {
 		msg = "unknown error"
 	}
